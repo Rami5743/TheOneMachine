@@ -1,3 +1,0 @@
-Temporary marker file — exists only on branch claude/github-project-editing-bw3mcp.
-If you see this file in a folder, that folder is on the feature branch, NOT main.
-Safe to delete.
