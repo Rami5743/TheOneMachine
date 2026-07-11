@@ -11,7 +11,7 @@ const RAW = MODULE_SRC.split("isNandPresentationWorkspace }) {\n")[1].split("\n 
 const stub = `
   let COMPLETED = [];
   const setCompleted = (a) => { COMPLETED = a; };
-  const completedTaskIds = () => COMPLETED;
+  const toolbarGateToolIds = () => COMPLETED;
   let PRESENTATION = false;
   const setPresentation = (v) => { PRESENTATION = v; };
   const isNandPresentationWorkspace = () => PRESENTATION;
@@ -20,7 +20,7 @@ const stub = `
   const gateComponentType = (id) => "gate-" + id;
   const componentMarkup = (type, opts) => "[MK " + type + " lampOn=" + String(!!(opts && opts.lampOn)) + "]";
   const esc = (v) => String(v).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-  const DEPS = { completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace };
+  const DEPS = { toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace };
 `;
 
 const OLD = new Function(stub + RAW + "\n return { renderToolbar, setCompleted, setPresentation };")();

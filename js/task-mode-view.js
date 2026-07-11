@@ -24,15 +24,15 @@ function createTaskModeView({
     // top, one output on the right. Matches the taskCard-Mux pin offsets in app.js.
     return `
       <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
-        <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
-        <text class="workspace-task-shell-title" x="300" y="90" text-anchor="middle">${esc(task.label)}</text>
-        <line class="workspace-task-shell-pin" x1="160" y1="218" x2="240" y2="218" />
-        <line class="workspace-task-shell-pin" x1="160" y1="358" x2="240" y2="358" />
-        <text class="workspace-task-shell-pin-label" x="144" y="224" text-anchor="end">1</text>
-        <text class="workspace-task-shell-pin-label" x="144" y="364" text-anchor="end">2</text>
-        <line class="workspace-task-shell-pin" x1="500" y1="40" x2="500" y2="140" />
-        <text class="workspace-task-shell-pin-label" x="500" y="30" text-anchor="middle">בקרה</text>
-        <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
+        <rect class="workspace-task-shell-frame" x="150" y="60" width="700" height="456" rx="18" />
+        <text class="workspace-task-shell-title" x="290" y="48" text-anchor="middle">${esc(task.label)}</text>
+        <line class="workspace-task-shell-pin" x1="150" y1="188" x2="230" y2="188" />
+        <line class="workspace-task-shell-pin" x1="150" y1="388" x2="230" y2="388" />
+        <text class="workspace-task-shell-pin-label" x="134" y="194" text-anchor="end">1</text>
+        <text class="workspace-task-shell-pin-label" x="134" y="394" text-anchor="end">2</text>
+        <line class="workspace-task-shell-pin" x1="500" y1="40" x2="500" y2="150" />
+        <text class="workspace-task-shell-pin-label" x="500" y="28" text-anchor="middle">בקרה</text>
+        <line class="workspace-task-shell-pin" x1="770" y1="288" x2="850" y2="288" />
       </g>`;
   }
 

@@ -11,14 +11,17 @@
 //
 // createBoardGeometry(deps) -> { terminalPosition, clampComponentPosition }
 
-function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize }) {
+function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, componentRenderScale }) {
+  const renderScale = (type) => (componentRenderScale ? componentRenderScale(type) : 1);
+
   function terminalPosition(workspace, ref, overrides = null) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
     const override = overrides?.[info.component.id];
     const x = override?.x ?? info.component.x;
     const y = override?.y ?? info.component.y;
-    return { x: x + info.pin.x, y: y + info.pin.y };
+    const scale = renderScale(info.component.type);
+    return { x: x + info.pin.x * scale, y: y + info.pin.y * scale };
   }
 
   function clampComponentPosition(type, x, y) {

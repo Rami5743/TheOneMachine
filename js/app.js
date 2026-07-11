@@ -136,16 +136,16 @@
         fixed: true,
         taskId: mux.id,
         pins: {
-          inputExt1: { x: -340, y: -70, direction: "in", label: "כניסת MUX 1 חיצונית" },
-          inputInt1: { x: -260, y: -70, direction: "out", label: "כניסת MUX 1 פנימית" },
-          inputExt2: { x: -340, y: 70, direction: "in", label: "כניסת MUX 2 חיצונית" },
-          inputInt2: { x: -260, y: 70, direction: "out", label: "כניסת MUX 2 פנימית" },
+          inputExt1: { x: -350, y: -100, direction: "in", label: "כניסת MUX 1 חיצונית" },
+          inputInt1: { x: -270, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
+          inputExt2: { x: -350, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
+          inputInt2: { x: -270, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
           inputExt3: { x: 0, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
-          inputInt3: { x: 0, y: -148, direction: "out", label: "כניסת בקרה פנימית" },
-          outputInt: { x: 260, y: 0, direction: "in", label: "יציאת MUX פנימית" },
-          outputExt: { x: 340, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
+          inputInt3: { x: 0, y: -138, direction: "out", label: "כניסת בקרה פנימית" },
+          outputInt: { x: 270, y: 0, direction: "in", label: "יציאת MUX פנימית" },
+          outputExt: { x: 350, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
         },
-        bounds: { left: 340, right: 340, top: 270, bottom: 190 }
+        bounds: { left: 350, right: 350, top: 270, bottom: 240 }
       };
     }
   }
@@ -241,7 +241,15 @@
   // js/board-geometry.js. Created before workspace-state, which injects
   // clampComponentPosition into its normalizer. workspaceBoardSize (DOM) stays
   // in this file and is injected.
-  const __boardGeometry = createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize });
+  // Built-gate cards are drawn at 60% size to keep circuits (and the MUX
+  // solution) readable. Scaling at render time leaves pin data, the circuit
+  // check and the toolbar icons untouched.
+  const GATE_RENDER_SCALE = 0.6;
+  function componentRenderScale(type) {
+    return String(type || "").startsWith("gate-") ? GATE_RENDER_SCALE : 1;
+  }
+
+  const __boardGeometry = createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, componentRenderScale });
   const terminalPosition = (...args) => __boardGeometry.terminalPosition(...args);
   const clampComponentPosition = (...args) => __boardGeometry.clampComponentPosition(...args);
 
@@ -283,7 +291,8 @@
   // below pass state.workspace so existing call sites stay unchanged.
   const __boardRender = createBoardRender({
     solutionHighlightConfig, terminalPosition, wireKey, esc, componentDef,
-    componentMarkup, charredNandMarkup, smokeMarkup, isFixedWorkspaceComponent
+    componentMarkup, charredNandMarkup, smokeMarkup, isFixedWorkspaceComponent,
+    componentRenderScale
   });
   const renderWires = () => __boardRender.renderWires(state.workspace);
   const renderTerminals = () => __boardRender.renderTerminals(state.workspace);
@@ -313,7 +322,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -820,6 +829,18 @@
 
   function taskCompleted(taskId) {
     return completedTaskIds().includes(taskId);
+  }
+
+  // Which built-gate tools the palette offers. Once the learner is PAST chapter
+  // 2.2 (i.e. in 2.3 onward) every simple gate is available even if it was
+  // skipped and never actually built. Back inside 2.2 (or earlier) only the
+  // gates truly completed appear.
+  function isPastSimpleGatesChapter() {
+    return chapterIndexById(state.chapterId) > chapterIndexById(simpleGatesChapter().id);
+  }
+
+  function toolbarGateToolIds() {
+    return isPastSimpleGatesChapter() ? TASK_DEFS.map((task) => task.id) : completedTaskIds();
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js

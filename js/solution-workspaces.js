@@ -295,10 +295,10 @@ function createSolutionWorkspaces({
   function muxCompactSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
     workspace.components.push(
-      { id: "not-c", type: "gate-Not", x: 380, y: 150 },
-      { id: "and-1", type: "gate-And", x: 470, y: 250 },
-      { id: "and-2", type: "gate-And", x: 470, y: 420 },
-      { id: "or-1", type: "gate-Or", x: 630, y: 350 }
+      { id: "not-c", type: "gate-Not", x: 410, y: 150 },
+      { id: "and-1", type: "gate-And", x: 480, y: 235 },
+      { id: "and-2", type: "gate-And", x: 480, y: 410 },
+      { id: "or-1", type: "gate-Or", x: 650, y: 320 }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt3", "not-c.in1"),
@@ -320,14 +320,14 @@ function createSolutionWorkspaces({
   function muxGenericSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
     workspace.components.push(
-      { id: "not-in2", type: "gate-Not", x: 285, y: 150 },
-      { id: "not-in1", type: "gate-Not", x: 285, y: 300 },
-      { id: "not-c", type: "gate-Not", x: 285, y: 450 },
-      { id: "and-m1", type: "gate-AND3way", x: 450, y: 145 },
-      { id: "and-m2", type: "gate-AND3way", x: 450, y: 290 },
-      { id: "and-m3", type: "gate-AND3way", x: 450, y: 435 },
-      { id: "and-m4", type: "gate-AND3way", x: 610, y: 480 },
-      { id: "or-final", type: "gate-OR4way", x: 650, y: 320 }
+      { id: "not-c", type: "gate-Not", x: 430, y: 160 },
+      { id: "not-in1", type: "gate-Not", x: 340, y: 235 },
+      { id: "not-in2", type: "gate-Not", x: 340, y: 335 },
+      { id: "and-m1", type: "gate-AND3way", x: 545, y: 180 },
+      { id: "and-m2", type: "gate-AND3way", x: 545, y: 275 },
+      { id: "and-m3", type: "gate-AND3way", x: 545, y: 375 },
+      { id: "and-m4", type: "gate-AND3way", x: 545, y: 470 },
+      { id: "or-final", type: "gate-OR4way", x: 690, y: 300 }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt2", "not-in2.in1"),
