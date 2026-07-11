@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel39.png"
+         xlink:href="panel39.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 579,42 C 561.6589,41.5812 544.2815,42.5035 527,44 C 514.601,45.0737 502.1715,46.4034 490,49 C 466.8932,53.9295 443.9264,60.1991 422,69 C 411.9,73.054 402.2184,78.2151 393,84 C 385.9414,88.4295 379.1571,93.3844 373,99 C 366.0253,105.3612 354,120 354,120 L 339,149 L 334,172 L 335,197 L 345,223 L 371,253 C 371,253 391.1013,266.6984 402,272 C 413.1916,277.4441 437,285 437,285 L 435,303 C 435,303 428.2429,317.3335 424,324 C 419.2749,331.4241 408,345 408,345 L 410,347 L 443,326 L 468,301 C 468,301 519.8509,308.8935 546,310 C 567.9904,310.9306 590.1202,310.3913 612,308 C 631.5615,305.8621 670,297 670,297 L 721,275 L 756,246 L 770,226 L 779,204 L 783,178 C 783,178 782.8181,167.2807 782,162 C 780.7376,153.851 778.7687,145.7675 776,138 C 773.8972,132.1008 768,121 768,121 L 751,99 C 751,99 734.3177,84.1067 725,78 C 717.7675,73.2599 709.9458,69.412 702,66 C 690.6673,61.1337 678.9212,57.1618 667,54 C 653.2246,50.3464 639.1172,47.9532 625,46 C 609.754,43.8907 594.3867,42.3716 579,42 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaccccccaccaccccaaccccccaaccaaaa"
+          />
+  <text id="bubble-text"
+        x="557.00" y="95.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="557.00" y="95.00">אני לא יכול להגיד את</tspan>
+    <tspan x="557.00" y="137.00">זה בטלפון, אתה תקבל את</tspan>
+    <tspan x="557.00" y="179.00">כל הפרטים עם שליח, אבל אתה</tspan>
+    <tspan x="557.00" y="221.00">צריך להתחייב לשמור על</tspan>
+    <tspan x="557.00" y="263.00">סודיות מוחלטת.</tspan>
+  </text>
+  </g>
+</svg>

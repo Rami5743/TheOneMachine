@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel54.png"
+         xlink:href="panel54.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 439,112 L 438,121 C 438,121 411.8302,123.3236 399,126 C 390.8423,127.7017 382.8441,130.1868 375,133 C 367.8313,135.5709 360.6774,138.3377 354,142 C 346.2179,146.2681 338.8345,151.3372 332,157 C 328.733,159.7068 325.7423,162.7628 323,166 C 319.2931,170.3758 315.6965,174.9386 313,180 C 310.3218,185.0271 307,196 307,196 L 308,219 C 308,219 310.8778,227.2219 313,231 C 315.2204,234.9529 318.0547,238.5532 321,242 C 324.3686,245.9422 328.0522,249.6379 332,253 C 337.6347,257.7987 343.6214,262.2463 350,266 C 360.1528,271.9748 382,281 382,281 L 382,298 L 378,308 L 411,308 L 411,300 L 417,292 C 417,292 427.6784,291.6468 433,292 C 443.0663,292.6681 452.9337,295.3319 463,296 C 479.6301,297.1038 496.3577,296.9018 513,296 C 528.4011,295.1654 543.8333,293.8037 559,291 C 571.8797,288.619 584.7122,285.5348 597,281 C 607.0703,277.2836 616.8878,272.6736 626,267 C 634.2643,261.8543 649,249 649,249 L 664,227 L 669,207 L 668,193 C 668,193 664.0006,181.3434 661,176 C 657.9641,170.5938 650,161 650,161 C 650,161 635.9243,148.8057 628,144 C 619.8384,139.0504 610.974,135.2524 602,132 C 593.5618,128.9418 584.7963,126.7834 576,125 C 566.4364,123.0611 547,121 547,121 L 546,112 L 439,112 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaaccaaaaccccccaaaaaaccccacaaacc"
+          />
+  <text id="bubble-text"
+        x="488.50" y="189.10"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="32"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="488.50" y="194.86">יכול היה להיות יותר טוב.</tspan>
+    <tspan x="488.50" y="237.09">אני קורס בעבודה.</tspan>
+  </text>
+  </g>
+</svg>

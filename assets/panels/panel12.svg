@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg3"
+   sodipodi:docname="panel12.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="160.5681"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel12.png"
+     xlink:href="panel12.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="M 172,53 C 181.6882,53.1666 191.3961,53.7139 201,55 C 211.1078,56.3536 221.2905,57.8813 231,61 C 241.795,64.4674 252.7564,68.4341 262,75 C 269.4967,80.325 276.1438,87.1915 281,95 C 284.5645,100.7315 286.6493,107.387 288,114 C 289.3358,120.54 289.6908,127.3609 289,134 C 288.3222,140.5138 286.4026,146.9077 284,153 C 282.1945,157.5785 277,166 277,166 L 277,171 C 277,171 282.0348,176.0601 285,178 C 290.2408,181.4287 302,186 302,186 L 299,188 C 299,188 290.3158,188.3892 286,188 C 278.5766,187.3306 264,184 264,184 C 264,184 258.9513,189.6522 256,192 C 251.0781,195.9154 245.6473,199.2316 240,202 C 233.9396,204.971 227.5085,207.2124 221,209 C 212.1738,211.4242 203.1032,213.0464 194,214 C 181.0665,215.3548 167.9726,215.9064 155,215 C 140.8414,214.0107 126.7746,211.4213 113,208 C 106.8619,206.4755 100.7531,204.627 95,202 C 85.4836,197.6545 76.1516,192.5571 68,186 C 62.6707,181.7132 57.9679,176.5708 54,171 C 50.2802,165.7775 47.341,159.9692 45,154 C 43.1107,149.1825 41.475,144.1529 41,139 C 40.2022,130.3444 40.8951,121.4336 43,113 C 44.4097,107.3518 46.8917,101.9221 50,97 C 53.5328,91.4056 57.9573,86.2836 63,82 C 70.7557,75.4118 79.7495,70.2408 89,66 C 95.9955,62.793 103.5097,60.7658 111,59 C 121.508,56.5227 132.2523,55.0212 143,54 C 152.629,53.0851 162.329,52.8337 172,53 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaaaaaccaccacaaaaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="163.24313"
+       y="132.45924"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="28.5168px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       style="stroke-width:1.28977"> <tspan
+   x="163.24313"
+   y="98.834976"
+   id="tspan1"
+   style="stroke-width:1.28977">הם עובדים על זה.</tspan> <tspan
+   x="163.24313"
+   y="132.45924"
+   id="tspan2"
+   style="stroke-width:1.28977">אנחנו צריכים לעשות</tspan> <tspan
+   x="163.24313"
+   y="166.0706"
+   id="tspan3"
+   style="stroke-width:1.28977">את זה לפניהם.</tspan></text>
+  </g>
+</svg>

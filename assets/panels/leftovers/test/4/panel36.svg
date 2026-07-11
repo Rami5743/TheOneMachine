@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel36.png"
+         xlink:href="panel36.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1251,179 C 1263.0139,178.6686 1275.0818,179.4507 1287,181 C 1298.4745,182.4916 1309.9078,184.7058 1321,188 C 1330.6128,190.8549 1340.0902,194.3987 1349,199 C 1358.2004,203.7513 1367.2336,209.1513 1375,216 C 1381.5625,221.787 1392,236 1392,236 L 1400,258 L 1397,280 L 1383,302 C 1383,302 1365.2389,317.9956 1355,324 C 1343.786,330.5762 1331.4343,335.2068 1319,339 C 1307.62,342.4716 1295.8398,344.8276 1284,346 C 1266.751,347.708 1249.2615,347.5766 1232,346 C 1219.1736,344.8285 1194,339 1194,339 C 1194,339 1175.8325,357.5482 1166,366 C 1160.5903,370.6501 1149,379 1149,379 L 1147,378 C 1147,378 1154.2069,366.2697 1157,360 C 1161.5899,349.6969 1168,328 1168,328 C 1168,328 1152.0567,319.546 1145,314 C 1138.3285,308.7568 1132.1098,302.7742 1127,296 C 1122.8667,290.5203 1117,278 1117,278 L 1115,255 L 1128,228 C 1128,228 1137.5316,217.483 1143,213 C 1147.6472,209.1902 1152.74,205.9058 1158,203 C 1167.2726,197.8775 1176.9891,193.4648 1187,190 C 1196.0915,186.8534 1205.5311,184.7017 1215,183 C 1226.8835,180.8643 1238.9307,179.3329 1251,179 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaccccaaaacaccacaacccaaaa"
+          />
+  <text id="bubble-text"
+        x="1258.00" y="236.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1258.00" y="244.06">כן,</tspan>
+    <tspan x="1258.00" y="293.56">אדוני הנשיא.</tspan>
+  </text>
+  </g>
+</svg>

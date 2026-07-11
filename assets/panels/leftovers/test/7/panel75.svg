@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel75.png"
+         xlink:href="panel75.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1021,436 C 930.2778,437.8337 837.2778,426.002 749,447 C 745.0816,447.932 741.0053,449.3186 738,452 C 733.6491,455.882 730.8095,461.4569 729,467 C 725.5723,477.5 726.4392,488.9634 726,500 C 724.807,529.9781 724.7892,560.0797 727,590 C 728.2645,607.1127 729.3022,624.4962 734,641 C 734.8988,644.1575 736.0524,647.3572 738,650 C 740.1021,652.8525 742.8602,655.3578 746,657 C 749.6535,658.9109 753.922,659.3916 758,660 C 770.8746,661.9209 797,662 797,662 C 797,662 797.4927,666.0616 797,668 C 792.7008,684.9137 776.2992,697.0863 772,714 C 771.5894,715.6153 772,719 772,719 C 772,719 778.2947,717.6375 781,716 C 802.7807,702.8159 812.2946,672.2885 836,663 C 882.5632,644.7552 935.9908,665.7193 986,666 C 1024.0009,666.2133 1062.5163,671.2516 1100,665 C 1107.2781,663.7861 1114.84,662.0619 1121,658 C 1124.3509,655.7904 1126.8898,652.4144 1129,649 C 1131.8311,644.4191 1133.7387,639.2354 1135,634 C 1139.234,616.4258 1139.3539,598.0654 1140,580 C 1141.144,548.0135 1141.3395,515.8323 1138,484 C 1137.2565,476.913 1136.2817,469.7507 1134,463 C 1132.0907,457.3511 1129.6696,451.6999 1126,447 C 1124.1087,444.5777 1121.658,442.5425 1119,441 C 1114.7141,438.5128 1109.8827,436.8457 1105,436 C 1077.4108,431.2212 1048.9943,435.4342 1021,436 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaacaacaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="933.00" y="474.12"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="26"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="933.00" y="478.81">שלום, אני אני אחד</tspan>
+    <tspan x="933.00" y="510.81">המעגלים הכי פשוטים שיש.</tspan>
+    <tspan x="933.00" y="543.10">אני בנוי רק משתי טרידות ונגד.</tspan>
+    <tspan x="933.00" y="573.76">אבל אפשר לבנות ממני כל מכונת</tspan>
+    <tspan x="933.00" y="606.58">חישוב, אפילו את המחשב שאתה</tspan>
+    <tspan x="933.00" y="638.51">וג'ון מנסים לבנות.</tspan>
+  </text>
+  </g>
+</svg>

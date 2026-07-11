@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel25.png"
+         xlink:href="panel25.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 662,207 C 662,207 664.2388,218.146 668,222 C 671.5461,225.6336 682,228 682,228 L 681,245 C 681,245 617.2939,243.9754 586,249 C 563.0796,252.6802 539.9757,258.0546 519,268 C 503.2082,275.4875 486.735,284.2085 476,298 C 466.1509,310.6533 459.4129,326.9706 459,343 C 458.7747,351.7467 462.624,360.4233 467,368 C 471.9567,376.5821 478.9363,384.2381 487,390 C 510.9312,407.1 539.4294,418.0122 568,425 C 608.5785,434.9247 651.2477,435.3614 693,434 C 722.259,433.046 751.4664,415.4553 780,422 C 789.3714,424.1495 799.0013,429.7867 804,438 C 805.5693,440.5785 805,447 805,447 L 833,447 C 833,447 817.3128,429.7818 814,419 C 812.4336,413.9019 814,403 814,403 C 814,403 831.2143,394.1653 840,396 C 846.2679,397.3089 855,408 855,408 L 853,369 L 867,368 L 868,345 L 860,343 L 861,318 L 983,310 L 983,207 L 950,207 L 949,217 L 836,234 L 835,277 C 835,277 777.6223,257.7415 748,252 C 728.9186,248.3016 690,246 690,246 L 689,228 C 689,228 699.5622,225.7362 703,222 C 706.5687,218.1216 708,207 708,207 L 662,207 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="caccaaaaaaaaaaccacaccccccccccccaccac"
+          />
+  <text id="bubble-text"
+        x="721.00" y="288.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="721.00" y="295.20">ש==</tspan>
+    <tspan x="721.00" y="320.57">שש אהה- אה סליחה.</tspan>
+    <tspan x="721.00" y="372.57">במה אני יוכולה לעזור.</tspan>
+  </text>
+  </g>
+</svg>

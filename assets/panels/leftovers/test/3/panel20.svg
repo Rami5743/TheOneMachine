@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel20.png"
+         xlink:href="panel20.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 225,113 C 263.5721,110.297 302.4081,110.5974 341,113 C 357.0934,114.0019 373.2059,115.7524 389,119 C 404.2934,122.1446 419.5548,126.0743 434,132 C 446.2816,137.0382 458.2508,143.2104 469,151 C 475.6827,155.8427 481.9865,161.4444 487,168 C 493.4322,176.4106 502,196 502,196 L 501,229 L 487,254 C 487,254 464.187,274.436 451,282 C 438.5433,289.1451 424.8377,294.1608 411,298 C 386.9207,304.6806 361.9082,307.9935 337,310 C 309.7549,312.1947 282.3072,311.1954 255,310 C 235.9453,309.1659 216.8456,307.9364 198,305 C 174.0291,301.265 127,289 127,289 C 127,289 91.4616,305.5234 73,312 C 58.958,316.9261 30,324 30,324 L 101,277 L 101,273 L 72,249 L 60,226 L 59,198 L 69,176 C 69,176 89.9211,152.4359 103,144 C 118.4498,134.0348 136.2583,127.8199 154,123 C 177.0643,116.7342 201.1582,114.6708 225,113 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaacccaaaaacacccccccaa"
+          />
+  <text id="bubble-text"
+        x="267.50" y="175.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="267.50" y="183.06">שלום, מדברים</tspan>
+    <tspan x="267.50" y="245.56">מלשכת הנשיא.</tspan>
+  </text>
+  </g>
+</svg>

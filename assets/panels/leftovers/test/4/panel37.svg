@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1450"
+     height="1085"
+     viewBox="0 0 1450 1085"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1450"
+         height="1085"
+         preserveAspectRatio="none"
+         href="panel37.png"
+         xlink:href="panel37.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 365,0 L 365,8 L 457,8 L 458,61 L 465,41 L 481,41 L 482,53 L 490,53 L 488,19 L 504,18 L 505,8 L 580,8 L 581,21 L 584,8 L 623,9 L 623,57 L 495,66 L 491,55 L 490,73 C 490,73 457.7112,87.2038 444,98 C 433.06,106.6142 423.3993,117.2042 416,129 C 409.882,138.7532 405.2076,149.7004 403,161 C 400.5073,173.7588 400.3383,187.2754 403,200 C 405.3838,211.3962 410.5182,222.3283 417,232 C 424.7431,243.5537 440.7865,249.1056 446,262 C 448.1241,267.2535 447.6421,273.5765 446,279 C 440.4276,297.4045 414,327 414,327 C 414,327 451.9969,292.4679 476,288 C 508.3914,281.9707 540.1083,305.0793 573,307 C 603.3712,308.7735 634.6017,307.8293 664,300 C 685.7559,294.206 706.8762,284.3572 725,271 C 738.8627,260.7833 751.3585,247.8956 760,233 C 767.1945,220.5986 772.3287,206.3215 773,192 C 773.9582,171.5584 768.9499,150.4032 760,132 C 753.3737,118.3747 742.2088,107.1941 731,97 C 723.5447,90.2196 715.1311,84.2636 706,80 C 682.7672,69.1519 632,59 632,59 L 627,9 L 807,8 L 807,0 L 365,0 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="cccccccccccccccccccaaaaaaacaaaaaaaaacccc"
+          />
+  <text id="bubble-text"
+        x="586.50" y="15.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="586.50" y="23.06">ו</tspan>
+    <tspan x="586.50" y="131.56">המולדת צריכה</tspan>
+    <tspan x="586.50" y="181.23">שתנהל עבורה פרויקט</tspan>
+    <tspan x="586.50" y="226.73">לאומי בעל חשיבות</tspan>
+    <tspan x="586.50" y="275.81">עליונה. !ו</tspan>
+  </text>
+  </g>
+</svg>

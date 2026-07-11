@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel09.png"
+         xlink:href="panel09.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 901,197 C 895.5,203.83 892.17,210.83 890,219 C 887.83,227.17 887.67,238.67 888,246 C 888.33,253.33 888.67,256.33 892,263 C 895.33,269.67 901.33,279.67 908,286 C 914.67,292.33 923.83,297.33 932,301 C 940.17,304.67 940.67,306.67 957,308 L 1030,309 L 1058,338 L 1047,305 L 1067,300 C 1073.83,297.17 1082.17,292.33 1088,288 C 1093.83,283.67 1098,279.83 1102,274 C 1106,268.17 1110.17,262 1112,253 C 1113.83,244 1114.67,229.5 1113,220 C 1111.33,210.5 1107.33,203 1102,196 C 1096.67,189 1089.17,183 1081,178 C 1072.83,173 1063.83,169 1053,166 C 1042.17,163 1030.67,160.5 1016,160 C 1001.33,159.5 980.5,160 965,163 C 949.5,166 933.67,172.33 923,178 C 912.33,183.67 906.5,190.17 901,197 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="1002.00" y="242.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="700"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1002.00" y="242.00">אז על מה?!</tspan>
+  </text>
+  </g>
+</svg>

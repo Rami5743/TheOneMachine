@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel85_simple_gates_03.png"
+         xlink:href="panel85_simple_gates_03.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 729,133 C 705.6506,133.5001 682.2668,133.9747 659,136 C 646.2723,137.1079 633.4501,138.1336 621,141 C 614.8367,142.419 603,147 603,147 L 590,155 L 582,163 L 575,175 L 571,190 L 571,204 L 556,205 L 556,221 L 573,221 L 577,229 L 576,247 L 570,253 L 561,258 L 561,260 L 577,260 L 590,255 L 607,255 C 607,255 622.8093,260.4649 631,262 C 646.1278,264.8352 661.6257,265.2786 677,266 C 724.2825,268.2187 771.6742,267.9083 819,267 C 833.6791,266.7183 848.3803,266.3493 863,265 C 877.411,263.67 906,259 906,259 L 931,247 L 945,230 L 949,220 L 950,211 L 959,210 L 959,191 L 950,190 L 946,173 L 933,156 L 919,147 C 919,147 903.8411,141.6551 896,140 C 885.1584,137.7115 874.0417,136.9267 863,136 C 841.7181,134.2138 820.3509,133.5001 799,133 C 775.6731,132.4536 752.328,132.5003 729,133 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaacccccccccccccccccaaaacccccccccccaaa"
+          />
+  <text id="bubble-text"
+        x="758.00" y="200.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="758.00" y="205.60">תתחיל מהרשמה הזאת</tspan>
+  </text>
+  </g>
+</svg>

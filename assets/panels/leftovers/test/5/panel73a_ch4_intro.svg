@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel73a_ch4_intro.png"
+         xlink:href="panel73a_ch4_intro.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 922,29 C 803.8709,14.6256 683.8584,24.186 565,30 C 557.9767,30.3435 550.7406,29.9978 544,32 C 536.4249,34.25 529.3667,38.3193 523,43 C 518.8221,46.0715 515.032,49.7933 512,54 C 507.206,60.6513 501,76 501,76 L 497,144 L 476,145 L 474,138 L 467,140 L 467,151 L 460,152 L 460,189 L 454,192 L 463,195 C 463,195 459.6254,233.7041 461,253 C 461.6737,262.457 466,281 466,281 L 471,285 C 471,285 470.2736,297.7085 471,304 C 472.8455,319.9838 479.5859,335.0921 482,351 C 484.1059,364.8768 485,393 485,393 L 528,393 L 528,252 C 528,252 558.6139,255.925 574,257 C 595.2918,258.4876 616.6582,258.7132 638,259 C 714.3272,260.0256 790.7414,261.3923 867,258 C 886.7177,257.1229 906.9185,258.045 926,253 C 935.2281,250.5602 952,241 952,241 L 970,218 C 970,218 976.6595,192.8747 978,180 C 981.2104,149.1667 980.9131,117.8628 978,87 C 977.3304,79.9057 976.4455,72.6931 974,66 C 971.9,60.2524 968.9768,54.6507 965,50 C 959.7559,43.8673 946,35 946,35 C 946,35 930.1858,29.9961 922,29 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaccccccccccaccaacccaaaaccaaaac"
+          />
+  <text id="bubble-text"
+        x="716.50" y="82.20"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="716.50" y="89.04">מצוין. זה המחסן שלנו. תתחיל</tspan>
+    <tspan x="716.50" y="133.84">להכיר את הציוד.</tspan>
+    <tspan x="716.50" y="179.54">אני צריך לרוץ לפגישה ש</tspan>
+    <tspan x="716.50" y="226.09">עם רוברט.</tspan>
+    <tspan x="716.50" y="259.84">ל</tspan>
+  </text>
+  </g>
+</svg>

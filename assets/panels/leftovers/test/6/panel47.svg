@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel47.png"
+         xlink:href="panel47.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 336,255 C 311.9931,255.3334 264,257 264,257 L 250,261 L 242,266 L 232,277 L 228,285 L 226,295 L 227,307 L 230,316 L 243,331 L 259,338 L 287,339 L 299,366 L 301,366 L 301,340 C 301,340 416.3449,341.1526 474,340 C 482.3383,339.8333 499,339 499,339 L 516,333 L 526,325 L 534,312 L 536,303 L 536,293 L 533,282 L 526,271 L 516,263 L 499,257 C 499,257 463.6761,255.3334 446,255 C 409.3399,254.3085 372.6631,254.4909 336,255 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="accccccccccccccacccccccccca"
+          />
+  <text id="bubble-text"
+        x="381.50" y="314.12"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="381.50" y="314.12">מה לעזאזל?!</tspan>
+  </text>
+  </g>
+</svg>

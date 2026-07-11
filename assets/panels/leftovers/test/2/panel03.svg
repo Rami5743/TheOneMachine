@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel03.png"
+         xlink:href="panel03.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 947,218 C 941.17,223.5 940.33,225.17 938,232 C 935.67,238.83 933.17,251.17 933,259 C 932.83,266.83 933.67,271.83 937,279 C 940.33,286.17 942.83,294.83 953,302 C 963.17,309.17 979.33,318 998,322 L 1065,326 L 1090,349 L 1089,324 L 1124,320 C 1134.83,317.33 1146.33,312.67 1154,308 C 1161.67,303.33 1165.83,298 1170,292 C 1174.17,286 1177.5,280.17 1179,272 C 1180.5,263.83 1180.5,251.17 1179,243 C 1177.5,234.83 1175.5,229.67 1170,223 C 1164.5,216.33 1155.5,208.33 1146,203 C 1136.5,197.67 1125,193.83 1113,191 C 1101,188.17 1090.5,186.5 1074,186 C 1057.5,185.5 1030.83,185.83 1014,188 C 997.17,190.17 984.17,194 973,199 C 961.83,204 952.83,212.5 947,218 Z"
+          sodipodi:nodetypes="aaaaaacccaaaaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="1058.00" y="268.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1058.00" y="268.00">אנחנו מדברים...</tspan>
+  </text>
+  </g>
+</svg>

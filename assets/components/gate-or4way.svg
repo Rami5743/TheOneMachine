@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-66 -52 154 104"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="gate-or4way.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5" />
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="11.298077"
+     inkscape:cx="77.004255"
+     inkscape:cy="52"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg5" />
+  <style
+     id="style1">
+    .body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+    .line { stroke: #111; stroke-width: 5; stroke-linecap: round; fill: none; }
+    .thin { stroke-width: 4; }
+    .slot { fill: #111; }
+    .label { fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 15px; dominant-baseline: middle; text-anchor: middle; }
+    .label-small { font-size: 13px; }
+    .he { font-family: Arial, sans-serif; font-weight: 800; font-size: 16px; }
+    .glow { fill: #ffe37a; stroke: #111; stroke-width: 4; }
+    .glass { fill: #f6f0dc; stroke: #111; stroke-width: 4; }
+    .glass-on { fill: #fff0a6; stroke: #111; stroke-width: 4; }
+  </style>
+  <path
+     class="body"
+     d="M-42 -42 C-15 -24 -15 24 -42 42 C8 36 43 24 62 0 C43 -24 8 -36 -42 -42 Z"
+     id="path1" />
+  <line
+     class="line"
+     x1="-60.326107"
+     y1="-30"
+     x2="-31.073044"
+     y2="-30"
+     id="line1" />
+  <line
+     class="line"
+     x1="-59.462559"
+     y1="-9.9898129"
+     x2="-25.462557"
+     y2="-9.9898129"
+     id="line1-8"
+     style="fill:none;stroke:#111111;stroke-width:4.67148;stroke-linecap:round" />
+  <line
+     class="line"
+     x1="-59.919762"
+     y1="10.020376"
+     x2="-24.596844"
+     y2="10.020376"
+     id="line1-2"
+     style="fill:none;stroke:#111111;stroke-width:4.67148;stroke-linecap:round" />
+  <line
+     class="line"
+     x1="-60.369907"
+     y1="30"
+     x2="-31.825836"
+     y2="30"
+     id="line4" />
+  <line
+     class="line"
+     x1="62"
+     y1="0"
+     x2="80"
+     y2="0"
+     id="line5" />
+  <text
+     class="label"
+     x="10"
+     y="1.4794922"
+     id="text5">OR</text>
+
+  <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
+    <circle data-pin="in1" cx="-60.326107" cy="-30" r="0" />
+    <circle data-pin="in2" cx="-59.462559" cy="-9.9898129" r="0" />
+    <circle data-pin="in3" cx="-59.919762" cy="10.020376" r="0" />
+    <circle data-pin="in4" cx="-60.369907" cy="30" r="0" />
+    <circle data-pin="out" cx="80" cy="0" r="0" />
+  </g>
+</svg>

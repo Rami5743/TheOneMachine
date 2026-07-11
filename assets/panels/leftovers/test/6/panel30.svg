@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel30.png"
+         xlink:href="panel30.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 903,86 C 886.3432,85.3361 869.6266,85.7979 853,87 C 842.2783,87.7752 831.5669,89.0262 821,91 C 810.192,93.0189 799.3402,95.2624 789,99 C 779.606,102.3956 770.3738,106.5542 762,112 C 754.6651,116.7701 747.6591,122.3269 742,129 C 738.2286,133.4471 735.1301,138.572 733,144 C 730.6357,150.0249 729.4691,156.5449 729,163 C 728.6127,168.3297 728.8059,173.7914 730,179 C 731.7706,186.7229 739,201 739,201 C 739,201 752.0451,215.5078 760,221 C 767.6067,226.2518 776.3145,229.8368 785,233 C 797.6103,237.5926 810.7954,240.6021 824,243 C 839.1755,245.7558 854.5887,247.3824 870,248 C 893.6571,248.9481 917.4426,248.3678 941,246 C 948.7427,245.2218 956.4395,243.8424 964,242 C 970.4528,240.4275 976.4359,237.0118 983,236 C 986.9533,235.3906 995,236 995,236 C 995,236 1010.6289,244.2854 1019,247 C 1027.0839,249.6214 1044,252 1044,252 L 1043,249 C 1043,249 1033.2651,242.8338 1029,239 C 1026.0149,236.3167 1021,230 1021,230 L 1021,218 C 1021,218 1031.1285,210.0564 1035,205 C 1039.3509,199.3174 1042.8548,192.8279 1045,186 C 1047.4166,178.3084 1048.486,170.0476 1048,162 C 1047.6686,156.5125 1046.0497,151.1011 1044,146 C 1041.9961,141.0127 1039.2625,136.2714 1036,132 C 1032.2802,127.1298 1027.6948,122.9388 1023,119 C 1019.8829,116.3848 1016.5514,113.9857 1013,112 C 1003.4874,106.6813 993.3619,102.3777 983,99 C 970.0063,94.7644 956.491,92.184 943,90 C 929.7724,87.8587 916.3892,86.5337 903,86 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaacaaaaaaacaccaccaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="889.50" y="172.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="39"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="889.50" y="151.00">אתה יכול</tspan>
+    <tspan x="889.50" y="194.00">לדבר איתו?</tspan>
+  </text>
+  </g>
+</svg>

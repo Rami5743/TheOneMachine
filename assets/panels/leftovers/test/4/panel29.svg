@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel29.png"
+         xlink:href="panel29.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 494,161 C 488.6322,161.2757 483.2663,161.9252 478,163 C 468.4892,164.9411 459.0465,167.4811 450,171 C 445.1374,172.8915 440.3592,175.133 436,178 C 429.0823,182.5498 422.4522,187.7687 417,194 C 414.1381,197.2708 411.8221,201.0543 410,205 C 408.0992,209.1161 406.6742,213.5166 406,218 C 405.1574,223.6037 405.0433,229.4147 406,235 C 407.0146,240.923 408.9562,246.8186 412,252 C 415.8278,258.5161 421.2668,264.0764 427,269 C 431.2087,272.6144 441,278 441,278 C 441,278 441.9727,286.7772 441,291 C 437.9214,304.3654 423,328 423,328 L 467,290 C 467,290 484.9585,292.4992 494,293 C 507.3129,293.7373 520.7161,294.1465 534,293 C 541.7529,292.3309 549.5314,291.1852 557,289 C 567.7543,285.8535 578.4234,281.8177 588,276 C 594.6751,271.945 600.8419,266.8646 606,261 C 608.8703,257.7365 613,250 613,250 L 619,250 L 619,202 L 613,202 C 613,202 608.7246,195.0219 606,192 C 601.5694,187.086 596.5371,182.6219 591,179 C 584.5116,174.7559 577.3175,171.5624 570,169 C 560.3084,165.6063 550.1879,163.2852 540,162 C 524.7836,160.0805 509.3168,160.2134 494,161 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaacaccaaaaaccccaaaa"
+          />
+  <text id="bubble-text"
+        x="513.00" y="249.08"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="513.00" y="249.08">מה?!</tspan>
+  </text>
+  </g>
+</svg>

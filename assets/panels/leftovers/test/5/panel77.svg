@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel77.png"
+         xlink:href="panel77.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 832,498 C 825.6404,498.3338 819.1448,498.3275 813,500 C 809.1137,501.0578 802,505 802,505 C 802,505 798.2022,509.3967 797,512 C 795.2714,515.7433 794.5447,519.913 794,524 C 791.7979,540.5239 792.0248,557.3586 793,574 C 793.5709,583.7415 794.1129,593.6787 797,603 C 797.6616,605.136 798.6329,607.2305 800,609 C 802.1664,611.804 808,616 808,616 L 808,632 L 772,675 L 771,679 L 773,679 L 851,619 C 851,619 933.6971,620.5862 975,619 C 979.3429,618.8332 983.71,618.6962 988,618 C 990.7132,617.5597 993.4605,617.0519 996,616 C 997.7957,615.2562 999.5238,614.2643 1001,613 C 1002.9773,611.3065 1004.6668,609.2361 1006,607 C 1007.8385,603.9164 1009.1272,600.4824 1010,597 C 1012.2016,588.2163 1012.6123,579.0471 1013,570 C 1013.5711,556.6747 1013.3637,543.2676 1012,530 C 1011.619,526.2928 1011.1231,522.5535 1010,519 C 1008.5617,514.4493 1004,506 1004,506 L 995,500 C 995,500 984.3645,498.334 979,498 C 930.0947,494.9553 880.9326,495.4317 832,498 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aacaaaaaccccccaaaaaaaaacca"
+          />
+  <text id="bubble-text"
+        x="892.50" y="589.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="892.50" y="594.10">ויציאה אחת.</tspan>
+  </text>
+  </g>
+</svg>

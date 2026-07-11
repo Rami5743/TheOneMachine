@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel49.png"
+         xlink:href="panel49.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 214,131 C 211.1971,131.5051 208.3419,132.3793 206,134 C 203.0863,136.0164 199,142 199,142 C 199,142 182.3091,281.8069 198,349 C 198.5085,351.1775 199.5672,353.2833 201,355 C 203.1358,357.5592 209,361 209,361 L 282,362 L 297,383 L 298,362 C 298,362 550.0491,387.8797 672,362 C 675.2114,361.3185 678.4563,360.0755 681,358 C 683.2217,356.1872 686,351 686,351 C 686,351 700.5764,212.9719 687,146 C 686.4956,143.512 685.5511,141.0096 684,139 C 681.6778,135.9913 675,132 675,132 C 675,132 365.2309,103.746 214,131 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aacaaccccaacaac"
+          />
+  <text id="bubble-text"
+        x="443.00" y="187.70"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="443.00" y="194.90">אה... כן.. הם.. הם פשוט</tspan>
+    <tspan x="443.00" y="250.50">רוצים שאני אנתח תוצאות של</tspan>
+    <tspan x="443.00" y="309.57">ניסוי מוזר במזג האוויר.</tspan>
+  </text>
+  </g>
+</svg>

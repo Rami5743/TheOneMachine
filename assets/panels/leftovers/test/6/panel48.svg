@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel48.png"
+         xlink:href="panel48.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 935,239 C 930.6284,239.3343 926.1933,239.7201 922,241 C 916.01,242.8283 905,249 905,249 L 894,262 L 891,271 L 892,289 L 899,301 L 910,310 L 926,316 L 1103,317 L 1104,328 L 1118,329 L 1119,317 L 1323,317 L 1367,356 L 1370,354 L 1357,330 L 1357,318 C 1357,318 1370.5693,316.2064 1377,314 C 1381.9351,312.3067 1391,307 1391,307 L 1400,297 L 1405,282 L 1403,265 L 1393,251 L 1378,242 C 1378,242 1366.062,239.5017 1360,239 C 1218.816,227.3153 1076.2542,228.1978 935,239 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaccccccccccccccccacccccca"
+          />
+  <text id="bubble-text"
+        x="1148.50" y="286.38"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="32"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1148.50" y="286.38">פרופסור אופנהיימר, הכל בסדר?</tspan>
+  </text>
+  </g>
+</svg>

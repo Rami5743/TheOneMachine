@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel31.png"
+         xlink:href="panel31.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 478,201 C 487.6337,200.2027 497.3663,200.2027 507,201 C 511.0414,201.3345 515.05,202.0822 519,203 C 525.7796,204.5753 532.6037,206.2556 539,209 C 546.4091,212.1789 553.5929,216.1063 560,221 C 563.3717,223.5753 569,230 569,230 L 576,244 L 576,254 L 570,267 C 570,267 561.2343,276.3726 556,280 C 549.8737,284.2455 543.024,287.5062 536,290 C 527.3118,293.0847 518.1365,294.7654 509,296 C 502.3851,296.8938 489,297 489,297 C 489,297 485.9326,304.4663 484,308 C 480.7614,313.9217 477.1936,319.7114 473,325 C 465.237,334.7902 447,352 447,352 L 446,350 C 446,350 451.7172,340.1865 454,335 C 456.4208,329.4999 458.3217,323.7701 460,318 C 461.242,313.7297 462.4968,309.4187 463,305 C 463.4149,301.3569 463,294 463,294 C 463,294 452.1813,291.8375 447,290 C 441.7997,288.1558 436.7782,285.7592 432,283 C 428.4764,280.9653 425.0473,278.6962 422,276 C 418.6414,273.0283 413,266 413,266 L 408,254 L 408,244 L 414,231 C 414,231 423.4353,220.9764 429,217 C 433.6105,213.7054 438.7728,211.188 444,209 C 449.1544,206.8425 454.5646,205.2957 460,204 C 465.917,202.5895 471.938,201.5017 478,201 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaccccaaacaaccaaacaaaccccaaa"
+          />
+  <text id="bubble-text"
+        x="492.50" y="253.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="492.50" y="261.06">כן...</tspan>
+  </text>
+  </g>
+</svg>

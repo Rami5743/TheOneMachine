@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel53.png"
+         xlink:href="panel53.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 991,92 C 970.6816,91.1535 950.22,90.8303 930,93 C 916.4802,94.4507 903.0139,97.0597 890,101 C 878.2694,104.5517 866.7769,109.1622 856,115 C 850.3092,118.0827 844.8353,121.6978 840,126 C 832.0584,133.0661 824.7866,141.0828 819,150 C 816.402,154.0035 814.5092,158.4723 813,163 C 811.4908,167.5277 810.3497,172.2402 810,177 C 809.2413,187.327 809.0213,198.0829 812,208 C 815.0923,218.2953 821.0317,227.8148 828,236 C 835.2217,244.4828 844.457,251.2517 854,257 C 864.8728,263.5493 876.8558,268.3082 889,272 C 904.575,276.7348 920.791,279.4935 937,281 C 957.2461,282.8817 977.7526,282.8675 998,281 C 1012.5177,279.661 1027.0027,268.922 1041,273 C 1054.1329,276.8261 1060.3485,292.4176 1071,301 C 1075.104,304.3068 1078.9693,308.4285 1084,310 C 1085.5909,310.4969 1089,310 1089,310 C 1089,310 1089.4449,306.6062 1089,305 C 1086.4059,295.6344 1077.8353,288.9295 1074,280 C 1071.5425,274.2783 1069,262 1069,262 C 1069,262 1085.8483,252.4264 1093,246 C 1100.7459,239.0397 1107.7103,230.9701 1113,222 C 1116.2701,216.4547 1118.7077,210.3067 1120,204 C 1122.0084,194.1981 1122.2878,183.9223 1121,174 C 1120.1042,167.0977 1117.9103,160.3225 1115,154 C 1112.6803,148.9605 1109.4814,144.3195 1106,140 C 1101.8586,134.8615 1097.1038,130.1841 1092,126 C 1086.4234,121.4282 1080.362,117.3948 1074,114 C 1064.7703,109.0749 1054.9574,105.2085 1045,102 C 1033.9182,98.4292 1022.484,95.9167 1011,94 C 1004.3915,92.897 997.6941,92.2789 991,92 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaaaaaacaacaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="965.50" y="148.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="965.50" y="155.70">שלום רוברט,</tspan>
+    <tspan x="965.50" y="196.37">שנים שלא דברנו.</tspan>
+    <tspan x="965.50" y="237.70">מה שלומך?</tspan>
+  </text>
+  </g>
+</svg>

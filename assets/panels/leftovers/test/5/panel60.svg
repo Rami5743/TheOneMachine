@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel60.png"
+         xlink:href="panel60.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 489,95 C 479.6266,95.5007 470.2541,96.4275 461,98 C 445.1374,100.6955 429.2372,103.8311 414,109 C 403.2628,112.6424 392.8836,117.4439 383,123 C 376.3106,126.7604 369.9051,131.0992 364,136 C 358.196,140.8169 348,152 348,152 L 335,174 L 331,189 L 331,209 L 334,221 L 344,240 C 344,240 356.6442,254.7281 364,261 C 368.9249,265.1993 374.4255,268.7115 380,272 C 385.1358,275.0297 396,280 396,280 L 396,296 C 396,296 392.3897,306.8295 390,312 C 385.6806,321.3457 375,339 375,339 L 375,343 L 386,343 L 386,335 C 386,335 399.7606,325.524 406,320 C 414.6492,312.3426 430,295 430,295 C 430,295 440.683,294.5828 446,295 C 458.7843,296.0031 471.2078,300.1035 484,301 C 503.9538,302.3984 524.0992,302.017 544,300 C 560.1959,298.3585 576.2416,295.0834 592,291 C 599.1427,289.1491 606.183,286.8237 613,284 C 621.952,280.2919 630.6623,275.9368 639,271 C 643.5351,268.3147 647.8997,265.3114 652,262 C 657.6875,257.4069 668,247 668,247 L 682,225 L 687,205 C 687,205 687.2796,197.656 687,194 C 686.6657,189.6284 685,181 685,181 L 677,162 C 677,162 670.7069,152.3758 667,148 C 663.953,144.4031 660.5969,141.047 657,138 C 650.4363,132.4397 643.3697,127.4371 636,123 C 630.253,119.5399 624.1782,116.6133 618,114 C 611.4948,111.2484 604.8013,108.9055 598,107 C 582.5765,102.679 566.8124,99.5542 551,97 C 545.0403,96.0373 539.0277,95.3338 533,95 C 518.3558,94.1889 503.6458,94.2176 489,95 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaccccccaaccaccccacaaaaaaacccaccaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="509.50" y="162.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="509.50" y="169.34">עד סוף המלחמה,</tspan>
+    <tspan x="509.50" y="211.97">או עד סוף הפרויקט,</tspan>
+    <tspan x="509.50" y="254.09">המוקדם מביניהם.</tspan>
+  </text>
+  </g>
+</svg>

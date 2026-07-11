@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel11.png"
+         xlink:href="panel11.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1014,176 C 1021.6338,175.2905 1029.3546,175.4298 1037,176 C 1043.7226,176.5014 1050.4215,177.5277 1057,179 C 1063.7922,180.5201 1070.5031,182.5031 1077,185 C 1083.5415,187.514 1089.9483,190.4662 1096,194 C 1101.9898,197.4976 1107.695,201.5314 1113,206 C 1117.3265,209.6444 1121.3641,213.6663 1125,218 C 1127.6152,221.1171 1130.0081,224.4521 1132,228 C 1134.8498,233.0761 1139,244 1139,244 L 1140,268 C 1140,268 1137.8141,276.8449 1136,281 C 1133.0719,287.7068 1125,300 1125,300 L 1105,319 L 1076,334 L 1077,342 L 1083,354 L 1082,356 C 1082,356 1071.596,350.5884 1067,347 C 1064.3991,344.9692 1060,340 1060,340 C 1060,340 1042.7098,342.4992 1034,343 C 1027.3443,343.3827 1020.6482,343.4958 1014,343 C 1007.2774,342.4986 1000.5841,341.4471 994,340 C 985.8609,338.2112 977.7291,336.1154 970,333 C 962.6708,330.0458 955.6825,326.2176 949,322 C 944.7717,319.3313 940.6488,316.4186 937,313 C 930.272,306.6965 919,292 919,292 L 911,274 L 909,256 L 915,235 L 925,219 L 951,196 C 951,196 971.1843,185.4023 982,182 C 992.3524,178.7434 1003.194,177.0043 1014,176 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaccaccccccacaaaaaacccccca"
+          />
+  <text id="bubble-text"
+        x="1025.00" y="217.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1025.00" y="223.98">כן.</tspan>
+    <tspan x="1025.00" y="263.73">נאצי כן,</tspan>
+    <tspan x="1025.00" y="301.65">טיפש ממש לא.</tspan>
+  </text>
+  </g>
+</svg>

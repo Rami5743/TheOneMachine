@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel83_simple_gates_01.png"
+         xlink:href="panel83_simple_gates_01.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 537,31 C 530.3554,32.1851 523.576,34.1969 518,38 C 511.368,42.5233 508.8797,51.8631 502,56 C 491.1222,62.5409 465,65 465,65 L 465,152 L 458,153 L 462,172 L 413,184 L 463,204 C 463,204 462.6946,226.0726 464,237 C 468.6062,275.5588 488,351 488,351 L 498,352 L 498,470 L 467,474 L 498,479 L 498,519 L 472,520 L 468,510 L 467,532 L 456,533 L 451,630 L 457,635 L 497,627 C 497,627 497.3776,649.2435 502,659 C 505.6386,666.68 511.9388,673.2712 519,678 C 523.993,681.3438 530.077,682.9854 536,684 C 798.51,728.9661 1073.9366,736.7194 1335,684 C 1341.7359,682.6398 1348.3752,679.9476 1354,676 C 1358.8271,672.6122 1362.907,668.0211 1366,663 C 1368.9874,658.1503 1370.9837,652.6046 1372,647 C 1406.436,457.097 1406.436,257.903 1372,68 C 1370.9837,62.3954 1369.1559,56.7418 1366,52 C 1361.6885,45.5219 1355.7181,39.9272 1349,36 C 1344.1761,33.1801 1338.5237,31.843 1333,31 C 1070.7035,-9.0293 798.2114,-15.5873 537,31 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaccccccacccccccccccccaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="893.00" y="109.40"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="893.00" y="116.24">אני ראה שאתם נהנים. אבל אין לנו זמן לשטויות האלה.</tspan>
+    <tspan x="893.00" y="157.13">אנחנו צריכים להכין כרטיסים. הרבה כרטיסים. הכרטיסים</tspan>
+    <tspan x="893.00" y="195.84">מורכבים מכמה 41%0א-ים שמחוברים יחד כדי לבצע</tspan>
+    <tspan x="893.00" y="235.95">פעולה מסוימת. לכל כרטיס יש כניסות ויצאות משלו. אתה</tspan>
+    <tspan x="893.00" y="274.28">יכול לחבר יציאה של אחד לכניסה של סאג</tspan>
+    <tspan x="893.00" y="315.78">אחר, אבל אל תחבר יציאה ליציאה או כניסה לכניסה,</tspan>
+    <tspan x="893.00" y="355.49">שלא תישרוף לי אותם. אתה יכול לחבר אותה יציאה ליותר</tspan>
+    <tspan x="893.00" y="395.84">מקבל אחד. אתה יכול להשתמש בכמה שאתה</tspan>
+    <tspan x="893.00" y="438.09">צריך. יש לנו מספיק במחסן. רק אף מילה לאף אחד.</tspan>
+    <tspan x="893.00" y="476.03">כשאתה גומר כרטיס אתה יכול להשתמש בו בכרטיסים</tspan>
+    <tspan x="893.00" y="518.20">אחרים שאתה מכין (כמו שאתה משתמש ב-</tspan>
+    <tspan x="893.00" y="557.29">אתה לא צריך להכין אותו כל פעם מחדש, פשוט תסמן</tspan>
+    <tspan x="893.00" y="596.74">באיזה כרטיס אתה משתמש. יש לי אנשים שידאגו לזה, רק</tspan>
+    <tspan x="893.00" y="636.55">הם לא צריכים לדעת שזה בה ממך.</tspan>
+  </text>
+  </g>
+</svg>

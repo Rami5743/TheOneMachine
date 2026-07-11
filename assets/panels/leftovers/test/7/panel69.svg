@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel69.png"
+         xlink:href="panel69.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 884,68 C 876.5266,68.8386 868.9926,70.2326 862,73 C 851.5811,77.1234 841.6231,82.8448 833,90 C 825.1813,96.4877 818.2942,104.3286 813,113 C 807.3877,122.1925 803.1364,132.4437 801,143 C 793.99,177.6374 795.1386,213.872 799,249 C 800.2367,260.2508 802.5685,271.585 807,282 C 810.4032,289.9984 815.4589,297.3028 821,304 C 825.9606,309.9956 831.7074,315.4219 838,320 C 844.1525,324.4762 850.9896,328.0431 858,331 C 865.3839,334.1144 873.0734,336.8205 881,338 C 1033.9822,360.7644 1192.0178,360.7644 1345,338 C 1352.9266,336.8205 1360.6943,334.2937 1368,331 C 1377.277,326.8176 1386.25,321.5949 1394,315 C 1401.3794,308.7204 1408.0551,301.3329 1413,293 C 1418.8136,283.2031 1422.915,272.1996 1425,261 C 1431.528,225.9342 1430.1926,189.421 1426,154 C 1424.7076,143.0813 1422.3895,132.0807 1418,122 C 1414.8256,114.7099 1410.0982,108.1017 1405,102 C 1400.0105,96.0284 1394.2258,90.6685 1388,86 C 1382.7402,82.0558 1377.0011,78.685 1371,76 C 1363.0134,72.4266 1354.6449,69.3495 1346,68 C 1193.8427,44.2481 1037.0396,50.8281 884,68 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1082.50" y="127.39"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="27"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1082.50" y="132.25">רוברט לא יאשר לקחת לזה אנשים. הוא לא אוהב</tspan>
+    <tspan x="1082.50" y="164.25">לקחת סיכונים. אני צריך לבוא אליו עם משהו שעובד</tspan>
+    <tspan x="1082.50" y="195.86">לפני שאני מבקש משהו. אבל אני לא יכול להתעסק</tspan>
+    <tspan x="1082.50" y="228.64">בזה בעצמי. רוברט הפיל עלי יותר מדי פרויקטים. אני</tspan>
+    <tspan x="1082.50" y="261.41">צריך למצוא מישהו חכם אחד שיוכל לעשות את זה, בלי</tspan>
+    <tspan x="1082.50" y="293.86">שרוברט ידע. רק איפה אני אמצא מישהו כזה?</tspan>
+  </text>
+  </g>
+</svg>

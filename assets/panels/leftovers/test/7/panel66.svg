@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel66.png"
+         xlink:href="panel66.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1033,51 C 1022.5229,52.0046 1011.8805,53.3733 1002,57 C 996.2556,59.1085 990.8755,62.3021 986,66 C 982.6197,68.5639 979.5164,71.5842 977,75 C 972.755,80.7621 969.4492,87.2751 967,94 C 964.3151,101.372 962.8631,109.2019 962,117 C 956.2792,168.6854 961,273 961,273 L 891,329 L 891,334 L 963,321 C 963,321 966.1423,338.2536 970,346 C 973.923,353.8775 979.4427,361.1309 986,367 C 990.3448,370.8888 995.5759,373.8602 1001,376 C 1009.8792,379.5029 1019.5079,380.9944 1029,382 C 1119.4936,391.5869 1211.5434,391.9296 1302,382 C 1311.1645,380.994 1320.3682,379.2392 1329,376 C 1332.9104,374.5326 1336.6558,372.5022 1340,370 C 1345.2842,366.0462 1350.2511,361.4315 1354,356 C 1358.1527,349.9834 1360.8815,342.9969 1363,336 C 1365.3503,328.2376 1366.3311,320.0827 1367,312 C 1372.3337,247.5537 1373.8127,182.3068 1367,118 C 1365.9944,108.5079 1364.4642,98.8944 1361,90 C 1358.614,83.8739 1355.1587,78.0919 1351,73 C 1348.1633,69.5267 1344.7518,66.4566 1341,64 C 1334.2608,59.5873 1326.7321,56.2591 1319,54 C 1312.2127,52.0169 1305.0533,51.5013 1298,51 C 1209.8889,44.7381 1120.9301,42.5689 1033,51 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaccccaaaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1160.00" y="96.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1160.00" y="103.20">שלושה ימים</tspan>
+    <tspan x="1160.00" y="166.70">זה הרבה מדי.</tspan>
+    <tspan x="1160.00" y="225.32">זה תוקע אותי. ן</tspan>
+    <tspan x="1160.00" y="286.95">תשתדלו לגמור</tspan>
+    <tspan x="1160.00" y="353.45">עד מחר.</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel33.png"
+         xlink:href="panel33.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 452,541 C 430.173,541.372 408.1618,543.6395 387,549 C 369.2986,553.484 352.0514,560.2938 336,569 C 328.4384,573.1014 321.4153,578.269 315,584 C 308.3112,589.9753 302.1827,596.6799 297,604 C 292.1731,610.8175 285,626 285,626 L 279,652 L 109,660 L 109,668 L 280,673 C 280,673 284.4287,688.7106 288,696 C 291.4982,703.1403 301,716 301,716 L 341,749 L 403,772 C 403,772 458.8778,780.5045 487,780 C 512.5476,779.5417 563,770 563,770 L 612,748 C 612,748 626.6317,737.3683 633,731 C 639.3683,724.6317 650,710 650,710 L 662,681 L 664,654 L 657,628 L 644,607 L 603,573 C 603,573 578.7124,561.3532 566,557 C 554.6035,553.0974 542.8725,550.0384 531,548 C 504.9447,543.5265 478.4327,540.5495 452,541 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaacccccacccaccaccccccaa"
+          />
+  <text id="bubble-text"
+        x="387.00" y="619.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="387.00" y="627.06">מדברים מהבית הלבן.</tspan>
+    <tspan x="387.00" y="677.06">האם אתה יכול</tspan>
+    <tspan x="387.00" y="727.56">לדבר עם הנשיא?</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg2"
+   sodipodi:docname="panel26.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724.55864"
+     inkscape:cy="543.55864"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel26.png"
+     xlink:href="panel26.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="M 554,524 C 524.7276,521.8626 495.0787,523.016 466,527 C 442.2107,530.2594 418.548,535.7451 396,544 C 379.9017,549.8936 364.2331,557.4446 350,567 C 341.1743,572.9251 333.0661,580.0584 326,588 C 321.6978,592.8353 315,604 315,604 L 157,602 L 158,581 L 47,587 L 128,598 L 126,619 L 306,629 C 306,629 308.9777,643.3769 312,650 C 315.7998,658.327 320.6897,666.3699 327,673 C 338.354,684.9293 352.4353,694.3128 367,702 C 387.98,713.0732 410.95,720.3898 434,726 C 455.8947,731.329 478.5163,733.4967 501,735 C 514.9688,735.934 529.024,735.8193 543,735 C 560.0879,733.9983 577.2344,732.4517 594,729 C 619.205,723.8108 644.3204,717.0748 668,707 C 678.5765,702.5001 688.6974,696.7508 698,690 C 706.4023,683.9025 714.9047,677.4038 721,669 C 727.657,659.8218 732.8655,649.1355 735,638 C 736.382,630.7903 735.6866,623.1445 734,616 C 732.4915,609.6097 729.7941,603.3587 726,598 C 716.4621,584.5288 703.7525,573.1277 690,564 C 672.0935,552.1153 651.5477,544.2991 631,538 C 606.0582,530.3539 580.0182,525.8998 554,524 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaacccccccaaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="524.54999"
+       y="625.08002"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="38px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"><tspan
+   x="524.54999"
+   y="598.08002"
+   id="tspan1">הנשיא רוצה לדבר</tspan><tspan
+   x="524.54999"
+   y="652.08002"
+   id="tspan2">עם פרופסור אופנהיימר</tspan></text>
+  </g>
+</svg>

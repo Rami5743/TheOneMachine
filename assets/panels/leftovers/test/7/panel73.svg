@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel73.png"
+         xlink:href="panel73.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1327,113 C 1181.6355,91.1305 1030.4995,87.0001 886,114 C 876.8724,115.7055 868.149,119.5486 860,124 C 854.5586,126.9724 849.617,130.8615 845,135 C 840.9594,138.6218 837.1634,142.5912 834,147 C 829.5644,153.1818 825.6692,159.8751 823,167 C 820.2475,174.3471 818.8381,182.1992 818,190 C 814.0474,226.7883 818,301 818,301 L 747,336 L 747,341 L 817,333 C 817,333 817.2244,355.9664 820,367 C 822.4773,376.8475 826.3072,386.5915 832,395 C 838.0785,403.9782 845.9198,412.075 855,418 C 865.7829,425.0361 878.3426,429.6403 891,432 C 1035.8382,459.0022 1187.7529,455.7084 1333,431 C 1341.0022,429.6387 1348.7534,426.6573 1356,423 C 1362.8508,419.5424 1369.3749,415.2199 1375,410 C 1381.2581,404.1927 1386.6353,397.3374 1391,390 C 1394.5132,384.0941 1397.6223,377.7323 1399,371 C 1411.898,307.972 1411.7647,241.2494 1400,178 C 1398.4945,169.9061 1395.0952,162.1419 1391,155 C 1386.9861,148 1381.8676,141.5392 1376,136 C 1370.0826,130.4138 1363.3068,125.5822 1356,122 C 1346.9119,117.5445 1337.0088,114.5058 1327,113 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaccccaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1074.00" y="164.14"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1074.00" y="171.34">אני לא יכול לספר לך כרגע למה</tspan>
+    <tspan x="1074.00" y="216.41">צריך את המכונה, אבל תאמין לי, זה</tspan>
+    <tspan x="1074.00" y="258.70">חשוב לכל האנושות. אני אתן לך את</tspan>
+    <tspan x="1074.00" y="302.20">מה שאתה צריך, אבל אתה תצטרך</tspan>
+    <tspan x="1074.00" y="341.99">לעשות הכל לבד. אסור לך לדבר על</tspan>
+    <tspan x="1074.00" y="386.82">זה עם אף אחד. אפילו לא עם רוברט.</tspan>
+  </text>
+  </g>
+</svg>

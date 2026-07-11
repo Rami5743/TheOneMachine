@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel52.png"
+         xlink:href="panel52.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 453,97 L 452,106 C 452,106 438.5608,108.2173 432,110 C 423.1497,112.4049 414.31,115.1199 406,119 C 395.4332,123.9338 385.3143,129.9826 376,137 C 370.5374,141.1155 365.614,145.9514 361,151 C 358.436,153.8054 355.9039,156.7107 354,160 C 350.031,166.8574 345,182 345,182 L 346,206 C 346,206 349.5817,215.5357 352,220 C 353.7173,223.1703 355.7882,226.1525 358,229 C 360.751,232.5416 363.7382,235.9224 367,239 C 371.6572,243.3943 376.6637,247.4611 382,251 C 389.5824,256.0284 397.6915,260.2924 406,264 C 410.5252,266.0193 420,269 420,269 L 422,271 L 422,290 L 574,290 L 575,281 C 575,281 594.4677,277.5652 604,275 C 610.1073,273.3565 616.139,271.3766 622,269 C 631.2568,265.2464 640.3233,260.9491 649,256 C 654.2198,253.0227 659.2711,249.7079 664,246 C 668.2701,242.6518 672.3565,239.0211 676,235 C 679.3573,231.2948 682.3713,227.2533 685,223 C 686.9593,219.8298 688.649,216.4733 690,213 C 691.7595,208.4767 693.3268,203.8065 694,199 C 694.5548,195.0387 694.4887,190.97 694,187 C 693.3283,181.5437 692.1038,176.079 690,171 C 687.0248,163.8172 682.7846,157.128 678,151 C 674.2286,146.1697 669.7114,141.919 665,138 C 660.0242,133.8611 654.5745,130.2885 649,127 C 642.5802,123.2129 635.8322,119.9793 629,117 C 623.7788,114.7232 618.464,112.6092 613,111 C 605.4739,108.7835 590,106 590,106 L 589,97 L 453,97 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaccaaaaacccccaaaaaaaaaaaaaaacc"
+          />
+  <text id="bubble-text"
+        x="520.00" y="175.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="31"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="520.00" y="181.08">שלום ג'ון, מדבר רוברט,</tspan>
+    <tspan x="520.00" y="223.08">רוברט אופנהיימר.</tspan>
+    <tspan x="520.00" y="283.58">ו</tspan>
+  </text>
+  </g>
+</svg>

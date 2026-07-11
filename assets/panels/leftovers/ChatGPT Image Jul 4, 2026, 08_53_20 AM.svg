@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="ChatGPT Image Jul 4, 2026, 08_53_20 AM.png"
+         xlink:href="ChatGPT Image Jul 4, 2026, 08_53_20 AM.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 976,69 C 972.9068,58.8244 967.0731,48.9235 959,42 C 950.7271,34.9051 939.6773,31.185 929,29 C 803.597,3.338 669.7807,2.4652 545,31 C 537.442,32.7284 530.0872,36.1982 524,41 C 515.2533,47.8998 507.7291,56.913 503,67 C 498.671,76.2336 498.0049,86.8516 497,97 C 494.865,118.5612 497,162 497,162 C 497,162 484.924,174.0725 478,179 C 469.6116,184.9695 451,194 451,194 L 497,191 C 497,191 498.1719,208.0487 501,216 C 503.4524,222.895 507.078,229.5843 512,235 C 517.7856,241.366 525.1756,246.4253 533,250 C 542.045,254.1324 552.1294,255.7916 562,257 C 659.6069,268.9491 758.734,262.6979 857,259 C 881.3981,258.0819 906.4877,259.5789 930,253 C 938.6134,250.5899 947.2947,246.9193 954,241 C 963.01,233.0461 969.7324,222.2353 974,211 C 978.3019,199.6743 978.3357,187.097 979,175 C 980.938,139.7057 986.2806,102.8194 976,69 Z"
+          sodipodi:nodetypes="aaaaaaacaccaaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="742.00" y="151.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="33"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="742.00" y="79.23">מצוין. זה המחסן שלנו. תתחיל</tspan>
+    <tspan x="742.00" y="127.08">להכיר את הציוד.</tspan>
+    <tspan x="742.00" y="174.93">אני צריך לרוץ לפגישה</tspan>
+    <tspan x="742.00" y="222.77">עם רוברט.</tspan>
+  </text>
+  </g>
+</svg>

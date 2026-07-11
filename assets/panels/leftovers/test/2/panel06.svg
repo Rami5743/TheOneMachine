@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel06.png"
+         xlink:href="panel06.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 62,146 C 57.17,158 55.67,174.5 56,186 C 56.33,197.5 59,205.67 64,215 C 69,224.33 77.17,234.67 86,242 C 94.83,249.33 104.67,254.67 117,259 C 129.33,263.33 146.5,266.67 160,268 C 173.5,269.33 185.83,268.67 198,267 C 210.17,265.33 222,263 233,258 L 264,237 L 311,239 L 281,221 L 289,190 C 290.17,179.33 289.33,165.83 288,157 C 286.67,148.17 286.17,145 281,137 C 275.83,129 266.33,116.5 257,109 C 247.67,101.5 236.33,96 225,92 C 213.67,88 204.67,85.33 189,85 C 173.33,84.67 148.33,85.17 131,90 C 113.67,94.83 96.5,104.67 85,114 C 73.5,123.33 66.83,134 62,146 Z"
+          sodipodi:nodetypes="aaaaaaaacccaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="177.00" y="179.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="35"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="177.00" y="128.25">אז אנחנו</tspan>
+    <tspan x="177.00" y="179.00">צריכים לדבר</tspan>
+    <tspan x="177.00" y="229.75">על זה.</tspan>
+  </text>
+  </g>
+</svg>

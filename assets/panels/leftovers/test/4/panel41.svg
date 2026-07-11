@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel41.png"
+         xlink:href="panel41.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 613,86 C 597.6866,85.1506 582.2621,85.4866 567,87 C 551.8392,88.5034 536.7324,91.1184 522,95 C 510.3781,98.062 498.9373,102.018 488,107 C 477.5401,111.7645 467.3474,117.3114 458,124 C 451.4715,128.6715 445.4357,134.0925 440,140 C 435.4859,144.9059 431.3368,150.2285 428,156 C 424.1882,162.5932 420.7787,169.5948 419,177 C 416.6593,186.745 416.1072,197.0177 417,207 C 417.4898,212.4756 418.9623,217.8941 421,223 C 424.2642,231.1793 428.7716,238.9134 434,246 C 438.8997,252.6411 451,264 451,264 L 451,281 L 419,324 C 419,324 438.1004,316.1659 447,311 C 457.9586,304.6389 478,289 478,289 C 478,289 490.0861,287.987 496,289 C 507.846,291.0291 518.3237,298.1526 530,301 C 546.3501,304.9872 563.1878,307.2433 580,308 C 600.3373,308.9153 620.8974,308.2137 641,305 C 658.4078,302.2171 675.7541,297.8447 692,291 C 706.5936,284.8514 720.7944,277.0897 733,267 C 743.9243,257.9695 754.0084,247.3291 761,235 C 766.8759,224.6384 770.4712,212.8132 772,201 C 772.7713,195.0404 772.0373,188.9191 771,183 C 769.7986,176.1443 767.9311,169.3129 765,163 C 761.1455,154.6982 756.1074,146.8175 750,140 C 741.9406,131.0036 732.205,123.4611 722,117 C 710.7876,109.9011 698.4212,104.6717 686,100 C 676.9145,96.5829 667.5027,93.98 658,92 C 643.1854,88.9132 628.1095,86.838 613,86 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaacccacaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="595.00" y="149.67"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="595.00" y="157.23">אתה תוכל כמובן</tspan>
+    <tspan x="595.00" y="205.19">לסרב, אבל לא תוכל</tspan>
+    <tspan x="595.00" y="259.26">לדבר על זה עם איש.,</tspan>
+  </text>
+  </g>
+</svg>

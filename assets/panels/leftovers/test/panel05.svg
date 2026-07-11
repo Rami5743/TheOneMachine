@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel05.png"
+         xlink:href="panel05.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1014,200 C 1006.83,202.83 1001.17,206.17 996,211 C 990.83,215.83 985.67,222.17 983,229 C 980.33,235.83 979.83,245.67 980,252 C 980.17,258.33 980,261 984,267 C 988,273 997.5,283.17 1004,288 C 1010.5,292.83 1015.67,294.17 1023,296 L 1048,299 L 1057,317 L 1071,330 L 1064,300 L 1096,290 C 1104.17,285.83 1108.67,281.83 1113,275 C 1117.33,268.17 1121.17,257.17 1122,249 C 1122.83,240.83 1121,232.67 1118,226 C 1115,219.33 1110.33,213.83 1104,209 C 1097.67,204.17 1090.83,199.5 1080,197 C 1069.17,194.5 1050,193.5 1039,194 C 1028,194.5 1021.17,197.17 1014,200 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="1052.00" y="253.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1052.00" y="253.00">זוכר...</tspan>
+  </text>
+  </g>
+</svg>

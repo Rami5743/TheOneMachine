@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel81.png"
+         xlink:href="panel81.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1057,178 C 908.7604,166.7342 759.5576,173.2977 611,179 C 588.621,179.859 565.9979,179.7993 544,184 C 533.023,186.0962 521.8137,188.6539 512,194 C 507.4276,196.4909 503.3207,199.9895 500,204 C 495.6226,209.2867 492.1884,215.4945 490,222 C 484.7395,237.6381 484.0584,254.5348 483,271 C 478.2526,344.8543 481.4082,419.1358 486,493 C 487.1237,511.0759 488.1148,529.3109 492,547 C 494.4874,558.3251 496.9041,570.1367 503,580 C 506.9653,586.416 512.543,592.1017 519,596 C 527.6648,601.2312 538.0192,603.3182 548,605 C 607.8558,615.0861 730,611 730,611 C 730,611 732.6382,615.4873 733,618 C 736.206,640.2623 725,685 725,685 L 730,685 L 772,611 C 772,611 952.7533,613.011 1043,609 C 1059.3715,608.2724 1075.9248,608.1847 1092,605 C 1100.5828,603.2997 1109.4522,601.4256 1117,597 C 1122.9,593.5406 1128.0417,588.5776 1132,583 C 1137.2691,575.5753 1140.6434,566.794 1143,558 C 1149.3364,534.3553 1149.6647,509.4426 1151,485 C 1154.8003,415.4371 1154.3863,345.5843 1151,276 C 1150.3325,262.2847 1149.925,248.4164 1147,235 C 1144.8219,225.0094 1142.7334,214.4666 1137,206 C 1131.5669,197.9769 1123.7948,191.0671 1115,187 C 1097.2421,178.788 1076.5085,179.4826 1057,178 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaacacccaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="800.50" y="227.14"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="33"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="800.50" y="233.08">עכשיו, בשנת אני די גדול, אבל בעוד</tspan>
+    <tspan x="800.50" y="270.77">מספר שנים יופיעו טריודות חדשות, שמבוססות</tspan>
+    <tspan x="800.50" y="305.87">על מוליכים למחצה ולא על שפופרות ריק.</tspan>
+    <tspan x="800.50" y="345.23">הן נקראות טרנזיסטורים. הן הרבה יותר קטנות,</tspan>
+    <tspan x="800.50" y="381.27">כך שגם אני אקטן בהרבה, ואהפוך גם למהיר בהרבה.</tspan>
+    <tspan x="800.50" y="419.24">עם השנים אני אהפוך לקטן ומהיר עוד יותר, כך שעד</tspan>
+    <tspan x="800.50" y="456.19">סוף המאה ה-20 אני אהיה כל כך קטן שאפשר יהיה</tspan>
+    <tspan x="800.50" y="494.00">לראות אותי רק במיקרוסקופ. זה חשוב, כי צריך</tspan>
+    <tspan x="800.50" y="529.08">אלפים ממני כדי לבנות מחשב פשוט, ומיליונים</tspan>
+    <tspan x="800.50" y="565.44">בשביל מחשב של המאה ה-21.</tspan>
+  </text>
+  </g>
+</svg>

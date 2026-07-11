@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel04.png"
+         xlink:href="panel04.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 63,136 C 57.17,147 56.5,156.5 55,166 C 53.5,175.5 52.5,181.5 54,193 C 55.5,204.5 58.67,223 64,235 C 69.33,247 76,256.17 86,265 C 96,273.83 109.17,282.33 124,288 C 138.83,293.67 154.5,297.33 175,299 C 195.5,300.67 225.67,300.5 247,298 C 268.33,295.5 290,288.67 303,284 C 316,279.33 319.33,274.67 325,270 L 337,256 L 385,254 L 351,239 L 360,204 C 361.67,192.5 363,183.17 361,170 C 359,156.83 354.17,137.17 348,125 C 341.83,112.83 333.67,104.67 324,97 C 314.33,89.33 307.67,83.83 290,79 C 272.33,74.17 243.5,68.33 218,68 C 192.5,67.67 158.33,71.67 137,77 C 115.67,82.33 102.33,90.17 90,100 C 77.67,109.83 68.83,125 63,136 Z"
+          sodipodi:nodetypes="aaaaaaaaaacccaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="203.00" y="185.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="29"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="203.00" y="117.58">אתה זוכר שאמרת לי</tspan>
+    <tspan x="203.00" y="162.53">לא לכתוב, לא לדבר</tspan>
+    <tspan x="203.00" y="207.48">ואפילו לא לחשוב,</tspan>
+    <tspan x="203.00" y="252.43">על העניין ההוא?</tspan>
+  </text>
+  </g>
+</svg>

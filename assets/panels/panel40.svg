@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel40.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724"
+     inkscape:cy="542.44136"
+     inkscape:window-width="1440"
+     inkscape:window-height="2497"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel40.png"
+     xlink:href="panel40.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="M 891,196 C 882.2143,196.8371 873.4781,198.5484 865,201 C 857.0913,203.2869 849.3005,206.1947 842,210 C 835.6054,213.3331 829.497,217.3328 824,222 C 818.7863,226.4266 814.0817,231.5121 810,237 C 807.2363,240.7157 804.8449,244.7526 803,249 C 801.6135,252.192 800.5054,255.5568 800,259 C 798.8383,266.9152 798.7185,275.1033 800,283 C 800.6754,287.1619 802.2382,291.1694 804,295 C 805.6243,298.5317 807.6077,301.936 810,305 C 815.2219,311.6881 821.2446,317.8653 828,323 C 835.0112,328.3291 842.8692,332.6168 851,336 C 861.2302,340.2568 872.0449,343.3376 883,345 C 895.1982,346.851 907.7124,347.1118 920,346 C 926.4458,345.4168 932.5626,342.6703 939,342 C 943.9731,341.4822 954,342 954,342 C 954,342 971.552,355.3568 981,361 C 986.7591,364.4399 992.6549,367.8229 999,370 C 1000.6077,370.5516 1004,371 1004,371 L 1004,369 C 1004,369 994.9319,359.3215 991,354 C 987.2625,348.9417 981,338 981,338 L 980,324 C 980,324 991.2669,315.2745 996,310 C 998.7175,306.9717 1001.0469,303.5695 1003,300 C 1005.9416,294.6239 1008.6609,288.9802 1010,283 C 1011.4585,276.4863 1011.9536,269.6065 1011,263 C 1009.9909,256.0092 1007.2221,249.2855 1004,243 C 1002.1439,239.3792 999.6651,236.0745 997,233 C 992.2116,227.4759 986.9295,222.2761 981,218 C 973.6205,212.6782 965.3759,208.5527 957,205 C 950.8856,202.4066 944.4583,200.5498 938,199 C 932.0852,197.5806 926.062,196.5017 920,196 C 910.3663,195.2027 900.6231,195.0831 891,196 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaaaaaaaaaaaacaaccaccaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="899.14093"
+       y="269.23416"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="65.3172px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       style="stroke-width:1.48448"><tspan
+   x="899.14093"
+   y="269.23416"
+   id="tspan1"
+   style="stroke-width:1.48448">אמ...</tspan></text>
+  </g>
+</svg>

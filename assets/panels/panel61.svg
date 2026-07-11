@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel61.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="6.0284918"
+     inkscape:cx="1059.7178"
+     inkscape:cy="325.70335"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel61.png"
+     xlink:href="panel61.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="m 906,56 c -20.8291,1.5039 -41.6025,4.5221 -62,9 -9.1684,2.0128 -18.2281,4.6586 -27,8 -11.7051,4.4587 -23.1755,9.6976 -34,16 -5.9942,3.49 -11.695,7.5314 -17,12 -5.7687,4.8592 -11.1766,10.2014 -16,16 -4.1389,4.9758 -7.8554,10.3431 -11,16 -2.8284,5.0881 -5.2524,10.4471 -7,16 -1.5307,4.8638 -2.4976,9.9258 -3,15 -0.9197,9.2879 -0.9197,18.7121 0,28 0.335,3.3828 0.9917,6.7536 2,10 2.2589,7.273 5.2967,14.3452 9,21 1.9785,3.5554 4.3848,6.8829 7,10 4.5448,5.4171 9.5587,10.4842 15,15 5.9051,4.9008 12.3861,9.1083 19,13 6.424,3.7799 13.1261,7.1182 20,10 11.3742,4.7684 23.0657,8.8881 35,12 18.031,4.7017 36.4641,8.0918 55,10 26.2033,2.6975 52.6866,3.2216 79,2 19.7833,-0.9184 59,-7 59,-7 0,0 10.6433,12.11997 17,17 10.7379,8.24345 35.1612,20.32231 35.1612,20.32231 0,0 -8.889,-16.54895 -12.1612,-25.32231 -2.6563,-7.12194 -6,-22 -6,-22 0,0 25.9182,-10.1746 38,-17 8.1314,-4.5937 16.1154,-9.6893 23,-16 7.6766,-7.0366 14.783,-14.9874 20,-24 4.8081,-8.3062 8.1384,-17.5848 10,-27 1.8115,-9.1619 1.9233,-18.7065 1,-28 -0.7114,-7.1604 -2.4711,-14.2633 -5,-21 -2.5153,-6.7004 -5.9079,-13.1283 -10,-19 -5.1281,-7.3584 -11.3112,-14.0247 -18,-20 -6.4153,-5.731 -13.6303,-10.5629 -21,-15 -7.6626,-4.6135 -15.7238,-8.6083 -24,-12 -12.9727,-5.3164 -26.4364,-9.4525 -40,-13 -9.8662,-2.5804 -19.9204,-4.4504 -30,-6 -12.2611,-1.885 -24.6128,-3.3324 -37,-4 -21.3024,-1.1481 -42.7221,-1.5363 -64,0 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaaaaaaaaaaaaaaaacacacaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="920.5"
+       y="105"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="29px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
+   x="920.5"
+   y="105"
+   id="tspan1">אממ... תן לי שבועיים,</tspan><tspan
+   x="920.5"
+   y="139"
+   id="tspan2">אני צריך לסגור את זה</tspan><tspan
+   x="920.5"
+   y="173"
+   id="tspan3">עם המכון. קלרה והילדה</tspan><tspan
+   x="920.5"
+   y="207"
+   id="tspan4">יבואו תוך חודש,</tspan><tspan
+   x="920.5"
+   y="241"
+   id="tspan5">אני צריך שתסדר לנו דירה.</tspan></text>
+  </g>
+</svg>

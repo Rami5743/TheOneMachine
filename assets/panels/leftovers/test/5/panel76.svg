@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel76.png"
+         xlink:href="panel76.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 643,560 L 643,568 L 632,571 L 627,576 L 625,581 L 624,636 L 627,645 L 631,649 L 638,652 C 638,652 651.3271,652.8333 658,653 C 685.9913,653.6993 714.0348,651.6052 742,653 C 748.6916,653.3337 762,655 762,655 L 762,672 L 748,716 L 751,715 C 751,715 761.89,701.1647 767,694 C 776.0723,681.2797 793,655 793,655 L 929,654 L 938,651 L 944,645 L 946,639 L 946,581 L 940,572 L 929,568 L 929,560 L 643,560 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="cccccccccaaccccaccccccccc"
+          />
+  <text id="bubble-text"
+        x="786.00" y="638.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="32"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="786.00" y="643.30">יש לי שתי כניסות.</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg6"
+   sodipodi:docname="panel39.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6" />
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4.3419495"
+     inkscape:cx="434.13679"
+     inkscape:cy="335.21809"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel39.png"
+     xlink:href="panel39.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="m 445,61 c 0,0 -33.8357,11.7359 -49,21 -12.9293,7.8987 -24.99,17.6265 -35,29 -7.8204,8.8856 -14.2537,19.1564 -19,30 -4.1499,9.481 -7.108,19.6891 -8,30 -0.9806,11.335 -0.2423,23.0944 3,34 3.2297,10.8634 9.2529,20.8939 16,30 5.0516,6.8178 11.438,12.6204 18,18 6.5061,5.3337 13.65959,9.88951 21,14 14.71315,8.23909 45.92125,21.22436 45.92125,21.22436 0,0 1.08704,13.56182 -1.15751,19.76969 C 431.2707,323.18636 408,347 408,347 c 0,0 23.601,-11.9533 34,-20 9.6934,-7.5007 26,-26 26,-26 0,0 38.5408,6.5066 58,8 20.6087,1.5817 41.3558,2.0201 62,1 17.4271,-0.8612 34.8419,-2.8306 52,-6 14.5488,-2.6874 29.0448,-6.0865 43,-11 11.3972,-4.0129 22.4388,-9.1297 33,-15 7.3534,-4.0873 14.4261,-8.7501 21,-14 7.1853,-5.7382 14.1836,-11.8778 20,-19 5.9673,-7.307 15,-24 15,-24 6.37999,-27.56762 8.58721,-57.45951 0,-91 0,0 -10.8126,-19.5471 -18,-28 C 748.1901,95.1671 741.2935,89.2201 734,84 723.4426,76.4438 711.9156,70.1551 700,65 686.8415,59.3072 672.945,55.3305 659,52 642.9031,48.1555 626.4856,45.4538 610,44 586.4225,41.9207 562.6269,41.5894 539,43 511.4708,44.6436 457,54 457,54 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="caaaaaaaacacacaaaaaaaccaaaaaacc" />
+    <text
+       id="bubble-text"
+       x="557.00"
+       y="88.00"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="Noto Sans Hebrew, Arial, sans-serif"
+       font-size="34"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve">
+<tspan
+   x="557.00"
+   y="88.00"
+   id="tspan1">אני לא יכול להגיד את</tspan>
+<tspan
+   x="557.00"
+   y="127.00"
+   id="tspan2">זה בטלפון, אתה תקבל</tspan>
+<tspan
+   x="557.00"
+   y="166.00"
+   id="tspan3">את כל הפרטים עם שליח,</tspan>
+<tspan
+   x="557.00"
+   y="205.00"
+   id="tspan4">אבל אתה צריך להתחייב</tspan>
+<tspan
+   x="557.00"
+   y="244.00"
+   id="tspan5">לשמור על סודיות</tspan>
+<tspan
+   x="557.00"
+   y="283.00"
+   id="tspan6">מוחלטת.</tspan>
+</text>
+  </g>
+</svg>

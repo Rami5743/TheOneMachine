@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel32.png"
+         xlink:href="panel32.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 498,541 C 510.5718,539.4523 523.3894,539.8097 536,541 C 543.0943,541.6696 550.1335,543.0951 557,545 C 563.5039,546.8042 569.9293,549.0501 576,552 C 585.1528,556.4476 594.0144,561.6925 602,568 C 606.8091,571.7985 611.2967,576.1173 615,581 C 618.6979,585.8755 624,597 624,597 C 624,597 639.4443,597.3418 647,596 C 654.577,594.6544 669,589 669,589 L 671,590 C 671,590 659.6395,600.8869 653,605 C 645.2604,609.7945 628,616 628,616 C 628,616 628.1887,626.1319 627,631 C 625.6191,636.6553 622.8498,641.9239 620,647 C 618.0081,650.5479 615.6621,653.9229 613,657 C 607.9087,662.8851 602.3177,668.4567 596,673 C 587.4038,679.1819 577.8478,684.1099 568,688 C 558.3743,691.8023 548.2379,694.4845 538,696 C 528.1023,697.4651 517.9939,697.482 508,697 C 500.2774,696.6276 492.5713,695.5663 485,694 C 477.8709,692.5251 470.8078,690.5796 464,688 C 456.053,684.9887 448.3503,681.2656 441,677 C 436.4415,674.3546 432.0464,671.377 428,668 C 422.9331,663.7713 418.0208,659.2335 414,654 C 409.5415,648.1968 405.7476,641.7828 403,635 C 401.968,632.4524 401.3358,629.7281 401,627 C 400.3076,621.3758 400.2478,615.6165 401,610 C 401.5045,606.233 402.5235,602.5021 404,599 C 406.554,592.942 409.9766,587.1995 414,582 C 418.0389,576.7805 422.748,571.9965 428,568 C 437.1469,561.0397 447.3271,555.2662 458,551 C 470.7619,545.8988 484.3593,542.6792 498,541 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaacaccacaaaaaaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="536.50" y="625.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="536.50" y="633.06">הלו?</tspan>
+  </text>
+  </g>
+</svg>

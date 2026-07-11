@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel22.png"
+         xlink:href="panel22.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 279,149 L 278,158 C 278,158 250.8444,163.1103 238,168 C 230.6149,170.8114 224.6733,177.112 217,179 C 214.0869,179.7168 208,179 208,179 L 208,294 C 208,294 214.0885,293.2768 217,294 C 223.2227,295.5456 228.0469,300.6186 234,303 C 244.2879,307.1155 266,312 266,312 L 267,321 L 365,321 L 366,312 C 366,312 386.3218,307.6664 396,304 C 402.9702,301.3595 408.7458,295.7125 416,294 C 418.9197,293.3107 425,294 425,294 L 425,179 C 425,179 418.9131,179.7168 416,179 C 408.3267,177.112 402.3851,170.8114 395,168 C 382.1556,163.1103 355,158 355,158 L 354,149 L 279,149 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaccaaccccaaccaacc"
+          />
+  <text id="bubble-text"
+        x="317.00" y="236.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="317.00" y="243.56">למי?</tspan>
+  </text>
+  </g>
+</svg>

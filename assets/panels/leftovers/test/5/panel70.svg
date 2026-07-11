@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel70.png"
+         xlink:href="panel70.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1327,113 L 1324,120 C 1324,120 1300.0037,120.8512 1288,121 C 1176.3414,122.3838 1064.6352,117.3304 953,120 C 933.3136,120.4708 913.0442,117.9904 894,123 C 883.1875,125.8443 872.9699,131.3261 864,138 C 857.7568,142.6452 852.4023,148.5832 848,155 C 842.7707,162.6222 838.1164,171.0019 836,180 C 825.4669,224.7828 834,318 834,318 L 771,353 C 771,353 810.7032,343.0098 831,341 C 837.3025,340.3759 850,341 850,341 C 850,341 864.1546,356.0019 873,361 C 883.3706,366.8599 895.2338,370.144 907,372 C 1049.8998,394.541 1197.2625,388.37 1341,372 C 1345.4187,371.4968 1349.8263,370.5357 1354,369 C 1363.5143,365.4992 1372.9111,361.1113 1381,355 C 1387.2089,350.3091 1392.4799,344.3343 1397,338 C 1401.1572,332.1742 1404.5353,325.7192 1407,319 C 1409.1167,313.2296 1410.3293,307.1097 1411,301 C 1415.0009,264.5523 1415.1491,227.4312 1411,191 C 1410.4968,186.5813 1409.4095,182.2179 1408,178 C 1405.9189,171.7726 1403.5068,165.551 1400,160 C 1395.076,152.2055 1389.0637,144.9248 1382,139 C 1375.4738,133.526 1368.0179,128.8756 1360,126 C 1349.8377,122.3554 1328,121 1328,121 L 1327,113 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaaccacaaaaaaaaaaaaac"
+          />
+  <text id="bubble-text"
+        x="1091.50" y="182.19"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1091.50" y="189.39">אתה! אתה נראה לי ברנש לעניין. יש לי</tspan>
+    <tspan x="1091.50" y="235.78">משימה סודית עבורך. אתה מכיר את</tspan>
+    <tspan x="1091.50" y="282.53">המקצוע מחשב, אתה יודע, בן אדם</tspan>
+    <tspan x="1091.50" y="324.82">שהתפקיד שלו זה לחשב.</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel49.png"
+         xlink:href="panel49.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 212,130 C 209.919,130.3377 207.76,130.8395 206,132 C 202.6491,134.2096 199.4353,137.2515 198,141 C 172.8489,206.6834 170.2384,286.9561 197,352 C 198.973,356.7954 203.223,360.9828 208,363 C 230.4189,372.4666 281,364 281,364 C 281,364 286.9752,381.1825 294,386 C 295.6722,387.1467 300,387 300,387 L 300,364 C 300,364 552.5528,389.1332 675,364 C 677.4867,363.4896 680.0041,362.5686 682,361 C 684.6208,358.9403 686.9383,356.1597 688,353 C 710.0834,287.2768 709.514,211.2299 689,145 C 687.4406,139.9655 684.2164,135.1623 680,132 C 678.3135,130.7351 676.081,130.3377 674,130 C 521.9885,105.3319 364.0115,105.3319 212,130 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaacaccaaaaaa"
+          />
+  <text id="bubble-text"
+        x="443.00" y="187.70"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="443.00" y="194.90">אה... כן.. הם.. הם פשוט</tspan>
+    <tspan x="443.00" y="250.50">רוצים שאני אנתח תוצאות של</tspan>
+    <tspan x="443.00" y="309.57">ניסוי מוזר במזג האוויר.</tspan>
+  </text>
+  </g>
+</svg>

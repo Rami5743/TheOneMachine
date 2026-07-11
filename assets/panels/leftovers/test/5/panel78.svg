@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel78.png"
+         xlink:href="panel78.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 872,478 C 827.3184,478.6667 738,482 738,482 L 722,487 L 715,494 L 711,502 C 711,502 708.5015,514.6079 708,521 C 706.592,538.9448 706.7674,557.0423 708,575 C 708.6682,584.7353 709.68,594.5216 712,604 C 713.1781,608.8133 717,618 717,618 L 724,625 L 733,629 L 781,632 L 781,648 L 756,694 L 767,694 L 767,686 L 826,633 C 826,633 953.3354,634.6096 1017,634 C 1044.3402,633.7382 1071.8602,635.3146 1099,632 C 1102.0505,631.6274 1108,630 1108,630 L 1120,623 L 1127,614 L 1131,604 C 1131,604 1134.3322,581.3919 1135,570 C 1135.7998,556.3568 1136.0421,542.6269 1135,529 C 1134.3314,520.2569 1131,503 1131,503 L 1126,493 L 1118,485 L 1106,480 C 1106,480 1086.6839,478.3335 1077,478 C 1008.7072,475.6479 940.3257,476.9804 872,478 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="accccaaacccccccccaaccccaacccca"
+          />
+  <text id="bubble-text"
+        x="922.00" y="531.80"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="922.00" y="538.28">טוב, האמת היא שאני גם</tspan>
+    <tspan x="922.00" y="582.68">צריך חיבור קבוע למקור מתח.</tspan>
+  </text>
+  </g>
+</svg>

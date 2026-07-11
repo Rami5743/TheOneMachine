@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel07.png"
+         xlink:href="panel07.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 525,216 C 517.67,228.33 514.67,238 512,252 C 509.33,266 508.5,286 509,300 C 509.5,314 511.83,324.67 515,336 C 518.17,347.33 523.17,358.83 528,368 C 532.83,377.17 536.83,383.17 544,391 C 551.17,398.83 560.5,407.83 571,415 C 581.5,422.17 593.5,428.5 607,434 C 620.5,439.5 627.67,443.67 652,448 L 753,460 L 846,459 L 924,449 L 947,462 L 981,470 L 961,451 C 956.83,445.67 951,443.33 956,438 C 961,432.67 981.33,425.67 991,419 C 1000.67,412.33 1007.17,405.67 1014,398 C 1020.83,390.33 1026.17,384.67 1032,373 C 1037.83,361.33 1045.5,341.33 1049,328 C 1052.5,314.67 1052.83,304.83 1053,293 C 1053.17,281.17 1052,268 1050,257 C 1048,246 1045,236.5 1041,227 C 1037,217.5 1035.5,210.67 1026,200 C 1016.5,189.33 1001,172.67 984,163 C 967,153.33 953.67,147.67 924,142 C 894.33,136.33 839,131.17 806,129 C 773,126.83 750.33,127.83 726,129 C 701.67,130.17 677.33,133.33 660,136 C 642.67,138.67 635.67,140.5 622,145 C 608.33,149.5 589,157.5 578,163 C 567,168.5 564.83,169.17 556,178 C 547.17,186.83 532.33,203.67 525,216 Z"
+          sodipodi:nodetypes="aaaaaaaaaaacccaaaaaaaaaaaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="781.00" y="299.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="27"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="781.00" y="183.98">השתגעת, עכשיו, עם כל המתיחות</tspan>
+    <tspan x="781.00" y="222.32">באירופה, להעלות את הנושא של</tspan>
+    <tspan x="781.00" y="260.66">חשמל מבקוע גרעיני, זה סכנת נפשות,</tspan>
+    <tspan x="781.00" y="299.00">הרי דיברנו על זה, אפשר לעשות עם זה</tspan>
+    <tspan x="781.00" y="337.34">ממש לא רק חשמל. רק כשתהיה ממשלה</tspan>
+    <tspan x="781.00" y="375.68">עולמית חזקה, מונהגת על ידי מדענים</tspan>
+    <tspan x="781.00" y="414.02">יהיה אפשר לדבר על זה.</tspan>
+  </text>
+  </g>
+</svg>

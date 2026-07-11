@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel86_simple_gates_04.png"
+         xlink:href="panel86_simple_gates_04.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 764,33 C 762.3064,33.1433 759,34 759,34 L 759,58 C 759,58 736.8819,57.3584 726,59 C 716.0845,60.4959 697,67 697,67 L 673,82 L 659,99 L 648,131 L 643,216 C 643,216 617.749,231.0595 604,236 C 590.8323,240.7316 563,245 563,245 L 576,249 C 576,249 594.0501,249.9482 603,249 C 612.4921,247.9944 621.5079,244.0056 631,243 C 636.9666,242.3679 649,243 649,243 L 653,280 L 666,313 L 689,336 L 718,347 L 1179,346 C 1179,346 1193.9774,342.9088 1201,340 C 1205.9657,337.9431 1215,332 1215,332 L 1228,318 L 1238,296 C 1238,296 1241.2618,278.0682 1242,269 C 1243.7583,247.4022 1243.2344,225.668 1243,204 C 1242.7077,176.9831 1240,123 1240,123 L 1230,95 L 1216,78 C 1216,78 1203.7436,69.8424 1197,67 C 1189.0256,63.6388 1172,60 1172,60 L 799,57 L 799,34 C 799,34 775.6299,32.0159 764,33 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="accacccccaccaaccccccacccaacccaccc"
+          />
+  <text id="bubble-text"
+        x="903.50" y="106.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="31"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="903.50" y="112.08">אני רץ לפגישה עם אד טלר, הפסיכי הזה</tspan>
+    <tspan x="903.50" y="157.44">חושב שהפצצה שאנחנו בונים לא מספיק חזקה,</tspan>
+    <tspan x="903.50" y="202.18">ורוצה לפתח פצצה חזקה יותר.</tspan>
+    <tspan x="903.50" y="249.58">אופס.. תשכח מהמשפט האחרון שאמרתי.</tspan>
+    <tspan x="903.50" y="293.41">אתה לא אמור לשמוע את זה.</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel12.png"
+         xlink:href="panel12.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 152,53 C 137.5626,54.0024 123.0904,55.6979 109,59 C 100.7897,60.9241 92.6885,63.5363 85,67 C 78.3277,70.0059 71.8032,73.5415 66,78 C 60.7665,82.0208 52,92 52,92 L 43,111 C 43,111 40.2853,122.9239 40,129 C 39.7806,133.6734 41,143 41,143 L 50,167 L 70,189 C 70,189 84.9905,198.3389 93,202 C 97.5069,204.0601 102.2214,205.6885 107,207 C 120.4278,210.6854 134.1402,213.6605 148,215 C 161.6033,216.3148 175.3731,216.0421 189,215 C 197.7431,214.3314 206.4467,212.9311 215,211 C 221.7893,209.4671 228.53,207.5659 235,205 C 239.85,203.0766 244.5928,200.7927 249,198 C 254.0131,194.8234 263,187 263,187 L 303,188 L 303,185 L 294,182 L 283,174 L 283,156 L 289,137 L 289,116 L 281,93 L 264,75 C 264,75 243.771,64.5413 233,61 C 223.9323,58.0188 214.4396,56.4162 205,55 C 197.3896,53.8582 189.6884,53.3336 182,53 C 172.0094,52.5664 161.976,52.3074 152,53 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaccacccaaaaaaaccccccccccaaa"
+          />
+  <text id="bubble-text"
+        x="171.50" y="100.88"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="29"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="171.50" y="106.09">הם עובדים על זה</tspan>
+    <tspan x="171.50" y="142.39">אנחנו צריכים לעשות</tspan>
+    <tspan x="171.50" y="179.82">1 ₪7 את זה לפניהם</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel75.png"
+         xlink:href="panel75.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1042,437 C 952.6289,438.5002 863.222,440.6265 774,446 C 766.3183,446.4626 758.4736,446.165 751,448 C 746.7917,449.0333 739,453 739,453 L 732,463 C 732,463 728.7144,476.2389 728,483 C 725.3377,508.1953 726.2945,533.6743 727,559 C 727.5396,578.3717 728.4277,597.7922 731,617 C 732.128,625.4232 736,642 736,642 L 743,652 L 754,657 L 794,660 L 794,677 L 773,717 C 773,717 779.8569,712.5839 783,710 C 801.2111,695.0289 834,661 834,661 C 834,661 1003.4199,666.8847 1088,663 C 1094.6929,662.6926 1108,661 1108,661 L 1121,654 C 1121,654 1127.7135,645.0547 1130,640 C 1132.0004,635.578 1133.1646,630.781 1134,626 C 1137.3931,606.5824 1137.5792,586.7073 1138,567 C 1138.5694,540.3311 1138.7274,513.5352 1136,487 C 1135.2379,479.5855 1134.357,472.0711 1132,465 C 1129.8787,458.636 1123,447 1123,447 L 1113,440 C 1113,440 1105.0922,437.5038 1101,437 C 1081.4807,434.5971 1061.6639,436.6699 1042,437 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaccaaaccccccacaccaaaaacca"
+          />
+  <text id="bubble-text"
+        x="933.00" y="474.12"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="26"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="933.00" y="478.81">שלום, אני אני אחד</tspan>
+    <tspan x="933.00" y="510.81">המעגלים הכי פשוטים שיש.</tspan>
+    <tspan x="933.00" y="543.10">אני בנוי רק משתי טרידות ונגד.</tspan>
+    <tspan x="933.00" y="573.76">אבל אפשר לבנות ממני כל מכונת</tspan>
+    <tspan x="933.00" y="606.58">חישוב, אפילו את המחשב שאתה</tspan>
+    <tspan x="933.00" y="638.51">וג'ון מנסים לבנות.</tspan>
+  </text>
+  </g>
+</svg>

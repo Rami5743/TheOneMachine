@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel58.png"
+         xlink:href="panel58.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 437,97 C 427.9585,97.5008 418.9426,98.575 410,100 C 401.9301,101.286 393.9062,102.9337 386,105 C 379.5742,106.6794 373.1942,108.6036 367,111 C 358.0978,114.4441 349.2628,118.2212 341,123 C 332.5135,127.9082 324.3746,133.5404 317,140 C 312.2096,144.1961 307.7857,148.879 304,154 C 299.6497,159.8848 296.0059,166.3277 293,173 C 291.2681,176.8443 289.9178,180.8847 289,185 C 287.758,190.5689 287.0349,196.2944 287,202 C 286.9611,208.3682 289,221 289,221 L 300,246 L 319,267 C 319,267 334.6035,278.3157 343,283 C 350.6852,287.2875 367,294 367,294 L 367,313 L 354,345 L 354,352 L 361,352 L 361,344 C 361,344 378.3426,328.6492 386,320 C 390.4192,315.0085 398,304 398,304 C 398,304 409.3452,303.6328 415,304 C 422.7154,304.5011 430.2846,306.4989 438,307 C 448.9769,307.7129 460.02,307.663 471,307 C 482.0604,306.3321 493.1463,305.2304 504,303 C 517.9485,300.1336 531.7453,296.205 545,291 C 552.6316,288.0032 559.9642,284.2094 567,280 C 572.9523,276.4389 578.695,272.4686 584,268 C 589.4081,263.4445 594.4552,258.4171 599,253 C 601.6152,249.8829 603.9179,246.4958 606,243 C 608.2885,239.1578 610.3941,235.1739 612,231 C 614.2361,225.1882 617,213 617,213 C 617,213 617.8002,198.2895 617,191 C 616.6647,187.9452 615.9218,184.9317 615,182 C 613.1618,176.1539 610.9277,170.3837 608,165 C 605.4821,160.3699 602.377,156.0464 599,152 C 594.1672,146.2093 588.804,140.8169 583,136 C 577.0949,131.0992 570.6739,126.7879 564,123 C 555.6987,118.2884 546.9326,114.3646 538,111 C 529.2157,107.6913 520.1739,104.9875 511,103 C 496.8559,99.9358 482.4374,98.0024 468,97 C 457.6915,96.2843 447.3175,96.4286 437,97 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaacccaccccccacaaaaaaaaaacaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="452.50" y="167.67"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="452.50" y="174.87">מתי אתה יכול</tspan>
+    <tspan x="452.50" y="216.20">להגיע ללוס אלמוס,</tspan>
+    <tspan x="452.50" y="260.70">ניו מקסיקו?</tspan>
+  </text>
+  </g>
+</svg>

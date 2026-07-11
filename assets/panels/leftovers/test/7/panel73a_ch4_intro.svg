@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel73a_ch4_intro.png"
+         xlink:href="panel73a_ch4_intro.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 568,28 C 559.2902,28.5008 550.4579,28.8611 542,31 C 538.5195,31.8802 535.1297,33.2411 532,35 C 526.1882,38.2662 520.5814,42.157 516,47 C 510.2185,53.1116 505.3206,60.2701 502,68 C 499.0317,74.9098 497.8904,82.5326 497,90 C 494.158,113.8335 506.1401,140.2448 496,162 C 491.9065,170.7825 482.1604,175.7753 474,181 C 467.216,185.3435 452,191 452,191 L 452,196 L 496,193 C 496,193 497.643,207.9289 500,215 C 502.1213,221.364 504.9097,227.6831 509,233 C 513.6079,238.9898 519.4154,244.2914 526,248 C 535.7372,253.4841 546.9918,256.0744 558,258 C 580.6774,261.9667 603.9837,260.4999 627,261 C 690.9849,262.3903 755.0054,261.831 819,261 C 844.6732,260.6666 870.3936,260.8802 896,259 C 907.0508,258.1886 918.4111,258.2638 929,255 C 939.4004,251.7943 949.515,246.8153 958,240 C 962.0595,236.7394 965.2497,232.4212 968,228 C 971.4681,222.4248 973.9679,216.2435 976,210 C 977.4771,205.4617 978.3817,200.7324 979,196 C 980.7727,182.4324 980.8397,168.682 981,155 C 981.3086,128.66 983.7417,101.9115 979,76 C 977.7286,69.0522 975.5696,62.0948 972,56 C 968.1807,49.4789 962.9194,43.6981 957,39 C 953.145,35.9404 948.6017,33.7453 944,32 C 938.5569,29.9356 932.7826,28.6711 927,28 C 808.1313,14.2038 687.4693,21.1303 568,28 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaacccaaaaaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="716.50" y="82.20"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="716.50" y="89.04">מצוין. זה המחסן שלנו. תתחיל</tspan>
+    <tspan x="716.50" y="133.84">להכיר את הציוד.</tspan>
+    <tspan x="716.50" y="179.54">אני צריך לרוץ לפגישה ש</tspan>
+    <tspan x="716.50" y="226.09">עם רוברט.</tspan>
+    <tspan x="716.50" y="259.84">ל</tspan>
+  </text>
+  </g>
+</svg>

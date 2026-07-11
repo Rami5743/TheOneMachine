@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel08.png"
+         xlink:href="panel08.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 84,90 C 79.67,99 74.17,121.83 72,134 C 69.83,146.17 69.83,154.17 71,163 C 72.17,171.83 77.5,178.33 79,187 C 80.5,195.67 78.17,208 80,215 C 81.83,222 86,225.83 90,229 C 94,232.17 94.33,233.17 104,234 C 113.67,234.83 134.33,232.83 148,234 C 161.67,235.17 173,239.83 186,241 C 199,242.17 212,242.33 226,241 L 270,233 L 319,233 L 331,226 L 346,226 C 347.17,224.67 339.17,225.67 338,218 C 336.83,210.33 336.67,192.33 339,180 C 341.33,167.67 349.83,153.5 352,144 C 354.17,134.5 353.5,130.33 352,123 C 350.5,115.67 347.83,107 343,100 C 338.17,93 335.33,87.33 323,81 C 310.67,74.67 289,65.67 269,62 C 249,58.33 221.17,58.5 203,59 C 184.83,59.5 173.83,61.67 160,65 C 146.17,68.33 130.33,76.5 120,79 C 109.67,81.5 104,78.17 98,80 C 92,81.83 88.33,81 84,90 Z"
+          sodipodi:nodetypes="aaaaaaaaaaacccaaaaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="215.00" y="158.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="33"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="215.00" y="108.50">אז זהו, שלא באתי</tspan>
+    <tspan x="215.00" y="158.00">לדבר על ייצור</tspan>
+    <tspan x="215.00" y="207.50">חשמל.</tspan>
+  </text>
+  </g>
+</svg>

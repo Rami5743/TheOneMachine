@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel26.png"
+         xlink:href="panel26.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 485,517 L 484,526 C 484,526 457.2003,528.4884 444,531 C 432.1661,533.2516 420.4777,536.343 409,540 C 397.4391,543.6835 385.9558,547.7854 375,553 C 365.9656,557.3001 357.1787,562.2363 349,568 C 341.8479,573.0402 334.8555,578.4986 329,585 C 323.8644,590.7021 316,604 316,604 L 288,604 L 288,629 L 309,631 L 315,656 L 343,687 C 343,687 362.5527,699.8179 373,705 C 382.6486,709.7859 392.8016,713.5371 403,717 C 413.4922,720.5626 424.1459,723.7715 435,726 C 447.5148,728.5694 473,731 473,731 L 474,740 L 571,740 L 572,731 C 572,731 596.1605,728.57 608,726 C 623.9749,722.5323 639.7187,717.8055 655,712 C 665.3159,708.0809 675.4355,703.5044 685,698 C 693.0945,693.3416 701.0601,688.2498 708,682 C 715.2003,675.5158 727,660 727,660 L 735,637 L 734,617 L 727,600 L 697,569 C 697,569 658.0957,546.9582 637,540 C 613.1592,532.1364 563,526 563,526 L 562,517 L 485,517 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaccccccaaaccccaaaacccccacc"
+          />
+  <text id="bubble-text"
+        x="511.50" y="603.83"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="511.50" y="611.03">הנשיא רוצה לדבר</tspan>
+    <tspan x="511.50" y="665.53">עם פרופסור אופנהימר</tspan>
+  </text>
+  </g>
+</svg>

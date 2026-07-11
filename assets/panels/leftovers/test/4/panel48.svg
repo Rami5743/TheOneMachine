@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel48.png"
+         xlink:href="panel48.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 938,239 C 927.7383,240.3447 916.966,241.8306 908,247 C 903.0993,249.8255 899.0825,254.2568 896,259 C 893.4701,262.8929 891.7047,267.411 891,272 C 890.1889,277.2818 890.4679,282.8806 892,288 C 893.541,293.1492 896.4429,297.9706 900,302 C 903.309,305.7484 907.5711,308.6795 912,311 C 916.6685,313.4461 921.7987,315.1492 927,316 C 1057.5982,337.362 1324,317 1324,317 L 1368,356 L 1368,364 L 1370,354 C 1370,354 1360.8928,341.3693 1359,334 C 1357.5902,328.5115 1359,317 1359,317 C 1359,317 1368.4857,316.3576 1373,315 C 1379.711,312.9817 1386.3927,310.2034 1392,306 C 1395.2117,303.5924 1398.0239,300.4937 1400,297 C 1402.751,292.1364 1404.6155,286.5744 1405,281 C 1405.4186,274.9317 1404.3518,268.6097 1402,263 C 1400.2471,258.8187 1397.2967,255.1125 1394,252 C 1389.9661,248.1914 1385.161,245.0351 1380,243 C 1373.066,240.2658 1365.4234,239.6694 1358,239 C 1218.5657,226.4272 1076.8132,220.8094 938,239 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaccccacaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1148.50" y="279.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="41"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1148.50" y="286.38">פרופסור אופנהיימר, הכל בסדר?</tspan>
+    <tspan x="1148.50" y="332.38">ּ</tspan>
+  </text>
+  </g>
+</svg>

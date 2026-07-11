@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel35.png"
+         xlink:href="panel35.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 624,88 C 604.0213,87.0181 583.8979,86.9544 564,89 C 549.823,90.4574 535.7519,93.2588 522,97 C 512.4369,99.6017 502.9422,102.7268 494,107 C 481.311,113.0637 468.9165,120.1339 458,129 C 451.9595,133.9059 446.5501,139.6871 442,146 C 436.2446,153.9852 430.8121,162.567 428,172 C 424.6548,183.2214 423.9762,195.3354 425,207 C 425.4525,212.1549 427.1251,217.1769 429,222 C 432.133,230.0599 435.9781,237.9602 441,245 C 446.0664,252.1023 459,264 459,264 L 459,281 L 429,324 C 429,324 450.8554,314.2697 461,308 C 469.5065,302.7427 485,290 485,290 C 485,290 497.7576,288.9307 504,290 C 515.846,292.0291 526.303,299.2387 538,302 C 556.3087,306.3221 575.1923,308.5996 594,309 C 614.3969,309.4342 634.9603,307.8252 655,304 C 670.7435,300.9949 686.3272,296.4496 701,290 C 714.8164,283.9268 728.5348,276.8146 740,267 C 749.1757,259.1453 757.2063,249.5982 763,239 C 768.7138,228.5481 772.3894,216.8023 774,205 C 775.0826,197.0666 774.5056,188.8641 773,181 C 771.6719,174.0628 769.1071,167.3431 766,161 C 763.0309,154.9387 759.4214,149.0997 755,144 C 746.0234,133.6463 735.4814,124.4803 724,117 C 714.1296,110.5693 703.0773,106.009 692,102 C 678.3916,97.075 664.2239,93.6694 650,91 C 641.4255,89.3908 632.7137,88.4282 624,88 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaacccacaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="600.00" y="150.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="600.00" y="158.06">שלום פרופסור</tspan>
+    <tspan x="600.00" y="209.81">אופנהימר, מדבר</tspan>
+    <tspan x="600.00" y="257.06">הנשיא רוזבלט.</tspan>
+    <tspan x="600.00" y="280.06">,</tspan>
+  </text>
+  </g>
+</svg>

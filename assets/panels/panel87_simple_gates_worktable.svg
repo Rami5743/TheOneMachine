@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel87_simple_gates_worktable.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="724.22209"
+     inkscape:cy="756.20245"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     showguides="true" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel87_simple_gates_worktable.png"
+     xlink:href="panel87_simple_gates_worktable.png" />
+  <rect
+     class="hotspot hotspot-action"
+     data-hotspot="action"
+     data-action="open-note-tasks"
+     data-aria-label="לחץ על הפתק"
+     id="hotspot-action-open-note-tasks"
+     x="278.95337"
+     y="696.62579"
+     width="170.04663"
+     height="96.374229"
+     fill="#ff2fb0"
+     opacity="0"
+     pointer-events="none"
+     style="stroke-width:0.639298;opacity:0" />
+  <rect
+     class="hotspot hotspot-action"
+     data-hotspot="action"
+     data-action="return-to-nand-dialog"
+     data-aria-label="הקש על NAND"
+     id="hotspot-action-return-to-nand-dialog"
+     x="605.01959"
+     y="678.31042"
+     width="220.98038"
+     height="223.68958"
+     fill="#ff2fb0"
+     opacity="0"
+     pointer-events="none"
+     style="stroke-width:0.851842;opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="bulbs"
+     data-label="נורות חשמליות"
+     data-url="https://he.wikipedia.org/wiki/נורה_חשמלית"
+     id="hotspot-object-bulbs"
+     x="1126"
+     y="873"
+     width="319"
+     height="206"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="triodes"
+     data-label="טריודות"
+     data-url="https://he.wikipedia.org/wiki/טריודה"
+     id="hotspot-object-triodes"
+     x="70"
+     y="823"
+     width="188"
+     height="195"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="diode"
+     data-label="דיודה"
+     data-url="https://he.wikipedia.org/wiki/דיודה"
+     id="hotspot-object-diode"
+     x="8"
+     y="912"
+     width="116"
+     height="141"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="cable"
+     data-label="כבל חשמלי"
+     data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
+     id="hotspot-object-cable"
+     x="1090.3252"
+     y="605"
+     width="174.67485"
+     height="169.68221"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="stroke-width:0.89916;opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="source"
+     data-label="מקור מתח"
+     data-url="https://he.wikipedia.org/wiki/מקור_מתח"
+     id="hotspot-object-source"
+     x="1306"
+     y="236"
+     width="130"
+     height="217"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="opacity:0" />
+  <rect
+     class="hotspot hotspot-object"
+     data-hotspot="object"
+     data-id="voltmeter"
+     data-label="מד מתח"
+     data-url="https://he.wikipedia.org/wiki/וולטמטר"
+     id="hotspot-object-voltmeter"
+     x="304"
+     y="885.34967"
+     width="270.37177"
+     height="189.65031"
+     fill="#22a7ff"
+     opacity="0"
+     pointer-events="none"
+     style="stroke-width:1.09785;opacity:0" />
+  <rect
+     class="hotspot hotspot-table"
+     data-hotspot="table"
+     data-label="שולחן עבודה"
+     id="hotspot-table"
+     x="98.361961"
+     y="616.99261"
+     width="1111.6772"
+     height="462.00735"
+     fill="#37d67a"
+     opacity="0"
+     pointer-events="none"
+     style="opacity:0;stroke-width:0.924722" />
+  <script
+     type="text/javascript"
+     id="script1"><![CDATA[
+(function () {
+  var PANEL = "panel87_simple_gates_worktable";
+  function collect() {
+    var svg = document.querySelector("svg") || document.documentElement;
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var VW = vb && vb.width ? vb.width : 1448;
+    var VH = vb && vb.height ? vb.height : 1086;
+    var rootM = null;
+    try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+    function box(rect) {
+      var bb;
+      try { bb = rect.getBBox(); } catch (e) { return null; }
+      var m = null;
+      try { if (rootM) { m = rootM.inverse().multiply(rect.getScreenCTM()); } } catch (e) { m = null; }
+      if (!m) { return { x: bb.x, y: bb.y, w: bb.width, h: bb.height }; }
+      function map(x, y) { return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f }; }
+      var p = [map(bb.x, bb.y), map(bb.x + bb.width, bb.y), map(bb.x, bb.y + bb.height), map(bb.x + bb.width, bb.y + bb.height)];
+      var xs = [p[0].x, p[1].x, p[2].x, p[3].x], ys = [p[0].y, p[1].y, p[2].y, p[3].y];
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+    function pct(rect) {
+      var b = box(rect);
+      if (!b || !(b.w > 0) || !(b.h > 0)) return null;
+      return { x: b.x / VW * 100, y: b.y / VH * 100, w: b.w / VW * 100, h: b.h / VH * 100 };
+    }
+    var rects = document.querySelectorAll("[data-hotspot]");
+    var out = { panel: PANEL, objects: [], table: null, actions: {} };
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i], kind = r.getAttribute("data-hotspot"), g = pct(r);
+      if (!g) continue;
+      if (kind === "object") {
+        out.objects.push({ id: r.getAttribute("data-id") || r.id || "", label: r.getAttribute("data-label") || "", url: r.getAttribute("data-url") || "", x: g.x, y: g.y, w: g.w, h: g.h });
+      } else if (kind === "table") {
+        out.table = { label: r.getAttribute("data-label") || "\u05e9\u05d5\u05dc\u05d7\u05df \u05e2\u05d1\u05d5\u05d3\u05d4", x: g.x, y: g.y, w: g.w, h: g.h };
+      } else if (kind === "action") {
+        var a = r.getAttribute("data-action");
+        if (a) { out.actions[a] = { x: g.x, y: g.y, w: g.w, h: g.h }; }
+      }
+    }
+    return out;
+  }
+  function send() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ __warehouseHotspots: true, payload: collect() }, "*");
+      }
+    } catch (e) {}
+  }
+  function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+  if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); }
+  else { boot(); }
+  window.addEventListener("load", send);
+})();
+]]></script>
+</svg>

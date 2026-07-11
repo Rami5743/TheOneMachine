@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel78.png"
+         xlink:href="panel78.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 855,477 C 813.3083,477.8335 770.6104,472.5298 730,482 C 726.8028,482.7456 723.7062,484.1414 721,486 C 717.8913,488.135 714.8748,490.7278 713,494 C 709.0611,500.8748 708.0082,509.1412 707,517 C 704.3278,537.8293 705.1683,559.08 707,580 C 708.0038,591.4646 708.717,603.3182 713,614 C 714.7891,618.4621 717.396,622.8184 721,626 C 723.7939,628.4664 727.3904,630.0728 731,631 C 747.4782,635.2325 766.4126,626.1826 782,633 C 782.8638,633.3778 783.6392,634.129 784,635 C 784.6378,636.5398 784.4261,638.3887 784,640 C 779.0005,658.9063 759.9995,672.0937 755,691 C 754.5739,692.6113 755,696 755,696 C 755,696 759.1348,696.7219 761,696 C 789.167,685.0984 799.8073,645.8348 828,635 C 893.6527,609.7689 968.6795,637.3837 1039,636 C 1061.6843,635.5536 1084.8207,637.7807 1107,633 C 1110.5095,632.2435 1113.9461,630.8874 1117,629 C 1120.4144,626.8898 1123.5019,624.1418 1126,621 C 1128.5994,617.7308 1130.5167,613.9044 1132,610 C 1133.5794,605.8427 1134.4355,601.4112 1135,597 C 1138.0478,573.185 1138.2573,548.9763 1137,525 C 1136.7359,519.9627 1136.179,514.9045 1135,510 C 1133.5954,504.1572 1132.204,498.0839 1129,493 C 1126.7379,489.4107 1123.638,486.1828 1120,484 C 1113.1282,479.8769 1104.9266,478.1795 1097,477 C 1017.2119,465.1272 935.6506,475.3876 855,477 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaacaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="922.00" y="531.80"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="922.00" y="538.28">טוב, האמת היא שאני גם</tspan>
+    <tspan x="922.00" y="582.68">צריך חיבור קבוע למקור מתח.</tspan>
+  </text>
+  </g>
+</svg>

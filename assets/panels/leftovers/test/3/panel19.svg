@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel19.png"
+         xlink:href="panel19.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 847,220 L 846,303 C 846,303 835.2427,303.9793 830,303 C 808.2158,298.9308 789.4142,284.7048 768,279 C 748.7763,273.8788 728.847,271.3684 709,270 C 684.722,268.3261 660.1844,268.2912 636,271 C 608.9073,274.0346 581.5603,278.5189 556,288 C 541.0346,293.5511 526.4965,301.0695 514,311 C 504.2041,318.7844 495.3208,328.2017 489,339 C 482.7696,349.6439 478.2831,361.7336 477,374 C 475.288,390.366 477.7463,407.4059 483,423 C 485.957,431.7769 491.2519,439.738 497,447 C 502.707,454.2101 509.5885,460.5571 517,466 C 528.0644,474.1255 540.3241,480.7306 553,486 C 569.6581,492.9248 605,501 605,501 L 606,510 L 750,510 L 751,501 C 751,501 784.3545,493.6161 800,487 C 814.1659,481.0097 824.8842,466.8402 840,464 C 861.8684,459.891 906,474 906,474 C 906,474 878.2408,458.5256 872,445 C 869.4862,439.552 871.0948,432.9313 872,427 C 873.686,415.9525 880.8074,406.1116 882,395 C 883.9999,376.3661 877,339 877,339 L 894,338 L 899,346 L 898,336 L 883,336 L 882,328 L 861,328 L 860,311 L 993,303 L 994,220 L 847,220 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaaaaaaaaccccaacaaacccccccccc"
+          />
+  <text id="bubble-text"
+        x="735.50" y="304.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="735.50" y="311.20">ש===</tspan>
+    <tspan x="735.50" y="364.70">ו המחלקה לפיזיקה,</tspan>
+    <tspan x="735.50" y="420.37">, אוניברסיטת ברקלי.</tspan>
+  </text>
+  </g>
+</svg>

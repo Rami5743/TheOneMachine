@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel65.png"
+         xlink:href="panel65.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1082,67 C 1070.3183,67.3048 1058.5046,66.9509 1047,69 C 1039.1103,70.4052 1031.1885,72.4577 1024,76 C 1018.8558,78.5349 1014.102,81.9922 1010,86 C 1006.4236,89.4942 1003.2967,93.5587 1001,98 C 996.4968,106.7082 993.8508,116.3727 992,126 C 990.1707,135.5154 990.2347,145.3132 990,155 C 989.6043,171.3319 989.2244,187.76 991,204 C 991.7389,210.7584 992.8807,217.5401 995,224 C 996.72,229.2427 1002,239 1002,239 L 1002,252 L 932,314 L 944,314 L 1039,267 C 1039,267 1201.2852,274.7991 1282,268 C 1289.7543,267.3468 1297.576,266.3324 1305,264 C 1310.264,262.3462 1320,257 1320,257 L 1337,239 C 1337,239 1342.2241,227.8653 1344,222 C 1345.4776,217.1198 1346.4623,212.0706 1347,207 C 1349.5309,183.1315 1349.8978,158.9272 1348,135 C 1347.3847,127.2426 1346.1232,119.4865 1344,112 C 1342.5307,106.8192 1340.561,101.7372 1338,97 C 1336.065,93.4207 1333.7672,89.983 1331,87 C 1327.778,83.5268 1324.0412,80.4725 1320,78 C 1315.0343,74.9618 1309.5804,72.6578 1304,71 C 1298.1691,69.2677 1292.0608,68.5166 1286,68 C 1218.2448,62.2252 1149.9777,65.2261 1082,67 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaacccccaaccaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1140.50" y="191.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1140.50" y="171.68">כמה זמן</tspan>
+    <tspan x="1140.50" y="222.92">אתם צריכים?</tspan>
+  </text>
+  </g>
+</svg>

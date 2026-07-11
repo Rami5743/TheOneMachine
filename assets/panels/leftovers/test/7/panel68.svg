@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel68.png"
+         xlink:href="panel68.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 866,65 C 855.6704,66.5161 845.0196,68.742 836,74 C 826.4273,79.5804 817.9735,87.6675 812,97 C 806.4876,105.6121 803.6899,115.9154 802,126 C 792.3043,183.8599 802,302 802,302 L 814,307 L 819,323 C 819,323 815.9991,330.5269 813,333 C 809.9899,335.4822 802,337 802,337 C 802,337 798.7993,378.5827 802,399 C 803.5183,408.6853 806.0738,418.5239 811,427 C 816.4533,436.3829 823.8391,445.1814 833,451 C 842.4334,456.9917 853.9525,459.314 865,461 C 1022.8392,485.088 1185.7772,482.4237 1344,461 C 1353.9371,459.6545 1364.3343,458.0458 1373,453 C 1383.1844,447.0699 1391.7467,437.9892 1398,428 C 1402.8663,420.2263 1405.4789,411.0442 1407,402 C 1422.4243,310.288 1423.4075,214.5412 1407,123 C 1405.3068,113.5531 1402.1795,104.0798 1397,96 C 1391.6575,87.6659 1384.421,80.2045 1376,75 C 1367.0334,69.4583 1356.4048,66.6885 1346,65 C 1188.066,39.3708 1024.3041,41.7659 866,65 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaacccacaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1089.00" y="110.94"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="28"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1089.00" y="115.98">כל חישוב לוקח ימים כי הם צריכים לבנות את</tspan>
+    <tspan x="1089.00" y="155.04">המכונה מחדש, לכל חישוב בנפרד. זה לא צריך</tspan>
+    <tspan x="1089.00" y="193.98">להיות כך. לא באמצע המאה ה-20. בַּבָּג' הבין את</tspan>
+    <tspan x="1089.00" y="232.41">זה עוד במאה הקודמת. אפשר לבנות מכונה אחת</tspan>
+    <tspan x="1089.00" y="270.64">שתוכל לבצע כל חישוב. גם טיורינג כתב על זה לפני</tspan>
+    <tspan x="1089.00" y="310.54">כמה שנים. לבבג' היו רק גלגלי שיניים אז הוא לא</tspan>
+    <tspan x="1089.00" y="348.48">הצליח לבנות את המכונה הזאת. אבל לנו יש</tspan>
+    <tspan x="1089.00" y="388.12">טריודות מבוססות שפורפרות ריק. אנחנו יכולים</tspan>
+    <tspan x="1089.00" y="427.04">לעשות את זה. אנחנו חייבים לעשות את זה.</tspan>
+  </text>
+  </g>
+</svg>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel10.png"
+         xlink:href="panel10.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 186,68 C 177.2398,68.3836 168.4635,69.7071 160,72 C 145.1235,76.0304 130.4515,81.4759 117,89 C 106.818,94.6954 97.4219,101.9264 89,110 C 78.7402,119.8355 69.7256,131.0704 62,143 C 55.5175,153.01 50.0022,163.7659 46,175 C 40.3822,190.769 36.8446,207.3621 35,224 C 28.5355,282.3094 31.1147,341.4621 35,400 C 35.6681,410.0663 36.7758,420.1597 39,430 C 41.3938,440.5905 44.6343,451.0587 49,461 C 53.6216,471.5239 59.2825,481.6733 66,491 C 73.8628,501.9168 82.8867,512.1275 93,521 C 102.7305,529.5366 125,543 125,543 L 125,551 L 275,551 L 275,543 C 275,543 294.419,530.6106 303,523 C 310.7669,516.1114 318.0916,508.5363 324,500 C 335.7081,483.0843 345.2531,464.4345 352,445 C 356.4594,432.1547 358.6601,418.5312 360,405 C 363.6459,368.1801 360,294 360,294 C 360,294 382.4051,294.1223 393,291 C 400.5799,288.7662 414,280 414,280 C 414,280 397.0313,276.9904 389,274 C 378.8009,270.2024 360,259 360,259 C 360,259 361.7324,232.2203 360,219 C 357.9829,203.6074 353.7831,188.4068 348,174 C 342.3314,159.8783 334.9465,146.3091 326,134 C 317.1267,121.7917 306.7493,110.4727 295,101 C 284.4081,92.4605 272.3912,85.6186 260,80 C 251.0714,75.9514 241.6308,72.8328 232,71 C 216.905,68.1273 201.3512,67.3278 186,68 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaccccaaaacacacaaaaaa"
+          />
+  <text id="bubble-text"
+        x="224.50" y="78.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="30"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="224.50" y="83.90">ב</tspan>
+    <tspan x="224.50" y="155.40">/</tspan>
+    <tspan x="224.50" y="171.32">אתה יודע על מה! אנשים קוראים</tspan>
+    <tspan x="224.50" y="185.40">5</tspan>
+    <tspan x="224.50" y="208.30">המאמר שכתבתי לפני 5 שנים.</tspan>
+    <tspan x="224.50" y="247.40">ושטרסמן עשו ניסויים</tspan>
+    <tspan x="224.50" y="284.77">עם אורניום, שהוכיחו שהוא</tspan>
+    <tspan x="224.50" y="322.90">מתבקע. היזנברג חושב על</tspan>
+    <tspan x="224.50" y="360.98">זה. נילס בור כתב לי שהיזנברג</tspan>
+    <tspan x="224.50" y="399.40">נפגש איתו ושאל שאלות.</tspan>
+    <tspan x="224.50" y="438.90">נילס כמובן נפנף אותו, אבל</tspan>
+    <tspan x="224.50" y="476.10">אתה יודע שהיזנברג לא טיפש</tspan>
+  </text>
+  </g>
+</svg>

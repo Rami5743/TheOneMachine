@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel24.png"
+         xlink:href="panel24.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 503,508 C 522.6207,506.5 542.5432,507.058 562,510 C 580.7893,512.8411 599.6837,517.1734 617,525 C 633.0067,532.2347 648.6019,541.5564 661,554 C 668.3085,561.3354 674.1893,570.3719 678,580 C 680.1176,585.3504 681.2718,591.2522 681,597 C 680.5264,607.0165 677.8904,617.2456 673,626 C 666.5588,637.5306 656.54,647.0406 646,655 C 632.5568,665.1518 616.8997,672.4342 601,678 C 583.662,684.0693 565.3052,687.4621 547,689 C 527.0591,690.6753 506.8044,689.8686 487,687 C 469.9571,684.5314 453.0622,680.2098 437,674 C 422.954,668.5697 409.1288,661.9257 397,653 C 388.2675,646.5736 374,630 374,630 C 374,630 248.0738,638.6578 185,640 C 152.6723,640.6879 88,639 88,639 L 350,614 L 344,602 L 364,599 C 364,599 366.9542,578.6657 372,570 C 379.3533,557.3713 390.9621,547.2851 403,539 C 417.1351,529.2715 433.6241,523.1257 450,518 C 467.1576,512.6297 485.0739,509.3704 503,508 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaacaccccaaa"
+          />
+  <text id="bubble-text"
+        x="385.00" y="577.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="385.00" y="585.06">מדברים מלשכת</tspan>
+    <tspan x="385.00" y="636.06">נשיא ארה"ב.</tspan>
+  </text>
+  </g>
+</svg>

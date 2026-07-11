@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1152"
+     height="864"
+     viewBox="0 0 1152 864"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1152"
+         height="864"
+         preserveAspectRatio="none"
+         href="panel67.png"
+         xlink:href="panel67.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 731,22 L 725,26 L 724,39 C 724,39 710.596,38.0319 704,39 C 697.1136,40.0107 690.264,41.9657 684,45 C 680.3381,46.7738 676.9677,49.2164 674,52 C 669.3297,56.3805 664.937,61.3102 662,67 C 658.6607,73.4691 657.0098,80.7903 656,88 C 647.3543,149.7308 648.9466,213.067 656,275 C 656.5032,279.4187 657.2659,283.9048 659,288 C 661.6318,294.2152 670,305 670,305 L 670,322 L 643,327 C 643,327 637.8461,330.5431 636,333 C 633.5805,336.22 631.8527,340.0636 631,344 C 630.1532,347.9093 630.1696,352.0871 631,356 C 631.6815,359.2114 635,365 635,365 L 652,376 L 665,375 L 680,363 C 680,363 682.5343,357.8097 683,355 C 684.7993,344.143 682,322 682,322 C 682,322 932.4528,339.6723 1056,323 C 1062.1712,322.1672 1068.4561,320.836 1074,318 C 1081.6007,314.1119 1094,302 1094,302 C 1094,302 1102.2977,287.1848 1104,279 C 1113.5706,232.9847 1104,138 1104,138 L 1151,136 L 1151,125 L 1134,126 L 1133,129 L 1104,127 C 1104,127 1106.429,98.7877 1104,85 C 1102.6461,77.3152 1100.2852,69.5212 1096,63 C 1091.4678,56.1029 1085.1105,50.1895 1078,46 C 1071.3697,42.0934 1063.6045,40.1806 1056,39 C 958.5014,23.8627 760,39 760,39 L 759,24 L 740,25 L 739,22 L 731,22 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="cccaaaaaaacccaaaccccacaacaccccccaaaacccc"
+          />
+  <text id="bubble-text"
+        x="891.50" y="30.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="31"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="891.50" y="36.08">מ</tspan>
+    <tspan x="891.50" y="87.00">אי אפשר לעבוד כך. החישובים לוקחים</tspan>
+    <tspan x="891.50" y="121.58">יותר מדי זמן. עד שנגמור את הפצצה</tspan>
+    <tspan x="891.50" y="154.65">הנאצים יהרסו את כל אירופה. יש לי</tspan>
+    <tspan x="891.50" y="191.08">עדיין קרובים בהונגריה, כרגע הם</tspan>
+    <tspan x="891.50" y="223.08">יחסית בטוחים, אבל זה יכול להשתנות</tspan>
+    <tspan x="891.50" y="258.28">בכל רגע, אומרים שהנאצים רוצחים</tspan>
+    <tspan x="891.50" y="291.58">את כל היהודים שהם יכולים.</tspan>
+  </text>
+  </g>
+</svg>

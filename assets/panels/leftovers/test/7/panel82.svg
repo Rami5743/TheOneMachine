@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel82.png"
+         xlink:href="panel82.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 633,258 C 615.7574,259.6745 598.0868,261.5715 582,268 C 577.9642,269.6128 574.2551,272.1202 571,275 C 565.5019,279.8642 560.63,285.6194 557,292 C 552.6204,299.6983 549.8766,308.3442 548,317 C 544.5277,333.0156 544.6193,349.624 544,366 C 541.8458,422.9603 542.3973,480.0585 545,537 C 545.5347,548.6972 545.9122,560.4782 548,572 C 549.543,580.5152 551.1717,589.239 555,597 C 559.4238,605.9683 565.179,614.7685 573,621 C 580.7028,627.1373 590.4861,630.4533 600,633 C 618.4552,637.9401 637.9279,637.8794 657,639 C 683.6228,640.5642 737,640 737,640 L 728,707 C 728,707 732.286,707.0833 734,706 C 756.6684,691.6732 780,640 780,640 C 780,640 896.0038,641.7464 954,641 C 996.3508,640.4549 1038.862,641.2752 1081,637 C 1090.7592,636.0099 1100.6047,634.8198 1110,632 C 1115.5757,630.3266 1121.2642,628.3854 1126,625 C 1134.8287,618.6887 1142.5941,610.4103 1148,601 C 1153.0418,592.2236 1155.031,581.9281 1157,572 C 1159.1488,561.1657 1159.4995,550.034 1160,539 C 1162.9756,473.4008 1166.6133,407.3328 1160,342 C 1158.4923,327.1058 1156.507,311.9206 1151,298 C 1149.1283,293.2687 1146.3047,288.8689 1143,285 C 1139.008,280.3265 1134.3486,276.0283 1129,273 C 1118.91,267.2871 1107.3795,264.225 1096,262 C 1075.6752,258.026 1054.6989,258.667 1034,258 C 900.4027,253.6949 766.0408,245.0798 633,258 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaaccacaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="826.00" y="362.70"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="34"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="826.00" y="368.82">רוצה לדעת מה אני עושה?</tspan>
+    <tspan x="826.00" y="414.12">תנסה לחבר חלק מהכנייסות שלי</tspan>
+    <tspan x="826.00" y="460.42">למקור מתח ואת היציאה למנורה.</tspan>
+    <tspan x="826.00" y="506.25">רק אל תתבלבל ביניהם.</tspan>
+    <tspan x="826.00" y="552.50">זה יכול לשרוף אותי.</tspan>
+  </text>
+  </g>
+</svg>

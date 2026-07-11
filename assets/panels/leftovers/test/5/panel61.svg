@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel61.png"
+         xlink:href="panel61.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 541,0 L 541,6 L 766,7 C 766,7 763.6666,80.9984 753,116 C 748.3066,131.4011 734.5377,143.2931 731,159 C 726.0906,180.7973 734.3897,203.7 733,226 C 730.1674,271.453 712,361 712,361 L 719,361 L 737,236 C 737,236 747.8887,234.4773 753,236 C 772.8476,241.9128 786.1294,261.4683 805,270 C 825.4856,279.2619 847.8131,284.3688 870,288 C 900.3087,292.9604 931.2921,293.4982 962,293 C 985.0838,292.6255 1008.736,280.8914 1031,287 C 1049.1983,291.9931 1077,320 1077,320 L 1063,275 C 1063,275 1106.2682,256.0821 1124,241 C 1131.7723,234.3892 1138.1468,225.9754 1143,217 C 1147.5123,208.655 1150.7337,199.4019 1152,190 C 1153.6486,177.7592 1153.4199,164.8684 1150,153 C 1146.1991,139.8092 1138.9523,127.4067 1130,117 C 1120.3909,105.8297 1107.8401,97.228 1095,90 C 1077.2526,80.0096 1057.6973,73.1764 1038,68 C 1013.5623,61.5778 988.2137,58.6473 963,57 C 941.0443,55.5656 918.9161,56.0515 897,58 C 878.4958,59.6452 859.8405,61.8205 842,67 C 820.7732,73.1626 802.6563,88.5772 781,93 C 775.4479,94.1339 764,93 764,93 L 773,6 L 1439,6 L 1447,361 L 1447,0 L 541,0 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="cccaaacccaaaaaccaaaaaaaaaaaccccc"
+          />
+  <text id="bubble-text"
+        x="994.50" y="110.12"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="36"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="994.50" y="116.61">אממ... תן לי שבועיים,</tspan>
+    <tspan x="994.50" y="157.84">אני צריך לסגור את זה עם המכון.</tspan>
+    <tspan x="994.50" y="199.48">קלרה והילדה יבואו תוך חודש,</tspan>
+    <tspan x="994.50" y="240.28">אני צריך שתסדר לנו דירה.</tspan>
+  </text>
+  </g>
+</svg>

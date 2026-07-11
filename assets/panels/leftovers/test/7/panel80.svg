@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel80.png"
+         xlink:href="panel80.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 959,281 C 844.6698,279.9221 730.2824,279.5235 616,283 C 579.6285,284.1064 542.2803,280.0885 507,289 C 500.9279,290.5338 494.7003,292.8612 490,297 C 486.7382,299.8722 484.4888,303.9168 483,308 C 474.3602,331.6953 474.5804,357.8283 473,383 C 470.0756,429.5761 470.4783,476.4652 474,523 C 475.7538,546.174 477.4597,569.699 484,592 C 485.1335,595.8649 486.5263,599.8215 489,603 C 492.9326,608.0531 498.0759,612.57 504,615 C 518.8831,621.105 535.94,619.0763 552,620 C 611.9047,623.4454 732,622 732,622 C 732,622 733.9239,625.8932 734,628 C 734.6329,645.5322 721,679 721,679 C 721,679 724.4752,679.6729 726,679 C 749.5291,668.616 754.5414,632.5423 778,622 C 890.8097,571.303 1027.3452,639.2787 1149,617 C 1156.6755,615.5944 1164.7571,613.6813 1171,609 C 1175.9606,605.2802 1179.287,599.5753 1182,594 C 1185.7865,586.2185 1187.386,577.502 1189,569 C 1191.4373,556.1611 1192.2399,543.0461 1193,530 C 1195.7339,483.0748 1197.0422,435.9603 1195,389 C 1193.9956,365.9038 1193.7866,342.3821 1188,320 C 1186.0937,312.6267 1183.7498,304.9531 1179,299 C 1176.1723,295.456 1172.2139,292.6728 1168,291 C 1153.3205,285.1728 1136.7484,286.1965 1121,285 C 1067.1388,280.9079 1013.0141,281.5092 959,281 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaacacaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="822.00" y="329.90"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="35"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="822.00" y="336.20">היום, כדי להרכיב ממספר רכיב</tspan>
+    <tspan x="822.00" y="376.30">אלקטרוני, צריך לסדר אותנו על גבי כרטיס</tspan>
+    <tspan x="822.00" y="416.73">ולהלחים. עוד מספר עשורים יהיה אפשר לייצר</tspan>
+    <tspan x="822.00" y="456.23">בעצם להדפיס אלפים או אפילו מיליונים ממני</tspan>
+    <tspan x="822.00" y="498.99">בבת אחת, מחוברים יחד לפי תכנון מראש וארוזים</tspan>
+    <tspan x="822.00" y="539.44">בקופסה קטנה שנקראת צ'יפ. את הצ'יפים האלה</tspan>
+    <tspan x="822.00" y="580.38">ירכיבו על כרטיסים, ומהם יבנו מחשבים.</tspan>
+  </text>
+  </g>
+</svg>

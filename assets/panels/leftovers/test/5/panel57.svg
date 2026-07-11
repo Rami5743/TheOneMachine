@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel57.png"
+         xlink:href="panel57.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 329,0 L 329,6 L 831,6 L 830,24 C 830,24 748.077,23.7158 708,31 C 676.0512,36.8069 643.1013,43.7285 615,60 C 598.8743,69.3372 584.4835,82.5949 574,98 C 562.1245,115.4507 554.5465,136.1919 551,157 C 546.0687,185.9331 545.9596,216.7724 554,245 C 560.422,267.5458 572.961,288.903 589,306 C 608.4186,326.6996 634.012,341.5904 660,353 C 691.7569,366.9423 761,378 761,378 L 721,638 L 727,638 L 767,380 C 767,380 837.8266,381.4233 873,378 C 911.0722,374.2946 948.7329,349.3752 986,358 C 1005.2919,362.4648 1034,393 1034,393 C 1034,393 1018.5831,372.1767 1015,360 C 1013.1157,353.5965 1014,340 1014,340 C 1014,340 1053.8191,315.1203 1068,297 C 1084.2709,276.2092 1096.0652,250.9355 1101,225 C 1106.8029,194.5024 1103.1171,162.218 1096,132 C 1093.5015,121.3917 1088.803,111.2251 1083,102 C 1075.954,90.7989 1067.1334,80.5103 1057,72 C 1046.5813,63.25 1034.4301,56.5322 1022,51 C 1006.3943,44.0545 989.7659,39.2685 973,36 C 928.3315,27.2918 837,24 837,24 L 837,5 L 1434,5 L 329,0 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccccaaaaaaaccccaacacaaaaaaaccc"
+          />
+  <text id="bubble-text"
+        x="882.00" y="67.83"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="28"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="882.00" y="72.87">תפסיק עם הפורמליות. אני יודע בדיוק</tspan>
+    <tspan x="882.00" y="106.98">על מה מדובר. מי אתה חושב שכנע את סילארד</tspan>
+    <tspan x="882.00" y="142.73">לדבר עם איינשטיין? אתה יודע כמה הייתי צריך</tspan>
+    <tspan x="882.00" y="176.68">לחפור לו? אתם והגישה הפציפיסטית שלכם הביאו</tspan>
+    <tspan x="882.00" y="214.29">אותנו לברוך הזה. אני שמח שפוף פוף התעשתם.</tspan>
+    <tspan x="882.00" y="249.10">בטח שאשמח לעזור. זה או אנחנו או היטלר</tspan>
+    <tspan x="882.00" y="285.90">או סטלין. אני מעדיף שזה יהיה אנחנו.</tspan>
+    <tspan x="882.00" y="320.97">זה לא ממש התחום שלי, אבל אני</tspan>
+    <tspan x="882.00" y="353.54">יכול לנסות.</tspan>
+  </text>
+  </g>
+</svg>

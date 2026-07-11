@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel18.png"
+         xlink:href="panel18.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 648,443 C 658.7412,443.4278 669.4818,444.7811 680,447 C 693.6206,449.8733 707.2536,453.4048 720,459 C 731.359,463.9861 742.2046,470.3882 752,478 C 757.5835,482.3388 762.5979,487.4663 767,493 C 770.9154,497.9219 774.4953,503.2309 777,509 C 779.0608,513.7467 780.4988,518.8496 781,524 C 781.4854,528.9875 781.313,534.164 780,539 C 777.4612,548.3511 772.9523,557.3541 767,565 C 759.1599,575.0708 748.7516,583.1231 738,590 C 727.821,596.5107 716.474,601.2122 705,605 C 691.4039,609.4884 663,614 663,614 C 663,614 662.4378,619.3933 663,622 C 666.2395,637.0205 682,664 682,664 L 679,667 L 669,668 L 676,691 L 648,662 L 660,659 L 661,653 L 635,616 C 635,616 604.8752,616.0425 590,614 C 575.421,611.9982 560.9095,608.8042 547,604 C 536.5693,600.3974 526.2586,596.0047 517,590 C 505.8976,582.7995 495.2134,574.3755 487,564 C 482.0953,557.8042 478.0474,550.6323 476,543 C 473.9255,535.2665 473.5788,526.8798 475,519 C 476.2197,512.2373 479.3168,505.8014 483,500 C 487.8073,492.428 494.1302,485.7663 501,480 C 510.6345,471.9131 521.5207,465.1428 533,460 C 548.21,453.1858 564.5577,448.7255 581,446 C 603.0548,442.3441 625.662,442.1104 648,443 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaacaccccccccaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="628.00" y="527.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="628.00" y="535.06">גלינג גלינג</tspan>
+  </text>
+  </g>
+</svg>

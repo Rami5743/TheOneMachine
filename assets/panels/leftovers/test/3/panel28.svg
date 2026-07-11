@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel28.png"
+         xlink:href="panel28.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 809,91 C 836.8978,92.7766 865.0806,95.4642 892,103 C 908.3958,107.5898 924.2491,114.4971 939,123 C 943.3318,125.497 947.3662,128.5655 951,132 C 957.0175,137.6873 962.8004,143.8642 967,151 C 970.7993,157.4557 975,172 975,172 C 975,172 975.896,186.7216 975,194 C 974.3283,199.4563 973.0724,204.9081 971,210 C 967.5086,218.5783 957,234 957,234 L 957,239 C 957,239 963.7216,249.5122 968,254 C 974.2144,260.5186 989,271 989,271 C 989,271 974.1024,270.0816 967,268 C 957.1251,265.1058 939,255 939,255 L 933,255 C 933,255 907.0829,269.5772 893,274 C 871.7212,280.6827 849.2515,283.478 827,285 C 803.7116,286.5929 780.2129,285.4595 757,283 C 735.0898,280.6785 713.1413,277.204 692,271 C 676.7947,266.538 661.5484,261.219 648,253 C 638.2935,247.1116 622,231 622,231 L 607,201 L 607,165 C 607,165 612.6418,151.0466 617,145 C 622.2371,137.734 628.8415,131.3832 636,126 C 644.8238,119.3645 654.8165,114.2644 665,110 C 676.8683,105.0301 689.4433,101.8079 702,99 C 717.136,95.6154 732.5444,93.2967 748,92 C 768.2649,90.2998 788.705,89.7076 809,91 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaacaaccacaccaaaaacccaaaaa"
+          />
+  <text id="bubble-text"
+        x="797.50" y="153.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="797.50" y="160.56">פרופסור אופנהיימר,</tspan>
+    <tspan x="797.50" y="203.89">נשיא ארה"ב רוצה</tspan>
+    <tspan x="797.50" y="250.31">לדבר איתך.</tspan>
+  </text>
+  </g>
+</svg>

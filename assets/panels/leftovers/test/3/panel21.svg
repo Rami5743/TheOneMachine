@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel21.png"
+         xlink:href="panel21.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 846,242 L 844,322 C 844,322 831.9373,322.8655 826,322 C 809.824,319.642 794.9944,311.3765 779,308 C 760.9173,304.1827 742.4629,301.8232 724,301 C 697.3411,299.8114 670.461,300.5464 644,304 C 622.9912,306.742 602.0822,311.2478 582,318 C 570.547,321.8508 559.1704,326.4759 549,333 C 537.8617,340.1449 519,359 519,359 L 507,384 L 508,414 L 518,432 C 518,432 538.179,450.9891 550,458 C 563.6297,466.0835 578.8971,471.2027 594,476 C 606.7156,480.039 619.8375,482.8208 633,485 C 652.5026,488.2289 672.2472,490.2231 692,491 C 706.6591,491.5766 721.3835,491.2573 736,490 C 756.1493,488.2668 776.3336,485.7153 796,481 C 811.3756,477.3135 825.3928,468.5327 841,466 C 847.5806,464.9321 854.4311,464.8622 861,466 C 870.7653,467.6915 879.3479,473.7507 889,476 C 897.4965,477.98 915,479 915,479 L 885,453 L 885,436 L 899,410 C 899,410 900.3654,393.8826 899,386 C 898.1543,381.1173 896.4143,376.3275 894,372 C 889.8405,364.5443 878,352 878,352 L 877,338 L 855,335 L 855,319 L 997,310 L 997,242 L 846,242 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaaccccaaaaaaaaaccccaacccccc"
+          />
+  <text id="bubble-text"
+        x="752.00" y="316.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="752.00" y="323.70">2==</tspan>
+    <tspan x="752.00" y="374.70">במה אני יכולה</tspan>
+    <tspan x="752.00" y="428.82">3 לעזור לפרופסור ספרול?</tspan>
+  </text>
+  </g>
+</svg>

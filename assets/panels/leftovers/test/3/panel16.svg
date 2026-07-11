@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel16.png"
+         xlink:href="panel16.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 0,0 L 0,599 L 6,379 L 22,379 C 22,379 39.555,417.2613 54,432 C 69.7295,448.0494 90.1233,459.6836 111,468 C 134.9887,477.5561 161.2182,481.5583 187,483 C 215.0532,484.5687 243.7759,482.9492 271,476 C 292.5453,470.5004 313.8279,461.8149 332,449 C 346.6444,438.6728 359.5938,425.2524 369,410 C 380.3462,391.602 386.5712,370.1568 391,349 C 396.1336,324.4761 396,274 396,274 L 484,267 L 445,250 L 442,262 L 405,252 C 405,252 413.9307,188.0268 412,156 C 411.0598,140.4043 409.005,124.424 403,110 C 393.8678,88.0647 380.5022,67.0695 363,51 C 348.9292,38.081 313,23 313,23 L 313,7 L 581,6 L 581,0 L 0,0 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccccaaaaaaacccccaaacccc"
+          />
+  <text id="bubble-text"
+        x="290.50" y="73.17"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="31"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="290.50" y="78.75">חנו צריכים לכתוב</tspan>
+    <tspan x="290.50" y="116.83">מכתב לנשיא. להסביר לו את העניין,</tspan>
+    <tspan x="290.50" y="155.58">הוא צריך להקצות משאבים לפיתוח</tspan>
+    <tspan x="290.50" y="194.38">פצצה המבוססת על ביקוע גרעיני.</tspan>
+    <tspan x="290.50" y="232.08">הוא חייב לעשות את זה</tspan>
+    <tspan x="290.50" y="267.08">לפני היטלר.</tspan>
+    <tspan x="290.50" y="305.08">/ חשוב שאתה תתתום על המכתב,</tspan>
+    <tspan x="290.50" y="345.83">את השם אלברט איינשטיין</tspan>
+    <tspan x="290.50" y="383.95">כולם מכירים. את השם</tspan>
+    <tspan x="290.50" y="422.20">ליאו סילארה לא ממש.</tspan>
+    <tspan x="290.50" y="495.08">ו</tspan>
+    <tspan x="290.50" y="516.58">2 6</tspan>
+  </text>
+  </g>
+</svg>

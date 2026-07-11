@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel76.png"
+         xlink:href="panel76.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 643,567 C 638.9078,567.5038 634.5879,567.9686 631,570 C 628.9489,571.1613 627.2975,573.0323 626,575 C 625.0118,576.4986 624.3546,578.2403 624,580 C 620.1798,598.9551 620.0673,618.8875 623,638 C 623.4796,641.1257 624.3375,644.31 626,647 C 626.9913,648.604 628.4386,649.9429 630,651 C 632.1021,652.4232 634.5261,653.4306 637,654 C 643.8294,655.572 650.9941,654.8333 658,655 C 686.6586,655.682 715.3772,653.4147 744,655 C 750.0277,655.3338 762,657 762,657 C 762,657 761.7653,666.3845 761,671 C 759.9287,677.4607 758.0299,683.7736 756,690 C 753.4481,697.8272 748.5265,704.91 747,713 C 746.691,714.6378 747,718 747,718 L 752,718 L 795,657 C 795,657 886.2778,663.4263 931,656 C 934.1196,655.482 937.31,654.6625 940,653 C 942.005,651.7608 943.6786,649.9518 945,648 C 946.4232,645.8979 947.4896,643.4867 948,641 C 952.0883,621.0819 951.8452,599.9664 948,580 C 947.6605,578.2373 946.9882,576.4986 946,575 C 944.962,573.4258 943.5905,572.0129 942,571 C 938.7091,568.9042 934.8424,567.6769 931,567 C 836.456,550.3437 738.2807,555.2704 643,567 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaacaaacccaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="786.00" y="638.50"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="32"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="786.00" y="643.30">יש לי שתי כניסות.</tspan>
+  </text>
+  </g>
+</svg>

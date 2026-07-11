@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel02.png"
+         xlink:href="panel02.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 41,167 C 39.5,175.67 38,192.33 39,202 C 40,211.67 42,217.17 47,225 C 52,232.83 59.5,242.17 69,249 C 78.5,255.83 90.83,261.83 104,266 C 117.17,270.17 133.83,272.67 148,274 C 162.17,275.33 174.67,275.5 189,274 C 203.33,272.5 221.17,269.67 234,265 L 266,246 L 305,247 L 282,233 L 295,187 C 295.83,172.83 292,158.5 287,148 C 282,137.5 273.83,130.5 265,124 C 256.17,117.5 246.67,112.83 234,109 C 221.33,105.17 204.33,102.17 189,101 C 173.67,99.83 155.67,100.67 142,102 C 128.33,103.33 120,104.17 107,109 C 94,113.83 73.83,124.17 64,131 C 54.17,137.83 51.83,144 48,150 C 44.17,156 42.5,158.33 41,167 Z"
+          sodipodi:nodetypes="aaaaaaaacccaaaaaaaaaa"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          />
+  <text id="bubble-text"
+        x="166.00" y="190.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="33"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="166.00" y="143.14">אלברט,</tspan>
+    <tspan x="166.00" y="190.00">אנחנו צריכים</tspan>
+    <tspan x="166.00" y="236.86">לדבר...</tspan>
+  </text>
+  </g>
+</svg>

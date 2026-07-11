@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel35.png"
+         xlink:href="panel35.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 554,80 L 553,91 C 553,91 531.4211,93.9703 521,97 C 507.2105,101.009 493.6743,106.2484 481,113 C 473.1664,117.1729 465.8345,122.3372 459,128 C 454.2811,131.9099 449.9481,136.313 446,141 C 441.5314,146.305 437.3414,151.9217 434,158 C 431.0478,163.3703 428.3707,169.027 427,175 C 424.5352,185.741 423.4348,197.0915 425,208 C 426.2579,216.7671 432.4773,224.275 434,233 C 434.745,237.2688 434,246 434,246 L 430,247 L 431,257 L 433,257 L 434,251 L 446,251 L 460,265 L 458,283 L 428,325 C 428,325 448.4405,315.798 458,310 C 468.2047,303.8107 487,289 487,289 C 487,289 496.421,288.0996 501,289 C 508.7744,290.5287 515.4461,295.6093 523,298 C 534.4098,301.6111 546.1497,304.3288 558,306 C 575.8511,308.5175 593.9829,309.6205 612,309 C 628.115,308.445 644.2634,306.5155 660,303 C 675.74,299.4838 691.3405,294.7239 706,288 C 717.6914,282.6375 728.8793,275.9383 739,268 C 744.1929,263.9269 748.9219,259.1889 753,254 C 758.546,246.9433 763.4232,239.2318 767,231 C 770.4487,223.063 772.8224,214.5733 774,206 C 774.9072,199.3953 774.9812,192.5941 774,186 C 772.8205,178.0734 770.5423,170.1885 767,163 C 761.9302,152.7115 754.8623,143.351 747,135 C 740.8265,128.4427 733.6474,122.7569 726,118 C 713.8423,110.4375 700.5044,104.7572 687,100 C 675.3334,95.8902 663.1911,93.0922 651,91 C 637.1393,88.6212 623.0577,87.3973 609,87 C 591.6608,86.51 557,89 557,89 L 556,80 L 554,80 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="ccaaaaaaaacccccccccacaaaaaaaaaaaaaaaaacc"
+          />
+  <text id="bubble-text"
+        x="600.00" y="154.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="38"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="600.00" y="154.00">שלום, פרופסור</tspan>
+    <tspan x="600.00" y="200.00">אופנהיימר, מדבר</tspan>
+    <tspan x="600.00" y="246.00">הנשיא רוזוולט.</tspan>
+  </text>
+  </g>
+</svg>

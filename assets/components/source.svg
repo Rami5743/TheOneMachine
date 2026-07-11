@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="-36 -50 92 100"
+   version="1.1"
+   id="svg4"
+   sodipodi:docname="source.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="namedview4"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="14.086957"
+     inkscape:cx="45.964506"
+     inkscape:cy="50.010802"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4" />
+  <style
+     id="style1">
+    .body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+    .line { stroke: #111; stroke-width: 5; stroke-linecap: round; fill: none; }
+    .thin { stroke-width: 4; }
+    .slot { fill: #111; }
+    .label { fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 15px; dominant-baseline: middle; text-anchor: middle; }
+    .label-small { font-size: 13px; }
+    .he { font-family: Arial, sans-serif; font-weight: 800; font-size: 16px; }
+    .glow { fill: #ffe37a; stroke: #111; stroke-width: 4; }
+    .glass { fill: #f6f0dc; stroke: #111; stroke-width: 4; }
+    .glass-on { fill: #fff0a6; stroke: #111; stroke-width: 4; }
+  </style>
+  <rect
+     class="body"
+     x="-28"
+     y="-40"
+     width="56"
+     height="80"
+     rx="8"
+     id="rect1" />
+  <rect
+     class="slot"
+     x="-12"
+     y="-24"
+     width="6"
+     height="20"
+     rx="3"
+     id="rect2" />
+  <rect
+     class="slot"
+     x="6"
+     y="-24"
+     width="6"
+     height="20"
+     rx="3"
+     id="rect3" />
+  <text
+     class="he"
+     x="0"
+     y="12"
+     text-anchor="middle"
+     direction="rtl"
+     unicode-bidi="plaintext"
+     id="text3">מקור</text>
+  <text
+     class="he"
+     x="0"
+     y="30"
+     text-anchor="middle"
+     direction="rtl"
+     unicode-bidi="plaintext"
+     id="text4">מתח</text>
+  <line
+     class="line"
+     x1="30.087963"
+     y1="0"
+     x2="46.254631"
+     y2="0"
+     id="line4" />
+  <g
+     id="pin-tags"
+     data-role="pin-tags"
+     opacity="0"
+     pointer-events="none">
+    <circle
+       data-pin="out"
+       cx="46"
+       cy="0"
+       r="0"
+       id="circle4" />
+  </g>
+</svg>

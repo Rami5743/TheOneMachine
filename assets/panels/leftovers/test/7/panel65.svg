@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel65.png"
+         xlink:href="panel65.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1061,65 C 1054.6404,65.3338 1048.2345,65.7013 1042,67 C 1035.498,68.3545 1029.0558,70.2727 1023,73 C 1019.4556,74.5963 1015.9827,76.5071 1013,79 C 1007.5624,83.5448 1002.7326,88.9759 999,95 C 995.7722,100.2093 993.7759,106.1347 992,112 C 990.5224,116.8802 989.5024,121.9258 989,127 C 986.2738,154.532 985.8104,182.5178 989,210 C 989.6711,215.7826 990.9547,221.5497 993,227 C 995.2527,233.003 1000.4544,237.7773 1002,244 C 1002.3214,245.294 1002.551,246.7858 1002,248 C 987.3582,280.2672 940.9758,288.0755 922,318 C 920.7004,320.0494 920,325 920,325 C 920,325 923.3766,325.3773 925,325 C 966.9641,315.2468 998.637,275.8416 1041,268 C 1048.2406,266.6597 1055.644,269.6663 1063,270 C 1134.2601,273.2324 1205.8045,274.4325 1277,270 C 1285.0467,269.499 1293.2117,269.0839 1301,267 C 1307.6383,265.2238 1314.2974,262.8344 1320,259 C 1327.0415,254.2653 1333.2165,248.0085 1338,241 C 1341.2818,236.1918 1343.2524,230.5529 1345,225 C 1347.041,218.5149 1348.3301,211.7656 1349,205 C 1351.5291,179.4582 1351.2388,153.5688 1349,128 C 1348.4981,122.2677 1347.7575,116.4793 1346,111 C 1343.4044,102.9077 1340.1526,94.7582 1335,88 C 1330.9884,82.7384 1325.704,78.353 1320,75 C 1313.2731,71.0456 1305.6033,68.7548 1298,67 C 1291.7948,65.5679 1285.3596,65.3338 1279,65 C 1206.4332,61.1912 1133.5668,61.1912 1061,65 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaaaaaaaacaaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1140.50" y="191.00"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="42"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1140.50" y="171.68">כמה זמן</tspan>
+    <tspan x="1140.50" y="222.92">אתם צריכים?</tspan>
+  </text>
+  </g>
+</svg>

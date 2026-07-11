@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel50.png"
+         xlink:href="panel50.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 1043,66 C 985.0018,65.1891 926.9474,65.441 869,68 C 829.9229,69.7257 790.6251,70.8273 752,77 C 735.3947,79.6537 703,89 703,89 L 678,104 C 678,104 666.4365,115.3095 662,122 C 657.7153,128.4616 654.4259,135.6362 652,143 C 648.175,154.6109 646.3409,166.849 645,179 C 643.6832,190.9322 643.5914,203.0023 644,215 C 644.5927,232.4032 645.0437,250.0421 649,267 C 651.349,277.0683 660,296 660,296 L 683,321 L 683,337 C 683,337 655.2317,373.7536 640,391 C 625.8006,407.0776 595,437 595,437 L 729,353 C 729,353 818.1149,366.0197 863,369 C 935.5139,373.8148 1008.3475,373.7479 1081,372 C 1118.728,371.0923 1156.694,370.6998 1194,365 C 1216.0575,361.63 1259,349 1259,349 L 1296,322 L 1317,282 C 1317,282 1322.8307,247.4505 1324,230 C 1325.3594,209.7122 1326.0036,189.2344 1324,169 C 1322.8276,157.1602 1317,134 1317,134 L 1304,111 L 1282,92 C 1282,92 1259.0746,82.0154 1247,79 C 1230.0314,74.7625 1212.4241,73.5133 1195,72 C 1144.484,67.6127 1093.7012,66.7088 1043,66 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaccaaaaacccaccaaacccaacccaa"
+          />
+  <text id="bubble-text"
+        x="960.00" y="134.40"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="960.00" y="141.60">לעזאזל עם רוזבלט, לעזאזל עם</tspan>
+    <tspan x="960.00" y="211.45">איינשטיין, לעזאזל עם סילארד,</tspan>
+    <tspan x="960.00" y="278.20">ולעזאזל איתי.</tspan>
+    <tspan x="960.00" y="338.20">כולנו בני כלבות.</tspan>
+  </text>
+  </g>
+</svg>

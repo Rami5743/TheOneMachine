@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel27.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724"
+     inkscape:cy="542.44136"
+     inkscape:window-width="1440"
+     inkscape:window-height="2497"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel27.png"
+     xlink:href="panel27.png" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="M 730,385 C 736.32,384.5896 742.6842,384.529 749,385 C 755.7226,385.5014 762.4215,386.5277 769,388 C 775.7922,389.5201 782.53,391.4341 789,394 C 795.2357,396.473 801.4618,399.2148 807,403 C 814.7935,408.3266 822.3711,414.4219 828,422 C 832.1787,427.6258 835.4625,434.1628 837,441 C 838.0238,445.553 838.0722,450.4582 837,455 C 835.63,460.8033 829,471 829,471 L 829,476 C 829,476 839.3228,483.2936 845,486 C 855.1815,490.8537 877,497 877,497 C 877,497 866.4563,500.3283 861,501 C 854.0524,501.8553 846.9678,501.6711 840,501 C 827.8316,499.8279 804,494 804,494 C 804,494 794.2966,499.9857 789,502 C 779.7051,505.5348 769.8557,507.6757 760,509 C 749.093,510.4656 737.9831,510.6946 727,510 C 720.601,509.5953 714.2608,508.3833 708,507 C 700.8913,505.4294 693.709,503.8264 687,501 C 677.0936,496.8265 667.5428,491.525 659,485 C 654.8791,481.8525 651.1475,478.1209 648,474 C 644.7375,469.7286 642.0039,464.9873 640,460 C 638.9752,457.4495 638.2384,454.7384 638,452 C 637.5942,447.3391 637.7111,442.4975 639,438 C 640.7664,431.8363 644.1907,426.1576 648,421 C 651.0807,416.8289 654.8791,413.1475 659,410 C 667.5428,403.475 677.1212,398.2386 687,394 C 693.3963,391.2556 700.1935,389.4549 707,388 C 714.5608,386.3839 722.2846,385.5011 730,385 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaaaaaccacaacaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="735.62"
+       y="451.20001"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="42px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"><tspan
+   x="735.62"
+   y="451.20001"
+   id="tspan1">כבר.</tspan></text>
+  </g>
+</svg>

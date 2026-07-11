@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel79.png"
+         xlink:href="panel79.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 860,501 C 820.6653,500.9837 780.9793,496.7239 742,502 C 736.872,502.6941 727,506 727,506 L 721,514 C 721,514 718.5011,529.2846 718,537 C 716.8983,553.9643 716.2572,571.0896 718,588 C 718.8377,596.1287 723,612 723,612 L 728,618 L 737,622 L 783,623 L 784,641 L 777,656 L 802,656 L 803,646 L 824,625 C 824,625 988.9156,635.2376 1070,623 C 1073.4411,622.4807 1080,620 1080,620 L 1085,615 C 1085,615 1088.852,606.4986 1090,602 C 1091.2473,597.1124 1091.7558,592.0383 1092,587 C 1092.9042,568.3433 1092.7268,549.4785 1090,531 C 1089.0439,524.5212 1085,512 1085,512 L 1075,503 C 1075,503 931.6698,501.0297 860,501 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaccaacccccccccaccaaacc"
+          />
+  <text id="bubble-text"
+        x="905.50" y="544.25"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="31"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="905.50" y="549.83">אבל אתה לא צריך לדאוג לזה,</tspan>
+    <tspan x="905.50" y="585.38">לג'ון יש אנשים שמטפלים בזה.</tspan>
+  </text>
+  </g>
+</svg>

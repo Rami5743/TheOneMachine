@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     version="1.1"
+     width="1448"
+     height="1086"
+     viewBox="0 0 1448 1086"
+     preserveAspectRatio="xMidYMid meet">
+  <image id="raster-base"
+         x="0"
+         y="0"
+         width="1448"
+         height="1086"
+         preserveAspectRatio="none"
+         href="panel71.png"
+         xlink:href="panel71.png" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble-outline"
+          d="M 904,89 C 898.2677,89.5019 892.5195,90.3733 887,92 C 880.4085,93.9426 873.8068,96.3253 868,100 C 860.8188,104.5445 854.1114,110.2106 849,117 C 842.5438,125.5755 837.4642,135.5525 835,146 C 823.6735,194.0201 833,294 833,294 L 762,340 C 762,340 765.9781,341.1524 768,341 C 785.1334,339.7086 800.0315,327.7002 817,325 C 822.2671,324.1618 833,325 833,325 C 833,325 835.7943,340.7542 839,348 C 842.7033,356.3704 847.6253,364.4318 854,371 C 860.5044,377.7019 868.4468,383.2496 877,387 C 885.4435,390.7023 894.8355,391.994 904,393 C 1046.4775,408.6401 1191.213,405.5023 1334,393 C 1339.7323,392.4981 1345.4919,391.6649 1351,390 C 1356.5724,388.3156 1362.048,386.0605 1367,383 C 1373.6438,378.8939 1380.1508,374.1226 1385,368 C 1392.4043,358.6513 1398.29,347.6137 1401,336 C 1415.6953,273.0243 1414.4675,205.0284 1400,142 C 1398.0987,133.717 1393.9084,125.9376 1389,119 C 1384.6437,112.8428 1379.1188,107.4102 1373,103 C 1366.3487,98.206 1358.797,94.5355 1351,92 C 1345.2154,90.1189 1339.062,89.5017 1333,89 C 1190.4872,77.2053 1046.455,76.5268 904,89 Z"
+          fill="#ffffff"
+          stroke="#000000"
+          stroke-width="4.8"
+          stroke-linejoin="miter"
+          stroke-linecap="butt"
+          stroke-miterlimit="10"
+          sodipodi:nodetypes="aaaaaccaacaaaaaaaaaaaaaa"
+          />
+  <text id="bubble-text"
+        x="1082.50" y="145.08"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        direction="rtl"
+        unicode-bidi="plaintext"
+        font-family="Noto Sans Hebrew, Arial, sans-serif"
+        font-size="37"
+        font-weight="400"
+        fill="#000000"
+        stroke="none"
+        xml:space="preserve">
+    <tspan x="1082.50" y="151.74">אתה תצטרך לבנות מכונה שעושה את</tspan>
+    <tspan x="1082.50" y="196.16">זה במקום הבן-אדם. זאת תהיה מכונת</tspan>
+    <tspan x="1082.50" y="237.66">חישוב שתוכל לעשות כל חישוב. נקרא</tspan>
+    <tspan x="1082.50" y="280.83">לה מחשב אלקטרוני. אולי פעם היא</tspan>
+    <tspan x="1082.50" y="325.16">תחליף את המחשבים, ואז יקראו לה</tspan>
+    <tspan x="1082.50" y="368.16">מחשב.</tspan>
+  </text>
+  </g>
+</svg>
