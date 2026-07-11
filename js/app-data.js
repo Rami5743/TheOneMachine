@@ -165,14 +165,17 @@
       // are the data inputs on the left. output = control ? input2 : input1.
       controlInputIndex: 2,
       description: "ה-MUX הוא כרטיס עם 3 כניסות ויציאה אחת. אחת הכניסות נמצאת למעלה. היא כניסת הבקרה. היא קובעת איזו מהכניסות \"עוברת\" ליציאה. אם היא 0 אז היציאה צריכה להיות זהה לכניסה הראשונה, ואם היא 1 אז היציאה צריכה להיות זהה לכניסה השנייה. שים לב, כניסת הבקרה היא כניסה לכל דבר. מבחינת הכרטיס אין שום הבדל בינה לשאר הכניסות. אבל כשאנחנו חושבים על פעולת הכרטיס נוח לנו לחשוב עליה בנפרד, כאילו היא לא חלק מהכניסות הרגילות, והיא מגדירה לכרטיס מה לעשות. בפועל היא פשוט אחד הביטים שעליהם מתבצע החישוב שהכרטיס עושה.",
+      // inputs are [input1, input2, control]; output = control ? input2 : input1.
+      // Rows are ordered control-major (control, input1, input2 = 000..111) so a
+      // row's index matches its position in the scratch truth table.
       rows: [
         { inputs: [false, false, false], output: false },
-        { inputs: [false, false, true], output: false },
         { inputs: [false, true, false], output: false },
-        { inputs: [false, true, true], output: true },
         { inputs: [true, false, false], output: true },
-        { inputs: [true, false, true], output: false },
         { inputs: [true, true, false], output: true },
+        { inputs: [false, false, true], output: false },
+        { inputs: [false, true, true], output: true },
+        { inputs: [true, false, true], output: false },
         { inputs: [true, true, true], output: true }
       ]
     },

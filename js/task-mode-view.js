@@ -28,9 +28,9 @@ function createTaskModeView({
         <text class="workspace-task-shell-title" x="300" y="90" text-anchor="middle">${esc(task.label)}</text>
         <line class="workspace-task-shell-pin" x1="160" y1="218" x2="240" y2="218" />
         <line class="workspace-task-shell-pin" x1="160" y1="358" x2="240" y2="358" />
-        <text class="workspace-task-shell-pin-label" x="258" y="223" text-anchor="start">1</text>
-        <text class="workspace-task-shell-pin-label" x="258" y="363" text-anchor="start">2</text>
-        <line class="workspace-task-shell-pin" x1="500" y1="40" x2="500" y2="100" />
+        <text class="workspace-task-shell-pin-label" x="144" y="224" text-anchor="end">1</text>
+        <text class="workspace-task-shell-pin-label" x="144" y="364" text-anchor="end">2</text>
+        <line class="workspace-task-shell-pin" x1="500" y1="40" x2="500" y2="140" />
         <text class="workspace-task-shell-pin-label" x="500" y="30" text-anchor="middle">בקרה</text>
         <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
       </g>`;
@@ -80,8 +80,9 @@ function createTaskModeView({
     const table = Array.isArray(state.muxTable) && state.muxTable.length === 8
       ? state.muxTable
       : Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
+    const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const rows = table.map((row, index) => `
-      <tr>
+      <tr class="${activeRow === index ? "truth-row-active" : ""}">
         ${muxScratchCell(index, "out", row.out)}
         ${muxScratchCell(index, "control", row.control)}
         ${muxScratchCell(index, "in1", row.in1)}
@@ -109,8 +110,8 @@ function createTaskModeView({
     if (task.id === "Mux") {
       return `
         <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
-          <p>${esc(task.description)}</p>
-          ${renderMuxScratchTable()}
+          <div class="mux-hint-table">${renderMuxScratchTable()}</div>
+          <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
         </section>`;
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;

@@ -77,5 +77,10 @@ C("dangerous NAND short rejected in task-card build", model.canAddWire(withTask,
 C("source+NAND short rejected in task-card build", model.canAddWire(withTask, "S.out", "N.out"), false);
 C("dangerous NAND short rejected in free build", model.canAddWire(withFree, "N.out", "M.out"), false);
 
+// A task card's own internal input piped straight to its internal output is a
+// permitted passthrough; the same self-wire on a non-card is still rejected.
+C("card internal input -> output passthrough allowed", model.canAddWire(mk([]), "C.inputInt1", "C.outputInt"), true);
+C("non-card self-wire still rejected", model.canAddWire(mk([]), "N.in1", "N.out"), false);
+
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);

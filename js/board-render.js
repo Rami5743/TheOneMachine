@@ -29,11 +29,22 @@ function createBoardRender({
       if (!a || !b) return "";
       const key = wireKey(wire.a, wire.b);
       const highlightClass = highlight.wires.has(key) ? " wire-highlight" : "";
-      return `
+      const wrap = (shape) => `
         <g class="wire${highlightClass}" data-action="workspace-wire" data-wire-key="${esc(key)}" role="button" tabindex="0" aria-label="מחק כבל">
-          <line class="wire-line" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" />
-          <line class="wire-hit-line" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" />
+          ${shape("wire-line")}
+          ${shape("wire-hit-line")}
         </g>`;
+
+      // A wire reaching a pin above the card frame (the MUX control input) is
+      // routed up-and-over so it does not cross the card.
+      const top = a.y < 90 ? a : (b.y < 90 ? b : null);
+      if (top) {
+        const other = top === a ? b : a;
+        const d = `M ${other.x} ${other.y} L ${other.x} ${top.y} L ${top.x} ${top.y}`;
+        return wrap((cls) => `<path class="${cls}" d="${d}" fill="none" />`);
+      }
+
+      return wrap((cls) => `<line class="${cls}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" />`);
     }).join("");
   }
 

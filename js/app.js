@@ -141,7 +141,7 @@
           inputExt2: { x: -340, y: 70, direction: "in", label: "כניסת MUX 2 חיצונית" },
           inputInt2: { x: -260, y: 70, direction: "out", label: "כניסת MUX 2 פנימית" },
           inputExt3: { x: 0, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
-          inputInt3: { x: 0, y: -168, direction: "out", label: "כניסת בקרה פנימית" },
+          inputInt3: { x: 0, y: -148, direction: "out", label: "כניסת בקרה פנימית" },
           outputInt: { x: 260, y: 0, direction: "in", label: "יציאת MUX פנימית" },
           outputExt: { x: 340, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
         },
@@ -869,6 +869,8 @@
 
   function solutionAvailable(taskId = workspaceTaskId()) {
     const hints = taskHints(taskId);
+    // Routing tasks (MUX) have no reference solution yet — don't offer one.
+    if (isRoutingTask(taskId)) return false;
     return Boolean(taskId) && hints.length > 0 && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
   }
 
@@ -2710,8 +2712,14 @@
   function resetWorkspaceCurrentMode() {
     const taskId = workspaceTaskId();
     if (taskId && taskDefById(taskId)) {
+      const current = normalizeWorkspace(state.workspace);
       const workspace = standardTaskWorkspace(taskId);
       workspace.taskIntroSeen = true;
+      // Preserve where this task must return to (e.g. the 2.3 routing worktable);
+      // standardTaskWorkspace does not carry the session-return fields.
+      workspace.sessionReturnChapterId = current.sessionReturnChapterId;
+      workspace.sessionReturnPanelIndex = current.sessionReturnPanelIndex;
+      workspace.exitTargetPanelIndex = current.exitTargetPanelIndex;
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
@@ -2934,19 +2942,39 @@
   // completed by building the circuit and pressing "בדיקה". Interactive hints
   // can fill it. Held at top level (state.muxTable), reset when MUX opens.
   const MUX_TABLE_COLUMNS = ["control", "in1", "in2", "out"];
+  let muxTableSnapshot = null;
 
   function createEmptyMuxTable() {
     return Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
   }
 
+  // A task row (inputs = [input1, input2, control]) as the scratch table shows it.
+  function muxRowDisplay(row) {
+    return {
+      control: row.inputs[2] ? 1 : 0,
+      in1: row.inputs[0] ? 1 : 0,
+      in2: row.inputs[1] ? 1 : 0,
+      out: row.output ? 1 : 0
+    };
+  }
+
   function muxTableWithInputs(withOutputs) {
-    return Array.from({ length: 8 }, (_unused, row) => {
-      const control = (row >> 2) & 1;
-      const in1 = (row >> 1) & 1;
-      const in2 = row & 1;
-      const out = control ? in2 : in1;
-      return { control, in1, in2, out: withOutputs ? out : null };
+    const rows = taskDefById("Mux")?.rows || [];
+    return rows.map((row) => {
+      const d = muxRowDisplay(row);
+      return { control: d.control, in1: d.in1, in2: d.in2, out: withOutputs ? d.out : null };
     });
+  }
+
+  // The scratch table shown mid-check: the learner's own table, with only the
+  // row currently under test temporarily filled with the correct values.
+  function muxCheckDisplayTable(rowIndex) {
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === 8
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : createEmptyMuxTable();
+    const row = taskDefById("Mux")?.rows?.[rowIndex];
+    if (row) snap[rowIndex] = muxRowDisplay(row);
+    return snap;
   }
 
   function currentMuxTable() {
@@ -3007,7 +3035,9 @@
 
     setState({
       workspace,
-      notTest: { active: true, taskId: task.id, rowIndex }
+      notTest: { active: true, taskId: task.id, rowIndex },
+      // For MUX, temporarily fill the row under test in the scratch table.
+      ...(task.id === "Mux" ? { muxTable: muxCheckDisplayTable(rowIndex) } : {})
     }, false);
 
     notTestTimer = window.setTimeout(() => {
@@ -3022,6 +3052,7 @@
     if (!isNotTaskWorkspace() || notTestActive()) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
+    muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
     const testWorkspace = cleanedWorkspaceForTaskTest(state.workspace);
     runNotTestRow(testWorkspace, 0);
   }
@@ -3030,12 +3061,16 @@
     if (state.notTest?.result === "failure") {
       const workspace = notTestSnapshot ? normalizeWorkspace(notTestSnapshot) : state.workspace;
       notTestSnapshot = null;
-      return setState({ workspace, notTest: null }, false);
+      // Restore the learner's own scratch table (the check filled rows into it).
+      const restoreMux = Array.isArray(muxTableSnapshot) ? { muxTable: muxTableSnapshot } : {};
+      muxTableSnapshot = null;
+      return setState({ workspace, notTest: null, ...restoreMux }, false);
     }
 
     if (state.notTest?.result === "success") {
       const taskId = state.notTest.taskId;
       notTestSnapshot = null;
+      muxTableSnapshot = null;
       clearNotTestTimer();
       if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 

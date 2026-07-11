@@ -74,7 +74,18 @@ function createWorkbenchModel({
 
     const inputInfo = splitTerminalRef(inputRef);
     const outputInfo = splitTerminalRef(outputRef);
-    if (!inputInfo || !outputInfo || inputInfo.componentId === outputInfo.componentId) return false;
+    if (!inputInfo || !outputInfo) return false;
+    if (inputInfo.componentId === outputInfo.componentId) {
+      // Two pins of the same component normally can't be wired together. The one
+      // exception is a task card's own internal input piped straight to its
+      // internal output (a passthrough) — useful when a card input feeds the
+      // output directly.
+      const comp = componentById(workspace, inputInfo.componentId);
+      const isCard = comp?.type === "notCard" || String(comp?.type || "").startsWith("taskCard-");
+      const pins = [inputInfo.pinId, outputInfo.pinId];
+      const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.includes("outputInt");
+      if (!isPassthrough) return false;
+    }
 
     if (enforceInputVacancy && wires.some((wire) => otherWireEnd(wire, inputRef))) return false;
 
