@@ -19,11 +19,29 @@ function createTaskModeView({
   workspaceTaskIntroActive,
   notTestActive
 }) {
+  function renderMuxTaskShell(task) {
+    // Custom layout: two numbered data inputs on the left, the control input on
+    // top, one output on the right. Matches the taskCard-Mux pin offsets in app.js.
+    return `
+      <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
+        <text class="workspace-task-shell-title" x="300" y="90" text-anchor="middle">${esc(task.label)}</text>
+        <line class="workspace-task-shell-pin" x1="160" y1="218" x2="240" y2="218" />
+        <line class="workspace-task-shell-pin" x1="160" y1="358" x2="240" y2="358" />
+        <text class="workspace-task-shell-pin-label" x="258" y="223" text-anchor="start">1</text>
+        <text class="workspace-task-shell-pin-label" x="258" y="363" text-anchor="start">2</text>
+        <line class="workspace-task-shell-pin" x1="500" y1="40" x2="500" y2="100" />
+        <text class="workspace-task-shell-pin-label" x="500" y="30" text-anchor="middle">בקרה</text>
+        <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
+      </g>`;
+  }
+
   function renderWorkspaceTaskShell() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
+    if (task.id === "Mux") return renderMuxTaskShell(task);
     const inputLines = taskInputYs(task.inputs).map((y) => `
         <line class="workspace-task-shell-pin" x1="160" y1="${288 + y}" x2="240" y2="${288 + y}" />`).join("");
     return `
@@ -51,11 +69,50 @@ function createTaskModeView({
       </div>`;
   }
 
+  function muxScratchCell(row, column, value) {
+    const shown = value === 0 ? "0" : value === 1 ? "1" : "";
+    const cls = value === null || value === undefined ? "mux-cell-empty" : "";
+    return `<td class="${column === "out" ? "truth-output-cell" : ""}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
+  }
+
+  function renderMuxScratchTable() {
+    const state = getState();
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === 8
+      ? state.muxTable
+      : Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
+    const rows = table.map((row, index) => `
+      <tr>
+        ${muxScratchCell(index, "out", row.out)}
+        ${muxScratchCell(index, "control", row.control)}
+        ${muxScratchCell(index, "in1", row.in1)}
+        ${muxScratchCell(index, "in2", row.in2)}
+      </tr>`).join("");
+    return `
+      <table class="workspace-task-hint-table mux-scratch-table">
+        <thead>
+          <tr>
+            <th class="truth-output-cell">יציאה</th>
+            <th>בקרה</th>
+            <th>כניסה 1</th>
+            <th>כניסה 2</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
   function renderNotTaskHint() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
+    if (task.id === "Mux") {
+      return `
+        <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
+          <p>${esc(task.description)}</p>
+          ${renderMuxScratchTable()}
+        </section>`;
+    }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;
     const inputHeaders = Array.from({ length: task.inputs }, (_, index) =>

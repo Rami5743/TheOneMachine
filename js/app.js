@@ -42,7 +42,9 @@
   // TASK_DEFS moved to js/app-data.js
 
   function taskDefById(taskId) {
-    return TASK_DEFS.find((task) => task.id === taskId) || null;
+    return TASK_DEFS.find((task) => task.id === taskId)
+      || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
+      || null;
   }
 
   function taskInputYs(inputCount) {
@@ -121,6 +123,31 @@
       pins: gatePins,
       bounds: { left: 64, right: 84, top: maxInputY + 36, bottom: maxInputY + 36 }
     };
+  }
+
+  // The MUX card (chapter 2.3) needs a layout the generic generator can't
+  // express: two numbered data inputs on the LEFT and the control input on TOP.
+  // inputExt1/2 (left) are data inputs #1/#2; inputExt3 (top) is the control.
+  {
+    const mux = ROUTING_TASK_DEFS.find((task) => task.id === "Mux");
+    if (mux) {
+      WORKSPACE_COMPONENT_DEFS[taskCardComponentType(mux.id)] = {
+        label: `מסגרת ${mux.label}`,
+        fixed: true,
+        taskId: mux.id,
+        pins: {
+          inputExt1: { x: -340, y: -70, direction: "in", label: "כניסת MUX 1 חיצונית" },
+          inputInt1: { x: -260, y: -70, direction: "out", label: "כניסת MUX 1 פנימית" },
+          inputExt2: { x: -340, y: 70, direction: "in", label: "כניסת MUX 2 חיצונית" },
+          inputInt2: { x: -260, y: 70, direction: "out", label: "כניסת MUX 2 פנימית" },
+          inputExt3: { x: 0, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
+          inputInt3: { x: 0, y: -168, direction: "out", label: "כניסת בקרה פנימית" },
+          outputInt: { x: 260, y: 0, direction: "in", label: "יציאת MUX פנימית" },
+          outputExt: { x: 340, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
+        },
+        bounds: { left: 340, right: 340, top: 270, bottom: 190 }
+      };
+    }
   }
 
 
@@ -2156,7 +2183,7 @@
       : (selectedHint?.kind === "interactive"
         ? (selectedHint.openAfterApply && selectedHint.text
           ? hintParagraphsHtml(selectedHint.text)
-          : `${selectedHint.text ? hintParagraphsHtml(selectedHint.text) : ""}<button class="btn btn-primary" data-action="hint-apply" data-hint-index="${selectedIndex}" type="button">הפעל רמז</button>`)
+          : `${selectedHint.text ? hintParagraphsHtml(selectedHint.text) : ""}<button class="btn btn-primary" data-action="hint-apply" data-hint-index="${selectedIndex}" type="button">${esc(selectedHint.applyLabel || "הפעל רמז")}</button>`)
         : hintParagraphsHtml(selectedHint?.text || ""));
 
     return `
@@ -2900,6 +2927,49 @@
     return "task-card-1.outputInt";
   }
 
+  // --- MUX scratch truth table (chapter 2.3) -------------------------------
+  // A learner-only thinking aid shown beside the MUX requirements. 8 rows, each
+  // a set of cells that cycle blank -> 0 -> 1 -> blank. Columns are ordered
+  // control, input 1, input 2, output. It is NOT validated — the task is still
+  // completed by building the circuit and pressing "בדיקה". Interactive hints
+  // can fill it. Held at top level (state.muxTable), reset when MUX opens.
+  const MUX_TABLE_COLUMNS = ["control", "in1", "in2", "out"];
+
+  function createEmptyMuxTable() {
+    return Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
+  }
+
+  function muxTableWithInputs(withOutputs) {
+    return Array.from({ length: 8 }, (_unused, row) => {
+      const control = (row >> 2) & 1;
+      const in1 = (row >> 1) & 1;
+      const in2 = row & 1;
+      const out = control ? in2 : in1;
+      return { control, in1, in2, out: withOutputs ? out : null };
+    });
+  }
+
+  function currentMuxTable() {
+    return Array.isArray(state.muxTable) && state.muxTable.length === 8
+      ? state.muxTable
+      : createEmptyMuxTable();
+  }
+
+  function cycleMuxCell(value) {
+    if (value === null || value === undefined) return 0;
+    if (value === 0) return 1;
+    return null;
+  }
+
+  function handleMuxTruthCell(rowIndex, column) {
+    if (state.workspace?.taskId !== "Mux") return;
+    if (!MUX_TABLE_COLUMNS.includes(column)) return;
+    if (!Number.isInteger(rowIndex) || rowIndex < 0 || rowIndex > 7) return;
+    const table = currentMuxTable().map((row) => ({ ...row }));
+    table[rowIndex][column] = cycleMuxCell(table[rowIndex][column]);
+    setState({ muxTable: table }, false);
+  }
+
   // Solution & task-test workbench builders live in js/solution-workspaces.js
   // (pure data builders; host helpers injected). Placed here because they need
   // TASK_TEST_FRAME and the task-card ref helpers defined just above. Thin
@@ -2975,8 +3045,9 @@
 
       return setState({
         ...secondWorkspaceExitTarget(),
-        taskDialog: { message: "" },
+        taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) },
         notTest: null,
+        muxTable: null,
         completedTasks,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
@@ -3137,6 +3208,17 @@
       return setState(patch, false);
     }
 
+    // MUX interactive hints fill the scratch truth table; they leave the
+    // learner's built circuit untouched.
+    if (taskId === "Mux" && (hint.action === "mux-fill-inputs" || hint.action === "mux-fill-outputs")) {
+      const patch = {
+        hintDialog: null,
+        muxTable: muxTableWithInputs(hint.action === "mux-fill-outputs")
+      };
+      if (hintStateOverride) patch.hintState = hintStateOverride;
+      return setState(patch, false);
+    }
+
     const workspace = normalizeWorkspace(clonePlain(state.workspace));
     workspace.components = baseTaskHintComponents(taskId, workspace);
     workspace.wires = [];
@@ -3199,7 +3281,7 @@
     const nextHintState = markHintSeen(taskId, index + 1);
     const hint = hints[index];
 
-    if (hint?.kind === "interactive" && progress.seen < unlocked) {
+    if (hint?.kind === "interactive" && progress.seen < unlocked && !hint.confirmBeforeApply) {
       return applyInteractiveTaskHint(taskId, index, nextHintState);
     }
 
@@ -3387,10 +3469,19 @@
     setState({ taskDialog: { message: taskLockedMessage(taskId) } }, false);
   }
 
+  function isRoutingTask(taskId) {
+    return ROUTING_TASK_DEFS.some((task) => task.id === taskId);
+  }
+
   function openTaskWorkspace(taskId) {
     const task = taskDefById(taskId);
     if (!task) return;
-    const chapter = simpleGatesChapter();
+    // Routing tasks (chapter 2.3) return to the routing worktable the learner
+    // came from; the simple gates (2.2) fall back to their usual exit target.
+    const routing = isRoutingTask(taskId);
+    const chapter = routing ? chapterById("chapter-6") : simpleGatesChapter();
+    const sessionReturnChapterId = routing ? state.chapterId : null;
+    const sessionReturnPanelIndex = routing && Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
@@ -3409,8 +3500,9 @@
       nandMonologueStep: null,
       workspaceCompleted: false,
       workspaceSession: 2,
-      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
-      returnToWorkspaceAfterMonologue: false,
+      exitTargetPanelIndex: routing ? sessionReturnPanelIndex : secondWorkspaceExitTarget().panelIndex,
+      sessionReturnChapterId,
+      sessionReturnPanelIndex,
       taskId: task.id,
       taskIntroSeen: false
     };
@@ -3422,6 +3514,7 @@
       started: true,
       dialog: null,
       taskDialog: null,
+      muxTable: taskId === "Mux" ? createEmptyMuxTable() : null,
       workspace
     }, false);
   }
@@ -3435,6 +3528,9 @@
     const task = defs[index];
     if (!task) return;
     if (routingNoteDialogActive()) {
+      // Routing tasks that have a full definition (MUX) open a real build
+      // workspace; the rest are still placeholders.
+      if (taskDefById(task.id)) return openTaskWorkspace(task.id);
       return setState({ taskDialog: { ...state.taskDialog, message: "כרגע המשחק נעצר כאן. המשך יבוא..." } }, false);
     }
     if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(task.id) && taskCompleted(task.id)) return showTaskSolution(task.id, { completeOnClose: false });
@@ -4138,6 +4234,7 @@
     if (action === "workspace-accident-ok") return resetWorkspaceAfterAccident();
     if (action === "workspace-task-intro-ok") return dismissWorkspaceTaskIntro();
     if (action === "check-not-task") return startNotTaskTest();
+    if (action === "mux-truth-cell") return handleMuxTruthCell(Number(button.dataset.row), button.dataset.col);
     if (action === "hint-open") return openHintFromButton();
     if (action === "hint-close") return closeHintDialog();
     if (action === "hint-select") return selectHint(Number(button.dataset.hintIndex));

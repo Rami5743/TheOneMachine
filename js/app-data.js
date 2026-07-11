@@ -157,7 +157,25 @@
   };
 
   const ROUTING_TASK_DEFS = [
-    { id: "Mux", label: "MUX" },
+    {
+      id: "Mux",
+      label: "MUX",
+      inputs: 3,
+      // The control input is input #3 (drawn on top of the card); inputs #1/#2
+      // are the data inputs on the left. output = control ? input2 : input1.
+      controlInputIndex: 2,
+      description: "ה-MUX הוא כרטיס עם 3 כניסות ויציאה אחת. אחת הכניסות נמצאת למעלה. היא כניסת הבקרה. היא קובעת איזו מהכניסות \"עוברת\" ליציאה. אם היא 0 אז היציאה צריכה להיות זהה לכניסה הראשונה, ואם היא 1 אז היציאה צריכה להיות זהה לכניסה השנייה. שים לב, כניסת הבקרה היא כניסה לכל דבר. מבחינת הכרטיס אין שום הבדל בינה לשאר הכניסות. אבל כשאנחנו חושבים על פעולת הכרטיס נוח לנו לחשוב עליה בנפרד, כאילו היא לא חלק מהכניסות הרגילות, והיא מגדירה לכרטיס מה לעשות. בפועל היא פשוט אחד הביטים שעליהם מתבצע החישוב שהכרטיס עושה.",
+      rows: [
+        { inputs: [false, false, false], output: false },
+        { inputs: [false, false, true], output: false },
+        { inputs: [false, true, false], output: false },
+        { inputs: [false, true, true], output: true },
+        { inputs: [true, false, false], output: true },
+        { inputs: [true, false, true], output: false },
+        { inputs: [true, true, false], output: true },
+        { inputs: [true, true, true], output: true }
+      ]
+    },
     { id: "DMux", label: "DMUX" }
   ];
 
@@ -194,6 +212,13 @@
     ],
     OR4way: [
       { kind: "text", title: "רמז 1", text: "עשית כבר את AND3way. זה ממש דומה, רק עם OR במקום AND ו־4 במקום 3." }
+    ],
+    Mux: [
+      { kind: "text", title: "רמז 1", text: "תיזכור שמדובר בחישוב, תבין באיזה אפשרויות יוצא 1 וטפל בהן." },
+      { kind: "text", title: "רמז 2", text: "אתה יכול להשתמש בשיטה שג'ון סיפר לך. אם זאת, אפשר קצת לפשט אותה במקרה זה." },
+      { kind: "text", title: "רמז 3", text: "תנסה להכין טבלת אמת. יש סה\"כ שלוש כניסות, לכן יש 8 אפשרויות (4 אם כניסת הבקרה היא 0 ועוד 4 אם כניסת הבקרה היא 1). תנסה לרשום את כולן, ומכל אחת מהן לרשום מה היציאה." },
+      { kind: "interactive", title: "רמז 4", action: "mux-fill-inputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עזרה בהכנת טבלת האמת? (אם תלחץ על כן זה ימחק את כל מה שכתבת בטבלה). לחיצה על כן מנקה את הטבלה וממלאת את אגף הקלט שלה." },
+      { kind: "interactive", title: "רמז 5", action: "mux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת? לחיצה על כן ממלאת את כל טבלת האמת." }
     ]
   };
 
