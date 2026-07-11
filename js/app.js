@@ -867,10 +867,12 @@
     return taskHints(taskId).length > 0;
   }
 
+  function taskHasSolutionWalkthrough(taskId) {
+    return Array.isArray(TASK_SOLUTION_STEPS[taskId]) && TASK_SOLUTION_STEPS[taskId].length > 0;
+  }
+
   function solutionAvailable(taskId = workspaceTaskId()) {
     const hints = taskHints(taskId);
-    // Routing tasks (MUX) have no reference solution yet — don't offer one.
-    if (isRoutingTask(taskId)) return false;
     return Boolean(taskId) && hints.length > 0 && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
   }
 
@@ -2038,6 +2040,123 @@
           components: ["or-final"]
         }
       }
+    ],
+    Mux: [
+      {
+        text: "לפי טבלת האמת יש 4 שורות שבהן הכרטיס צריך להוציא 1 (מסומנות). הרעיון הכללי — השיטה שג'ון לימד: לכל שורה כזאת בונים חלק שמוציא 1 בדיוק במקרה שלה, ובסוף מאחדים את כולם עם OR.",
+        highlight: { truthRows: [2, 3, 5, 7] }
+      },
+      {
+        text: "החלק הזה מוציא 1 בדיוק במקרה של השורה הראשונה שמסומנת: כניסה 1 היא 1, כניסה 2 היא 0, והבקרה 0.",
+        highlight: {
+          truthRows: [2],
+          components: ["not-in2", "not-c", "and-m1"],
+          terminals: ["task-card-1.inputInt1", "not-in2.out", "not-c.out", "and-m1.out"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "not-in2.in1"),
+            wireKey("task-card-1.inputInt3", "not-c.in1"),
+            wireKey("task-card-1.inputInt1", "and-m1.in1"),
+            wireKey("not-in2.out", "and-m1.in2"),
+            wireKey("not-c.out", "and-m1.in3")
+          ]
+        }
+      },
+      {
+        text: "וזה מטפל בשורה השנייה: כניסה 1 היא 1, כניסה 2 היא 1, והבקרה 0.",
+        highlight: {
+          truthRows: [3],
+          components: ["and-m2"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "not-c.out", "and-m2.out"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "and-m2.in1"),
+            wireKey("task-card-1.inputInt2", "and-m2.in2"),
+            wireKey("not-c.out", "and-m2.in3")
+          ]
+        }
+      },
+      {
+        text: "וזה בשורה השלישית: כניסה 1 היא 0, כניסה 2 היא 1, והבקרה 1.",
+        highlight: {
+          truthRows: [5],
+          components: ["not-in1", "and-m3"],
+          terminals: ["not-in1.out", "task-card-1.inputInt2", "task-card-1.inputInt3", "and-m3.out"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "not-in1.in1"),
+            wireKey("not-in1.out", "and-m3.in1"),
+            wireKey("task-card-1.inputInt2", "and-m3.in2"),
+            wireKey("task-card-1.inputInt3", "and-m3.in3")
+          ]
+        }
+      },
+      {
+        text: "וזה בשורה הרביעית: שלוש הכניסות הן 1.",
+        highlight: {
+          truthRows: [7],
+          components: ["and-m4"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "and-m4.out"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "and-m4.in1"),
+            wireKey("task-card-1.inputInt2", "and-m4.in2"),
+            wireKey("task-card-1.inputInt3", "and-m4.in3")
+          ]
+        }
+      },
+      {
+        text: "בסוף מחברים את כל ארבעת החלקים ל־OR: אם אחד מהם מוציא 1, גם הכרטיס מוציא 1. זה פתרון שעובד תמיד, אבל אפשר לעשות אותו בצורה חסכונית יותר.",
+        buttonLabel: "פתרון נוסף",
+        highlight: {
+          components: ["or-final"],
+          terminals: ["and-m1.out", "and-m2.out", "and-m3.out", "and-m4.out", "or-final.out", "task-card-1.outputInt"],
+          wires: [
+            wireKey("and-m1.out", "or-final.in1"),
+            wireKey("and-m2.out", "or-final.in2"),
+            wireKey("and-m3.out", "or-final.in3"),
+            wireKey("and-m4.out", "or-final.in4"),
+            wireKey("or-final.out", "task-card-1.outputInt")
+          ]
+        }
+      },
+      {
+        text: "למעשה יש רק 2 אפשרויות שבהן מופיע 1: (1) כשהכניסה הראשונה 1 וכניסת הבקרה 0, ו־(2) כשהכניסה השנייה 1 וכניסת הבקרה 1. כל אחת מהאפשרויות מופיעה פעמיים בטבלת האמת מכיוון שהיא לא רגישה לכניסה האחרת. לכן מספיק: (כניסה 1 וגם לא בקרה) או (כניסה 2 וגם בקרה).",
+        highlight: { truthRows: [2, 3, 5, 7] }
+      },
+      {
+        text: "החלק הזה מטפל באפשרות הראשונה,",
+        highlight: {
+          truthRows: [2, 3],
+          components: ["not-c", "and-1"],
+          terminals: ["task-card-1.inputInt1", "not-c.out", "and-1.out"],
+          wires: [
+            wireKey("task-card-1.inputInt3", "not-c.in1"),
+            wireKey("task-card-1.inputInt1", "and-1.in1"),
+            wireKey("not-c.out", "and-1.in2")
+          ]
+        }
+      },
+      {
+        text: "והחלק הזה בשנייה,",
+        highlight: {
+          truthRows: [5, 7],
+          components: ["and-2"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "and-2.out"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "and-2.in1"),
+            wireKey("task-card-1.inputInt3", "and-2.in2")
+          ]
+        }
+      },
+      {
+        text: "כרגיל בסוף עושים OR לשתיהן.",
+        highlight: {
+          components: ["or-1"],
+          terminals: ["and-1.out", "and-2.out", "or-1.out", "task-card-1.outputInt"],
+          wires: [
+            wireKey("and-1.out", "or-1.in1"),
+            wireKey("and-2.out", "or-1.in2"),
+            wireKey("or-1.out", "task-card-1.outputInt")
+          ]
+        }
+      }
     ]
   };
 
@@ -3072,7 +3191,7 @@
       notTestSnapshot = null;
       muxTableSnapshot = null;
       clearNotTestTimer();
-      if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
+      if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 
       const completedTasks = taskId && !taskCompleted(taskId)
         ? [...completedTaskIds(), taskId]
@@ -3093,8 +3212,16 @@
   }
 
   function showTaskSolution(taskId, options = {}) {
-    const chapter = simpleGatesChapter();
+    const routing = isRoutingTask(taskId);
+    const chapter = routing ? chapterById("chapter-6") : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
+    if (routing) {
+      // Keep the return target so leaving the solution goes back to the 2.3 worktable.
+      workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
+      workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
+        ? state.workspace.sessionReturnPanelIndex
+        : (Number.isInteger(state.panelIndex) ? state.panelIndex : null);
+    }
     setState({
       screen: "workspace",
       chapterId: chapter.id,
@@ -3104,6 +3231,9 @@
       taskDialog: null,
       hintDialog: null,
       notTest: null,
+      // Show the full, correct truth table during the MUX walkthrough so the
+      // highlighted rows are meaningful.
+      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : null,
       solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0 },
       workspace
     }, false);
@@ -3170,10 +3300,11 @@
 
     return setState({
       ...secondWorkspaceExitTarget(),
-      taskDialog: { message: "" },
+      taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) },
       solutionDialog: null,
       notTest: null,
       hintDialog: null,
+      muxTable: null,
       completedTasks,
       workspace: createDefaultWorkspace(),
       replayNonce: state.replayNonce + 1
@@ -3188,9 +3319,17 @@
     const step = Math.min(Math.max(Number(state.solutionDialog.step) || 0, 0), steps.length - 1);
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
+    const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
+    if (isRoutingTask(taskId)) {
+      // The rebuilt solution workspace must keep the 2.3 return target.
+      nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
+      if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
+        nextWorkspace.sessionReturnPanelIndex = state.workspace.sessionReturnPanelIndex;
+      }
+    }
     setState({
       solutionDialog: { ...state.solutionDialog, step: nextStep },
-      workspace: solutionWorkspaceForTask(taskId, nextStep)
+      workspace: nextWorkspace
     }, false);
   }
 
@@ -3565,7 +3704,10 @@
     if (routingNoteDialogActive()) {
       // Routing tasks that have a full definition (MUX) open a real build
       // workspace; the rest are still placeholders.
-      if (taskDefById(task.id)) return openTaskWorkspace(task.id);
+      if (taskDefById(task.id)) {
+        if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) return showTaskSolution(task.id, { completeOnClose: false });
+        return openTaskWorkspace(task.id);
+      }
       return setState({ taskDialog: { ...state.taskDialog, message: "כרגע המשחק נעצר כאן. המשך יבוא..." } }, false);
     }
     if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(task.id) && taskCompleted(task.id)) return showTaskSolution(task.id, { completeOnClose: false });

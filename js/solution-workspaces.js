@@ -291,7 +291,77 @@ function createSolutionWorkspaces({
     return step >= 4 ? or4waySolutionWorkspaceBalancedFrom() : or4waySolutionWorkspaceChainFrom();
   }
 
+  // MUX — the compact solution: (input1 AND NOT control) OR (input2 AND control).
+  function muxCompactSolutionFrom() {
+    const workspace = standardTaskWorkspace("Mux");
+    workspace.components.push(
+      { id: "not-c", type: "gate-Not", x: 380, y: 150 },
+      { id: "and-1", type: "gate-And", x: 470, y: 250 },
+      { id: "and-2", type: "gate-And", x: 470, y: 420 },
+      { id: "or-1", type: "gate-Or", x: 630, y: 350 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt3", "not-c.in1"),
+      normalizeWire("task-card-1.inputInt1", "and-1.in1"),
+      normalizeWire("not-c.out", "and-1.in2"),
+      normalizeWire("task-card-1.inputInt2", "and-2.in1"),
+      normalizeWire("task-card-1.inputInt3", "and-2.in2"),
+      normalizeWire("and-1.out", "or-1.in1"),
+      normalizeWire("and-2.out", "or-1.in2"),
+      normalizeWire("or-1.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  // MUX — the generic truth-table (minterm) solution: one AND term per row that
+  // outputs 1, all combined with an OR. The four 1-rows are:
+  //   m1: in1 & ~in2 & ~c   m2: in1 & in2 & ~c
+  //   m3: ~in1 & in2 & c     m4: in1 & in2 & c
+  function muxGenericSolutionFrom() {
+    const workspace = standardTaskWorkspace("Mux");
+    workspace.components.push(
+      { id: "not-in2", type: "gate-Not", x: 285, y: 150 },
+      { id: "not-in1", type: "gate-Not", x: 285, y: 300 },
+      { id: "not-c", type: "gate-Not", x: 285, y: 450 },
+      { id: "and-m1", type: "gate-AND3way", x: 450, y: 145 },
+      { id: "and-m2", type: "gate-AND3way", x: 450, y: 290 },
+      { id: "and-m3", type: "gate-AND3way", x: 450, y: 435 },
+      { id: "and-m4", type: "gate-AND3way", x: 610, y: 480 },
+      { id: "or-final", type: "gate-OR4way", x: 650, y: 320 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt2", "not-in2.in1"),
+      normalizeWire("task-card-1.inputInt1", "not-in1.in1"),
+      normalizeWire("task-card-1.inputInt3", "not-c.in1"),
+      normalizeWire("task-card-1.inputInt1", "and-m1.in1"),
+      normalizeWire("not-in2.out", "and-m1.in2"),
+      normalizeWire("not-c.out", "and-m1.in3"),
+      normalizeWire("task-card-1.inputInt1", "and-m2.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-m2.in2"),
+      normalizeWire("not-c.out", "and-m2.in3"),
+      normalizeWire("not-in1.out", "and-m3.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-m3.in2"),
+      normalizeWire("task-card-1.inputInt3", "and-m3.in3"),
+      normalizeWire("task-card-1.inputInt1", "and-m4.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-m4.in2"),
+      normalizeWire("task-card-1.inputInt3", "and-m4.in3"),
+      normalizeWire("and-m1.out", "or-final.in1"),
+      normalizeWire("and-m2.out", "or-final.in2"),
+      normalizeWire("and-m3.out", "or-final.in3"),
+      normalizeWire("and-m4.out", "or-final.in4"),
+      normalizeWire("or-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  // Steps 0..5 walk the generic minterm solution; from step 6 ("פתרון נוסף")
+  // the compact solution is shown.
+  function muxSolutionWorkspaceFrom(step = 0) {
+    return step >= 6 ? muxCompactSolutionFrom() : muxGenericSolutionFrom();
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
+    if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
     if (taskId === "Not") return notSolutionWorkspaceFrom();
     if (taskId === "And") return andSolutionWorkspaceFrom();
     if (taskId === "Or") return orSolutionWorkspaceFrom(step);

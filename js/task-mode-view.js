@@ -81,12 +81,13 @@ function createTaskModeView({
       ? state.muxTable
       : Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+    const solutionRows = solutionHighlightConfig().truthRows;
     const rows = table.map((row, index) => `
-      <tr class="${activeRow === index ? "truth-row-active" : ""}">
+      <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionRows.has(index) ? "truth-row-solution-highlight" : ""}">
         ${muxScratchCell(index, "out", row.out)}
         ${muxScratchCell(index, "control", row.control)}
-        ${muxScratchCell(index, "in1", row.in1)}
         ${muxScratchCell(index, "in2", row.in2)}
+        ${muxScratchCell(index, "in1", row.in1)}
       </tr>`).join("");
     return `
       <table class="workspace-task-hint-table mux-scratch-table">
@@ -94,8 +95,8 @@ function createTaskModeView({
           <tr>
             <th class="truth-output-cell">יציאה</th>
             <th>בקרה</th>
-            <th>כניסה 1</th>
             <th>כניסה 2</th>
+            <th>כניסה 1</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -108,6 +109,14 @@ function createTaskModeView({
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
     if (task.id === "Mux") {
+      // During the solution walkthrough show only the (highlighted) truth table
+      // in a compact panel, leaving room for the solution dialog and circuit.
+      if (state.solutionDialog) {
+        return `
+          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
+            ${renderMuxScratchTable()}
+          </section>`;
+      }
       return `
         <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
           <div class="mux-hint-table">${renderMuxScratchTable()}</div>
