@@ -319,6 +319,18 @@
   const renderNotTaskHint = (...a) => __taskModeView.renderNotTaskHint(...a);
   const renderNotTaskCheckButton = (...a) => __taskModeView.renderNotTaskCheckButton(...a);
 
+  // Workbench launch/exit navigation lives in js/workspace-navigation.js. Created
+  // here so its secondWorkspaceExitTarget wrapper is available to later modules.
+  const __workspaceNavigation = createWorkspaceNavigation({
+    getState: () => state, currentScene, currentChapter, currentPanel, simpleGatesChapter,
+    sceneByChapter, chapterById, panelIndexByImage, storyTarget, normalizeWorkspace, isWorkspaceLaunchPanel
+  });
+  const workspaceLaunchPanelIndex = (...a) => __workspaceNavigation.workspaceLaunchPanelIndex(...a);
+  const firstWorkspaceExitTarget = (...a) => __workspaceNavigation.firstWorkspaceExitTarget(...a);
+  const secondWorkspaceExitTarget = (...a) => __workspaceNavigation.secondWorkspaceExitTarget(...a);
+  const workspaceWarehouseTarget = (...a) => __workspaceNavigation.workspaceWarehouseTarget(...a);
+  const isWorkspaceLaunchPoint = (...a) => __workspaceNavigation.isWorkspaceLaunchPoint(...a);
+
 
   function workspaceAccidentActive() {
     return state.screen === "workspace" && state.workspace?.accident?.type === "nand-overvoltage";
@@ -677,11 +689,6 @@
     return panelImageIs(panel, "panel87.png");
   }
 
-  function workspaceLaunchPanelIndex(scene = currentScene()) {
-    const index = scene.panels.findIndex(isWorkspaceLaunchPanel);
-    return index >= 0 ? index : scene.panels.length - 1;
-  }
-
   function chapterBySceneId(sceneId) {
     return CHAPTERS.find((chapter) => chapter.sceneId === sceneId) || null;
   }
@@ -702,24 +709,6 @@
       started: true,
       dialog: null
     };
-  }
-
-  function firstWorkspaceExitTarget() {
-    const chapter = simpleGatesChapter();
-    const scene = sceneByChapter(chapter);
-    const panel83Index = panelIndexByImage(scene, "panel83.png");
-    return storyTarget(chapter, panel83Index >= 0 ? panel83Index : 0);
-  }
-
-  function secondWorkspaceExitTarget() {
-    const ws = state.workspace;
-    if (ws && typeof ws.sessionReturnChapterId === "string" && Number.isInteger(ws.sessionReturnPanelIndex)) {
-      return storyTarget(chapterById(ws.sessionReturnChapterId), ws.sessionReturnPanelIndex);
-    }
-    const chapter = simpleGatesChapter();
-    const scene = sceneByChapter(chapter);
-    const panel87Index = panelIndexByImage(scene, "panel87.png");
-    return storyTarget(chapter, panel87Index >= 0 ? panel87Index : scene.panels.length - 1);
   }
 
   function chapter23Chapter() {
@@ -778,12 +767,6 @@
     const panel87Index = panelIndexByImage(scene, "panel87.png");
     if (panel87Index >= 0) return panel87Index;
     return Math.max(0, scene.panels.length - 1);
-  }
-
-  function isWorkspaceLaunchPoint() {
-    if (state.chapterId !== "chapter-4") return false;
-    if (state.workspace?.workspaceCompleted) return false;
-    return isWorkspaceLaunchPanel(currentPanel());
   }
 
   function currentChapter() {
@@ -3221,19 +3204,6 @@
     const hint = hints[safeIndex];
     if (hint?.kind === "interactive") return applyInteractiveTaskHint(taskId, safeIndex);
     return selectHint(safeIndex);
-  }
-
-  function workspaceWarehouseTarget() {
-    const workspace = normalizeWorkspace(state.workspace);
-    if (state.chapterId === "chapter-4" && !workspace.taskId && workspace.workspaceSession !== 2) {
-      const chapter = currentChapter();
-      const scene = sceneByChapter(chapter);
-      const launchIndex = Number.isInteger(workspace.workspaceLaunchPanelIndex)
-        ? workspace.workspaceLaunchPanelIndex
-        : workspaceLaunchPanelIndex(scene);
-      return storyTarget(chapter, launchIndex >= 0 ? launchIndex : 0);
-    }
-    return secondWorkspaceExitTarget();
   }
 
   function returnToWorkspaceWarehouse() {
