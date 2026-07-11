@@ -288,6 +288,27 @@
   const __toolbarView = createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
+  // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
+  // They read live state via getState() and injected predicates. Thin wrappers
+  // keep existing call sites unchanged.
+  const __workspaceChromeView = createWorkspaceChromeView({
+    getState: () => state,
+    workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled
+  });
+  const renderWorkspaceAccidentModal = (...a) => __workspaceChromeView.renderWorkspaceAccidentModal(...a);
+  const renderWorkspaceBuildHelpPrompt = (...a) => __workspaceChromeView.renderWorkspaceBuildHelpPrompt(...a);
+  const renderWorkspaceBuildHelpButton = (...a) => __workspaceChromeView.renderWorkspaceBuildHelpButton(...a);
+  const renderWorkspaceUnderstoodButton = (...a) => __workspaceChromeView.renderWorkspaceUnderstoodButton(...a);
+  const renderWorkspaceReturnButton = (...a) => __workspaceChromeView.renderWorkspaceReturnButton(...a);
+  const renderWorkspaceSkipButton = (...a) => __workspaceChromeView.renderWorkspaceSkipButton(...a);
+  const renderWorkspaceUnderstoodPrompt = (...a) => __workspaceChromeView.renderWorkspaceUnderstoodPrompt(...a);
+
+  // NAND monologue speech + truth table markup live in js/nand-monologue-view.js.
+  const __nandMonologueView = createNandMonologueView({
+    getState: () => state, esc, workspaceNandMonologueActive, NAND_MONOLOGUE_TEXTS
+  });
+  const renderWorkspaceNandMonologue = (...a) => __nandMonologueView.renderWorkspaceNandMonologue(...a);
+
 
   function workspaceAccidentActive() {
     return state.screen === "workspace" && state.workspace?.accident?.type === "nand-overvoltage";
@@ -2143,52 +2164,6 @@
       </div>`;
   }
 
-  function renderWorkspaceAccidentModal() {
-    if (state.workspace.accident?.type !== "nand-overvoltage") return "";
-    return `
-      <div class="workspace-accident-overlay" role="presentation">
-        <section class="workspace-accident-card" role="alertdialog" aria-modal="false" aria-label="NAND נשרף">
-          <p>מה עשית?! ילד נזק. טוב, אתה יכול לקחת חדש.</p>
-          <div class="workspace-accident-actions">
-            <button class="btn btn-primary" data-action="workspace-accident-ok">אישור</button>
-          </div>
-        </section>
-      </div>`;
-  }
-
-  function renderWorkspaceBuildHelpPrompt() {
-    if (!workspaceBuildHelpPromptActive()) return "";
-
-    return `
-      <div class="workspace-build-help-prompt" role="dialog" aria-modal="false" aria-label="הסבר על בניית NAND">
-        <p>רוצה לדעת איך בונים NAND (ומה זה לעזאזל טריודה, נגד ומקור מתח)?</p>
-        <div class="workspace-build-help-actions">
-          <button class="btn btn-primary" data-action="build-help-yes">כן</button>
-          <button class="btn" data-action="build-help-later">לא כרגע</button>
-        </div>
-      </div>`;
-  }
-
-  function renderWorkspaceBuildHelpButton() {
-    if (state.chapterId !== "chapter-4" || !state.workspace?.buildHelpButtonVisible) return "";
-    return `<button class="btn" data-action="build-help-open">רוצה לדעת איך בונים NAND</button>`;
-  }
-
-  function renderWorkspaceUnderstoodButton() {
-    if (!state.workspace?.understoodButtonVisible) return "";
-    return `<button class="btn" data-action="understood-open">הבנת?</button>`;
-  }
-
-  function renderWorkspaceReturnButton() {
-    if (state.screen !== "workspace") return "";
-    return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
-  }
-
-  function renderWorkspaceSkipButton() {
-    if (state.chapterId === "chapter-5" || state.workspace?.workspaceSession === 2) return "";
-    return `<button class="btn" data-action="skip" ${workspaceSkipDisabled() ? "disabled" : ""}>דלג</button>`;
-  }
-
   function renderNotTaskCheckButton() {
     if (!isNotTaskWorkspace()) return "";
     const disabled = notTestActive() || workspaceTaskIntroActive() ? "disabled" : "";
@@ -2417,56 +2392,6 @@
   }
 
   // NAND_MONOLOGUE_TEXTS moved to js/app-data.js
-
-  function renderWorkspaceUnderstoodPrompt() {
-    if (!workspaceUnderstoodPromptActive()) return "";
-
-    return `
-      <div class="workspace-understood-overlay" role="presentation">
-        <section class="workspace-understood-card" role="dialog" aria-modal="false" aria-label="בדיקת הבנה">
-          <h2>הבנת?</h2>
-          <div class="workspace-understood-actions">
-            <button class="btn" data-action="understood-play-more">אני רוצה עוד לשחק עם זה</button>
-            <button class="btn btn-primary" data-action="understood-yes">כן</button>
-            <button class="btn" data-action="understood-no">לא</button>
-          </div>
-        </section>
-      </div>`;
-  }
-
-  function renderNandTruthTable() {
-    return `
-      <section class="nand-truth-table" aria-label="טבלת אמת של NAND">
-        <table>
-          <thead>
-            <tr>
-              <th class="truth-output-cell">יציאה</th>
-              <th>כניסה 1</th>
-              <th>כניסה 2</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td class="truth-output-cell">1</td><td>0</td><td>0</td></tr>
-            <tr><td class="truth-output-cell">1</td><td>0</td><td>1</td></tr>
-            <tr><td class="truth-output-cell">1</td><td>1</td><td>0</td></tr>
-            <tr><td class="truth-output-cell">0</td><td>1</td><td>1</td></tr>
-          </tbody>
-        </table>
-      </section>`;
-  }
-
-  function renderWorkspaceNandMonologue() {
-    if (!workspaceNandMonologueActive()) return "";
-
-    const step = Math.min(Math.max(state.workspace.nandMonologueStep, 0), NAND_MONOLOGUE_TEXTS.length - 1);
-    return `
-      <div class="workspace-nand-monologue-layer monologue-step-${step}" data-nand-monologue-layer role="presentation">
-        <div class="workspace-nand-speech monologue-step-${step}" data-nand-speech>
-          <p>${esc(NAND_MONOLOGUE_TEXTS[step])}</p>
-        </div>
-        ${step === 1 ? renderNandTruthTable() : ""}
-      </div>`;
-  }
 
     function renderNoteTaskDialog() {
     if (!state.taskDialog) return "";
