@@ -18,11 +18,11 @@ const check = (f) => { try { execSync(`node --check "${f}"`, {stdio:"pipe"}); re
 console.log("Modularization verification\n");
 
 // 1) Every script parses.
-for (const f of ["data.js","app-data.js","component-model.js","board-geometry.js","circuit-engine.js","workbench-model.js","workspace-state.js","component-visuals.js","board-render.js","wire-ops.js","app.js","warehouse-hotspots.js"]) ok(`node --check js/${f}`, check(JS(f)));
+for (const f of ["data.js","app-data.js","component-model.js","board-geometry.js","circuit-engine.js","workbench-model.js","workspace-state.js","component-visuals.js","toolbar-view.js","board-render.js","wire-ops.js","accident-observation.js","solution-workspaces.js","app.js","warehouse-hotspots.js"]) ok(`node --check js/${f}`, check(JS(f)));
 
 // 2) Concatenation of data.js + app-data.js + app.js parses (catches cross-file redeclaration).
 const combined = path.join(require("os").tmpdir(), "combined_check.js");
-fs.writeFileSync(combined, [ "data.js","app-data.js","component-model.js","board-geometry.js","circuit-engine.js","workbench-model.js","workspace-state.js","component-visuals.js","board-render.js","wire-ops.js","app.js" ].map(f=>fs.readFileSync(JS(f),"utf8")).join("\n"));
+fs.writeFileSync(combined, [ "data.js","app-data.js","component-model.js","board-geometry.js","circuit-engine.js","workbench-model.js","workspace-state.js","component-visuals.js","toolbar-view.js","board-render.js","wire-ops.js","accident-observation.js","solution-workspaces.js","app.js" ].map(f=>fs.readFileSync(JS(f),"utf8")).join("\n"));
 ok("data.js + app-data.js + app.js parse together (no redeclaration)", check(combined));
 
 // 3) app-data.js loads standalone and defines all moved globals as non-empty data.
