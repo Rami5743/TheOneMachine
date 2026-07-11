@@ -266,7 +266,7 @@
   // setState plumbing that calls them stays in this file.
   const __wireOps = createWireOps({
     otherWireEnd, splitTerminalRef, terminalExists, inputRefOf, wireKey,
-    normalizeWire, canonicalTaskFrameWire, canAddWire, dangerousPowerWireInfo
+    normalizeWire, canonicalTaskFrameWire, canAddWire
   });
   const connectedTerminals = (...args) => __wireOps.connectedTerminals(...args);
   const removeInvalidWires = (...args) => __wireOps.removeInvalidWires(...args);

@@ -8,7 +8,7 @@
 // Loaded BEFORE app.js. createWireOps(deps) -> { connectedTerminals,
 //   removeInvalidWires, removeWiresAt, addTestWire, applyWireToggle }
 //   deps: otherWireEnd, splitTerminalRef, terminalExists, inputRefOf, wireKey,
-//         normalizeWire, canonicalTaskFrameWire, canAddWire, dangerousPowerWireInfo
+//         normalizeWire, canonicalTaskFrameWire, canAddWire
 
 function createWireOps({
   otherWireEnd,
@@ -18,8 +18,7 @@ function createWireOps({
   wireKey,
   normalizeWire,
   canonicalTaskFrameWire,
-  canAddWire,
-  dangerousPowerWireInfo
+  canAddWire
 }) {
   function connectedTerminals(workspace, ref) {
     const result = new Set([ref]);
@@ -62,8 +61,9 @@ function createWireOps({
   }
 
   // The click-to-connect rule: toggling a wire between terminals a and b.
-  // Removes it if present; otherwise adds it (subject to canAddWire), replacing
-  // any existing wire on the input end unless the new wire is a dangerous short.
+  // Removes it if the same wire already exists; otherwise adds it only if
+  // canAddWire permits (which, among other things, rejects connecting to an
+  // input that is already occupied).
   function applyWireToggle(workspace, a, b) {
     const [wireA, wireB] = canonicalTaskFrameWire(workspace, a, b);
     const key = wireKey(wireA, wireB);
@@ -79,11 +79,6 @@ function createWireOps({
       return;
     }
 
-    const dangerous = dangerousPowerWireInfo(workspace, wireA, wireB);
-    const inputRef = inputRefOf(workspace, wireA, wireB);
-    if (inputRef && !dangerous) {
-      workspace.wires = workspace.wires.filter((wire) => !otherWireEnd(wire, inputRef));
-    }
     workspace.wires.push(normalizeWire(wireA, wireB));
     workspace.selectedTerminal = null;
   }

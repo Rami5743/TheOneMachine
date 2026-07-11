@@ -28,9 +28,8 @@ const stub = `
     const seen=new Set([fromId]); const q=[fromId]; while(q.length){ const u=q.shift(); if(u===toId) return true; for(const v of (adj[u]||[])) if(!seen.has(v)){seen.add(v);q.push(v);} } return false; }
   ${WB_SRC}
   const __wb = createWorkbenchModel({terminalDirection, terminalExists, splitTerminalRef, componentById, componentGraphHasPath, normalizeWire, isNandOutputRef});
-  function canAddWire(ws,a,b,wires,announce){ return __wb.canAddWire(ws,a,b,wires,announce); }
-  function dangerousPowerWireInfo(ws,a,b){ return __wb.dangerousPowerWireInfo(ws,a,b); }
-  const DEPS = { otherWireEnd, splitTerminalRef, terminalExists, inputRefOf, wireKey, normalizeWire, canonicalTaskFrameWire, canAddWire, dangerousPowerWireInfo };
+  function canAddWire(ws,a,b,wires,enforceInputVacancy){ return __wb.canAddWire(ws,a,b,wires,enforceInputVacancy); }
+  const DEPS = { otherWireEnd, splitTerminalRef, terminalExists, inputRefOf, wireKey, normalizeWire, canonicalTaskFrameWire, canAddWire };
 `;
 
 const OLD_SRC = `
@@ -38,7 +37,7 @@ const OLD_SRC = `
   function removeInvalidWires(workspace){ const componentIds = new Set(workspace.components.map((c) => c.id)); workspace.wires = workspace.wires.filter((wire) => { const a = splitTerminalRef(wire.a); const b = splitTerminalRef(wire.b); return a && b && componentIds.has(a.componentId) && componentIds.has(b.componentId); }); }
   function removeWiresAt(workspace, ref){ workspace.wires = workspace.wires.filter((wire) => wire.a !== ref && wire.b !== ref); }
   function addTestWire(workspace, a, b){ if (!terminalExists(workspace, a) || !terminalExists(workspace, b) || a === b) return; const inputRef = inputRefOf(workspace, a, b); if (inputRef) removeWiresAt(workspace, inputRef); const key = wireKey(a, b); if (!workspace.wires.some((wire) => wireKey(wire.a, wire.b) === key)){ workspace.wires.push(normalizeWire(a, b)); } }
-  function applyWireToggle(workspace, a, b){ const [wireA, wireB] = canonicalTaskFrameWire(workspace, a, b); const key = wireKey(wireA, wireB); const existing = workspace.wires.some((wire) => wireKey(wire.a, wire.b) === key); if (existing){ workspace.wires = workspace.wires.filter((wire) => wireKey(wire.a, wire.b) !== key); workspace.selectedTerminal = null; return; } if (!canAddWire(workspace, wireA, wireB, workspace.wires, true)){ workspace.selectedTerminal = null; return; } const dangerous = dangerousPowerWireInfo(workspace, wireA, wireB); const inputRef = inputRefOf(workspace, wireA, wireB); if (inputRef && !dangerous){ workspace.wires = workspace.wires.filter((wire) => !otherWireEnd(wire, inputRef)); } workspace.wires.push(normalizeWire(wireA, wireB)); workspace.selectedTerminal = null; }
+  function applyWireToggle(workspace, a, b){ const [wireA, wireB] = canonicalTaskFrameWire(workspace, a, b); const key = wireKey(wireA, wireB); const existing = workspace.wires.some((wire) => wireKey(wire.a, wire.b) === key); if (existing){ workspace.wires = workspace.wires.filter((wire) => wireKey(wire.a, wire.b) !== key); workspace.selectedTerminal = null; return; } if (!canAddWire(workspace, wireA, wireB, workspace.wires, true)){ workspace.selectedTerminal = null; return; } workspace.wires.push(normalizeWire(wireA, wireB)); workspace.selectedTerminal = null; }
   return { connectedTerminals, removeInvalidWires, removeWiresAt, addTestWire, applyWireToggle };
 `;
 
@@ -83,7 +82,7 @@ cmpMut("toggle remove", W([["S.out", "N.in1"]], "S.out"), (M, ws) => M.applyWire
 cmpMut("toggle add", W([], "S.out"), (M, ws) => M.applyWireToggle(ws, "S.out", "N.in1"));
 cmpMut("toggle reject in-in", W([], "N.in1"), (M, ws) => M.applyWireToggle(ws, "N.in1", "M.in1"));
 cmpMut("toggle dangerous short", W([], "N.out"), (M, ws) => M.applyWireToggle(ws, "N.out", "M.out"));
-cmpMut("toggle replaces occupied input", W([["M.out", "N.in1"]], "S.out"), (M, ws) => M.applyWireToggle(ws, "S.out", "N.in1"));
+cmpMut("toggle rejects occupied input", W([["M.out", "N.in1"]], "S.out"), (M, ws) => M.applyWireToggle(ws, "S.out", "N.in1"));
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);
