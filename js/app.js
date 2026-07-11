@@ -154,7 +154,8 @@
       sessionReturnChapterId: null,
       sessionReturnPanelIndex: null,
       taskId: null,
-      taskIntroSeen: false
+      taskIntroSeen: false,
+      freeBuild: false
     };
   }
 
@@ -285,7 +286,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc });
+  const __toolbarView = createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -364,6 +365,19 @@
 
   function isNotTaskWorkspace() {
     return Boolean(taskDefById(workspaceTaskId()));
+  }
+
+  // The workbench has three variants. This is the first one: "הצגת הנאנד" — the
+  // NAND-presentation workbench (default source+NAND+lamp, the observe/"הבנת?"/
+  // monologue flow). The other two are the task-card build (taskId set) and the
+  // "empty table" free build (freeBuild set). Toolbar contents and the ability to
+  // short the NAND both depend on being in this mode.
+  function isNandPresentationWorkspace() {
+    return (
+      state.screen === "workspace" &&
+      !workspaceTaskId() &&
+      !state.workspace?.freeBuild
+    );
   }
 
   function isFixedWorkspaceComponent(component) {
@@ -3997,6 +4011,19 @@
       if (state.hintSlides && event.target.closest(".image-shell")) {
         event.preventDefault();
         return nextHintSlide();
+      }
+
+      // During the NAND monologue a plain click on the board advances it, the
+      // same as the advance key. (The explicit prev/next/reset/sound controls
+      // carry a data-action, so they are handled by the button branch below and
+      // never reach here.)
+      if (
+        state.screen === "workspace" &&
+        workspaceNandMonologueActive() &&
+        event.target.closest("[data-workspace-board]")
+      ) {
+        event.preventDefault();
+        return explanationReplayActive("nand-function") ? nextExplanationPanel() : advanceNandMonologue();
       }
 
       if (

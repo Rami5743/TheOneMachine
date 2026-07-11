@@ -54,11 +54,19 @@ function createWorkbenchModel({
     };
   }
 
+  // The NAND-presentation workbench is the only workbench variant that lets the
+  // learner short two outputs together and burn the NAND (the teaching moment).
+  // The task-card build and the free "empty table" both forbid it, so no output
+  // (voltage source included) can ever be wired into another output there.
+  function isNandPresentationWorkspace(workspace) {
+    return !workspace?.taskId && !workspace?.freeBuild;
+  }
+
   function canAddWire(workspace, a, b, wires = workspace.wires, enforceInputVacancy = true) {
     if (!terminalExists(workspace, a) || !terminalExists(workspace, b) || a === b) return false;
 
     const dangerous = dangerousPowerWireInfo(workspace, a, b);
-    if (dangerous) return true;
+    if (dangerous) return isNandPresentationWorkspace(workspace);
 
     const inputRef = inputRefOf(workspace, a, b);
     const outputRef = outputRefOf(workspace, a, b);

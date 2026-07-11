@@ -68,5 +68,14 @@ C("dangerous NAND short is allowed", model.canAddWire(mk([]), "N.out", "M.out"),
 C("out-out without NAND is rejected", model.canAddWire(mk([]), "S.out", "G.out"), false);
 C("wire touching a task frame is allowed", model.canAddWire(mk([]), "G.out", "C.inputExt1"), true);
 
+// The NAND short (burning the NAND) is only permitted in the NAND-presentation
+// workbench. In a task-card build (taskId set) or the free "empty table"
+// (freeBuild set) the same output-to-output short must be rejected.
+const withTask = { ...mk([]), taskId: "Xor" };
+const withFree = { ...mk([]), freeBuild: true };
+C("dangerous NAND short rejected in task-card build", model.canAddWire(withTask, "N.out", "M.out"), false);
+C("source+NAND short rejected in task-card build", model.canAddWire(withTask, "S.out", "N.out"), false);
+C("dangerous NAND short rejected in free build", model.canAddWire(withFree, "N.out", "M.out"), false);
+
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);

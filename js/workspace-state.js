@@ -84,7 +84,11 @@ function createWorkspaceState({
       sessionReturnChapterId: typeof ws.sessionReturnChapterId === "string" ? ws.sessionReturnChapterId : null,
       sessionReturnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : null,
       taskId: typeof ws.taskId === "string" ? ws.taskId : null,
-      taskIntroSeen: Boolean(ws.taskIntroSeen)
+      taskIntroSeen: Boolean(ws.taskIntroSeen),
+      // The "empty table" free-build workbench flag. Preserved here so the mode
+      // survives load/save (this normalizer runs on both) and stays
+      // distinguishable from the NAND-presentation workbench.
+      freeBuild: Boolean(ws.freeBuild)
     };
 
     const maxNumericSuffix = components.reduce((max, component) => {

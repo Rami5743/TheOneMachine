@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc }) {
+function createToolbarView({ completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -29,10 +29,16 @@ function createToolbarView({ completedTaskIds, taskDefById, gateComponentType, c
   }
 
   function renderToolbar() {
-    const builtGateTools = completedTaskIds()
-      .map((taskId) => taskDefById(taskId))
-      .filter(Boolean)
-      .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
+    // In the NAND-presentation workbench the palette is deliberately minimal —
+    // only the NAND, the voltage source and the lamp. Elsewhere (the task-card
+    // build and the free "empty table") the learner may also reuse every gate
+    // they have already built.
+    const builtGateTools = isNandPresentationWorkspace()
+      ? []
+      : completedTaskIds()
+          .map((taskId) => taskDefById(taskId))
+          .filter(Boolean)
+          .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
 
     const tools = [
       { type: "nand", label: "NAND" },

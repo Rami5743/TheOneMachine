@@ -81,7 +81,8 @@ const OLD_SRC = `
       returnToWorkspaceAfterMonologue: Boolean(ws.returnToWorkspaceAfterMonologue),
       sessionReturnChapterId: typeof ws.sessionReturnChapterId === "string" ? ws.sessionReturnChapterId : null,
       sessionReturnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : null,
-      taskId: typeof ws.taskId === "string" ? ws.taskId : null, taskIntroSeen: Boolean(ws.taskIntroSeen)
+      taskId: typeof ws.taskId === "string" ? ws.taskId : null, taskIntroSeen: Boolean(ws.taskIntroSeen),
+      freeBuild: Boolean(ws.freeBuild)
     };
     const maxNumericSuffix = components.reduce((max, component) => { const match = component.id.match(/-(\\d+)$/); return match ? Math.max(max, Number(match[1]) + 1) : max; }, 2);
     normalized.nextId = Math.max(normalized.nextId, maxNumericSuffix);
