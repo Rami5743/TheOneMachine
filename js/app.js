@@ -1514,26 +1514,52 @@
 
   // dangerousPowerWireInfo moved to js/workbench-model.js
 
-  function componentGraphHasPath(workspace, wires, fromComponentId, toComponentId) {
-    if (fromComponentId === toComponentId) return true;
+  // Cycle detection for a candidate wire. fromRef/toRef are the input-side and
+  // output-side terminals of the candidate; a cycle exists if the input side can
+  // already reach the output side following the directed signal flow.
+  //
+  // A task card is NOT a pass-through: its internal input pins are signal SOURCES
+  // and its internal output pin is a SINK, with no internal link between them.
+  // Modelling it as a single node would create a false path "through" the card
+  // (output -> card -> input) and wrongly reject legitimate reconvergent wiring
+  // (e.g. one NOT feeding several ANDs that all feed one OR). So the card's
+  // input side and output side are kept as separate graph nodes.
+  function componentGraphHasPath(workspace, wires, fromRef, toRef) {
+    const cardNode = (info) => {
+      const comp = componentById(workspace, info.componentId);
+      const isCard = comp && (comp.type === "notCard" || String(comp.type || "").startsWith("taskCard-"));
+      if (!isCard) return info.componentId;
+      const outputSide = /^output(Int|Ext)/.test(info.pinId);
+      return `${info.componentId}$${outputSide ? "out" : "in"}`;
+    };
+    const nodeOf = (ref) => {
+      const info = splitTerminalRef(ref);
+      return info ? cardNode(info) : null;
+    };
 
-    const graph = new Map(workspace.components.map((component) => [component.id, []]));
+    const fromNode = nodeOf(fromRef);
+    const toNode = nodeOf(toRef);
+    if (!fromNode || !toNode) return false;
+    if (fromNode === toNode) return true;
+
+    const graph = new Map();
     for (const wire of wires) {
       const outRef = outputRefOf(workspace, wire.a, wire.b);
       const inRef = inputRefOf(workspace, wire.a, wire.b);
       if (!outRef || !inRef) continue;
-      const outInfo = splitTerminalRef(outRef);
-      const inInfo = splitTerminalRef(inRef);
-      if (!outInfo || !inInfo || outInfo.componentId === inInfo.componentId) continue;
-      graph.get(outInfo.componentId)?.push(inInfo.componentId);
+      const u = nodeOf(outRef);
+      const v = nodeOf(inRef);
+      if (!u || !v || u === v) continue;
+      if (!graph.has(u)) graph.set(u, []);
+      graph.get(u).push(v);
     }
 
-    const seen = new Set([fromComponentId]);
-    const queue = [fromComponentId];
+    const seen = new Set([fromNode]);
+    const queue = [fromNode];
     while (queue.length) {
       const current = queue.shift();
       for (const next of graph.get(current) || []) {
-        if (next === toComponentId) return true;
+        if (next === toNode) return true;
         if (!seen.has(next)) {
           seen.add(next);
           queue.push(next);

@@ -95,7 +95,7 @@ function createWorkbenchModel({
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;
 
     const candidateWires = [...wires, normalizeWire(a, b)];
-    return !componentGraphHasPath(workspace, candidateWires, inputInfo.componentId, outputInfo.componentId);
+    return !componentGraphHasPath(workspace, candidateWires, inputRef, outputRef);
   }
 
   return { canAddWire, inputRefOf, outputRefOf, dangerousPowerWireInfo };

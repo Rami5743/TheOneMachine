@@ -1392,8 +1392,10 @@ button { font: inherit; }
    The panel is wide (instructions beside the table, no scrolling) so it
    overlaps the board; pointer-events:none on the frame and text lets clicks
    fall through to the board underneath, while the table stays interactive.
-   The table sits at the screen edge (over the lamp, which is never hand-wired),
-   keeping the card's own pins reachable. */
+   The click-through text sits at the screen edge over the FIXED lamp so the
+   learner can still hand-wire the card output to it, while the interactive
+   table covers the gate-build zone (gates are movable, so it never traps
+   them). */
 .workspace-task-hint.workspace-task-hint-mux {
   display: flex;
   width: min(560px, calc(100% - 32px));

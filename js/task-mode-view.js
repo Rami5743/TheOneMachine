@@ -117,10 +117,14 @@ function createTaskModeView({
             ${renderMuxScratchTable()}
           </section>`;
       }
+      // Order matters: in the RTL flex row the FIRST child lands on the right.
+      // The click-through text goes on the right (over the fixed lamp, which the
+      // learner must be able to hand-wire), and the interactive table sits on the
+      // left over the gate-build zone (gates are movable, so it never traps them).
       return `
         <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
-          <div class="mux-hint-table">${renderMuxScratchTable()}</div>
           <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
+          <div class="mux-hint-table">${renderMuxScratchTable()}</div>
         </section>`;
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;

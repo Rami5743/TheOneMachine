@@ -37,15 +37,25 @@ function createSolutionWorkspaces({
     const p = layout && layout[id];
     return { x: p && Number.isFinite(p.x) ? p.x : fallbackX, y: p && Number.isFinite(p.y) ? p.y : fallbackY };
   }
-  function notTaskFrameContainsComponent(component) {
+  // The MUX card is drawn on a larger frame than the 2.2 cards, so its "keep
+  // components inside the card" test frame is larger too — otherwise gates the
+  // learner legitimately places near the (bigger) card edges get discarded when
+  // the check assembles the test circuit.
+  function taskTestFrame(workspace) {
+    if (workspace?.taskId === "Mux") return { x1: 140, y1: 35, x2: 870, y2: 540 };
+    return TASK_TEST_FRAME;
+  }
+
+  function componentInsideTaskFrame(component, frame) {
     if (!component) return false;
     if (["source-1", "lamp-1", "task-card-1"].includes(component.id)) return true;
-    return component.x >= TASK_TEST_FRAME.x1 && component.x <= TASK_TEST_FRAME.x2 && component.y >= TASK_TEST_FRAME.y1 && component.y <= TASK_TEST_FRAME.y2;
+    return component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2;
   }
 
   function cleanedWorkspaceForTaskTest(sourceWorkspace) {
     const workspace = normalizeWorkspace(clonePlain(sourceWorkspace));
-    workspace.components = workspace.components.filter(notTaskFrameContainsComponent);
+    const frame = taskTestFrame(workspace);
+    workspace.components = workspace.components.filter((component) => componentInsideTaskFrame(component, frame));
     workspace.selectedTerminal = null;
     workspace.accident = null;
     removeInvalidWires(workspace);

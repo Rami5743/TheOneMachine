@@ -19,17 +19,22 @@ const stub = `
   function terminalExists(ws,ref){ const p=splitTerminalRef(ref); return !!(p && componentById(ws,p.componentId) && p.pinId); }
   function isNandOutputRef(ws,ref){ const p=splitTerminalRef(ref); const c=p&&componentById(ws,p.componentId); return !!(c&&c.type==="nand"&&p.pinId==="out"); }
   function normalizeWire(a,b){ const [x,y]=[a,b].sort(); return {a:x,b:y}; }
-  function componentGraphHasPath(ws,wires,fromId,toId){
-    // A new single edge is not a cycle: ignore one direct candidate edge, then
-    // test whether fromId and toId are still connected via the remaining wires.
-    let removed=false; const edges=[];
-    for(const w of wires){ const pa=splitTerminalRef(w.a), pb=splitTerminalRef(w.b); if(!pa||!pb) continue;
-      const set=new Set([pa.componentId,pb.componentId]);
-      if(!removed && set.has(fromId) && set.has(toId)){ removed=true; continue; }
-      edges.push([pa.componentId,pb.componentId]); }
-    const adj={}; for(const [u,v] of edges){ (adj[u]=adj[u]||new Set()).add(v); (adj[v]=adj[v]||new Set()).add(u); }
-    const seen=new Set([fromId]); const q=[fromId];
-    while(q.length){ const u=q.shift(); if(u===toId) return true; for(const v of (adj[u]||[])) if(!seen.has(v)){seen.add(v);q.push(v);} }
+  function componentGraphHasPath(ws,wires,fromRef,toRef){
+    // Directed cycle check; a task card's input and output sides are separate
+    // nodes so paths never route through the card.
+    function nodeOf(ref){ var p=splitTerminalRef(ref); if(!p) return null;
+      var c=componentById(ws,p.componentId);
+      var isCard = c && (c.type==="notCard" || String(c.type).indexOf("taskCard-")===0);
+      if(!isCard) return p.componentId;
+      return p.componentId + "$" + (/^output(Int|Ext)/.test(p.pinId)?"out":"in"); }
+    function dir(w){ var da=terminalDirection(ws,w.a), db=terminalDirection(ws,w.b);
+      if(da==="out"&&db==="in") return [w.a,w.b]; if(db==="out"&&da==="in") return [w.b,w.a]; return null; }
+    var fromNode=nodeOf(fromRef), toNode=nodeOf(toRef);
+    if(!fromNode||!toNode) return false; if(fromNode===toNode) return true;
+    var adj={};
+    for(const w of wires){ var oi=dir(w); if(!oi) continue; var u=nodeOf(oi[0]), v=nodeOf(oi[1]); if(!u||!v||u===v) continue; (adj[u]=adj[u]||[]).push(v); }
+    var seen={}; seen[fromNode]=1; var q=[fromNode];
+    while(q.length){ var u=q.shift(); var nb=adj[u]||[]; for(var i=0;i<nb.length;i++){ if(nb[i]===toNode) return true; if(!seen[nb[i]]){seen[nb[i]]=1;q.push(nb[i]);} } }
     return false; }
 `;
 const deps = "{terminalDirection, terminalExists, splitTerminalRef, componentById, componentGraphHasPath, normalizeWire, isNandOutputRef}";
