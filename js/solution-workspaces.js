@@ -338,14 +338,14 @@ function createSolutionWorkspaces({
   function muxGenericSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
     workspace.components.push(
-      { id: "not-c", type: "gate-Not", ...muxAt("generic", "not-c", 380, 175) },
-      { id: "not-in1", type: "gate-Not", ...muxAt("generic", "not-in1", 330, 250) },
-      { id: "not-in2", type: "gate-Not", ...muxAt("generic", "not-in2", 330, 350) },
-      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 525, 180) },
-      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 525, 275) },
-      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 525, 375) },
-      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 525, 470) },
-      { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 680, 300) }
+      { id: "not-c", type: "gate-Not", ...muxAt("generic", "not-c", 360, 90) },
+      { id: "not-in1", type: "gate-Not", ...muxAt("generic", "not-in1", 255, 250) },
+      { id: "not-in2", type: "gate-Not", ...muxAt("generic", "not-in2", 255, 360) },
+      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 535, 165) },
+      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 535, 255) },
+      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 535, 345) },
+      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 535, 435) },
+      { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 700, 300) }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt2", "not-in2.in1"),

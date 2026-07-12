@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 600" width="1000" height="600">
   <!--
-    Editable MUX COMPACT solution: (input1 AND NOT control) OR (input2 AND control).
-
-    This file is a WYSIWYG preview of how the solution looks on the workbench:
-    real gate graphics at the workbench size, the card frame, and the wires.
-    To reposition a gate, move its group (the gate image + its small red centre
-    dot) together. The RED DOT's centre is the gate position that the app uses;
-    keep each dot's data-id unchanged (it matches muxCompactSolutionFrom in
-    js/solution-workspaces.js). The wires are drawn by the <script> from the dot
-    positions, so they follow the gates automatically (visible in a browser; in
-    an editor without scripting only the gates and dots show). Do not remove the
-    <script>: it also posts the positions to the app (the same <object>+
-    postMessage trick the panel hotspots use, so it works from file:// too).
+    Editable MUX COMPACT solution — a WYSIWYG preview of how it looks on
+    the workbench: real gate graphics at the workbench size, the card frame, and
+    the wires. To reposition a gate, move its group (the gate image + its small
+    red centre dot) together. The RED DOT's centre is the gate position the app
+    uses; keep each dot's data-id unchanged. The wires in <g id="mux-wires"> are
+    baked in statically (so they show in a plain, non-scripting viewer too) AND
+    recomputed by the <script> from the dot positions when opened in a browser,
+    so after you drag a gate they follow it. The script also posts the positions
+    to the app (the same <object>+postMessage trick the panel hotspots use).
   -->
   <rect x="0" y="0" width="1000" height="600" fill="#8a6f45"/>
   <!-- MUX card frame (matches the workbench; not editable) -->
@@ -20,35 +17,44 @@
     <rect x="150" y="60" width="700" height="456" rx="18" fill="rgba(248,239,220,0.06)" stroke="rgba(245,235,215,0.92)" stroke-width="3"/>
     <text x="500" y="48" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="28" font-weight="800">MUX</text>
     <g stroke="#111" stroke-width="5" stroke-linecap="round">
-      <line x1="150" y1="188" x2="230" y2="188"/>
-      <line x1="150" y1="388" x2="230" y2="388"/>
+      <line x1="125" y1="188" x2="200" y2="188"/>
+      <line x1="125" y1="388" x2="200" y2="388"/>
       <line x1="300" y1="40" x2="300" y2="150"/>
-      <line x1="770" y1="288" x2="850" y2="288"/>
+      <line x1="800" y1="288" x2="875" y2="288"/>
     </g>
     <g fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800">
-      <text x="134" y="194" text-anchor="end">1</text>
-      <text x="134" y="394" text-anchor="end">2</text>
+      <text x="108" y="194" text-anchor="end">1</text>
+      <text x="108" y="394" text-anchor="end">2</text>
       <text x="300" y="28" text-anchor="middle">בקרה</text>
     </g>
     <image href="../components/source.svg" x="44" y="238" width="92" height="100"/>
     <image href="../components/lamp-off.svg" x="855" y="158" width="110" height="140"/>
   </g>
-  <g id="mux-wires"></g>
+  <g id="mux-wires">
+    <line x1="300" y1="150" x2="344" y2="175" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="200" y1="188" x2="462.8" y2="226.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="428" y1="175" x2="462.8" y2="253.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="200" y1="388" x2="462.8" y2="396.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="300" y1="150" x2="462.8" y2="423.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="539.6" y1="240" x2="625.2" y2="306.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="539.6" y1="410" x2="625.2" y2="333.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <line x1="708" y1="320" x2="800" y2="288" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+  </g>
   <g id="mux-gates">
     <g class="mux-node">
-      <image href="../components/gate-not.svg" x="340.4" y="143.8" width="92.4" height="62.4"/>
+      <image href="../components/gate-not.svg" x="333.8" y="143.8" width="92.4" height="62.4"/>
       <rect data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="376" y="171" width="8" height="8" fill="#e0392b" opacity="0.55"/>
     </g>
     <g class="mux-node">
-      <image href="../components/gate-and.svg" x="460.4" y="208.8" width="92.4" height="62.4"/>
+      <image href="../components/gate-and.svg" x="453.8" y="208.8" width="92.4" height="62.4"/>
       <rect data-mux-comp="1" data-id="and-1" data-type="gate-And" x="496" y="236" width="8" height="8" fill="#e0392b" opacity="0.55"/>
     </g>
     <g class="mux-node">
-      <image href="../components/gate-and.svg" x="460.4" y="378.8" width="92.4" height="62.4"/>
+      <image href="../components/gate-and.svg" x="453.8" y="378.8" width="92.4" height="62.4"/>
       <rect data-mux-comp="1" data-id="and-2" data-type="gate-And" x="496" y="406" width="8" height="8" fill="#e0392b" opacity="0.55"/>
     </g>
     <g class="mux-node">
-      <image href="../components/gate-or.svg" x="620.4" y="288.8" width="92.4" height="62.4"/>
+      <image href="../components/gate-or.svg" x="613.8" y="288.8" width="92.4" height="62.4"/>
       <rect data-mux-comp="1" data-id="or-1" data-type="gate-Or" x="656" y="316" width="8" height="8" fill="#e0392b" opacity="0.55"/>
     </g>
   </g>
@@ -57,7 +63,7 @@
     var KEY = "compact";
     var SCALE = 0.6;
     var GATE_PINS = {"gate-Not":{"in1":[-60,0],"out":[80,0]},"gate-And":{"in1":[-62,-23],"in2":[-62,23],"out":[66,0]},"gate-Or":{"in1":[-58,-23],"in2":[-58,23],"out":[80,0]},"gate-AND3way":{"in1":[-62,-27],"in2":[-62,0],"in3":[-62,27],"out":[66,0]},"gate-OR4way":{"in1":[-60.326107,-30],"in2":[-59.462559,-9.9898129],"in3":[-59.919762,10.020376],"in4":[-60.369907,30],"out":[80,0]}};
-    var CARD = {"inputInt1":[230,188],"inputInt2":[230,388],"inputInt3":[300,150],"outputInt":[770,288]};
+    var CARD = {"inputInt1":[200,188],"inputInt2":[200,388],"inputInt3":[300,150],"outputInt":[800,288]};
     var TYPES = {"not-c":"gate-Not","and-1":"gate-And","and-2":"gate-And","or-1":"gate-Or"};
     var CONN = [["task-card-1.inputInt3","not-c.in1"],["task-card-1.inputInt1","and-1.in1"],["not-c.out","and-1.in2"],["task-card-1.inputInt2","and-2.in1"],["task-card-1.inputInt3","and-2.in2"],["and-1.out","or-1.in1"],["and-2.out","or-1.in2"],["or-1.out","task-card-1.outputInt"]];
     var NS = "http://www.w3.org/2000/svg";

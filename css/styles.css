@@ -1783,8 +1783,14 @@ button { font: inherit; }
   cursor: default;
 }
 
+/* Fixed components (the card, the lamp, the source in a task) can't be dragged,
+   and their terminals are separate <circle> hit targets in another layer — so
+   the graphic itself needs no pointer events. Letting clicks pass through it
+   keeps a wire that runs under the graphic (e.g. the short card-output→lamp
+   wire tucked under the lamp) clickable, so it can still be deleted. */
+.workspace-component.component-fixed,
 .workspace-component.component-fixed * {
-  pointer-events: visiblePainted;
+  pointer-events: none;
 }
 
 

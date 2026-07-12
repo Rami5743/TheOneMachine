@@ -136,16 +136,21 @@
         fixed: true,
         taskId: mux.id,
         pins: {
-          inputExt1: { x: -350, y: -100, direction: "in", label: "כניסת MUX 1 חיצונית" },
-          inputInt1: { x: -270, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
-          inputExt2: { x: -350, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
-          inputInt2: { x: -270, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
+          // Data inputs 1/2 on the LEFT: a short external stub that pokes out of
+          // the frame (x=-375 → board 125, frame edge at 150) and a shortened
+          // internal stub (x=-300 → board 200). The control (top) already pokes
+          // out above the frame. The output on the RIGHT likewise pokes out
+          // (x=375 → board 875, frame edge at 850).
+          inputExt1: { x: -375, y: -100, direction: "in", label: "כניסת MUX 1 חיצונית" },
+          inputInt1: { x: -300, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
+          inputExt2: { x: -375, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
+          inputInt2: { x: -300, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
           inputExt3: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
           inputInt3: { x: -200, y: -138, direction: "out", label: "כניסת בקרה פנימית" },
-          outputInt: { x: 270, y: 0, direction: "in", label: "יציאת MUX פנימית" },
-          outputExt: { x: 350, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
+          outputInt: { x: 300, y: 0, direction: "in", label: "יציאת MUX פנימית" },
+          outputExt: { x: 375, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
         },
-        bounds: { left: 350, right: 350, top: 270, bottom: 240 }
+        bounds: { left: 380, right: 380, top: 270, bottom: 240 }
       };
     }
   }

@@ -26,13 +26,13 @@ function createTaskModeView({
       <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="150" y="60" width="700" height="456" rx="18" />
         <text class="workspace-task-shell-title" x="500" y="48" text-anchor="middle">${esc(task.label)}</text>
-        <line class="workspace-task-shell-pin" x1="150" y1="188" x2="230" y2="188" />
-        <line class="workspace-task-shell-pin" x1="150" y1="388" x2="230" y2="388" />
-        <text class="workspace-task-shell-pin-label" x="134" y="194" text-anchor="end">1</text>
-        <text class="workspace-task-shell-pin-label" x="134" y="394" text-anchor="end">2</text>
+        <line class="workspace-task-shell-pin" x1="125" y1="188" x2="200" y2="188" />
+        <line class="workspace-task-shell-pin" x1="125" y1="388" x2="200" y2="388" />
+        <text class="workspace-task-shell-pin-label" x="108" y="194" text-anchor="end">1</text>
+        <text class="workspace-task-shell-pin-label" x="108" y="394" text-anchor="end">2</text>
         <line class="workspace-task-shell-pin" x1="300" y1="40" x2="300" y2="150" />
         <text class="workspace-task-shell-pin-label" x="300" y="28" text-anchor="middle">בקרה</text>
-        <line class="workspace-task-shell-pin" x1="770" y1="288" x2="850" y2="288" />
+        <line class="workspace-task-shell-pin" x1="800" y1="288" x2="875" y2="288" />
       </g>`;
   }
 
@@ -82,21 +82,23 @@ function createTaskModeView({
       : Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionRows = solutionHighlightConfig().truthRows;
+    // Columns run right-to-left (RTL): בקרה, כניסה 1, כניסה 2, then יציאה at the
+    // far (left) end. First DOM cell = rightmost column.
     const rows = table.map((row, index) => `
       <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionRows.has(index) ? "truth-row-solution-highlight" : ""}">
-        ${muxScratchCell(index, "out", row.out)}
         ${muxScratchCell(index, "control", row.control)}
-        ${muxScratchCell(index, "in2", row.in2)}
         ${muxScratchCell(index, "in1", row.in1)}
+        ${muxScratchCell(index, "in2", row.in2)}
+        ${muxScratchCell(index, "out", row.out)}
       </tr>`).join("");
     return `
       <table class="workspace-task-hint-table mux-scratch-table">
         <thead>
           <tr>
-            <th class="truth-output-cell">יציאה</th>
             <th>בקרה</th>
-            <th>כניסה 2</th>
             <th>כניסה 1</th>
+            <th>כניסה 2</th>
+            <th class="truth-output-cell">יציאה</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
