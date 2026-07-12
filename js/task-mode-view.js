@@ -156,6 +156,28 @@ function createTaskModeView({
       </table>`;
   }
 
+  // The MUX/DMUX build requirements panel (description + editable table) with a
+  // hide/show toggle in its top-left corner. When hidden it collapses to just a
+  // title bar ("דרישות כרטיס ה-…").
+  function renderRequirementsPanel(task, scratchTableHtml) {
+    const state = getState();
+    const hidden = Boolean(state.requirementsPanelHidden);
+    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>`;
+    if (hidden) {
+      return `
+        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(task.label)}">
+          ${toggle}
+          <span class="requirements-title">דרישות כרטיס ה-${esc(task.label)}</span>
+        </section>`;
+    }
+    return `
+      <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
+        ${toggle}
+        <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
+        <div class="mux-hint-table">${scratchTableHtml}</div>
+      </section>`;
+  }
+
   function renderNotTaskHint() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
@@ -176,11 +198,7 @@ function createTaskModeView({
       // The click-through text goes on the right (over the fixed lamp, which the
       // learner must be able to hand-wire), and the interactive table sits on the
       // left over the gate-build zone (gates are movable, so it never traps them).
-      return `
-        <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
-          <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
-          <div class="mux-hint-table">${renderMuxScratchTable()}</div>
-        </section>`;
+      return renderRequirementsPanel(task, renderMuxScratchTable());
     }
     if (task.id === "DMux") {
       // An empty, editable truth table (like the MUX): the learner fills it in as
@@ -192,11 +210,7 @@ function createTaskModeView({
             ${renderDmuxScratchTable()}
           </section>`;
       }
-      return `
-        <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
-          <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
-          <div class="mux-hint-table">${renderDmuxScratchTable()}</div>
-        </section>`;
+      return renderRequirementsPanel(task, renderDmuxScratchTable());
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;

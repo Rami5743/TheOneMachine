@@ -231,6 +231,7 @@
     hintSlides: null,
     solutionDialog: null,
     solutionTableHidden: false,
+    requirementsPanelHidden: false,
     bitDialog: null,
     bitInfoUnlocked: false,
     xorTableHelpUnlocked: false,
@@ -2123,7 +2124,7 @@
     ],
     DMux: [
       {
-        text: "כמו שראית ברמז, אפשר לטפל בכל יציאה בנפרד. יציאה 1 צריכה לקבל את הכניסה כאשר הבקרה 0, ויציאה 2 כאשר הבקרה 1.",
+        text: "אפשר לטפל בכל יציאה בנפרד, כאילו מדובר בשני כרטיסים. יציאה 1 צריכה לקבל את הכניסה כאשר הבקרה 0, ויציאה 2 כאשר הבקרה 1.",
         highlight: {}
       },
       {
@@ -3955,6 +3956,7 @@
       started: true,
       dialog: null,
       taskDialog: null,
+      requirementsPanelHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
     }, false);
@@ -4700,6 +4702,7 @@
     if (action === "solution-next") return advanceSolutionDialog();
     if (action === "solution-ok") return finishSolutionDialog();
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
+    if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();

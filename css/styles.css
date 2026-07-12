@@ -1423,6 +1423,44 @@ button { font: inherit; }
   width: auto;
 }
 
+/* Hide/show toggle for the requirements panel, pinned to its top-left corner. */
+.requirements-toggle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
+  pointer-events: auto;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(36, 26, 13, 0.6);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e1b16;
+  cursor: pointer;
+}
+
+.requirements-toggle:hover,
+.requirements-toggle:focus-visible {
+  background: #ffe08a;
+}
+
+/* Collapsed requirements panel: a minimal title bar (button + card title). */
+.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-collapsed {
+  display: block;
+  width: auto;
+  min-width: 0;
+  padding: 9px 16px 9px 82px;
+  pointer-events: auto;
+  background: rgba(249, 244, 232, 0.96);
+}
+
+.workspace-task-hint-collapsed .requirements-title {
+  font-weight: 800;
+  color: #1e1b16;
+  white-space: nowrap;
+}
+
 /* Columns are ordered in the DOM as they should appear left-to-right
    (יציאה, כניסה 2, כניסה 1, בקרה); pin the direction so that never flips. */
 .mux-scratch-table {
