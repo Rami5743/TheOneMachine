@@ -115,8 +115,10 @@ function createTaskModeView({
     if (!task) return "";
     if (task.id === "Mux") {
       // During the solution walkthrough show only the (highlighted) truth table
-      // in a compact panel, leaving room for the solution dialog and circuit.
+      // in a compact panel, leaving room for the solution dialog and circuit. The
+      // learner can hide/show it with the toggle on the solution dialog.
       if (state.solutionDialog) {
+        if (state.solutionTableHidden) return "";
         return `
           <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
             ${renderMuxScratchTable()}

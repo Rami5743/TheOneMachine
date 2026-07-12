@@ -205,6 +205,7 @@
     hintDialog: null,
     hintSlides: null,
     solutionDialog: null,
+    solutionTableHidden: false,
     bitDialog: null,
     bitInfoUnlocked: false,
     xorTableHelpUnlocked: false,
@@ -2239,12 +2240,18 @@
     const step = steps[stepIndex];
     const isLast = stepIndex >= steps.length - 1;
 
+    const hasTable = Array.isArray(state.muxTable);
+    const toggleButton = hasTable
+      ? `<button class="btn" data-action="solution-toggle-table" type="button">${state.solutionTableHidden ? "הצג טבלה" : "הסתר טבלה"}</button>`
+      : "";
+
     return `
       <div class="solution-overlay" role="presentation">
         <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון ${esc(task?.label || taskId)}">
           <h2>פתרון</h2>
           <p>${esc(step.text)}</p>
           <div class="solution-actions">
+            ${toggleButton}
             ${isLast ? '<button class="btn btn-primary" data-action="solution-ok" type="button">אישור</button>' : `<button class="btn btn-primary" data-action="solution-next" type="button">${esc(step.buttonLabel || "המשך")}</button>`}
           </div>
         </section>
@@ -3342,6 +3349,7 @@
       dialog: null,
       taskDialog: null,
       hintDialog: null,
+      solutionTableHidden: false,
       notTest: null,
       // Show the full, correct truth table during the MUX walkthrough so the
       // highlighted rows are meaningful.
@@ -4452,7 +4460,7 @@
       return;
     }
 
-    if (state.solutionDialog && !isGlobalNavigationAction(action) && !["solution-ok", "solution-next"].includes(action)) {
+    if (state.solutionDialog && !isGlobalNavigationAction(action) && !["solution-ok", "solution-next", "solution-toggle-table"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -4544,6 +4552,7 @@
     if (action === "not-test-ok") return finishNotTestDialog();
     if (action === "solution-next") return advanceSolutionDialog();
     if (action === "solution-ok") return finishSolutionDialog();
+    if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
