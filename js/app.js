@@ -2121,6 +2121,37 @@
         }
       }
     ],
+    DMux: [
+      {
+        text: "כמו שראית ברמז, אפשר לטפל בכל יציאה בנפרד. יציאה 1 צריכה לקבל את הכניסה כאשר הבקרה 0, ויציאה 2 כאשר הבקרה 1.",
+        highlight: {}
+      },
+      {
+        text: "יציאה 1 היא הכניסה כאשר הבקרה 0 — כלומר הכניסה וגם (לא בקרה). הופכים את הבקרה עם NOT ומבצעים AND עם הכניסה.",
+        highlight: {
+          components: ["not-c", "and-1"],
+          terminals: ["task-card-1.inputInt1", "not-c.out", "and-1.out"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "not-c.in1"),
+            wireKey("not-c.out", "and-1.in1"),
+            wireKey("task-card-1.inputInt1", "and-1.in2"),
+            wireKey("and-1.out", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "יציאה 2 היא הכניסה כאשר הבקרה 1 — כלומר הכניסה וגם הבקרה. פשוט AND בין הכניסה לבקרה.",
+        highlight: {
+          components: ["and-2"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "and-2.out"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "and-2.in1"),
+            wireKey("task-card-1.inputInt1", "and-2.in2"),
+            wireKey("and-2.out", "task-card-1.outputInt2")
+          ]
+        }
+      }
+    ],
     Mux: [
       {
         text: "לפי טבלת האמת יש 4 שורות שבהן הכרטיס צריך להוציא 1 (מסומנות). הרעיון הכללי — השיטה שג'ון לימד: לכל שורה כזאת בונים חלק שמוציא 1 בדיוק במקרה שלה, ובסוף מאחדים את כולם עם OR.",
@@ -3308,9 +3339,10 @@
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.
   function refreshMuxSolutionIfShown() {
-    if (state.solutionDialog?.taskId !== "Mux") return;
+    const taskId = state.solutionDialog?.taskId;
+    if (taskId !== "Mux" && taskId !== "DMux") return;
     const step = Number(state.solutionDialog.step) || 0;
-    const workspace = solutionWorkspaceForTask("Mux", step);
+    const workspace = solutionWorkspaceForTask(taskId, step);
     workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || workspace.sessionReturnChapterId;
     if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
       workspace.sessionReturnPanelIndex = state.workspace.sessionReturnPanelIndex;
@@ -3345,7 +3377,7 @@
     const holder = document.createElement("div");
     holder.setAttribute("aria-hidden", "true");
     holder.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;";
-    ["generic", "compact"].forEach((key) => {
+    ["generic", "compact", "dmux"].forEach((key) => {
       const obj = document.createElement("object");
       obj.type = "image/svg+xml";
       obj.data = `assets/solutions/mux-${key}.svg`;

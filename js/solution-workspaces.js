@@ -429,8 +429,30 @@ function createSolutionWorkspaces({
     return step >= 6 ? muxCompactSolutionFrom() : muxGenericSolutionFrom();
   }
 
+  // DMUX — the simplest solution: out1 = data AND NOT(control); out2 = data AND
+  // control. Control goes on the top input (in1) of each AND, data on the bottom.
+  function dmuxSolutionFrom() {
+    const workspace = standardTaskWorkspace("DMux");
+    workspace.components.push(
+      { id: "not-c", type: "gate-Not", ...muxAt("dmux", "not-c", 400, 120) },
+      { id: "and-1", type: "gate-And", ...muxAt("dmux", "and-1", 560, 188) },
+      { id: "and-2", type: "gate-And", ...muxAt("dmux", "and-2", 560, 388) }
+    );
+    workspace.wires = muxWires("dmux", [
+      ["task-card-1.inputInt2", "not-c.in1"],
+      ["not-c.out", "and-1.in1"],
+      ["task-card-1.inputInt1", "and-1.in2"],
+      ["and-1.out", "task-card-1.outputInt1"],
+      ["task-card-1.inputInt2", "and-2.in1"],
+      ["task-card-1.inputInt1", "and-2.in2"],
+      ["and-2.out", "task-card-1.outputInt2"]
+    ]);
+    return normalizeWorkspace(workspace);
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
+    if (taskId === "DMux") return dmuxSolutionFrom();
     if (taskId === "Not") return notSolutionWorkspaceFrom();
     if (taskId === "And") return andSolutionWorkspaceFrom();
     if (taskId === "Or") return orSolutionWorkspaceFrom(step);
