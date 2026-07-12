@@ -83,7 +83,7 @@ function createWorkbenchModel({
       const comp = componentById(workspace, inputInfo.componentId);
       const isCard = comp?.type === "notCard" || String(comp?.type || "").startsWith("taskCard-");
       const pins = [inputInfo.pinId, outputInfo.pinId];
-      const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.includes("outputInt");
+      const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.some((p) => /^outputInt\d*$/.test(p));
       if (!isPassthrough) return false;
     }
 

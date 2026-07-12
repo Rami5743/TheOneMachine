@@ -132,7 +132,7 @@ function createSolutionWorkspaces({
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
       components: [
-        { id: "source-1", type: "source", x: taskId === "Mux" ? 45 : 80, y: 288 },
+        { id: "source-1", type: "source", x: (taskId === "Mux" || taskId === "DMux") ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
         ...lampComponents(taskId)
       ],
@@ -360,10 +360,12 @@ function createSolutionWorkspaces({
     );
     workspace.wires = muxWires("compact", [
       ["task-card-1.inputInt3", "not-c.in1"],
-      ["task-card-1.inputInt1", "and-1.in1"],
-      ["not-c.out", "and-1.in2"],
-      ["task-card-1.inputInt2", "and-2.in1"],
-      ["task-card-1.inputInt3", "and-2.in2"],
+      // Control signal on the top input (in1) of each AND, data on the bottom
+      // (in2) — matching the SVG layout.
+      ["not-c.out", "and-1.in1"],
+      ["task-card-1.inputInt1", "and-1.in2"],
+      ["task-card-1.inputInt3", "and-2.in1"],
+      ["task-card-1.inputInt2", "and-2.in2"],
       ["and-1.out", "or-1.in1"],
       ["and-2.out", "or-1.in2"],
       ["or-1.out", "task-card-1.outputInt"]

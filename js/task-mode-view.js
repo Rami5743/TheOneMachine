@@ -90,7 +90,8 @@ function createTaskModeView({
   function muxScratchCell(row, column, value) {
     const shown = value === 0 ? "0" : value === 1 ? "1" : "";
     const cls = value === null || value === undefined ? "mux-cell-empty" : "";
-    return `<td class="${column === "out" ? "truth-output-cell" : ""}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
+    const isDivider = column === "out" || column === "out1";
+    return `<td class="${isDivider ? "truth-output-cell" : ""}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
   }
 
   function renderMuxScratchTable() {
@@ -126,6 +127,35 @@ function createTaskModeView({
       </table>`;
   }
 
+  function renderDmuxScratchTable() {
+    const state = getState();
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === 4
+      ? state.muxTable
+      : Array.from({ length: 4 }, () => ({ control: null, data: null, out1: null, out2: null }));
+    const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+    // LTR DOM == visual left-to-right; read right-to-left as בקרה, כניסה, ┃
+    // (divider) יציאה 1, יציאה 2.
+    const rows = table.map((row, index) => `
+      <tr class="${activeRow === index ? "truth-row-active" : ""}">
+        ${muxScratchCell(index, "out2", row.out2)}
+        ${muxScratchCell(index, "out1", row.out1)}
+        ${muxScratchCell(index, "data", row.data)}
+        ${muxScratchCell(index, "control", row.control)}
+      </tr>`).join("");
+    return `
+      <table class="workspace-task-hint-table mux-scratch-table">
+        <thead>
+          <tr>
+            <th>יציאה 2</th>
+            <th class="truth-output-cell">יציאה 1</th>
+            <th>כניסה</th>
+            <th>בקרה</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
   function renderNotTaskHint() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
@@ -153,33 +183,19 @@ function createTaskModeView({
         </section>`;
     }
     if (task.id === "DMux") {
-      // Two output columns (one per output) and four rows. Read right-to-left as
-      // בקרה, כניסה, ┃ (divider), יציאה 1, יציאה 2.
-      const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
-      const dmuxRows = task.rows.map((row, index) => {
-        const control = row.inputs[1] ? 1 : 0;
-        const data = row.inputs[0] ? 1 : 0;
-        const out1 = row.outputs[0] ? 1 : 0;
-        const out2 = row.outputs[1] ? 1 : 0;
+      // An empty, editable truth table (like the MUX): the learner fills it in as
+      // a thinking aid. Two output columns, four rows.
+      if (state.solutionDialog) {
+        if (state.solutionTableHidden) return "";
         return `
-          <tr class="${activeRow === index ? "truth-row-active" : ""}">
-            <td>${out2}</td>
-            <td class="truth-output-cell">${out1}</td>
-            <td>${data}</td>
-            <td>${control}</td>
-          </tr>`;
-      }).join("");
+          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
+            ${renderDmuxScratchTable()}
+          </section>`;
+      }
       return `
         <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
           <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
-          <div class="mux-hint-table">
-            <table class="workspace-task-hint-table mux-scratch-table">
-              <thead>
-                <tr><th>יציאה 2</th><th class="truth-output-cell">יציאה 1</th><th>כניסה</th><th>בקרה</th></tr>
-              </thead>
-              <tbody>${dmuxRows}</tbody>
-            </table>
-          </div>
+          <div class="mux-hint-table">${renderDmuxScratchTable()}</div>
         </section>`;
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;

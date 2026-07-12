@@ -2208,8 +2208,8 @@
           terminals: ["task-card-1.inputInt1", "not-c.out", "and-1.out"],
           wires: [
             wireKey("task-card-1.inputInt3", "not-c.in1"),
-            wireKey("task-card-1.inputInt1", "and-1.in1"),
-            wireKey("not-c.out", "and-1.in2")
+            wireKey("not-c.out", "and-1.in1"),
+            wireKey("task-card-1.inputInt1", "and-1.in2")
           ]
         }
       },
@@ -2220,8 +2220,8 @@
           components: ["and-2"],
           terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "and-2.out"],
           wires: [
-            wireKey("task-card-1.inputInt2", "and-2.in1"),
-            wireKey("task-card-1.inputInt3", "and-2.in2")
+            wireKey("task-card-1.inputInt3", "and-2.in1"),
+            wireKey("task-card-1.inputInt2", "and-2.in2")
           ]
         }
       },
@@ -3227,11 +3227,56 @@
     return null;
   }
 
+  // --- DMUX scratch truth table: 4 rows, columns control/data/out1/out2. Shares
+  // the same state.muxTable storage and cell-cycling as the MUX table.
+  const DMUX_TABLE_COLUMNS = ["control", "data", "out1", "out2"];
+
+  function createEmptyDmuxTable() {
+    return Array.from({ length: 4 }, () => ({ control: null, data: null, out1: null, out2: null }));
+  }
+
+  // A DMUX row (inputs = [data, control]; outputs = [out1, out2]) as shown.
+  function dmuxRowDisplay(row) {
+    return {
+      control: row.inputs[1] ? 1 : 0,
+      data: row.inputs[0] ? 1 : 0,
+      out1: row.outputs[0] ? 1 : 0,
+      out2: row.outputs[1] ? 1 : 0
+    };
+  }
+
+  function dmuxTableWithInputs(withOutputs) {
+    const rows = taskDefById("DMux")?.rows || [];
+    return rows.map((row) => {
+      const d = dmuxRowDisplay(row);
+      return { control: d.control, data: d.data, out1: withOutputs ? d.out1 : null, out2: withOutputs ? d.out2 : null };
+    });
+  }
+
+  function dmuxCheckDisplayTable(rowIndex) {
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === 4
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : createEmptyDmuxTable();
+    const row = taskDefById("DMux")?.rows?.[rowIndex];
+    if (row) snap[rowIndex] = dmuxRowDisplay(row);
+    return snap;
+  }
+
+  // The scratch-table shape for the current task (MUX or DMUX), or null.
+  function scratchTableSpec() {
+    const taskId = state.workspace?.taskId;
+    if (taskId === "Mux") return { columns: MUX_TABLE_COLUMNS, count: 8, empty: createEmptyMuxTable };
+    if (taskId === "DMux") return { columns: DMUX_TABLE_COLUMNS, count: 4, empty: createEmptyDmuxTable };
+    return null;
+  }
+
   function handleMuxTruthCell(rowIndex, column) {
-    if (state.workspace?.taskId !== "Mux") return;
-    if (!MUX_TABLE_COLUMNS.includes(column)) return;
-    if (!Number.isInteger(rowIndex) || rowIndex < 0 || rowIndex > 7) return;
-    const table = currentMuxTable().map((row) => ({ ...row }));
+    const spec = scratchTableSpec();
+    if (!spec) return;
+    if (!spec.columns.includes(column)) return;
+    if (!Number.isInteger(rowIndex) || rowIndex < 0 || rowIndex >= spec.count) return;
+    const current = Array.isArray(state.muxTable) && state.muxTable.length === spec.count ? state.muxTable : spec.empty();
+    const table = current.map((row) => ({ ...row }));
     table[rowIndex][column] = cycleMuxCell(table[rowIndex][column]);
     setState({ muxTable: table }, false);
   }
@@ -3333,7 +3378,8 @@
       workspace,
       notTest: { active: true, taskId: task.id, rowIndex },
       // For MUX, temporarily fill the row under test in the scratch table.
-      ...(task.id === "Mux" ? { muxTable: muxCheckDisplayTable(rowIndex) } : {})
+      ...(task.id === "Mux" ? { muxTable: muxCheckDisplayTable(rowIndex) } : {}),
+      ...(task.id === "DMux" ? { muxTable: dmuxCheckDisplayTable(rowIndex) } : {})
     }, false);
 
     notTestTimer = window.setTimeout(() => {
@@ -3413,7 +3459,7 @@
       notTest: null,
       // Show the full, correct truth table during the MUX walkthrough so the
       // highlighted rows are meaningful.
-      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : null,
+      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : null,
       solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0 },
       workspace
     }, false);
@@ -3540,7 +3586,7 @@
   }
 
   function baseTaskHintComponents(taskId, workspace) {
-    const source = componentById(workspace, "source-1") || { id: "source-1", type: "source", x: taskId === "Mux" ? 45 : 80, y: 288 };
+    const source = componentById(workspace, "source-1") || { id: "source-1", type: "source", x: (taskId === "Mux" || taskId === "DMux") ? 45 : 80, y: 288 };
     const card = componentById(workspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 500, y: 288 };
     const lamp = componentById(workspace, "lamp-1") || { id: "lamp-1", type: "lamp", x: 910, y: 258 };
     return [clonePlain(source), clonePlain(card), clonePlain(lamp)];
@@ -3568,6 +3614,15 @@
       const patch = {
         hintDialog: null,
         muxTable: muxTableWithInputs(hint.action === "mux-fill-outputs")
+      };
+      if (hintStateOverride) patch.hintState = hintStateOverride;
+      return setState(patch, false);
+    }
+
+    if (taskId === "DMux" && (hint.action === "dmux-fill-inputs" || hint.action === "dmux-fill-outputs")) {
+      const patch = {
+        hintDialog: null,
+        muxTable: dmuxTableWithInputs(hint.action === "dmux-fill-outputs")
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
@@ -3839,7 +3894,7 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "source-1", type: "source", x: task.id === "Mux" ? 45 : 80, y: 288 },
+        { id: "source-1", type: "source", x: (task.id === "Mux" || task.id === "DMux") ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
         ...taskLampComponents(task.id)
       ],
@@ -3868,7 +3923,7 @@
       started: true,
       dialog: null,
       taskDialog: null,
-      muxTable: taskId === "Mux" ? createEmptyMuxTable() : null,
+      muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
     }, false);
   }
