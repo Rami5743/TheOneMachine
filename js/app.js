@@ -2109,9 +2109,9 @@
           wires: [
             wireKey("task-card-1.inputInt2", "not-in2.in1"),
             wireKey("task-card-1.inputInt3", "not-c.in1"),
-            wireKey("task-card-1.inputInt1", "and-m1.in1"),
-            wireKey("not-in2.out", "and-m1.in2"),
-            wireKey("not-c.out", "and-m1.in3")
+            wireKey("not-c.out", "and-m1.in1"),
+            wireKey("task-card-1.inputInt1", "and-m1.in2"),
+            wireKey("not-in2.out", "and-m1.in3")
           ]
         }
       },
@@ -2122,9 +2122,9 @@
           components: ["and-m2"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "not-c.out", "and-m2.out"],
           wires: [
-            wireKey("task-card-1.inputInt1", "and-m2.in1"),
-            wireKey("task-card-1.inputInt2", "and-m2.in2"),
-            wireKey("not-c.out", "and-m2.in3")
+            wireKey("not-c.out", "and-m2.in1"),
+            wireKey("task-card-1.inputInt1", "and-m2.in2"),
+            wireKey("task-card-1.inputInt2", "and-m2.in3")
           ]
         }
       },
@@ -2136,9 +2136,9 @@
           terminals: ["not-in1.out", "task-card-1.inputInt2", "task-card-1.inputInt3", "and-m3.out"],
           wires: [
             wireKey("task-card-1.inputInt1", "not-in1.in1"),
-            wireKey("not-in1.out", "and-m3.in1"),
-            wireKey("task-card-1.inputInt2", "and-m3.in2"),
-            wireKey("task-card-1.inputInt3", "and-m3.in3")
+            wireKey("task-card-1.inputInt3", "and-m3.in1"),
+            wireKey("not-in1.out", "and-m3.in2"),
+            wireKey("task-card-1.inputInt2", "and-m3.in3")
           ]
         }
       },
@@ -2149,9 +2149,9 @@
           components: ["and-m4"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "and-m4.out"],
           wires: [
-            wireKey("task-card-1.inputInt1", "and-m4.in1"),
-            wireKey("task-card-1.inputInt2", "and-m4.in2"),
-            wireKey("task-card-1.inputInt3", "and-m4.in3")
+            wireKey("task-card-1.inputInt3", "and-m4.in1"),
+            wireKey("task-card-1.inputInt1", "and-m4.in2"),
+            wireKey("task-card-1.inputInt2", "and-m4.in3")
           ]
         }
       },

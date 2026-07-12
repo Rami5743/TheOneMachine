@@ -383,18 +383,21 @@ function createSolutionWorkspaces({
       ["task-card-1.inputInt2", "not-in2.in1"],
       ["task-card-1.inputInt1", "not-in1.in1"],
       ["task-card-1.inputInt3", "not-c.in1"],
-      ["task-card-1.inputInt1", "and-m1.in1"],
-      ["not-in2.out", "and-m1.in2"],
-      ["not-c.out", "and-m1.in3"],
-      ["task-card-1.inputInt1", "and-m2.in1"],
-      ["task-card-1.inputInt2", "and-m2.in2"],
-      ["not-c.out", "and-m2.in3"],
-      ["not-in1.out", "and-m3.in1"],
-      ["task-card-1.inputInt2", "and-m3.in2"],
-      ["task-card-1.inputInt3", "and-m3.in3"],
-      ["task-card-1.inputInt1", "and-m4.in1"],
-      ["task-card-1.inputInt2", "and-m4.in2"],
-      ["task-card-1.inputInt3", "and-m4.in3"],
+      // Each AND takes its inputs in a fixed vertical order matching the SVG:
+      // the control signal on top (in1), input-1 in the middle (in2), input-2 at
+      // the bottom (in3). AND is commutative, so this is the same circuit.
+      ["not-c.out", "and-m1.in1"],
+      ["task-card-1.inputInt1", "and-m1.in2"],
+      ["not-in2.out", "and-m1.in3"],
+      ["not-c.out", "and-m2.in1"],
+      ["task-card-1.inputInt1", "and-m2.in2"],
+      ["task-card-1.inputInt2", "and-m2.in3"],
+      ["task-card-1.inputInt3", "and-m3.in1"],
+      ["not-in1.out", "and-m3.in2"],
+      ["task-card-1.inputInt2", "and-m3.in3"],
+      ["task-card-1.inputInt3", "and-m4.in1"],
+      ["task-card-1.inputInt1", "and-m4.in2"],
+      ["task-card-1.inputInt2", "and-m4.in3"],
       ...andToOr,
       ["or-final.out", "task-card-1.outputInt"]
     ]);

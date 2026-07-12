@@ -38,7 +38,17 @@ function createBoardRender({
           ${shape("wire-hit-line")}
         </g>`;
 
-      // Every wire is a straight line between its two terminals.
+      // A wire reaching a pin ABOVE the card frame (only the MUX control's
+      // external pin, which sits over the top edge) is routed up-and-over so it
+      // does not cross the card. The control's INTERNAL pin sits just inside the
+      // frame (below the top edge), so its wires to the gates stay straight, as
+      // does every other wire.
+      const top = a.y < 60 ? a : (b.y < 60 ? b : null);
+      if (top) {
+        const other = top === a ? b : a;
+        const d = `M ${other.x} ${other.y} L ${other.x} ${top.y} L ${top.x} ${top.y}`;
+        return wrap((cls) => `<path class="${cls}" d="${d}" fill="none" />`);
+      }
       return wrap((cls) => `<line class="${cls}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" />`);
     }).join("");
   }
