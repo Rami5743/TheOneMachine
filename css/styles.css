@@ -1423,6 +1423,18 @@ button { font: inherit; }
   width: auto;
 }
 
+/* Columns are ordered in the DOM as they should appear left-to-right
+   (יציאה, כניסה 2, כניסה 1, בקרה); pin the direction so that never flips. */
+.mux-scratch-table {
+  direction: ltr;
+}
+
+/* Thick divider between the output column (leftmost) and the inputs. */
+.mux-scratch-table th.truth-output-cell,
+.mux-scratch-table td.truth-output-cell {
+  border-right: 4px solid #1e1b16;
+}
+
 .mux-scratch-table tr.truth-row-active .mux-truth-cell {
   background: #ffe08a;
   color: #111;

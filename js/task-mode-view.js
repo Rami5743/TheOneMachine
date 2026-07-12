@@ -82,23 +82,26 @@ function createTaskModeView({
       : Array.from({ length: 8 }, () => ({ control: null, in1: null, in2: null, out: null }));
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionRows = solutionHighlightConfig().truthRows;
-    // Columns run right-to-left (RTL): בקרה, כניסה 1, כניסה 2, then יציאה at the
-    // far (left) end. First DOM cell = rightmost column.
+    // The table is rendered LTR (direction:ltr, set in CSS for determinism), so
+    // DOM order == visual left-to-right. The learner should read it right-to-left
+    // as בקרה, כניסה 1, כניסה 2, ┃ (thick divider) יציאה — so left-to-right the
+    // DOM is יציאה, כניסה 2, כניסה 1, בקרה, with the divider between יציאה and the
+    // inputs (a thick right-border on the output column, added in CSS).
     const rows = table.map((row, index) => `
       <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionRows.has(index) ? "truth-row-solution-highlight" : ""}">
-        ${muxScratchCell(index, "control", row.control)}
-        ${muxScratchCell(index, "in1", row.in1)}
-        ${muxScratchCell(index, "in2", row.in2)}
         ${muxScratchCell(index, "out", row.out)}
+        ${muxScratchCell(index, "in2", row.in2)}
+        ${muxScratchCell(index, "in1", row.in1)}
+        ${muxScratchCell(index, "control", row.control)}
       </tr>`).join("");
     return `
       <table class="workspace-task-hint-table mux-scratch-table">
         <thead>
           <tr>
-            <th>בקרה</th>
-            <th>כניסה 1</th>
-            <th>כניסה 2</th>
             <th class="truth-output-cell">יציאה</th>
+            <th>כניסה 2</th>
+            <th>כניסה 1</th>
+            <th>בקרה</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
