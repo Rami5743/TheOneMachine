@@ -2614,7 +2614,7 @@
           <h2>משימות</h2>
           <ol class="note-task-list">
             ${taskDefs.map((task, index) => {
-              const completed = routingNoteDialogActive() ? false : taskCompleted(task.id);
+              const completed = taskCompleted(task.id);
               const locked = routingNoteDialogActive() ? false : !taskUnlocked(task.id);
               return `
                 <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
