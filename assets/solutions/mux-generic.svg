@@ -1,77 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 600" width="1000" height="600">
   <!--
-    Editable MUX GENERIC-solution layout (the truth-table / minterm solution).
+    Editable MUX GENERIC (truth-table / minterm) solution.
 
-    To move a gate: drag its labelled rectangle below (in Inkscape or any SVG
-    editor). The CENTRE of each rectangle is used as that gate's position on the
-    workbench (workbench coordinates: x 0..1000, y 0..600; the card frame is the
-    faint rectangle). Keep each rect's data-id unchanged — it must match the
-    component ids in js/solution-workspaces.js (muxGenericSolutionFrom).
-
-    The tiny <script> at the bottom reads these rects and posts their centres to
-    the app. It runs because the app embeds this file as an <object>, so it works
-    even when the courseware is opened directly from disk (file://) — the same
-    trick the panel hotspots use. Do not remove the script.
+    This file is a WYSIWYG preview of how the solution looks on the workbench:
+    real gate graphics at the workbench size, the card frame, and the wires.
+    To reposition a gate, move its group (the gate image + its small red centre
+    dot) together. The RED DOT's centre is the gate position that the app uses;
+    keep each dot's data-id unchanged (it matches muxGenericSolutionFrom in
+    js/solution-workspaces.js). The wires are drawn by the <script> from the dot
+    positions, so they follow the gates automatically (visible in a browser; in
+    an editor without scripting only the gates and dots show). Do not remove the
+    <script>: it also posts the positions to the app (the same <object>+
+    postMessage trick the panel hotspots use, so it works from file:// too).
   -->
-  <style>
-    .mux-frame { fill: none; stroke: #b7a98f; stroke-width: 2; stroke-dasharray: 6 6; }
-    .mux-comp  { fill: rgba(120,150,200,0.18); stroke: #4a6; stroke-width: 1.5; }
-    .mux-lbl   { font: 13px sans-serif; fill: #333; text-anchor: middle; dominant-baseline: middle; }
-  </style>
-
-  <rect class="mux-frame" x="150" y="60" width="700" height="456" rx="18" />
-
+  <rect x="0" y="0" width="1000" height="600" fill="#8a6f45"/>
+  <!-- MUX card frame (matches the workbench; not editable) -->
   <g>
-    <rect class="mux-comp" data-mux-comp="1" data-id="not-c"    data-type="gate-Not"     x="345" y="152" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="not-in1"  data-type="gate-Not"     x="295" y="227" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="not-in2"  data-type="gate-Not"     x="295" y="327" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="and-m1"   data-type="gate-AND3way" x="490" y="157" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="and-m2"   data-type="gate-AND3way" x="490" y="252" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="and-m3"   data-type="gate-AND3way" x="490" y="352" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="and-m4"   data-type="gate-AND3way" x="490" y="447" width="70" height="46" rx="6"/>
-    <rect class="mux-comp" data-mux-comp="1" data-id="or-final" data-type="gate-OR4way"  x="645" y="277" width="70" height="46" rx="6"/>
+    <rect x="150" y="60" width="700" height="456" rx="18" fill="rgba(248,239,220,0.06)" stroke="rgba(245,235,215,0.92)" stroke-width="3"/>
+    <text x="500" y="48" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="28" font-weight="800">MUX</text>
+    <g stroke="#111" stroke-width="5" stroke-linecap="round">
+      <line x1="150" y1="188" x2="230" y2="188"/>
+      <line x1="150" y1="388" x2="230" y2="388"/>
+      <line x1="300" y1="40" x2="300" y2="150"/>
+      <line x1="770" y1="288" x2="850" y2="288"/>
+    </g>
+    <g fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800">
+      <text x="134" y="194" text-anchor="end">1</text>
+      <text x="134" y="394" text-anchor="end">2</text>
+      <text x="300" y="28" text-anchor="middle">בקרה</text>
+    </g>
+    <image href="../components/source.svg" x="44" y="238" width="92" height="100"/>
+    <image href="../components/lamp-off.svg" x="855" y="158" width="110" height="140"/>
   </g>
-  <g aria-hidden="true">
-    <text class="mux-lbl" x="380" y="175">not-c</text>
-    <text class="mux-lbl" x="330" y="250">not-in1</text>
-    <text class="mux-lbl" x="330" y="350">not-in2</text>
-    <text class="mux-lbl" x="525" y="180">and-m1</text>
-    <text class="mux-lbl" x="525" y="275">and-m2</text>
-    <text class="mux-lbl" x="525" y="375">and-m3</text>
-    <text class="mux-lbl" x="525" y="470">and-m4</text>
-    <text class="mux-lbl" x="680" y="300">or-final</text>
+  <g id="mux-wires"></g>
+  <g id="mux-gates">
+    <g class="mux-node">
+      <image href="../components/gate-not.svg" x="340.4" y="143.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="376" y="171" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-not.svg" x="290.4" y="218.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="not-in1" data-type="gate-Not" x="326" y="246" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-not.svg" x="290.4" y="318.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="not-in2" data-type="gate-Not" x="326" y="346" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-and3way.svg" x="485.4" y="148.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="and-m1" data-type="gate-AND3way" x="521" y="176" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-and3way.svg" x="485.4" y="243.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="and-m2" data-type="gate-AND3way" x="521" y="271" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-and3way.svg" x="485.4" y="343.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="and-m3" data-type="gate-AND3way" x="521" y="371" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-and3way.svg" x="485.4" y="438.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="and-m4" data-type="gate-AND3way" x="521" y="466" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
+    <g class="mux-node">
+      <image href="../components/gate-or4way.svg" x="640.4" y="268.8" width="92.4" height="62.4"/>
+      <rect data-mux-comp="1" data-id="or-final" data-type="gate-OR4way" x="676" y="296" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+    </g>
   </g>
-
   <script type="text/javascript"><![CDATA[
   (function () {
     var KEY = "generic";
-    function collect() {
-      var svg = document.querySelector("svg") || document.documentElement;
-      var rootM = null; try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
-      var rects = document.querySelectorAll("[data-mux-comp]");
-      var out = [];
-      for (var i = 0; i < rects.length; i++) {
-        var r = rects[i], bb;
-        try { bb = r.getBBox(); } catch (e) { continue; }
-        var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
-        var m = null; try { if (rootM) m = rootM.inverse().multiply(r.getScreenCTM()); } catch (e) { m = null; }
-        if (m) { var x = m.a * cx + m.c * cy + m.e, y = m.b * cx + m.d * cy + m.f; cx = x; cy = y; }
-        var id = r.getAttribute("data-id"); if (!id) continue;
-        out.push({ id: id, x: cx, y: cy });
+    var SCALE = 0.6;
+    var GATE_PINS = {"gate-Not":{"in1":[-60,0],"out":[80,0]},"gate-And":{"in1":[-62,-23],"in2":[-62,23],"out":[66,0]},"gate-Or":{"in1":[-58,-23],"in2":[-58,23],"out":[80,0]},"gate-AND3way":{"in1":[-62,-27],"in2":[-62,0],"in3":[-62,27],"out":[66,0]},"gate-OR4way":{"in1":[-60.326107,-30],"in2":[-59.462559,-9.9898129],"in3":[-59.919762,10.020376],"in4":[-60.369907,30],"out":[80,0]}};
+    var CARD = {"inputInt1":[230,188],"inputInt2":[230,388],"inputInt3":[300,150],"outputInt":[770,288]};
+    var TYPES = {"not-c":"gate-Not","not-in1":"gate-Not","not-in2":"gate-Not","and-m1":"gate-AND3way","and-m2":"gate-AND3way","and-m3":"gate-AND3way","and-m4":"gate-AND3way","or-final":"gate-OR4way"};
+    var CONN = [["task-card-1.inputInt2","not-in2.in1"],["task-card-1.inputInt1","not-in1.in1"],["task-card-1.inputInt3","not-c.in1"],["task-card-1.inputInt1","and-m1.in1"],["not-in2.out","and-m1.in2"],["not-c.out","and-m1.in3"],["task-card-1.inputInt1","and-m2.in1"],["task-card-1.inputInt2","and-m2.in2"],["not-c.out","and-m2.in3"],["not-in1.out","and-m3.in1"],["task-card-1.inputInt2","and-m3.in2"],["task-card-1.inputInt3","and-m3.in3"],["task-card-1.inputInt1","and-m4.in1"],["task-card-1.inputInt2","and-m4.in2"],["task-card-1.inputInt3","and-m4.in3"],["and-m1.out","or-final.in1"],["and-m2.out","or-final.in2"],["and-m3.out","or-final.in3"],["and-m4.out","or-final.in4"],["or-final.out","task-card-1.outputInt"]];
+    var NS = "http://www.w3.org/2000/svg";
+    function rootCTM() { var s = document.querySelector("svg"); try { return s.getScreenCTM(); } catch (e) { return null; } }
+    function center(id) {
+      var r = document.querySelector('[data-mux-comp][data-id="' + id + '"]');
+      if (!r) return null;
+      var bb; try { bb = r.getBBox(); } catch (e) { return null; }
+      var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+      var root = rootCTM(), m = null;
+      try { if (root) m = root.inverse().multiply(r.getScreenCTM()); } catch (e) { m = null; }
+      if (m) return [m.a * cx + m.c * cy + m.e, m.b * cx + m.d * cy + m.f];
+      return [cx, cy];
+    }
+    function pin(ref) {
+      var i = ref.indexOf("."), comp = ref.slice(0, i), p = ref.slice(i + 1);
+      if (comp === "task-card-1") return CARD[p] ? CARD[p].slice() : null;
+      var c = center(comp); if (!c) return null;
+      var off = GATE_PINS[TYPES[comp]] && GATE_PINS[TYPES[comp]][p]; if (!off) return null;
+      return [c[0] + off[0] * SCALE, c[1] + off[1] * SCALE];
+    }
+    function drawWires() {
+      var g = document.getElementById("mux-wires"); if (!g) return;
+      while (g.firstChild) g.removeChild(g.firstChild);
+      for (var i = 0; i < CONN.length; i++) {
+        var a = pin(CONN[i][0]), b = pin(CONN[i][1]); if (!a || !b) continue;
+        var ln = document.createElementNS(NS, "line");
+        ln.setAttribute("x1", a[0]); ln.setAttribute("y1", a[1]);
+        ln.setAttribute("x2", b[0]); ln.setAttribute("y2", b[1]);
+        ln.setAttribute("stroke", "#101010"); ln.setAttribute("stroke-width", "5"); ln.setAttribute("stroke-linecap", "round");
+        g.appendChild(ln);
       }
+    }
+    function collect() {
+      var out = [];
+      for (var id in TYPES) { var c = center(id); if (c) out.push({ id: id, x: c[0], y: c[1] }); }
       return { key: KEY, components: out };
     }
-    function send() {
-      try {
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ __muxSolutionLayout: true, payload: collect() }, "*");
-        }
-      } catch (e) {}
-    }
-    function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
-    if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); } else { boot(); }
-    window.addEventListener("load", send);
+    function send() { try { if (window.parent && window.parent !== window) window.parent.postMessage({ __muxSolutionLayout: true, payload: collect() }, "*"); } catch (e) {} }
+    function tick() { drawWires(); send(); }
+    function boot() { tick(); setTimeout(tick, 120); setTimeout(tick, 500); }
+    if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", boot); else boot();
+    window.addEventListener("load", tick);
   })();
   ]]></script>
 </svg>
