@@ -1,112 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 600" width="1000" height="600">
   <!--
-    Editable MUX COMPACT solution — a WYSIWYG preview of how it looks on
-    the workbench: real gate graphics at the workbench size, the card frame, and
-    the wires. To reposition a gate, move its group (the gate image + its small
-    red centre dot) together. The RED DOT's centre is the gate position the app
-    uses; keep each dot's data-id unchanged. The wires in <g id="mux-wires"> are
-    baked in statically (so they show in a plain, non-scripting viewer too) AND
-    recomputed by the <script> from the dot positions when opened in a browser,
-    so after you drag a gate they follow it. The script also posts the positions
-    to the app (the same <object>+postMessage trick the panel hotspots use).
+    Editable MUX COMPACT solution — the SINGLE SOURCE OF TRUTH for how
+    this solution looks and wires up on the workbench. Edit it in Inkscape:
+
+      * GATES: move a gate group (the image + its red centre dot) together. The
+        RED DOT's centre is the position the app uses; keep its data-id.
+      * WIRES: each <polyline data-mux-wire> is one wire. Move its end nodes (or
+        add nodes in between for routing) freely. The app reads only the two END
+        nodes of each wire and snaps them to the NEAREST pin, so a wire that ends
+        near a pin still connects to it. The blue dots (data-mux-pin) mark every
+        pin end as a snap target.
+      * The app rebuilds BOTH the gate positions AND the wiring (netlist) from
+        this file via <object>+postMessage, so your edits here drive the app.
+        (Straight/​bent routing is only cosmetic in the editor; the app draws its
+        own straight pin-to-pin wires from the derived netlist.)
   -->
-  <rect x="0" y="0" width="1000" height="600" fill="#8a6f45"/>
-  <!-- MUX card frame (matches the workbench; not editable) -->
-  <g>
-    <rect x="150" y="60" width="700" height="456" rx="18" fill="rgba(248,239,220,0.06)" stroke="rgba(245,235,215,0.92)" stroke-width="3"/>
-    <text x="500" y="48" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="28" font-weight="800">MUX</text>
-    <g stroke="#111" stroke-width="5" stroke-linecap="round">
-      <line x1="125" y1="188" x2="200" y2="188"/>
-      <line x1="125" y1="388" x2="200" y2="388"/>
-      <line x1="300" y1="40" x2="300" y2="150"/>
-      <line x1="800" y1="288" x2="875" y2="288"/>
-    </g>
-    <g fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800">
-      <text x="108" y="194" text-anchor="end">1</text>
-      <text x="108" y="394" text-anchor="end">2</text>
-      <text x="300" y="28" text-anchor="middle">בקרה</text>
-    </g>
-    <image href="../components/source.svg" x="44" y="238" width="92" height="100"/>
-    <image href="../components/lamp-off.svg" x="855" y="158" width="110" height="140"/>
+  <rect x="0" y="0" width="1000" height="600" fill="#8a6f45" id="board-bg"/>
+  <!-- MUX card frame (solid, matches the workbench) -->
+  <rect x="150" y="60" width="700" height="456" rx="18" fill="#8a6f45" fill-opacity="1" stroke="rgba(245,235,215,0.92)" stroke-width="3" id="card-frame"/>
+  <text x="500" y="48" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="28" font-weight="800">MUX</text>
+  <g stroke="#111" stroke-width="5" stroke-linecap="round" id="card-pin-stubs">
+    <line x1="125" y1="188" x2="175" y2="188"/>
+    <line x1="125" y1="388" x2="175" y2="388"/>
+    <line x1="300" y1="40" x2="300" y2="80"/>
+    <line x1="800" y1="288" x2="875" y2="288"/>
   </g>
+  <g fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800" id="card-labels">
+    <text x="108" y="194" text-anchor="end">1</text>
+    <text x="108" y="394" text-anchor="end">2</text>
+    <text x="300" y="28" text-anchor="middle">בקרה</text>
+  </g>
+  <image href="../components/source.svg" x="44" y="238" width="92" height="100" id="source-img"/>
+  <image href="../components/lamp-off.svg" x="855" y="158" width="110" height="140" id="lamp-img"/>
   <g id="mux-wires">
-    <line x1="300" y1="150" x2="344" y2="175" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="200" y1="188" x2="462.8" y2="226.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="428" y1="175" x2="462.8" y2="253.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="200" y1="388" x2="462.8" y2="396.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="300" y1="150" x2="462.8" y2="423.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="539.6" y1="240" x2="625.2" y2="306.2" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="539.6" y1="410" x2="625.2" y2="333.8" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
-    <line x1="708" y1="320" x2="800" y2="288" stroke="#101010" stroke-width="5" stroke-linecap="round"/>
+    <polyline data-mux-wire="1" points="300,80 344,175" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire1"/>
+    <polyline data-mux-wire="1" points="175,188 462.8,226.2" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire2"/>
+    <polyline data-mux-wire="1" points="428,175 462.8,253.8" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire3"/>
+    <polyline data-mux-wire="1" points="175,388 462.8,396.2" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire4"/>
+    <polyline data-mux-wire="1" points="300,80 462.8,423.8" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire5"/>
+    <polyline data-mux-wire="1" points="539.6,240 625.2,306.2" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire6"/>
+    <polyline data-mux-wire="1" points="539.6,410 625.2,333.8" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire7"/>
+    <polyline data-mux-wire="1" points="708,320 800,288" fill="none" stroke="#101010" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="wire8"/>
   </g>
   <g id="mux-gates">
-    <g class="mux-node">
+    <g class="mux-gate" data-gate-id="not-c">
       <image href="../components/gate-not.svg" x="333.8" y="143.8" width="92.4" height="62.4"/>
-      <rect data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="376" y="171" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+      <rect data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="376" y="171" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+      <circle data-mux-pin="not-c.in1" cx="344" cy="175" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="not-c.out" cx="428" cy="175" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
     </g>
-    <g class="mux-node">
+    <g class="mux-gate" data-gate-id="and-1">
       <image href="../components/gate-and.svg" x="453.8" y="208.8" width="92.4" height="62.4"/>
-      <rect data-mux-comp="1" data-id="and-1" data-type="gate-And" x="496" y="236" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+      <rect data-mux-comp="1" data-id="and-1" data-type="gate-And" x="496" y="236" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-1.in1" cx="462.8" cy="226.2" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-1.in2" cx="462.8" cy="253.8" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-1.out" cx="539.6" cy="240" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
     </g>
-    <g class="mux-node">
+    <g class="mux-gate" data-gate-id="and-2">
       <image href="../components/gate-and.svg" x="453.8" y="378.8" width="92.4" height="62.4"/>
-      <rect data-mux-comp="1" data-id="and-2" data-type="gate-And" x="496" y="406" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+      <rect data-mux-comp="1" data-id="and-2" data-type="gate-And" x="496" y="406" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-2.in1" cx="462.8" cy="396.2" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-2.in2" cx="462.8" cy="423.8" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="and-2.out" cx="539.6" cy="410" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
     </g>
-    <g class="mux-node">
+    <g class="mux-gate" data-gate-id="or-1">
       <image href="../components/gate-or.svg" x="613.8" y="288.8" width="92.4" height="62.4"/>
-      <rect data-mux-comp="1" data-id="or-1" data-type="gate-Or" x="656" y="316" width="8" height="8" fill="#e0392b" opacity="0.55"/>
+      <rect data-mux-comp="1" data-id="or-1" data-type="gate-Or" x="656" y="316" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+      <circle data-mux-pin="or-1.in1" cx="625.2" cy="306.2" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="or-1.in2" cx="625.2" cy="333.8" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+      <circle data-mux-pin="or-1.out" cx="708" cy="320" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
     </g>
+  </g>
+  <g id="mux-pins">
+    <circle data-mux-pin="task-card-1.inputInt1" cx="175" cy="188" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+    <circle data-mux-pin="task-card-1.inputInt2" cx="175" cy="388" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+    <circle data-mux-pin="task-card-1.inputInt3" cx="300" cy="80" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
+    <circle data-mux-pin="task-card-1.outputInt" cx="800" cy="288" r="4" fill="#2b7fe0" fill-opacity="0.55"/>
   </g>
   <script type="text/javascript"><![CDATA[
   (function () {
     var KEY = "compact";
     var SCALE = 0.6;
     var GATE_PINS = {"gate-Not":{"in1":[-60,0],"out":[80,0]},"gate-And":{"in1":[-62,-23],"in2":[-62,23],"out":[66,0]},"gate-Or":{"in1":[-58,-23],"in2":[-58,23],"out":[80,0]},"gate-AND3way":{"in1":[-62,-27],"in2":[-62,0],"in3":[-62,27],"out":[66,0]},"gate-OR4way":{"in1":[-60.326107,-30],"in2":[-59.462559,-9.9898129],"in3":[-59.919762,10.020376],"in4":[-60.369907,30],"out":[80,0]}};
-    var CARD = {"inputInt1":[200,188],"inputInt2":[200,388],"inputInt3":[300,150],"outputInt":[800,288]};
+    var CARD = {"inputInt1":[175,188],"inputInt2":[175,388],"inputInt3":[300,80],"outputInt":[800,288]};
     var TYPES = {"not-c":"gate-Not","and-1":"gate-And","and-2":"gate-And","or-1":"gate-Or"};
-    var CONN = [["task-card-1.inputInt3","not-c.in1"],["task-card-1.inputInt1","and-1.in1"],["not-c.out","and-1.in2"],["task-card-1.inputInt2","and-2.in1"],["task-card-1.inputInt3","and-2.in2"],["and-1.out","or-1.in1"],["and-2.out","or-1.in2"],["or-1.out","task-card-1.outputInt"]];
     var NS = "http://www.w3.org/2000/svg";
-    function rootCTM() { var s = document.querySelector("svg"); try { return s.getScreenCTM(); } catch (e) { return null; } }
-    function center(id) {
+    function svg() { return document.querySelector("svg"); }
+    function rootInv() { var s = svg(); try { return s.getScreenCTM().inverse(); } catch (e) { return null; } }
+    // element-local (x,y) -> root svg coords (handles Inkscape transforms)
+    function toRoot(x, y, el) {
+      var s = svg(); var pt = s.createSVGPoint(); pt.x = x; pt.y = y;
+      var m; try { m = el.getScreenCTM(); } catch (e) { m = null; }
+      if (!m) return [x, y];
+      var p = pt.matrixTransform(m); var r = rootInv();
+      if (r) p = p.matrixTransform(r);
+      return [p.x, p.y];
+    }
+    function dotCenter(id) {
       var r = document.querySelector('[data-mux-comp][data-id="' + id + '"]');
       if (!r) return null;
       var bb; try { bb = r.getBBox(); } catch (e) { return null; }
-      var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
-      var root = rootCTM(), m = null;
-      try { if (root) m = root.inverse().multiply(r.getScreenCTM()); } catch (e) { m = null; }
-      if (m) return [m.a * cx + m.c * cy + m.e, m.b * cx + m.d * cy + m.f];
-      return [cx, cy];
+      return toRoot(bb.x + bb.width / 2, bb.y + bb.height / 2, r);
     }
-    function pin(ref) {
-      var i = ref.indexOf("."), comp = ref.slice(0, i), p = ref.slice(i + 1);
-      if (comp === "task-card-1") return CARD[p] ? CARD[p].slice() : null;
-      var c = center(comp); if (!c) return null;
-      var off = GATE_PINS[TYPES[comp]] && GATE_PINS[TYPES[comp]][p]; if (!off) return null;
-      return [c[0] + off[0] * SCALE, c[1] + off[1] * SCALE];
-    }
-    function drawWires() {
-      var g = document.getElementById("mux-wires"); if (!g) return;
-      while (g.firstChild) g.removeChild(g.firstChild);
-      for (var i = 0; i < CONN.length; i++) {
-        var a = pin(CONN[i][0]), b = pin(CONN[i][1]); if (!a || !b) continue;
-        var ln = document.createElementNS(NS, "line");
-        ln.setAttribute("x1", a[0]); ln.setAttribute("y1", a[1]);
-        ln.setAttribute("x2", b[0]); ln.setAttribute("y2", b[1]);
-        ln.setAttribute("stroke", "#101010"); ln.setAttribute("stroke-width", "5"); ln.setAttribute("stroke-linecap", "round");
-        g.appendChild(ln);
+    // every pin's current position (from the gate dots + the fixed card pins)
+    function pinTargets() {
+      var out = [];
+      for (var id in TYPES) {
+        var c = dotCenter(id); if (!c) continue;
+        var pins = GATE_PINS[TYPES[id]] || {};
+        for (var p in pins) out.push({ ref: id + "." + p, x: c[0] + pins[p][0] * SCALE, y: c[1] + pins[p][1] * SCALE });
       }
+      for (var cp in CARD) out.push({ ref: "task-card-1." + cp, x: CARD[cp][0], y: CARD[cp][1] });
+      return out;
+    }
+    function nearest(x, y, targets) {
+      var best = null, bd = Infinity;
+      for (var i = 0; i < targets.length; i++) {
+        var dx = targets[i].x - x, dy = targets[i].y - y, d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = targets[i]; }
+      }
+      return best;
+    }
+    // the two END points of a wire element, in root coords
+    function endpoints(w) {
+      var tag = w.tagName.toLowerCase();
+      if (tag === "polyline" || tag === "polygon") {
+        var pts = w.points; if (!pts || !pts.numberOfItems) return null;
+        var a = pts.getItem(0), b = pts.getItem(pts.numberOfItems - 1);
+        return [toRoot(a.x, a.y, w), toRoot(b.x, b.y, w)];
+      }
+      if (tag === "line") return [toRoot(+w.getAttribute("x1"), +w.getAttribute("y1"), w), toRoot(+w.getAttribute("x2"), +w.getAttribute("y2"), w)];
+      if (tag === "path") { var L = w.getTotalLength(); var a = w.getPointAtLength(0), b = w.getPointAtLength(L); return [toRoot(a.x, a.y, w), toRoot(b.x, b.y, w)]; }
+      return null;
+    }
+    function deriveConnections() {
+      var targets = pinTargets(); var conns = [];
+      var wires = document.querySelectorAll("[data-mux-wire]");
+      for (var i = 0; i < wires.length; i++) {
+        var e = endpoints(wires[i]); if (!e) continue;
+        var a = nearest(e[0][0], e[0][1], targets), b = nearest(e[1][0], e[1][1], targets);
+        if (a && b && a.ref !== b.ref) conns.push([a.ref, b.ref]);
+      }
+      return conns;
     }
     function collect() {
-      var out = [];
-      for (var id in TYPES) { var c = center(id); if (c) out.push({ id: id, x: c[0], y: c[1] }); }
-      return { key: KEY, components: out };
+      var comps = [];
+      for (var id in TYPES) { var c = dotCenter(id); if (c) comps.push({ id: id, x: c[0], y: c[1] }); }
+      return { key: KEY, components: comps, connections: deriveConnections() };
     }
     function send() { try { if (window.parent && window.parent !== window) window.parent.postMessage({ __muxSolutionLayout: true, payload: collect() }, "*"); } catch (e) {} }
-    function tick() { drawWires(); send(); }
-    function boot() { tick(); setTimeout(tick, 120); setTimeout(tick, 500); }
+    function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
     if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", boot); else boot();
-    window.addEventListener("load", tick);
+    window.addEventListener("load", send);
   })();
   ]]></script>
 </svg>

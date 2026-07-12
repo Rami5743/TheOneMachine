@@ -32,10 +32,33 @@ function createSolutionWorkspaces({
 }) {
   // Position a MUX-solution component from the (editable) SVG layout when it has
   // posted, otherwise from the hardcoded fallback coordinates.
+  function muxLayout(key) {
+    return typeof muxSolutionLayout === "function" ? muxSolutionLayout(key) : null;
+  }
+
   function muxAt(key, id, fallbackX, fallbackY) {
-    const layout = typeof muxSolutionLayout === "function" ? muxSolutionLayout(key) : null;
-    const p = layout && layout[id];
+    const layout = muxLayout(key);
+    const p = layout && layout.components ? layout.components[id] : null;
     return { x: p && Number.isFinite(p.x) ? p.x : fallbackX, y: p && Number.isFinite(p.y) ? p.y : fallbackY };
+  }
+
+  // The wire list: the netlist the SVG derived from its own (hand-editable) wire
+  // elements when it has posted one, otherwise the hardcoded fallback pairs.
+  function muxWires(key, fallbackPairs) {
+    const layout = muxLayout(key);
+    const conns = layout && Array.isArray(layout.connections) && layout.connections.length
+      ? layout.connections
+      : fallbackPairs;
+    const seen = new Set();
+    const wires = [];
+    conns.forEach(([a, b]) => {
+      const wire = normalizeWire(a, b);
+      const id = `${wire.a}|${wire.b}`;
+      if (seen.has(id)) return;
+      seen.add(id);
+      wires.push(wire);
+    });
+    return wires;
   }
   // The MUX card is drawn on a larger frame than the 2.2 cards, so its "keep
   // components inside the card" test frame is larger too — otherwise gates the
@@ -318,16 +341,16 @@ function createSolutionWorkspaces({
       { id: "and-2", type: "gate-And", ...muxAt("compact", "and-2", 500, 410) },
       { id: "or-1", type: "gate-Or", ...muxAt("compact", "or-1", 660, 320) }
     );
-    workspace.wires = [
-      normalizeWire("task-card-1.inputInt3", "not-c.in1"),
-      normalizeWire("task-card-1.inputInt1", "and-1.in1"),
-      normalizeWire("not-c.out", "and-1.in2"),
-      normalizeWire("task-card-1.inputInt2", "and-2.in1"),
-      normalizeWire("task-card-1.inputInt3", "and-2.in2"),
-      normalizeWire("and-1.out", "or-1.in1"),
-      normalizeWire("and-2.out", "or-1.in2"),
-      normalizeWire("or-1.out", "task-card-1.outputInt")
-    ];
+    workspace.wires = muxWires("compact", [
+      ["task-card-1.inputInt3", "not-c.in1"],
+      ["task-card-1.inputInt1", "and-1.in1"],
+      ["not-c.out", "and-1.in2"],
+      ["task-card-1.inputInt2", "and-2.in1"],
+      ["task-card-1.inputInt3", "and-2.in2"],
+      ["and-1.out", "or-1.in1"],
+      ["and-2.out", "or-1.in2"],
+      ["or-1.out", "task-card-1.outputInt"]
+    ]);
     return normalizeWorkspace(workspace);
   }
 
@@ -347,28 +370,28 @@ function createSolutionWorkspaces({
       { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 535, 435) },
       { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 700, 300) }
     );
-    workspace.wires = [
-      normalizeWire("task-card-1.inputInt2", "not-in2.in1"),
-      normalizeWire("task-card-1.inputInt1", "not-in1.in1"),
-      normalizeWire("task-card-1.inputInt3", "not-c.in1"),
-      normalizeWire("task-card-1.inputInt1", "and-m1.in1"),
-      normalizeWire("not-in2.out", "and-m1.in2"),
-      normalizeWire("not-c.out", "and-m1.in3"),
-      normalizeWire("task-card-1.inputInt1", "and-m2.in1"),
-      normalizeWire("task-card-1.inputInt2", "and-m2.in2"),
-      normalizeWire("not-c.out", "and-m2.in3"),
-      normalizeWire("not-in1.out", "and-m3.in1"),
-      normalizeWire("task-card-1.inputInt2", "and-m3.in2"),
-      normalizeWire("task-card-1.inputInt3", "and-m3.in3"),
-      normalizeWire("task-card-1.inputInt1", "and-m4.in1"),
-      normalizeWire("task-card-1.inputInt2", "and-m4.in2"),
-      normalizeWire("task-card-1.inputInt3", "and-m4.in3"),
-      normalizeWire("and-m1.out", "or-final.in1"),
-      normalizeWire("and-m2.out", "or-final.in2"),
-      normalizeWire("and-m3.out", "or-final.in3"),
-      normalizeWire("and-m4.out", "or-final.in4"),
-      normalizeWire("or-final.out", "task-card-1.outputInt")
-    ];
+    workspace.wires = muxWires("generic", [
+      ["task-card-1.inputInt2", "not-in2.in1"],
+      ["task-card-1.inputInt1", "not-in1.in1"],
+      ["task-card-1.inputInt3", "not-c.in1"],
+      ["task-card-1.inputInt1", "and-m1.in1"],
+      ["not-in2.out", "and-m1.in2"],
+      ["not-c.out", "and-m1.in3"],
+      ["task-card-1.inputInt1", "and-m2.in1"],
+      ["task-card-1.inputInt2", "and-m2.in2"],
+      ["not-c.out", "and-m2.in3"],
+      ["not-in1.out", "and-m3.in1"],
+      ["task-card-1.inputInt2", "and-m3.in2"],
+      ["task-card-1.inputInt3", "and-m3.in3"],
+      ["task-card-1.inputInt1", "and-m4.in1"],
+      ["task-card-1.inputInt2", "and-m4.in2"],
+      ["task-card-1.inputInt3", "and-m4.in3"],
+      ["and-m1.out", "or-final.in1"],
+      ["and-m2.out", "or-final.in2"],
+      ["and-m3.out", "or-final.in3"],
+      ["and-m4.out", "or-final.in4"],
+      ["or-final.out", "task-card-1.outputInt"]
+    ]);
     return normalizeWorkspace(workspace);
   }
 

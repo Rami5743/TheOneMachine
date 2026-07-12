@@ -26,11 +26,11 @@ function createTaskModeView({
       <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="150" y="60" width="700" height="456" rx="18" />
         <text class="workspace-task-shell-title" x="500" y="48" text-anchor="middle">${esc(task.label)}</text>
-        <line class="workspace-task-shell-pin" x1="125" y1="188" x2="200" y2="188" />
-        <line class="workspace-task-shell-pin" x1="125" y1="388" x2="200" y2="388" />
+        <line class="workspace-task-shell-pin" x1="125" y1="188" x2="175" y2="188" />
+        <line class="workspace-task-shell-pin" x1="125" y1="388" x2="175" y2="388" />
         <text class="workspace-task-shell-pin-label" x="108" y="194" text-anchor="end">1</text>
         <text class="workspace-task-shell-pin-label" x="108" y="394" text-anchor="end">2</text>
-        <line class="workspace-task-shell-pin" x1="300" y1="40" x2="300" y2="150" />
+        <line class="workspace-task-shell-pin" x1="300" y1="40" x2="300" y2="80" />
         <text class="workspace-task-shell-pin-label" x="300" y="28" text-anchor="middle">בקרה</text>
         <line class="workspace-task-shell-pin" x1="800" y1="288" x2="875" y2="288" />
       </g>`;

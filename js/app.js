@@ -142,11 +142,11 @@
           // out above the frame. The output on the RIGHT likewise pokes out
           // (x=375 → board 875, frame edge at 850).
           inputExt1: { x: -375, y: -100, direction: "in", label: "כניסת MUX 1 חיצונית" },
-          inputInt1: { x: -300, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
+          inputInt1: { x: -325, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
           inputExt2: { x: -375, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
-          inputInt2: { x: -300, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
+          inputInt2: { x: -325, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
           inputExt3: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
-          inputInt3: { x: -200, y: -138, direction: "out", label: "כניסת בקרה פנימית" },
+          inputInt3: { x: -200, y: -208, direction: "out", label: "כניסת בקרה פנימית" },
           outputInt: { x: 300, y: 0, direction: "in", label: "יציאת MUX פנימית" },
           outputExt: { x: 375, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
         },
@@ -3211,7 +3211,7 @@
   window.addEventListener("message", (event) => {
     const data = event?.data;
     if (!data || data.__muxSolutionLayout !== true || !data.payload) return;
-    const { key, components } = data.payload;
+    const { key, components, connections } = data.payload;
     if (!key || !Array.isArray(components)) return;
     const map = Object.create(null);
     components.forEach((c) => {
@@ -3219,7 +3219,15 @@
         map[c.id] = { x: c.x, y: c.y };
       }
     });
-    muxSolutionLayouts[key] = map;
+    // The SVG also derives the netlist from its own wire elements (each wire's
+    // endpoints snapped to the nearest pin), so hand-drawn wires in the editor
+    // drive the shown solution too. Keep only well-formed ref pairs.
+    const conns = Array.isArray(connections)
+      ? connections.filter((pair) =>
+          Array.isArray(pair) && pair.length === 2 &&
+          typeof pair[0] === "string" && typeof pair[1] === "string" && pair[0] !== pair[1])
+      : null;
+    muxSolutionLayouts[key] = { components: map, connections: conns };
     refreshMuxSolutionIfShown();
   });
 
