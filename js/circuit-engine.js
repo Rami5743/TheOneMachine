@@ -90,11 +90,25 @@ function createCircuitEngine({ terminalDirection, taskDefById }) {
               }
             }
 
-            const outputValue = inputSignal(workspace, `${component.id}.outputInt`, outputs);
-            const outputRef = `${component.id}.outputExt`;
-            if (outputs.get(outputRef) !== outputValue) {
-              outputs.set(outputRef, outputValue);
-              changed = true;
+            // A card may have one output (outputInt/outputExt) or several,
+            // numbered outputInt{k}/outputExt{k} (e.g. the DMUX's two outputs).
+            const outputCount = task.outputs || 1;
+            if (outputCount > 1) {
+              for (let k = 1; k <= outputCount; k += 1) {
+                const outputValue = inputSignal(workspace, `${component.id}.outputInt${k}`, outputs);
+                const outputRef = `${component.id}.outputExt${k}`;
+                if (outputs.get(outputRef) !== outputValue) {
+                  outputs.set(outputRef, outputValue);
+                  changed = true;
+                }
+              }
+            } else {
+              const outputValue = inputSignal(workspace, `${component.id}.outputInt`, outputs);
+              const outputRef = `${component.id}.outputExt`;
+              if (outputs.get(outputRef) !== outputValue) {
+                outputs.set(outputRef, outputValue);
+                changed = true;
+              }
             }
           }
         }

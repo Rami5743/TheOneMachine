@@ -155,6 +155,31 @@
     }
   }
 
+  // The DMUX card (chapter 2.3): the mirror image of the MUX — one data input on
+  // the LEFT, the control input on TOP, and TWO outputs stacked on the RIGHT.
+  // inputExt1 (left) is the data input; inputExt2 (top) is the control.
+  {
+    const dmux = ROUTING_TASK_DEFS.find((task) => task.id === "DMux");
+    if (dmux) {
+      WORKSPACE_COMPONENT_DEFS[taskCardComponentType(dmux.id)] = {
+        label: `מסגרת ${dmux.label}`,
+        fixed: true,
+        taskId: dmux.id,
+        pins: {
+          inputExt1: { x: -375, y: 0, direction: "in", label: "כניסת DMUX חיצונית" },
+          inputInt1: { x: -325, y: 0, direction: "out", label: "כניסת DMUX פנימית" },
+          inputExt2: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
+          inputInt2: { x: -200, y: -208, direction: "out", label: "כניסת בקרה פנימית" },
+          outputInt1: { x: 300, y: -100, direction: "in", label: "יציאת DMUX 1 פנימית" },
+          outputExt1: { x: 375, y: -100, direction: "out", label: "יציאת DMUX 1 חיצונית" },
+          outputInt2: { x: 300, y: 100, direction: "in", label: "יציאת DMUX 2 פנימית" },
+          outputExt2: { x: 375, y: 100, direction: "out", label: "יציאת DMUX 2 חיצונית" }
+        },
+        bounds: { left: 380, right: 380, top: 270, bottom: 240 }
+      };
+    }
+  }
+
 
   // DEFAULT_WORKSPACE_COMPONENTS moved to js/app-data.js
 
@@ -3115,6 +3140,39 @@
     return "task-card-1.outputInt";
   }
 
+  // A task's outputs paired with the lamp that reads each one. Single-output
+  // cards use the unnumbered outputExt and lamp-1; multi-output cards (the DMUX)
+  // use outputExt{k} feeding lamp-{k}.
+  function taskOutputLampPairs(task) {
+    const count = task?.outputs || 1;
+    if (count > 1) {
+      return Array.from({ length: count }, (_, index) => ({
+        outputRef: `task-card-1.outputExt${index + 1}`,
+        lampId: `lamp-${index + 1}`
+      }));
+    }
+    return [{ outputRef: "task-card-1.outputExt", lampId: "lamp-1" }];
+  }
+
+  // The expected output(s) of a truth-table row, as an array (multi-output rows
+  // carry `outputs`, single-output rows the scalar `output`).
+  function rowExpectedOutputs(row) {
+    return Array.isArray(row.outputs) ? row.outputs : [row.output];
+  }
+
+  // The lamp component(s) a task needs on its workbench — one per output. The
+  // DMUX's two lamps sit beside its two right-hand outputs.
+  function taskLampComponents(taskId) {
+    const count = taskDefById(taskId)?.outputs || 1;
+    if (count > 1) {
+      return [
+        { id: "lamp-1", type: "lamp", x: 940, y: 158 },
+        { id: "lamp-2", type: "lamp", x: 940, y: 358 }
+      ];
+    }
+    return [{ id: "lamp-1", type: "lamp", x: 910, y: 258 }];
+  }
+
   // --- MUX scratch truth table (chapter 2.3) -------------------------------
   // A learner-only thinking aid shown beside the MUX requirements. 8 rows, each
   // a set of cells that cycle blank -> 0 -> 1 -> blank. Columns are ordered
@@ -3194,7 +3252,7 @@
   const __solutionWorkspaces = createSolutionWorkspaces({
     normalizeWorkspace, createDefaultWorkspace, normalizeWire, clonePlain,
     removeInvalidWires, removeWiresAt, addTestWire, taskDefById, taskCardComponentType,
-    currentTaskDef, taskCardOutputExtRef, taskCardInputExtRef, secondWorkspaceExitTarget,
+    currentTaskDef, taskCardOutputExtRef, taskCardInputExtRef, taskOutputLampPairs, taskLampComponents, secondWorkspaceExitTarget,
     TASK_TEST_FRAME, muxSolutionLayout
   });
   const standardTaskWorkspace = (...args) => __solutionWorkspaces.standardTaskWorkspace(...args);
@@ -3280,8 +3338,10 @@
 
     notTestTimer = window.setTimeout(() => {
       const evaluation = evaluateWorkspace(workspace);
-      const actual = Boolean(evaluation.lamps.get("lamp-1"));
-      if (actual !== row.output) return showNotTestResult("failure", workspace, task.id);
+      const expected = rowExpectedOutputs(row);
+      const pairs = taskOutputLampPairs(task);
+      const ok = pairs.every((pair, index) => Boolean(evaluation.lamps.get(pair.lampId)) === Boolean(expected[index]));
+      if (!ok) return showNotTestResult("failure", workspace, task.id);
       runNotTestRow(workspace, rowIndex + 1);
     }, 850);
   }
@@ -3781,7 +3841,7 @@
       components: [
         { id: "source-1", type: "source", x: task.id === "Mux" ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
-        { id: "lamp-1", type: "lamp", x: 910, y: 258 }
+        ...taskLampComponents(task.id)
       ],
       wires: [],
       nextId: 2,

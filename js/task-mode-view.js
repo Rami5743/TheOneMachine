@@ -36,12 +36,30 @@ function createTaskModeView({
       </g>`;
   }
 
+  function renderDmuxTaskShell(task) {
+    // The mirror of the MUX: one data input on the left, the control on top, and
+    // two outputs (1 top, 2 bottom) on the right. Matches the taskCard-DMux pins.
+    return `
+      <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="150" y="60" width="700" height="456" rx="18" />
+        <text class="workspace-task-shell-title" x="500" y="48" text-anchor="middle">${esc(task.label)}</text>
+        <line class="workspace-task-shell-pin" x1="125" y1="288" x2="175" y2="288" />
+        <line class="workspace-task-shell-pin" x1="300" y1="40" x2="300" y2="80" />
+        <text class="workspace-task-shell-pin-label" x="300" y="28" text-anchor="middle">בקרה</text>
+        <line class="workspace-task-shell-pin" x1="800" y1="188" x2="875" y2="188" />
+        <line class="workspace-task-shell-pin" x1="800" y1="388" x2="875" y2="388" />
+        <text class="workspace-task-shell-pin-label" x="892" y="194" text-anchor="start">1</text>
+        <text class="workspace-task-shell-pin-label" x="892" y="394" text-anchor="start">2</text>
+      </g>`;
+  }
+
   function renderWorkspaceTaskShell() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
     if (task.id === "Mux") return renderMuxTaskShell(task);
+    if (task.id === "DMux") return renderDmuxTaskShell(task);
     const inputLines = taskInputYs(task.inputs).map((y) => `
         <line class="workspace-task-shell-pin" x1="160" y1="${288 + y}" x2="240" y2="${288 + y}" />`).join("");
     return `
@@ -132,6 +150,36 @@ function createTaskModeView({
         <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
           <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
           <div class="mux-hint-table">${renderMuxScratchTable()}</div>
+        </section>`;
+    }
+    if (task.id === "DMux") {
+      // Two output columns (one per output) and four rows. Read right-to-left as
+      // בקרה, כניסה, ┃ (divider), יציאה 1, יציאה 2.
+      const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+      const dmuxRows = task.rows.map((row, index) => {
+        const control = row.inputs[1] ? 1 : 0;
+        const data = row.inputs[0] ? 1 : 0;
+        const out1 = row.outputs[0] ? 1 : 0;
+        const out2 = row.outputs[1] ? 1 : 0;
+        return `
+          <tr class="${activeRow === index ? "truth-row-active" : ""}">
+            <td>${out2}</td>
+            <td class="truth-output-cell">${out1}</td>
+            <td>${data}</td>
+            <td>${control}</td>
+          </tr>`;
+      }).join("");
+      return `
+        <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
+          <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
+          <div class="mux-hint-table">
+            <table class="workspace-task-hint-table mux-scratch-table">
+              <thead>
+                <tr><th>יציאה 2</th><th class="truth-output-cell">יציאה 1</th><th>כניסה</th><th>בקרה</th></tr>
+              </thead>
+              <tbody>${dmuxRows}</tbody>
+            </table>
+          </div>
         </section>`;
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;

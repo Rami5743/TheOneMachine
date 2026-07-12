@@ -26,10 +26,16 @@ function createSolutionWorkspaces({
   currentTaskDef,
   taskCardOutputExtRef,
   taskCardInputExtRef,
+  taskOutputLampPairs,
+  taskLampComponents,
   secondWorkspaceExitTarget,
   TASK_TEST_FRAME,
   muxSolutionLayout
 }) {
+  function lampComponents(taskId) {
+    if (typeof taskLampComponents === "function") return taskLampComponents(taskId);
+    return [{ id: "lamp-1", type: "lamp", x: 910, y: 258 }];
+  }
   // Position a MUX-solution component from the (editable) SVG layout when it has
   // posted, otherwise from the hardcoded fallback coordinates.
   function muxLayout(key) {
@@ -65,14 +71,23 @@ function createSolutionWorkspaces({
   // learner legitimately places near the (bigger) card edges get discarded when
   // the check assembles the test circuit.
   function taskTestFrame(workspace) {
-    if (workspace?.taskId === "Mux") return { x1: 140, y1: 35, x2: 870, y2: 540 };
+    // The MUX and DMUX cards share the larger 2.3 frame.
+    if (workspace?.taskId === "Mux" || workspace?.taskId === "DMux") return { x1: 140, y1: 35, x2: 870, y2: 540 };
     return TASK_TEST_FRAME;
   }
 
   function componentInsideTaskFrame(component, frame) {
     if (!component) return false;
-    if (["source-1", "lamp-1", "task-card-1"].includes(component.id)) return true;
+    // The card, the source, and any lamp (a card may have several) are always kept.
+    if (component.id === "source-1" || component.id === "task-card-1" || /^lamp-\d+$/.test(component.id)) return true;
     return component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2;
+  }
+
+  // The card's output(s) paired with the lamp reading each (one pair for single-
+  // output cards, one per output for the DMUX).
+  function outputLampPairs(task) {
+    if (typeof taskOutputLampPairs === "function") return taskOutputLampPairs(task);
+    return [{ outputRef: taskCardOutputExtRef(), lampId: "lamp-1" }];
   }
 
   function cleanedWorkspaceForTaskTest(sourceWorkspace) {
@@ -82,7 +97,7 @@ function createSolutionWorkspaces({
     workspace.selectedTerminal = null;
     workspace.accident = null;
     removeInvalidWires(workspace);
-    addTestWire(workspace, taskCardOutputExtRef(), "lamp-1.in");
+    outputLampPairs(currentTaskDef(workspace)).forEach((pair) => addTestWire(workspace, pair.outputRef, `${pair.lampId}.in`));
     return workspace;
   }
 
@@ -98,8 +113,10 @@ function createSolutionWorkspaces({
       }
     }
 
-    removeWiresAt(workspace, "lamp-1.in");
-    addTestWire(workspace, taskCardOutputExtRef(), "lamp-1.in");
+    outputLampPairs(task).forEach((pair) => {
+      removeWiresAt(workspace, `${pair.lampId}.in`);
+      addTestWire(workspace, pair.outputRef, `${pair.lampId}.in`);
+    });
 
     if (task) {
       row.inputs.forEach((value, index) => {
@@ -117,7 +134,7 @@ function createSolutionWorkspaces({
       components: [
         { id: "source-1", type: "source", x: taskId === "Mux" ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
-        { id: "lamp-1", type: "lamp", x: 910, y: 258 }
+        ...lampComponents(taskId)
       ],
       wires: [],
       nextId: 2,

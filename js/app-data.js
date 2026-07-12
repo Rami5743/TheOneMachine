@@ -179,7 +179,24 @@
         { inputs: [true, true, true], output: true }
       ]
     },
-    { id: "DMux", label: "DMUX" }
+    {
+      id: "DMux",
+      label: "DMUX",
+      inputs: 2,
+      // inputs are [data, control]; the control (input #2) is drawn on top.
+      controlInputIndex: 1,
+      outputs: 2,
+      description: "ה-DMUX הוא כרטיס עם כניסה אחת, כניסת בקרה, ושתי יציאות. הוא ההפך מ-MUX: במקום לבחור איזו כניסה עוברת ליציאה, הוא בוחר לאיזו יציאה עוברת הכניסה. כניסת הבקרה קובעת את הבחירה: אם הבקרה 0, הכניסה עוברת ליציאה הראשונה (והשנייה 0); אם הבקרה 1, הכניסה עוברת ליציאה השנייה (והראשונה 0).",
+      // Rows are ordered control-major ([data, control] = 00,10,01,11) so a row's
+      // index matches its position in the scratch truth table. Each row has two
+      // outputs [out1, out2].
+      rows: [
+        { inputs: [false, false], outputs: [false, false] },
+        { inputs: [true, false], outputs: [true, false] },
+        { inputs: [false, true], outputs: [false, false] },
+        { inputs: [true, true], outputs: [false, true] }
+      ]
+    }
   ];
 
   const TASK_HINTS = {
@@ -215,6 +232,11 @@
     ],
     OR4way: [
       { kind: "text", title: "רמז 1", text: "עשית כבר את AND3way. זה ממש דומה, רק עם OR במקום AND ו־4 במקום 3." }
+    ],
+    DMux: [
+      { kind: "text", title: "רמז 1", text: "לכרטיס הזה יש 2 יציאות, זה משהו שעוד לא ראית קודם. אבל למעשה אתה יכול לטפל בכל יציאה בנפרד כאילו מדובר בשני כרטיסים שונים." },
+      { kind: "text", title: "רמז 2", text: "שים לב לטבלת האמת: יש בה 2 עמודות ליציאה, אחת לכל יציאה, ו-4 שורות (4 אפשרויות בכניסה). כל יציאה היא חישוב נפרד על הכניסה והבקרה." },
+      { kind: "text", title: "רמז 3", text: "יציאה 1 צריכה לקבל את הכניסה כאשר הבקרה 0, ולהיות 0 כאשר הבקרה 1. יציאה 2 היא ההפך: מקבלת את הכניסה כאשר הבקרה 1." }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "תיזכור שמדובר בחישוב, תבין באיזה אפשרויות יוצא 1 וטפל בהן." },
