@@ -1,734 +1,117 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-   viewBox="0 0 1000 600"
-   width="1000"
-   height="600"
-   version="1.1"
-   id="svg36"
-   sodipodi:docname="mux-generic.svg"
-   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs36">
-    <inkscape:perspective
-       sodipodi:type="inkscape:persp3d"
-       inkscape:vp_x="0 : 300 : 1"
-       inkscape:vp_y="0 : 1000 : 0"
-       inkscape:vp_z="1000 : 300 : 1"
-       inkscape:persp3d-origin="500 : 200 : 1"
-       id="perspective1" />
-  </defs>
-  <sodipodi:namedview
-     id="namedview36"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1"
-     inkscape:cx="516"
-     inkscape:cy="294.5"
-     inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="2552"
-     inkscape:window-y="341"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg36" />
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="0 0 1000 600" width="1000" height="600">
   <!--
-    Editable MUX GENERIC solution (source of truth for the workbench).
-    In Inkscape: move a gate group (image + red dot) together; the RED DOT is the
-    position the app uses. Draw/route each wire (a <path class="mux-wire">) freely
-    - the app reads only its two END points and snaps each to the NEAREST pin
-    (blue dots = pin snap targets). The app rebuilds the gate POSITIONS from this
-    file; the wiring stays the canonical correct MUX so the guided walkthrough
-    highlights stay meaningful.
+    Editable MUX GENERIC solution. Everything is UNGROUPED and top-level:
+    each gate is an <image> + its red centre dot + blue pin dots; each wire is one
+    <path class="mux-wire">. Move a gate by moving its image + red dot together
+    (the RED DOT is the position the app reads). Wires are cosmetic in the editor;
+    the app draws its own straight pin-to-pin wiring. The blue dots mark pin ends
+    (snap targets). Snapping is pre-enabled in <sodipodi:namedview> below; if your
+    Inkscape still won't snap, it doesn't matter - the app snaps wire ends to the
+    nearest pin automatically.
   -->
-  <rect
-     x="0"
-     y="0"
-     width="1000"
-     height="600"
-     fill="#8a6f45"
-     id="board-bg" />
-  <rect
-     x="152"
-     y="60"
-     width="700"
-     height="456"
-     rx="18"
-     fill="#8a6f45"
-     fill-opacity="1"
-     stroke="rgba(245,235,215,0.92)"
-     stroke-width="3"
-     id="card-frame"
-     style="stroke:#101010;stroke-opacity:1" />
-  <text
-     x="500"
-     y="48"
-     text-anchor="middle"
-     fill="#f6ead7"
-     font-family="sans-serif"
-     font-size="28px"
-     font-weight="800"
-     id="text1">MUX</text>
-  <g
-     stroke="#111111"
-     stroke-width="5"
-     stroke-linecap="round"
-     id="card-pin-stubs"
-     transform="translate(2)">
-    <line
-       x1="125"
-       y1="188"
-       x2="175"
-       y2="188"
-       id="line1" />
-    <line
-       x1="125"
-       y1="388"
-       x2="175"
-       y2="388"
-       id="line2" />
-    <line
-       x1="300"
-       y1="40"
-       x2="300"
-       y2="80"
-       id="line3" />
-    <line
-       x1="800"
-       y1="288"
-       x2="875"
-       y2="288"
-       id="line4" />
-  </g>
-  <g
-     fill="#f6ead7"
-     font-family="sans-serif"
-     font-size="22px"
-     font-weight="800"
-     id="card-labels">
-    <text
-       x="108"
-       y="194"
-       text-anchor="end"
-       id="text4">1</text>
-    <text
-       x="108"
-       y="394"
-       text-anchor="end"
-       id="text5">2</text>
-    <text
-       x="300"
-       y="28"
-       text-anchor="middle"
-       id="text6">בקרה</text>
-  </g>
-  <image
-     href="../components/source.svg"
-     x="46"
-     y="238"
-     width="92"
-     height="100"
-     id="source-img" />
-  <image
-     href="../components/lamp-off.svg"
-     x="855"
-     y="158"
-     width="110"
-     height="140"
-     id="lamp-img" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 579.75337,153.22086 86.25522,114.05521"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire1"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 578.28098,243.22086 664.32,278.54988"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire2"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 575.3362,332.48466 664.05,292.75846"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire3"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 573.8638,421.01227 665.25239,305.48466"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire4"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 754.7362,288.22086 806,288"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire5"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 174.79077,188.4051 0.52124,49.77301"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire6"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 174.33822,388.61433 1.11261,60.62252"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire7"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 295,80 56,9 v 0"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire8" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 438,91 65.37664,47.90463"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire9"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 434,88 65,140.0691 v 0"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire10"
-     sodipodi:nodetypes="ccc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 295,81 498,315.31582"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire11"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 296,78 499.75328,407.15134"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire12"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 177,190 501.16448,153.15134"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire13"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 175,394 501.37664,168.23358"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire14"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 171,187 327.58881,57.52798"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire15"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 260.36351,448.54112 498.2944,257.31582"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire16"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="m 175,391 322.91776,47.0691"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire17"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 494.75328,348.23358 177,391"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire18"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 264,243 498.91776,423.98686"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire19"
-     sodipodi:nodetypes="cc" />
-  <path
-     class="mux-wire"
-     data-mux-wire="1"
-     d="M 178,188 496.08224,330.7747"
-     style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round"
-     id="wire20"
-     sodipodi:nodetypes="cc" />
-  <g
-     class="mux-gate"
-     data-gate-id="not-c"
-     id="g7">
-    <image
-       href="../components/gate-not.svg"
-       x="346.39999"
-       y="56.799999"
-       width="92.400002"
-       height="62.400002"
-       id="image6" />
-    <rect
-       data-mux-comp="1"
-       data-id="not-c"
-       data-type="gate-Not"
-       x="382"
-       y="84"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect6" />
-    <circle
-       data-mux-pin="not-c.in1"
-       cx="350"
-       cy="88"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle6" />
-    <circle
-       data-mux-pin="not-c.out"
-       cx="434"
-       cy="88"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle7" />
-  </g>
-  <g
-     class="mux-gate"
-     data-gate-id="not-in1"
-     id="g9"
-     transform="translate(-1.919998)">
-    <image
-       href="../components/gate-not.svg"
-       x="174.14"
-       y="208.91"
-       width="92.400002"
-       height="62.400002"
-       id="image7" />
-    <rect
-       data-mux-comp="1"
-       data-id="not-in1"
-       data-type="gate-Not"
-       x="209.74001"
-       y="236.11"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect7" />
-    <circle
-       data-mux-pin="not-in1.in1"
-       cx="177.74001"
-       cy="240.11"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle8" />
-    <circle
-       data-mux-pin="not-in1.out"
-       cx="261.73999"
-       cy="240.11"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle9" />
-  </g>
-  <g
-     class="mux-gate"
-     data-gate-id="not-in2"
-     id="g11"
-     transform="translate(-10)">
-    <image
-       href="../components/gate-not.svg"
-       x="182.22"
-       y="419.07999"
-       width="92.400002"
-       height="62.400002"
-       id="image9" />
-    <rect
-       data-mux-comp="1"
-       data-id="not-in2"
-       data-type="gate-Not"
-       x="217.82001"
-       y="446.28"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect9" />
-    <circle
-       data-mux-pin="not-in2.in1"
-       cx="185.82001"
-       cy="450.28"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle10" />
-    <circle
-       data-mux-pin="not-in2.out"
-       cx="269.82001"
-       cy="450.28"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle11" />
-  </g>
-  <image
-     href="../components/gate-and3way.svg"
-     x="499.40002"
-     y="121.8"
-     width="92.400002"
-     height="62.400002"
-     id="image11" />
-  <rect
-     data-mux-comp="1"
-     data-id="and-m2"
-     data-type="gate-AND3way"
-     x="535"
-     y="147"
-     width="8"
-     height="8"
-     fill="#e0392b"
-     fill-opacity="0.55"
-     id="rect11" />
-  <circle
-     data-mux-pin="and-m2.in1"
-     cx="501.79999"
-     cy="138.8"
-     r="3.5"
-     fill="#2b7fe0"
-     fill-opacity="0.5"
-     id="circle12" />
-  <circle
-     data-mux-pin="and-m2.in2"
-     cx="501.79999"
-     cy="151"
-     r="3.5"
-     fill="#2b7fe0"
-     fill-opacity="0.5"
-     id="circle13" />
-  <circle
-     data-mux-pin="and-m2.in3"
-     cx="501.79999"
-     cy="167.2"
-     r="3.5"
-     fill="#2b7fe0"
-     fill-opacity="0.5"
-     id="circle14" />
-  <circle
-     data-mux-pin="and-m2.out"
-     cx="578.59998"
-     cy="151"
-     r="3.5"
-     fill="#2b7fe0"
-     fill-opacity="0.5"
-     id="circle15" />
-  <g
-     class="mux-gate"
-     data-gate-id="and-m1"
-     id="g19"
-     transform="translate(0,-12.000004)">
-    <image
-       href="../components/gate-and3way.svg"
-       x="495.39999"
-       y="223.8"
-       width="92.400002"
-       height="62.400002"
-       id="image15" />
-    <rect
-       data-mux-comp="1"
-       data-id="and-m1"
-       data-type="gate-AND3way"
-       x="531"
-       y="251"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect15" />
-    <circle
-       data-mux-pin="and-m1.in1"
-       cx="497.79999"
-       cy="238.8"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle16" />
-    <circle
-       data-mux-pin="and-m1.in2"
-       cx="497.79999"
-       cy="255"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle17" />
-    <circle
-       data-mux-pin="and-m1.in3"
-       cx="497.79999"
-       cy="271.20001"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle18" />
-    <circle
-       data-mux-pin="and-m1.out"
-       cx="574.59998"
-       cy="255"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle19" />
-  </g>
-  <g
-     class="mux-gate"
-     data-gate-id="and-m4"
-     id="g23"
-     transform="translate(0,-11.999993)">
-    <image
-       href="../components/gate-and3way.svg"
-       x="495.39999"
-       y="313.79999"
-       width="92.400002"
-       height="62.400002"
-       id="image19" />
-    <rect
-       data-mux-comp="1"
-       data-id="and-m4"
-       data-type="gate-AND3way"
-       x="531"
-       y="341"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect19" />
-    <circle
-       data-mux-pin="and-m4.in1"
-       cx="497.79999"
-       cy="328.79999"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle20" />
-    <circle
-       data-mux-pin="and-m4.in2"
-       cx="497.79999"
-       cy="345"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle21" />
-    <circle
-       data-mux-pin="and-m4.in3"
-       cx="497.79999"
-       cy="361.20001"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle22" />
-    <circle
-       data-mux-pin="and-m4.out"
-       cx="574.59998"
-       cy="345"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle23" />
-  </g>
-  <g
-     class="mux-gate"
-     data-gate-id="and-m3"
-     id="g27"
-     transform="translate(0,-11.999997)">
-    <image
-       href="../components/gate-and3way.svg"
-       x="495.39999"
-       y="403.79999"
-       width="92.400002"
-       height="62.400002"
-       id="image23" />
-    <rect
-       data-mux-comp="1"
-       data-id="and-m3"
-       data-type="gate-AND3way"
-       x="531"
-       y="431"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect23" />
-    <circle
-       data-mux-pin="and-m3.in1"
-       cx="497.79999"
-       cy="418.79999"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle24" />
-    <circle
-       data-mux-pin="and-m3.in2"
-       cx="497.79999"
-       cy="435"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle25" />
-    <circle
-       data-mux-pin="and-m3.in3"
-       cx="497.79999"
-       cy="451.20001"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle26" />
-    <circle
-       data-mux-pin="and-m3.out"
-       cx="574.59998"
-       cy="435"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle27" />
-  </g>
-  <g
-     class="mux-gate"
-     data-gate-id="or-final"
-     id="g32"
-     transform="translate(2.208589,-11.999989)">
-    <image
-       href="../components/gate-or4way.svg"
-       x="660.40002"
-       y="268.79999"
-       width="92.400002"
-       height="62.400002"
-       id="image27" />
-    <rect
-       data-mux-comp="1"
-       data-id="or-final"
-       data-type="gate-OR4way"
-       x="696"
-       y="296"
-       width="8"
-       height="8"
-       fill="#e0392b"
-       fill-opacity="0.55"
-       id="rect27" />
-    <circle
-       data-mux-pin="or-final.in1"
-       cx="663.79999"
-       cy="282"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle28" />
-    <circle
-       data-mux-pin="or-final.in2"
-       cx="664.32001"
-       cy="294.01001"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle29" />
-    <circle
-       data-mux-pin="or-final.in3"
-       cx="664.04999"
-       cy="306.01001"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle30" />
-    <circle
-       data-mux-pin="or-final.in4"
-       cx="663.78003"
-       cy="318"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle31" />
-    <circle
-       data-mux-pin="or-final.out"
-       cx="748"
-       cy="300"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle32" />
-  </g>
-  <g
-     id="mux-pins"
-     transform="translate(80)">
-    <circle
-       data-mux-pin="task-card-1.inputInt1"
-       cx="175"
-       cy="188"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle33" />
-    <circle
-       data-mux-pin="task-card-1.inputInt2"
-       cx="175"
-       cy="388"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle34" />
-    <circle
-       data-mux-pin="task-card-1.inputInt3"
-       cx="300"
-       cy="80"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle35" />
-    <circle
-       data-mux-pin="task-card-1.outputInt"
-       cx="800"
-       cy="288"
-       r="3.5"
-       fill="#2b7fe0"
-       fill-opacity="0.5"
-       id="circle36" />
-  </g>
-  <script
-     type="text/javascript"
-     id="script36"><![CDATA[
+  <sodipodi:namedview id="namedview1" inkscape:snap-global="true" inkscape:snap-nodes="true"
+     inkscape:object-nodes="true" inkscape:snap-others="true" inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true" inkscape:snap-bbox="true" inkscape:bbox-nodes="true"
+     inkscape:snap-to-guides="true" inkscape:snap-grids="true" inkscape:snap-smooth-nodes="true"/>
+  <rect x="0" y="0" width="1000" height="600" fill="#8a6f45" id="board-bg"/>
+  <rect x="150" y="60" width="700" height="456" rx="18" fill="#8a6f45" fill-opacity="1" stroke="rgba(245,235,215,0.92)" stroke-width="3" id="card-frame"/>
+  <text x="500" y="48" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="28" font-weight="800" id="card-title">MUX</text>
+  <line x1="125" y1="188" x2="175" y2="188" stroke="#111" stroke-width="5" stroke-linecap="round" id="stub-in1"/>
+  <line x1="125" y1="388" x2="175" y2="388" stroke="#111" stroke-width="5" stroke-linecap="round" id="stub-in2"/>
+  <line x1="300" y1="40" x2="300" y2="80" stroke="#111" stroke-width="5" stroke-linecap="round" id="stub-ctrl"/>
+  <line x1="800" y1="288" x2="875" y2="288" stroke="#111" stroke-width="5" stroke-linecap="round" id="stub-out"/>
+  <text x="108" y="194" text-anchor="end" fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800" id="lbl-1">1</text>
+  <text x="108" y="394" text-anchor="end" fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800" id="lbl-2">2</text>
+  <text x="300" y="28" text-anchor="middle" fill="#f6ead7" font-family="sans-serif" font-size="22" font-weight="800" id="lbl-ctrl">בקרה</text>
+  <image href="../components/source.svg" x="9" y="238" width="92" height="100" id="source-img"/>
+  <image href="../components/lamp-off.svg" x="855" y="158" width="110" height="140" id="lamp-img"/>
+  <!-- WIRES (ungrouped) -->
+  <path class="mux-wire" data-mux-wire="1" d="m 579.75337,153.22086 86.25522,114.05521" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire1"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 578.28098,243.22086 664.32,278.54988" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire2"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 575.3362,332.48466 664.05,292.75846" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire3"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 573.8638,421.01227 665.25239,305.48466" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire4"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 754.7362,288.22086 806,288" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire5"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 174.79077,188.4051 0.52124,49.77301" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire6"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 174.33822,388.61433 1.11261,60.62252" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire7"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 295,80 56,9 v 0" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire8"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 438,91 65.37664,47.90463" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire9"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 434,88 65,140.0691 v 0" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire10"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 295,81 498,315.31582" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire11"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 296,78 499.75328,407.15134" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire12"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 177,190 501.16448,153.15134" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire13"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 175,394 501.37664,168.23358" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire14"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 171,187 327.58881,57.52798" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire15"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 260.36351,448.54112 498.2944,257.31582" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire16"/>
+  <path class="mux-wire" data-mux-wire="1" d="m 175,391 322.91776,47.0691" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire17"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 494.75328,348.23358 177,391" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire18"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 264,243 498.91776,423.98686" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire19"/>
+  <path class="mux-wire" data-mux-wire="1" d="M 178,188 496.08224,330.7747" style="fill:none;stroke:#101010;stroke-width:5;stroke-linecap:round;stroke-linejoin:round" id="wire20"/>
+  <!-- GATES (ungrouped) -->
+  <!-- gate not-c -->
+  <image class="mux-gate-art" data-gate-id="not-c" href="../components/gate-not.svg" x="346.4" y="56.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="382" y="84" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="not-c.in1" cx="350" cy="88" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="not-c.out" cx="434" cy="88" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate not-in1 -->
+  <image class="mux-gate-art" data-gate-id="not-in1" href="../components/gate-not.svg" x="172.22" y="208.91" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="not-in1" data-type="gate-Not" x="207.82" y="236.11" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="not-in1.in1" cx="175.82" cy="240.11" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="not-in1.out" cx="259.82" cy="240.11" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate not-in2 -->
+  <image class="mux-gate-art" data-gate-id="not-in2" href="../components/gate-not.svg" x="172.22" y="419.08" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="not-in2" data-type="gate-Not" x="207.82" y="446.28" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="not-in2.in1" cx="175.82" cy="450.28" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="not-in2.out" cx="259.82" cy="450.28" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate and-m1 -->
+  <image class="mux-gate-art" data-gate-id="and-m1" href="../components/gate-and3way.svg" x="495.4" y="211.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="and-m1" data-type="gate-AND3way" x="531" y="239" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="and-m1.in1" cx="497.8" cy="226.8" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m1.in2" cx="497.8" cy="243" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m1.in3" cx="497.8" cy="259.2" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m1.out" cx="574.6" cy="243" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate and-m4 -->
+  <image class="mux-gate-art" data-gate-id="and-m4" href="../components/gate-and3way.svg" x="495.4" y="301.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="and-m4" data-type="gate-AND3way" x="531" y="329" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="and-m4.in1" cx="497.8" cy="316.8" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m4.in2" cx="497.8" cy="333" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m4.in3" cx="497.8" cy="349.2" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m4.out" cx="574.6" cy="333" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate and-m3 -->
+  <image class="mux-gate-art" data-gate-id="and-m3" href="../components/gate-and3way.svg" x="495.4" y="391.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="and-m3" data-type="gate-AND3way" x="531" y="419" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="and-m3.in1" cx="497.8" cy="406.8" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m3.in2" cx="497.8" cy="423" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m3.in3" cx="497.8" cy="439.2" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m3.out" cx="574.6" cy="423" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate or-final -->
+  <image class="mux-gate-art" data-gate-id="or-final" href="../components/gate-or4way.svg" x="662.61" y="256.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="or-final" data-type="gate-OR4way" x="698.209" y="284" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="or-final.in1" cx="666.01" cy="270" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="or-final.in2" cx="666.53" cy="282.01" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="or-final.in3" cx="666.26" cy="294.01" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="or-final.in4" cx="665.99" cy="306" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="or-final.out" cx="750.21" cy="288" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- gate and-m2 -->
+  <image class="mux-gate-art" data-gate-id="and-m2" href="../components/gate-and3way.svg" x="499.4" y="119.8" width="92.4" height="62.4"/>
+  <rect data-mux-comp="1" data-id="and-m2" data-type="gate-AND3way" x="535" y="147" width="8" height="8" fill="#e0392b" fill-opacity="0.55"/>
+  <circle class="mux-pin" data-mux-pin="and-m2.in1" cx="501.8" cy="134.8" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m2.in2" cx="501.8" cy="151" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m2.in3" cx="501.8" cy="167.2" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="and-m2.out" cx="578.6" cy="151" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <!-- CARD PIN SNAP DOTS -->
+  <circle class="mux-pin" data-mux-pin="task-card-1.inputInt1" cx="175" cy="188" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="task-card-1.inputInt2" cx="175" cy="388" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="task-card-1.inputInt3" cx="300" cy="80" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <circle class="mux-pin" data-mux-pin="task-card-1.outputInt" cx="800" cy="288" r="3.5" fill="#2b7fe0" fill-opacity="0.5"/>
+  <script type="text/javascript"><![CDATA[
   (function () {
-    var KEY = "generic", SCALE = 0.6, NS = "http://www.w3.org/2000/svg";
+    var KEY = "generic";
     function svg(){return document.querySelector("svg");}
     function rootInv(){try{return svg().getScreenCTM().inverse();}catch(e){return null;}}
     function toRoot(x,y,el){var s=svg(),pt=s.createSVGPoint();pt.x=x;pt.y=y;var m;try{m=el.getScreenCTM();}catch(e){m=null;}if(!m)return[x,y];var p=pt.matrixTransform(m),r=rootInv();if(r)p=p.matrixTransform(r);return[p.x,p.y];}
-    function dotCenter(id){var r=document.querySelector('[data-mux-comp][data-id="'+id+'"]');if(!r)return null;var bb;try{bb=r.getBBox();}catch(e){return null;}return toRoot(bb.x+bb.width/2,bb.y+bb.height/2,r);}
-    function collect(){var comps=[];var dots=document.querySelectorAll('[data-mux-comp][data-id]');for(var i=0;i<dots.length;i++){var id=dots[i].getAttribute('data-id');var c=dotCenter(id);if(c)comps.push({id:id,x:c[0],y:c[1]});}return {key:KEY,components:comps};}
+    function dotCenter(el){var bb;try{bb=el.getBBox();}catch(e){return null;}return toRoot(bb.x+bb.width/2,bb.y+bb.height/2,el);}
+    function collect(){var out=[];var dots=document.querySelectorAll('[data-mux-comp][data-id]');for(var i=0;i<dots.length;i++){var c=dotCenter(dots[i]);if(c)out.push({id:dots[i].getAttribute('data-id'),x:c[0],y:c[1]});}return {key:KEY,components:out};}
     function send(){try{if(window.parent&&window.parent!==window)window.parent.postMessage({__muxSolutionLayout:true,payload:collect()},"*");}catch(e){}}
     function boot(){send();setTimeout(send,120);setTimeout(send,500);}
     if(document.readyState==="loading")window.addEventListener("DOMContentLoaded",boot);else boot();
