@@ -27,8 +27,16 @@ function createSolutionWorkspaces({
   taskCardOutputExtRef,
   taskCardInputExtRef,
   secondWorkspaceExitTarget,
-  TASK_TEST_FRAME
+  TASK_TEST_FRAME,
+  muxSolutionLayout
 }) {
+  // Position a MUX-solution component from the (editable) SVG layout when it has
+  // posted, otherwise from the hardcoded fallback coordinates.
+  function muxAt(key, id, fallbackX, fallbackY) {
+    const layout = typeof muxSolutionLayout === "function" ? muxSolutionLayout(key) : null;
+    const p = layout && layout[id];
+    return { x: p && Number.isFinite(p.x) ? p.x : fallbackX, y: p && Number.isFinite(p.y) ? p.y : fallbackY };
+  }
   function notTaskFrameContainsComponent(component) {
     if (!component) return false;
     if (["source-1", "lamp-1", "task-card-1"].includes(component.id)) return true;
@@ -295,10 +303,10 @@ function createSolutionWorkspaces({
   function muxCompactSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
     workspace.components.push(
-      { id: "not-c", type: "gate-Not", x: 410, y: 150 },
-      { id: "and-1", type: "gate-And", x: 480, y: 235 },
-      { id: "and-2", type: "gate-And", x: 480, y: 410 },
-      { id: "or-1", type: "gate-Or", x: 650, y: 320 }
+      { id: "not-c", type: "gate-Not", ...muxAt("compact", "not-c", 380, 175) },
+      { id: "and-1", type: "gate-And", ...muxAt("compact", "and-1", 500, 240) },
+      { id: "and-2", type: "gate-And", ...muxAt("compact", "and-2", 500, 410) },
+      { id: "or-1", type: "gate-Or", ...muxAt("compact", "or-1", 660, 320) }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt3", "not-c.in1"),
@@ -320,14 +328,14 @@ function createSolutionWorkspaces({
   function muxGenericSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
     workspace.components.push(
-      { id: "not-c", type: "gate-Not", x: 430, y: 160 },
-      { id: "not-in1", type: "gate-Not", x: 340, y: 235 },
-      { id: "not-in2", type: "gate-Not", x: 340, y: 335 },
-      { id: "and-m1", type: "gate-AND3way", x: 545, y: 180 },
-      { id: "and-m2", type: "gate-AND3way", x: 545, y: 275 },
-      { id: "and-m3", type: "gate-AND3way", x: 545, y: 375 },
-      { id: "and-m4", type: "gate-AND3way", x: 545, y: 470 },
-      { id: "or-final", type: "gate-OR4way", x: 690, y: 300 }
+      { id: "not-c", type: "gate-Not", ...muxAt("generic", "not-c", 380, 175) },
+      { id: "not-in1", type: "gate-Not", ...muxAt("generic", "not-in1", 330, 250) },
+      { id: "not-in2", type: "gate-Not", ...muxAt("generic", "not-in2", 330, 350) },
+      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 525, 180) },
+      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 525, 275) },
+      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 525, 375) },
+      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 525, 470) },
+      { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 680, 300) }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt2", "not-in2.in1"),

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">
+  <!--
+    Editable MUX COMPACT-solution layout: (input1 AND NOT control) OR (input2 AND control).
+
+    To move a gate: drag its labelled rectangle below. The CENTRE of each
+    rectangle is used as that gate's position on the workbench (x 0..1000,
+    y 0..600; the card frame is the faint rectangle). Keep each rect's data-id
+    unchanged — it must match the component ids in js/solution-workspaces.js
+    (muxCompactSolutionFrom). Do not remove the <script> at the bottom.
+  -->
+  <style>
+    .mux-frame { fill: none; stroke: #b7a98f; stroke-width: 2; stroke-dasharray: 6 6; }
+    .mux-comp  { fill: rgba(120,150,200,0.18); stroke: #4a6; stroke-width: 1.5; }
+    .mux-lbl   { font: 13px sans-serif; fill: #333; text-anchor: middle; dominant-baseline: middle; }
+  </style>
+
+  <rect class="mux-frame" x="150" y="60" width="700" height="456" rx="18" />
+
+  <g>
+    <rect class="mux-comp" data-mux-comp="1" data-id="not-c" data-type="gate-Not" x="345" y="152" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-1" data-type="gate-And" x="465" y="217" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-2" data-type="gate-And" x="465" y="387" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="or-1"  data-type="gate-Or"  x="625" y="297" width="70" height="46" rx="6"/>
+  </g>
+  <g aria-hidden="true">
+    <text class="mux-lbl" x="380" y="175">not-c</text>
+    <text class="mux-lbl" x="500" y="240">and-1</text>
+    <text class="mux-lbl" x="500" y="410">and-2</text>
+    <text class="mux-lbl" x="660" y="320">or-1</text>
+  </g>
+
+  <script type="text/javascript"><![CDATA[
+  (function () {
+    var KEY = "compact";
+    function collect() {
+      var svg = document.querySelector("svg") || document.documentElement;
+      var rootM = null; try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+      var rects = document.querySelectorAll("[data-mux-comp]");
+      var out = [];
+      for (var i = 0; i < rects.length; i++) {
+        var r = rects[i], bb;
+        try { bb = r.getBBox(); } catch (e) { continue; }
+        var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+        var m = null; try { if (rootM) m = rootM.inverse().multiply(r.getScreenCTM()); } catch (e) { m = null; }
+        if (m) { var x = m.a * cx + m.c * cy + m.e, y = m.b * cx + m.d * cy + m.f; cx = x; cy = y; }
+        var id = r.getAttribute("data-id"); if (!id) continue;
+        out.push({ id: id, x: cx, y: cy });
+      }
+      return { key: KEY, components: out };
+    }
+    function send() {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ __muxSolutionLayout: true, payload: collect() }, "*");
+        }
+      } catch (e) {}
+    }
+    function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+    if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); } else { boot(); }
+    window.addEventListener("load", send);
+  })();
+  ]]></script>
+</svg>

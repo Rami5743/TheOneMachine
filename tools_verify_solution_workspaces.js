@@ -10,7 +10,7 @@ const path = require("path");
 const MODULE_SRC = fs.readFileSync(path.join(process.cwd(), "js/solution-workspaces.js"), "utf8");
 
 // Strip the factory wrapper to get the raw function declarations (OLD form).
-const RAW_BODIES = MODULE_SRC.split("TASK_TEST_FRAME\n}) {\n")[1].split("\n  return {")[0];
+const RAW_BODIES = MODULE_SRC.split("muxSolutionLayout\n}) {\n")[1].split("\n  return {")[0];
 const RET = "\n return { standardTaskWorkspace, cleanedWorkspaceForTaskTest, workspaceForTaskTestRow, solutionWorkspaceForTask };";
 
 const stub = `

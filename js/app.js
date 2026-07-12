@@ -140,8 +140,8 @@
           inputInt1: { x: -270, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
           inputExt2: { x: -350, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
           inputInt2: { x: -270, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
-          inputExt3: { x: 0, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
-          inputInt3: { x: 0, y: -138, direction: "out", label: "כניסת בקרה פנימית" },
+          inputExt3: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
+          inputInt3: { x: -200, y: -138, direction: "out", label: "כניסת בקרה פנימית" },
           outputInt: { x: 270, y: 0, direction: "in", label: "יציאת MUX פנימית" },
           outputExt: { x: 350, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
         },
@@ -241,12 +241,14 @@
   // js/board-geometry.js. Created before workspace-state, which injects
   // clampComponentPosition into its normalizer. workspaceBoardSize (DOM) stays
   // in this file and is injected.
-  // Built-gate cards are drawn at 60% size to keep circuits (and the MUX
-  // solution) readable. Scaling at render time leaves pin data, the circuit
-  // check and the toolbar icons untouched.
+  // From chapter 2.3 onward, built-gate cards are drawn at 60% size to keep the
+  // busier circuits (and the MUX solution) readable. Chapter 2.2 keeps gates at
+  // full size. Scaling at render time leaves pin data, the circuit check and
+  // the toolbar icons untouched.
   const GATE_RENDER_SCALE = 0.6;
   function componentRenderScale(type) {
-    return String(type || "").startsWith("gate-") ? GATE_RENDER_SCALE : 1;
+    if (!String(type || "").startsWith("gate-")) return 1;
+    return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 
   const __boardGeometry = createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, componentRenderScale });
@@ -3140,18 +3142,68 @@
 
   // Solution & task-test workbench builders live in js/solution-workspaces.js
   // (pure data builders; host helpers injected). Placed here because they need
+  // The MUX solution circuit layout can be authored in assets/solutions/mux-*.svg
+  // and is delivered via the same <object>+postMessage trick the panel hotspots
+  // use (so it works from file:// too). Positions arrive keyed by layout name
+  // ("generic" / "compact"); until then the hardcoded fallbacks are used.
+  const muxSolutionLayouts = Object.create(null);
+  function muxSolutionLayout(key) {
+    return muxSolutionLayouts[key] || null;
+  }
+
   // TASK_TEST_FRAME and the task-card ref helpers defined just above. Thin
   // wrappers keep existing call sites unchanged.
   const __solutionWorkspaces = createSolutionWorkspaces({
     normalizeWorkspace, createDefaultWorkspace, normalizeWire, clonePlain,
     removeInvalidWires, removeWiresAt, addTestWire, taskDefById, taskCardComponentType,
     currentTaskDef, taskCardOutputExtRef, taskCardInputExtRef, secondWorkspaceExitTarget,
-    TASK_TEST_FRAME
+    TASK_TEST_FRAME, muxSolutionLayout
   });
   const standardTaskWorkspace = (...args) => __solutionWorkspaces.standardTaskWorkspace(...args);
   const cleanedWorkspaceForTaskTest = (...args) => __solutionWorkspaces.cleanedWorkspaceForTaskTest(...args);
   const workspaceForTaskTestRow = (...args) => __solutionWorkspaces.workspaceForTaskTestRow(...args);
   const solutionWorkspaceForTask = (...args) => __solutionWorkspaces.solutionWorkspaceForTask(...args);
+
+  // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
+  // in place so the new positions apply immediately.
+  function refreshMuxSolutionIfShown() {
+    if (state.solutionDialog?.taskId !== "Mux") return;
+    const step = Number(state.solutionDialog.step) || 0;
+    const workspace = solutionWorkspaceForTask("Mux", step);
+    workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || workspace.sessionReturnChapterId;
+    if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
+      workspace.sessionReturnPanelIndex = state.workspace.sessionReturnPanelIndex;
+    }
+    setState({ workspace }, false);
+  }
+
+  window.addEventListener("message", (event) => {
+    const data = event?.data;
+    if (!data || data.__muxSolutionLayout !== true || !data.payload) return;
+    const { key, components } = data.payload;
+    if (!key || !Array.isArray(components)) return;
+    const map = Object.create(null);
+    components.forEach((c) => {
+      if (c && typeof c.id === "string" && Number.isFinite(c.x) && Number.isFinite(c.y)) {
+        map[c.id] = { x: c.x, y: c.y };
+      }
+    });
+    muxSolutionLayouts[key] = map;
+    refreshMuxSolutionIfShown();
+  });
+
+  function loadMuxSolutionLayouts() {
+    const holder = document.createElement("div");
+    holder.setAttribute("aria-hidden", "true");
+    holder.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;";
+    ["generic", "compact"].forEach((key) => {
+      const obj = document.createElement("object");
+      obj.type = "image/svg+xml";
+      obj.data = `assets/solutions/mux-${key}.svg`;
+      holder.appendChild(obj);
+    });
+    document.body.appendChild(holder);
+  }
 
   function showNotTestResult(result, workspace, taskId) {
     clearNotTestTimer();
@@ -4103,10 +4155,16 @@
     dragState.currentX = pos.x;
     dragState.currentY = pos.y;
 
-    const group = app.querySelector(`[data-action='workspace-component'][data-component-id='${CSS.escape(dragState.componentId)}']`);
-    if (group) group.setAttribute("transform", `translate(${pos.x} ${pos.y})`);
-
     const component = componentById(state.workspace, dragState.componentId);
+    const group = app.querySelector(`[data-action='workspace-component'][data-component-id='${CSS.escape(dragState.componentId)}']`);
+    if (group) {
+      // Keep the render scale during the drag so the gate does not jump to full
+      // size while moving and snap back on release.
+      const scale = componentRenderScale(component?.type);
+      const scaleTransform = scale === 1 ? "" : ` scale(${scale})`;
+      group.setAttribute("transform", `translate(${pos.x} ${pos.y})${scaleTransform}`);
+    }
+
     const def = componentDef(component?.type);
     if (component && def) {
       for (const pinId of Object.keys(def.pins)) {
@@ -4824,6 +4882,7 @@
   });
 
   render();
+  loadMuxSolutionLayouts();
   loadSvgPinDefinitions().then((changed) => {
     if (changed) {
       state.workspace = normalizeWorkspace(state.workspace);

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600">
+  <!--
+    Editable MUX GENERIC-solution layout (the truth-table / minterm solution).
+
+    To move a gate: drag its labelled rectangle below (in Inkscape or any SVG
+    editor). The CENTRE of each rectangle is used as that gate's position on the
+    workbench (workbench coordinates: x 0..1000, y 0..600; the card frame is the
+    faint rectangle). Keep each rect's data-id unchanged — it must match the
+    component ids in js/solution-workspaces.js (muxGenericSolutionFrom).
+
+    The tiny <script> at the bottom reads these rects and posts their centres to
+    the app. It runs because the app embeds this file as an <object>, so it works
+    even when the courseware is opened directly from disk (file://) — the same
+    trick the panel hotspots use. Do not remove the script.
+  -->
+  <style>
+    .mux-frame { fill: none; stroke: #b7a98f; stroke-width: 2; stroke-dasharray: 6 6; }
+    .mux-comp  { fill: rgba(120,150,200,0.18); stroke: #4a6; stroke-width: 1.5; }
+    .mux-lbl   { font: 13px sans-serif; fill: #333; text-anchor: middle; dominant-baseline: middle; }
+  </style>
+
+  <rect class="mux-frame" x="150" y="60" width="700" height="456" rx="18" />
+
+  <g>
+    <rect class="mux-comp" data-mux-comp="1" data-id="not-c"    data-type="gate-Not"     x="345" y="152" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="not-in1"  data-type="gate-Not"     x="295" y="227" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="not-in2"  data-type="gate-Not"     x="295" y="327" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-m1"   data-type="gate-AND3way" x="490" y="157" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-m2"   data-type="gate-AND3way" x="490" y="252" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-m3"   data-type="gate-AND3way" x="490" y="352" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="and-m4"   data-type="gate-AND3way" x="490" y="447" width="70" height="46" rx="6"/>
+    <rect class="mux-comp" data-mux-comp="1" data-id="or-final" data-type="gate-OR4way"  x="645" y="277" width="70" height="46" rx="6"/>
+  </g>
+  <g aria-hidden="true">
+    <text class="mux-lbl" x="380" y="175">not-c</text>
+    <text class="mux-lbl" x="330" y="250">not-in1</text>
+    <text class="mux-lbl" x="330" y="350">not-in2</text>
+    <text class="mux-lbl" x="525" y="180">and-m1</text>
+    <text class="mux-lbl" x="525" y="275">and-m2</text>
+    <text class="mux-lbl" x="525" y="375">and-m3</text>
+    <text class="mux-lbl" x="525" y="470">and-m4</text>
+    <text class="mux-lbl" x="680" y="300">or-final</text>
+  </g>
+
+  <script type="text/javascript"><![CDATA[
+  (function () {
+    var KEY = "generic";
+    function collect() {
+      var svg = document.querySelector("svg") || document.documentElement;
+      var rootM = null; try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+      var rects = document.querySelectorAll("[data-mux-comp]");
+      var out = [];
+      for (var i = 0; i < rects.length; i++) {
+        var r = rects[i], bb;
+        try { bb = r.getBBox(); } catch (e) { continue; }
+        var cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+        var m = null; try { if (rootM) m = rootM.inverse().multiply(r.getScreenCTM()); } catch (e) { m = null; }
+        if (m) { var x = m.a * cx + m.c * cy + m.e, y = m.b * cx + m.d * cy + m.f; cx = x; cy = y; }
+        var id = r.getAttribute("data-id"); if (!id) continue;
+        out.push({ id: id, x: cx, y: cy });
+      }
+      return { key: KEY, components: out };
+    }
+    function send() {
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ __muxSolutionLayout: true, payload: collect() }, "*");
+        }
+      } catch (e) {}
+    }
+    function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+    if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); } else { boot(); }
+    window.addEventListener("load", send);
+  })();
+  ]]></script>
+</svg>
