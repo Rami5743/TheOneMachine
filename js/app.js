@@ -3472,7 +3472,7 @@
   }
 
   function baseTaskHintComponents(taskId, workspace) {
-    const source = componentById(workspace, "source-1") || { id: "source-1", type: "source", x: 80, y: 288 };
+    const source = componentById(workspace, "source-1") || { id: "source-1", type: "source", x: taskId === "Mux" ? 45 : 80, y: 288 };
     const card = componentById(workspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 500, y: 288 };
     const lamp = componentById(workspace, "lamp-1") || { id: "lamp-1", type: "lamp", x: 910, y: 258 };
     return [clonePlain(source), clonePlain(card), clonePlain(lamp)];
@@ -3771,7 +3771,7 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "source-1", type: "source", x: 80, y: 288 },
+        { id: "source-1", type: "source", x: task.id === "Mux" ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
         { id: "lamp-1", type: "lamp", x: 910, y: 258 }
       ],

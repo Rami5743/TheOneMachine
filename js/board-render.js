@@ -38,15 +38,7 @@ function createBoardRender({
           ${shape("wire-hit-line")}
         </g>`;
 
-      // A wire reaching a pin above the card frame (the MUX control input) is
-      // routed up-and-over so it does not cross the card.
-      const top = a.y < 90 ? a : (b.y < 90 ? b : null);
-      if (top) {
-        const other = top === a ? b : a;
-        const d = `M ${other.x} ${other.y} L ${other.x} ${top.y} L ${top.x} ${top.y}`;
-        return wrap((cls) => `<path class="${cls}" d="${d}" fill="none" />`);
-      }
-
+      // Every wire is a straight line between its two terminals.
       return wrap((cls) => `<line class="${cls}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" />`);
     }).join("");
   }

@@ -115,7 +115,7 @@ function createSolutionWorkspaces({
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
       components: [
-        { id: "source-1", type: "source", x: 80, y: 288 },
+        { id: "source-1", type: "source", x: taskId === "Mux" ? 45 : 80, y: 288 },
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
         { id: "lamp-1", type: "lamp", x: 910, y: 258 }
       ],
@@ -360,16 +360,25 @@ function createSolutionWorkspaces({
   //   m3: ~in1 & in2 & c     m4: in1 & in2 & c
   function muxGenericSolutionFrom() {
     const workspace = standardTaskWorkspace("Mux");
+    const ands = [
+      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 535, 165) },
+      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 535, 255) },
+      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 535, 345) },
+      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 535, 435) }
+    ];
     workspace.components.push(
       { id: "not-c", type: "gate-Not", ...muxAt("generic", "not-c", 360, 90) },
       { id: "not-in1", type: "gate-Not", ...muxAt("generic", "not-in1", 255, 250) },
       { id: "not-in2", type: "gate-Not", ...muxAt("generic", "not-in2", 255, 360) },
-      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 535, 165) },
-      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 535, 255) },
-      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 535, 345) },
-      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 535, 435) },
+      ...ands,
       { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 700, 300) }
     );
+    // AND → OR by vertical position (top AND to the top OR input, and so on), so
+    // the four wires never cross — matching the SVG rather than the label order.
+    const orInputs = ["or-final.in1", "or-final.in2", "or-final.in3", "or-final.in4"];
+    const andToOr = [...ands]
+      .sort((a, b) => a.y - b.y)
+      .map((and, index) => [`${and.id}.out`, orInputs[index]]);
     workspace.wires = muxWires("generic", [
       ["task-card-1.inputInt2", "not-in2.in1"],
       ["task-card-1.inputInt1", "not-in1.in1"],
@@ -386,10 +395,7 @@ function createSolutionWorkspaces({
       ["task-card-1.inputInt1", "and-m4.in1"],
       ["task-card-1.inputInt2", "and-m4.in2"],
       ["task-card-1.inputInt3", "and-m4.in3"],
-      ["and-m1.out", "or-final.in1"],
-      ["and-m2.out", "or-final.in2"],
-      ["and-m3.out", "or-final.in3"],
-      ["and-m4.out", "or-final.in4"],
+      ...andToOr,
       ["or-final.out", "task-card-1.outputInt"]
     ]);
     return normalizeWorkspace(workspace);
