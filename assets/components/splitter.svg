@@ -10,32 +10,13 @@
    version="1.1"
    id="svg11"
    sodipodi:docname="splitter.svg"
-   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs11">
-    <marker
-       style="overflow:visible"
-       id="ConcaveTriangle"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Concave triangle arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.7)"
-         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
-         id="path7" />
-    </marker>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath11">
@@ -467,12 +448,12 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="7.8365385"
-     inkscape:cx="76.947239"
+     inkscape:cx="77.011043"
      inkscape:cy="52"
-     inkscape:window-width="2560"
-     inkscape:window-height="1377"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg11" />
   <style
@@ -486,18 +467,7 @@
   </style>
   <!-- the combined bus enters from the left -->
   <!-- splitter body: narrow on the bus side, wide on the split side -->
-  <path
-     class="body"
-     d="M -10,-16 22,-42 V 42 L -10,16 Z"
-     id="body" />
   <!-- reflection / symmetry axis (splits evenly, works both ways) -->
-  <line
-     class="mirror"
-     x1="-6"
-     y1="0"
-     x2="20"
-     y2="0"
-     id="reflection" />
   <!-- even split: four equal legs out to the right -->
   <!-- each leg carries an equal share of the bits -->
   <!-- connection points (positions only; wiring is not implemented yet) -->
@@ -538,15 +508,15 @@
        id="circle11" />
   </g>
   <rect
-     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3;stroke-dasharray:none;stroke-opacity:1"
+     style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.05598;stroke-dasharray:none;stroke-opacity:1"
      id="rect11"
-     width="35.34724"
-     height="92.770554"
-     x="-11.93129"
-     y="-46.512882" />
+     width="16.440819"
+     height="93.676964"
+     x="-12.403305"
+     y="-46.947277" />
   <g
      id="g1"
-     transform="matrix(0.49073557,0,0,0.42129414,48.904219,-40.578983)"
+     transform="matrix(0.49073557,0,0,0.42129414,28.904219,-40.578983)"
      style="stroke-width:2.19931">
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.19929"
@@ -628,7 +598,7 @@
   </g>
   <g
      id="g1-2"
-     transform="matrix(0.49073557,0,0,0.42129414,48.904219,-13.612477)"
+     transform="matrix(0.49073557,0,0,0.42129414,28.904219,-13.612477)"
      style="stroke-width:2.19931">
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.19929"
@@ -710,7 +680,7 @@
   </g>
   <g
      id="g1-2-1"
-     transform="matrix(0.49073557,0,0,0.42129414,48.904219,13.35403)"
+     transform="matrix(0.49073557,0,0,0.42129414,28.904219,13.35403)"
      style="stroke-width:2.19931">
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.19929"
@@ -792,7 +762,7 @@
   </g>
   <g
      id="g1-2-0"
-     transform="matrix(0.49073557,0,0,0.42129414,48.904219,40.320536)"
+     transform="matrix(0.49073557,0,0,0.42129414,28.904219,40.320536)"
      style="stroke-width:2.19931">
     <rect
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2.19929"
@@ -954,8 +924,4 @@
        style="fill:#cccccc;stroke:#d8d8d8;stroke-width:6.3753;stroke-linecap:round;stroke-opacity:1"
        transform="translate(-25.544475)" />
   </g>
-  <path
-     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:3;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ConcaveTriangle)"
-     d="M 6.480982,38.856442 V -22.601831"
-     id="path11" />
 </svg>
