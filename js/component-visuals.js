@@ -30,6 +30,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     if (type === "gate-OR4way") return "gate-or4way.svg";
     if (type === "gate-Mux") return "gate-mux.svg";
     if (type === "gate-DMux") return "gate-dmux.svg";
+    if (type === "bus") return "bus.svg";
+    if (type === "splitter") return "splitter.svg";
     return "";
   }
 
@@ -55,10 +57,22 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     return componentSvgImage(filename, -66, -52, 154, 104);
   }
 
+  // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
+  // monologue); their workbench behaviour is not wired up yet.
+  function busMarkup() {
+    return componentSvgImage("bus.svg", -66, -52, 154, 104);
+  }
+
+  function splitterMarkup() {
+    return componentSvgImage("splitter.svg", -66, -52, 154, 104);
+  }
+
   function componentMarkup(type, options = {}) {
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
+    if (type === "bus") return busMarkup();
+    if (type === "splitter") return splitterMarkup();
     if (type.startsWith("gate-")) return gateMarkup(taskDefById(type.slice(5)));
     return "";
   }

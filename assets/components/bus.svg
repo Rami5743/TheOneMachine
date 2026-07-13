@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Bus (בס): a wide multi-bit cable that carries several wires at once.
+     Schematic symbol = a fat cable with diagonal "bundle" stripes and the bit
+     width written above (16). Edit freely in Inkscape; the .body/.line/.label
+     classes and the origin-centred viewBox match the other component symbols. -->
+<svg viewBox="-66 -52 154 104" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+  <style id="style1">
+    .body   { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+    .line   { stroke: #111; stroke-width: 5; stroke-linecap: round; fill: none; }
+    .stripe { stroke: #111; stroke-width: 3; stroke-linecap: round; fill: none; }
+    .label  { fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 18px; dominant-baseline: middle; text-anchor: middle; }
+  </style>
+  <defs id="defs1">
+    <clipPath id="bus-clip">
+      <rect x="-42" y="-17" width="84" height="34" rx="17" ry="17" />
+    </clipPath>
+  </defs>
+
+  <!-- connector stubs (left in, right out) -->
+  <line class="line" x1="-64" y1="0" x2="-42" y2="0" id="stub-in" />
+  <line class="line" x1="42"  y1="0" x2="64"  y2="0" id="stub-out" />
+
+  <!-- the fat cable body -->
+  <rect class="body" x="-42" y="-17" width="84" height="34" rx="17" ry="17" id="cable" />
+
+  <!-- diagonal stripes = many wires bundled into one bus -->
+  <g clip-path="url(#bus-clip)" id="stripes">
+    <line class="stripe" x1="-38" y1="20" x2="-18" y2="-20" />
+    <line class="stripe" x1="-22" y1="20" x2="-2"  y2="-20" />
+    <line class="stripe" x1="-6"  y1="20" x2="14"  y2="-20" />
+    <line class="stripe" x1="10"  y1="20" x2="30"  y2="-20" />
+    <line class="stripe" x1="26"  y1="20" x2="46"  y2="-20" />
+  </g>
+
+  <!-- bit width -->
+  <text class="label" x="0" y="-31" id="width-label">16</text>
+
+  <!-- connection points (positions only; wiring is not implemented yet) -->
+  <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
+    <circle data-pin="in"  cx="-64" cy="0" r="0" />
+    <circle data-pin="out" cx="64"  cy="0" r="0" />
+  </g>
+</svg>

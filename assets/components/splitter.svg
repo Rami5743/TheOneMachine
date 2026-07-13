@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Splitter (מפצל): takes one wide bus and splits it evenly into equal parts
+     (here 16 -> 4 x 4). It is drawn symmetric about the horizontal axis (the
+     dashed "reflection" line) because it works the same in both directions.
+     Edit freely in Inkscape; the number of output legs / labels is just the
+     default look — the real, changeable count is not wired up yet. -->
+<svg viewBox="-66 -52 154 104" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+  <style id="style1">
+    .body   { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+    .bus    { stroke: #111; stroke-width: 11; stroke-linecap: round; fill: none; }
+    .line   { stroke: #111; stroke-width: 5;  stroke-linecap: round; fill: none; }
+    .mirror { stroke: #111; stroke-width: 2;  stroke-dasharray: 5 5; fill: none; }
+    .label  { fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 15px; dominant-baseline: middle; text-anchor: middle; }
+    .small  { font-size: 11px; font-weight: 800; }
+  </style>
+
+  <!-- the combined bus enters from the left -->
+  <line class="bus" x1="-64" y1="0" x2="-24" y2="0" id="bus-in" />
+  <text class="label small" x="-44" y="-13">16</text>
+
+  <!-- splitter body: narrow on the bus side, wide on the split side -->
+  <path class="body" d="M-24 -16 L8 -42 L8 42 L-24 16 Z" id="body" />
+
+  <!-- reflection / symmetry axis (splits evenly, works both ways) -->
+  <line class="mirror" x1="-20" y1="0" x2="6" y2="0" id="reflection" />
+
+  <!-- even split: four equal legs out to the right -->
+  <g id="outputs">
+    <line class="line" x1="8" y1="-30" x2="64" y2="-30" />
+    <line class="line" x1="8" y1="-10" x2="64" y2="-10" />
+    <line class="line" x1="8" y1="10"  x2="64" y2="10" />
+    <line class="line" x1="8" y1="30"  x2="64" y2="30" />
+  </g>
+
+  <!-- each leg carries an equal share of the bits -->
+  <g id="output-labels">
+    <text class="label small" x="34" y="-38">4</text>
+    <text class="label small" x="34" y="-18">4</text>
+    <text class="label small" x="34" y="2">4</text>
+    <text class="label small" x="34" y="22">4</text>
+  </g>
+
+  <!-- connection points (positions only; wiring is not implemented yet) -->
+  <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
+    <circle data-pin="in"   cx="-64" cy="0"   r="0" />
+    <circle data-pin="out0" cx="64"  cy="-30" r="0" />
+    <circle data-pin="out1" cx="64"  cy="-10" r="0" />
+    <circle data-pin="out2" cx="64"  cy="10"  r="0" />
+    <circle data-pin="out3" cx="64"  cy="30"  r="0" />
+  </g>
+</svg>
