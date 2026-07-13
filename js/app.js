@@ -1833,10 +1833,11 @@
       </div>`;
   }
 
-  // The bus / splitter monologue: the component introduces itself (first person,
-  // like the NAND monologue) alongside its schematic symbol. Appearance only —
-  // no workbench behaviour yet. Opened from the two new 2.4 crate hotspots.
-  function componentMonologueSteps(kind) {
+  // The bus / splitter monologue: a single speech bubble in which the component
+  // introduces itself, with its schematic symbol shown inline between the two
+  // sentences ("...אני נראה כך:" [symbol] "..."). Opened from the two new 2.4
+  // crate hotspots. Appearance/text only — no workbench behaviour yet.
+  function componentMonologueData(kind) {
     return kind === "splitter" ? SPLITTER_MONOLOGUE : BUS_MONOLOGUE;
   }
 
@@ -1847,17 +1848,18 @@
   function renderComponentMonologue() {
     if (!state.componentMonologue) return "";
     const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
-    const steps = componentMonologueSteps(kind);
-    const step = Math.min(Math.max(Number(state.componentMonologue.step) || 0, 0), steps.length - 1);
-    const isLast = step >= steps.length - 1;
+    const data = componentMonologueData(kind);
     const label = kind === "splitter" ? "מפצל" : "בס";
     return `
       <div class="bit-overlay" role="presentation">
         <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="${esc(label)}">
-          <img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />
-          <p>${esc(adaptGender(steps[step]))}</p>
+          <div class="component-monologue-body">
+            <p>${esc(adaptGender(data.intro))}</p>
+            <img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />
+            <p>${esc(adaptGender(data.outro))}</p>
+          </div>
           <div class="bit-actions">
-            <button class="btn btn-primary" data-action="${isLast ? "component-monologue-ok" : "component-monologue-next"}" type="button">${isLast ? "אישור" : "המשך"}</button>
+            <button class="btn btn-primary" data-action="component-monologue-ok" type="button">הבנתי</button>
           </div>
         </section>
       </div>`;
@@ -4109,16 +4111,7 @@
   }
 
   function openComponentMonologue(kind) {
-    setState({ componentMonologue: { kind: kind === "splitter" ? "splitter" : "bus", step: 0 } }, false);
-  }
-
-  function advanceComponentMonologue() {
-    if (!state.componentMonologue) return;
-    const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
-    const steps = componentMonologueSteps(kind);
-    const step = Math.min(Math.max(Number(state.componentMonologue.step) || 0, 0), steps.length - 1);
-    if (step >= steps.length - 1) return setState({ componentMonologue: null }, false);
-    setState({ componentMonologue: { ...state.componentMonologue, step: step + 1 } }, false);
+    setState({ componentMonologue: { kind: kind === "splitter" ? "splitter" : "bus" } }, false);
   }
 
   function closeComponentMonologue() {
@@ -5299,7 +5292,6 @@
     if (action === "buses-note") return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
-    if (action === "component-monologue-next") return advanceComponentMonologue();
     if (action === "component-monologue-ok") return closeComponentMonologue();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
