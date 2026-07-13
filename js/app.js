@@ -271,8 +271,31 @@
     explanationsUnlocked: [],
     explanationsReturnTo: null,
     explanationReplay: null,
+    settings: { language: "he", gender: "", age: "" },
     workspace: createDefaultWorkspace()
   };
+
+  // Player settings. Language is fixed to Hebrew for now (the only option).
+  // gender/age are stored empty by default; the *effective* behaviour treats an
+  // empty gender as "בן" and an empty/invalid age as 13. Settings do not affect
+  // anything yet — that is handled later.
+  function normalizedSettings(raw) {
+    const s = raw && typeof raw === "object" ? raw : {};
+    return {
+      language: "he",
+      gender: s.gender === "בת" ? "בת" : (s.gender === "בן" ? "בן" : ""),
+      age: typeof s.age === "string" ? s.age : (Number.isInteger(s.age) ? String(s.age) : "")
+    };
+  }
+
+  function effectiveGender() {
+    return state.settings && state.settings.gender === "בת" ? "בת" : "בן";
+  }
+
+  function effectiveAge() {
+    const n = parseInt(state.settings && state.settings.age, 10);
+    return Number.isFinite(n) && n > 0 ? n : 13;
+  }
 
   // Component & terminal structure model lives in js/component-model.js. Created
   // first (the wiring, circuit, and state models below all build on it) with a
@@ -601,7 +624,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -610,6 +633,7 @@
         ...chapterStartState(chapter.id),
         soundOn: false,
         replayNonce: Number.isInteger(loaded.replayNonce) ? loaded.replayNonce : 0,
+        settings: normalizedSettings(loaded.settings),
         workspace
       };
     }
@@ -635,6 +659,7 @@
       hintSlides: null,
       solutionDialog: null,
       hintState: loaded.hintState && typeof loaded.hintState === "object" ? loaded.hintState : {},
+      settings: normalizedSettings(loaded.settings),
       workspace
     };
   }
@@ -754,11 +779,11 @@
           ${subtitle}
         </div>
         <nav class="top-buttons">
-          <button class="btn" data-action="chapters">פרקים</button>
           <button class="btn" data-action="menu">תפריט ראשי</button>
+          <button class="btn" data-action="chapters">פרקים</button>
           <button class="btn" data-action="explanations">הסברים</button>
           <button class="btn" data-action="about">אודות</button>
-          <button class="btn" data-action="exit">צא</button>
+          <button class="btn" data-action="settings">הגדרות</button>
         </nav>
       </header>`;
   }
@@ -1465,6 +1490,7 @@
             <button class="btn" data-action="chapters">פרקים</button>
             <button class="btn" data-action="explanations">הסברים</button>
             <button class="btn" data-action="about">אודות</button>
+            <button class="btn" data-action="settings">הגדרות</button>
             <button class="btn" data-action="reset-progress">אפס התקדמות</button>
           </div>
         </section>
@@ -1481,6 +1507,41 @@
           <p>זהו פיילוט ראשוני של לומדה לפי הקורס nand2tetris. יוצרי הקורס המקורי אינם נושאים באחריות לתוכן הלומדה. העלילה בלומדה שאבה השראה מאירועים היסטוריים, אך היא בדיונית לחלוטין. אל תשתמשו בה כדי ללמוד היסטוריה.</p>
           <p>אשמח לשמוע הערות ב־<a href="mailto:aizenr@gmail.com">aizenr@gmail.com</a></p>
           <div class="about-actions">
+            <button class="btn btn-primary" data-action="menu">חזרה לתפריט הראשי</button>
+          </div>
+        </section>
+      </main>`;
+  }
+
+  function renderSettings() {
+    const settings = normalizedSettings(state.settings);
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen settings-screen">
+        <section class="settings-card">
+          <h1>הגדרות</h1>
+          <div class="settings-fields">
+            <label class="settings-field">
+              <span class="settings-label">שפה</span>
+              <select class="settings-input" data-setting="language">
+                <option value="he"${settings.language === "he" ? " selected" : ""}>עברית</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span class="settings-label">מין</span>
+              <select class="settings-input" data-setting="gender">
+                <option value=""${settings.gender === "" ? " selected" : ""}></option>
+                <option value="בן"${settings.gender === "בן" ? " selected" : ""}>בן</option>
+                <option value="בת"${settings.gender === "בת" ? " selected" : ""}>בת</option>
+              </select>
+            </label>
+            <label class="settings-field">
+              <span class="settings-label">גיל</span>
+              <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
+                     data-setting="age" value="${esc(settings.age)}" />
+            </label>
+          </div>
+          <div class="settings-actions">
             <button class="btn btn-primary" data-action="menu">חזרה לתפריט הראשי</button>
           </div>
         </section>
@@ -2972,6 +3033,7 @@
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
+    if (state.screen === "settings") return renderSettings();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
 
@@ -4732,6 +4794,23 @@
     render();
   }
 
+  // Settings form fields update state in place and persist WITHOUT a re-render,
+  // so the age text box does not lose focus on every keystroke.
+  function updateSetting(key, value) {
+    const settings = normalizedSettings({ ...normalizedSettings(state.settings), [key]: value });
+    state = { ...state, settings };
+    saveState();
+  }
+
+  function handleSettingEvent(event) {
+    const field = event.target.closest("[data-setting]");
+    if (!field) return;
+    updateSetting(field.dataset.setting, field.value);
+  }
+
+  document.addEventListener("input", handleSettingEvent);
+  document.addEventListener("change", handleSettingEvent);
+
   document.addEventListener("click", (event) => {
     if (suppressNextClick) {
       suppressNextClick = false;
@@ -4832,6 +4911,7 @@
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
     if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), screen: "about" });
+    if (action === "settings") return setState({ ...transientUiClearPatch(), screen: "settings" });
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
