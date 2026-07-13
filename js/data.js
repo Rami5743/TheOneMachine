@@ -50,6 +50,12 @@ const CHAPTERS = [
     "partId": "part-2",
     "title": "2.3 ניתוב",
     "sceneId": "complex-gates"
+  },
+  {
+    "id": "chapter-7",
+    "partId": "part-2",
+    "title": "2.4 בסים",
+    "sceneId": "buses"
   }
 ];
 
@@ -556,6 +562,36 @@ const SCENES = {
           }
         ],
         "returnToNand": true
+      }
+    ]
+  },
+  "buses": {
+    "id": "buses",
+    "type": "story",
+    "chapterId": "chapter-7",
+    "year": "1943",
+    "panels": [
+      {
+        "image": "assets/panels/panel94_chapter_2_4_intro.svg",
+        "read": "פון נוימן: עבודה מצוינת. כל הכרטיסים שבנית טובים מאוד, אבל הם עובדים עם ביטים בודדים. אנחנו צריכים להיות מסוגלים לעבוד עם הרבה ביטים בו זמנית."
+      },
+      {
+        "image": "assets/panels/panel95_chapter_2_4_equipment.svg",
+        "read": "פון נוימן: יש לך כאן ציוד שיעזור לך עם זה."
+      },
+      {
+        "image": "assets/panels/panel96_chapter_2_4_placing.svg",
+        "read": ""
+      },
+      {
+        "image": "assets/panels/panel97_chapter_2_4_tasks.svg",
+        "read": "פון נוימן: והנה עוד כמה משימות."
+      },
+      {
+        "image": "assets/panels/panel98_chapter_2_4_break.svg",
+        "read": "פון נוימן: טוב אני צריך הפסקה. השיחה עם דיק הרגה אותי. הוא באמת טיפוס בלתי נסבל. ממש מוכשר אבל בלתי נסבל. אתה תמשיך לעבוד.",
+        "femaleImage": "assets/panels/panel98_chapter_2_4_break_girl.svg",
+        "femaleRead": "פון נוימן: טוב אני צריך הפסקה. השיחה עם דיק הרגה אותי. הוא באמת טיפוס בלתי נסבל. ממש מוכשר אבל בלתי נסבל. את תמשיכי לעבוד."
       }
     ]
   }
