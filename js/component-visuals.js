@@ -28,6 +28,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     if (type === "gate-Xor") return "gate-xor.svg";
     if (type === "gate-AND3way") return "gate-and3way.svg";
     if (type === "gate-OR4way") return "gate-or4way.svg";
+    if (type === "gate-Mux") return "gate-mux.svg";
+    if (type === "gate-DMux") return "gate-dmux.svg";
     return "";
   }
 

@@ -12,7 +12,8 @@
 //   - createCircuitEngine({ terminalDirection, taskDefById })
 //         -> { connectedOutputRefs, inputSignal, evaluateWorkspace }
 
-// Truth function for a gate/task id. Pure.
+// Truth function for a single-output gate/task id. Pure.
+// (inputs for MUX are [input1, input2, control].)
 function taskOutput(taskId, inputs) {
   if (taskId === "Not") return !inputs[0];
   if (taskId === "And") return Boolean(inputs[0] && inputs[1]);
@@ -20,7 +21,15 @@ function taskOutput(taskId, inputs) {
   if (taskId === "Xor") return Boolean(Boolean(inputs[0]) !== Boolean(inputs[1]));
   if (taskId === "AND3way") return inputs.slice(0, 3).every(Boolean);
   if (taskId === "OR4way") return inputs.slice(0, 4).some(Boolean);
+  if (taskId === "Mux") return inputs[2] ? Boolean(inputs[1]) : Boolean(inputs[0]);
   return false;
+}
+
+// Truth function for a multi-output gate, returning an array of outputs.
+// (DMUX inputs are [data, control]; outputs are [out1, out2].)
+function taskOutputs(taskId, inputs) {
+  if (taskId === "DMux") return [Boolean(inputs[0] && !inputs[1]), Boolean(inputs[0] && inputs[1])];
+  return [taskOutput(taskId, inputs)];
 }
 
 // Given a wire and one of its endpoints, return the other endpoint. Pure.
@@ -69,11 +78,25 @@ function createCircuitEngine({ terminalDirection, taskDefById }) {
           const task = taskDefById(component.type.slice(5));
           if (task) {
             const inputs = Array.from({ length: task.inputs }, (_, index) => inputSignal(workspace, `${component.id}.in${index + 1}`, outputs));
-            const value = taskOutput(task.id, inputs);
-            const ref = `${component.id}.out`;
-            if (outputs.get(ref) !== value) {
-              outputs.set(ref, value);
-              changed = true;
+            const outCount = task.outputs || 1;
+            if (outCount > 1) {
+              // Multi-output gate (the DMUX): out1/out2/…
+              const values = taskOutputs(task.id, inputs);
+              for (let k = 0; k < outCount; k += 1) {
+                const ref = `${component.id}.out${k + 1}`;
+                const value = Boolean(values[k]);
+                if (outputs.get(ref) !== value) {
+                  outputs.set(ref, value);
+                  changed = true;
+                }
+              }
+            } else {
+              const value = taskOutput(task.id, inputs);
+              const ref = `${component.id}.out`;
+              if (outputs.get(ref) !== value) {
+                outputs.set(ref, value);
+                changed = true;
+              }
             }
           }
         }
