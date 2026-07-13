@@ -326,6 +326,7 @@
   // A story panel may carry preference-based overrides — an alternate SVG that
   // reuses the same raster with different speech text, plus matching narration:
   //   femaleImage/femaleRead  — girl player
+  //   babyImage/babyRead      — age 5 and under (most specific age band)
   //   youngImage/youngRead    — age under 13
   //   olderImage/olderRead    — age 17 and up
   // These affect DISPLAY only — the canonical `image` stays the panel's identity
@@ -333,6 +334,7 @@
   function panelVariant(panel) {
     if (!panel) return null;
     const age = effectiveAge();
+    if (panel.babyImage && age <= 5) return { image: panel.babyImage, read: panel.babyRead };
     if (panel.youngImage && age < 13) return { image: panel.youngImage, read: panel.youngRead };
     if (panel.olderImage && age >= 17) return { image: panel.olderImage, read: panel.olderRead };
     if (isFemalePlayer() && panel.femaleImage) return { image: panel.femaleImage, read: panel.femaleRead };
@@ -2839,7 +2841,7 @@
     if (!clean) return "";
     // A preference variant SVG (_girl/_young/_older) reuses the base panel's
     // raster, so strip that suffix before deriving the shared .webp.
-    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older))?\.svg$/, ".webp") : clean;
+    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ".webp") : clean;
   }
 
   function preloadAssetUrl(url) {
