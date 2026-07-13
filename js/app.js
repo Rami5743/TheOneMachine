@@ -475,7 +475,9 @@
   // the toolbar icons untouched.
   const GATE_RENDER_SCALE = 0.6;
   function componentRenderScale(type) {
-    if (!String(type || "").startsWith("gate-")) return 1;
+    const t = String(type || "");
+    // Past chapter 2.2 the schematic shrinks — gates AND the NAND itself.
+    if (!t.startsWith("gate-") && t !== "nand") return 1;
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 
@@ -1177,6 +1179,17 @@
   function allNoteTasksCompletedIn(taskIds = completedTaskIds()) {
     const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
     return TASK_DEFS.every((task) => completed.has(task.id));
+  }
+
+  // Both routing cards (MUX + DMUX) of chapter 2.3 completed.
+  function allRoutingTasksCompletedIn(taskIds = completedTaskIds()) {
+    const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
+    return ROUTING_TASK_DEFS.every((task) => completed.has(task.id));
+  }
+
+  // Entry point of chapter 2.4 (the "buses" story scene).
+  function chapter24StartTarget() {
+    return storyTarget(chapterById("chapter-7"), 0);
   }
 
   function taskUnlockRequirement(taskId) {
@@ -4070,8 +4083,11 @@
       : completedTaskIds();
 
     if (shouldComplete && allNoteTasksCompletedIn(completedTasks)) {
+      // Finishing both routing cards (MUX+DMUX) advances from 2.3 into 2.4;
+      // finishing the first one returns to the 2.3 worktable to pick the second.
+      const advanceToBuses = isRoutingTask(taskId) && allRoutingTasksCompletedIn(completedTasks);
       return setState({
-        ...chapter23StartTarget(),
+        ...(advanceToBuses ? chapter24StartTarget() : chapter23StartTarget()),
         taskDialog: null,
         solutionDialog: null,
         notTest: null,
