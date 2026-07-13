@@ -4883,7 +4883,7 @@
   // used to place its focus controls. Must match splitterBoardMarkup's spacing.
   function splitterHalfHeight(component) {
     const n = Math.min(16, Math.max(2, Number(component?.outputs) || 4));
-    return ((n - 1) * 26) / 2 + 8;
+    return ((n - 1) * 30) / 2 + 12;
   }
 
   function focusWorkspaceComponent(id) {

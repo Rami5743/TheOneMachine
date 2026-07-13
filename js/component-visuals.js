@@ -63,38 +63,35 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     return componentSvgImage("bus.svg", -66, -52, 154, 104);
   }
 
-  // A short length of "bus" cable: a thick line with a couple of light stripes,
-  // matching the look of the bus symbol.
-  function splitterBusStub(x1, x2, y) {
-    const mid = (x1 + x2) / 2;
-    return `
-      <line class="splitter-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
-      <line class="splitter-stripe" x1="${mid - 9}" y1="${y + 5}" x2="${mid - 3}" y2="${y - 5}" />
-      <line class="splitter-stripe" x1="${mid + 1}" y1="${y + 5}" x2="${mid + 7}" y2="${y - 5}" />`;
+  // A short length of "bus" cable drawn like the bus symbol: a solid black bar
+  // with a few light diagonal stripes.
+  function splitterBusBar(x1, x2, y, h) {
+    const half = h / 2;
+    let stripes = "";
+    for (let sx = x1 + 5; sx + h <= x2 - 2; sx += 9) {
+      stripes += `<line class="splitter-stripe" x1="${sx}" y1="${y + half - 2}" x2="${sx + h - 4}" y2="${y - half + 2}" />`;
+    }
+    return `<rect class="splitter-bar" x="${x1}" y="${y - half}" width="${x2 - x1}" height="${h}" />${stripes}`;
   }
 
-  // The splitter as drawn on the board: one input bus on the left fanning out to
-  // `outputs` equal output buses on the right, with an order arrow. Mirrored
-  // instances are flipped around the y-axis. (The toolbar still uses the static
-  // splitter.svg — see splitterMarkup.)
+  // The splitter as drawn on the board: a black spine with one input bus on one
+  // side and `outputs` equal output buses on the other. Outputs are spaced to
+  // leave room for a width label above each pin. Mirrored instances are flipped
+  // around the y-axis. (The toolbar uses the static splitter.svg — see
+  // splitterMarkup.)
+  const SPLITTER_OUTPUT_SPACING = 30;
   function splitterBoardMarkup(outputs, mirrored) {
     const n = Math.min(16, Math.max(2, Number(outputs) || 4));
-    const spacing = 26;
+    const spacing = SPLITTER_OUTPUT_SPACING;
     const ys = [];
     for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
     const halfH = ((n - 1) * spacing) / 2;
-    const inputStub = splitterBusStub(-70, -30, 0);
-    const body = `<path class="splitter-body" d="M-30 -12 L-6 ${-(halfH + 8)} L-6 ${halfH + 8} L-30 12 Z" />`;
-    const outputStubs = ys.map((y) => splitterBusStub(-6, 66, y)).join("");
-    const arrow = `
-      <g class="splitter-arrow">
-        <line x1="-17" y1="${ys[0]}" x2="-17" y2="${ys[n - 1]}" />
-        <polyline points="-21,${ys[n - 1] - 6} -17,${ys[n - 1]} -13,${ys[n - 1] - 6}" />
-      </g>`;
-    // A transparent hit area so clicks/drags/double-clicks anywhere over the
-    // splitter register, not only on the drawn lines.
-    const hit = `<rect class="splitter-hit" x="-72" y="${-(halfH + 8)}" width="142" height="${halfH * 2 + 16}" fill="transparent" />`;
-    const inner = `${hit}${inputStub}${body}${outputStubs}${arrow}`;
+    const spineTop = -(halfH + 7);
+    const spine = `<rect class="splitter-bar" x="-8" y="${spineTop}" width="16" height="${halfH * 2 + 14}" />`;
+    const inputBar = splitterBusBar(-70, -8, 0, 16);
+    const outputBars = ys.map((y) => splitterBusBar(8, 66, y, 14)).join("");
+    const hit = `<rect class="splitter-hit" x="-74" y="${spineTop - 10}" width="146" height="${halfH * 2 + 34}" fill="transparent" />`;
+    const inner = `${hit}${spine}${inputBar}${outputBars}`;
     return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
   }
 

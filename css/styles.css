@@ -784,10 +784,8 @@ button { font: inherit; }
 
 /* --- Splitter (2.4) ------------------------------------------------------- */
 .splitter-hit { pointer-events: all; }
-.splitter-body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
-.splitter-bus { stroke: #111; stroke-width: 9; stroke-linecap: round; fill: none; }
-.splitter-stripe { stroke: #f4efe0; stroke-width: 2.5; stroke-linecap: round; fill: none; }
-.splitter-arrow { stroke: #111; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.splitter-bar { fill: #111; stroke: none; }
+.splitter-stripe { stroke: #d8d8d8; stroke-width: 2.5; stroke-linecap: round; fill: none; }
 
 .workspace-splitter-controls-layer { pointer-events: none; }
 .splitter-focus-ring { fill: none; stroke: #ffe37a; stroke-width: 2.5; stroke-dasharray: 7 6; opacity: 0.85; }
