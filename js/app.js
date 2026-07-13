@@ -272,7 +272,7 @@
     explanationsReturnTo: null,
     explanationReplay: null,
     settings: { language: "he", gender: "", age: "", pace: "all" },
-    settingsReturn: null,
+    pageReturn: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -757,7 +757,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -859,6 +859,25 @@
 
   function isStepByStepPace() {
     return state.settings && state.settings.pace === "step";
+  }
+
+  // Overlay pages (settings / about / not-ready) remember whether they were
+  // opened from within the game, so their back button offers "חזרה למשחק" and
+  // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
+  // page to another preserves the original in-game origin.
+  const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady"];
+
+  function overlayReturnPatch() {
+    if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
+    if (OVERLAY_PAGES.includes(state.screen)) return { pageReturn: state.pageReturn };
+    return { pageReturn: null };
+  }
+
+  function pageBackButton() {
+    const backToGame = IN_GAME_SCREENS.includes(state.pageReturn);
+    const label = backToGame ? "חזרה למשחק" : "חזרה לתפריט הראשי";
+    return `<button class="btn btn-primary" data-action="page-back">${label}</button>`;
   }
 
   // In step-by-step mode, chapters past the furthest one reached are locked.
@@ -1692,15 +1711,36 @@
   }
 
   function renderAbout() {
+    const linkAttrs = 'target="_blank" rel="noopener noreferrer"';
     app.innerHTML = `
       ${topbar()}
       <main class="screen about-screen">
         <section class="about-card">
           <h1>אודות</h1>
-          <p>זהו פיילוט ראשוני של לומדה לפי הקורס nand2tetris. יוצרי הקורס המקורי אינם נושאים באחריות לתוכן הלומדה. העלילה בלומדה שאבה השראה מאירועים היסטוריים, אך היא בדיונית לחלוטין. אל תשתמשו בה כדי ללמוד היסטוריה.</p>
+          <p>זהו פיילוט ראשוני של לומדה לפי הקורס <a href="https://www.nand2tetris.org/" ${linkAttrs}>nand2tetris</a>.</p>
+          <p>יצירת הלומדה היא באישור יוצרי הקורס המקורי <a href="https://he.wikipedia.org/wiki/%D7%A9%D7%9E%D7%A2%D7%95%D7%9F_%D7%A9%D7%95%D7%A7%D7%9F" ${linkAttrs}>שמעון שוקן</a> ו<a href="https://he.wikipedia.org/wiki/%D7%A0%D7%A2%D7%9D_%D7%A0%D7%99%D7%A1%D7%9F" ${linkAttrs}>נעם ניסן</a>, אך הם אינם נושאים בכל אחריות לתוכן הלומדה.</p>
+          <p>העלילה בלומדה שואבת השראה מאירועים היסטוריים, אך היא בדיונית לחלוטין. אל תשתמשו בה כדי ללמוד היסטוריה.</p>
           <p>אשמח לשמוע הערות ב־<a href="mailto:aizenr@gmail.com">aizenr@gmail.com</a></p>
+          <div class="about-links">
+            <button class="btn" data-action="open-not-ready">קשר להסטוריה</button>
+            <button class="btn" data-action="open-not-ready">קשר לקורס</button>
+          </div>
           <div class="about-actions">
-            <button class="btn btn-primary" data-action="menu">חזרה לתפריט הראשי</button>
+            ${pageBackButton()}
+          </div>
+        </section>
+      </main>`;
+  }
+
+  function renderNotReady() {
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen about-screen">
+        <section class="about-card">
+          <h1>בקרוב</h1>
+          <p>דף זה עדיין לא מוכן.</p>
+          <div class="about-actions">
+            ${pageBackButton()}
           </div>
         </section>
       </main>`;
@@ -1708,9 +1748,6 @@
 
   function renderSettings() {
     const settings = normalizedSettings(state.settings);
-    const backToGame = ["story", "workspace", "nandBuildHelp"].includes(state.settingsReturn);
-    const backAction = backToGame ? "settings-back" : "menu";
-    const backLabel = backToGame ? "חזרה למשחק" : "חזרה לתפריט הראשי";
     app.innerHTML = `
       ${topbar()}
       <main class="screen settings-screen">
@@ -1745,7 +1782,7 @@
             </label>
           </div>
           <div class="settings-actions">
-            <button class="btn btn-primary" data-action="${backAction}">${backLabel}</button>
+            ${pageBackButton()}
           </div>
           <p class="settings-note">* ההתאמות להגדרות השונות הן שטחיות בלבד.</p>
         </section>
@@ -3246,6 +3283,7 @@
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
+    if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
@@ -5123,15 +5161,12 @@
 
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
     if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
-    if (action === "about") return setState({ ...transientUiClearPatch(), screen: "about" });
-    if (action === "settings") {
-      // Remember an in-game origin so the back button offers "חזרה למשחק".
-      const fromGame = ["story", "workspace", "nandBuildHelp"].includes(state.screen) ? state.screen : null;
-      return setState({ ...transientUiClearPatch(), settingsReturn: fromGame, screen: "settings" });
-    }
-    if (action === "settings-back") {
-      const target = ["story", "workspace", "nandBuildHelp"].includes(state.settingsReturn) ? state.settingsReturn : "menu";
-      return setState({ ...transientUiClearPatch(), settingsReturn: null, screen: target });
+    if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
+    if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
+    if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
+    if (action === "page-back") {
+      const target = IN_GAME_SCREENS.includes(state.pageReturn) ? state.pageReturn : "menu";
+      return setState({ ...transientUiClearPatch(), pageReturn: null, screen: target });
     }
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();

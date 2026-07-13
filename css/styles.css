@@ -172,6 +172,13 @@ button { font: inherit; }
   justify-content: center;
 }
 
+.about-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .settings-card {
   width: min(560px, 100%);
   display: grid;
