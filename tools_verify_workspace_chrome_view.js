@@ -27,7 +27,8 @@ const stub = `
   const workspaceBuildHelpPromptActive = () => PRED.buildHelp;
   const workspaceUnderstoodPromptActive = () => PRED.understood;
   const workspaceSkipDisabled = () => PRED.skipDisabled;
-  const DEPS = { getState, workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled };
+  const genderText = (masc, fem) => masc;
+  const DEPS = { getState, genderText, workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled };
 `;
 
 const OLD = new Function(stub + OLD_BODIES + RET)();

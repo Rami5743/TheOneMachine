@@ -14,6 +14,7 @@
 
 function createWorkspaceChromeView({
   getState,
+  genderText,
   workspaceBuildHelpPromptActive,
   workspaceUnderstoodPromptActive,
   workspaceSkipDisabled
@@ -24,7 +25,7 @@ function createWorkspaceChromeView({
     return `
       <div class="workspace-accident-overlay" role="presentation">
         <section class="workspace-accident-card" role="alertdialog" aria-modal="false" aria-label="NAND נשרף">
-          <p>מה עשית?! ילד נזק. טוב, אתה יכול לקחת חדש.</p>
+          <p>${genderText("מה עשית?! ילד נזק. טוב, אתה יכול לקחת חדש.", "מה עשית?! ילדה נוזקה. טוב, את יכולה לקחת חדש.")}</p>
           <div class="workspace-accident-actions">
             <button class="btn btn-primary" data-action="workspace-accident-ok">אישור</button>
           </div>

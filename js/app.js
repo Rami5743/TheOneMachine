@@ -301,6 +301,33 @@
     return Number.isFinite(n) && n > 0 ? n : 13;
   }
 
+  // Gender adaptation. When the player is a girl, texts that ADDRESS the player
+  // in masculine Hebrew are shown in the feminine form. Story dialogue between
+  // characters is unaffected (it is written per-character, not per-player).
+  function isFemalePlayer() {
+    return effectiveGender() === "בת";
+  }
+
+  // Pick the feminine string for a girl player, otherwise the masculine one.
+  // Used for UI/code messages; injected into the view factories that need it.
+  function genderText(masc, fem) {
+    return isFemalePlayer() && fem != null ? fem : masc;
+  }
+
+  // A story panel may carry feminine overrides: `femaleImage` (a "_girl" SVG
+  // variant that reuses the same raster but with feminine speech text) and
+  // `femaleRead` (feminine narration). These affect DISPLAY only — the canonical
+  // `image` stays the panel's identity for lookups (panelImageIs etc.).
+  function displayPanelImage(panel) {
+    if (!panel) return "";
+    return isFemalePlayer() && panel.femaleImage ? panel.femaleImage : panel.image;
+  }
+
+  function panelReadText(panel) {
+    if (!panel) return "";
+    return isFemalePlayer() && panel.femaleRead ? panel.femaleRead : panel.read;
+  }
+
   // Component & terminal structure model lives in js/component-model.js. Created
   // first (the wiring, circuit, and state models below all build on it) with a
   // live reference to the component-definition table. Thin wrappers keep every
@@ -421,6 +448,7 @@
   // keep existing call sites unchanged.
   const __workspaceChromeView = createWorkspaceChromeView({
     getState: () => state,
+    genderText,
     workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled
   });
   const renderWorkspaceAccidentModal = (...a) => __workspaceChromeView.renderWorkspaceAccidentModal(...a);
@@ -740,7 +768,7 @@
   function speakCurrent() {
     if (state.hintSlides) return speak(currentHintSlideReadText());
     if (state.screen !== "story" || state.dialog) return;
-    speak(currentPanel().read);
+    speak(panelReadText(currentPanel()));
   }
 
   function navIcon(name) {
@@ -1637,7 +1665,8 @@
   function renderStory() {
     const scene = currentScene();
     const panel = currentPanel();
-    const imageSrc = `${panel.image}?r=${state.replayNonce}`;
+    const panelImage = displayPanelImage(panel);
+    const imageSrc = `${panelImage}?r=${state.replayNonce}`;
     const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
     const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
     const nextDisabled = panelHotspots(panel).length ? "disabled" : "";
@@ -1672,7 +1701,7 @@
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}`;
 
-    setupPanelStage(panel.image, preloadStoryNeighbors);
+    setupPanelStage(panelImage, preloadStoryNeighbors);
   }
 
   function wireKey(a, b) {
@@ -2619,7 +2648,8 @@
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
-    return clean.endsWith(".svg") ? clean.replace(/\.svg$/, ".webp") : clean;
+    // A "_girl" SVG variant reuses the base panel's raster, so strip that suffix.
+    return clean.endsWith(".svg") ? clean.replace(/(_girl)?\.svg$/, ".webp") : clean;
   }
 
   function preloadAssetUrl(url) {
@@ -2657,7 +2687,7 @@
     if (!scene || !Array.isArray(scene.panels)) return;
     const i = state.panelIndex;
     [i + 1, i + 2, i + 3, i - 1].forEach((k) => {
-      if (k >= 0 && k < scene.panels.length) preloadPanelImage(scene.panels[k].image);
+      if (k >= 0 && k < scene.panels.length) preloadPanelImage(displayPanelImage(scene.panels[k]));
     });
   }
 
