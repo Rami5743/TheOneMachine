@@ -1747,6 +1747,7 @@
           <div class="settings-actions">
             <button class="btn btn-primary" data-action="${backAction}">${backLabel}</button>
           </div>
+          <p class="settings-note">* ההתאמות להגדרות השונות הן שטחיות בלבד.</p>
         </section>
       </main>`;
   }

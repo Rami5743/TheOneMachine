@@ -229,6 +229,13 @@ button { font: inherit; }
   justify-content: center;
 }
 
+.settings-note {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #a8a8a8;
+}
+
 .btn,
 .chapter-btn {
   min-width: 86px;
