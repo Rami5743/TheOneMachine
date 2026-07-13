@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel72.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724"
+     inkscape:cy="543.55864"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel72.webp"
+     xlink:href="panel72.webp" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="m 911,128 c -5.7329,0.4945 -11.5193,1.2471 -17,3 -7.3846,2.3618 -14.6,5.6238 -21,10 -6.4236,4.3924 -12.3983,9.7247 -17,16 -6.3476,8.6562 -11.5122,18.5581 -14,29 -8.5766,35.9984 -2,111 -2,111 -32.6482,17.27201 -65.09268,34.76922 -96.58025,54.05556 L 848,325 c 0,0 5.9941,11.1514 10,16 4.0562,4.9095 8.8082,9.312 14,13 5.2272,3.7131 10.9412,6.9018 17,9 7.0432,2.4391 14.5766,3.3306 22,4 125.4909,11.3155 252.3861,9.8558 378,0 6.3921,-0.5015 12.8941,-1.0433 19,-3 7.098,-2.2747 13.8791,-5.7467 20,-10 5.6165,-3.9029 10.6505,-8.7218 15,-14 3.9997,-4.8537 7.3201,-10.3102 10,-16 2.6949,-5.7217 4.9583,-11.7618 6,-18 5.9847,-35.8386 4.097,-72.7974 1,-109 -0.3177,-3.7132 -0.9694,-7.4185 -2,-11 -1.9855,-6.9002 -4.2803,-13.8584 -8,-20 -4.7762,-7.886 -11.0106,-14.9877 -18,-21 -4.768,-4.1014 -10.2703,-7.4066 -16,-10 -6.3409,-2.87 -13.1149,-4.9803 -20,-6 -126.9492,-18.8006 -257.1409,-12.0279 -385,-1 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaacccaaaaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="1085.2764"
+       y="191.40121"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="47.4832px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none;stroke-width:1.18707"><tspan
+   x="1085.2764"
+   y="191.40121"
+   id="tspan1"
+   style="stroke-width:1.18707">אל תדאגי, זה בטח יהיה</tspan><tspan
+   x="1085.2764"
+   y="247.19385"
+   id="tspan2"
+   style="stroke-width:1.18707">עוד המון שנים, אז לא</tspan><tspan
+   x="1085.2764"
+   y="302.98648"
+   id="tspan3"
+   style="stroke-width:1.18707">יפטרו אותם כל כך מהר.</tspan></text>
+  </g>
+</svg>

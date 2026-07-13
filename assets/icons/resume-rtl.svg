@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Resume / "המשך" icon (RTL): a left-pointing filled play triangle with a
+     separated vertical bar on its right, mirrored from the IDE "continue" glyph.
+     This standalone file is for EDITING ONLY — the app renders an inline copy of
+     the same geometry (see navIcon("resume-rtl") in js/app.js). Edit here, then
+     send it back and I'll fold the changes into the inline version. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="240" height="240">
+  <path d="M13 6 L5.5 12 L13 18 Z"
+        fill="#111111" stroke="#111111" stroke-width="2.4"
+        stroke-linejoin="round" stroke-linecap="round" />
+  <path d="M18 5.5 V18.5"
+        fill="none" stroke="#111111" stroke-width="3.3" stroke-linecap="round" />
+</svg>

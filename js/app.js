@@ -328,6 +328,94 @@
     return isFemalePlayer() && panel.femaleRead ? panel.femaleRead : panel.read;
   }
 
+  // Feminine variants for player-addressed strings that live in shared data
+  // (hints, solution/bit steps, card descriptions, end-dialogs). These are
+  // evaluated at load time, before the player's gender is known, so they cannot
+  // be wrapped inline — instead we resolve them at render time through this map.
+  //
+  // Both the key (masculine) and the value (feminine) are DERIVED from the real
+  // source string via femOf(), so every unchanged character (including the
+  // Hebrew maqaf ־ and quotes) is preserved exactly and the key always matches.
+  function femOf(str, ...pairs) {
+    return pairs.reduce((s, [a, b]) => s.split(a).join(b), str);
+  }
+
+  let __feminineTextMap = null;
+  function feminineTextMap() {
+    if (__feminineTextMap) return __feminineTextMap;
+    const m = new Map();
+    const add = (masc, ...pairs) => { if (typeof masc === "string") m.set(masc, femOf(masc, ...pairs)); };
+
+    // ---- Task hints (js/app-data.js TASK_HINTS) ----
+    if (typeof TASK_HINTS === "object" && TASK_HINTS) {
+      add(TASK_HINTS.Not?.[0]?.text, ["תנסה", "תנסי"]);
+      add(TASK_HINTS.Not?.[2]?.text, ["אתה יכול", "את יכולה"]);
+      add(TASK_HINTS.And?.[0]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.And?.[2]?.text, ["אתה יכול", "את יכולה"], ["אתה מטפל", "את מטפלת"]);
+      add(TASK_HINTS.And?.[4]?.text, ["שאתה צריך", "שאת צריכה"]);
+      add(TASK_HINTS.Or?.[0]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.Or?.[1]?.text, ["אולי תשתמש", "אולי תשתמשי"]);
+      add(TASK_HINTS.Or?.[2]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.Or?.[4]?.text, ["תבצע", "תבצעי"], ["תוכל", "תוכלי"]);
+      add(TASK_HINTS.Xor?.[0]?.text, ["אתה כבר יודע", "את כבר יודעת"], ["אתה יודע", "את יודעת"], ["תנסה", "תנסי"], ["אתה צריך", "את צריכה"]);
+      add(TASK_HINTS.AND3way?.[0]?.text, ["נסה ", "נסי "]);
+      add(TASK_HINTS.AND3way?.[1]?.text, ["אתה יכול", "את יכולה"]);
+      add(TASK_HINTS.AND3way?.[2]?.text, ["אתה צריך", "את צריכה"]);
+      add(TASK_HINTS.DMux?.[0]?.text, ["אתה יכול", "את יכולה"]);
+      add(TASK_HINTS.DMux?.[1]?.text, ["שים לב", "שימי לב"]);
+      add(TASK_HINTS.DMux?.[2]?.text, ["אתה צריך", "את צריכה"], ["תלחץ", "תלחצי"]);
+      add(TASK_HINTS.DMux?.[3]?.text, ["אתה צריך", "את צריכה"]);
+      add(TASK_HINTS.Mux?.[0]?.text, ["תיזכור", "תיזכרי"], ["תבין", "תביני"], ["וטפל", "וטפלי"]);
+      add(TASK_HINTS.Mux?.[1]?.text, ["אתה יכול", "את יכולה"]);
+      add(TASK_HINTS.Mux?.[2]?.text, ["תנסה", "תנסי"]);
+      add(TASK_HINTS.Mux?.[3]?.text, ["אתה צריך", "את צריכה"], ["תלחץ", "תלחצי"]);
+      add(TASK_HINTS.Mux?.[4]?.text, ["אתה צריך", "את צריכה"]);
+    }
+
+    // ---- Bit explanation steps (js/app-data.js BIT_EXPLANATION_STEPS) ----
+    if (Array.isArray(typeof BIT_EXPLANATION_STEPS !== "undefined" ? BIT_EXPLANATION_STEPS : null)) {
+      add(BIT_EXPLANATION_STEPS[0], ["שים לב", "שימי לב"]);
+      add(BIT_EXPLANATION_STEPS[1], ["אתה תראה", "את תראי"], ["תוכל להשתמש", "תוכלי להשתמש"]);
+    }
+
+    // ---- MUX card description (js/app-data.js ROUTING_TASK_DEFS) ----
+    if (typeof ROUTING_TASK_DEFS !== "undefined" && Array.isArray(ROUTING_TASK_DEFS)) {
+      const mux = ROUTING_TASK_DEFS.find((t) => t.id === "Mux");
+      add(mux?.description, ["שים לב", "שימי לב"]);
+    }
+
+    // ---- Solution walkthrough steps (TASK_SOLUTION_STEPS, defined in app.js) ----
+    if (typeof TASK_SOLUTION_STEPS === "object" && TASK_SOLUTION_STEPS) {
+      for (const steps of Object.values(TASK_SOLUTION_STEPS)) {
+        if (!Array.isArray(steps)) continue;
+        for (const st of steps) {
+          if (!st || typeof st.text !== "string") continue;
+          if (st.text.includes("NOT הוא בעצם NAND")) add(st.text, ["שים לב", "שימי לב"]);
+          if (st.text.includes("להשתמש בכרטיס הזה גם עם 3 כניסות")) add(st.text, ["שים לב", "שימי לב"], ["אתה יכול", "את יכולה"], ["אתה לא חייב", "את לא חייבת"]);
+        }
+      }
+    }
+
+    // ---- End-of-course dialogs (js/data.js END_DIALOGS & app-data FALLBACK) ----
+    [typeof END_DIALOGS !== "undefined" ? END_DIALOGS : null,
+     typeof FALLBACK_END_DIALOGS !== "undefined" ? FALLBACK_END_DIALOGS : null]
+      .filter(Boolean)
+      .forEach((dialogs) => {
+        add(dialogs.helpPrompt?.title, ["אתה  מסכים לעזור", "את  מסכימה לעזור"]);
+        add(dialogs.helpRefusal?.paragraphs?.[3], ["תרצה", "תרצי"]);
+        add(dialogs.returnToNandPrompt?.title, ["אתה כבר מכיר", "את כבר מכירה"]);
+      });
+
+    __feminineTextMap = m;
+    return m;
+  }
+
+  // Resolve a shared-data string to its feminine form for a girl player.
+  function adaptGender(text) {
+    if (!isFemalePlayer() || typeof text !== "string") return text;
+    return feminineTextMap().get(text) || text;
+  }
+
   // Component & terminal structure model lives in js/component-model.js. Created
   // first (the wiring, circuit, and state models below all build on it) with a
   // live reference to the component-definition table. Thin wrappers keep every
@@ -467,7 +555,7 @@
 
   // Task-building UI (shell/intro/hint/check) lives in js/task-mode-view.js.
   const __taskModeView = createTaskModeView({
-    getState: () => state, esc, taskDefById, taskInputYs, solutionHighlightConfig,
+    getState: () => state, esc, genderText, adaptGender, taskDefById, taskInputYs, solutionHighlightConfig,
     isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
@@ -815,7 +903,7 @@
     // Resume: left triangle with a bar on its right, mirrored from the IDE
     // "continue" glyph (bar comes first in RTL reading order).
     if (name === "resume-rtl") {
-      return `<svg ${common}><path class="icon-fill" d="M13.5 6 L6 12 L13.5 18 Z" /><path d="M17 5.5 V18.5" /></svg>`;
+      return `<svg ${common}><path class="icon-fill" d="M13 6 L5.5 12 L13 18 Z" /><path class="icon-bar" d="M18 5.5 V18.5" /></svg>`;
     }
     // Trash can — reset progress.
     if (name === "trash") {
@@ -1147,9 +1235,9 @@
     const dialog = endDialogs()[state.dialog];
     if (!dialog) return "";
 
-    const title = dialog.title ? `<h2 class="dialog-title">${esc(dialog.title)}</h2>` : "";
+    const title = dialog.title ? `<h2 class="dialog-title">${esc(adaptGender(dialog.title))}</h2>` : "";
     const body = dialog.paragraphs
-      ? `<div class="dialog-body">${dialog.paragraphs.map((p) => `<p>${esc(p)}</p>`).join("")}</div>`
+      ? `<div class="dialog-body">${dialog.paragraphs.map((p) => `<p>${esc(adaptGender(p))}</p>`).join("")}</div>`
       : "";
 
     return `
@@ -1618,8 +1706,8 @@
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הקורס?</span>
               <select class="settings-input" data-setting="pace">
-                <option value="all"${settings.pace === "all" ? " selected" : ""}>רוצה לראות את הכול</option>
                 <option value="step"${settings.pace === "step" ? " selected" : ""}>שלב אחר שלב</option>
+                <option value="all"${settings.pace === "all" ? " selected" : ""}>רוצה לראות את הכול</option>
               </select>
             </label>
           </div>
@@ -2486,7 +2574,7 @@
       <div class="solution-overlay" role="presentation">
         <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון ${esc(task?.label || taskId)}">
           <h2>פתרון</h2>
-          <p>${esc(step.text)}</p>
+          <p>${esc(adaptGender(step.text))}</p>
           <div class="solution-actions">
             ${toggleButton}
             ${isLast ? '<button class="btn btn-primary" data-action="solution-ok" type="button">אישור</button>' : `<button class="btn btn-primary" data-action="solution-next" type="button">${esc(step.buttonLabel || "המשך")}</button>`}
@@ -2548,7 +2636,7 @@
       <div class="bit-overlay" role="presentation">
         <section class="bit-card" role="dialog" aria-modal="false" aria-label="מה זה ביט">
           <h2>מה זה ביט?</h2>
-          <p>${esc(BIT_EXPLANATION_STEPS[step])}</p>
+          <p>${esc(adaptGender(BIT_EXPLANATION_STEPS[step]))}</p>
           <div class="bit-actions">
             <button class="btn btn-primary" data-action="${primaryAction}" type="button">${primaryLabel}</button>
             ${inExplanation && !isLast ? `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>` : ""}
@@ -2566,7 +2654,7 @@
   }
 
   function hintParagraphsHtml(text) {
-    return String(text || "")
+    return String(adaptGender(text) || "")
       .split(/\n\s*\n/)
       .map((part) => part.trim())
       .filter(Boolean)
@@ -2918,7 +3006,7 @@
       <main class="screen nand-build-help-screen">
         <section class="nand-build-help-card">
           <p>
-            חלק זה של המשחק עדיין בבנייה. אתה יכול בינתיים לשמוע על זה
+            ${genderText("חלק זה של המשחק עדיין בבנייה. אתה יכול בינתיים לשמוע על זה", "חלק זה של המשחק עדיין בבנייה. את יכולה בינתיים לשמוע על זה")}
             <a href="https://youtu.be/LIXkBWvEq5Y?t=253" target="_blank" rel="noopener noreferrer">כאן</a>.
           </p>
         </section>

@@ -12,6 +12,8 @@
 function createTaskModeView({
   getState,
   esc,
+  genderText,
+  adaptGender,
   taskDefById,
   taskInputYs,
   solutionHighlightConfig,
@@ -79,7 +81,7 @@ function createTaskModeView({
     return `
       <div class="workspace-task-intro-overlay" role="presentation">
         <section class="workspace-task-intro-card" role="dialog" aria-modal="false" aria-label="הוראות לבניית ${esc(label)}">
-          <p>אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של ${esc(label)} לרכיבים שאתה שם בפנים.</p>
+          <p>${genderText("אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של", "את צריכה לבנות את הכרטיס בתוך המסגרת. אל תשכחי לחבר את הכניסות והיציאה של")} ${esc(label)} ${genderText("לרכיבים שאתה שם בפנים.", "לרכיבים שאת שמה בפנים.")}</p>
           <div class="workspace-task-intro-actions">
             <button class="btn btn-primary" data-action="workspace-task-intro-ok">אישור</button>
           </div>
@@ -173,7 +175,7 @@ function createTaskModeView({
     return `
       <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
         ${toggle}
-        <div class="mux-hint-text"><p>${esc(task.description)}</p></div>
+        <div class="mux-hint-text"><p>${esc(adaptGender(task.description))}</p></div>
         <div class="mux-hint-table">${scratchTableHtml}</div>
       </section>`;
   }
@@ -225,7 +227,7 @@ function createTaskModeView({
 
     return `
       <section class="workspace-task-hint" aria-label="הסבר על ${esc(task.label)}">
-        <p>${esc(task.description)}</p>
+        <p>${esc(adaptGender(task.description))}</p>
         <table class="workspace-task-hint-table">
           <thead>
             <tr>

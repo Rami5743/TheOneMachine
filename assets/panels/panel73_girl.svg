@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel73.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724"
+     inkscape:cy="543.55864"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel73.webp"
+     xlink:href="panel73.webp" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble-outline"
+       d="m 1327,115 c -145.3645,-21.8695 -296.5005,-25.9999 -441,1 -9.1276,1.7055 -17.851,5.5486 -26,10 -5.4414,2.9724 -10.383,6.8615 -15,11 -4.0406,3.6218 -7.8366,7.5912 -11,12 -4.4356,6.1818 -8.3308,12.8751 -11,20 -2.7525,7.3471 -4.1619,15.1992 -5,23 -3.9526,36.7883 0,111 0,111 -31.77959,15.40471 -63.47627,30.88877 -94.46296,47.82099 L 817,335 c 0,0 0.2244,22.9664 3,34 2.4773,9.8475 6.3072,19.5915 12,28 6.0785,8.9782 13.9198,17.075 23,23 10.7829,7.0361 23.3426,11.6403 36,14 144.8382,27.0022 296.7529,23.7084 442,-1 8.0022,-1.3613 15.7534,-4.3427 23,-8 6.8508,-3.4576 13.3749,-7.7801 19,-13 6.2581,-5.8073 11.6353,-12.6626 16,-20 3.5132,-5.9059 6.6223,-12.2677 8,-19 12.898,-63.028 12.7647,-129.7506 1,-193 -1.5055,-8.0939 -4.9048,-15.8581 -9,-23 -4.0139,-7 -9.1324,-13.4608 -15,-19 -5.9174,-5.5862 -12.6932,-10.4178 -20,-14 -9.0881,-4.4555 -18.9912,-7.4942 -29,-9 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.8"
+       stroke-linejoin="miter"
+       stroke-linecap="butt"
+       stroke-miterlimit="10"
+       sodipodi:nodetypes="aaaaaaacccaaaaaaaaaaaaaa" />
+    <text
+       id="bubble-text"
+       x="1100"
+       y="169"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="35px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
+   x="1100"
+   y="169"
+   id="tspan1">אני לא יכול לספר לך כרגע למה</tspan><tspan
+   x="1100"
+   y="208"
+   id="tspan2">צריך את המכונה, אבל תאמיני לי, זה</tspan><tspan
+   x="1100"
+   y="247"
+   id="tspan3">חשוב לכל האנושות. אני אתן לך את</tspan><tspan
+   x="1100"
+   y="286"
+   id="tspan4">מה שאת צריכה, אבל את תצטרכי</tspan><tspan
+   x="1100"
+   y="325"
+   id="tspan5">לעשות הכול לבד. אסור לך לדבר על</tspan><tspan
+   x="1100"
+   y="364"
+   id="tspan6">זה עם אף אחד. אפילו לא עם רוברט.</tspan></text>
+  </g>
+</svg>

@@ -1928,6 +1928,11 @@ button { font: inherit; }
   fill: currentColor;
 }
 
+/* The resume glyph's vertical bar — a touch thicker than the base stroke. */
+.nav-icon .icon-bar {
+  stroke-width: 3.3;
+}
+
 /* Buttons that show an icon beside their text label (top bar & main menu). */
 .labeled-btn {
   display: inline-flex;

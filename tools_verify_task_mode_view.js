@@ -25,7 +25,9 @@ const stub = `
   const isNotTaskWorkspace = () => P.notTask;
   const workspaceTaskIntroActive = () => P.intro;
   const notTestActive = () => P.notTestActive;
-  const DEPS = { getState, esc, taskDefById, taskInputYs, solutionHighlightConfig, isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive };
+  const genderText = (masc, fem) => masc;
+  const adaptGender = (text) => text;
+  const DEPS = { getState, esc, genderText, adaptGender, taskDefById, taskInputYs, solutionHighlightConfig, isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive };
 `;
 
 const OLD = new Function(stub + OLD_BODIES + "\n return { renderWorkspaceTaskShell, renderWorkspaceTaskIntro, renderNotTaskHint, renderNotTaskCheckButton, setEnv };")();
