@@ -271,8 +271,10 @@
     explanationsUnlocked: [],
     explanationsReturnTo: null,
     explanationReplay: null,
-    settings: { language: "he", gender: "", age: "", pace: "all" },
+    settings: { language: "he", gender: "", age: "", pace: "step" },
     pageReturn: null,
+    paceHintShown: false,
+    paceDialog: false,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -287,9 +289,9 @@
       language: "he",
       gender: s.gender === "בת" ? "בת" : (s.gender === "בן" ? "בן" : ""),
       age: typeof s.age === "string" ? s.age : (Number.isInteger(s.age) ? String(s.age) : ""),
-      // How the player takes the course: "step" (step by step) or "all" (see
-      // everything). Default is "all".
-      pace: s.pace === "step" ? "step" : "all"
+      // How the player takes the lomda: "step" (step by step) or "all" (see
+      // everything). Default is "step" — only an explicit "all" opts out.
+      pace: s.pace === "all" ? "all" : "step"
     };
   }
 
@@ -680,7 +682,8 @@
       hintSlides: null,
       solutionDialog: null,
       bitDialog: null,
-      notTest: null
+      notTest: null,
+      paceDialog: false
     };
   }
 
@@ -802,7 +805,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, workspace };
   }
 
   function stateForStorage() {
@@ -1718,7 +1721,7 @@
         <section class="about-card">
           <h1>אודות</h1>
           <p>זהו פיילוט ראשוני של לומדה לפי הקורס <a href="https://www.nand2tetris.org/" ${linkAttrs}>nand2tetris</a>.</p>
-          <p>מטרת הלומדה היא להנגיש באופן פשוט וחוויתי את התשובה לשאלה "איך בונים מחשב?". הלומדה מיועדת לקהל רחב עם התמקדות בילדים ובני נוער. מתחת לגיל 10 מומלץ ליווי מבוגר. הלומדה מתאימה גם לבוגרים, אבל אם יש לכם את הבגרות והקשב ללמוד קורס ברמה אוניברסיטאית, עדיף ללמוד את <a href="https://campus.gov.il/course/huji-acd-huji-nand2tetris/" ${linkAttrs}>הקורס המקורי באתר קמפוס.il</a> ולבוא לבקר כאן, בשביל החוויה-</p>
+          <p>מטרת הלומדה היא להנגיש באופן פשוט וחוויתי את התשובה לשאלה "איך בונים מחשב?". הלומדה מיועדת לקהל רחב עם התמקדות בילדים ובני נוער. מתחת לגיל 10 מומלץ ליווי מבוגר. הלומדה מתאימה גם לבוגרים, אבל אם יש לכם את הבגרות והקשב ללמוד קורס ברמה אוניברסיטאית, עדיף ללמוד את <a href="https://campus.gov.il/course/huji-acd-huji-nand2tetris/" ${linkAttrs}>הקורס המקורי באתר קמפוס.il</a> ולבוא לבקר כאן, בשביל החוויה.</p>
           <p>יצירת הלומדה היא באישור יוצרי הקורס המקורי <a href="https://he.wikipedia.org/wiki/%D7%A9%D7%9E%D7%A2%D7%95%D7%9F_%D7%A9%D7%95%D7%A7%D7%9F" ${linkAttrs}>שמעון שוקן</a> ו<a href="https://he.wikipedia.org/wiki/%D7%A0%D7%A2%D7%9D_%D7%A0%D7%99%D7%A1%D7%9F" ${linkAttrs}>נעם ניסן</a>, אך הם אינם נושאים בכל אחריות לתוכן הלומדה.</p>
           <p>העלילה בלומדה שואבת השראה מאירועים היסטוריים, אך היא בדיונית לחלוטין. אל תשתמשו בה כדי ללמוד היסטוריה.</p>
           <p>אשמח לשמוע הערות ב־<a href="mailto:aizenr@gmail.com">aizenr@gmail.com</a></p>
@@ -1775,7 +1778,7 @@
                      data-setting="age" value="${esc(settings.age)}" />
             </label>
             <label class="settings-field">
-              <span class="settings-label">איך אני עושה את הקורס?</span>
+              <span class="settings-label">איך אני עושה את הלומדה?</span>
               <select class="settings-input" data-setting="pace">
                 <option value="step"${settings.pace === "step" ? " selected" : ""}>שלב אחר שלב</option>
                 <option value="all"${settings.pace === "all" ? " selected" : ""}>רוצה לראות את הכול</option>
@@ -1787,7 +1790,21 @@
           </div>
           <p class="settings-note">* ההתאמות להגדרות השונות הן שטחיות בלבד.</p>
         </section>
+        ${renderPaceDialog()}
       </main>`;
+  }
+
+  function renderPaceDialog() {
+    if (!state.paceDialog) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="מצב הלומדה">
+          <p>מומלץ לעשות את הלומדה במצב "שלב אחר שלב". אולם אם אתה כבר יודע את החומר, או שאתה מנחה מישהו בלומדה, או שעדיין לא גיבשת דעה האם הלומדה מתאימה לך, אתה מוזמן לעבור מצב.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="pace-dialog-ok">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function chapterButtonHtml(chapter) {
@@ -5057,7 +5074,15 @@
   function handleSettingEvent(event) {
     const field = event.target.closest("[data-setting]");
     if (!field) return;
-    updateSetting(field.dataset.setting, field.value);
+    const key = field.dataset.setting;
+    // The first time the player changes the pace, explain the modes via a dialog
+    // (the change still applies). This needs a re-render, which is fine for a
+    // <select> (unlike the age text box, focus loss doesn't matter here).
+    if (key === "pace" && !state.paceHintShown) {
+      const settings = normalizedSettings({ ...normalizedSettings(state.settings), pace: field.value });
+      return setState({ settings, paceHintShown: true, paceDialog: true });
+    }
+    updateSetting(key, field.value);
   }
 
   document.addEventListener("input", handleSettingEvent);
@@ -5169,6 +5194,7 @@
       const target = IN_GAME_SCREENS.includes(state.pageReturn) ? state.pageReturn : "menu";
       return setState({ ...transientUiClearPatch(), pageReturn: null, screen: target });
     }
+    if (action === "pace-dialog-ok") return setState({ paceDialog: false });
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);

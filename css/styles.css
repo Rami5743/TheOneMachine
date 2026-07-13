@@ -243,6 +243,41 @@ button { font: inherit; }
   color: #a8a8a8;
 }
 
+.pace-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.pace-dialog-card {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 4vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #161616;
+  color: var(--text);
+  direction: rtl;
+  text-align: right;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.pace-dialog-card p {
+  margin: 0;
+  font-size: clamp(1.02rem, 2vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.pace-dialog-actions {
+  display: flex;
+  justify-content: center;
+}
+
 .btn,
 .chapter-btn {
   min-width: 86px;
