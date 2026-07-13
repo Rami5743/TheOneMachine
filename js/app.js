@@ -271,7 +271,8 @@
     explanationsUnlocked: [],
     explanationsReturnTo: null,
     explanationReplay: null,
-    settings: { language: "he", gender: "", age: "" },
+    settings: { language: "he", gender: "", age: "", pace: "all" },
+    settingsReturn: null,
     workspace: createDefaultWorkspace()
   };
 
@@ -284,7 +285,10 @@
     return {
       language: "he",
       gender: s.gender === "בת" ? "בת" : (s.gender === "בן" ? "בן" : ""),
-      age: typeof s.age === "string" ? s.age : (Number.isInteger(s.age) ? String(s.age) : "")
+      age: typeof s.age === "string" ? s.age : (Number.isInteger(s.age) ? String(s.age) : ""),
+      // How the player takes the course: "step" (step by step) or "all" (see
+      // everything). Default is "all".
+      pace: s.pace === "step" ? "step" : "all"
     };
   }
 
@@ -756,6 +760,39 @@
     if (name === "speaker-muted") {
       return `<svg ${common}><path d="M4 9 V15 H8 L13 19 V5 L8 9 Z" /><path d="M17 9 L21 15" /><path d="M21 9 L17 15" /></svg>`;
     }
+    // Simple, monochrome line house (Chrome-style) — main menu.
+    if (name === "home") {
+      return `<svg ${common}><path d="M3.5 11.5 L12 4 L20.5 11.5" /><path d="M6 10 V19.5 H18 V10" /></svg>`;
+    }
+    // Open book — chapters.
+    if (name === "book") {
+      return `<svg ${common}><path d="M12 6.2 C9.8 4.7 6.4 4.7 4 5.7 V18.2 C6.4 17.2 9.8 17.2 12 18.7 C14.2 17.2 17.6 17.2 20 18.2 V5.7 C17.6 4.7 14.2 4.7 12 6.2 Z" /><path d="M12 6.2 V18.7" /></svg>`;
+    }
+    // Academic cap (mortarboard) — explanations.
+    if (name === "grad-cap") {
+      return `<svg ${common}><path d="M2.5 9 L12 5 L21.5 9 L12 13 Z" /><path d="M6.5 10.7 V15 C6.5 15 8.8 16.8 12 16.8 C15.2 16.8 17.5 15 17.5 15 V10.7" /><path d="M21.5 9 V14" /></svg>`;
+    }
+    // Info circle — about.
+    if (name === "info") {
+      return `<svg ${common}><circle cx="12" cy="12" r="8.5" /><path d="M12 11 V16.5" /><path d="M12 7.6 V7.7" /></svg>`;
+    }
+    // Gear (cog: toothed rim + hub) — settings.
+    if (name === "gear") {
+      return `<svg ${common}><circle cx="12" cy="12" r="5.9" /><circle cx="12" cy="12" r="2.3" /><path d="M12 3.2 V6 M12 18 V20.8 M20.8 12 H18 M6 12 H3.2 M18.15 5.85 L16.2 7.8 M7.8 16.2 L5.85 18.15 M18.15 18.15 L16.2 16.2 M7.8 7.8 L5.85 5.85" /></svg>`;
+    }
+    // Play triangle pointing left (RTL "start") — filled.
+    if (name === "play-rtl") {
+      return `<svg ${common}><path class="icon-fill" d="M15.5 5.5 L6.5 12 L15.5 18.5 Z" /></svg>`;
+    }
+    // Resume: left triangle with a bar on its right, mirrored from the IDE
+    // "continue" glyph (bar comes first in RTL reading order).
+    if (name === "resume-rtl") {
+      return `<svg ${common}><path class="icon-fill" d="M13.5 6 L6 12 L13.5 18 Z" /><path d="M17 5.5 V18.5" /></svg>`;
+    }
+    // Trash can — reset progress.
+    if (name === "trash") {
+      return `<svg ${common}><path d="M4 7 H20" /><path d="M9.5 7 V4.6 H14.5 V7" /><path d="M6.2 7 L7.2 20 H16.8 L17.8 7" /><path d="M10 10.5 V16.5 M14 10.5 V16.5" /></svg>`;
+    }
     return "";
   }
 
@@ -763,6 +800,13 @@
     const classes = `btn icon-btn${options.primary ? " btn-primary" : ""}`;
     const disabled = options.disabled ? "disabled" : "";
     return `<button class="${classes}" data-action="${esc(action)}" aria-label="${esc(label)}" title="${esc(label)}" ${disabled}>${navIcon(iconName)}<span class="visually-hidden">${esc(label)}</span></button>`;
+  }
+
+  // A button with an icon shown beside its visible text label (top bar / menu).
+  function labeledButton(action, iconName, label, options = {}) {
+    const classes = `btn labeled-btn${options.primary ? " btn-primary" : ""}`;
+    const attrs = options.attrs ? ` ${options.attrs}` : "";
+    return `<button class="${classes}" data-action="${esc(action)}"${attrs}>${navIcon(iconName)}<span class="btn-label">${esc(label)}</span></button>`;
   }
 
   function topbar() {
@@ -779,11 +823,11 @@
           ${subtitle}
         </div>
         <nav class="top-buttons">
-          <button class="btn" data-action="menu">תפריט ראשי</button>
-          <button class="btn" data-action="chapters">פרקים</button>
-          <button class="btn" data-action="explanations">הסברים</button>
-          <button class="btn" data-action="about">אודות</button>
-          <button class="btn" data-action="settings">הגדרות</button>
+          ${labeledButton("menu", "home", "תפריט ראשי")}
+          ${labeledButton("chapters", "book", "פרקים")}
+          ${labeledButton("explanations", "grad-cap", "הסברים")}
+          ${labeledButton("about", "info", "אודות")}
+          ${labeledButton("settings", "gear", "הגדרות")}
         </nav>
       </header>`;
   }
@@ -1485,13 +1529,13 @@
             של נועם ניסן ושמעון שוקן
           </p>
           <div class="menu-buttons">
-            <button class="btn btn-primary" data-action="start">התחל</button>
-            <button class="btn" data-action="continue">המשך</button>
-            <button class="btn" data-action="chapters">פרקים</button>
-            <button class="btn" data-action="explanations">הסברים</button>
-            <button class="btn" data-action="about">אודות</button>
-            <button class="btn" data-action="settings">הגדרות</button>
-            <button class="btn" data-action="reset-progress">אפס התקדמות</button>
+            ${labeledButton("start", "play-rtl", "התחל", { primary: true })}
+            ${labeledButton("continue", "resume-rtl", "המשך")}
+            ${labeledButton("chapters", "book", "פרקים")}
+            ${labeledButton("explanations", "grad-cap", "הסברים")}
+            ${labeledButton("about", "info", "אודות")}
+            ${labeledButton("settings", "gear", "הגדרות")}
+            ${labeledButton("reset-progress", "trash", "אפס התקדמות")}
           </div>
         </section>
       </main>
@@ -1515,6 +1559,9 @@
 
   function renderSettings() {
     const settings = normalizedSettings(state.settings);
+    const backToGame = ["story", "workspace", "nandBuildHelp"].includes(state.settingsReturn);
+    const backAction = backToGame ? "settings-back" : "menu";
+    const backLabel = backToGame ? "חזרה למשחק" : "חזרה לתפריט הראשי";
     app.innerHTML = `
       ${topbar()}
       <main class="screen settings-screen">
@@ -1540,9 +1587,16 @@
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
                      data-setting="age" value="${esc(settings.age)}" />
             </label>
+            <label class="settings-field">
+              <span class="settings-label">איך אני עושה את הקורס?</span>
+              <select class="settings-input" data-setting="pace">
+                <option value="all"${settings.pace === "all" ? " selected" : ""}>רוצה לראות את הכול</option>
+                <option value="step"${settings.pace === "step" ? " selected" : ""}>שלב אחר שלב</option>
+              </select>
+            </label>
           </div>
           <div class="settings-actions">
-            <button class="btn btn-primary" data-action="menu">חזרה לתפריט הראשי</button>
+            <button class="btn btn-primary" data-action="${backAction}">${backLabel}</button>
           </div>
         </section>
       </main>`;
@@ -4911,7 +4965,15 @@
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
     if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), screen: "about" });
-    if (action === "settings") return setState({ ...transientUiClearPatch(), screen: "settings" });
+    if (action === "settings") {
+      // Remember an in-game origin so the back button offers "חזרה למשחק".
+      const fromGame = ["story", "workspace", "nandBuildHelp"].includes(state.screen) ? state.screen : null;
+      return setState({ ...transientUiClearPatch(), settingsReturn: fromGame, screen: "settings" });
+    }
+    if (action === "settings-back") {
+      const target = ["story", "workspace", "nandBuildHelp"].includes(state.settingsReturn) ? state.settingsReturn : "menu";
+      return setState({ ...transientUiClearPatch(), settingsReturn: null, screen: target });
+    }
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);

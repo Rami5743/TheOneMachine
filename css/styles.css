@@ -1923,6 +1923,29 @@ button { font: inherit; }
   stroke-linejoin: round;
 }
 
+/* Filled glyphs inside a line icon (e.g. the play / resume triangles). */
+.nav-icon .icon-fill {
+  fill: currentColor;
+}
+
+/* Buttons that show an icon beside their text label (top bar & main menu). */
+.labeled-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.labeled-btn .nav-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  stroke-width: 2.2;
+}
+
+.labeled-btn .btn-label {
+  line-height: 1;
+}
+
 .btn-primary .nav-icon {
   stroke-width: 2.6;
 }
