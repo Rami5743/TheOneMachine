@@ -71,6 +71,7 @@
     if (stem === "panel74a") return "chapter-4";
     if (stem === "panel87_simple_gates_worktable") return "chapter-5";
     if (stem === "panel93_chapter_2_3_worktable") return "chapter-6";
+    if (stem === "panel99_chapter_2_4_worktable") return "chapter-7";
     return null;
   }
 

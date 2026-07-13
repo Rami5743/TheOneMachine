@@ -281,6 +281,7 @@
     pageReturn: null,
     paceHintShown: false,
     paceDialog: false,
+    infoDialog: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -691,7 +692,8 @@
       solutionDialog: null,
       bitDialog: null,
       notTest: null,
-      paceDialog: false
+      paceDialog: false,
+      infoDialog: null
     };
   }
 
@@ -813,7 +815,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -1802,6 +1804,20 @@
       </main>`;
   }
 
+  // A simple single-OK info message modal (e.g. the worktable note prompt).
+  function renderInfoDialog() {
+    if (!state.infoDialog) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="הודעה">
+          <p>${esc(state.infoDialog)}</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="info-dialog-ok">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderPaceDialog() {
     if (!state.paceDialog) return "";
     return `
@@ -1890,7 +1906,8 @@
       </main>
       ${renderDialog()}
       ${renderNoteTaskDialog()}
-      ${renderBitDialog()}`;
+      ${renderBitDialog()}
+      ${renderInfoDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -5204,6 +5221,9 @@
       return setState({ ...transientUiClearPatch(), pageReturn: null, screen: target });
     }
     if (action === "pace-dialog-ok") return setState({ paceDialog: false });
+    if (action === "info-dialog-ok") return setState({ infoDialog: null });
+    if (action === "buses-note") return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
+    if (action === "buses-crate-todo") return setState({ infoDialog: "בקרוב." });
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);

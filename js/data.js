@@ -592,6 +592,44 @@ const SCENES = {
         "read": "פון נוימן: טוב אני צריך הפסקה. השיחה עם דיק הרגה אותי. הוא באמת טיפוס בלתי נסבל. ממש מוכשר אבל בלתי נסבל. אתה תמשיך לעבוד.",
         "femaleImage": "assets/panels/panel98_chapter_2_4_break_girl.svg",
         "femaleRead": "פון נוימן: טוב אני צריך הפסקה. השיחה עם דיק הרגה אותי. הוא באמת טיפוס בלתי נסבל. ממש מוכשר אבל בלתי נסבל. את תמשיכי לעבוד."
+      },
+      {
+        "image": "assets/panels/panel99_chapter_2_4_worktable.svg",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "buses-note",
+            "ariaLabel": "לחץ על הפתק",
+            "left": 14,
+            "top": 58,
+            "width": 17,
+            "height": 15
+          },
+          {
+            "action": "return-to-nand-dialog",
+            "ariaLabel": "הקש על NAND",
+            "left": 39,
+            "top": 59,
+            "width": 18,
+            "height": 24
+          },
+          {
+            "action": "buses-crate-todo",
+            "ariaLabel": "האגף הימני של הארגז החדש",
+            "left": 47,
+            "top": 40,
+            "width": 8,
+            "height": 12
+          },
+          {
+            "action": "buses-crate-todo",
+            "ariaLabel": "האגף השמאלי של הארגז החדש",
+            "left": 55,
+            "top": 40,
+            "width": 8,
+            "height": 12
+          }
+        ]
       }
     ]
   }
