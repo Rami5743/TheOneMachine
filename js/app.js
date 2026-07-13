@@ -182,8 +182,8 @@
 
   // Once completed, the MUX and DMUX join the toolbar as placeable gates drawn
   // with the standard schematic (trapezoid) symbols. The MUX has two data inputs
-  // on the left and the select at the bottom; the DMUX has one input on the left,
-  // the select at the bottom, and two outputs on the right.
+  // on the left and the select at the top; the DMUX has one input on the left,
+  // the select at the top, and two outputs on the right.
   WORKSPACE_COMPONENT_DEFS["gate-Mux"] = {
     label: "MUX",
     taskId: "Mux",
@@ -191,7 +191,7 @@
     pins: {
       in1: { x: -62, y: -23, direction: "in", label: "כניסת MUX 1" },
       in2: { x: -62, y: 23, direction: "in", label: "כניסת MUX 2" },
-      in3: { x: 0, y: 46, direction: "in", label: "כניסת בקרה של MUX" },
+      in3: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של MUX" },
       out: { x: 66, y: 0, direction: "out", label: "יציאת MUX" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
@@ -203,7 +203,7 @@
     gate: true,
     pins: {
       in1: { x: -62, y: 0, direction: "in", label: "כניסת DMUX" },
-      in2: { x: 0, y: 46, direction: "in", label: "כניסת בקרה של DMUX" },
+      in2: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של DMUX" },
       out1: { x: 66, y: -23, direction: "out", label: "יציאת DMUX 1" },
       out2: { x: 66, y: 23, direction: "out", label: "יציאת DMUX 2" }
     },
