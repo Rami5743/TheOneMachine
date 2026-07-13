@@ -246,10 +246,11 @@
     };
   }
 
-  // Default lomda pace. DEV keeps "all" (free navigation for testing); PRODUCTION
-  // wants "step". Project policy: flip this to "step" immediately before pushing
-  // to main, and back to "all" right after. This one constant is the flip point.
-  const DEFAULT_PACE = "all";
+  // Default lomda pace. Production wants "step" (this is the shipped value).
+  // Project policy: AFTER a push to main, flip this to "all" in the dev branch
+  // for free testing; then restore "step" right before the next push to main.
+  // This one constant is the flip point.
+  const DEFAULT_PACE = "step";
 
   const defaultState = {
     screen: "menu",
