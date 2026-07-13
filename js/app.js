@@ -2546,6 +2546,22 @@
     });
   }
 
+  // Local dev aid: append ?slideDelay=2000 to the URL to force every slide to
+  // take at least N ms to reveal. Locally the files load instantly, so the
+  // spinner and the "reveal only when fully loaded" behaviour are otherwise
+  // invisible; this makes them observable on demand. No param => no effect, so
+  // it never touches the real experience. (Combine with the browser's Network
+  // throttling + "Disable cache" to reproduce a true slow first load.)
+  function devSlideDelayMs() {
+    try {
+      const raw = new URLSearchParams(location.search).get("slideDelay");
+      const n = raw == null ? 0 : parseInt(raw, 10);
+      return Number.isFinite(n) && n > 0 ? Math.min(n, 20000) : 0;
+    } catch (err) {
+      return 0;
+    }
+  }
+
   // Hide the just-rendered slide behind a centred spinner until it is fully
   // loaded, then reveal raster and vector together. `image` is the slide source;
   // `onReady` (optional) queues neighbour preloading once the current slide is up.
@@ -2559,10 +2575,19 @@
 
     obj.classList.add("is-pending");
 
+    const devDelay = devSlideDelayMs();
+    const startedAt = Date.now();
     let revealed = false;
     let spinnerTimer = null;
     const reveal = () => {
       if (revealed) return;
+      // Honour the local dev delay so the spinner stays visible long enough to see.
+      const wait = devDelay - (Date.now() - startedAt);
+      if (wait > 0) {
+        if (spinner) spinner.classList.add("is-active");
+        setTimeout(reveal, wait);
+        return;
+      }
       revealed = true;
       if (spinnerTimer) clearTimeout(spinnerTimer);
       obj.classList.remove("is-pending");
