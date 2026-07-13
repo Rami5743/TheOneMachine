@@ -246,6 +246,11 @@
     };
   }
 
+  // Default lomda pace. DEV keeps "all" (free navigation for testing); PRODUCTION
+  // wants "step". Project policy: flip this to "step" immediately before pushing
+  // to main, and back to "all" right after. This one constant is the flip point.
+  const DEFAULT_PACE = "all";
+
   const defaultState = {
     screen: "menu",
     chapterId: CHAPTERS[0].id,
@@ -271,7 +276,7 @@
     explanationsUnlocked: [],
     explanationsReturnTo: null,
     explanationReplay: null,
-    settings: { language: "he", gender: "", age: "", pace: "step" },
+    settings: { language: "he", gender: "", age: "", pace: DEFAULT_PACE },
     pageReturn: null,
     paceHintShown: false,
     paceDialog: false,
@@ -290,8 +295,8 @@
       gender: s.gender === "בת" ? "בת" : (s.gender === "בן" ? "בן" : ""),
       age: typeof s.age === "string" ? s.age : (Number.isInteger(s.age) ? String(s.age) : ""),
       // How the player takes the lomda: "step" (step by step) or "all" (see
-      // everything). Default is "step" — only an explicit "all" opts out.
-      pace: s.pace === "all" ? "all" : "step"
+      // everything). An explicit choice is kept; otherwise DEFAULT_PACE applies.
+      pace: (s.pace === "step" || s.pace === "all") ? s.pace : DEFAULT_PACE
     };
   }
 
@@ -5079,8 +5084,9 @@
     // (the change still applies). This needs a re-render, which is fine for a
     // <select> (unlike the age text box, focus loss doesn't matter here).
     if (key === "pace" && !state.paceHintShown) {
-      const settings = normalizedSettings({ ...normalizedSettings(state.settings), pace: field.value });
-      return setState({ settings, paceHintShown: true, paceDialog: true });
+      // First attempt to change the pace does NOT apply — only the dialog shows.
+      // The re-render reverts the <select> back to the current pace.
+      return setState({ paceHintShown: true, paceDialog: true });
     }
     updateSetting(key, field.value);
   }
