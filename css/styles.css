@@ -246,6 +246,21 @@ button { font: inherit; }
   background: var(--button-hover);
 }
 
+/* Step-by-step mode: chapters not yet reached are locked. */
+.chapter-btn-locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chapter-btn-locked:hover {
+  background: var(--button);
+}
+
+.chapter-lock {
+  margin-inline-start: 4px;
+  font-size: 0.85em;
+}
+
 .btn:disabled {
   opacity: 0.45;
   cursor: default;

@@ -273,6 +273,7 @@
     explanationReplay: null,
     settings: { language: "he", gender: "", age: "", pace: "all" },
     settingsReturn: null,
+    maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
 
@@ -314,18 +315,30 @@
     return isFemalePlayer() && fem != null ? fem : masc;
   }
 
-  // A story panel may carry feminine overrides: `femaleImage` (a "_girl" SVG
-  // variant that reuses the same raster but with feminine speech text) and
-  // `femaleRead` (feminine narration). These affect DISPLAY only — the canonical
-  // `image` stays the panel's identity for lookups (panelImageIs etc.).
+  // A story panel may carry preference-based overrides — an alternate SVG that
+  // reuses the same raster with different speech text, plus matching narration:
+  //   femaleImage/femaleRead  — girl player
+  //   youngImage/youngRead    — age under 13
+  //   olderImage/olderRead    — age 17 and up
+  // These affect DISPLAY only — the canonical `image` stays the panel's identity
+  // for lookups (panelImageIs etc.). Returns {image, read} or null.
+  function panelVariant(panel) {
+    if (!panel) return null;
+    const age = effectiveAge();
+    if (panel.youngImage && age < 13) return { image: panel.youngImage, read: panel.youngRead };
+    if (panel.olderImage && age >= 17) return { image: panel.olderImage, read: panel.olderRead };
+    if (isFemalePlayer() && panel.femaleImage) return { image: panel.femaleImage, read: panel.femaleRead };
+    return null;
+  }
+
   function displayPanelImage(panel) {
-    if (!panel) return "";
-    return isFemalePlayer() && panel.femaleImage ? panel.femaleImage : panel.image;
+    const v = panelVariant(panel);
+    return v && v.image ? v.image : (panel ? panel.image : "");
   }
 
   function panelReadText(panel) {
-    if (!panel) return "";
-    return isFemalePlayer() && panel.femaleRead ? panel.femaleRead : panel.read;
+    const v = panelVariant(panel);
+    return v && v.read != null ? v.read : (panel ? panel.read : "");
   }
 
   // Feminine variants for player-addressed strings that live in shared data
@@ -754,6 +767,7 @@
         soundOn: false,
         replayNonce: Number.isInteger(loaded.replayNonce) ? loaded.replayNonce : 0,
         settings: normalizedSettings(loaded.settings),
+        maxChapterReached: Math.max(Number.isInteger(loaded.maxChapterReached) ? loaded.maxChapterReached : 0, chapterIndexById(chapter.id)),
         workspace
       };
     }
@@ -780,6 +794,7 @@
       solutionDialog: null,
       hintState: loaded.hintState && typeof loaded.hintState === "object" ? loaded.hintState : {},
       settings: normalizedSettings(loaded.settings),
+      maxChapterReached: Math.max(Number.isInteger(loaded.maxChapterReached) ? loaded.maxChapterReached : 0, chapterIndexById(chapter.id)),
       workspace
     };
   }
@@ -830,9 +845,27 @@
   function setState(patch, shouldSpeak = false) {
     stopSpeech();
     state = { ...state, ...patch };
+    // Track the furthest chapter reached (drives step-by-step chapter locking).
+    // Every chapter change flows through setState, so replaying an earlier
+    // chapter never lowers this — completed chapters stay unlocked.
+    const chapterIdx = chapterIndexById(state.chapterId);
+    if (chapterIdx > (Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0)) {
+      state.maxChapterReached = chapterIdx;
+    }
     saveState();
     render();
     if (shouldSpeak) speakCurrent();
+  }
+
+  function isStepByStepPace() {
+    return state.settings && state.settings.pace === "step";
+  }
+
+  // In step-by-step mode, chapters past the furthest one reached are locked.
+  function chapterReached(chapterId) {
+    if (!isStepByStepPace()) return true;
+    const max = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
+    return chapterIndexById(chapterId) <= max;
   }
 
   function currentScene() {
@@ -1718,6 +1751,14 @@
       </main>`;
   }
 
+  function chapterButtonHtml(chapter) {
+    const locked = !chapterReached(chapter.id);
+    const cls = locked ? "chapter-btn chapter-btn-locked" : "chapter-btn";
+    const attrs = locked ? ' disabled aria-disabled="true" title="הפרק יינעל עד שתגיע אליו"' : "";
+    const lock = locked ? ' <span class="chapter-lock" aria-hidden="true">🔒</span>' : "";
+    return `<button class="${cls}" data-action="chapter" data-chapter-id="${esc(chapter.id)}"${attrs}>${esc(chapter.title)}${lock}</button>`;
+  }
+
   function renderChapters() {
     const parts = typeof PARTS === "undefined" ? [] : PARTS;
     const knownPartIds = new Set(parts.map((part) => part.id));
@@ -1725,8 +1766,7 @@
       const chapters = CHAPTERS.filter((chapter) => chapter.partId === part.id);
       if (!chapters.length) return "";
 
-      const chapterButtons = chapters.map((chapter) => `
-        <button class="chapter-btn" data-action="chapter" data-chapter-id="${esc(chapter.id)}">${esc(chapter.title)}</button>`).join("");
+      const chapterButtons = chapters.map(chapterButtonHtml).join("");
 
       return `
         <section class="part-card">
@@ -1739,8 +1779,7 @@
     const fallbackSection = ungroupedChapters.length ? `
       <section class="part-card">
         <h2 class="part-title">פרקים</h2>
-        <div class="part-chapters">${ungroupedChapters.map((chapter) => `
-          <button class="chapter-btn" data-action="chapter" data-chapter-id="${esc(chapter.id)}">${esc(chapter.title)}</button>`).join("")}</div>
+        <div class="part-chapters">${ungroupedChapters.map(chapterButtonHtml).join("")}</div>
       </section>` : "";
 
     app.innerHTML = `
@@ -2736,8 +2775,9 @@
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
-    // A "_girl" SVG variant reuses the base panel's raster, so strip that suffix.
-    return clean.endsWith(".svg") ? clean.replace(/(_girl)?\.svg$/, ".webp") : clean;
+    // A preference variant SVG (_girl/_young/_older) reuses the base panel's
+    // raster, so strip that suffix before deriving the shared .webp.
+    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older))?\.svg$/, ".webp") : clean;
   }
 
   function preloadAssetUrl(url) {
@@ -5105,7 +5145,10 @@
       if (state.workspace.unlocked && ["chapter-4", "chapter-5", "chapter-6"].includes(state.chapterId)) return setState({ ...transientUiClearPatch(), screen: "workspace" }, false);
       return setState({ ...transientUiClearPatch(), screen: "story" }, true);
     }
-    if (action === "chapter") return openChapter(button.dataset.chapterId);
+    if (action === "chapter") {
+      if (!chapterReached(button.dataset.chapterId)) return; // locked in step-by-step
+      return openChapter(button.dataset.chapterId);
+    }
     if (action === "next") return nextPanel();
     if (action === "prev") return previousPanel();
     if (action === "nand-monologue-prev") return previousNandMonologue();
