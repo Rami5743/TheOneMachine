@@ -1,6 +1,11 @@
 (() => {
   const app = document.getElementById("app");
 
+  // Vertical gap between a splitter's output pins. Declared up here (not beside
+  // the other splitter helpers) because splitter pin resolution runs during the
+  // initial loadState()/normalizeWorkspace(), before that later block executes.
+  const SPLITTER_OUTPUT_SPACING = 30; // matches component-visuals
+
   const WORKSPACE_COMPONENT_DEFS = {
     source: {
       label: "מקור מתח",
@@ -455,8 +460,9 @@
   // first (the wiring, circuit, and state models below all build on it) with a
   // live reference to the component-definition table. Thin wrappers keep every
   // existing call site unchanged.
-  const __componentModel = createComponentModel({ componentDefs: WORKSPACE_COMPONENT_DEFS });
+  const __componentModel = createComponentModel({ componentDefs: WORKSPACE_COMPONENT_DEFS, resolvePins: componentPins });
   const componentDef = (...args) => __componentModel.componentDef(...args);
+  const pinsOf = (...args) => __componentModel.pinsOf(...args);
   const splitTerminalRef = (...args) => __componentModel.splitTerminalRef(...args);
   const componentById = (...args) => __componentModel.componentById(...args);
   const pinDefFor = (...args) => __componentModel.pinDefFor(...args);
@@ -469,7 +475,8 @@
   // canAddWire during load. Thin wrappers keep every existing call site unchanged.
   const __workbenchModel = createWorkbenchModel({
     terminalDirection, terminalExists, splitTerminalRef, componentById,
-    componentGraphHasPath, normalizeWire, isNandOutputRef
+    componentGraphHasPath, normalizeWire, isNandOutputRef,
+    wireWidthLegal
   });
   const canAddWire = (...args) => __workbenchModel.canAddWire(...args);
   const inputRefOf = (...args) => __workbenchModel.inputRefOf(...args);
@@ -535,7 +542,7 @@
   const __boardRender = createBoardRender({
     solutionHighlightConfig, terminalPosition, wireKey, esc, componentDef,
     componentMarkup, charredNandMarkup, smokeMarkup, isFixedWorkspaceComponent,
-    componentRenderScale
+    componentRenderScale, resolvePins: componentPins, pinWidth
   });
   const renderWires = () => __boardRender.renderWires(state.workspace);
   const renderTerminals = () => __boardRender.renderTerminals(state.workspace);
@@ -546,7 +553,8 @@
   // setState plumbing that calls them stays in this file.
   const __wireOps = createWireOps({
     otherWireEnd, splitTerminalRef, terminalExists, inputRefOf, wireKey,
-    normalizeWire, canonicalTaskFrameWire, canAddWire
+    normalizeWire, canonicalTaskFrameWire, canAddWire,
+    onWireAdded: applyWireWidthDefinition
   });
   const connectedTerminals = (...args) => __wireOps.connectedTerminals(...args);
   const removeInvalidWires = (...args) => __wireOps.removeInvalidWires(...args);
@@ -3260,6 +3268,18 @@
       </g>`;
   }
 
+  // Once a splitter's width is fixed, every pin shows its width as a number
+  // above it (legs = the width, the single pin = width * output count).
+  function renderSplitterWidthLabels() {
+    if (state.screen !== "workspace") return "";
+    return state.workspace.components
+      .filter((c) => c.type === "splitter" && Number.isInteger(c.width))
+      .map((c) => Object.entries(splitterPins(c)).map(([pinId, pin]) => {
+        const w = pinId === "single" ? c.width * splitterOutputCount(c) : c.width;
+        return `<text class="splitter-width-label" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
+      }).join("")).join("");
+  }
+
   // The little "number of outputs" editor, shown under a splitter on double-click.
   function renderSplitterCountBox() {
     if (state.screen !== "workspace") return "";
@@ -3298,6 +3318,9 @@
                 </g>
                 <g class="workspace-terminal-layer">
                   ${renderTerminals()}
+                </g>
+                <g class="workspace-splitter-labels-layer">
+                  ${renderSplitterWidthLabels()}
                 </g>
                 <g class="workspace-splitter-controls-layer">
                   ${renderSplitterControls()}
@@ -4886,6 +4909,89 @@
     return ((n - 1) * 30) / 2 + 12;
   }
 
+  // ---- Splitter pins & bus widths ------------------------------------------
+  function splitterOutputCount(component) {
+    return Math.min(16, Math.max(2, Number(component?.outputs) || 4));
+  }
+
+  function splitterOutputYs(n) {
+    const ys = [];
+    for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * SPLITTER_OUTPUT_SPACING));
+    return ys;
+  }
+
+  // The splitter's pins depend on the instance: one "single" spine pin and one
+  // "leg" pin per output. Mirroring flips the geometry AND swaps the roles —
+  // unmirrored the single pin is the input and the legs are outputs; mirrored
+  // the single pin is the output and the legs are inputs.
+  function splitterPins(component) {
+    const n = splitterOutputCount(component);
+    const mirrored = Boolean(component?.mirrored);
+    const pins = {
+      single: { x: mirrored ? 70 : -70, y: 0, direction: mirrored ? "out" : "in", label: "פין ראשי של המפצל" }
+    };
+    splitterOutputYs(n).forEach((y, i) => {
+      pins[`leg${i}`] = { x: mirrored ? -66 : 66, y, direction: mirrored ? "in" : "out", label: `פין מפצל ${i + 1}` };
+    });
+    return pins;
+  }
+
+  function componentPins(component) {
+    if (component?.type === "splitter") return splitterPins(component);
+    return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
+  }
+
+  // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
+  // undefined (null) until a connection fixes its width; a leg pin is then that
+  // width and the single pin is width * output-count.
+  function pinWidth(workspace, ref) {
+    const info = pinDefFor(workspace, ref);
+    if (!info) return null;
+    if (info.component.type !== "splitter") return 1;
+    const w = Number.isInteger(info.component.width) ? info.component.width : null;
+    if (w === null) return null;
+    return info.pinId === "single" ? w * splitterOutputCount(info.component) : w;
+  }
+
+  function isSplitterSinglePin(workspace, ref) {
+    const info = pinDefFor(workspace, ref);
+    return Boolean(info && info.component.type === "splitter" && info.pinId === "single");
+  }
+
+  // Whether a candidate connection between a and b obeys the width rules: at
+  // least one side defined; two defined widths must be equal; defining a
+  // splitter's single pin requires the width to divide its output count.
+  function wireWidthLegal(workspace, a, b) {
+    const wa = pinWidth(workspace, a);
+    const wb = pinWidth(workspace, b);
+    if (wa === null && wb === null) return false;
+    if (wa !== null && wb !== null) return wa === wb;
+    const defined = wa !== null ? wa : wb;
+    const undefRef = wa === null ? a : b;
+    if (isSplitterSinglePin(workspace, undefRef)) {
+      const info = pinDefFor(workspace, undefRef);
+      return defined % splitterOutputCount(info.component) === 0;
+    }
+    return true;
+  }
+
+  // After a legal wire is added, fix the width of the newly-defined splitter (if
+  // one side was undefined). Setting the splitter's width defines all its pins.
+  function applyWireWidthDefinition(workspace, a, b) {
+    const wa = pinWidth(workspace, a);
+    const wb = pinWidth(workspace, b);
+    if ((wa === null) === (wb === null)) return;
+    const defined = wa !== null ? wa : wb;
+    const undefRef = wa === null ? a : b;
+    const info = pinDefFor(workspace, undefRef);
+    if (!info || info.component.type !== "splitter") return;
+    const component = componentById(workspace, info.component.id);
+    if (!component) return;
+    component.width = info.pinId === "single"
+      ? Math.round(defined / splitterOutputCount(component))
+      : defined;
+  }
+
   function focusWorkspaceComponent(id) {
     const component = componentById(state.workspace, id);
     const focusId = component && component.type === "splitter" ? id : null;
@@ -4927,23 +5033,23 @@
     setState({ splitterEdit: null }, false);
   }
 
-  // Live output-count update from the number box. Updated in place with a
-  // targeted redraw (no full re-render) so the box keeps focus while typing.
+  // Change the number of outputs (committed on change). Because the fan-out
+  // determines the width relationship, changing it clears the fixed width and
+  // any wiring on this splitter.
   function setSplitterOutputs(id, value) {
-    const component = splitterById(id);
-    if (!component) return;
+    const current = splitterById(id);
+    if (!current) return;
     const raw = parseInt(value, 10);
     if (!Number.isFinite(raw)) return;
     const n = Math.min(16, Math.max(2, raw));
-    if (component.outputs === n) return;
-    component.outputs = n;
-    saveState();
-    const g = app.querySelector(`.workspace-component[data-component-id="${CSS.escape(id)}"]`);
-    if (g) g.innerHTML = componentMarkup("splitter", { outputs: component.outputs, mirrored: component.mirrored });
-    const controls = app.querySelector(".workspace-splitter-controls-layer");
-    if (controls) controls.innerHTML = renderSplitterControls();
-    const box = app.querySelector(".splitter-count-box");
-    if (box) box.style.top = `${component.y + splitterHalfHeight(component) + 14}px`;
+    if (current.outputs === n) return;
+    withWorkspace((workspace) => {
+      const component = componentById(workspace, id);
+      if (!component || component.type !== "splitter") return;
+      component.outputs = n;
+      component.width = null;
+      workspace.wires = workspace.wires.filter((wire) => !wire.a.startsWith(`${id}.`) && !wire.b.startsWith(`${id}.`));
+    });
   }
 
   function handleWorkspaceTerminal(ref) {
@@ -5152,9 +5258,8 @@
       group.setAttribute("transform", `translate(${pos.x} ${pos.y})${scaleTransform}`);
     }
 
-    const def = componentDef(component?.type);
-    if (component && def) {
-      for (const pinId of Object.keys(def.pins)) {
+    if (component) {
+      for (const pinId of Object.keys(componentPins(component))) {
         const ref = `${component.id}.${pinId}`;
         const pinPos = terminalPositionWithOverride(ref, component.id, pos);
         const terminal = app.querySelector(`[data-action='workspace-terminal'][data-terminal-ref='${CSS.escape(ref)}']`);
@@ -5380,7 +5485,7 @@
     openSplitterCountBox(component.id);
   });
 
-  document.addEventListener("input", (event) => {
+  document.addEventListener("change", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
   });

@@ -15,9 +15,18 @@
 //                                 isNandOutputRef }
 //   deps: componentDefs
 
-function createComponentModel({ componentDefs }) {
+function createComponentModel({ componentDefs, resolvePins }) {
   function componentDef(type) {
     return componentDefs[type] || null;
+  }
+
+  // A component's pins may depend on the instance (the splitter's pin set and
+  // directions vary with its output count and mirroring), so pin lookups go
+  // through resolvePins(component) when provided, falling back to the static
+  // per-type table.
+  function pinsOf(component) {
+    if (resolvePins) return resolvePins(component) || {};
+    return componentDef(component?.type)?.pins || {};
   }
 
   function splitTerminalRef(ref) {
@@ -34,8 +43,7 @@ function createComponentModel({ componentDefs }) {
     const parsed = splitTerminalRef(ref);
     if (!parsed) return null;
     const component = componentById(workspace, parsed.componentId);
-    const def = component ? componentDef(component.type) : null;
-    const pin = def?.pins?.[parsed.pinId] || null;
+    const pin = component ? pinsOf(component)[parsed.pinId] || null : null;
     return component && pin ? { component, pin, pinId: parsed.pinId } : null;
   }
 
@@ -52,5 +60,5 @@ function createComponentModel({ componentDefs }) {
     return Boolean(info && info.component.type === "nand" && info.pinId === "out");
   }
 
-  return { componentDef, splitTerminalRef, componentById, pinDefFor, terminalExists, terminalDirection, isNandOutputRef };
+  return { componentDef, pinsOf, splitTerminalRef, componentById, pinDefFor, terminalExists, terminalDirection, isNandOutputRef };
 }

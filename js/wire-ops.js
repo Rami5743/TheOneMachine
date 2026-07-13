@@ -18,7 +18,8 @@ function createWireOps({
   wireKey,
   normalizeWire,
   canonicalTaskFrameWire,
-  canAddWire
+  canAddWire,
+  onWireAdded
 }) {
   function connectedTerminals(workspace, ref) {
     const result = new Set([ref]);
@@ -80,6 +81,7 @@ function createWireOps({
     }
 
     workspace.wires.push(normalizeWire(wireA, wireB));
+    if (onWireAdded) onWireAdded(workspace, wireA, wireB);
     workspace.selectedTerminal = null;
   }
 

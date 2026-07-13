@@ -47,6 +47,8 @@ function createWorkspaceState({
     if (type === "splitter") {
       base.outputs = Number.isInteger(component.outputs) ? Math.min(16, Math.max(2, component.outputs)) : 4;
       base.mirrored = Boolean(component.mirrored);
+      // The fixed bus width per output (null = not yet determined by wiring).
+      base.width = Number.isInteger(component.width) && component.width >= 1 ? component.width : null;
     }
     return base;
   }

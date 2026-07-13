@@ -20,7 +20,8 @@ function createWorkbenchModel({
   componentById,
   componentGraphHasPath,
   normalizeWire,
-  isNandOutputRef
+  isNandOutputRef,
+  wireWidthLegal
 }) {
   function inputRefOf(workspace, a, b) {
     const da = terminalDirection(workspace, a);
@@ -71,6 +72,9 @@ function createWorkbenchModel({
     const inputRef = inputRefOf(workspace, a, b);
     const outputRef = outputRefOf(workspace, a, b);
     if (!inputRef || !outputRef) return false;
+
+    // Bus-width rules (e.g. the splitter): reject connections that break them.
+    if (wireWidthLegal && !wireWidthLegal(workspace, inputRef, outputRef)) return false;
 
     const inputInfo = splitTerminalRef(inputRef);
     const outputInfo = splitTerminalRef(outputRef);

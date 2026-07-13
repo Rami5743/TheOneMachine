@@ -858,6 +858,32 @@ button { font: inherit; }
   opacity: 0.85;
 }
 
+/* A multi-bit connection is drawn as a bus: a thick black cable with a light
+   dashed stripe running along it. */
+.wire-bus .wire-line {
+  stroke-width: 11;
+}
+
+.wire-bus-stripe {
+  stroke: #d8d8d8;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 5 7;
+  pointer-events: none;
+}
+
+/* Pin width numbers shown above a splitter's pins once its width is fixed. */
+.splitter-width-label {
+  fill: #ffe37a;
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.workspace-splitter-labels-layer { pointer-events: none; }
+
 .source-socket-body,
 .nand-shape,
 .lamp-glass-shape,

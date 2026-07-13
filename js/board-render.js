@@ -20,9 +20,12 @@ function createBoardRender({
   charredNandMarkup,
   smokeMarkup,
   isFixedWorkspaceComponent,
-  componentRenderScale
+  componentRenderScale,
+  resolvePins,
+  pinWidth
 }) {
   const renderScale = (type) => (componentRenderScale ? componentRenderScale(type) : 1);
+  const pinsFor = (component) => (resolvePins ? resolvePins(component) : componentDef(component.type).pins);
 
   function renderWires(workspace) {
     const highlight = solutionHighlightConfig();
@@ -32,9 +35,14 @@ function createBoardRender({
       if (!a || !b) return "";
       const key = wireKey(wire.a, wire.b);
       const highlightClass = highlight.wires.has(key) ? " wire-highlight" : "";
+      // A connection wider than a single bit is drawn as a bus; a 1-bit wire
+      // (or an as-yet-untyped wire) looks like an ordinary cable.
+      const width = pinWidth ? (pinWidth(workspace, wire.a) ?? pinWidth(workspace, wire.b) ?? 1) : 1;
+      const busClass = width > 1 ? " wire-bus" : "";
       const wrap = (shape) => `
-        <g class="wire${highlightClass}" data-action="workspace-wire" data-wire-key="${esc(key)}" role="button" tabindex="0" aria-label="מחק כבל">
+        <g class="wire${highlightClass}${busClass}" data-action="workspace-wire" data-wire-key="${esc(key)}" role="button" tabindex="0" aria-label="מחק כבל">
           ${shape("wire-line")}
+          ${width > 1 ? shape("wire-bus-stripe") : ""}
           ${shape("wire-hit-line")}
         </g>`;
 
@@ -56,8 +64,7 @@ function createBoardRender({
   function renderTerminals(workspace) {
     const highlight = solutionHighlightConfig();
     return workspace.components.map((component) => {
-      const def = componentDef(component.type);
-      return Object.entries(def.pins).map(([pinId, pin]) => {
+      return Object.entries(pinsFor(component)).map(([pinId, pin]) => {
         const ref = `${component.id}.${pinId}`;
         const selected = workspace.selectedTerminal === ref ? " terminal-selected" : "";
         const solutionClass = highlight.terminals.has(ref) ? " terminal-solution-highlight" : "";
