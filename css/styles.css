@@ -1805,6 +1805,18 @@ button { font: inherit; }
   outline-offset: 2px;
 }
 
+/* 2.4 note list: plain, non-clickable items (number + label, no check column). */
+.note-task-list.buses-note-list li {
+  grid-template-columns: 2.1em minmax(0, 1fr);
+}
+
+.note-task-item {
+  justify-self: start;
+  padding: 2px 4px;
+  font-weight: 750;
+  color: #2a1c0f;
+}
+
 .note-task-list li.task-locked .note-task-button {
   color: rgba(42, 28, 15, 0.48);
 }

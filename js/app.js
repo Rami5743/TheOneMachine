@@ -283,6 +283,8 @@
     paceDialog: false,
     infoDialog: null,
     componentMonologue: null,
+    busesEquipmentSeen: [],
+    busesNoteList: false,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -697,7 +699,8 @@
       notTest: null,
       paceDialog: false,
       infoDialog: null,
-      componentMonologue: null
+      componentMonologue: null,
+      busesNoteList: false
     };
   }
 
@@ -819,7 +822,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -1955,7 +1958,8 @@
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}
       ${renderInfoDialog()}
-      ${renderComponentMonologue()}`;
+      ${renderComponentMonologue()}
+      ${renderBusesNoteList()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -4110,12 +4114,51 @@
     return setState({ bitDialog: null }, false);
   }
 
+  // Opening a component's monologue counts as "examining" that piece of new
+  // equipment; once both the bus and the splitter have been examined the 2.4
+  // note unlocks its task list.
   function openComponentMonologue(kind) {
-    setState({ componentMonologue: { kind: kind === "splitter" ? "splitter" : "bus" } }, false);
+    const k = kind === "splitter" ? "splitter" : "bus";
+    const seen = Array.isArray(state.busesEquipmentSeen) ? state.busesEquipmentSeen : [];
+    const nextSeen = seen.includes(k) ? seen : [...seen, k];
+    setState({ componentMonologue: { kind: k }, busesEquipmentSeen: nextSeen }, false);
   }
 
   function closeComponentMonologue() {
     setState({ componentMonologue: null }, false);
+  }
+
+  function newEquipmentChecked() {
+    const seen = Array.isArray(state.busesEquipmentSeen) ? state.busesEquipmentSeen : [];
+    return seen.includes("bus") && seen.includes("splitter");
+  }
+
+  // The 2.4 note's task list. Clicking the individual items is intentionally not
+  // wired up yet.
+  const BUSES_NOTE_ITEMS = ["Not4", "Not16", "AND4", "AND16", "MUX4", "MUX16"];
+
+  function openBusesNote() {
+    if (!newEquipmentChecked()) {
+      return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
+    }
+    return setState({ busesNoteList: true });
+  }
+
+  function renderBusesNoteList() {
+    if (!state.busesNoteList) return "";
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          <ol class="note-task-list buses-note-list">
+            ${BUSES_NOTE_ITEMS.map((label) => `
+              <li><span class="note-task-item">${esc(label)}</span></li>`).join("")}
+          </ol>
+          <div class="note-task-actions">
+            <button class="btn" data-action="buses-note-close">סגור</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function finishSolutionDialog() {
@@ -5289,7 +5332,8 @@
     }
     if (action === "pace-dialog-ok") return setState({ paceDialog: false });
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
-    if (action === "buses-note") return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
+    if (action === "buses-note") return openBusesNote();
+    if (action === "buses-note-close") return setState({ busesNoteList: false });
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
     if (action === "component-monologue-ok") return closeComponentMonologue();
