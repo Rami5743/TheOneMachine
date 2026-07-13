@@ -63,7 +63,47 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     return componentSvgImage("bus.svg", -66, -52, 154, 104);
   }
 
-  function splitterMarkup() {
+  // A short length of "bus" cable: a thick line with a couple of light stripes,
+  // matching the look of the bus symbol.
+  function splitterBusStub(x1, x2, y) {
+    const mid = (x1 + x2) / 2;
+    return `
+      <line class="splitter-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
+      <line class="splitter-stripe" x1="${mid - 9}" y1="${y + 5}" x2="${mid - 3}" y2="${y - 5}" />
+      <line class="splitter-stripe" x1="${mid + 1}" y1="${y + 5}" x2="${mid + 7}" y2="${y - 5}" />`;
+  }
+
+  // The splitter as drawn on the board: one input bus on the left fanning out to
+  // `outputs` equal output buses on the right, with an order arrow. Mirrored
+  // instances are flipped around the y-axis. (The toolbar still uses the static
+  // splitter.svg — see splitterMarkup.)
+  function splitterBoardMarkup(outputs, mirrored) {
+    const n = Math.min(16, Math.max(2, Number(outputs) || 4));
+    const spacing = 26;
+    const ys = [];
+    for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
+    const halfH = ((n - 1) * spacing) / 2;
+    const inputStub = splitterBusStub(-70, -30, 0);
+    const body = `<path class="splitter-body" d="M-30 -12 L-6 ${-(halfH + 8)} L-6 ${halfH + 8} L-30 12 Z" />`;
+    const outputStubs = ys.map((y) => splitterBusStub(-6, 66, y)).join("");
+    const arrow = `
+      <g class="splitter-arrow">
+        <line x1="-17" y1="${ys[0]}" x2="-17" y2="${ys[n - 1]}" />
+        <polyline points="-21,${ys[n - 1] - 6} -17,${ys[n - 1]} -13,${ys[n - 1] - 6}" />
+      </g>`;
+    // A transparent hit area so clicks/drags/double-clicks anywhere over the
+    // splitter register, not only on the drawn lines.
+    const hit = `<rect class="splitter-hit" x="-72" y="${-(halfH + 8)}" width="142" height="${halfH * 2 + 16}" fill="transparent" />`;
+    const inner = `${hit}${inputStub}${body}${outputStubs}${arrow}`;
+    return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
+  }
+
+  function splitterMarkup(options = {}) {
+    // The board passes the instance's output count; the toolbar does not, and
+    // gets the static reference symbol.
+    if (Number.isInteger(options.outputs)) {
+      return splitterBoardMarkup(options.outputs, options.mirrored);
+    }
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
 
@@ -72,7 +112,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
     if (type === "bus") return busMarkup();
-    if (type === "splitter") return splitterMarkup();
+    if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("gate-")) return gateMarkup(taskDefById(type.slice(5)));
     return "";
   }

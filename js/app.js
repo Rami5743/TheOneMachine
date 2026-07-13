@@ -25,6 +25,13 @@
       },
       bounds: { left: 38, right: 38, top: 78, bottom: 34 }
     },
+    splitter: {
+      label: "מפצל",
+      // Wiring the splitter is not implemented yet, so it exposes no pins. Its
+      // look is drawn dynamically from the instance's `outputs`/`mirrored`.
+      pins: {},
+      bounds: { left: 74, right: 74, top: 96, bottom: 96 }
+    },
     notCard: {
       label: "מסגרת NOT",
       fixed: true,
@@ -285,6 +292,7 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
+    splitterEdit: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -557,7 +565,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -652,6 +660,10 @@
     );
   }
 
+  function isFreeBuildWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.freeBuild);
+  }
+
   function isFixedWorkspaceComponent(component) {
     if (!component) return false;
     if (componentDef(component.type)?.fixed) return true;
@@ -700,7 +712,8 @@
       paceDialog: false,
       infoDialog: null,
       componentMonologue: null,
-      busesNoteList: false
+      busesNoteList: false,
+      splitterEdit: null
     };
   }
 
@@ -822,7 +835,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, splitterEdit: null, workspace };
   }
 
   function stateForStorage() {
@@ -3222,6 +3235,46 @@
       </div>`;
   }
 
+  // SVG focus decoration for the focused splitter: a dashed ring plus the mirror
+  // handle (a vertical axis with arrows pointing outward = reflect around y).
+  function renderSplitterControls() {
+    if (state.screen !== "workspace") return "";
+    const id = state.workspace.focusedComponentId;
+    const component = splitterById(id);
+    if (!component) return "";
+    const cx = component.x;
+    const cy = component.y;
+    const halfH = splitterHalfHeight(component);
+    const hy = cy - halfH - 30;
+    return `
+      <g class="splitter-focus" aria-hidden="false">
+        <rect class="splitter-focus-ring" x="${cx - 82}" y="${cy - halfH - 12}" width="164" height="${halfH * 2 + 24}" rx="14" />
+        <g class="splitter-mirror-handle" data-action="splitter-mirror" data-component-id="${esc(id)}" role="button" tabindex="0" aria-label="שקף את המפצל" transform="translate(${cx} ${hy})">
+          <circle class="splitter-mirror-bg" cx="0" cy="0" r="16" />
+          <g class="splitter-mirror-glyph">
+            <line x1="0" y1="-9" x2="0" y2="9" />
+            <polyline points="-4,-4 -10,0 -4,4" />
+            <polyline points="4,-4 10,0 4,4" />
+          </g>
+        </g>
+      </g>`;
+  }
+
+  // The little "number of outputs" editor, shown under a splitter on double-click.
+  function renderSplitterCountBox() {
+    if (state.screen !== "workspace") return "";
+    const component = splitterById(state.splitterEdit);
+    if (!component) return "";
+    const left = component.x;
+    const top = component.y + splitterHalfHeight(component) + 14;
+    return `
+      <div class="splitter-count-box" style="left:${left}px; top:${top}px;">
+        <label>יציאות
+          <input type="number" min="2" max="16" step="1" value="${component.outputs}" data-splitter-count="${esc(component.id)}" aria-label="מספר יציאות" />
+        </label>
+      </div>`;
+  }
+
   function renderWorkspace() {
     const evaluation = evaluateWorkspace();
     app.innerHTML = `
@@ -3246,7 +3299,11 @@
                 <g class="workspace-terminal-layer">
                   ${renderTerminals()}
                 </g>
+                <g class="workspace-splitter-controls-layer">
+                  ${renderSplitterControls()}
+                </g>
               </svg>
+              ${renderSplitterCountBox()}
               ${renderNotTaskHint()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
@@ -4781,8 +4838,15 @@
       const id = `${type}-${workspace.nextId}`;
       workspace.nextId += 1;
       const pos = clampComponentPosition(type, x, y);
-      workspace.components.push({ id, type, x: pos.x, y: pos.y });
+      const component = { id, type, x: pos.x, y: pos.y };
+      if (type === "splitter") {
+        component.outputs = 4;
+        component.mirrored = false;
+      }
+      workspace.components.push(component);
       workspace.selectedTerminal = null;
+      // A freshly placed splitter is focused so its mirror handle shows.
+      workspace.focusedComponentId = type === "splitter" ? id : null;
     });
   }
 
@@ -4804,6 +4868,82 @@
       workspace.wires = workspace.wires.filter((wire) => !wire.a.startsWith(`${id}.`) && !wire.b.startsWith(`${id}.`));
       if (workspace.selectedTerminal?.startsWith(`${id}.`)) workspace.selectedTerminal = null;
     });
+  }
+
+  // --- Splitter focus / mirror / output-count -------------------------------
+  // A splitter shows its mirror handle while focused; double-clicking it opens a
+  // little box to change how many outputs it has. Wiring signals through it is
+  // not implemented yet.
+  function splitterById(id) {
+    const component = componentById(state.workspace, id);
+    return component && component.type === "splitter" ? component : null;
+  }
+
+  // Half the drawn height of a splitter (from centre to the outermost output),
+  // used to place its focus controls. Must match splitterBoardMarkup's spacing.
+  function splitterHalfHeight(component) {
+    const n = Math.min(16, Math.max(2, Number(component?.outputs) || 4));
+    return ((n - 1) * 26) / 2 + 8;
+  }
+
+  function focusWorkspaceComponent(id) {
+    const component = componentById(state.workspace, id);
+    const focusId = component && component.type === "splitter" ? id : null;
+    if (state.workspace.focusedComponentId === focusId && !state.splitterEdit) return;
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.focusedComponentId = focusId;
+    setState({ workspace, splitterEdit: null }, false);
+  }
+
+  function clearWorkspaceFocus() {
+    if (!state.workspace.focusedComponentId && !state.splitterEdit) return;
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.focusedComponentId = null;
+    setState({ workspace, splitterEdit: null }, false);
+  }
+
+  function toggleSplitterMirror(id) {
+    if (!splitterById(id)) return;
+    withWorkspace((workspace) => {
+      const component = componentById(workspace, id);
+      if (component && component.type === "splitter") {
+        component.mirrored = !component.mirrored;
+        workspace.focusedComponentId = id;
+      }
+    });
+  }
+
+  function openSplitterCountBox(id) {
+    if (!splitterById(id)) return;
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.focusedComponentId = id;
+    setState({ workspace, splitterEdit: id }, false);
+    const box = app.querySelector(`[data-splitter-count="${CSS.escape(id)}"]`);
+    if (box) { box.focus(); box.select?.(); }
+  }
+
+  function closeSplitterCountBox() {
+    if (!state.splitterEdit) return;
+    setState({ splitterEdit: null }, false);
+  }
+
+  // Live output-count update from the number box. Updated in place with a
+  // targeted redraw (no full re-render) so the box keeps focus while typing.
+  function setSplitterOutputs(id, value) {
+    const component = splitterById(id);
+    if (!component) return;
+    const raw = parseInt(value, 10);
+    if (!Number.isFinite(raw)) return;
+    const n = Math.min(16, Math.max(2, raw));
+    if (component.outputs === n) return;
+    component.outputs = n;
+    saveState();
+    const g = app.querySelector(`.workspace-component[data-component-id="${CSS.escape(id)}"]`);
+    if (g) g.innerHTML = componentMarkup("splitter", { outputs: component.outputs, mirrored: component.mirrored });
+    const controls = app.querySelector(".workspace-splitter-controls-layer");
+    if (controls) controls.innerHTML = renderSplitterControls();
+    const box = app.querySelector(".splitter-count-box");
+    if (box) box.style.top = `${component.y + splitterHalfHeight(component) + 14}px`;
   }
 
   function handleWorkspaceTerminal(ref) {
@@ -5112,6 +5252,10 @@
     }
 
     if (finished.moved) return render();
+
+    // A click without a drag focuses a splitter (and shows its mirror handle);
+    // clicking any other component clears the focus.
+    return focusWorkspaceComponent(finished.componentId);
   }
 
   function createDragGhost(type) {
@@ -5224,6 +5368,33 @@
   document.addEventListener("input", handleSettingEvent);
   document.addEventListener("change", handleSettingEvent);
 
+  // Splitter: double-click opens the output-count box; typing in it updates the
+  // splitter live; Enter/Escape close it.
+  document.addEventListener("dblclick", (event) => {
+    if (state.screen !== "workspace") return;
+    const comp = event.target.closest("[data-action='workspace-component']");
+    if (!comp) return;
+    const component = componentById(state.workspace, comp.dataset.componentId);
+    if (!component || component.type !== "splitter") return;
+    event.preventDefault();
+    openSplitterCountBox(component.id);
+  });
+
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest("[data-splitter-count]");
+    if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const box = event.target.closest("[data-splitter-count]");
+    if (!box) return;
+    if (event.key === "Enter" || event.key === "Escape") {
+      event.preventDefault();
+      setSplitterOutputs(box.dataset.splitterCount, box.value);
+      closeSplitterCountBox();
+    }
+  });
+
   document.addEventListener("click", (event) => {
     if (suppressNextClick) {
       suppressNextClick = false;
@@ -5334,6 +5505,7 @@
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
     if (action === "buses-note") return openBusesNote();
     if (action === "buses-note-close") return setState({ busesNoteList: false });
+    if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
     if (action === "component-monologue-ok") return closeComponentMonologue();
@@ -5444,6 +5616,14 @@
     if (component) {
       event.preventDefault();
       return startComponentDrag(component.dataset.componentId, event);
+    }
+
+    // A pointerdown anywhere else while a splitter is focused (empty board, a
+    // control button, ...) clears the focus — except on the splitter's own
+    // controls (the mirror handle and the output-count box).
+    if (state.screen === "workspace" && (state.workspace.focusedComponentId || state.splitterEdit)) {
+      if (event.target.closest("[data-action='splitter-mirror']") || event.target.closest("[data-splitter-count]")) return;
+      clearWorkspaceFocus();
     }
   });
 

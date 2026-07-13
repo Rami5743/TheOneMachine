@@ -41,7 +41,14 @@ function createWorkspaceState({
     const x = Number.isFinite(component.x) ? component.x : 500;
     const y = Number.isFinite(component.y) ? component.y : 300;
     const clamped = clampComponentPosition(type, x, y);
-    return { id, type, x: clamped.x, y: clamped.y };
+    const base = { id, type, x: clamped.x, y: clamped.y };
+    // The splitter carries per-instance state: how many outputs it has (default
+    // 4) and whether it is mirrored around the y-axis.
+    if (type === "splitter") {
+      base.outputs = Number.isInteger(component.outputs) ? Math.min(16, Math.max(2, component.outputs)) : 4;
+      base.mirrored = Boolean(component.mirrored);
+    }
+    return base;
   }
 
   function normalizeWorkspace(workspace) {
@@ -88,8 +95,15 @@ function createWorkspaceState({
       // The "empty table" free-build workbench flag. Preserved here so the mode
       // survives load/save (this normalizer runs on both) and stays
       // distinguishable from the NAND-presentation workbench.
-      freeBuild: Boolean(ws.freeBuild)
+      freeBuild: Boolean(ws.freeBuild),
+      // The component (currently only a splitter) that shows its focus controls
+      // — the mirror handle. Validated below against the live components.
+      focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null
     };
+
+    if (!components.some((component) => component.id === normalized.focusedComponentId)) {
+      normalized.focusedComponentId = null;
+    }
 
     const maxNumericSuffix = components.reduce((max, component) => {
       const match = component.id.match(/-(\d+)$/);

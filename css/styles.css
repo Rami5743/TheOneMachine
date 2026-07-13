@@ -782,6 +782,54 @@ button { font: inherit; }
   pointer-events: none;
 }
 
+/* --- Splitter (2.4) ------------------------------------------------------- */
+.splitter-hit { pointer-events: all; }
+.splitter-body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+.splitter-bus { stroke: #111; stroke-width: 9; stroke-linecap: round; fill: none; }
+.splitter-stripe { stroke: #f4efe0; stroke-width: 2.5; stroke-linecap: round; fill: none; }
+.splitter-arrow { stroke: #111; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+.workspace-splitter-controls-layer { pointer-events: none; }
+.splitter-focus-ring { fill: none; stroke: #ffe37a; stroke-width: 2.5; stroke-dasharray: 7 6; opacity: 0.85; }
+.splitter-mirror-handle { cursor: pointer; pointer-events: visiblePainted; }
+.splitter-mirror-bg { fill: #252525; stroke: #ffe37a; stroke-width: 2; }
+.splitter-mirror-handle:hover .splitter-mirror-bg,
+.splitter-mirror-handle:focus-visible .splitter-mirror-bg { fill: #3a3a3a; }
+.splitter-mirror-glyph { stroke: #ffe37a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+.splitter-count-box {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 40;
+  background: rgba(20, 20, 20, 0.96);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 5px 8px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+  direction: rtl;
+}
+
+.splitter-count-box label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.splitter-count-box input {
+  width: 3.4em;
+  padding: 3px 5px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #1a1a1a;
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}
+
 .wire {
   pointer-events: stroke;
   cursor: pointer;
