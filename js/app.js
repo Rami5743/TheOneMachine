@@ -2499,12 +2499,12 @@
     return String(url || "").split("?")[0].split("#")[0];
   }
 
-  // The heavy raster behind a slide: the matching .png for an .svg wrapper, or
+  // The heavy raster behind a slide: the matching .webp for an .svg wrapper, or
   // the file itself when it is already a raster.
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
-    return clean.endsWith(".svg") ? clean.replace(/\.svg$/, ".png") : clean;
+    return clean.endsWith(".svg") ? clean.replace(/\.svg$/, ".webp") : clean;
   }
 
   function preloadAssetUrl(url) {
@@ -2616,7 +2616,12 @@
         if (obj.contentDocument && obj.contentDocument.readyState === "complete") objReady = true;
       } catch (err) { /* cross-doc access can throw before load; ignored */ }
 
-      const raster = preloadAssetUrl(panelHeavyUrl(image));
+      // Use the raster only as a readiness signal, and only if it was ALREADY
+      // being preloaded (as a neighbour). Creating a fresh request here would
+      // race the <object>'s own fetch of the same file (harmless but noisy). If
+      // it was not preloaded, the <object> load event already waits for the
+      // embedded raster, so objReady alone covers it.
+      const raster = preloadedPanelImages.get(cleanAssetUrl(panelHeavyUrl(image)));
       if (!raster || (raster.complete && raster.naturalWidth > 0)) {
         rasterReady = true;
       } else {
