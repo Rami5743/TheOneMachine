@@ -1540,6 +1540,7 @@
             </div>
           </div>
         </section>
+        <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
         ${explanationReplayActive("nand-intro") ? renderNandIntroExplanationControls() : `
         <section class="controls">
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
@@ -1555,6 +1556,8 @@
       ${renderDialog()}
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}`;
+
+    setupPanelStage(panel.image, preloadStoryNeighbors);
   }
 
   function wireKey(a, b) {
@@ -2477,15 +2480,131 @@
 
   // XOR_HINT_NARRATION moved to js/app-data.js
 
+  // ---- Slide (panel / hint) loading & preloading -------------------------
+  //
+  // Every slide is a tiny SVG wrapper (~3KB) that references a heavy PNG raster
+  // (~2.5MB) of the same basename. Two problems used to hurt the first view,
+  // especially over the network: (a) nothing was fetched ahead of time, so each
+  // slide paid its full download only when reached; (b) the SVG's vector layer
+  // painted before its raster arrived, so the slide flashed in half-drawn.
+  //
+  // preloadPanelImage warms BOTH the wrapper and its PNG into the HTTP cache, so
+  // neighbours are ready before the user gets there. setupPanelStage keeps the
+  // freshly-rendered slide hidden behind a spinner until the whole thing (vector
+  // AND raster) is loaded, then reveals it in one fade.
+
+  const preloadedPanelImages = new Map(); // url -> Image (kept alive so it is not GC'd)
+
+  function cleanAssetUrl(url) {
+    return String(url || "").split("?")[0].split("#")[0];
+  }
+
+  // The heavy raster behind a slide: the matching .png for an .svg wrapper, or
+  // the file itself when it is already a raster.
+  function panelHeavyUrl(image) {
+    const clean = cleanAssetUrl(image);
+    if (!clean) return "";
+    return clean.endsWith(".svg") ? clean.replace(/\.svg$/, ".png") : clean;
+  }
+
+  function preloadAssetUrl(url) {
+    const clean = cleanAssetUrl(url);
+    if (!clean) return null;
+    if (preloadedPanelImages.has(clean)) return preloadedPanelImages.get(clean);
+    const image = new Image();
+    image.src = clean;
+    preloadedPanelImages.set(clean, image);
+    return image;
+  }
+
+  // Warm a slide fully: the small SVG wrapper and its heavy PNG raster.
+  function preloadPanelImage(image) {
+    const clean = cleanAssetUrl(image);
+    if (!clean) return;
+    if (clean.endsWith(".svg")) preloadAssetUrl(clean);
+    preloadAssetUrl(panelHeavyUrl(clean));
+  }
+
   const preloadedHintSlides = new Set();
 
   function preloadHintSlides(slides = []) {
     slides.forEach((src) => {
       if (!src || preloadedHintSlides.has(src)) return;
-      const image = new Image();
-      image.src = src;
+      preloadPanelImage(src);
       preloadedHintSlides.add(src);
     });
+  }
+
+  // While the user reads the current story panel, quietly fetch the panels just
+  // ahead (and the one behind, for going back) so navigation feels instant.
+  function preloadStoryNeighbors() {
+    const scene = currentScene();
+    if (!scene || !Array.isArray(scene.panels)) return;
+    const i = state.panelIndex;
+    [i + 1, i + 2, i + 3, i - 1].forEach((k) => {
+      if (k >= 0 && k < scene.panels.length) preloadPanelImage(scene.panels[k].image);
+    });
+  }
+
+  // Hide the just-rendered slide behind a centred spinner until it is fully
+  // loaded, then reveal raster and vector together. `image` is the slide source;
+  // `onReady` (optional) queues neighbour preloading once the current slide is up.
+  function setupPanelStage(image, onReady) {
+    const obj = app.querySelector(".panel-image");
+    const spinner = app.querySelector("[data-panel-spinner]");
+    if (!obj) {
+      if (typeof onReady === "function") onReady();
+      return;
+    }
+
+    obj.classList.add("is-pending");
+
+    let revealed = false;
+    let spinnerTimer = null;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      if (spinnerTimer) clearTimeout(spinnerTimer);
+      obj.classList.remove("is-pending");
+      if (spinner) spinner.classList.remove("is-active");
+      if (typeof onReady === "function") onReady();
+    };
+
+    try {
+      // Only bother showing the spinner if the slide is still not up after a
+      // short grace period, so cached/fast slides never flash it.
+      spinnerTimer = setTimeout(() => {
+        if (!revealed && spinner) spinner.classList.add("is-active");
+      }, 200);
+
+      // Reveal only once BOTH signals land: the <object> document finished
+      // loading (its embedded raster included) and the PNG has decoded.
+      let objReady = false;
+      let rasterReady = false;
+      const maybeReveal = () => {
+        if (objReady && rasterReady) requestAnimationFrame(reveal);
+      };
+
+      obj.addEventListener("load", () => { objReady = true; maybeReveal(); }, { once: true });
+      // If the object was served from cache it may already be complete.
+      try {
+        if (obj.contentDocument && obj.contentDocument.readyState === "complete") objReady = true;
+      } catch (err) { /* cross-doc access can throw before load; ignored */ }
+
+      const raster = preloadAssetUrl(panelHeavyUrl(image));
+      if (!raster || (raster.complete && raster.naturalWidth > 0)) {
+        rasterReady = true;
+      } else {
+        raster.addEventListener("load", () => { rasterReady = true; maybeReveal(); }, { once: true });
+        raster.addEventListener("error", () => { rasterReady = true; maybeReveal(); }, { once: true });
+      }
+
+      // Never leave a slide stuck behind the spinner if a signal is missed.
+      setTimeout(reveal, 8000);
+      maybeReveal();
+    } catch (err) {
+      reveal();
+    }
   }
 
   function xorHintTruthRows() {
@@ -2599,6 +2718,7 @@
             </div>
           </div>
         </section>
+        <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
         <section class="controls">
           ${navButton("hint-slides-prev", "arrow-right", explanationReplayActive("truth-table-cards") && index === 0 ? "חזרה לתפריט ההסברים" : "הקודם")}
           ${navButton("hint-slides-replay", "restart", "הקרא שוב")}
@@ -2611,6 +2731,8 @@
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
+
+    setupPanelStage(slides[index]);
   }
 
   function renderNandBuildHelpScreen() {
