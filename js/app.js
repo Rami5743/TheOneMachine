@@ -282,6 +282,7 @@
     paceHintShown: false,
     paceDialog: false,
     infoDialog: null,
+    componentMonologue: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -695,7 +696,8 @@
       bitDialog: null,
       notTest: null,
       paceDialog: false,
-      infoDialog: null
+      infoDialog: null,
+      componentMonologue: null
     };
   }
 
@@ -817,7 +819,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, workspace };
   }
 
   function stateForStorage() {
@@ -1831,6 +1833,36 @@
       </div>`;
   }
 
+  // The bus / splitter monologue: the component introduces itself (first person,
+  // like the NAND monologue) alongside its schematic symbol. Appearance only —
+  // no workbench behaviour yet. Opened from the two new 2.4 crate hotspots.
+  function componentMonologueSteps(kind) {
+    return kind === "splitter" ? SPLITTER_MONOLOGUE : BUS_MONOLOGUE;
+  }
+
+  function componentMonologueSymbol(kind) {
+    return kind === "splitter" ? "assets/components/splitter.svg" : "assets/components/bus.svg";
+  }
+
+  function renderComponentMonologue() {
+    if (!state.componentMonologue) return "";
+    const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
+    const steps = componentMonologueSteps(kind);
+    const step = Math.min(Math.max(Number(state.componentMonologue.step) || 0, 0), steps.length - 1);
+    const isLast = step >= steps.length - 1;
+    const label = kind === "splitter" ? "מפצל" : "בס";
+    return `
+      <div class="bit-overlay" role="presentation">
+        <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="${esc(label)}">
+          <img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />
+          <p>${esc(adaptGender(steps[step]))}</p>
+          <div class="bit-actions">
+            <button class="btn btn-primary" data-action="${isLast ? "component-monologue-ok" : "component-monologue-next"}" type="button">${isLast ? "אישור" : "המשך"}</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderPaceDialog() {
     if (!state.paceDialog) return "";
     return `
@@ -1920,7 +1952,8 @@
       ${renderDialog()}
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}
-      ${renderInfoDialog()}`;
+      ${renderInfoDialog()}
+      ${renderComponentMonologue()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -4075,6 +4108,23 @@
     return setState({ bitDialog: null }, false);
   }
 
+  function openComponentMonologue(kind) {
+    setState({ componentMonologue: { kind: kind === "splitter" ? "splitter" : "bus", step: 0 } }, false);
+  }
+
+  function advanceComponentMonologue() {
+    if (!state.componentMonologue) return;
+    const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
+    const steps = componentMonologueSteps(kind);
+    const step = Math.min(Math.max(Number(state.componentMonologue.step) || 0, 0), steps.length - 1);
+    if (step >= steps.length - 1) return setState({ componentMonologue: null }, false);
+    setState({ componentMonologue: { ...state.componentMonologue, step: step + 1 } }, false);
+  }
+
+  function closeComponentMonologue() {
+    setState({ componentMonologue: null }, false);
+  }
+
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
     const shouldComplete = Boolean(state.solutionDialog?.completeOnClose);
@@ -5247,7 +5297,10 @@
     if (action === "pace-dialog-ok") return setState({ paceDialog: false });
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
     if (action === "buses-note") return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
-    if (action === "buses-crate-right" || action === "buses-crate-left") return setState({ infoDialog: "בקרוב." });
+    if (action === "buses-crate-right") return openComponentMonologue("bus");
+    if (action === "buses-crate-left") return openComponentMonologue("splitter");
+    if (action === "component-monologue-next") return advanceComponentMonologue();
+    if (action === "component-monologue-ok") return closeComponentMonologue();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);

@@ -2347,6 +2347,22 @@ button { font: inherit; }
   cursor: pointer;
 }
 
+/* Bus / splitter monologue: the schematic symbol sits above the text. The
+   symbols are drawn with black strokes, so they need a light backdrop to be
+   legible on the dark card. */
+.component-monologue-symbol {
+  align-self: center;
+  justify-self: center;
+  width: min(360px, 82%);
+  max-height: 190px;
+  height: auto;
+  object-fit: contain;
+  background: #efe7d0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
 @media (max-width: 820px) {
   .bit-card {
     width: min(620px, calc(100vw - 28px));
