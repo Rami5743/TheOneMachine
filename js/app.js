@@ -368,16 +368,16 @@
 
     // ---- Task hints (js/app-data.js TASK_HINTS) ----
     if (typeof TASK_HINTS === "object" && TASK_HINTS) {
-      add(TASK_HINTS.Not?.[0]?.text, ["תנסה", "תנסי"]);
+      add(TASK_HINTS.Not?.[0]?.text, ["נסה להשתמש", "נסי להשתמש"]);
       add(TASK_HINTS.Not?.[2]?.text, ["אתה יכול", "את יכולה"]);
-      add(TASK_HINTS.And?.[0]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.And?.[0]?.text, ["חשוב על", "חשבי על"]);
       add(TASK_HINTS.And?.[2]?.text, ["אתה יכול", "את יכולה"], ["אתה מטפל", "את מטפלת"]);
       add(TASK_HINTS.And?.[4]?.text, ["שאתה צריך", "שאת צריכה"]);
-      add(TASK_HINTS.Or?.[0]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.Or?.[0]?.text, ["חשוב על", "חשבי על"]);
       add(TASK_HINTS.Or?.[1]?.text, ["אולי תשתמש", "אולי תשתמשי"]);
-      add(TASK_HINTS.Or?.[2]?.text, ["תחשוב", "תחשבי"]);
+      add(TASK_HINTS.Or?.[2]?.text, ["חשוב מתי", "חשבי מתי"]);
       add(TASK_HINTS.Or?.[4]?.text, ["תבצע", "תבצעי"], ["תוכל", "תוכלי"]);
-      add(TASK_HINTS.Xor?.[0]?.text, ["אתה כבר יודע", "את כבר יודעת"], ["אתה יודע", "את יודעת"], ["תנסה", "תנסי"], ["אתה צריך", "את צריכה"]);
+      add(TASK_HINTS.Xor?.[0]?.text, ["אתה כבר יודע", "את כבר יודעת"], ["אתה יודע", "את יודעת"], ["נסה לשלב", "נסי לשלב"], ["נסה להבין", "נסי להבין"], ["אתה צריך", "את צריכה"]);
       add(TASK_HINTS.AND3way?.[0]?.text, ["נסה ", "נסי "]);
       add(TASK_HINTS.AND3way?.[1]?.text, ["אתה יכול", "את יכולה"]);
       add(TASK_HINTS.AND3way?.[2]?.text, ["אתה צריך", "את צריכה"]);
@@ -385,9 +385,9 @@
       add(TASK_HINTS.DMux?.[1]?.text, ["שים לב", "שימי לב"]);
       add(TASK_HINTS.DMux?.[2]?.text, ["אתה צריך", "את צריכה"], ["תלחץ", "תלחצי"]);
       add(TASK_HINTS.DMux?.[3]?.text, ["אתה צריך", "את צריכה"]);
-      add(TASK_HINTS.Mux?.[0]?.text, ["תיזכור", "תיזכרי"], ["תבין", "תביני"], ["וטפל", "וטפלי"]);
+      add(TASK_HINTS.Mux?.[0]?.text, ["זכור שמדובר", "זכרי שמדובר"], ["הבן באילו", "הביני באילו"], ["וטפל בהן", "וטפלי בהן"]);
       add(TASK_HINTS.Mux?.[1]?.text, ["אתה יכול", "את יכולה"]);
-      add(TASK_HINTS.Mux?.[2]?.text, ["תנסה", "תנסי"]);
+      add(TASK_HINTS.Mux?.[2]?.text, ["נסה להכין", "נסי להכין"], ["נסה לרשום", "נסי לרשום"]);
       add(TASK_HINTS.Mux?.[3]?.text, ["אתה צריך", "את צריכה"], ["תלחץ", "תלחצי"]);
       add(TASK_HINTS.Mux?.[4]?.text, ["אתה צריך", "את צריכה"]);
     }
@@ -421,7 +421,7 @@
      typeof FALLBACK_END_DIALOGS !== "undefined" ? FALLBACK_END_DIALOGS : null]
       .filter(Boolean)
       .forEach((dialogs) => {
-        add(dialogs.helpPrompt?.title, ["אתה  מסכים לעזור", "את  מסכימה לעזור"]);
+        add(dialogs.helpPrompt?.title, ["אתה מסכים לעזור", "את מסכימה לעזור"]);
         add(dialogs.helpRefusal?.paragraphs?.[3], ["תרצה", "תרצי"]);
         add(dialogs.returnToNandPrompt?.title, ["אתה כבר מכיר", "את כבר מכירה"]);
       });
@@ -1726,12 +1726,12 @@
         <section class="about-card">
           <h1>אודות</h1>
           <p>זהו פיילוט ראשוני של לומדה לפי הקורס <a href="https://www.nand2tetris.org/" ${linkAttrs}>nand2tetris</a>.</p>
-          <p>מטרת הלומדה היא להנגיש באופן פשוט וחוויתי את התשובה לשאלה "איך בונים מחשב?". הלומדה מיועדת לקהל רחב עם התמקדות בילדים ובני נוער. מתחת לגיל 10 מומלץ ליווי מבוגר. הלומדה מתאימה גם לבוגרים, אבל אם יש לכם את הבגרות והקשב ללמוד קורס ברמה אוניברסיטאית, עדיף ללמוד את <a href="https://campus.gov.il/course/huji-acd-huji-nand2tetris/" ${linkAttrs}>הקורס המקורי באתר קמפוס.il</a> ולבוא לבקר כאן, בשביל החוויה.</p>
+          <p>מטרת הלומדה היא להנגיש באופן פשוט וחווייתי את התשובה לשאלה "איך בונים מחשב?". הלומדה מיועדת לקהל רחב עם התמקדות בילדים ובני נוער. מתחת לגיל 10 מומלץ ליווי מבוגר. הלומדה מתאימה גם לבוגרים, אבל אם יש לכם את הבגרות והקשב ללמוד קורס ברמה אוניברסיטאית, עדיף ללמוד את <a href="https://campus.gov.il/course/huji-acd-huji-nand2tetris/" ${linkAttrs}>הקורס המקורי באתר קמפוס.il</a> ולבוא לבקר כאן, בשביל החוויה.</p>
           <p>יצירת הלומדה היא באישור יוצרי הקורס המקורי <a href="https://he.wikipedia.org/wiki/%D7%A9%D7%9E%D7%A2%D7%95%D7%9F_%D7%A9%D7%95%D7%A7%D7%9F" ${linkAttrs}>שמעון שוקן</a> ו<a href="https://he.wikipedia.org/wiki/%D7%A0%D7%A2%D7%9D_%D7%A0%D7%99%D7%A1%D7%9F" ${linkAttrs}>נעם ניסן</a>, אך הם אינם נושאים בכל אחריות לתוכן הלומדה.</p>
           <p>העלילה בלומדה שואבת השראה מאירועים היסטוריים, אך היא בדיונית לחלוטין. אל תשתמשו בה כדי ללמוד היסטוריה.</p>
           <p>אשמח לשמוע הערות ב־<a href="mailto:aizenr@gmail.com">aizenr@gmail.com</a></p>
           <div class="about-links">
-            <button class="btn" data-action="open-not-ready">קשר להסטוריה</button>
+            <button class="btn" data-action="open-not-ready">קשר להיסטוריה</button>
             <button class="btn" data-action="open-not-ready">קשר לקורס</button>
           </div>
           <div class="about-actions">

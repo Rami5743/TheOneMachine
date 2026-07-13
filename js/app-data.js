@@ -129,7 +129,7 @@
     helpPrompt: {
       size: "small",
       ariaLabel: "בקשת עזרה",
-      title: "האם אתה  מסכים לעזור"
+      title: "האם אתה מסכים לעזור"
     },
     helpRefusal: {
       size: "large",
@@ -201,28 +201,28 @@
 
   const TASK_HINTS = {
     Not: [
-      { kind: "text", title: "רמז 1", text: "תנסה להשתמש ב־NAND." },
+      { kind: "text", title: "רמז 1", text: "נסה להשתמש ב־NAND." },
       { kind: "interactive", title: "רמז 2", action: "place-nand" },
       { kind: "text", title: "רמז 3", text: "אתה יכול לחבר את הכניסה של ה־NOT לשתי רגלי ה־NAND." },
       { kind: "interactive", title: "רמז 4", action: "connect-not-input-to-nand" }
     ],
     And: [
-      { kind: "text", title: "רמז 1", text: "תחשוב על הקשר בין AND ל־NAND." },
+      { kind: "text", title: "רמז 1", text: "חשוב על הקשר בין AND ל־NAND." },
       { kind: "text", title: "רמז 2", text: "אם NAND נותן תשובה הפוכה מ־AND, אז גם AND נותן תשובה הפוכה מ־NAND." },
       { kind: "text", title: "רמז 3", text: "אתה יכול קודם לבצע NAND על שתי הכניסות ואז לראות איך אתה מטפל בתוצאה." },
       { kind: "interactive", title: "רמז 4", action: "and-place-first-nand" },
       { kind: "interactive", title: "רמז 5", action: "and-place-first-nand-explained", text: "זה נותן תוצאה הפוכה ממה שאתה צריך, עכשיו נותר רק להפוך אותה.", openAfterApply: true }
     ],
     Or: [
-      { kind: "text", title: "רמז 1", text: "תחשוב על הקשר בין OR ל־NAND או ל־AND." },
+      { kind: "text", title: "רמז 1", text: "חשוב על הקשר בין OR ל־NAND או ל־AND." },
       { kind: "text", title: "רמז 2", text: "כיוון מחשבה 1: OR מוציא 0 רק במקרה אחד. גם NAND מוציא 0 רק במקרה אחד. אולי תשתמש ב־NAND כדי לבנות את OR.\n\nכיוון מחשבה 2: להגיד שאחד משני דברים קורה זה כמו להגיד שזה לא נכון שאף אחד מהם לא קורה." },
-      { kind: "text", title: "רמז 3", text: "כיוון מחשבה 1: תחשוב מתי ה־NAND מוציא 0 ומתי ה־OR מוציא 0. מה הקשר בין המקרים?" },
+      { kind: "text", title: "רמז 3", text: "כיוון מחשבה 1: חשוב מתי ה־NAND מוציא 0 ומתי ה־OR מוציא 0. מה הקשר בין המקרים?" },
       { kind: "text", title: "רמז 4", text: "כיוון מחשבה 1: מה צריך להכניס ל־NAND כדי שהוא ייתן את התוצאה שה־OR צריך לתת?" },
       { kind: "text", title: "רמז 5", text: "אולי יהיה לך יותר נוח אם תבצע NOT לכל אחת מהכניסות. ככה תוכל לבדוק מתי שתיהן 0." },
       { kind: "interactive", title: "רמז 6", action: "or-connect-inputs-to-not" }
     ],
     Xor: [
-      { kind: "text", title: "רמז 1", text: "כיוון מחשבה 1: אתה כבר יודע לדאוג לכך שהכרטיס יוציא 1 רק כאשר לפחות אחת מהכניסות היא 1. ואתה יודע איך לבנות כרטיס שבודק שלא שתי הכניסות הן 1. תנסה לשלב את הדברים.\n\nכיוון מחשבה 2: תנסה להבין מתי XOR צריך לתת 1 ולבנות כרטיס שמטפל בכל אחד מהמקרים האלה בנפרד. בסוף אתה צריך להוציא 1 כאשר אחד מהמקרים מתקיים." },
+      { kind: "text", title: "רמז 1", text: "כיוון מחשבה 1: אתה כבר יודע לדאוג לכך שהכרטיס יוציא 1 רק כאשר לפחות אחת מהכניסות היא 1. ואתה יודע איך לבנות כרטיס שבודק שלא שתי הכניסות הן 1. נסה לשלב את הדברים.\n\nכיוון מחשבה 2: נסה להבין מתי XOR צריך לתת 1 ולבנות כרטיס שמטפל בכל אחד מהמקרים האלה בנפרד. בסוף אתה צריך להוציא 1 כאשר אחד מהמקרים מתקיים." },
       { kind: "interactive", title: "רמז 2", action: "xor-slides" }
     ],
     AND3way: [
@@ -240,9 +240,9 @@
       { kind: "interactive", title: "רמז 4", action: "dmux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת?" }
     ],
     Mux: [
-      { kind: "text", title: "רמז 1", text: "תיזכור שמדובר בחישוב, תבין באיזה אפשרויות יוצא 1 וטפל בהן." },
+      { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },
       { kind: "text", title: "רמז 2", text: "אתה יכול להשתמש בשיטה שג'ון סיפר לך. אם זאת, אפשר קצת לפשט אותה במקרה זה." },
-      { kind: "text", title: "רמז 3", text: "תנסה להכין טבלת אמת. יש סה\"כ שלוש כניסות, לכן יש 8 אפשרויות (4 אם כניסת הבקרה היא 0 ועוד 4 אם כניסת הבקרה היא 1). תנסה לרשום את כולן, ומכל אחת מהן לרשום מה היציאה." },
+      { kind: "text", title: "רמז 3", text: "נסה להכין טבלת אמת. יש סה\"כ שלוש כניסות, לכן יש 8 אפשרויות (4 אם כניסת הבקרה היא 0 ועוד 4 אם כניסת הבקרה היא 1). נסה לרשום את כולן, ומכל אחת מהן לרשום מה היציאה." },
       { kind: "interactive", title: "רמז 4", action: "mux-fill-inputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עזרה בהכנת טבלת האמת? (אם תלחץ על כן זה ימחק את כל מה שכתבת בטבלה)." },
       { kind: "interactive", title: "רמז 5", action: "mux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת?" }
     ]
