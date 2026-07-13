@@ -791,7 +791,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7") && workspace.unlocked
     );
 
     return {
@@ -2864,14 +2864,14 @@
     return String(url || "").split("?")[0].split("#")[0];
   }
 
-  // The heavy raster behind a slide: the matching .webp for an .svg wrapper, or
+  // The heavy raster behind a slide: the matching .jpg for an .svg wrapper, or
   // the file itself when it is already a raster.
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
     // A preference variant SVG (_girl/_young/_older) reuses the base panel's
-    // raster, so strip that suffix before deriving the shared .webp.
-    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ".webp") : clean;
+    // raster, so strip that suffix before deriving the shared .jpg.
+    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ".jpg") : clean;
   }
 
   function preloadAssetUrl(url) {

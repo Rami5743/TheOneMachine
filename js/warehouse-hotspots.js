@@ -226,12 +226,21 @@
     shell.append(pop);
   }
 
+  // Each worktable chapter's free-build workspace: chapter id, its story scene,
+  // and the worktable panel index the learner returns to on exit.
+  const FREE_WORKSPACE = {
+    "chapter-5": { chapterId: "chapter-5", sceneId: "simple-gates", panelIndex: 4 },
+    "chapter-6": { chapterId: "chapter-6", sceneId: "complex-gates", panelIndex: 5 },
+    "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 }
+  };
+
   function openFreeWorkspace(kind = "chapter-5") {
     const state = readState();
+    const target = FREE_WORKSPACE[kind] || FREE_WORKSPACE["chapter-5"];
     state.screen = "workspace";
-    state.chapterId = kind === "chapter-6" ? "chapter-6" : "chapter-5";
-    state.sceneId = kind === "chapter-6" ? "complex-gates" : "simple-gates";
-    state.panelIndex = kind === "chapter-6" ? 5 : 4;
+    state.chapterId = target.chapterId;
+    state.sceneId = target.sceneId;
+    state.panelIndex = target.panelIndex;
     state.dialog = null;
     state.taskDialog = null;
     state.notTest = null;
@@ -297,7 +306,7 @@
 
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : FALLBACK_ITEMS;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we
