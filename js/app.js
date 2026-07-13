@@ -4447,9 +4447,17 @@
   }
 
   function closeNoteTaskDialog() {
-    if (state.chapterId === "chapter-5" && allNoteTasksCompletedIn()) {
+    // Closing the note when its chapter's tasks are all done advances to the
+    // next chapter — this is the "come back later, open the note, close it"
+    // path that mirrors finishing the last task. 2.2 (chapter-5) -> 2.3;
+    // 2.3 (chapter-6) -> 2.4.
+    const noteCloseTarget =
+      state.chapterId === "chapter-5" && allNoteTasksCompletedIn() ? chapter23StartTarget()
+      : state.chapterId === "chapter-6" && allRoutingTasksCompletedIn() ? chapter24StartTarget()
+      : null;
+    if (noteCloseTarget) {
       return setState({
-        ...chapter23StartTarget(),
+        ...noteCloseTarget,
         taskDialog: null,
         notTest: null,
         hintDialog: null,
@@ -5239,7 +5247,7 @@
     if (action === "pace-dialog-ok") return setState({ paceDialog: false });
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
     if (action === "buses-note") return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
-    if (action === "buses-crate-todo") return setState({ infoDialog: "בקרוב." });
+    if (action === "buses-crate-right" || action === "buses-crate-left") return setState({ infoDialog: "בקרוב." });
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);

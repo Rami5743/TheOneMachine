@@ -58,7 +58,7 @@
   </defs>
   <image
      sodipodi:absref="C:\Users\Rami\Weizmann Institute Dropbox\AvrahamRami Aizenbud\Extracurricular\nand2tetris4kids\test_clikble_arias2\assets\panels\panel99_chapter_2_4_worktable.png"
-     xlink:href="panel99_chapter_2_4_worktable.webp"
+     xlink:href="panel99_chapter_2_4_worktable.jpg"
      href="panel99_chapter_2_4_worktable.webp"
      preserveAspectRatio="none"
      height="1086"
@@ -73,9 +73,9 @@
      width="177.36754"
      y="688.55402"
      x="271.63245"
-     id="hotspot-action-open-routing-note-tasks"
+     id="hotspot-action-buses-note"
      data-aria-label="לחץ על הפתק"
-     data-action="open-routing-note-tasks"
+     data-action="buses-note"
      data-hotspot="action"
      class="hotspot hotspot-action" />
   <rect
@@ -88,6 +88,30 @@
      id="hotspot-action-return-to-nand-dialog"
      data-aria-label="הקש על NAND"
      data-action="return-to-nand-dialog"
+     data-hotspot="action"
+     class="hotspot hotspot-action" />
+  <rect
+     style="opacity:0;fill:#ffb000"
+     pointer-events="none"
+     height="230"
+     width="100"
+     y="560"
+     x="884"
+     id="hotspot-action-buses-crate-right"
+     data-aria-label="האגף הימני של הארגז החדש"
+     data-action="buses-crate-right"
+     data-hotspot="action"
+     class="hotspot hotspot-action" />
+  <rect
+     style="opacity:0;fill:#ffb000"
+     pointer-events="none"
+     height="230"
+     width="100"
+     y="560"
+     x="782"
+     id="hotspot-action-buses-crate-left"
+     data-aria-label="האגף השמאלי של הארגז החדש"
+     data-action="buses-crate-left"
      data-hotspot="action"
      class="hotspot hotspot-action" />
   <rect

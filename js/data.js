@@ -614,7 +614,7 @@ const SCENES = {
             "height": 24
           },
           {
-            "action": "buses-crate-todo",
+            "action": "buses-crate-right",
             "ariaLabel": "האגף הימני של הארגז החדש",
             "left": 47,
             "top": 40,
@@ -622,7 +622,7 @@ const SCENES = {
             "height": 12
           },
           {
-            "action": "buses-crate-todo",
+            "action": "buses-crate-left",
             "ariaLabel": "האגף השמאלי של הארגז החדש",
             "left": 55,
             "top": 40,

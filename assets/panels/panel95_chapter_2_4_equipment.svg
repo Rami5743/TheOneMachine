@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel95_chapter_2_4_equipment.webp" xlink:href="panel95_chapter_2_4_equipment.webp" />
-  <style type="text/css">
-    @keyframes crate-halo-pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 0.9; } }
-    #crate-halo { animation: crate-halo-pulse 1.7s ease-in-out infinite; }
-  </style>
-  <g id="crate-halo-layer" inkscape:groupmode="layer" inkscape:label="Crate halo" aria-hidden="true">
-    <ellipse id="crate-halo" cx="930" cy="500" rx="285" ry="165" fill="none" stroke="#ffe36b" stroke-width="11" style="filter: drop-shadow(0 0 24px rgba(255,227,107,0.95));" />
-  </g>
+  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel95_chapter_2_4_equipment.webp" xlink:href="panel95_chapter_2_4_equipment.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
     <path id="speech-bubble" d="M 748 90 H 1312 Q 1340 90 1340 118 V 262 Q 1340 290 1312 290 H 748 Q 720 290 720 262 V 246 L 450 220 L 720 194 V 118 Q 720 90 748 90 Z" fill="#ffffff" stroke="#000000" stroke-width="4.8" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="1030" y="157" id="tline1">יש לך כאן ציוד</tspan><tspan x="1030" y="223" id="tline2">שיעזור לך עם זה</tspan></text>

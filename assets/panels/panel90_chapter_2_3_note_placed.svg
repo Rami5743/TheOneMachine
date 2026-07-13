@@ -6,5 +6,5 @@
       .bubble-text { font-family: "EmbeddedNotoSansHebrew", "Noto Sans Hebrew", sans-serif; fill: #111; font-weight: 400; text-anchor: middle; direction: rtl; unicode-bidi: bidi-override; }
     </style>
   </defs>
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel90_chapter_2_3_note_placed.webp" xlink:href="panel90_chapter_2_3_note_placed.webp" />
+  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel90_chapter_2_3_note_placed.webp" xlink:href="panel90_chapter_2_3_note_placed.jpg" />
 </svg>
