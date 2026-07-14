@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable, savedCardTools }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -40,9 +40,16 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           .filter(Boolean)
           .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
 
+    // User-built cards join the palette (as generic-icon tools) wherever the
+    // learner is free to build — the same places the built gates appear.
+    const cardTools = isNandPresentationWorkspace()
+      ? []
+      : (typeof savedCardTools === "function" ? savedCardTools() : []);
+
     const tools = [
       { type: "nand", label: "NAND" },
       ...builtGateTools,
+      ...cardTools,
       { type: "lamp", label: "מנורה" },
       { type: "source", label: "מקור מתח" },
       // The splitter is available on the free "empty table" and in the chapter

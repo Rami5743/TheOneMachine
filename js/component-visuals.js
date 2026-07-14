@@ -12,7 +12,7 @@
 // createComponentVisuals(deps) -> { componentSvgFilenameForType, componentMarkup,
 //                                   smokeMarkup, charredNandMarkup }
 
-function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec }) {
+function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup }) {
   function componentSvgImage(filename, x, y, width, height) {
     const href = `assets/components/${filename}`;
     return `<image class="component-svg" href="${esc(href)}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>`;
@@ -151,6 +151,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
     if (type === "bus") return busMarkup();
     if (type === "splitter") return splitterMarkup(options);
+    if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.

@@ -428,6 +428,13 @@
     createCardUnlocked: false,
     createCardBubble: false,
     cardCreation: null,
+    // User-built cards, saved locally. Each: { type:"usercard-<n>", name,
+    // inputs:[width…], outputs:[width…], logic:{components,wires} }. They become
+    // placeable tools (a generic icon under their name). myCardsIntroSeen gates
+    // the one-time "you can now use this card" message shown on the first save.
+    savedCards: [],
+    nextSavedCardId: 1,
+    myCardsIntroSeen: false,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -645,6 +652,9 @@
   const normalizeWorkspace = (...args) => __workspaceState.normalizeWorkspace(...args);
 
   let state = loadState();
+  // Saved cards are placeable components; register the loaded ones so the
+  // toolbar and board recognise them from the first render.
+  registerAllSavedCards();
   let dragState = null;
   let dialogDragState = null;
   let suppressNextClick = false;
@@ -669,7 +679,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
@@ -712,7 +722,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => (state.savedCards || []).map((card) => ({ type: card.type, label: card.name })) });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -1147,6 +1157,10 @@
     if (name === "trash") {
       return `<svg ${common}><path d="M4 7 H20" /><path d="M9.5 7 V4.6 H14.5 V7" /><path d="M6.2 7 L7.2 20 H16.8 L17.8 7" /><path d="M10 10.5 V16.5 M14 10.5 V16.5" /></svg>`;
     }
+    // Stacked cards — "my cards".
+    if (name === "cards") {
+      return `<svg ${common}><rect x="6.5" y="4.5" width="12" height="9" rx="1.6" transform="rotate(-9 12.5 9)" /><rect x="5" y="10" width="12" height="9" rx="1.6" /></svg>`;
+    }
     return "";
   }
 
@@ -1161,6 +1175,16 @@
     const classes = `btn labeled-btn${options.primary ? " btn-primary" : ""}`;
     const attrs = options.attrs ? ` ${options.attrs}` : "";
     return `<button class="${classes}" data-action="${esc(action)}"${attrs}>${navIcon(iconName)}<span class="btn-label">${esc(label)}</span></button>`;
+  }
+
+  // "My cards" is a permanent menu entry, but in step-by-step mode it stays
+  // disabled until the card-creation tool has been unlocked. Its click is not
+  // wired up yet (no handler → a no-op).
+  function myCardsEnabled() {
+    return !isStepByStepPace() || Boolean(state.createCardUnlocked);
+  }
+  function myCardsButton() {
+    return labeledButton("my-cards", "cards", "הכרטיסים שלי", { attrs: myCardsEnabled() ? "" : "disabled" });
   }
 
   function topbar() {
@@ -1180,6 +1204,7 @@
           ${labeledButton("menu", "home", "תפריט ראשי")}
           ${labeledButton("chapters", "book", "פרקים")}
           ${labeledButton("explanations", "grad-cap", "הסברים")}
+          ${myCardsButton()}
           ${labeledButton("about", "info", "אודות")}
           ${labeledButton("settings", "gear", "הגדרות")}
         </nav>
@@ -1902,6 +1927,7 @@
             ${labeledButton("continue", "resume-rtl", "המשך")}
             ${labeledButton("chapters", "book", "פרקים")}
             ${labeledButton("explanations", "grad-cap", "הסברים")}
+            ${myCardsButton()}
             ${labeledButton("about", "info", "אודות")}
             ${labeledButton("settings", "gear", "הגדרות")}
             ${labeledButton("reset-progress", "trash", "אפס התקדמות")}
@@ -3887,7 +3913,8 @@
       ${renderWorkspaceTaskIntro()}
       ${renderWorkspaceAccidentModal()}
       ${renderNotTestResultDialog()}
-      ${renderHintDialog()}`;
+      ${renderHintDialog()}
+      ${renderInfoDialog()}`;
     if (prevToolboxScroll) {
       const list = app.querySelector(".toolbox-list");
       if (list) list.scrollTop = prevToolboxScroll;
@@ -4045,11 +4072,79 @@
     }, false);
   }
 
+  // The names already taken by the built-in cards/gates — a new card may not
+  // reuse any of them (compared case-insensitively, trimmed).
+  function builtInCardNames() {
+    const names = ["NAND", "OR16"];
+    for (const t of TASK_DEFS) names.push(t.label);
+    for (const t of ROUTING_TASK_DEFS) names.push(t.label);
+    for (const t of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) names.push(t.label);
+    return names;
+  }
+
+  // Characters allowed in a card name: Latin/Hebrew letters, digits, space,
+  // hyphen and underscore. (Kept in sync with the live input sanitiser.)
+  const CARD_NAME_ALLOWED = /^[A-Za-z0-9֐-׿ _-]+$/;
+
+  // Validate a would-be card name. Returns an error message (to show in a
+  // dialog) or null when the name is fine.
+  function validateCardName(name) {
+    const trimmed = String(name || "").trim();
+    if (!trimmed) return "יש לתת שם לכרטיס.";
+    if (!CARD_NAME_ALLOWED.test(trimmed)) return "השם מכיל תווים לא חוקיים. אפשר להשתמש באותיות, ספרות, רווח, מקף וקו תחתון בלבד.";
+    const norm = trimmed.toLowerCase();
+    if (builtInCardNames().some((n) => String(n).trim().toLowerCase() === norm)) return "השם הזה כבר תפוס על ידי כרטיס מובנה. בחר שם אחר.";
+    if ((state.savedCards || []).some((card) => String(card.name).trim().toLowerCase() === norm)) return "כבר קיים כרטיס בשם הזה. בחר שם אחר.";
+    return null;
+  }
+
+  // Snapshot the card being built into a saved-card record (its I/O widths and
+  // its internal logic, minus the frame anchor).
+  function buildSavedCardFromCreation() {
+    const cc = state.cardCreation || {};
+    const ws = state.workspace || {};
+    const nIn = Math.min(8, Math.max(1, Math.round(Number(cc.inputs) || 1)));
+    const nOut = Math.min(8, Math.max(1, Math.round(Number(cc.outputs) || 1)));
+    const inputs = [];
+    for (let i = 0; i < nIn; i += 1) inputs.push(Math.round(Number((cc.inputWidths || [])[i]) || 1));
+    const outputs = [];
+    for (let i = 0; i < nOut; i += 1) outputs.push(Math.round(Number((cc.outputWidths || [])[i]) || 1));
+    const id = state.nextSavedCardId || ((state.savedCards || []).length + 1);
+    return {
+      type: `${SAVED_CARD_PREFIX}${id}`,
+      name: String(cc.name || "").trim(),
+      inputs,
+      outputs,
+      logic: {
+        components: (ws.components || []).filter((c) => c.type !== "cardFrame"),
+        wires: ws.wires || []
+      }
+    };
+  }
+
+  // "חזרה למחסן": save the card and leave the build page. The name must be valid
+  // and unused; on any problem we show a dialog and FAIL the exit (stay put).
   function exitCardCreation() {
     const cc = state.cardCreation || {};
+    const err = validateCardName(cc.name);
+    if (err) return setState({ infoDialog: err });
+
+    const card = buildSavedCardFromCreation();
+    registerSavedCard(card);
     const chapterId = cc.returnChapterId || "chapter-7";
     const panelIndex = Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0;
-    setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null, workspace: createDefaultWorkspace() }, false);
+    const firstTime = !state.myCardsIntroSeen;
+    setState({
+      ...storyTarget(chapterById(chapterId), panelIndex),
+      cardCreation: null,
+      workspace: createDefaultWorkspace(),
+      savedCards: [...(state.savedCards || []), card],
+      nextSavedCardId: (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1,
+      myCardsIntroSeen: true,
+      infoDialog: firstTime
+        ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
+        : null
+    }, false);
   }
 
   // The y of pin i of a side with `n` pins (workspace coordinates: the frame
@@ -6087,6 +6182,72 @@
     return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
   }
 
+  // ---- User-saved cards ------------------------------------------------------
+  // A saved card is drawn as a generic chip: a rounded body with its input pins
+  // on the left and output pins on the right, and its name beneath. The body and
+  // the pins share one geometry so the drawn stubs land on the wiring terminals.
+  const SAVED_CARD_PREFIX = "usercard-";
+  function savedCardByType(type) {
+    return (state.savedCards || []).find((card) => card.type === type) || null;
+  }
+  function savedCardGeometry(card) {
+    const nIn = Math.max(1, (card.inputs || []).length);
+    const nOut = Math.max(1, (card.outputs || []).length);
+    const rows = Math.max(nIn, nOut);
+    const spacing = 30;
+    const bodyW = 104;
+    const bodyH = Math.max(70, rows * spacing + 24);
+    const ys = (n) => Array.from({ length: n }, (_, i) => Math.round((i - (n - 1) / 2) * spacing));
+    return { nIn, nOut, bodyW, bodyH, inX: -(bodyW / 2 + 24), outX: bodyW / 2 + 24, inYs: ys(nIn), outYs: ys(nOut) };
+  }
+  function savedCardPins(card) {
+    const g = savedCardGeometry(card);
+    const iw = card.inputs || [];
+    const ow = card.outputs || [];
+    const pins = {};
+    g.inYs.forEach((y, i) => {
+      pins[`in${i}`] = { x: g.inX, y, direction: "in", width: Math.round(Number(iw[i]) || 1), label: `כניסה ${i + 1} של ${card.name}` };
+    });
+    g.outYs.forEach((y, i) => {
+      pins[`out${i}`] = { x: g.outX, y, direction: "out", width: Math.round(Number(ow[i]) || 1), label: `יציאה ${i + 1} של ${card.name}` };
+    });
+    return pins;
+  }
+  // Register a saved card as a placeable component: its def (pins/bounds/label)
+  // goes into the shared table so componentDef/clamp/toolbar all recognise it.
+  function registerSavedCard(card) {
+    const g = savedCardGeometry(card);
+    WORKSPACE_COMPONENT_DEFS[card.type] = {
+      label: card.name,
+      savedCard: true,
+      pins: savedCardPins(card),
+      bounds: { left: g.bodyW / 2 + 40, right: g.bodyW / 2 + 40, top: g.bodyH / 2 + 16, bottom: g.bodyH / 2 + 44 }
+    };
+  }
+  function registerAllSavedCards() {
+    (state.savedCards || []).forEach(registerSavedCard);
+  }
+  // The generic-chip markup (body + pin stubs + name), used on the board and (in
+  // miniature, name suppressed) in the toolbar icon.
+  function savedCardMarkup(type, options = {}) {
+    const card = savedCardByType(type);
+    if (!card) return "";
+    const g = savedCardGeometry(card);
+    const iw = card.inputs || [];
+    const ow = card.outputs || [];
+    const stub = (xInner, xOuter, y, width) => (width > 1
+      ? `<line class="usercard-bus" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" /><line class="usercard-bus-stripe" x1="${xInner + (xOuter > xInner ? 3 : -3)}" y1="${y}" x2="${xOuter - (xOuter > xInner ? 3 : -3)}" y2="${y}" />`
+      : `<line class="usercard-pin" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" />`);
+    let s = `<rect class="usercard-body" x="${-g.bodyW / 2}" y="${-g.bodyH / 2}" width="${g.bodyW}" height="${g.bodyH}" rx="12" />`;
+    s += `<rect class="usercard-chip" x="${-g.bodyW / 2 + 22}" y="${-g.bodyH / 2 + 16}" width="${g.bodyW - 44}" height="${g.bodyH - 32}" rx="6" />`;
+    g.inYs.forEach((y, i) => { s += stub(-g.bodyW / 2, g.inX, y, Math.round(Number(iw[i]) || 1)); });
+    g.outYs.forEach((y, i) => { s += stub(g.bodyW / 2, g.outX, y, Math.round(Number(ow[i]) || 1)); });
+    if (!options.toolbar) {
+      s += `<text class="usercard-name" x="0" y="${g.bodyH / 2 + 26}" text-anchor="middle">${esc(card.name)}</text>`;
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // The op/width of a placeable bus gate (gate-Not4 etc.), or null for anything
   // else. The circuit engine and the visuals use it to apply the op per bit and
   // to label the gate.
@@ -6666,6 +6827,14 @@
     if (!state.cardCreation) return;
     const nameBox = event.target.closest(".card-creation-name");
     if (nameBox) {
+      // Strip characters that aren't allowed in a card name as they are typed,
+      // so the name is always valid by the time the card is saved.
+      const cleaned = nameBox.value.replace(/[^A-Za-z0-9֐-׿ _-]/g, "");
+      if (cleaned !== nameBox.value) {
+        const caret = Math.max(0, (nameBox.selectionStart || cleaned.length) - (nameBox.value.length - cleaned.length));
+        nameBox.value = cleaned;
+        try { nameBox.setSelectionRange(caret, caret); } catch (_) { /* ignore */ }
+      }
       state.cardCreation.name = nameBox.value;
       return saveState();
     }

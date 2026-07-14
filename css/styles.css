@@ -831,6 +831,44 @@ button { font: inherit; }
   cursor: pointer;
 }
 
+/* A user-built card, drawn as a generic chip on the board and in the toolbar. */
+.usercard-body {
+  fill: #f4e7cf;
+  stroke: #4a3b28;
+  stroke-width: 4;
+}
+
+.usercard-chip {
+  fill: #d9c39a;
+  stroke: #4a3b28;
+  stroke-width: 2.5;
+}
+
+.usercard-pin {
+  stroke: #111;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.usercard-bus {
+  stroke: #111;
+  stroke-width: 11;
+  stroke-linecap: butt;
+}
+
+.usercard-bus-stripe {
+  stroke: #d8d8d8;
+  stroke-width: 3;
+  stroke-dasharray: 6 3;
+  stroke-linecap: butt;
+}
+
+.usercard-name {
+  font-size: 22px;
+  font-weight: 800;
+  fill: #2c2113;
+}
+
 .card-pin-width-box {
   transform: translate(-50%, -50%);
 }
