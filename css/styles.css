@@ -785,7 +785,7 @@ button { font: inherit; }
 /* --- Splitter (2.4) ------------------------------------------------------- */
 .splitter-hit { pointer-events: all; }
 .splitter-bar { fill: #111; stroke: none; }
-.splitter-stripe { stroke: #d8d8d8; stroke-width: 2.5; stroke-linecap: round; fill: none; }
+.splitter-stripe { stroke: #d8d8d8; stroke-width: 3; stroke-dasharray: 6 3; stroke-linecap: butt; fill: none; }
 /* A width-1 pin looks like an ordinary cable (matches .wire-line). */
 .splitter-cable { stroke: #101010; stroke-width: 5; stroke-linecap: round; fill: none; }
 
@@ -869,8 +869,8 @@ button { font: inherit; }
 .wire-bus-stripe {
   stroke: #d8d8d8;
   stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 5 7;
+  stroke-linecap: butt;
+  stroke-dasharray: 6 3;
   pointer-events: none;
 }
 

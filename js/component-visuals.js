@@ -63,16 +63,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     return componentSvgImage("bus.svg", -66, -52, 154, 104);
   }
 
-  // A short length of "bus" cable drawn like the bus symbol: a solid black bar
-  // with evenly-spaced 45° light stripes (spacing scales with the thickness, so
-  // the same simple pattern reads at any size).
+  // A short length of "bus" cable drawn like the bus symbol / bus wire: a solid
+  // black bar with a light dashed line running along its length.
   function splitterBusBar(x1, x2, y, h) {
     const half = h / 2;
-    let stripes = "";
-    for (let sx = x1 + 4; sx + h <= x2 - 1; sx += h) {
-      stripes += `<line class="splitter-stripe" x1="${sx}" y1="${y + half}" x2="${sx + h}" y2="${y - half}" />`;
-    }
-    return `<rect class="splitter-bar" x="${x1}" y="${y - half}" width="${x2 - x1}" height="${h}" />${stripes}`;
+    return `<rect class="splitter-bar" x="${x1}" y="${y - half}" width="${x2 - x1}" height="${h}" /><line class="splitter-stripe" x1="${x1 + 3}" y1="${y}" x2="${x2 - 3}" y2="${y}" />`;
   }
 
   // A width-1 pin is an ordinary cable, not a bus.

@@ -297,7 +297,6 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
-    splitterEdit: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -720,8 +719,7 @@
       paceDialog: false,
       infoDialog: null,
       componentMonologue: null,
-      busesNoteList: false,
-      splitterEdit: null
+      busesNoteList: false
     };
   }
 
@@ -843,7 +841,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, splitterEdit: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -3280,10 +3278,11 @@
       }).join("")).join("");
   }
 
-  // The little "number of outputs" editor, shown under a splitter on double-click.
+  // The "number of outputs" editor, shown under a splitter whenever it is
+  // focused (the same trigger as the mirror handle).
   function renderSplitterCountBox() {
     if (state.screen !== "workspace") return "";
-    const component = splitterById(state.splitterEdit);
+    const component = splitterById(state.workspace.focusedComponentId);
     if (!component) return "";
     const left = component.x;
     const top = component.y + splitterHalfHeight(component) + 14;
@@ -4995,17 +4994,17 @@
   function focusWorkspaceComponent(id) {
     const component = componentById(state.workspace, id);
     const focusId = component && component.type === "splitter" ? id : null;
-    if (state.workspace.focusedComponentId === focusId && !state.splitterEdit) return;
+    if (state.workspace.focusedComponentId === focusId) return;
     const workspace = normalizeWorkspace(state.workspace);
     workspace.focusedComponentId = focusId;
-    setState({ workspace, splitterEdit: null }, false);
+    setState({ workspace }, false);
   }
 
   function clearWorkspaceFocus() {
-    if (!state.workspace.focusedComponentId && !state.splitterEdit) return;
+    if (!state.workspace.focusedComponentId) return;
     const workspace = normalizeWorkspace(state.workspace);
     workspace.focusedComponentId = null;
-    setState({ workspace, splitterEdit: null }, false);
+    setState({ workspace }, false);
   }
 
   function toggleSplitterMirror(id) {
@@ -5017,20 +5016,6 @@
         workspace.focusedComponentId = id;
       }
     });
-  }
-
-  function openSplitterCountBox(id) {
-    if (!splitterById(id)) return;
-    const workspace = normalizeWorkspace(state.workspace);
-    workspace.focusedComponentId = id;
-    setState({ workspace, splitterEdit: id }, false);
-    const box = app.querySelector(`[data-splitter-count="${CSS.escape(id)}"]`);
-    if (box) { box.focus(); box.select?.(); }
-  }
-
-  function closeSplitterCountBox() {
-    if (!state.splitterEdit) return;
-    setState({ splitterEdit: null }, false);
   }
 
   // Change the number of outputs (committed on change). Because the fan-out
@@ -5473,18 +5458,8 @@
   document.addEventListener("input", handleSettingEvent);
   document.addEventListener("change", handleSettingEvent);
 
-  // Splitter: double-click opens the output-count box; typing in it updates the
-  // splitter live; Enter/Escape close it.
-  document.addEventListener("dblclick", (event) => {
-    if (state.screen !== "workspace") return;
-    const comp = event.target.closest("[data-action='workspace-component']");
-    if (!comp) return;
-    const component = componentById(state.workspace, comp.dataset.componentId);
-    if (!component || component.type !== "splitter") return;
-    event.preventDefault();
-    openSplitterCountBox(component.id);
-  });
-
+  // Splitter: the output-count box shows whenever the splitter is focused (same
+  // as the mirror handle). Committing a new value updates the splitter.
   document.addEventListener("change", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
@@ -5493,10 +5468,13 @@
   document.addEventListener("keydown", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (!box) return;
-    if (event.key === "Enter" || event.key === "Escape") {
+    if (event.key === "Enter") {
       event.preventDefault();
       setSplitterOutputs(box.dataset.splitterCount, box.value);
-      closeSplitterCountBox();
+      box.blur();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      clearWorkspaceFocus();
     }
   });
 
@@ -5726,7 +5704,7 @@
     // A pointerdown anywhere else while a splitter is focused (empty board, a
     // control button, ...) clears the focus — except on the splitter's own
     // controls (the mirror handle and the output-count box).
-    if (state.screen === "workspace" && (state.workspace.focusedComponentId || state.splitterEdit)) {
+    if (state.screen === "workspace" && state.workspace.focusedComponentId) {
       if (event.target.closest("[data-action='splitter-mirror']") || event.target.closest("[data-splitter-count]")) return;
       clearWorkspaceFocus();
     }
