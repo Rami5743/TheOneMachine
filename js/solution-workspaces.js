@@ -772,15 +772,18 @@ function createSolutionWorkspaces({
   // duplicated into 4 copies and bundled (ctrl-merge) into a width-4 control
   // bus; NOT4 gives its inverse; two AND4s gate the data buses; OR4 combines.
   function mux4NotAndOrSolutionFrom() {
+    // Layout copied from the reference screenshot: the control is bundled into a
+    // width-4 bus at the top-left, NOT4 sits at the top, the two AND4s are
+    // stacked (upper = data1 & ~c, lower = data2 & c) with the control fanning to
+    // both the NOT4 and the lower AND, and OR4 combines them on the right.
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("MUX4"), x: 640, y: 288 },
-      // duplicate + bundle the control bit into a width-4 bus
-      { id: "ctrl-merge", type: "splitter", x: 470, y: 120, mirrored: true, outputs: 4, width: 1 },
-      { id: "not4-c", type: "gate-Not4", x: 610, y: 120 },
-      { id: "and-1", type: "gate-AND4", x: 770, y: 205 },
-      { id: "and-2", type: "gate-AND4", x: 770, y: 395 },
-      { id: "or-1", type: "gate-OR4", x: 880, y: 300 }
+      { id: "ctrl-merge", type: "splitter", x: 575, y: 155, mirrored: true, outputs: 4, width: 1 },
+      { id: "not4-c", type: "gate-Not4", x: 700, y: 155 },
+      { id: "and-1", type: "gate-AND4", x: 760, y: 255 },
+      { id: "and-2", type: "gate-AND4", x: 760, y: 390 },
+      { id: "or-1", type: "gate-OR4", x: 840, y: 320 }
     ];
     const wires = [
       // fan the control bit into the four legs of the merging splitter
@@ -788,14 +791,13 @@ function createSolutionWorkspaces({
       normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg1"),
       normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg2"),
       normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg3"),
-      // ~c bus
+      // NOT4 gives ~c; it drives the TOP input of the upper AND (data1 & ~c)
       normalizeWire("ctrl-merge.single", "not4-c.in1"),
-      // data1 AND ~c  (passes when control is 0)
-      normalizeWire("task-card-1.inputInt1", "and-1.in1"),
-      normalizeWire("not4-c.out", "and-1.in2"),
-      // data2 AND c   (passes when control is 1)
-      normalizeWire("task-card-1.inputInt2", "and-2.in1"),
-      normalizeWire("ctrl-merge.single", "and-2.in2"),
+      normalizeWire("not4-c.out", "and-1.in1"),
+      normalizeWire("task-card-1.inputInt1", "and-1.in2"),
+      // the raw control bus drives the TOP input of the lower AND (data2 & c)
+      normalizeWire("ctrl-merge.single", "and-2.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-2.in2"),
       // combine
       normalizeWire("and-1.out", "or-1.in1"),
       normalizeWire("and-2.out", "or-1.in2"),

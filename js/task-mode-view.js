@@ -60,9 +60,12 @@ function createTaskModeView({
       : "";
     const frameTop = def.control ? 90 : 100;
     const frameH = def.control ? 510 : 376;
+    // MUX cards get a wider frame so the AND4/OR4/NOT4 layout fits comfortably.
+    const frameLeft = def.control ? cx - 330 : cx - 300;
+    const frameW = def.control ? 660 : 600;
     return `
       <g class="workspace-task-shell" aria-hidden="true">
-        <rect class="workspace-task-shell-frame" x="${cx - 300}" y="${frameTop}" width="600" height="${frameH}" rx="18" />
+        <rect class="workspace-task-shell-frame" x="${frameLeft}" y="${frameTop}" width="${frameW}" height="${frameH}" rx="18" />
         <text class="workspace-task-shell-title" x="${cx}" y="${frameTop - 10}" text-anchor="middle">${esc(def.label)}</text>
         ${inputBars}
         ${control}

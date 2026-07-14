@@ -2600,14 +2600,14 @@
         text: "עושים AND4 בין הכניסה הראשונה לבס הבקרה ההפוך. כך הכניסה הראשונה עוברת רק כשהבקרה היא 0.",
         highlight: {
           components: ["and-1"],
-          wires: [wireKey("task-card-1.inputInt1", "and-1.in1"), wireKey("not4-c.out", "and-1.in2")]
+          wires: [wireKey("not4-c.out", "and-1.in1"), wireKey("task-card-1.inputInt1", "and-1.in2")]
         }
       },
       {
         text: "ו-AND4 בין הכניסה השנייה לבס הבקרה עצמו. כך הכניסה השנייה עוברת רק כשהבקרה היא 1.",
         highlight: {
           components: ["and-2"],
-          wires: [wireKey("task-card-1.inputInt2", "and-2.in1"), wireKey("ctrl-merge.single", "and-2.in2")]
+          wires: [wireKey("ctrl-merge.single", "and-2.in1"), wireKey("task-card-1.inputInt2", "and-2.in2")]
         }
       },
       {
