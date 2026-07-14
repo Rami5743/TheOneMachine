@@ -12,7 +12,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
         <g transform="scale(0.78)">
-          ${componentMarkup(type, { lampOn: false })}
+          ${componentMarkup(type, { lampOn: false, toolbar: true })}
         </g>
       </svg>`;
   }

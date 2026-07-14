@@ -209,7 +209,7 @@
     { id: "Not4",  label: "NOT4",  op: "Not", width: 4,  inputs: 1, requires: null, description: "ה-NOT4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
     { id: "Not16", label: "NOT16", op: "Not", width: 16, inputs: 1, requires: "Not4", description: "ה-NOT16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
     { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4", description: "ה-AND4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת AND על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
-    { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4" },
+    { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4", description: "ה-AND16 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת AND על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
     { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "Not4" },
     { id: "MUX4",  label: "MUX4",  op: "Mux", width: 4,  inputs: 2, requires: "Not4" },
     { id: "MUX16", label: "MUX16", op: "Mux", width: 16, inputs: 2, requires: "MUX4" }
@@ -273,6 +273,13 @@
       { kind: "interactive", title: "רמז 4", action: "and4-split-one" },
       { kind: "interactive", title: "רמז 5", action: "and4-split-both" },
       { kind: "interactive", title: "רמז 6", action: "and4-split-both-and" }
+    ],
+    AND16: [
+      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-AND4." },
+      { kind: "text", title: "רמז 2", text: "אתה יכול לפצל כל אחת מהכניסות ל-4 בסים ברוחב 4 כל אחד. אחר כך זה ממש דומה ל-AND4 רק שאתה משתמש ב-AND4 במקום ב-AND." },
+      { kind: "interactive", title: "רמז 3", action: "and16-split-one" },
+      { kind: "interactive", title: "רמז 4", action: "and16-split-both" },
+      { kind: "interactive", title: "רמז 5", action: "and16-split-both-and" }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },

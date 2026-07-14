@@ -123,16 +123,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // are pre-divided by that scale to come out the same thickness as a real bus.
   const BUS_GATE_SCALE = 0.6;
   const K = 1 / BUS_GATE_SCALE;
-  function busGateBar(b, width) {
+  function busGateBar(b, width, showLabel) {
     const half = (11 * K) / 2;
+    // The width number is omitted in the toolbar icon (too small to read, and
+    // the tool already has a text label beneath it).
+    const label = showLabel
+      ? `<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${18 * K}px">${width}</text>`
+      : "";
     return `
       <rect class="splitter-bar" x="${b.x1}" y="${b.y - half}" width="${b.x2 - b.x1}" height="${11 * K}" />
       <line class="splitter-stripe" x1="${b.x1 + 3}" y1="${b.y}" x2="${b.x2 - 3}" y2="${b.y}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />
-      <text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${18 * K}px">${width}</text>`;
+      ${label}`;
   }
-  function busGateMarkup(spec) {
+  function busGateMarkup(spec, options = {}) {
     const symbol = gateMarkup(taskDefById(spec.op));
-    const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width)).join("");
+    const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width, !options.toolbar)).join("");
     return `<g class="bus-gate">${symbol}${bars}</g>`;
   }
 
@@ -146,7 +151,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
-      if (bus) return busGateMarkup(bus);
+      if (bus) return busGateMarkup(bus, options);
       return gateMarkup(taskDefById(type.slice(5)));
     }
     return "";

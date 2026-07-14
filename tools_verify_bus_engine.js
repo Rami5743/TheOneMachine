@@ -16,10 +16,15 @@ const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "
 const CARD = {
   "taskCard-Not4": { width: 4, inputs: 1 },
   "taskCard-Not16": { width: 16, inputs: 1 },
-  "taskCard-AND4": { width: 4, inputs: 2 }
+  "taskCard-AND4": { width: 4, inputs: 2 },
+  "taskCard-AND16": { width: 16, inputs: 2 }
 };
-// Placeable bus gates (gate-Not4, gate-AND4).
-const BUS_GATE = { "gate-Not4": { op: "Not", inputs: 1, width: 4 }, "gate-AND4": { op: "And", inputs: 2, width: 4 } };
+// Placeable bus gates.
+const BUS_GATE = {
+  "gate-Not4": { op: "Not", inputs: 1, width: 4 },
+  "gate-AND4": { op: "And", inputs: 2, width: 4 },
+  "gate-AND16": { op: "And", inputs: 2, width: 16 }
+};
 const busGateSpec = (type) => BUS_GATE[type] || null;
 
 const splitterOutputCount = (c) => Math.min(16, Math.max(2, Number(c && c.outputs) || 4));
@@ -265,6 +270,50 @@ for (const [a, b] of and4Cases) {
   for (let i = 0; i < 4; i += 1) { ws.components.push({ id: "bus-out-lamp-" + i, type: "lamp" }); ws.wires.push(wire("so.leg" + i, "bus-out-lamp-" + i + ".in")); }
   check(`gate-AND4(${a.join("")},${b.join("")})`, ws, a.map((bit, i) => (bit && b[i]) ? 1 : 0));
 })();
+
+// --- AND16: two 16-bit inputs, split each into 4x4, AND4 the pairs, merge -----
+function buildAnd16(busA, busB) {
+  const components = [
+    { id: "task-card-1", type: "taskCard-AND16" },
+    { id: "split-a", type: "splitter", mirrored: false, outputs: 4, width: 4 },
+    { id: "split-b", type: "splitter", mirrored: false, outputs: 4, width: 4 },
+    { id: "merge", type: "splitter", mirrored: true, outputs: 4, width: 4 },
+    { id: "bus-in-split-0", type: "splitter", mirrored: true, outputs: 16, width: 1 },
+    { id: "bus-in-split-1", type: "splitter", mirrored: true, outputs: 16, width: 1 },
+    { id: "bus-out-split", type: "splitter", mirrored: false, outputs: 16, width: 1 },
+    { id: "source-1", type: "source" }
+  ];
+  const wires = [
+    wire("task-card-1.inputInt1", "split-a.single"),
+    wire("task-card-1.inputInt2", "split-b.single"),
+    wire("merge.single", "task-card-1.outputInt"),
+    wire("bus-in-split-0.single", "task-card-1.inputExt1"),
+    wire("bus-in-split-1.single", "task-card-1.inputExt2"),
+    wire("task-card-1.outputExt", "bus-out-split.single")
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "and4-" + i, type: "gate-AND4" });
+    wires.push(wire("split-a.leg" + i, "and4-" + i + ".in1"));
+    wires.push(wire("split-b.leg" + i, "and4-" + i + ".in2"));
+    wires.push(wire("and4-" + i + ".out", "merge.leg" + i));
+  }
+  busA.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-0.leg" + i)); });
+  busB.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-1.leg" + i)); });
+  for (let i = 0; i < 16; i += 1) {
+    components.push({ id: "bus-out-lamp-" + i, type: "lamp" });
+    wires.push(wire("bus-out-split.leg" + i, "bus-out-lamp-" + i + ".in"));
+  }
+  return { components, wires };
+}
+
+console.log("\nBus-engine (AND16 via AND4 gate)\n");
+const and16Cases = [
+  [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1], [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0]],
+  [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0], [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1]]
+];
+for (const [a, b] of and16Cases) {
+  check16(`AND16(${a.join("")},${b.join("")})`, buildAnd16(a.map(Boolean), b.map(Boolean)), a.map((bit, i) => (bit && b[i]) ? 1 : 0));
+}
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);

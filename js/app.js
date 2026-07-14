@@ -229,8 +229,8 @@
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
   // The card/gate are only built for tasks with a real build workspace so far.
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4"];
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16"];
   // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
@@ -2370,6 +2370,43 @@
         }
       }
     ],
+    AND16: [
+      {
+        text: "מפצלים כל אחת משתי כניסות הבס (רוחב 16) ל-4 בסים ברוחב 4 בעזרת שני מפצלים.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-AND4.",
+        highlight: {
+          components: ["and4-0", "and4-1", "and4-2", "and4-3"],
+          wires: [
+            wireKey("split-a.leg0", "and4-0.in1"), wireKey("split-b.leg0", "and4-0.in2"),
+            wireKey("split-a.leg1", "and4-1.in1"), wireKey("split-b.leg1", "and4-1.in2"),
+            wireKey("split-a.leg2", "and4-2.in1"), wireKey("split-b.leg2", "and4-2.in2"),
+            wireKey("split-a.leg3", "and4-3.in1"), wireKey("split-b.leg3", "and4-3.in2")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("and4-0.out", "merge.leg0"), wireKey("and4-1.out", "merge.leg1"),
+            wireKey("and4-2.out", "merge.leg2"), wireKey("and4-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
     And: [
       {
         text: "אנחנו מחברים את שתי הכניסות ל־NAND.",
@@ -4319,6 +4356,12 @@
       [[1,1,0,0].map(Boolean), [0,1,0,1].map(Boolean)],
       [[0,0,1,1].map(Boolean), [1,0,1,1].map(Boolean)],
       [[1,0,0,1].map(Boolean), [1,1,1,1].map(Boolean)]
+    ],
+    // 2 input buses of width 16.
+    AND16: [
+      [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1].map(Boolean), [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0].map(Boolean)],
+      [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean)],
+      [[1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1].map(Boolean), [0,1,0,1,1,1,0,0,1,1,1,0,0,0,1,1].map(Boolean)]
     ]
   };
 
@@ -4560,7 +4603,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return id === "Not4" || id === "Not16" || id === "AND4";
+    return ["Not4", "Not16", "AND4", "AND16"].includes(id);
   }
 
   function openBusesNote() {
@@ -4784,16 +4827,21 @@
       // Keep a voltage source to the left of the card (as in the build/solution).
       const source = componentById(busWorkspace, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
       let components, wires;
-      if (taskId === "AND4") {
-        components = [clonePlain(source), clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 }];
+      if (taskId === "AND4" || taskId === "AND16") {
+        // AND4 splits each input into 4 single wires and uses a (single-bit) AND;
+        // AND16 splits each into 4 buses of width 4 and uses an AND4.
+        const isAnd16 = taskId === "AND16";
+        const legWidth = isAnd16 ? 4 : 1;
+        const subGate = isAnd16 ? "gate-AND4" : "gate-And";
+        components = [clonePlain(source), clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: legWidth }];
         wires = [normalizeWire("task-card-1.inputInt1", "split-a.single")];
-        if (hint.action !== "and4-split-one") {
-          components.push({ id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 1 });
+        if (!hint.action.endsWith("split-one")) {
+          components.push({ id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: legWidth });
           wires.push(normalizeWire("task-card-1.inputInt2", "split-b.single"));
         }
-        if (hint.action === "and4-split-both-and") {
+        if (hint.action.endsWith("split-both-and")) {
           // Leg 0 (the bottom cable) of each input, ANDed by a gate placed low.
-          components.push({ id: "and-0", type: "gate-And", x: 660, y: 339 });
+          components.push({ id: "and-0", type: subGate, x: 660, y: 339 });
           wires.push(normalizeWire("split-a.leg0", "and-0.in1"));
           wires.push(normalizeWire("split-b.leg0", "and-0.in2"));
         }

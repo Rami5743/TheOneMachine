@@ -514,9 +514,9 @@ function createSolutionWorkspaces({
   // AND4: split each of the two 4-bit inputs into 4 wires, AND the matching
   // pairs, merge the four results back into the 4-bit output.
   function and4SolutionWorkspaceFrom() {
-    // Aligned with the midpoint of the two input splitters' legs (both centred
-    // on 288) and the merge legs, component 0 at the bottom — horizontal wires.
-    const andYs = [339, 305, 271, 237];
+    // Spread out (component 0 at the bottom) so the AND gates don't overlap —
+    // each still sits between its two input legs (top split-a, bottom split-b).
+    const andYs = [393, 323, 253, 183];
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("AND4"), x: 640, y: 288 },
@@ -546,10 +546,44 @@ function createSolutionWorkspaces({
     });
   }
 
+  // AND16: split each 16-bit input into 4 buses of width 4, AND the matching
+  // pairs with an AND4, merge the four 4-bit results back into the 16-bit output.
+  function and16SolutionWorkspaceFrom() {
+    const andYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("AND16"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 4 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 4 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    andYs.forEach((y, i) => {
+      components.push({ id: `and4-${i}`, type: "gate-AND4", x: 660, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `and4-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `and4-${i}.in2`));
+      wires.push(normalizeWire(`and4-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "AND16", taskIntroSeen: true
+    });
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
     if (taskId === "Not16") return not16SolutionWorkspaceFrom();
     if (taskId === "AND4") return and4SolutionWorkspaceFrom();
+    if (taskId === "AND16") return and16SolutionWorkspaceFrom();
     if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
     if (taskId === "DMux") return dmuxSolutionFrom();
     if (taskId === "Not") return notSolutionWorkspaceFrom();
