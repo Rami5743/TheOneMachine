@@ -1,8 +1,76 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel97_chapter_2_4_tasks.jpg" xlink:href="panel97_chapter_2_4_tasks.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 768 90 H 1292 Q 1320 90 1320 118 V 202 Q 1320 230 1292 230 H 768 Q 740 230 740 202 V 199 L 470 200 L 740 163 V 118 Q 740 90 768 90 Z" fill="#ffffff" stroke="#000000" stroke-width="4.8" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="1030" y="160" id="tline1">והנה עוד כמה משימות</tspan></text>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel97_chapter_2_4_tasks.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="6.0556953"
+     inkscape:cx="654.34269"
+     inkscape:cy="155.30834"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel97_chapter_2_4_tasks.jpg"
+     xlink:href="panel97_chapter_2_4_tasks.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="M 666.32941,90 H 1011.5529 C 1023.851,90 1030,94.666667 1030,104 v 42 c 0,9.33333 -6.149,14 -18.4471,14 H 666.32941 c -12.29804,0 -18.44706,-4.66667 -18.44706,-14 l 0.82567,-8.43562 L 470,145 647.88235,126.5 V 104 c 0,-9.333333 6.14902,-14 18.44706,-14 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="2.75493"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="40px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       y="-32"
+       x="-192"><tspan
+         x="838"
+         y="128"
+         id="tline1">והנה עוד כמה משימות</tspan></text>
   </g>
 </svg>

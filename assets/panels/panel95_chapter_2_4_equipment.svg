@@ -1,8 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel95_chapter_2_4_equipment.jpg" xlink:href="panel95_chapter_2_4_equipment.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 748 90 H 1312 Q 1340 90 1340 118 V 262 Q 1340 290 1312 290 H 748 Q 720 290 720 262 V 246 L 450 220 L 720 194 V 118 Q 720 90 748 90 Z" fill="#ffffff" stroke="#000000" stroke-width="4.8" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="1030" y="157" id="tline1">יש לך כאן ציוד</tspan><tspan x="1030" y="223" id="tline2">שיעזור לך עם זה</tspan></text>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel95_chapter_2_4_equipment.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="901.44663"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel95_chapter_2_4_equipment.jpg"
+     xlink:href="panel95_chapter_2_4_equipment.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="m 629.52067,79.04429 h 340.27668 c 11.26213,0 16.89317,6.80909 16.89317,20.42726 V 204.526 c 0,13.61817 -5.63104,20.42726 -16.89317,20.42726 H 629.52067 c -11.26212,0 -16.89317,-6.80909 -16.89317,-20.42726 V 177.2992 L 449.72909,173.88511 612.6275,154.91695 v -55.4454 c 0,-13.61817 5.63105,-20.42726 16.89317,-20.42726 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.18452"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="40px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       x="-234"
+       y="-36"><tspan
+         x="796"
+         y="121"
+         id="tline1">יש לך כאן ציוד</tspan><tspan
+         x="796"
+         y="187"
+         id="tline2">שיעזור לך עם זה</tspan></text>
   </g>
 </svg>
