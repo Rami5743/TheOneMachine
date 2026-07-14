@@ -620,6 +620,7 @@ button { font: inherit; }
   grid-template-columns: 122px minmax(0, 1fr);
   gap: 10px;
   direction: ltr;
+  position: relative;
 }
 
 .workspace-toolbox,
@@ -644,6 +645,8 @@ button { font: inherit; }
   gap: 8px;
   overflow: auto;
   padding: 2px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .toolbox-component {
@@ -681,6 +684,50 @@ button { font: inherit; }
   width: 72px;
   height: 58px;
   display: block;
+}
+
+/* The "create new card" tool — a dashed action button to set it apart from the
+   draggable components, and its one-time speech bubble. */
+.toolbox-create-card {
+  cursor: pointer;
+  border-style: dashed;
+  border-color: var(--primary);
+}
+
+.create-card-bubble {
+  position: absolute;
+  left: 132px;
+  bottom: 92px;
+  z-index: 40;
+  max-width: 260px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(20, 20, 20, 0.96);
+  color: var(--text);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.6);
+  direction: rtl;
+  text-align: right;
+}
+
+.create-card-bubble::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  bottom: 16px;
+  border: 9px solid transparent;
+  border-right-color: rgba(20, 20, 20, 0.96);
+}
+
+.create-card-bubble p {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.create-card-bubble-actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .toolbox-trash {

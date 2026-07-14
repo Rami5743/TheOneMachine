@@ -806,6 +806,34 @@ function createSolutionWorkspaces({
     return busSolutionWorkspace("MUX4", components, wires);
   }
 
+  // MUX16 — the "original MUX" variant, drawn with AND16/NOT16/OR16 (the same
+  // shape as the MUX4 compute variant, one width up). OR16 is not a real task;
+  // it is drawn here (gate-OR16) to show what the learner will need to build.
+  function mux16NotAndOrSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX16"), x: 640, y: 288 },
+      { id: "ctrl-merge", type: "splitter", x: 460, y: 345, mirrored: true, outputs: 16, width: 1 },
+      { id: "not16-c", type: "gate-Not16", x: 610, y: 165 },
+      { id: "and16-1", type: "gate-AND16", x: 745, y: 225 },
+      { id: "and16-2", type: "gate-AND16", x: 745, y: 400 },
+      { id: "or16-1", type: "gate-OR16", x: 850, y: 315 }
+    ];
+    const wires = [
+      normalizeWire("ctrl-merge.single", "not16-c.in1"),
+      normalizeWire("not16-c.out", "and16-1.in1"),
+      normalizeWire("task-card-1.inputInt1", "and16-1.in2"),
+      normalizeWire("ctrl-merge.single", "and16-2.in1"),
+      normalizeWire("task-card-1.inputInt2", "and16-2.in2"),
+      normalizeWire("and16-1.out", "or16-1.in1"),
+      normalizeWire("and16-2.out", "or16-1.in2"),
+      normalizeWire("or16-1.out", "task-card-1.outputInt")
+    ];
+    // fan the single control bit into all 16 legs of the merging splitter
+    for (let i = 0; i < 16; i += 1) wires.push(normalizeWire("task-card-1.inputInt3", `ctrl-merge.leg${i}`));
+    return busSolutionWorkspace("MUX16", components, wires);
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
     if (taskId === "Not16") return step >= 3 ? not16DirectSolutionFrom() : not16SolutionWorkspaceFrom();
@@ -813,7 +841,7 @@ function createSolutionWorkspaces({
     if (taskId === "OR4") return step >= 3 ? or4NotAndSolutionFrom() : or4SolutionWorkspaceFrom();
     if (taskId === "AND16") return step >= 3 ? and16DirectSolutionFrom() : and16SolutionWorkspaceFrom();
     if (taskId === "MUX4") return step >= 3 ? mux4NotAndOrSolutionFrom() : mux4SolutionWorkspaceFrom();
-    if (taskId === "MUX16") return mux16SolutionWorkspaceFrom();
+    if (taskId === "MUX16") return step >= 3 ? mux16NotAndOrSolutionFrom() : mux16SolutionWorkspaceFrom();
     if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
     if (taskId === "DMux") return dmuxSolutionFrom();
     if (taskId === "Not") return notSolutionWorkspaceFrom();

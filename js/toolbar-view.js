@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -50,6 +50,20 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       ...((isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : [])
     ];
 
+    // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
+    // It is an action button (not a draggable component); its click is not wired
+    // up yet.
+    const createCardButton = (typeof createCardToolAvailable === "function" && createCardToolAvailable() && !isNandPresentationWorkspace())
+      ? `<button class="toolbox-component toolbox-create-card" data-action="create-card-tool" type="button" aria-label="יצירת כרטיס חדש">
+          <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
+            <rect x="-46" y="-56" width="92" height="112" rx="10" fill="none" stroke="currentColor" stroke-width="8" />
+            <line x1="0" y1="-28" x2="0" y2="28" stroke="currentColor" stroke-width="10" stroke-linecap="round" />
+            <line x1="-28" y1="0" x2="28" y2="0" stroke="currentColor" stroke-width="10" stroke-linecap="round" />
+          </svg>
+          <span>יצירת כרטיס חדש</span>
+        </button>`
+      : "";
+
     return `
       <aside class="workspace-toolbox" aria-label="סרגל כלים">
         <div class="toolbox-list">
@@ -59,6 +73,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
               <span>${esc(tool.label)}</span>
             </button>`).join("")}
         </div>
+        ${createCardButton}
         <div class="toolbox-trash" data-trash aria-label="פח זבל">
           ${trashIcon()}
           <span>פח</span>

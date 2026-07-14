@@ -326,6 +326,22 @@
     };
   }
 
+  // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
+  // walkthrough draws it (out = (data1 & ~c) OR16 (data2 & c)), and it is the
+  // card the upcoming "create new card" tool is meant to let the learner build.
+  // Define its placeable bus gate (a width-16 OR bus gate) so it can be rendered
+  // and evaluated even though there is no OR16 task.
+  {
+    const baseOr16 = WORKSPACE_COMPONENT_DEFS[gateComponentType("Or")];
+    const or16Pins = {};
+    Object.entries(baseOr16 ? baseOr16.pins : {}).forEach(([pinId, pin]) => { or16Pins[pinId] = { ...pin }; });
+    WORKSPACE_COMPONENT_DEFS["gate-OR16"] = {
+      label: "OR16", gate: true, busGate: true, busWidth: 16, op: "Or", inputs: 2,
+      pins: or16Pins,
+      bounds: baseOr16 ? { ...baseOr16.bounds } : { left: 84, right: 84, top: 62, bottom: 62 }
+    };
+  }
+
 
   // DEFAULT_WORKSPACE_COMPONENTS moved to js/app-data.js
 
@@ -401,6 +417,11 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
+    // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
+    // createCardUnlocked persists (the tool stays in the palette); createCardBubble
+    // is the transient one-time speech bubble that points at it.
+    createCardUnlocked: false,
+    createCardBubble: false,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -685,7 +706,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -961,7 +982,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, workspace };
   }
 
   function stateForStorage() {
@@ -1979,6 +2000,20 @@
       </div>`;
   }
 
+  // The one-time speech bubble that points at the freshly-revealed "create card"
+  // tool in the palette (after the MUX16 walkthrough). Dismissed with "הבנתי".
+  function renderCreateCardBubble() {
+    if (!state.createCardBubble || !state.createCardUnlocked) return "";
+    const text = "הי, אתה יכול ללחוץ עליי כדי ליצור כרטיס חדש, שתוכל להשתמש בו בכרטיסים האחרים שאתה בונה.";
+    return `
+      <div class="create-card-bubble" role="dialog" aria-label="יצירת כרטיס חדש">
+        <p>${esc(adaptGender(text))}</p>
+        <div class="create-card-bubble-actions">
+          <button class="btn btn-primary" data-action="create-card-bubble-ok" type="button">הבנתי</button>
+        </div>
+      </div>`;
+  }
+
   // The bus / splitter monologue: a single speech bubble in which the component
   // introduces itself, with its schematic symbol shown inline between the two
   // sentences ("...אני נראה כך:" [symbol] "..."). Opened from the two new 2.4
@@ -2645,6 +2680,7 @@
       },
       {
         text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2653,6 +2689,13 @@
             wireKey("mux4-2.out", "merge.leg2"), wireKey("mux4-3.out", "merge.leg3"),
             wireKey("merge.single", "task-card-1.outputInt")
           ]
+        }
+      },
+      {
+        text: "גם כאן אפשר לחזור על המימוש המקורי של MUX, אבל הפעם עם AND16, NOT16, OR16 במקום ב-AND, NOT, OR. בשביל זה יהיה צורך לבנות את OR16, שהוא לא אחת מהמשימות.",
+        revealCreateCard: true,
+        highlight: {
+          components: ["or16-1"]
         }
       }
     ],
@@ -3234,6 +3277,12 @@
       ? `<button class="btn" data-action="solution-toggle-table" type="button">${state.solutionTableHidden ? "הצג טבלה" : "הסתר טבלה"}</button>`
       : "";
 
+    // The MUX16 "original-MUX" step ends the walkthrough by revealing the new
+    // "create card" tool instead of a plain אישור: המשך drops the learner back
+    // into the workspace with the tool + its speech bubble.
+    const primaryButton = step.revealCreateCard
+      ? '<button class="btn btn-primary" data-action="solution-reveal-create-card" type="button">המשך</button>'
+      : (isLast ? '<button class="btn btn-primary" data-action="solution-ok" type="button">אישור</button>' : `<button class="btn btn-primary" data-action="solution-next" type="button">${esc(step.buttonLabel || "המשך")}</button>`);
     return `
       <div class="solution-overlay" role="presentation">
         <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון ${esc(task?.label || taskId)}">
@@ -3241,7 +3290,7 @@
           <p>${esc(adaptGender(step.text))}</p>
           <div class="solution-actions">
             ${toggleButton}
-            ${isLast ? '<button class="btn btn-primary" data-action="solution-ok" type="button">אישור</button>' : `<button class="btn btn-primary" data-action="solution-next" type="button">${esc(step.buttonLabel || "המשך")}</button>`}
+            ${primaryButton}
           </div>
         </section>
       </div>`;
@@ -3779,6 +3828,7 @@
       <main class="screen workspace-screen">
         <section class="workspace-layout">
           ${renderToolbar()}
+          ${renderCreateCardBubble()}
           <section class="workspace-board-wrap">
             <div class="workspace-board" data-workspace-board>
               <svg class="workspace-canvas" data-workspace-svg  aria-label="שולחן עבודה אלקטרוני" role="img">
@@ -5032,6 +5082,18 @@
       workspace: createDefaultWorkspace(),
       replayNonce: state.replayNonce + 1
     }, true);
+  }
+
+  // End the MUX16 "original-MUX" walkthrough by revealing the new "create card"
+  // tool: complete the task, close the walkthrough, and stay in the workspace so
+  // the learner sees the tool (and its one-time speech bubble) in the palette.
+  function revealCreateCardTool() {
+    const taskId = state.solutionDialog?.taskId || "MUX16";
+    const shouldComplete = Boolean(state.solutionDialog?.completeOnClose);
+    const completedTasks = shouldComplete && !taskCompleted(taskId)
+      ? [...completedTaskIds(), taskId]
+      : completedTaskIds();
+    setState({ solutionDialog: null, completedTasks, createCardUnlocked: true, createCardBubble: true }, false);
   }
 
   // Secret developer shortcut (Ctrl+Shift+Q): instantly mark the current
@@ -6446,7 +6508,7 @@
       return;
     }
 
-    if (state.solutionDialog && !isGlobalNavigationAction(action) && !["solution-ok", "solution-next", "solution-toggle-table"].includes(action)) {
+    if (state.solutionDialog && !isGlobalNavigationAction(action) && !["solution-ok", "solution-next", "solution-toggle-table", "solution-reveal-create-card"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -6556,7 +6618,10 @@
     if (action === "not-test-ok") return finishNotTestDialog();
     if (action === "solution-next") return advanceSolutionDialog();
     if (action === "solution-ok") return finishSolutionDialog();
+    if (action === "solution-reveal-create-card") return revealCreateCardTool();
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
+    if (action === "create-card-bubble-ok") return setState({ createCardBubble: false }, false);
+    if (action === "create-card-tool") return; // click intentionally not implemented yet
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
