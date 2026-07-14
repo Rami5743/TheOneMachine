@@ -342,6 +342,11 @@
     };
   }
 
+  // The card-creation frame: an invisible fixed component (the frame + pins are
+  // drawn separately) whose pins are resolved dynamically from state.cardCreation
+  // so the learner can wire internal components to the card's inputs/outputs.
+  WORKSPACE_COMPONENT_DEFS["cardFrame"] = { label: "מסגרת כרטיס", fixed: true, pins: {} };
+
 
   // DEFAULT_WORKSPACE_COMPONENTS moved to js/app-data.js
 
@@ -3994,7 +3999,9 @@
   function createCardBuildWorkspace(returnChapterId, returnPanelIndex) {
     return normalizeWorkspace({
       selectedTerminal: null,
-      components: [{ id: "free-anchor-1", type: "notCard", x: 500, y: 288 }],
+      // The card frame is a fixed anchor: it keeps the normalizer from restoring
+      // the default components AND provides the card's connectable I/O pins.
+      components: [{ id: "card-frame-1", type: "cardFrame", x: 500, y: 288 }],
       wires: [],
       nextId: 2,
       unlocked: true,
@@ -4054,16 +4061,20 @@
 
   // One pin on the frame's edge, drawn like other cards' pins: it ENTERS the
   // card (crosses the frame edge). Width 1 is a thin cable; wider is a bus bar
-  // with its width number. A transparent hit rect makes it double-clickable.
+  // with its width number. The connectable terminal (for wiring) is the real
+  // card-frame terminal at the INNER end (rendered by the workspace); the OUTER
+  // part of the stub is a separate double-click target for the width picker (so
+  // it does not conflict with the terminal's single-click wiring).
   function cardCreationPinBar(side, index, y, width) {
     const [x1, x2] = side === "in" ? [160, 240] : [760, 840];
     const labelX = side === "in" ? 210 : 790;
+    const hitX = side === "in" ? [150, 208] : [792, 850];
     const bar = width > 1
       ? `<line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
          <line class="workspace-task-shell-bus-stripe" x1="${x1 + 4}" y1="${y}" x2="${x2 - 4}" y2="${y}" />
          <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${width}</text>`
       : `<line class="workspace-task-shell-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
-    const hit = `<rect class="card-pin-hit" x="${Math.min(x1, x2) - 6}" y="${y - 16}" width="${Math.abs(x2 - x1) + 12}" height="32" fill="transparent" data-card-pin data-pin-side="${side}" data-pin-index="${index}" />`;
+    const hit = `<rect class="card-pin-hit" x="${hitX[0]}" y="${y - 16}" width="${hitX[1] - hitX[0]}" height="32" fill="transparent" data-card-pin data-pin-side="${side}" data-pin-index="${index}" />`;
     return `<g class="card-pin">${bar}${hit}</g>`;
   }
 
@@ -6044,8 +6055,28 @@
     return pins;
   }
 
+  // The card frame's connectable pins, resolved from the card being defined: one
+  // internal input pin per input (direction "out" — it feeds the internal
+  // circuit) and one internal output pin per output (direction "in"). Positions
+  // match the drawn stubs' inner ends; each carries its per-pin bus width.
+  function cardFramePins() {
+    const cc = state.cardCreation;
+    if (!cc) return {};
+    const pins = {};
+    const nIn = Math.min(8, Math.max(1, Math.round(Number(cc.inputs) || 1)));
+    const nOut = Math.min(8, Math.max(1, Math.round(Number(cc.outputs) || 1)));
+    for (let i = 0; i < nIn; i += 1) {
+      pins[`inputInt${i}`] = { x: -260, y: cardCreationPinY(i, nIn) - 288, direction: "out", width: Math.round(Number((cc.inputWidths || [])[i]) || 1), label: `כניסה ${i + 1}` };
+    }
+    for (let i = 0; i < nOut; i += 1) {
+      pins[`outputInt${i}`] = { x: 260, y: cardCreationPinY(i, nOut) - 288, direction: "in", width: Math.round(Number((cc.outputWidths || [])[i]) || 1), label: `יציאה ${i + 1}` };
+    }
+    return pins;
+  }
+
   function componentPins(component) {
     if (component?.type === "splitter") return splitterPins(component);
+    if (component?.type === "cardFrame") return cardFramePins();
     return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
   }
 
@@ -6610,7 +6641,9 @@
     setState({ cardCreation: cc }, false);
   });
 
-  // Double-click a pin to open its width picker (turn it into a bus).
+  // Double-click a pin's OUTER stub to open its width picker (turn it into a
+  // bus). The inner terminal is reserved for wiring, so this uses a separate hit
+  // target that doesn't re-render on a single click.
   document.addEventListener("dblclick", (event) => {
     const pin = event.target.closest("[data-card-pin]");
     if (!pin || !state.cardCreation) return;
