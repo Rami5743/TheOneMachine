@@ -298,8 +298,8 @@
         inputInt1: { x: -260, y: -90, direction: "out", width: W, label: `כניסת ${muxTask.label} 1 פנימית` },
         inputExt2: { x: -340, y: 90, direction: "in", width: W, label: `כניסת ${muxTask.label} 2 חיצונית` },
         inputInt2: { x: -260, y: 90, direction: "out", width: W, label: `כניסת ${muxTask.label} 2 פנימית` },
-        inputExt3: { x: -120, y: -250, direction: "in", width: 1, label: "כניסת בקרה חיצונית" },
-        inputInt3: { x: -120, y: -180, direction: "out", width: 1, label: "כניסת בקרה פנימית" },
+        inputExt3: { x: -240, y: -250, direction: "in", width: 1, label: "כניסת בקרה חיצונית" },
+        inputInt3: { x: -240, y: -180, direction: "out", width: 1, label: "כניסת בקרה פנימית" },
         outputInt: { x: 260, y: 0, direction: "in", width: W, label: `יציאת ${muxTask.label} פנימית` },
         outputExt: { x: 340, y: 0, direction: "out", width: W, label: `יציאת ${muxTask.label} חיצונית` }
       },
@@ -3677,6 +3677,11 @@
 
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
+    // The whole workspace is re-rendered via innerHTML on every state change
+    // (e.g. after dragging a tool out), which would reset the tool palette's
+    // scroll position to the top. Capture it before the rebuild and restore it
+    // after, so the palette stays where the learner left it.
+    const prevToolboxScroll = app.querySelector(".toolbox-list")?.scrollTop || 0;
     app.innerHTML = `
       ${topbar()}
       <main class="screen workspace-screen">
@@ -3735,6 +3740,10 @@
       ${renderWorkspaceAccidentModal()}
       ${renderNotTestResultDialog()}
       ${renderHintDialog()}`;
+    if (prevToolboxScroll) {
+      const list = app.querySelector(".toolbox-list");
+      if (list) list.scrollTop = prevToolboxScroll;
+    }
   }
 
   function activeMonologueNandComponent() {
@@ -4666,7 +4675,10 @@
       const expected = busTaskExpected(def, buses);
       const ok = expected.every((bit, i) => Boolean(evaluation.lamps.get(`bus-out-lamp-${i}`)) === Boolean(bit));
       if (!ok) return showNotTestResult("failure", workspace, def.id);
-      runBusTestCase(workspace, caseIndex + 1);
+      // Harness the NEXT case from the pristine learner circuit, not from this
+      // already-harnessed workspace — otherwise each case re-wraps the previous
+      // harness and duplicate splitters/lamps pile up on the board.
+      runBusTestCase(baseWorkspace, caseIndex + 1);
     }, 850);
   }
 
