@@ -4113,7 +4113,7 @@
         </section>
         <section class="controls">
           ${navButton("card-creation-reset", "restart", "נקה שולחן")}
-          ${navButton("card-creation-back", "arrow-right", "חזרה למחסן")}
+          <button class="btn" data-action="card-creation-back" type="button">חזרה למחסן</button>
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
