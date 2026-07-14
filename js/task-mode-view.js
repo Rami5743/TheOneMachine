@@ -51,11 +51,17 @@ function createTaskModeView({
     const nIn = def.inputs || 1;
     const inYs = nIn <= 1 ? [0] : [-90, 90];
     const inputBars = inYs.map((dy) => busPinBar(cx - 340, cx - 260, 288 + dy, cx - 320, def.width)).join("");
+    // A MUX card adds a single-bit control pin poking out of the top.
+    const control = def.control
+      ? `<line class="workspace-task-shell-pin" x1="${cx - 120}" y1="40" x2="${cx - 120}" y2="108" />
+         <text class="workspace-task-shell-pin-label" x="${cx - 120}" y="28" text-anchor="middle">בקרה</text>`
+      : "";
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="${cx - 300}" y="100" width="600" height="376" rx="18" />
         <text class="workspace-task-shell-title" x="${cx}" y="90" text-anchor="middle">${esc(def.label)}</text>
         ${inputBars}
+        ${control}
         ${busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width)}
       </g>`;
   }

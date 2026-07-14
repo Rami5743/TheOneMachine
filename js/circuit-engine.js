@@ -259,8 +259,18 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           if (bus) {
             const inVecs = Array.from({ length: bus.inputs }, (_, k) => inputBits(workspace, `${component.id}.in${k + 1}`, outputs));
             const outVec = [];
-            for (let i = 0; i < bus.width; i += 1) {
-              outVec.push(Boolean(taskOutput(bus.op, inVecs.map((v) => v[i]))));
+            if (bus.control) {
+              // MUX bus gate: the last input is a single shared control bit; the
+              // rest are per-bit data buses. output[i] = op(data…[i], control).
+              const dataVecs = inVecs.slice(0, -1);
+              const control = inVecs[inVecs.length - 1][0];
+              for (let i = 0; i < bus.width; i += 1) {
+                outVec.push(Boolean(taskOutput(bus.op, [...dataVecs.map((v) => v[i]), control])));
+              }
+            } else {
+              for (let i = 0; i < bus.width; i += 1) {
+                outVec.push(Boolean(taskOutput(bus.op, inVecs.map((v) => v[i]))));
+              }
             }
             if (setBits(outputs, `${component.id}.out`, outVec)) changed = true;
             continue;

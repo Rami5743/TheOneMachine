@@ -280,6 +280,52 @@
     }
   }
 
+  // MUX bus cards & gates (MUX4, MUX16). Unlike AND/OR, a MUX has two DATA bus
+  // inputs plus a single-bit CONTROL input on top; the data pins/output are
+  // buses of the card's width, the control pin is 1 bit. `control: true` tells
+  // the engine the last input is the shared select bit.
+  for (const muxTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : []).filter((t) => ["MUX4", "MUX16"].includes(t.id))) {
+    const W = muxTask.width;
+    WORKSPACE_COMPONENT_DEFS[taskCardComponentType(muxTask.id)] = {
+      label: `מסגרת ${muxTask.label}`,
+      fixed: true,
+      taskId: muxTask.id,
+      busWidth: W,
+      busTask: true,
+      mux: true,
+      pins: {
+        inputExt1: { x: -340, y: -90, direction: "in", width: W, label: `כניסת ${muxTask.label} 1 חיצונית` },
+        inputInt1: { x: -260, y: -90, direction: "out", width: W, label: `כניסת ${muxTask.label} 1 פנימית` },
+        inputExt2: { x: -340, y: 90, direction: "in", width: W, label: `כניסת ${muxTask.label} 2 חיצונית` },
+        inputInt2: { x: -260, y: 90, direction: "out", width: W, label: `כניסת ${muxTask.label} 2 פנימית` },
+        inputExt3: { x: -120, y: -250, direction: "in", width: 1, label: "כניסת בקרה חיצונית" },
+        inputInt3: { x: -120, y: -180, direction: "out", width: 1, label: "כניסת בקרה פנימית" },
+        outputInt: { x: 260, y: 0, direction: "in", width: W, label: `יציאת ${muxTask.label} פנימית` },
+        outputExt: { x: 340, y: 0, direction: "out", width: W, label: `יציאת ${muxTask.label} חיצונית` }
+      },
+      bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+    };
+
+    // The placeable MUX bus gate mirrors the 2.3 MUX symbol (two data inputs on
+    // the left, control on top, output on the right), with bus data/output pins.
+    const baseMux = WORKSPACE_COMPONENT_DEFS["gate-Mux"];
+    const muxPins = {};
+    Object.entries(baseMux ? baseMux.pins : {}).forEach(([pinId, pin]) => {
+      muxPins[pinId] = { ...pin, width: pinId === "in3" ? 1 : W };
+    });
+    WORKSPACE_COMPONENT_DEFS[gateComponentType(muxTask.id)] = {
+      label: muxTask.label,
+      gate: true,
+      busGate: true,
+      busWidth: W,
+      op: "Mux",
+      inputs: 3,
+      control: true,
+      pins: muxPins,
+      bounds: baseMux ? { ...baseMux.bounds } : { left: 64, right: 84, top: 62, bottom: 62 }
+    };
+  }
+
 
   // DEFAULT_WORKSPACE_COMPONENTS moved to js/app-data.js
 
@@ -2444,6 +2490,80 @@
         }
       }
     ],
+    MUX4: [
+      {
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים. את כניסת הבקרה משאירים כמו שהיא.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-MUX, ומחברים את כניסת הבקרה לכל אחד מה-MUX-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
+        highlight: {
+          components: ["mux-0", "mux-1", "mux-2", "mux-3"],
+          wires: [
+            wireKey("split-a.leg0", "mux-0.in1"), wireKey("split-b.leg0", "mux-0.in2"), wireKey("task-card-1.inputInt3", "mux-0.in3"),
+            wireKey("split-a.leg1", "mux-1.in1"), wireKey("split-b.leg1", "mux-1.in2"), wireKey("task-card-1.inputInt3", "mux-1.in3"),
+            wireKey("split-a.leg2", "mux-2.in1"), wireKey("split-b.leg2", "mux-2.in2"), wireKey("task-card-1.inputInt3", "mux-2.in3"),
+            wireKey("split-a.leg3", "mux-3.in1"), wireKey("split-b.leg3", "mux-3.in2"), wireKey("task-card-1.inputInt3", "mux-3.in3")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 התוצאות חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("mux-0.out", "merge.leg0"), wireKey("mux-1.out", "merge.leg1"),
+            wireKey("mux-2.out", "merge.leg2"), wireKey("mux-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
+    MUX16: [
+      {
+        text: "מפצלים כל אחת משתי כניסות הבס (רוחב 16) ל-4 בסים ברוחב 4 בעזרת שני מפצלים. את כניסת הבקרה משאירים כמו שהיא.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-MUX4, ומחברים את כניסת הבקרה לכל אחד מה-MUX4-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
+        highlight: {
+          components: ["mux4-0", "mux4-1", "mux4-2", "mux4-3"],
+          wires: [
+            wireKey("split-a.leg0", "mux4-0.in1"), wireKey("split-b.leg0", "mux4-0.in2"), wireKey("task-card-1.inputInt3", "mux4-0.in3"),
+            wireKey("split-a.leg1", "mux4-1.in1"), wireKey("split-b.leg1", "mux4-1.in2"), wireKey("task-card-1.inputInt3", "mux4-1.in3"),
+            wireKey("split-a.leg2", "mux4-2.in1"), wireKey("split-b.leg2", "mux4-2.in2"), wireKey("task-card-1.inputInt3", "mux4-2.in3"),
+            wireKey("split-a.leg3", "mux4-3.in1"), wireKey("split-b.leg3", "mux4-3.in2"), wireKey("task-card-1.inputInt3", "mux4-3.in3")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("mux4-0.out", "merge.leg0"), wireKey("mux4-1.out", "merge.leg1"),
+            wireKey("mux4-2.out", "merge.leg2"), wireKey("mux4-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
     And: [
       {
         text: "אנחנו מחברים את שתי הכניסות ל־NAND.",
@@ -4407,6 +4527,18 @@
       [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1].map(Boolean), [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0].map(Boolean)],
       [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean)],
       [[1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1].map(Boolean), [0,1,0,1,1,1,0,0,1,1,1,0,0,0,1,1].map(Boolean)]
+    ],
+    // MUX: each case is [data1, data2, [control]] — control is a single bit.
+    MUX4: [
+      [[1,0,1,1].map(Boolean), [0,1,0,1].map(Boolean), [false]],
+      [[1,0,1,1].map(Boolean), [0,1,0,1].map(Boolean), [true]],
+      [[0,1,1,0].map(Boolean), [1,1,0,1].map(Boolean), [true]],
+      [[1,1,0,0].map(Boolean), [0,0,1,1].map(Boolean), [false]]
+    ],
+    MUX16: [
+      [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1].map(Boolean), [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0].map(Boolean), [false]],
+      [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1].map(Boolean), [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0].map(Boolean), [true]],
+      [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean), [true]]
     ]
   };
 
@@ -4421,7 +4553,14 @@
   }
 
   // The expected output bus, componentwise per the task's op over the inputs.
+  // A MUX task's last input is a single shared control bit (data buses are the
+  // rest): output[i] = op(data…[i], control).
   function busTaskExpected(def, buses) {
+    if (def.control) {
+      const dataBuses = buses.slice(0, -1);
+      const control = buses[buses.length - 1][0];
+      return Array.from({ length: def.width }, (_, i) => Boolean(taskOutput(def.op, [...dataBuses.map((b) => b[i]), control])));
+    }
     return Array.from({ length: def.width }, (_, i) => Boolean(taskOutput(def.op, buses.map((bus) => bus[i]))));
   }
 
@@ -4457,22 +4596,31 @@
     removeInvalidWires(workspace);
 
     const width = def.width;
-    // Input side: one mirrored splitter per input bus (legs = individual bits),
-    // the single pre-placed source wired to the legs of the 1-bits (a leg with
-    // no source reads as a 0 bit). Each merging splitter is `width` legs tall, so
-    // for a wide multi-input card (AND16) the two are spread far apart in y —
-    // running off-screen is fine — so they don't overlap.
-    const nIn = def.inputs || 1;
-    const splitHalfH = ((width - 1) * 34) / 2 + 13;
-    const inSep = Math.max(180, splitHalfH * 2 + 30);
+    // Input side: each DATA input bus gets a mirrored splitter (legs = individual
+    // bits) fed by the single pre-placed source (a leg with no source is a 0
+    // bit); a single-bit input (the MUX control) is wired straight from the
+    // source. Each merging splitter is `w` legs tall, so wide data inputs
+    // (AND16/MUX16) spread far apart in y — running off-screen is fine.
+    const numData = buses.filter((_, j) => pinWidth(workspace, `task-card-1.inputExt${j + 1}`) > 1).length;
+    let dataIdx = 0;
     buses.forEach((bits, j) => {
+      const inputRef = `task-card-1.inputExt${j + 1}`;
+      const w = pinWidth(workspace, inputRef);
+      if (!Number.isInteger(w)) return;
+      if (w === 1) {
+        if (bits[0]) workspace.wires.push(normalizeWire("source-1.out", inputRef));
+        return;
+      }
       const splitId = `bus-in-split-${j}`;
-      const sy = 288 + (j - (nIn - 1) / 2) * inSep;
-      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: width, width: 1 });
+      const splitHalfH = ((w - 1) * 34) / 2 + 13;
+      const inSep = Math.max(180, splitHalfH * 2 + 30);
+      const sy = 288 + (dataIdx - (numData - 1) / 2) * inSep;
+      dataIdx += 1;
+      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: w, width: 1 });
       bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
-      workspace.wires.push(normalizeWire(`${splitId}.single`, `task-card-1.inputExt${j + 1}`));
+      workspace.wires.push(normalizeWire(`${splitId}.single`, inputRef));
     });
 
     // Output side: an unmirrored splitter (single = input) at the card's output
@@ -4648,12 +4796,20 @@
   function busTaskUnlocked(id) {
     const def = busTaskDefById(id);
     if (!def) return false;
+    // MUX16 is the last card: it unlocks only once every other bus card is done.
+    if (id === "MUX16") return BUS_TASK_DEFS.every((t) => t.id === "MUX16" || taskCompleted(t.id));
     return def.requires === null || taskCompleted(def.requires);
+  }
+
+  function busTaskLockedMessage(id) {
+    if (id === "MUX16") return "צריך קודם לבנות את שאר הכרטיסים.";
+    const req = busTaskDefById(id)?.requires;
+    return req ? `צריך קודם לבנות את ${req}.` : "";
   }
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return ["Not4", "Not16", "AND4", "AND16", "OR4"].includes(id);
+    return ["Not4", "Not16", "AND4", "AND16", "OR4", "MUX4", "MUX16"].includes(id);
   }
 
   function openBusesNote() {
@@ -4667,8 +4823,7 @@
     const task = BUS_TASK_DEFS[index];
     if (!task) return;
     if (!busTaskUnlocked(task.id)) {
-      const req = task.requires;
-      return setState({ infoDialog: req ? `צריך קודם לבנות את ${req}.` : "" });
+      return setState({ infoDialog: busTaskLockedMessage(task.id) });
     }
     if (!busTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
@@ -5544,7 +5699,9 @@
   function busGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.busGate) return null;
-    return { op: def.op, inputs: def.inputs || 1, width: def.busWidth, label: def.label };
+    // `control`: the last input is a single shared control bit (the MUX select),
+    // not another per-bit bus.
+    return { op: def.op, inputs: def.inputs || 1, width: def.busWidth, label: def.label, control: Boolean(def.control) };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
@@ -5554,7 +5711,9 @@
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
     if (info.component.type !== "splitter") {
-      // A bus card's pins are buses of the card's width; everything else is 1.
+      // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
+      // card); otherwise a bus card's pins are buses of the card's width.
+      if (Number.isInteger(info.pin?.width)) return info.pin.width;
       const def = WORKSPACE_COMPONENT_DEFS[info.component.type];
       if (def && Number.isInteger(def.busWidth)) return def.busWidth;
       return 1;

@@ -10,7 +10,7 @@ const path = require("path");
 const ROOT = process.cwd();
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
-const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "And", inputs: 2 }, { id: "Or", label: "Or", inputs: 2 }];
+const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "And", inputs: 2 }, { id: "Or", label: "Or", inputs: 2 }, { id: "Mux", label: "MUX", inputs: 3 }];
 
 // Card defs mirror WORKSPACE_COMPONENT_DEFS bus cards: width + input count.
 const CARD = {
@@ -18,21 +18,27 @@ const CARD = {
   "taskCard-Not16": { width: 16, inputs: 1 },
   "taskCard-AND4": { width: 4, inputs: 2 },
   "taskCard-AND16": { width: 16, inputs: 2 },
-  "taskCard-OR4": { width: 4, inputs: 2 }
+  "taskCard-OR4": { width: 4, inputs: 2 },
+  // MUX cards: 2 data inputs (width W) + a single-bit control input (#3).
+  "taskCard-MUX4": { width: 4, inputs: 2, control: true },
+  "taskCard-MUX16": { width: 16, inputs: 2, control: true }
 };
-// Placeable bus gates.
+// Placeable bus gates. A MUX bus gate's in3 is the single-bit control.
 const BUS_GATE = {
   "gate-Not4": { op: "Not", inputs: 1, width: 4 },
   "gate-AND4": { op: "And", inputs: 2, width: 4 },
-  "gate-AND16": { op: "And", inputs: 2, width: 16 }
+  "gate-AND16": { op: "And", inputs: 2, width: 16 },
+  "gate-MUX4": { op: "Mux", inputs: 3, width: 4, control: true },
+  "gate-MUX16": { op: "Mux", inputs: 3, width: 16, control: true }
 };
 const busGateSpec = (type) => BUS_GATE[type] || null;
 
 const splitterOutputCount = (c) => Math.min(16, Math.max(2, Number(c && c.outputs) || 4));
 
-function cardPins(inputs) {
+function cardPins(inputs, control) {
   const pins = { outputInt: { direction: "in" }, outputExt: { direction: "out" } };
-  for (let i = 1; i <= inputs; i += 1) {
+  const total = inputs + (control ? 1 : 0); // control is input #(inputs+1)
+  for (let i = 1; i <= total; i += 1) {
     pins["inputExt" + i] = { direction: "in" };
     pins["inputInt" + i] = { direction: "out" };
   }
@@ -48,7 +54,7 @@ function componentPins(component) {
     for (let i = 0; i < n; i += 1) pins["leg" + i] = { direction: mirrored ? "in" : "out" };
     return pins;
   }
-  if (CARD[type]) return cardPins(CARD[type].inputs);
+  if (CARD[type]) return cardPins(CARD[type].inputs, CARD[type].control);
   if (type === "source") return { out: { direction: "out" } };
   if (type === "nand") return { in1: { direction: "in" }, in2: { direction: "in" }, out: { direction: "out" } };
   if (type === "lamp") return { in: { direction: "in" } };
@@ -57,6 +63,8 @@ function componentPins(component) {
     for (let i = 1; i <= busGateSpec(type).inputs; i += 1) pins["in" + i] = { direction: "in" };
     return pins;
   }
+  // The single-bit MUX gate has a third input (the control, in3).
+  if (type === "gate-Mux") return { in1: { direction: "in" }, in2: { direction: "in" }, in3: { direction: "in" }, out: { direction: "out" } };
   if (type && type.indexOf("gate-") === 0) return { in1: { direction: "in" }, in2: { direction: "in" }, out: { direction: "out" } };
   return {};
 }
@@ -80,8 +88,16 @@ function pinWidth(ws, ref) {
     if (w === null) return null;
     return pin === "single" ? w * splitterOutputCount(c) : w;
   }
-  if (CARD[c.type]) return CARD[c.type].width;
-  if (busGateSpec(c.type)) return busGateSpec(c.type).width;
+  if (CARD[c.type]) {
+    // A MUX card's control pin (#3) is a single bit, not a bus.
+    if (CARD[c.type].control && (pin === "inputExt3" || pin === "inputInt3")) return 1;
+    return CARD[c.type].width;
+  }
+  if (busGateSpec(c.type)) {
+    // A MUX bus gate's in3 is the single-bit control; in1/in2/out are buses.
+    if (busGateSpec(c.type).control && pin === "in3") return 1;
+    return busGateSpec(c.type).width;
+  }
   return 1;
 }
 
@@ -327,6 +343,120 @@ console.log("\nBus-engine (OR4)\n");
 const or4Cases = [[[1,0,1,0],[0,0,1,1]], [[0,1,0,0],[1,0,0,1]], [[0,0,0,0],[0,0,0,0]], [[1,1,1,1],[0,0,0,0]]];
 for (const [a, b] of or4Cases) {
   check(`OR4(${a.join("")},${b.join("")})`, buildOr4(a.map(Boolean), b.map(Boolean)), a.map((bit, i) => (bit || b[i]) ? 1 : 0));
+}
+
+// --- MUX4: two 4-bit data inputs + 1-bit control; split each data bus, MUX
+// matching bit-pairs with the shared control fanned in, merge. -----------------
+function buildMux4(busA, busB, control) {
+  const components = [
+    { id: "task-card-1", type: "taskCard-MUX4" },
+    { id: "split-a", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "split-b", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "merge", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    // harness: one input splitter per data bus, control wired straight, one source
+    { id: "bus-in-split-0", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    { id: "bus-in-split-1", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    { id: "bus-out-split", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "source-1", type: "source" }
+  ];
+  const wires = [
+    wire("task-card-1.inputInt1", "split-a.single"),
+    wire("task-card-1.inputInt2", "split-b.single"),
+    wire("merge.single", "task-card-1.outputInt"),
+    wire("bus-in-split-0.single", "task-card-1.inputExt1"),
+    wire("bus-in-split-1.single", "task-card-1.inputExt2"),
+    wire("task-card-1.outputExt", "bus-out-split.single")
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "mux-" + i, type: "gate-Mux" });
+    wires.push(wire("split-a.leg" + i, "mux-" + i + ".in1"));
+    wires.push(wire("split-b.leg" + i, "mux-" + i + ".in2"));
+    wires.push(wire("task-card-1.inputInt3", "mux-" + i + ".in3"));
+    wires.push(wire("mux-" + i + ".out", "merge.leg" + i));
+  }
+  busA.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-0.leg" + i)); });
+  busB.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-1.leg" + i)); });
+  if (control) wires.push(wire("source-1.out", "task-card-1.inputExt3"));
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "bus-out-lamp-" + i, type: "lamp" });
+    wires.push(wire("bus-out-split.leg" + i, "bus-out-lamp-" + i + ".in"));
+  }
+  return { components, wires };
+}
+
+console.log("\nBus-engine (MUX4 + MUX gate)\n");
+const mux4Cases = [
+  [[1,0,1,1],[0,1,0,1],false], [[1,0,1,1],[0,1,0,1],true],
+  [[0,1,1,0],[1,1,0,1],true],  [[1,1,0,0],[0,0,1,1],false]
+];
+for (const [a, b, c] of mux4Cases) {
+  const exp = a.map((bit, i) => (c ? b[i] : bit) ? 1 : 0);
+  check(`MUX4(${a.join("")},${b.join("")},c=${c ? 1 : 0})`, buildMux4(a.map(Boolean), b.map(Boolean), c), exp);
+}
+
+// The MUX4 bus gate on its own (used inside MUX16): width-4 MUX per bit.
+(function () {
+  const a = [1,1,0,1], b = [1,0,0,1], c = true;
+  const ws = {
+    components: [
+      { id: "gm", type: "gate-MUX4" }, { id: "sa", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+      { id: "sb", type: "splitter", mirrored: true, outputs: 4, width: 1 }, { id: "so", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+      { id: "source-1", type: "source" }
+    ],
+    wires: [wire("sa.single", "gm.in1"), wire("sb.single", "gm.in2"), wire("gm.out", "so.single")]
+  };
+  a.forEach((bit, i) => { if (bit) ws.wires.push(wire("source-1.out", "sa.leg" + i)); });
+  b.forEach((bit, i) => { if (bit) ws.wires.push(wire("source-1.out", "sb.leg" + i)); });
+  if (c) ws.wires.push(wire("source-1.out", "gm.in3"));
+  for (let i = 0; i < 4; i += 1) { ws.components.push({ id: "bus-out-lamp-" + i, type: "lamp" }); ws.wires.push(wire("so.leg" + i, "bus-out-lamp-" + i + ".in")); }
+  check(`gate-MUX4(${a.join("")},${b.join("")},c=${c ? 1 : 0})`, ws, a.map((bit, i) => (c ? b[i] : bit) ? 1 : 0));
+})();
+
+// --- MUX16: two 16-bit data inputs, split into 4x4, MUX4 the pairs, merge -----
+function buildMux16(busA, busB, control) {
+  const components = [
+    { id: "task-card-1", type: "taskCard-MUX16" },
+    { id: "split-a", type: "splitter", mirrored: false, outputs: 4, width: 4 },
+    { id: "split-b", type: "splitter", mirrored: false, outputs: 4, width: 4 },
+    { id: "merge", type: "splitter", mirrored: true, outputs: 4, width: 4 },
+    { id: "bus-in-split-0", type: "splitter", mirrored: true, outputs: 16, width: 1 },
+    { id: "bus-in-split-1", type: "splitter", mirrored: true, outputs: 16, width: 1 },
+    { id: "bus-out-split", type: "splitter", mirrored: false, outputs: 16, width: 1 },
+    { id: "source-1", type: "source" }
+  ];
+  const wires = [
+    wire("task-card-1.inputInt1", "split-a.single"),
+    wire("task-card-1.inputInt2", "split-b.single"),
+    wire("merge.single", "task-card-1.outputInt"),
+    wire("bus-in-split-0.single", "task-card-1.inputExt1"),
+    wire("bus-in-split-1.single", "task-card-1.inputExt2"),
+    wire("task-card-1.outputExt", "bus-out-split.single")
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "mux4-" + i, type: "gate-MUX4" });
+    wires.push(wire("split-a.leg" + i, "mux4-" + i + ".in1"));
+    wires.push(wire("split-b.leg" + i, "mux4-" + i + ".in2"));
+    wires.push(wire("task-card-1.inputInt3", "mux4-" + i + ".in3"));
+    wires.push(wire("mux4-" + i + ".out", "merge.leg" + i));
+  }
+  busA.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-0.leg" + i)); });
+  busB.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-1.leg" + i)); });
+  if (control) wires.push(wire("source-1.out", "task-card-1.inputExt3"));
+  for (let i = 0; i < 16; i += 1) {
+    components.push({ id: "bus-out-lamp-" + i, type: "lamp" });
+    wires.push(wire("bus-out-split.leg" + i, "bus-out-lamp-" + i + ".in"));
+  }
+  return { components, wires };
+}
+
+console.log("\nBus-engine (MUX16 via MUX4 gate)\n");
+const mux16Cases = [
+  [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1], [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0], false],
+  [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1], [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0], true],
+  [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0], [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1], true]
+];
+for (const [a, b, c] of mux16Cases) {
+  check16(`MUX16(c=${c ? 1 : 0})`, buildMux16(a.map(Boolean), b.map(Boolean), c), a.map((bit, i) => (c ? b[i] : bit) ? 1 : 0));
 }
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);

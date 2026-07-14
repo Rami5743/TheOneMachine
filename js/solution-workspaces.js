@@ -612,12 +612,86 @@ function createSolutionWorkspaces({
     });
   }
 
+  // MUX4: split each of the two 4-bit data inputs into 4 wires, feed matching
+  // bit-pairs into a single-bit MUX (in1=data-1 bit, in2=data-2 bit), fan the
+  // shared control bit to every MUX's in3, merge the four results into the
+  // 4-bit output. output = control ? data2 : data1, bit by bit.
+  function mux4SolutionWorkspaceFrom() {
+    const muxYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 430, y: 198, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 430, y: 378, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 850, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    muxYs.forEach((y, i) => {
+      components.push({ id: `mux-${i}`, type: "gate-Mux", x: 650, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `mux-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `mux-${i}.in2`));
+      wires.push(normalizeWire("task-card-1.inputInt3", `mux-${i}.in3`));
+      wires.push(normalizeWire(`mux-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "MUX4", taskIntroSeen: true
+    });
+  }
+
+  // MUX16: split each 16-bit data input into 4 buses of width 4, feed matching
+  // bus-pairs into a MUX4, fan the shared control bit to every MUX4's in3, merge
+  // the four 4-bit results into the 16-bit output. (Just like MUX4, using MUX4
+  // in place of MUX.)
+  function mux16SolutionWorkspaceFrom() {
+    const muxYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX16"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 430, y: 198, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 378, mirrored: false, outputs: 4, width: 4 },
+      { id: "merge", type: "splitter", x: 850, y: 288, mirrored: true, outputs: 4, width: 4 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    muxYs.forEach((y, i) => {
+      components.push({ id: `mux4-${i}`, type: "gate-MUX4", x: 650, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `mux4-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `mux4-${i}.in2`));
+      wires.push(normalizeWire("task-card-1.inputInt3", `mux4-${i}.in3`));
+      wires.push(normalizeWire(`mux4-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "MUX16", taskIntroSeen: true
+    });
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
     if (taskId === "Not16") return not16SolutionWorkspaceFrom();
     if (taskId === "AND4") return and4SolutionWorkspaceFrom();
     if (taskId === "OR4") return or4SolutionWorkspaceFrom();
     if (taskId === "AND16") return and16SolutionWorkspaceFrom();
+    if (taskId === "MUX4") return mux4SolutionWorkspaceFrom();
+    if (taskId === "MUX16") return mux16SolutionWorkspaceFrom();
     if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
     if (taskId === "DMux") return dmuxSolutionFrom();
     if (taskId === "Not") return notSolutionWorkspaceFrom();

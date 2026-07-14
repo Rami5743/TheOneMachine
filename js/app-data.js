@@ -210,9 +210,10 @@
     { id: "Not16", label: "NOT16", op: "Not", width: 16, inputs: 1, requires: "Not4", description: "ה-NOT16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
     { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4", description: "ה-AND4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת AND על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
     { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4", description: "ה-AND16 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת AND על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
-    { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "Not4", description: "ה-OR4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת OR על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
-    { id: "MUX4",  label: "MUX4",  op: "Mux", width: 4,  inputs: 2, requires: "Not4" },
-    { id: "MUX16", label: "MUX16", op: "Mux", width: 16, inputs: 2, requires: "MUX4" }
+    { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "AND4", description: "ה-OR4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת OR על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
+    { id: "MUX4",  label: "MUX4",  op: "Mux", width: 4,  inputs: 2, requires: "OR4", control: true, description: "ה-MUX4 הוא כרטיס עם 3 כניסות: אחת מהכניסות היא כניסת בקרה (מלמעלה) ושתי האחרות הן בס ברוחב 4. ויציאה אחת שהיא בס ברוחב 4. אם כניסת הבקרה היא 0 אז היציאה זהה לכניסה הראשונה. אם כניסת הבקרה היא 1 אז היציאה זהה לכניסה השנייה." },
+    // MUX16 unlocks only after every other bus card is built (see busTaskUnlocked).
+    { id: "MUX16", label: "MUX16", op: "Mux", width: 16, inputs: 2, requires: "MUX4", control: true, description: "ה-MUX16 הוא כרטיס עם 3 כניסות: אחת מהכניסות היא כניסת בקרה (מלמעלה) ושתי האחרות הן בס ברוחב 16. ויציאה אחת שהיא בס ברוחב 16. אם כניסת הבקרה היא 0 אז היציאה זהה לכניסה הראשונה. אם כניסת הבקרה היא 1 אז היציאה זהה לכניסה השנייה." }
   ];
 
   const TASK_HINTS = {
@@ -288,6 +289,14 @@
       { kind: "interactive", title: "רמז 4", action: "or4-split-one" },
       { kind: "interactive", title: "רמז 5", action: "or4-split-both" },
       { kind: "interactive", title: "רמז 6", action: "or4-split-both-and" }
+    ],
+    MUX4: [
+      { kind: "text", title: "רמז 1", text: "זה דומה ל-AND4 רק שצריך להשתמש ב-MUX במקום ב-AND." },
+      { kind: "text", title: "רמז 2", text: "שים לב, כניסת הבקרה בוחרת בין שתי האפשרויות, לכן אתה צריך להשתמש בה בכל אחד מ-MUX-ים." }
+    ],
+    MUX16: [
+      { kind: "text", title: "רמז 1", text: "זה בדיוק כמו MUX4 רק שצריך להשתמש ב-MUX4 במקום ב-MUX." },
+      { kind: "text", title: "רמז 2", text: "מעבר להסבר." }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },
