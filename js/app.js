@@ -3834,7 +3834,7 @@
               <svg class="workspace-canvas" data-workspace-svg  aria-label="שולחן עבודה אלקטרוני" role="img">
                 <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
                 <g class="workspace-task-shell-layer">
-                  ${renderWorkspaceTaskShell()}
+                  ${state.cardCreation ? renderCardCreationFrame() : renderWorkspaceTaskShell()}
                 </g>
                 <g class="workspace-wire-layer">
                   ${renderWires()}
@@ -3857,10 +3857,11 @@
               ${renderNotTaskHint()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
+              ${state.cardCreation ? renderCardCreationOverlays() : ""}
             </div>
           </section>
         </section>
-        ${explanationReplayActive("nand-function") ? renderNandFunctionExplanationControls() : `
+        ${state.cardCreation ? renderCardCreationControls() : (explanationReplayActive("nand-function") ? renderNandFunctionExplanationControls() : `
         <section class="controls">
           ${navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
@@ -3874,7 +3875,7 @@
           ${renderWorkspaceBuildHelpButton()}
           ${renderWorkspaceUnderstoodButton()}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
-        </section>`}
+        </section>`)}
       </main>
       ${renderWorkspaceUnderstoodPrompt()}
       ${renderWorkspaceBuildHelpPrompt()}
@@ -3987,11 +3988,42 @@
   // The shell/interface only: an empty framed workspace where the learner names
   // a new card and sets its input/output counts. The actual card building,
   // saving, and use are NOT implemented yet.
+  // An empty free-build workbench used for card creation. The invisible fixed
+  // anchor keeps the normalizer from restoring the default source+NAND+lamp, so
+  // the board opens empty; `freeBuild` gives the full palette + drag/wire tools.
+  function createCardBuildWorkspace(returnChapterId, returnPanelIndex) {
+    return normalizeWorkspace({
+      selectedTerminal: null,
+      components: [{ id: "free-anchor-1", type: "notCard", x: 500, y: 288 }],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      accident: null,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: null,
+      taskIntroSeen: true,
+      freeBuild: true,
+      cardBuild: true,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex
+    });
+  }
+
   function enterCardCreation() {
     const ws = state.workspace || {};
+    const returnChapterId = ws.sessionReturnChapterId || state.chapterId || "chapter-7";
+    const returnPanelIndex = Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0);
     setState({
-      screen: "cardCreation",
+      screen: "workspace",
       createCardBubble: false,
+      workspace: createCardBuildWorkspace(returnChapterId, returnPanelIndex),
       cardCreation: {
         name: "כרטיס חדש",
         inputs: 2,
@@ -4000,8 +4032,8 @@
         outputWidths: [1],
         introSeen: false,
         pinEdit: null,
-        returnChapterId: ws.sessionReturnChapterId || state.chapterId || "chapter-7",
-        returnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0)
+        returnChapterId,
+        returnPanelIndex
       }
     }, false);
   }
@@ -4010,7 +4042,7 @@
     const cc = state.cardCreation || {};
     const chapterId = cc.returnChapterId || "chapter-7";
     const panelIndex = Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0;
-    setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null }, false);
+    setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null, workspace: createDefaultWorkspace() }, false);
   }
 
   // The y of pin i of a side with `n` pins (workspace coordinates: the frame
@@ -4075,54 +4107,50 @@
       </div>`;
   }
 
-  // Card-creation mode reuses the real workspace board (toolbar + brown canvas +
-  // a task-style frame), with overlays for the editable name and the I/O count
-  // boxes on the sides of the frame.
-  function renderCardCreation() {
-    const cc = state.cardCreation || { name: "כרטיס חדש", inputs: 2, outputs: 1 };
-    app.innerHTML = `
-      ${topbar()}
-      <main class="screen workspace-screen card-creation-screen">
-        <section class="workspace-layout">
-          ${renderToolbar()}
-          <section class="workspace-board-wrap">
-            <div class="workspace-board" data-workspace-board>
-              <svg class="workspace-canvas" role="img" aria-label="הכנת כרטיס חדש">
-                <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
-                <g class="workspace-task-shell-layer">
-                  <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
-                  ${cardCreationPins(cc, "in")}
-                  ${cardCreationPins(cc, "out")}
-                </g>
-              </svg>
-              <div class="card-creation-name-overlay">
-                <input class="card-creation-name" type="text" value="${esc(cc.name)}" aria-label="שם הכרטיס" maxlength="24" />
-              </div>
-              <div class="card-creation-io card-creation-io-left">
-                <label>כניסות</label>
-                <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.inputs}" data-card-io="inputs" aria-label="מספר כניסות" />
-              </div>
-              <div class="card-creation-io card-creation-io-right">
-                <label>יציאות</label>
-                <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
-              </div>
-              ${renderCardPinWidthBox()}
-              ${renderCardCreationIntro()}
-            </div>
-          </section>
-        </section>
-        <section class="controls">
-          ${navButton("card-creation-reset", "restart", "נקה שולחן")}
-          <button class="btn" data-action="card-creation-back" type="button">חזרה למחסן</button>
-          ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
-        </section>
-      </main>`;
+  // Card-creation reuses the real workspace board (renderWorkspace). These render
+  // the card-specific extras: the frame + editable pins (inside the task-shell
+  // layer), the overlays (name, I/O boxes, width picker, intro), and the bottom
+  // controls.
+  function renderCardCreationFrame() {
+    const cc = state.cardCreation;
+    if (!cc) return "";
+    return `
+      <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
+      ${cardCreationPins(cc, "in")}
+      ${cardCreationPins(cc, "out")}`;
+  }
+
+  function renderCardCreationOverlays() {
+    const cc = state.cardCreation;
+    if (!cc) return "";
+    return `
+      <div class="card-creation-name-overlay">
+        <input class="card-creation-name" type="text" value="${esc(cc.name)}" aria-label="שם הכרטיס" maxlength="24" />
+      </div>
+      <div class="card-creation-io card-creation-io-left">
+        <label>כניסות</label>
+        <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.inputs}" data-card-io="inputs" aria-label="מספר כניסות" />
+      </div>
+      <div class="card-creation-io card-creation-io-right">
+        <label>יציאות</label>
+        <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
+      </div>
+      ${renderCardPinWidthBox()}
+      ${renderCardCreationIntro()}`;
+  }
+
+  function renderCardCreationControls() {
+    return `
+      <section class="controls">
+        ${navButton("card-creation-reset", "restart", "נקה שולחן")}
+        <button class="btn" data-action="card-creation-back" type="button">חזרה למחסן</button>
+        ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
+      </section>`;
   }
 
   function render() {
     syncExplanationUnlocks();
     if (state.hintSlides) return renderHintSlides();
-    if (state.screen === "cardCreation") return renderCardCreation();
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
@@ -4142,6 +4170,11 @@
       }
       if (workspaceNandMonologueActive()) {
         requestAnimationFrame(positionWorkspaceNandMonologue);
+      }
+      // Focus the pin-width picker when it opens, so clicking elsewhere blurs it
+      // (and closes it via focusout).
+      if (state.cardCreation && state.cardCreation.pinEdit) {
+        requestAnimationFrame(() => app.querySelector("[data-card-pin-width]")?.focus());
       }
       return;
     }
@@ -6559,20 +6592,11 @@
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
   });
 
-  // Card-creation: the pin-width picker (double-click a pin) and the input/output
-  // count boxes (which re-draw the frame's pins and resize the width arrays).
+  // Card-creation: the input/output count boxes re-draw the frame's pins and
+  // resize the width arrays. (The pin-width box commits live on input and closes
+  // only on focusout — see below — so a spinner click doesn't dismiss it.)
   document.addEventListener("change", (event) => {
     if (!state.cardCreation) return;
-    const widthBox = event.target.closest("[data-card-pin-width]");
-    if (widthBox && state.cardCreation.pinEdit) {
-      const { side, index } = state.cardCreation.pinEdit;
-      const w = Math.min(16, Math.max(1, Math.round(Number(widthBox.value) || 1)));
-      const cc = { ...state.cardCreation };
-      const key = side === "in" ? "inputWidths" : "outputWidths";
-      const arr = [...(cc[key] || [])]; arr[index] = w; cc[key] = arr;
-      cc.pinEdit = null;
-      return setState({ cardCreation: cc }, false);
-    }
     const box = event.target.closest("[data-card-io]");
     if (!box) return;
     const which = box.dataset.cardIo === "outputs" ? "outputs" : "inputs";
@@ -6595,13 +6619,35 @@
     setState({ cardCreation: { ...state.cardCreation, pinEdit: { side, index } } }, false);
   });
 
-  // Keep the (uncontrolled) card name in state without re-rendering, so typing
-  // is not interrupted and the name survives a count-box re-render.
+  // Keep uncontrolled card-creation fields in state WITHOUT re-rendering, so the
+  // input keeps focus: the name, and the pin-width box (its value updates live;
+  // the box stays open until focus leaves it — see focusout below).
   document.addEventListener("input", (event) => {
+    if (!state.cardCreation) return;
     const nameBox = event.target.closest(".card-creation-name");
-    if (!nameBox || !state.cardCreation) return;
-    state.cardCreation.name = nameBox.value;
-    saveState();
+    if (nameBox) {
+      state.cardCreation.name = nameBox.value;
+      return saveState();
+    }
+    const widthBox = event.target.closest("[data-card-pin-width]");
+    if (widthBox && state.cardCreation.pinEdit) {
+      const { side, index } = state.cardCreation.pinEdit;
+      const w = Math.min(16, Math.max(1, Math.round(Number(widthBox.value) || 1)));
+      const key = side === "in" ? "inputWidths" : "outputWidths";
+      const arr = [...(state.cardCreation[key] || [])];
+      arr[index] = w;
+      state.cardCreation[key] = arr;
+      saveState();
+    }
+  });
+
+  // Close the pin-width box only when its focus leaves (a click elsewhere), then
+  // re-render so the pin shows its new width. The width was committed live on
+  // input, so nothing is lost.
+  document.addEventListener("focusout", (event) => {
+    if (!state.cardCreation || !state.cardCreation.pinEdit) return;
+    if (!event.target.closest("[data-card-pin-width]")) return;
+    setState({ cardCreation: { ...state.cardCreation, pinEdit: null } }, false);
   });
 
   document.addEventListener("keydown", (event) => {
@@ -6804,7 +6850,10 @@
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
     if (action === "create-card-tool") return enterCardCreation(); // the bubble + tool share this
     if (action === "card-creation-back") return exitCardCreation();
-    if (action === "card-creation-reset") return setState({ cardCreation: { ...state.cardCreation, inputs: 2, outputs: 1, inputWidths: [1, 1], outputWidths: [1], pinEdit: null } }, false);
+    if (action === "card-creation-reset") {
+      const cc = state.cardCreation || {};
+      return setState({ workspace: createCardBuildWorkspace(cc.returnChapterId, cc.returnPanelIndex), cardCreation: { ...cc, pinEdit: null } }, false);
+    }
     if (action === "card-creation-intro-ok") return setState({ cardCreation: { ...state.cardCreation, introSeen: true } }, false);
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
