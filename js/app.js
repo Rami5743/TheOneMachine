@@ -231,9 +231,8 @@
   // The card/gate are only built for tasks with a real build workspace so far.
   const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4"];
   const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4"];
-  // Vertical positions of a bus card's / bus gate's input pins by input count.
+  // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
-  function busGateInputYs(n) { return n <= 1 ? [0] : [-24, 24]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
     const nIn = busTask.inputs || 1;
     if (BUS_TASKS_WITH_CARD.includes(busTask.id)) {
@@ -258,14 +257,16 @@
     }
 
     if (BUS_TASKS_WITH_GATE.includes(busTask.id)) {
-      // A placeable bus gate: `nIn` input buses on the left, one output bus on
-      // the right, applying the op componentwise.
+      // A placeable bus gate looks EXACTLY like its base gate (NOT4 like NOT,
+      // AND4 like AND) — same schematic symbol and pin layout — only the label
+      // differs. It reuses the base gate's pins/bounds; `busWidth` makes its
+      // pins buses, and `op` drives the componentwise evaluation. The base gate
+      // (gate-Not / gate-And …) was defined above, from TASK_DEFS.
+      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op)];
       const gatePins = {};
-      busGateInputYs(nIn).forEach((y, i) => {
-        const num = nIn > 1 ? ` ${i + 1}` : "";
-        gatePins[`in${i + 1}`] = { x: -92, y, direction: "in", label: `כניסת ${busTask.label}${num}` };
+      Object.entries(baseDef ? baseDef.pins : {}).forEach(([pinId, pin]) => {
+        gatePins[pinId] = { ...pin };
       });
-      gatePins.out = { x: 92, y: 0, direction: "out", label: `יציאת ${busTask.label}` };
       WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
         label: busTask.label,
         gate: true,
@@ -274,7 +275,7 @@
         op: busTask.op,
         inputs: nIn,
         pins: gatePins,
-        bounds: { left: 100, right: 100, top: 52, bottom: 52 }
+        bounds: baseDef ? { ...baseDef.bounds } : { left: 84, right: 84, top: 62, bottom: 62 }
       };
     }
   }

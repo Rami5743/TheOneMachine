@@ -1562,19 +1562,6 @@ button { font: inherit; }
   stroke-linecap: butt;
 }
 
-/* A placeable bus gate (Not4 …) on the board and in the toolbar. */
-.bus-gate-body {
-  fill: #f4ead3;
-  stroke: #2a1c0f;
-  stroke-width: 3;
-}
-
-.bus-gate-label {
-  fill: #2a1c0f;
-  font-family: Arial, sans-serif;
-  font-weight: 800;
-  font-size: 26px;
-}
 
 /* MUX scratch (editable) truth table cells */
 .mux-scratch-table td {

@@ -108,20 +108,6 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
 
-  // A placeable bus gate (gate-Not4 …): a rounded box with its label and a bus
-  // pin (thick dashed bar + width number) poking out each side.
-  function busGateMarkup(spec) {
-    const w = spec.width;
-    const bar = (x1, x2) => `${splitterBusBar(x1, x2, 0, 11)}<text class="splitter-width-label" x="${(x1 + x2) / 2}" y="-16" text-anchor="middle">${w}</text>`;
-    return `
-      <g class="bus-gate">
-        ${bar(-92, -58)}
-        ${bar(58, 92)}
-        <rect class="bus-gate-body" x="-58" y="-42" width="116" height="84" rx="12" />
-        <text class="bus-gate-label" x="0" y="0" text-anchor="middle" dominant-baseline="central">${esc(spec.label)}</text>
-      </g>`;
-  }
-
   function componentMarkup(type, options = {}) {
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
@@ -129,8 +115,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "bus") return busMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("gate-")) {
+      // A bus gate (gate-Not4 …) draws exactly like its base gate — the same
+      // schematic symbol, keyed off its op (NOT4 → the NOT symbol).
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
-      if (bus) return busGateMarkup(bus);
+      if (bus) return gateMarkup(taskDefById(bus.op));
       return gateMarkup(taskDefById(type.slice(5)));
     }
     return "";
