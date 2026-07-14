@@ -2565,7 +2565,21 @@
         }
       },
       {
-        text: "יש עוד דרך, שמזכירה את הפתרון של MUX הרגיל: היציאה היא (הכניסה הראשונה וגם לא-בקרה) או (הכניסה השנייה וגם בקרה). כדי להפעיל את ביט הבקרה על בס שלם, קודם משכפלים את כבל הבקרה ל-4 עותקים ומאגדים אותם לבס ברוחב 4.",
+        text: "אפשר גם לעשות את זה כמו שבונים מוקס רגיל, רק להשתמש ב-AND4, OR4, NOT4 במקום ב-And, OR, NOT."
+      },
+      {
+        text: "מתחילים מלשכפל את כניסת הבקרה ולארוז את כל העותקים שלה יחד.",
+        highlight: {
+          components: ["ctrl-merge"],
+          terminals: ["task-card-1.inputInt3", "ctrl-merge.single"],
+          wires: [
+            wireKey("task-card-1.inputInt3", "ctrl-merge.leg0"), wireKey("task-card-1.inputInt3", "ctrl-merge.leg1"),
+            wireKey("task-card-1.inputInt3", "ctrl-merge.leg2"), wireKey("task-card-1.inputInt3", "ctrl-merge.leg3")
+          ]
+        }
+      },
+      {
+        text: "זה יאפשר לנו להשתמש בה בכרטיסים AND4, OR4, NOT4 כך שהיא תשפיע על כל ביט בנפרד.",
         highlight: {
           components: ["ctrl-merge"],
           terminals: ["task-card-1.inputInt3", "ctrl-merge.single"],
