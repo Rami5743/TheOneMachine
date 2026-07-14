@@ -108,6 +108,24 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
 
+  // The pin stubs of each base gate (from its SVG), redrawn as bus bars for the
+  // bus gates. Each entry is the [x1,x2] extent (and y) of a stub line.
+  const BUS_GATE_BARS = {
+    Not: [{ x1: -60, x2: -42, y: 0 }, { x1: 48, x2: 80, y: 0 }],
+    And: [{ x1: -62, x2: -44, y: -23 }, { x1: -62, x2: -44, y: 23 }, { x1: 44, x2: 66, y: 0 }]
+  };
+
+  // A bus gate (gate-Not4 …): the base gate's schematic symbol, with its thin
+  // pin stubs overdrawn as bus bars (thick dashed + the width number) so the
+  // pins read as width-N buses. Body identical to the base gate; pins differ.
+  function busGateMarkup(spec) {
+    const symbol = gateMarkup(taskDefById(spec.op));
+    const bars = (BUS_GATE_BARS[spec.op] || []).map((b) =>
+      `${splitterBusBar(b.x1, b.x2, b.y, 11)}<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13}" text-anchor="middle">${spec.width}</text>`
+    ).join("");
+    return `<g class="bus-gate">${symbol}${bars}</g>`;
+  }
+
   function componentMarkup(type, options = {}) {
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
@@ -115,10 +133,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "bus") return busMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("gate-")) {
-      // A bus gate (gate-Not4 …) draws exactly like its base gate — the same
-      // schematic symbol, keyed off its op (NOT4 → the NOT symbol).
+      // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
+      // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
-      if (bus) return gateMarkup(taskDefById(bus.op));
+      if (bus) return busGateMarkup(bus);
       return gateMarkup(taskDefById(type.slice(5)));
     }
     return "";

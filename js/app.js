@@ -586,6 +586,14 @@
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
   const evaluateWorkspaceBits = (workspace = state.workspace) => __circuitEngine.evaluateWorkspaceBits(workspace);
 
+  // A workspace with splitters or bus gates must be simulated by the bus-aware
+  // engine (so its lamps light up); everything else uses the single-bit engine.
+  function workspaceHasBusElements(workspace = state.workspace) {
+    return (workspace?.components || []).some((c) => c.type === "splitter" || busGateSpec(c.type));
+  }
+  const workspaceEvaluation = (workspace = state.workspace) =>
+    workspaceHasBusElements(workspace) ? evaluateWorkspaceBits(workspace) : evaluateWorkspace(workspace);
+
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
   const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec });
@@ -2172,7 +2180,7 @@
   // evaluateWorkspace moved to js/circuit-engine.js
 
   function workspaceStatusText() {
-    const evaluation = evaluateWorkspace();
+    const evaluation = workspaceEvaluation();
     const lamps = [...evaluation.lamps.values()];
     if (lamps.length === 0) return "אין מנורות על השולחן.";
     if (lamps.length === 1) return `מנורה: ${lamps[0] ? "דלוקה" : "כבויה"}`;
@@ -3474,7 +3482,7 @@
   }
 
   function renderWorkspace() {
-    const evaluation = evaluateWorkspace();
+    const evaluation = workspaceEvaluation();
     app.innerHTML = `
       ${topbar()}
       <main class="screen workspace-screen">
@@ -4351,14 +4359,10 @@
     workspace.selectedTerminal = null;
     workspace.accident = null;
     workspace.focusedComponentId = null;
-    // Keep the card, the pre-placed source, and anything the learner built
-    // inside the bus card's frame (which spans the card's x ± 300, y 100..476).
-    const card = componentById(workspace, "task-card-1");
-    const cx = Number.isFinite(card?.x) ? card.x : 640;
-    const frame = { x1: cx - 300, y1: 100, x2: cx + 300, y2: 476 };
-    workspace.components = workspace.components.filter((component) =>
-      component.id === "task-card-1" || component.id === "source-1" ||
-      (component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2));
+    // Keep ALL of the learner's components. (The bus circuits are large — four
+    // gates barely fit the card frame — so filtering by a frame rectangle would
+    // silently drop legitimate components placed near or past the edge and fail
+    // a correct solution. Stray components not on the signal path are harmless.)
     // The pre-placed source drives every input; drop anything the learner wired
     // to it so the check controls it.
     workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
@@ -4394,14 +4398,14 @@
     return workspace;
   }
 
-  // Where (and at what scale) the check's output lamps sit. A narrow bus gets a
-  // few full-size lamps spread down the board; a wide bus (16) gets a dense
-  // column of small lamps aligned with the output splitter's legs.
+  // Where (and at what scale) the check's output lamps sit. Lamp i reads output
+  // leg i, so — like every bus component — lamp 0 sits at the BOTTOM and they
+  // count upward. A narrow bus gets a few full-size lamps spread down the board;
+  // a wide bus (16) gets a dense column of small lamps aligned with the legs.
   function busLampLayout(width, centerY, x) {
     if (width <= 6) {
       const spacing = 133;
-      const top = centerY - ((width - 1) / 2) * spacing;
-      return { scale: 1, positions: Array.from({ length: width }, (_, i) => ({ x, y: Math.round(top + i * spacing) })) };
+      return { scale: 1, positions: Array.from({ length: width }, (_, i) => ({ x, y: Math.round(centerY + ((width - 1) / 2 - i) * spacing) })) };
     }
     return { scale: 0.32, positions: splitterOutputYs(width).map((dy) => ({ x, y: centerY + dy })) };
   }
@@ -4777,28 +4781,32 @@
     if (busTaskDefById(taskId)) {
       const busWorkspace = normalizeWorkspace(clonePlain(state.workspace));
       const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
+      // Keep a voltage source to the left of the card (as in the build/solution).
+      const source = componentById(busWorkspace, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
       let components, wires;
       if (taskId === "AND4") {
-        components = [clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 }];
+        components = [clonePlain(source), clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 }];
         wires = [normalizeWire("task-card-1.inputInt1", "split-a.single")];
         if (hint.action !== "and4-split-one") {
           components.push({ id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 1 });
           wires.push(normalizeWire("task-card-1.inputInt2", "split-b.single"));
         }
         if (hint.action === "and4-split-both-and") {
-          components.push({ id: "and-1", type: "gate-And", x: 660, y: 288 });
-          wires.push(normalizeWire("split-a.leg0", "and-1.in1"));
-          wires.push(normalizeWire("split-b.leg0", "and-1.in2"));
+          // Leg 0 (the bottom cable) of each input, ANDed by a gate placed low.
+          components.push({ id: "and-0", type: "gate-And", x: 660, y: 339 });
+          wires.push(normalizeWire("split-a.leg0", "and-0.in1"));
+          wires.push(normalizeWire("split-b.leg0", "and-0.in2"));
         }
       } else {
         const isNot16 = taskId === "Not16";
         const legWidth = isNot16 ? 4 : 1;
         const subGate = isNot16 ? "gate-Not4" : "gate-Not";
-        const subId = isNot16 ? "not4-1" : "not-1";
-        components = [clonePlain(card), { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: legWidth }];
+        const subId = isNot16 ? "not4-0" : "not-0";
+        components = [clonePlain(source), clonePlain(card), { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: legWidth }];
         wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
         if (hint.action.endsWith("split-and-not")) {
-          components.push({ id: subId, type: subGate, x: 640, y: 200 });
+          // Wire the bottom leg (leg 0) to the sub-gate, placed low to match.
+          components.push({ id: subId, type: subGate, x: 640, y: 339 });
           wires.push(normalizeWire("split-in.leg0", `${subId}.in1`));
         }
       }

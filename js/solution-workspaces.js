@@ -454,7 +454,8 @@ function createSolutionWorkspaces({
   // Built directly (not via standardTaskWorkspace) because bus tasks have no
   // TASK_DEFS entry and use a bus card with a pre-placed single source.
   function not4SolutionWorkspaceFrom() {
-    const notYs = [200, 270, 340, 410];
+    // Bottom-first: component 0 (fed by the bottom leg) sits at the bottom.
+    const notYs = [410, 340, 270, 200];
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Not4"), x: 640, y: 288 },
@@ -482,7 +483,8 @@ function createSolutionWorkspaces({
   // Not16: split the 16-bit input into 4 buses of width 4, apply a Not4 to each,
   // merge the four 4-bit results back into the 16-bit output.
   function not16SolutionWorkspaceFrom() {
-    const not4Ys = [160, 250, 340, 430];
+    // Bottom-first: component 0 (fed by the bottom leg) sits at the bottom.
+    const not4Ys = [430, 340, 250, 160];
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Not16"), x: 640, y: 288 },
@@ -510,7 +512,8 @@ function createSolutionWorkspaces({
   // AND4: split each of the two 4-bit inputs into 4 wires, AND the matching
   // pairs, merge the four results back into the 4-bit output.
   function and4SolutionWorkspaceFrom() {
-    const andYs = [200, 260, 320, 380];
+    // Bottom-first: component 0 (fed by the bottom legs) sits at the bottom.
+    const andYs = [380, 320, 260, 200];
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("AND4"), x: 640, y: 288 },
