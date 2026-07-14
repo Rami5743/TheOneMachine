@@ -222,6 +222,30 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // Chapter 2.4 bus cards. Like the 2.2 task cards, but their single input and
+  // single output are BUSES: pinWidth reports the card's `busWidth`, so every
+  // wire to inputInt1 / outputInt renders as a bus and the width rules apply.
+  // Only Not4 is built for now. inputExt1/inputInt1 (left) and outputInt/
+  // outputExt (right) mirror the standard single-input card layout so the shared
+  // task-frame machinery (cycles, canonical refs, the check harness) just works.
+  for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
+    if (busTask.id !== "Not4") continue; // the others are note-list placeholders
+    WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
+      label: `מסגרת ${busTask.label}`,
+      fixed: true,
+      taskId: busTask.id,
+      busWidth: busTask.width,
+      busTask: true,
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", label: `כניסת ${busTask.label} חיצונית` },
+        inputInt1: { x: -260, y: 0, direction: "out", label: `כניסת ${busTask.label} פנימית` },
+        outputInt: { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` },
+        outputExt: { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` }
+      },
+      bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+    };
+  }
+
 
   // DEFAULT_WORKSPACE_COMPONENTS moved to js/app-data.js
 
@@ -522,10 +546,11 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
+  const evaluateWorkspaceBits = (workspace = state.workspace) => __circuitEngine.evaluateWorkspaceBits(workspace);
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
@@ -572,7 +597,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -599,7 +624,7 @@
 
   // Task-building UI (shell/intro/hint/check) lives in js/task-mode-view.js.
   const __taskModeView = createTaskModeView({
-    getState: () => state, esc, genderText, adaptGender, taskDefById, taskInputYs, solutionHighlightConfig,
+    getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, taskInputYs, solutionHighlightConfig,
     isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
@@ -651,7 +676,14 @@
   }
 
   function isNotTaskWorkspace() {
-    return Boolean(taskDefById(workspaceTaskId()));
+    return Boolean(taskDefById(workspaceTaskId())) || isBusTaskWorkspace();
+  }
+
+  // A chapter 2.4 bus-card build workspace (Not4 etc.). Kept separate from the
+  // truth-table tasks: bus tasks have no rows and are checked with a splitter
+  // harness over a few hard-coded cases instead of an exhaustive truth table.
+  function isBusTaskWorkspace() {
+    return state.screen === "workspace" && Boolean(busTaskDefById(state.workspace?.taskId));
   }
 
   // The workbench has three variants. This is the first one: "הצגת הנאנד" — the
@@ -4099,11 +4131,100 @@
 
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
+    if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
     muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
     const testWorkspace = cleanedWorkspaceForTaskTest(state.workspace);
     runNotTestRow(testWorkspace, 0);
+  }
+
+  // --- Chapter 2.4 bus-task check ------------------------------------------
+  // No truth table: a handful of input patterns per task, picked once at random
+  // and then frozen. Each is the bit-vector fed into the single input bus.
+  const BUS_TEST_CASES = {
+    Not4: [
+      [true, false, true, true],
+      [false, true, false, false],
+      [true, true, false, true],
+      [false, false, true, false],
+      [true, false, false, true]
+    ]
+  };
+
+  function busTaskCases(taskId) {
+    return BUS_TEST_CASES[taskId] || [];
+  }
+
+  // The expected output bus for an input bus, componentwise per the task's op.
+  function busTaskExpected(def, inputs) {
+    if (def.op === "Not") return inputs.map((bit) => !bit);
+    return inputs.slice();
+  }
+
+  // Assemble the check circuit for one input case. The learner's circuit inside
+  // the card is kept; the card is then wrapped in a splitter harness — a merging
+  // splitter fed by per-bit sources drives the input bus, and a splitting
+  // splitter fans the output bus out to one lamp per bit.
+  function busTestHarnessWorkspace(baseWorkspace, def, inputs) {
+    const workspace = normalizeWorkspace(clonePlain(baseWorkspace));
+    workspace.selectedTerminal = null;
+    workspace.accident = null;
+    workspace.focusedComponentId = null;
+    const frame = TASK_TEST_FRAME;
+    workspace.components = workspace.components.filter((component) =>
+      component.id === "task-card-1" ||
+      (component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2));
+    removeInvalidWires(workspace);
+
+    const width = def.width;
+    // Input side: a mirrored splitter (legs = inputs) merges `width` source bits
+    // into the input bus. A missing source encodes a 0 bit.
+    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 150, y: 288, mirrored: true, outputs: width, width: 1 });
+    inputs.forEach((bit, i) => {
+      const srcId = `bus-in-src-${i}`;
+      workspace.components.push({ id: srcId, type: "source", x: 45, y: 120 + i * 92 });
+      if (bit) workspace.wires.push(normalizeWire(`${srcId}.out`, `bus-in-split.leg${i}`));
+    });
+    workspace.wires.push(normalizeWire("bus-in-split.single", "task-card-1.inputExt1"));
+
+    // Output side: an unmirrored splitter (single = input) fans the output bus
+    // out to `width` lamps, one per bit.
+    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 850, y: 288, mirrored: false, outputs: width, width: 1 });
+    workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
+    for (let i = 0; i < width; i += 1) {
+      const lampId = `bus-out-lamp-${i}`;
+      workspace.components.push({ id: lampId, type: "lamp", x: 955, y: 120 + i * 92 });
+      workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
+    }
+    return workspace;
+  }
+
+  function runBusTestCase(baseWorkspace, caseIndex) {
+    const def = busTaskDefById(baseWorkspace.taskId);
+    if (!def) return showNotTestResult("failure", baseWorkspace, null);
+    const cases = busTaskCases(def.id);
+    if (caseIndex >= cases.length) return showNotTestResult("success", baseWorkspace, def.id);
+
+    const inputs = cases[caseIndex];
+    const workspace = busTestHarnessWorkspace(baseWorkspace, def, inputs);
+    setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
+
+    notTestTimer = window.setTimeout(() => {
+      const evaluation = evaluateWorkspaceBits(workspace);
+      const expected = busTaskExpected(def, inputs);
+      const ok = expected.every((bit, i) => Boolean(evaluation.lamps.get(`bus-out-lamp-${i}`)) === Boolean(bit));
+      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      runBusTestCase(workspace, caseIndex + 1);
+    }, 850);
+  }
+
+  function startBusTaskTest() {
+    if (!isBusTaskWorkspace() || notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    muxTableSnapshot = null;
+    runBusTestCase(state.workspace, 0);
   }
 
   function finishNotTestDialog() {
@@ -4121,6 +4242,24 @@
       notTestSnapshot = null;
       muxTableSnapshot = null;
       clearNotTestTimer();
+
+      // Bus tasks (chapter 2.4): no solution walkthrough. Mark complete and
+      // return to the worktable with the note reopened for the next task.
+      if (busTaskDefById(taskId)) {
+        const completedTasks = !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
+        const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+        const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+        return setState({
+          ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
+          notTest: null,
+          muxTable: null,
+          completedTasks,
+          busesNoteList: true,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 
       const completedTasks = taskId && !taskCompleted(taskId)
@@ -4212,15 +4351,42 @@
     return seen.includes("bus") && seen.includes("splitter");
   }
 
-  // The 2.4 note's task list. Clicking the individual items is intentionally not
-  // wired up yet.
-  const BUSES_NOTE_ITEMS = ["Not4", "Not16", "AND4", "AND16", "MUX4", "MUX16"];
+  // The 2.4 note's task list (BUS_TASK_DEFS, in js/app-data.js). Tasks unlock in
+  // a dependency graph: Not4 is available first and opens Not16/AND4/OR4/MUX4;
+  // AND4 opens AND16; MUX4 opens MUX16.
+  function busTaskDefById(id) {
+    return BUS_TASK_DEFS.find((task) => task.id === id) || null;
+  }
+
+  function busTaskUnlocked(id) {
+    const def = busTaskDefById(id);
+    if (!def) return false;
+    return def.requires === null || taskCompleted(def.requires);
+  }
+
+  // Which bus tasks have a real build workspace built. For now only Not4.
+  function busTaskImplemented(id) {
+    return id === "Not4";
+  }
 
   function openBusesNote() {
     if (!newEquipmentChecked()) {
       return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
     }
     return setState({ busesNoteList: true });
+  }
+
+  function handleBusNoteTask(index) {
+    const task = BUS_TASK_DEFS[index];
+    if (!task) return;
+    if (!busTaskUnlocked(task.id)) {
+      const req = task.requires;
+      return setState({ infoDialog: req ? `צריך קודם לבנות את ${req}.` : "" });
+    }
+    if (!busTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    openBusTaskWorkspace(task.id);
   }
 
   function renderBusesNoteList() {
@@ -4230,8 +4396,15 @@
         <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
           <h2>משימות</h2>
           <ol class="note-task-list buses-note-list">
-            ${BUSES_NOTE_ITEMS.map((label) => `
-              <li><span class="note-task-item">${esc(label)}</span></li>`).join("")}
+            ${BUS_TASK_DEFS.map((task, index) => {
+              const completed = taskCompleted(task.id);
+              const locked = !busTaskUnlocked(task.id);
+              return `
+                <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+                  <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+                  <button class="note-task-button" data-action="bus-note-task" data-task-index="${index}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+                </li>`;
+            }).join("")}
           </ol>
           <div class="note-task-actions">
             <button class="btn" data-action="buses-note-close">סגור</button>
@@ -4381,6 +4554,36 @@
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
+    }
+
+    // Bus tasks (Not4): the interactive hints scaffold a splitter on the input
+    // bus (and, at the next step, one NOT wired to one of its legs).
+    if (busTaskDefById(taskId)) {
+      const busWorkspace = normalizeWorkspace(clonePlain(state.workspace));
+      const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 500, y: 288 };
+      const components = [
+        clonePlain(card),
+        { id: "split-in", type: "splitter", x: 330, y: 288, mirrored: false, outputs: 4, width: 1 }
+      ];
+      const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+      if (hint.action === "not4-split-and-not") {
+        components.push({ id: "not-1", type: "gate-Not", x: 560, y: 190 });
+        wires.push(normalizeWire("split-in.leg0", "not-1.in1"));
+      }
+      busWorkspace.components = components;
+      busWorkspace.wires = wires;
+      busWorkspace.nextId = 2;
+      busWorkspace.selectedTerminal = null;
+      busWorkspace.accident = null;
+      busWorkspace.focusedComponentId = null;
+      busWorkspace.unlocked = true;
+      busWorkspace.taskIntroSeen = true;
+      const busPatch = {
+        workspace: normalizeWorkspace(busWorkspace),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) busPatch.hintState = hintStateOverride;
+      return setState(busPatch, false);
     }
 
     const workspace = normalizeWorkspace(clonePlain(state.workspace));
@@ -4696,6 +4899,53 @@
     openTaskWorkspace("Not");
   }
 
+  // Open the build workspace for a chapter 2.4 bus task (e.g. Not4). The learner
+  // gets just the bus card centred on the table and builds the circuit inside it
+  // from splitters, NOTs and the other gates. The check adds a splitter harness.
+  function openBusTaskWorkspace(taskId) {
+    const def = busTaskDefById(taskId);
+    if (!def) return;
+    const chapter = chapterById("chapter-7");
+    // Remember the worktable panel so completing the task returns there with the
+    // note reopened for the next task.
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(def.id), x: 500, y: 288 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: def.id,
+      taskIntroSeen: false
+    };
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      busesNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
   function handleNoteTask(index) {
     const defs = currentNoteTaskDefs();
     const task = defs[index];
@@ -4946,7 +5196,12 @@
   function pinWidth(workspace, ref) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
-    if (info.component.type !== "splitter") return 1;
+    if (info.component.type !== "splitter") {
+      // A bus card's pins are buses of the card's width; everything else is 1.
+      const def = WORKSPACE_COMPONENT_DEFS[info.component.type];
+      if (def && Number.isInteger(def.busWidth)) return def.busWidth;
+      return 1;
+    }
     const w = Number.isInteger(info.component.width) ? info.component.width : null;
     if (w === null) return null;
     return info.pinId === "single" ? w * splitterOutputCount(info.component) : w;
@@ -5588,6 +5843,7 @@
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
     if (action === "buses-note") return openBusesNote();
     if (action === "buses-note-close") return setState({ busesNoteList: false });
+    if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");

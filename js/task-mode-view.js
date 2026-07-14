@@ -15,12 +15,38 @@ function createTaskModeView({
   genderText,
   adaptGender,
   taskDefById,
+  busTaskDefById,
   taskInputYs,
   solutionHighlightConfig,
   isNotTaskWorkspace,
   workspaceTaskIntroActive,
   notTestActive
 }) {
+  function busDefFor() {
+    const state = getState();
+    return typeof busTaskDefById === "function" ? busTaskDefById(state.workspace?.taskId) : null;
+  }
+
+  // One bus pin on the task frame: a thick black bar with a light dashed line
+  // along it (the "bus" look) and the bit width above — same visual as the bus
+  // wires and the splitter pins.
+  function busPinBar(x1, x2, y, width) {
+    const midX = (x1 + x2) / 2;
+    return `
+      <line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
+      <line class="workspace-task-shell-bus-stripe" x1="${x1 + 4}" y1="${y}" x2="${x2 - 4}" y2="${y}" />
+      <text class="splitter-width-label" x="${midX}" y="${y - 16}" text-anchor="middle">${width}</text>`;
+  }
+
+  function renderBusTaskShell(def) {
+    return `
+      <g class="workspace-task-shell" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
+        <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(def.label)}</text>
+        ${busPinBar(160, 240, 288, def.width)}
+        ${busPinBar(760, 840, 288, def.width)}
+      </g>`;
+  }
   function renderMuxTaskShell(task) {
     // Custom layout: two numbered data inputs on the left, the control input on
     // top, one output on the right. Matches the taskCard-Mux pin offsets in app.js.
@@ -58,6 +84,8 @@ function createTaskModeView({
   function renderWorkspaceTaskShell() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
+    const busDef = busDefFor();
+    if (busDef) return renderBusTaskShell(busDef);
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
     if (task.id === "Mux") return renderMuxTaskShell(task);
@@ -183,6 +211,14 @@ function createTaskModeView({
   function renderNotTaskHint() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
+    const busDef = busDefFor();
+    if (busDef) {
+      // Bus tasks: just the requirements text, no truth table.
+      return `
+        <section class="workspace-task-hint" aria-label="הסבר על ${esc(busDef.label)}">
+          <p>${esc(adaptGender(busDef.description || ""))}</p>
+        </section>`;
+    }
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
     if (task.id === "Mux") {

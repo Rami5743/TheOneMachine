@@ -1547,6 +1547,21 @@ button { font: inherit; }
   stroke-width: 2px;
 }
 
+/* A bus pin on the task frame (chapter 2.4): thick black bar with a light
+   dashed line along it, matching the bus wires and splitter pins. */
+.workspace-task-shell-bus {
+  stroke: #111;
+  stroke-width: 11;
+  stroke-linecap: butt;
+}
+
+.workspace-task-shell-bus-stripe {
+  stroke: #d8d8d8;
+  stroke-width: 3;
+  stroke-dasharray: 6 3;
+  stroke-linecap: butt;
+}
+
 /* MUX scratch (editable) truth table cells */
 .mux-scratch-table td {
   padding: 0;
@@ -1877,11 +1892,6 @@ button { font: inherit; }
   background: rgba(80, 52, 20, 0.14);
   outline: 2px solid rgba(80, 52, 20, 0.38);
   outline-offset: 2px;
-}
-
-/* 2.4 note list: plain, non-clickable items (number + label, no check column). */
-.note-task-list.buses-note-list li {
-  grid-template-columns: 2.1em minmax(0, 1fr);
 }
 
 .note-task-item {

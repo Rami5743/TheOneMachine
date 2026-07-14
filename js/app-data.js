@@ -199,6 +199,22 @@
     }
   ];
 
+  // Chapter 2.4 bus tasks — the note's task list. Each card operates on buses
+  // instead of single bits. `width` is the bus width; `op` is the per-bit
+  // operation applied componentwise; `inputs` is the number of bus inputs.
+  // `requires` is the task that must be completed before this one unlocks
+  // (null = available from the start). Unlock graph: Not4 opens
+  // Not16/AND4/OR4/MUX4; AND4 opens AND16; MUX4 opens MUX16.
+  const BUS_TASK_DEFS = [
+    { id: "Not4",  label: "Not4",  op: "Not", width: 4,  inputs: 1, requires: null, description: "ה-Not4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
+    { id: "Not16", label: "Not16", op: "Not", width: 16, inputs: 1, requires: "Not4" },
+    { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4" },
+    { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4" },
+    { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "Not4" },
+    { id: "MUX4",  label: "MUX4",  op: "Mux", width: 4,  inputs: 2, requires: "Not4" },
+    { id: "MUX16", label: "MUX16", op: "Mux", width: 16, inputs: 2, requires: "MUX4" }
+  ];
+
   const TASK_HINTS = {
     Not: [
       { kind: "text", title: "רמז 1", text: "נסה להשתמש ב־NAND." },
@@ -238,6 +254,11 @@
       { kind: "text", title: "רמז 2", text: "רוצה להכין לכרטיס טבלת אמת? שים לב, יש בטבלה 2 עמודות ליציאה, אחת לכל יציאה. אבל עדיין יש רק 4 שורות, כי יש 4 אפשרויות בכניסה." },
       { kind: "interactive", title: "רמז 3", action: "dmux-fill-inputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עזרה בהכנת טבלת האמת? (אם תלחץ על כן זה ימחק את כל מה שכתבת בטבלה)." },
       { kind: "interactive", title: "רמז 4", action: "dmux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת?" }
+    ],
+    Not4: [
+      { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-Notים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "interactive", title: "רמז 2", action: "not4-split-input", text: "מפצלים את הכניסה.", openAfterApply: true },
+      { kind: "interactive", title: "רמז 3", action: "not4-split-and-not", text: "מפצלים את הכניסה מחברים קבל אחד לNOT.", openAfterApply: true }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },

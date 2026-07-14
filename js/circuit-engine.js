@@ -41,7 +41,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -150,5 +150,159 @@ function createCircuitEngine({ terminalDirection, taskDefById }) {
     return { outputs, lamps };
   }
 
-  return { connectedOutputRefs, inputSignal, evaluateWorkspace };
+  // --- Bus-aware evaluation (chapter 2.4) ----------------------------------
+  // Like evaluateWorkspace, but every terminal carries a bit-vector (boolean[])
+  // instead of a single boolean, so buses and splitters propagate correctly.
+  // Single-bit components (source/nand/gate/card) use length-1 vectors, so the
+  // same code covers both. Kept separate from evaluateWorkspace to leave the
+  // (heavily relied-on) single-bit path for chapters 2.2/2.3 untouched.
+  function widthOfBits(workspace, ref) {
+    const w = typeof pinWidth === "function" ? pinWidth(workspace, ref) : 1;
+    return Number.isInteger(w) && w > 0 ? w : 1;
+  }
+
+  function zeroBits(n) {
+    return Array.from({ length: n }, () => false);
+  }
+
+  function orBits(a, b) {
+    const n = Math.max(a.length, b.length);
+    const out = [];
+    for (let i = 0; i < n; i += 1) out.push(Boolean(a[i]) || Boolean(b[i]));
+    return out;
+  }
+
+  function bitsEqual(a, b) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) if (Boolean(a[i]) !== Boolean(b[i])) return false;
+    return true;
+  }
+
+  function fitBits(vec, width) {
+    if (vec.length === width) return vec;
+    if (vec.length > width) return vec.slice(0, width);
+    return vec.concat(zeroBits(width - vec.length));
+  }
+
+  // The bit-vector driving an input ref: the bitwise OR of every connected
+  // output's vector, sized to the input pin's width.
+  function inputBits(workspace, inputRef, outputs) {
+    const width = widthOfBits(workspace, inputRef);
+    let vec = zeroBits(width);
+    for (const wire of workspace.wires) {
+      const other = otherWireEnd(wire, inputRef);
+      if (!other) continue;
+      if (terminalDirection(workspace, other) !== "out") continue;
+      const src = outputs.get(other);
+      if (Array.isArray(src)) vec = orBits(vec, src);
+    }
+    return fitBits(vec, width);
+  }
+
+  function setBits(outputs, ref, vec) {
+    if (bitsEqual(outputs.get(ref), vec)) return false;
+    outputs.set(ref, vec);
+    return true;
+  }
+
+  function splitterCount(component) {
+    if (typeof splitterOutputCount === "function") return splitterOutputCount(component);
+    return Math.min(16, Math.max(2, Number(component?.outputs) || 4));
+  }
+
+  function evaluateWorkspaceBits(workspace) {
+    const outputs = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "source") outputs.set(`${component.id}.out`, [true]);
+    }
+
+    for (let iter = 0; iter < workspace.components.length + 4; iter += 1) {
+      let changed = false;
+
+      for (const component of workspace.components) {
+        const type = component.type;
+        if (type === "source") continue;
+
+        if (type === "nand") {
+          const a = inputBits(workspace, `${component.id}.in1`, outputs)[0];
+          const b = inputBits(workspace, `${component.id}.in2`, outputs)[0];
+          if (setBits(outputs, `${component.id}.out`, [!(a && b)])) changed = true;
+          continue;
+        }
+
+        if (type === "splitter") {
+          const w = Number.isInteger(component.width) ? component.width : null;
+          if (w === null) continue; // untyped splitter: nothing to propagate yet
+          const count = splitterCount(component);
+          if (component.mirrored) {
+            // Legs are inputs; the single pin outputs their concatenation.
+            let vec = [];
+            for (let i = 0; i < count; i += 1) {
+              vec = vec.concat(fitBits(inputBits(workspace, `${component.id}.leg${i}`, outputs), w));
+            }
+            if (setBits(outputs, `${component.id}.single`, vec)) changed = true;
+          } else {
+            // The single pin is the input; each leg outputs one chunk of it.
+            const inVec = inputBits(workspace, `${component.id}.single`, outputs);
+            for (let i = 0; i < count; i += 1) {
+              const chunk = fitBits(inVec.slice(i * w, i * w + w), w);
+              if (setBits(outputs, `${component.id}.leg${i}`, chunk)) changed = true;
+            }
+          }
+          continue;
+        }
+
+        if (type.startsWith("gate-")) {
+          const task = taskDefById(type.slice(5));
+          if (!task) continue;
+          const inputs = Array.from({ length: task.inputs }, (_, i) => inputBits(workspace, `${component.id}.in${i + 1}`, outputs)[0]);
+          const outCount = task.outputs || 1;
+          if (outCount > 1) {
+            const values = taskOutputs(task.id, inputs);
+            for (let k = 0; k < outCount; k += 1) {
+              if (setBits(outputs, `${component.id}.out${k + 1}`, [Boolean(values[k])])) changed = true;
+            }
+          } else if (setBits(outputs, `${component.id}.out`, [Boolean(taskOutput(task.id, inputs))])) {
+            changed = true;
+          }
+          continue;
+        }
+
+        if (type.startsWith("taskCard-")) {
+          // A card is a pass-through: external inputs drive internal inputs, and
+          // internal outputs drive external outputs. This holds for single-bit
+          // and bus cards alike — the vectors are simply wider. Pin roles are
+          // discovered from the card's pin map so every card shape is covered.
+          const pins = typeof resolvePins === "function" ? resolvePins(component) : {};
+          for (const pinId of Object.keys(pins)) {
+            const intMatch = pinId.match(/^inputInt(\d*)$/);
+            if (intMatch) {
+              const extRef = `${component.id}.inputExt${intMatch[1]}`;
+              if (setBits(outputs, `${component.id}.${pinId}`, inputBits(workspace, extRef, outputs))) changed = true;
+              continue;
+            }
+            const extMatch = pinId.match(/^outputExt(\d*)$/);
+            if (extMatch) {
+              const intRef = `${component.id}.outputInt${extMatch[1]}`;
+              if (setBits(outputs, `${component.id}.${pinId}`, inputBits(workspace, intRef, outputs))) changed = true;
+            }
+          }
+          continue;
+        }
+      }
+
+      if (!changed) break;
+    }
+
+    const lamps = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "lamp") {
+        lamps.set(component.id, Boolean(inputBits(workspace, `${component.id}.in`, outputs)[0]));
+      }
+    }
+
+    return { outputs, lamps };
+  }
+
+  return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits };
 }
