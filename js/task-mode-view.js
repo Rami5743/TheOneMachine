@@ -40,15 +40,19 @@ function createTaskModeView({
   }
 
   function renderBusTaskShell(def) {
-    // Frame spans x 200..800. The input stub pokes out on the left (160..200)
-    // and the output stub on the right (800..840); the width labels sit over
-    // those external stubs so they clear the frame edge.
+    // The frame follows the card component's position. Card pin offsets are
+    // ±340 (external) / ±260 (internal); the frame edges sit at ±300, so the
+    // external stub pokes out on each side. The width labels sit over those
+    // external stubs (at ±320) so they clear the frame edge.
+    const state = getState();
+    const card = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+    const cx = Number.isFinite(card?.x) ? card.x : 640;
     return `
       <g class="workspace-task-shell" aria-hidden="true">
-        <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
-        <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(def.label)}</text>
-        ${busPinBar(160, 240, 288, 178, def.width)}
-        ${busPinBar(760, 840, 288, 822, def.width)}
+        <rect class="workspace-task-shell-frame" x="${cx - 300}" y="100" width="600" height="376" rx="18" />
+        <text class="workspace-task-shell-title" x="${cx}" y="90" text-anchor="middle">${esc(def.label)}</text>
+        ${busPinBar(cx - 340, cx - 260, 288, cx - 320, def.width)}
+        ${busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width)}
       </g>`;
   }
 

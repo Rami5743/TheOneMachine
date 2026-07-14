@@ -4219,7 +4219,11 @@
     workspace.selectedTerminal = null;
     workspace.accident = null;
     workspace.focusedComponentId = null;
-    const frame = TASK_TEST_FRAME;
+    // Keep the card, the pre-placed source, and anything the learner built
+    // inside the bus card's frame (which spans the card's x ± 300, y 100..476).
+    const card = componentById(workspace, "task-card-1");
+    const cx = Number.isFinite(card?.x) ? card.x : 640;
+    const frame = { x1: cx - 300, y1: 100, x2: cx + 300, y2: 476 };
     workspace.components = workspace.components.filter((component) =>
       component.id === "task-card-1" || component.id === "source-1" ||
       (component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2));
@@ -4230,22 +4234,24 @@
 
     const width = def.width;
     // Input side: a mirrored splitter (legs = inputs) merges the bits into the
-    // input bus. The single pre-placed source is wired to the legs of the
-    // 1-bits; a leg with no source reads as a 0 bit.
-    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 120, y: 288, mirrored: true, outputs: width, width: 1 });
+    // input bus. Its single pin sits at the card's input pin (board x 300); the
+    // pre-placed source is far to the left, wired up to the legs of the 1-bits.
+    // A leg with no source reads as a 0 bit.
+    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 230, y: 288, mirrored: true, outputs: width, width: 1 });
     inputs.forEach((bit, i) => {
       if (bit) workspace.wires.push(normalizeWire("source-1.out", `bus-in-split.leg${i}`));
     });
     workspace.wires.push(normalizeWire("bus-in-split.single", "task-card-1.inputExt1"));
 
-    // Output side: an unmirrored splitter (single = input) fans the output bus
-    // out to `width` lamps, one per bit, spaced so they do not overlap.
-    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 880, y: 288, mirrored: false, outputs: width, width: 1 });
+    // Output side: an unmirrored splitter (single = input) at the card's output
+    // pin (board x 980) fans the output bus out to `width` lamps, placed well to
+    // the right and spaced so they do not overlap.
+    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, width: 1 });
     workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
     const lampYs = busLampYs(width);
     for (let i = 0; i < width; i += 1) {
       const lampId = `bus-out-lamp-${i}`;
-      workspace.components.push({ id: lampId, type: "lamp", x: 950, y: lampYs[i] });
+      workspace.components.push({ id: lampId, type: "lamp", x: 1180, y: lampYs[i] });
       workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
     }
     return workspace;
@@ -4626,14 +4632,14 @@
     // bus (and, at the next step, one NOT wired to one of its legs).
     if (busTaskDefById(taskId)) {
       const busWorkspace = normalizeWorkspace(clonePlain(state.workspace));
-      const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 500, y: 288 };
+      const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
       const components = [
         clonePlain(card),
-        { id: "split-in", type: "splitter", x: 330, y: 288, mirrored: false, outputs: 4, width: 1 }
+        { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: 1 }
       ];
       const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
       if (hint.action === "not4-split-and-not") {
-        components.push({ id: "not-1", type: "gate-Not", x: 560, y: 190 });
+        components.push({ id: "not-1", type: "gate-Not", x: 640, y: 200 });
         wires.push(normalizeWire("split-in.leg0", "not-1.in1"));
       }
       busWorkspace.components = components;
@@ -4979,10 +4985,12 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(def.id), x: 500, y: 288 },
-        // The check's single voltage source, pre-placed. The space to its right
-        // (around x 120) is left free for the check to drop the input splitter.
-        { id: "source-1", type: "source", x: 70, y: 430 }
+        // The card sits well right of centre so the input harness has room on
+        // the left and the output harness has room on the right.
+        { id: "task-card-1", type: taskCardComponentType(def.id), x: 640, y: 288 },
+        // The check's single voltage source, pre-placed opposite the card's
+        // centre. The space to its right is left free for the input splitter.
+        { id: "source-1", type: "source", x: 65, y: 288 }
       ],
       wires: [],
       nextId: 2,

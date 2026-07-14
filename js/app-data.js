@@ -257,8 +257,8 @@
     ],
     Not4: [
       { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-Notים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
-      { kind: "interactive", title: "רמז 2", action: "not4-split-input", text: "מפצלים את הכניסה.", openAfterApply: true },
-      { kind: "interactive", title: "רמז 3", action: "not4-split-and-not", text: "מפצלים את הכניסה מחברים קבל אחד לNOT.", openAfterApply: true }
+      { kind: "interactive", title: "רמז 2", action: "not4-split-input" },
+      { kind: "interactive", title: "רמז 3", action: "not4-split-and-not" }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },
