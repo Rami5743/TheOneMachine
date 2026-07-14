@@ -4059,16 +4059,16 @@
     return Math.round(top + (index + 1) * (bottom - top) / (Math.max(1, n) + 1));
   }
 
-  // One pin on the frame's edge, drawn like other cards' pins: it ENTERS the
-  // card (crosses the frame edge). Width 1 is a thin cable; wider is a bus bar
-  // with its width number. The connectable terminal (for wiring) is the real
-  // card-frame terminal at the INNER end (rendered by the workspace); the OUTER
-  // part of the stub is a separate double-click target for the width picker (so
-  // it does not conflict with the terminal's single-click wiring).
+  // One pin on the frame's edge, drawn like other cards' pins, spanning the
+  // external terminal (outer) and internal terminal (inner). Width 1 is a thin
+  // cable; wider is a bus bar with its width number. Both ends are real wiring
+  // terminals (rendered by the workspace); the MIDDLE of the stub (between them,
+  // over the frame edge) is a double-click target for the width picker, so it
+  // does not sit on either terminal.
   function cardCreationPinBar(side, index, y, width) {
     const [x1, x2] = side === "in" ? [160, 240] : [760, 840];
     const labelX = side === "in" ? 210 : 790;
-    const hitX = side === "in" ? [150, 208] : [792, 850];
+    const hitX = side === "in" ? [178, 222] : [778, 822];
     const bar = width > 1
       ? `<line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
          <line class="workspace-task-shell-bus-stripe" x1="${x1 + 4}" y1="${y}" x2="${x2 - 4}" y2="${y}" />
@@ -6055,10 +6055,11 @@
     return pins;
   }
 
-  // The card frame's connectable pins, resolved from the card being defined: one
-  // internal input pin per input (direction "out" — it feeds the internal
-  // circuit) and one internal output pin per output (direction "in"). Positions
-  // match the drawn stubs' inner ends; each carries its per-pin bus width.
+  // The card frame's connectable pins, resolved from the card being defined. Like
+  // a task card, each pin is a passthrough: an EXTERNAL end (outside the frame,
+  // for wiring a source/lamp while testing) and an INTERNAL end (inside, for the
+  // circuit), electrically linked by the engine. Input: ext "in" -> int "out".
+  // Output: int "in" -> ext "out". Each carries its per-pin bus width.
   function cardFramePins() {
     const cc = state.cardCreation;
     if (!cc) return {};
@@ -6066,10 +6067,16 @@
     const nIn = Math.min(8, Math.max(1, Math.round(Number(cc.inputs) || 1)));
     const nOut = Math.min(8, Math.max(1, Math.round(Number(cc.outputs) || 1)));
     for (let i = 0; i < nIn; i += 1) {
-      pins[`inputInt${i}`] = { x: -260, y: cardCreationPinY(i, nIn) - 288, direction: "out", width: Math.round(Number((cc.inputWidths || [])[i]) || 1), label: `כניסה ${i + 1}` };
+      const y = cardCreationPinY(i, nIn) - 288;
+      const w = Math.round(Number((cc.inputWidths || [])[i]) || 1);
+      pins[`inputExt${i}`] = { x: -340, y, direction: "in", width: w, label: `כניסה ${i + 1} חיצונית` };
+      pins[`inputInt${i}`] = { x: -260, y, direction: "out", width: w, label: `כניסה ${i + 1} פנימית` };
     }
     for (let i = 0; i < nOut; i += 1) {
-      pins[`outputInt${i}`] = { x: 260, y: cardCreationPinY(i, nOut) - 288, direction: "in", width: Math.round(Number((cc.outputWidths || [])[i]) || 1), label: `יציאה ${i + 1}` };
+      const y = cardCreationPinY(i, nOut) - 288;
+      const w = Math.round(Number((cc.outputWidths || [])[i]) || 1);
+      pins[`outputInt${i}`] = { x: 260, y, direction: "in", width: w, label: `יציאה ${i + 1} פנימית` };
+      pins[`outputExt${i}`] = { x: 340, y, direction: "out", width: w, label: `יציאה ${i + 1} חיצונית` };
     }
     return pins;
   }

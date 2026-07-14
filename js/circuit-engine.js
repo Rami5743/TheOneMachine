@@ -135,6 +135,28 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
           }
         }
+
+        if (component.type === "cardFrame") {
+          // The card-creation frame is a plain pass-through (single-bit): each
+          // external input drives its internal input, each internal output drives
+          // its external output. Pin roles come from the (dynamic) pin map.
+          const pins = typeof resolvePins === "function" ? resolvePins(component) : {};
+          for (const pinId of Object.keys(pins)) {
+            const intMatch = pinId.match(/^inputInt(\d*)$/);
+            if (intMatch) {
+              const value = inputSignal(workspace, `${component.id}.inputExt${intMatch[1]}`, outputs);
+              const ref = `${component.id}.${pinId}`;
+              if (outputs.get(ref) !== value) { outputs.set(ref, value); changed = true; }
+              continue;
+            }
+            const extMatch = pinId.match(/^outputExt(\d*)$/);
+            if (extMatch) {
+              const value = inputSignal(workspace, `${component.id}.outputInt${extMatch[1]}`, outputs);
+              const ref = `${component.id}.${pinId}`;
+              if (outputs.get(ref) !== value) { outputs.set(ref, value); changed = true; }
+            }
+          }
+        }
       }
 
       if (!changed) break;
@@ -290,11 +312,13 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           continue;
         }
 
-        if (type.startsWith("taskCard-")) {
+        if (type.startsWith("taskCard-") || type === "cardFrame") {
           // A card is a pass-through: external inputs drive internal inputs, and
           // internal outputs drive external outputs. This holds for single-bit
           // and bus cards alike — the vectors are simply wider. Pin roles are
           // discovered from the card's pin map so every card shape is covered.
+          // The card-creation frame uses the same passthrough (its ext ends carry
+          // a source/lamp for testing, its int ends carry the circuit).
           const pins = typeof resolvePins === "function" ? resolvePins(component) : {};
           for (const pinId of Object.keys(pins)) {
             const intMatch = pinId.match(/^inputInt(\d*)$/);
