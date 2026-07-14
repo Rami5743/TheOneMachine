@@ -2005,12 +2005,11 @@
   function renderCreateCardBubble() {
     if (!state.createCardBubble || !state.createCardUnlocked) return "";
     const text = "הי, אתה יכול ללחוץ עליי כדי ליצור כרטיס חדש, שתוכל להשתמש בו בכרטיסים האחרים שאתה בונה.";
+    // A comic speech bubble (like the NAND monologue), with no button — clicking
+    // it does whatever clicking the tool does (not implemented yet).
     return `
-      <div class="create-card-bubble" role="dialog" aria-label="יצירת כרטיס חדש">
+      <div class="create-card-bubble" role="button" tabindex="0" data-action="create-card-tool" aria-label="יצירת כרטיס חדש">
         <p>${esc(adaptGender(text))}</p>
-        <div class="create-card-bubble-actions">
-          <button class="btn btn-primary" data-action="create-card-bubble-ok" type="button">הבנתי</button>
-        </div>
       </div>`;
   }
 
@@ -6620,8 +6619,7 @@
     if (action === "solution-ok") return finishSolutionDialog();
     if (action === "solution-reveal-create-card") return revealCreateCardTool();
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
-    if (action === "create-card-bubble-ok") return setState({ createCardBubble: false }, false);
-    if (action === "create-card-tool") return; // click intentionally not implemented yet
+    if (action === "create-card-tool") return; // click intentionally not implemented yet (bubble + tool share it)
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
