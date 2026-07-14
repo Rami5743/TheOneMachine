@@ -118,11 +118,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // A bus gate (gate-Not4 …): the base gate's schematic symbol, with its thin
   // pin stubs overdrawn as bus bars (thick dashed + the width number) so the
   // pins read as width-N buses. Body identical to the base gate; pins differ.
+  // Bus gates render at GATE_RENDER_SCALE (0.6) in chapter 2.4, which would
+  // shrink the bars below normal bus thickness — so the bar/stripe/label sizes
+  // are pre-divided by that scale to come out the same thickness as a real bus.
+  const BUS_GATE_SCALE = 0.6;
+  const K = 1 / BUS_GATE_SCALE;
+  function busGateBar(b, width) {
+    const half = (11 * K) / 2;
+    return `
+      <rect class="splitter-bar" x="${b.x1}" y="${b.y - half}" width="${b.x2 - b.x1}" height="${11 * K}" />
+      <line class="splitter-stripe" x1="${b.x1 + 3}" y1="${b.y}" x2="${b.x2 - 3}" y2="${b.y}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />
+      <text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${18 * K}px">${width}</text>`;
+  }
   function busGateMarkup(spec) {
     const symbol = gateMarkup(taskDefById(spec.op));
-    const bars = (BUS_GATE_BARS[spec.op] || []).map((b) =>
-      `${splitterBusBar(b.x1, b.x2, b.y, 11)}<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13}" text-anchor="middle">${spec.width}</text>`
-    ).join("");
+    const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width)).join("");
     return `<g class="bus-gate">${symbol}${bars}</g>`;
   }
 
