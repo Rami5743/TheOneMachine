@@ -4,7 +4,7 @@
   // Vertical gap between a splitter's output pins. Declared up here (not beside
   // the other splitter helpers) because splitter pin resolution runs during the
   // initial loadState()/normalizeWorkspace(), before that later block executes.
-  const SPLITTER_OUTPUT_SPACING = 30; // matches component-visuals
+  const SPLITTER_OUTPUT_SPACING = 34; // matches component-visuals
 
   const WORKSPACE_COMPONENT_DEFS = {
     source: {
@@ -4906,7 +4906,7 @@
   // used to place its focus controls. Must match splitterBoardMarkup's spacing.
   function splitterHalfHeight(component) {
     const n = Math.min(16, Math.max(2, Number(component?.outputs) || 4));
-    return ((n - 1) * 30) / 2 + 12;
+    return ((n - 1) * 34) / 2 + 13;
   }
 
   // ---- Splitter pins & bus widths ------------------------------------------

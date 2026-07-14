@@ -64,34 +64,43 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
   }
 
   // A short length of "bus" cable drawn like the bus symbol: a solid black bar
-  // with a few light diagonal stripes.
+  // with evenly-spaced 45° light stripes (spacing scales with the thickness, so
+  // the same simple pattern reads at any size).
   function splitterBusBar(x1, x2, y, h) {
     const half = h / 2;
     let stripes = "";
-    for (let sx = x1 + 5; sx + h <= x2 - 2; sx += 9) {
-      stripes += `<line class="splitter-stripe" x1="${sx}" y1="${y + half - 2}" x2="${sx + h - 4}" y2="${y - half + 2}" />`;
+    for (let sx = x1 + 4; sx + h <= x2 - 1; sx += h) {
+      stripes += `<line class="splitter-stripe" x1="${sx}" y1="${y + half}" x2="${sx + h}" y2="${y - half}" />`;
     }
     return `<rect class="splitter-bar" x="${x1}" y="${y - half}" width="${x2 - x1}" height="${h}" />${stripes}`;
   }
 
+  // A width-1 pin is an ordinary cable, not a bus.
+  function splitterCableStub(x1, x2, y) {
+    return `<line class="splitter-cable" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
+  }
+
   // The splitter as drawn on the board: a black spine with one input bus on one
-  // side and `outputs` equal output buses on the other. Outputs are spaced to
-  // leave room for a width label above each pin. Mirrored instances are flipped
-  // around the y-axis. (The toolbar uses the static splitter.svg — see
-  // splitterMarkup.)
-  const SPLITTER_OUTPUT_SPACING = 30;
-  function splitterBoardMarkup(outputs, mirrored) {
+  // side and `outputs` legs on the other. A leg whose width is 1 is drawn as a
+  // plain cable; otherwise it is a bus bar. Outputs are spaced to leave room for
+  // a width label above each pin. Mirrored instances are flipped around the
+  // y-axis. (The toolbar uses the static splitter.svg — see splitterMarkup.)
+  const SPLITTER_OUTPUT_SPACING = 34;
+  const SPLITTER_BAR_H = 11;
+  function splitterBoardMarkup(outputs, mirrored, width) {
     const n = Math.min(16, Math.max(2, Number(outputs) || 4));
     const spacing = SPLITTER_OUTPUT_SPACING;
+    const legWidth = Number.isInteger(width) ? width : null;
     const ys = [];
     for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
     const halfH = ((n - 1) * spacing) / 2;
-    const spineTop = -(halfH + 7);
-    const spine = `<rect class="splitter-bar" x="-8" y="${spineTop}" width="16" height="${halfH * 2 + 14}" />`;
-    const inputBar = splitterBusBar(-70, -8, 0, 16);
-    const outputBars = ys.map((y) => splitterBusBar(8, 66, y, 14)).join("");
-    const hit = `<rect class="splitter-hit" x="-74" y="${spineTop - 10}" width="146" height="${halfH * 2 + 34}" fill="transparent" />`;
-    const inner = `${hit}${spine}${inputBar}${outputBars}`;
+    const spineTop = -(halfH + 8);
+    const spine = `<rect class="splitter-bar" x="-7" y="${spineTop}" width="14" height="${halfH * 2 + 16}" />`;
+    const inputBar = splitterBusBar(-70, -7, 0, SPLITTER_BAR_H);
+    const leg = (y) => (legWidth === 1 ? splitterCableStub(7, 66, y) : splitterBusBar(7, 66, y, SPLITTER_BAR_H));
+    const outputStubs = ys.map(leg).join("");
+    const hit = `<rect class="splitter-hit" x="-74" y="${spineTop - 12}" width="146" height="${halfH * 2 + 40}" fill="transparent" />`;
+    const inner = `${hit}${spine}${inputBar}${outputStubs}`;
     return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
   }
 
@@ -99,7 +108,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById }) {
     // The board passes the instance's output count; the toolbar does not, and
     // gets the static reference symbol.
     if (Number.isInteger(options.outputs)) {
-      return splitterBoardMarkup(options.outputs, options.mirrored);
+      return splitterBoardMarkup(options.outputs, options.mirrored, options.width);
     }
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
