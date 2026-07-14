@@ -2,42 +2,139 @@
 <!-- Splitter (מפצל): a black spine with an input bus on one side and equal
      output buses on the other. Same simple 45° stripe pattern as the bus.
      Reference look (4 outputs); the board draws it dynamically. Editable. -->
-<svg viewBox="-66 -52 154 104" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
-  <style id="style1">
+
+<svg
+   viewBox="-66 -52 154 104"
+   version="1.1"
+   id="svg25"
+   sodipodi:docname="splitter.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs25" />
+  <sodipodi:namedview
+     id="namedview25"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.8365385"
+     inkscape:cx="22.777914"
+     inkscape:cy="52"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg25" />
+  <style
+     id="style1">
     .bar    { fill: #111; stroke: none; }
     .stripe { stroke: #d8d8d8; stroke-width: 2.5; stroke-linecap: round; fill: none; }
   </style>
-  <rect class="bar" x="-7" y="-44" width="14" height="88" />
-  <rect class="bar" x="-64" y="-6" width="57" height="11" />
-  <line class="stripe" x1="-60" y1="6" x2="-49" y2="-6" />
-  <line class="stripe" x1="-49" y1="6" x2="-38" y2="-6" />
-  <line class="stripe" x1="-38" y1="6" x2="-27" y2="-6" />
-  <line class="stripe" x1="-27" y1="6" x2="-16" y2="-6" />
-  <rect class="bar" x="7" y="-38" width="55" height="11" />
-  <line class="stripe" x1="11" y1="-28" x2="22" y2="-38" />
-  <line class="stripe" x1="22" y1="-28" x2="33" y2="-38" />
-  <line class="stripe" x1="33" y1="-28" x2="44" y2="-38" />
-  <line class="stripe" x1="44" y1="-28" x2="55" y2="-38" />
-  <rect class="bar" x="7" y="-16" width="55" height="11" />
-  <line class="stripe" x1="11" y1="-6" x2="22" y2="-16" />
-  <line class="stripe" x1="22" y1="-6" x2="33" y2="-16" />
-  <line class="stripe" x1="33" y1="-6" x2="44" y2="-16" />
-  <line class="stripe" x1="44" y1="-6" x2="55" y2="-16" />
-  <rect class="bar" x="7" y="6" width="55" height="11" />
-  <line class="stripe" x1="11" y1="16" x2="22" y2="6" />
-  <line class="stripe" x1="22" y1="16" x2="33" y2="6" />
-  <line class="stripe" x1="33" y1="16" x2="44" y2="6" />
-  <line class="stripe" x1="44" y1="16" x2="55" y2="6" />
-  <rect class="bar" x="7" y="28" width="55" height="11" />
-  <line class="stripe" x1="11" y1="38" x2="22" y2="28" />
-  <line class="stripe" x1="22" y1="38" x2="33" y2="28" />
-  <line class="stripe" x1="33" y1="38" x2="44" y2="28" />
-  <line class="stripe" x1="44" y1="38" x2="55" y2="28" />
-  <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
-    <circle data-pin="in" cx="-64" cy="0" r="0" />
-    <circle data-pin="out0" cx="62" cy="-33" r="0" />
-    <circle data-pin="out1" cx="62" cy="-11" r="0" />
-    <circle data-pin="out2" cx="62" cy="11" r="0" />
-    <circle data-pin="out3" cx="62" cy="33" r="0" />
+  <rect
+     class="bar"
+     x="-2.9165645"
+     y="-44"
+     width="9.916564"
+     height="88"
+     id="rect1"
+     style="stroke-width:0.841621" />
+  <rect
+     class="bar"
+     x="-58"
+     y="-5.5"
+     width="57"
+     height="11"
+     id="rect2" />
+  <rect
+     class="bar"
+     x="5"
+     y="-44"
+     width="55"
+     height="11"
+     id="rect5" />
+  <rect
+     class="bar"
+     x="5"
+     y="-16"
+     width="55"
+     height="11"
+     id="rect9" />
+  <rect
+     class="bar"
+     x="5"
+     y="6"
+     width="55"
+     height="11"
+     id="rect13" />
+  <rect
+     class="bar"
+     x="5"
+     y="33"
+     width="55"
+     height="11"
+     id="rect17" />
+  <g
+     id="pin-tags"
+     data-role="pin-tags"
+     opacity="0"
+     pointer-events="none">
+    <circle
+       data-pin="in"
+       cx="-64"
+       cy="0"
+       r="0"
+       id="circle21" />
+    <circle
+       data-pin="out0"
+       cx="62"
+       cy="-33"
+       r="0"
+       id="circle22" />
+    <circle
+       data-pin="out1"
+       cx="62"
+       cy="-11"
+       r="0"
+       id="circle23" />
+    <circle
+       data-pin="out2"
+       cx="62"
+       cy="11"
+       r="0"
+       id="circle24" />
+    <circle
+       data-pin="out3"
+       cx="62"
+       cy="33"
+       r="0"
+       id="circle25" />
   </g>
+  <path
+     style="opacity:1;fill:none;stroke:#d8d8d8;stroke-width:3;stroke-linecap:butt;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1"
+     d="M -54.72638,-0.09436089 -3,0.09705011"
+     id="path25" />
+  <path
+     style="fill:none;stroke:#d8d8d8;stroke-width:3;stroke-linecap:butt;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 7.0055506,-10.594361 58.731931,-10.40295"
+     id="path25-0" />
+  <path
+     style="fill:none;stroke:#d8d8d8;stroke-width:3;stroke-linecap:butt;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 7.0055506,-38.594361 58.731931,-38.40295"
+     id="path25-9" />
+  <path
+     style="fill:none;stroke:#d8d8d8;stroke-width:3;stroke-linecap:butt;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 7,11.405639 58.72638,11.59705"
+     id="path25-4" />
+  <path
+     style="fill:none;stroke:#d8d8d8;stroke-width:3;stroke-linecap:butt;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 7,38.405639 58.72638,38.59705"
+     id="path25-8" />
 </svg>
