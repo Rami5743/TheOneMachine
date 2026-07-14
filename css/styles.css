@@ -743,88 +743,69 @@ button { font: inherit; }
   line-height: 1.4;
 }
 
-/* --- Card creation mode (interface shell) --- */
-.card-creation-screen {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 0;
-}
-
-.card-creation-namebar {
-  display: flex;
-  justify-content: center;
-  padding-top: 4px;
+/* --- Card creation mode: overlays on the real workspace board --- */
+/* The board's SVG has no viewBox, so 1 SVG unit == 1 board pixel; the overlays
+   are positioned at the same pixel coords as the frame (x 200..800, y 100..476,
+   center at 500,288). */
+.card-creation-name-overlay {
+  position: absolute;
+  left: 500px;
+  top: 46px;
+  transform: translateX(-50%);
+  z-index: 6;
 }
 
 .card-creation-name {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   text-align: center;
   color: var(--text);
-  background: #1c1c1c;
-  border: 1px solid var(--line);
+  background: rgba(20, 20, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 10px;
-  padding: 8px 16px;
-  min-width: 220px;
+  padding: 6px 16px;
+  min-width: 200px;
   direction: rtl;
-}
-
-.card-creation-stage {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  direction: ltr;
 }
 
 .card-creation-io {
+  position: absolute;
+  top: 288px;
+  transform: translateY(-50%);
+  z-index: 6;
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 4px;
   color: var(--text);
   direction: rtl;
 }
 
+.card-creation-io-left { left: 44px; }
+.card-creation-io-right { left: 852px; }
+
 .card-creation-io label {
   font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 
 .card-creation-count {
-  width: 62px;
+  width: 58px;
   font-size: 1.05rem;
   text-align: center;
   color: var(--text);
-  background: #1c1c1c;
-  border: 1px solid var(--line);
+  background: rgba(20, 20, 20, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 10px;
   padding: 6px;
 }
 
-.card-creation-board {
-  min-width: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-creation-svg {
-  width: 100%;
-  max-height: 100%;
-  display: block;
-}
-
 .card-creation-intro {
   position: absolute;
-  top: 44%;
-  left: 50%;
+  left: 500px;
+  top: 288px;
   transform: translate(-50%, -50%);
   z-index: 30;
-  max-width: min(440px, calc(100% - 32px));
+  max-width: 380px;
   padding: 12px 16px;
   border: 3px solid #111;
   border-radius: 20px;

@@ -707,7 +707,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -4009,11 +4009,12 @@
     setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null }, false);
   }
 
-  // Pin stubs poking out of the frame: `count` of them on the given side.
+  // Pin stubs poking out of the frame (workspace coordinates: the frame sits at
+  // x 200..800, y 100..476, like a task shell). `count` stubs on the given side.
   function cardCreationPinStubs(count, side) {
     const n = Math.min(8, Math.max(1, Math.round(Number(count) || 1)));
-    const top = 70, bottom = 370;
-    const xs = side === "in" ? [70, 110] : [550, 590];
+    const top = 150, bottom = 426;
+    const xs = side === "in" ? [160, 200] : [800, 840];
     let out = "";
     for (let i = 0; i < n; i += 1) {
       const y = Math.round(top + (i + 1) * (bottom - top) / (n + 1));
@@ -4032,37 +4033,46 @@
       </div>`;
   }
 
+  // Card-creation mode reuses the real workspace board (toolbar + brown canvas +
+  // a task-style frame), with overlays for the editable name and the I/O count
+  // boxes on the sides of the frame.
   function renderCardCreation() {
     const cc = state.cardCreation || { name: "כרטיס חדש", inputs: 2, outputs: 1 };
     app.innerHTML = `
       ${topbar()}
       <main class="screen workspace-screen card-creation-screen">
-        <div class="card-creation-namebar">
-          <input class="card-creation-name" type="text" value="${esc(cc.name)}" aria-label="שם הכרטיס" maxlength="24" />
-        </div>
-        <section class="card-creation-stage">
-          <div class="card-creation-io">
-            <label>כניסות</label>
-            <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.inputs}" data-card-io="inputs" aria-label="מספר כניסות" />
-          </div>
-          <div class="card-creation-board">
-            <svg class="card-creation-svg" viewBox="0 0 660 440" role="img" aria-label="מסגרת כרטיס חדש">
-              <rect class="workspace-task-shell-frame" x="110" y="60" width="440" height="320" rx="18" />
-              ${cardCreationPinStubs(cc.inputs, "in")}
-              ${cardCreationPinStubs(cc.outputs, "out")}
-            </svg>
-          </div>
-          <div class="card-creation-io">
-            <label>יציאות</label>
-            <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
-          </div>
+        <section class="workspace-layout">
+          ${renderToolbar()}
+          <section class="workspace-board-wrap">
+            <div class="workspace-board" data-workspace-board>
+              <svg class="workspace-canvas" role="img" aria-label="הכנת כרטיס חדש">
+                <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
+                <g class="workspace-task-shell-layer">
+                  <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
+                  ${cardCreationPinStubs(cc.inputs, "in")}
+                  ${cardCreationPinStubs(cc.outputs, "out")}
+                </g>
+              </svg>
+              <div class="card-creation-name-overlay">
+                <input class="card-creation-name" type="text" value="${esc(cc.name)}" aria-label="שם הכרטיס" maxlength="24" />
+              </div>
+              <div class="card-creation-io card-creation-io-left">
+                <label>כניסות</label>
+                <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.inputs}" data-card-io="inputs" aria-label="מספר כניסות" />
+              </div>
+              <div class="card-creation-io card-creation-io-right">
+                <label>יציאות</label>
+                <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
+              </div>
+              ${renderCardCreationIntro()}
+            </div>
+          </section>
         </section>
         <section class="controls">
           ${navButton("card-creation-back", "arrow-right", "חזרה למחסן")}
           <button class="btn btn-primary" data-action="card-creation-save" type="button">שמירה</button>
         </section>
-      </main>
-      ${renderCardCreationIntro()}`;
+      </main>`;
   }
 
   function render() {
