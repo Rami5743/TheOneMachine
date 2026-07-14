@@ -85,7 +85,7 @@ function createWorkbenchModel({
       // internal output (a passthrough) — useful when a card input feeds the
       // output directly.
       const comp = componentById(workspace, inputInfo.componentId);
-      const isCard = comp?.type === "notCard" || String(comp?.type || "").startsWith("taskCard-");
+      const isCard = comp?.type === "notCard" || comp?.type === "cardFrame" || String(comp?.type || "").startsWith("taskCard-");
       const pins = [inputInfo.pinId, outputInfo.pinId];
       const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.some((p) => /^outputInt\d*$/.test(p));
       if (!isPassthrough) return false;
@@ -95,7 +95,7 @@ function createWorkbenchModel({
 
     const inputComponent = componentById(workspace, inputInfo.componentId);
     const outputComponent = componentById(workspace, outputInfo.componentId);
-    const touchesTaskFrame = (component) => component?.type === "notCard" || String(component?.type || "").startsWith("taskCard-");
+    const touchesTaskFrame = (component) => component?.type === "notCard" || component?.type === "cardFrame" || String(component?.type || "").startsWith("taskCard-");
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;
 
     const candidateWires = [...wires, normalizeWire(a, b)];
