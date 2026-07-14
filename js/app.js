@@ -2309,7 +2309,7 @@
   const TASK_SOLUTION_STEPS = {
     Not4: [
       {
-        text: "מפצלים את בס הכניסה ל-4 קבלים נפרדים בעזרת מפצל.",
+        text: "מפצלים את בס הכניסה ל-4 כבלים נפרדים בעזרת מפצל.",
         highlight: {
           components: ["split-in"],
           terminals: ["task-card-1.inputInt1", "split-in.single", "split-in.leg0", "split-in.leg1", "split-in.leg2", "split-in.leg3"],
@@ -2317,7 +2317,7 @@
         }
       },
       {
-        text: "מפעילים NOT על כל אחד מ-4 הקבלים בנפרד.",
+        text: "מפעילים NOT על כל אחד מ-4 הכבלים בנפרד.",
         highlight: {
           components: ["not-0", "not-1", "not-2", "not-3"],
           wires: [
@@ -2329,7 +2329,7 @@
         }
       },
       {
-        text: "מצרפים את 4 הקבלים חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        text: "מצרפים את 4 הכבלים חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2366,6 +2366,7 @@
       },
       {
         text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2377,11 +2378,17 @@
             wireKey("merge.single", "task-card-1.outputInt")
           ]
         }
+      },
+      {
+        text: "אפשר כמובן גם לעשות את זה ישירות עם NOT. זה גם דומה ל-NOT4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
+        highlight: {
+          components: ["split-in", "merge", ...Array.from({ length: 16 }, (_, i) => `not-${i}`)]
+        }
       }
     ],
     AND4: [
       {
-        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים.",
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 כבלים נפרדים בעזרת שני מפצלים.",
         highlight: {
           components: ["split-a", "split-b"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
@@ -2392,7 +2399,7 @@
         }
       },
       {
-        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-AND.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-AND.",
         highlight: {
           components: ["and-0", "and-1", "and-2", "and-3"],
           wires: [
@@ -2418,7 +2425,7 @@
     ],
     OR4: [
       {
-        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים.",
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 כבלים נפרדים בעזרת שני מפצלים.",
         highlight: {
           components: ["split-a", "split-b"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
@@ -2429,7 +2436,7 @@
         }
       },
       {
-        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-OR.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-OR.",
         highlight: {
           components: ["or-0", "or-1", "or-2", "or-3"],
           wires: [
@@ -2442,6 +2449,7 @@
       },
       {
         text: "מצרפים את 4 התוצאות חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2450,6 +2458,28 @@
             wireKey("or-2.out", "merge.leg2"), wireKey("or-3.out", "merge.leg3"),
             wireKey("merge.single", "task-card-1.outputInt")
           ]
+        }
+      },
+      {
+        text: "אפשר גם לממש את OR4 בדיוק כמו שמימשנו את OR הרגיל. נזכיר: OR שקול ל-NOT של AND על שתי הכניסות ההפוכות. קודם מבצעים NOT4 לכל אחת משתי הכניסות.",
+        highlight: {
+          components: ["not-a", "not-b"],
+          wires: [wireKey("task-card-1.inputInt1", "not-a.in1"), wireKey("task-card-1.inputInt2", "not-b.in1")]
+        }
+      },
+      {
+        text: "מכניסים את שתי התוצאות ל-AND4.",
+        highlight: {
+          components: ["and-1"],
+          wires: [wireKey("not-a.out", "and-1.in1"), wireKey("not-b.out", "and-1.in2")]
+        }
+      },
+      {
+        text: "ומבצעים NOT4 על התוצאה. זה בדיוק אותו רעיון כמו במימוש המקורי של OR, רק שהפעם הכול קורה על בסים ברוחב 4.",
+        highlight: {
+          components: ["not-out"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("and-1.out", "not-out.in1"), wireKey("not-out.out", "task-card-1.outputInt")]
         }
       }
     ],
@@ -2479,6 +2509,7 @@
       },
       {
         text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2488,11 +2519,17 @@
             wireKey("merge.single", "task-card-1.outputInt")
           ]
         }
+      },
+      {
+        text: "אפשר כמובן גם לעשות את זה ישירות עם AND. זה גם דומה ל-AND4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
+        highlight: {
+          components: ["split-a", "split-b", "merge", ...Array.from({ length: 16 }, (_, i) => `and-${i}`)]
+        }
       }
     ],
     MUX4: [
       {
-        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים. את כניסת הבקרה משאירים כמו שהיא.",
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 כבלים נפרדים בעזרת שני מפצלים. את כניסת הבקרה משאירים כמו שהיא.",
         highlight: {
           components: ["split-a", "split-b"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
@@ -2503,7 +2540,7 @@
         }
       },
       {
-        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-MUX, ומחברים את כניסת הבקרה לכל אחד מה-MUX-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-MUX, ומחברים את כניסת הבקרה לכל אחד מה-MUX-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
         highlight: {
           components: ["mux-0", "mux-1", "mux-2", "mux-3"],
           wires: [
@@ -2516,6 +2553,7 @@
       },
       {
         text: "מצרפים את 4 התוצאות חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt"],
@@ -2524,6 +2562,46 @@
             wireKey("mux-2.out", "merge.leg2"), wireKey("mux-3.out", "merge.leg3"),
             wireKey("merge.single", "task-card-1.outputInt")
           ]
+        }
+      },
+      {
+        text: "יש עוד דרך, שמזכירה את הפתרון של MUX הרגיל: היציאה היא (הכניסה הראשונה וגם לא-בקרה) או (הכניסה השנייה וגם בקרה). כדי להפעיל את ביט הבקרה על בס שלם, קודם משכפלים את כבל הבקרה ל-4 עותקים ומאגדים אותם לבס ברוחב 4.",
+        highlight: {
+          components: ["ctrl-merge"],
+          terminals: ["task-card-1.inputInt3", "ctrl-merge.single"],
+          wires: [
+            wireKey("task-card-1.inputInt3", "ctrl-merge.leg0"), wireKey("task-card-1.inputInt3", "ctrl-merge.leg1"),
+            wireKey("task-card-1.inputInt3", "ctrl-merge.leg2"), wireKey("task-card-1.inputInt3", "ctrl-merge.leg3")
+          ]
+        }
+      },
+      {
+        text: "מבצעים NOT4 על בס הבקרה כדי לקבל את ההפך שלו.",
+        highlight: {
+          components: ["not4-c"],
+          wires: [wireKey("ctrl-merge.single", "not4-c.in1")]
+        }
+      },
+      {
+        text: "עושים AND4 בין הכניסה הראשונה לבס הבקרה ההפוך. כך הכניסה הראשונה עוברת רק כשהבקרה היא 0.",
+        highlight: {
+          components: ["and-1"],
+          wires: [wireKey("task-card-1.inputInt1", "and-1.in1"), wireKey("not4-c.out", "and-1.in2")]
+        }
+      },
+      {
+        text: "ו-AND4 בין הכניסה השנייה לבס הבקרה עצמו. כך הכניסה השנייה עוברת רק כשהבקרה היא 1.",
+        highlight: {
+          components: ["and-2"],
+          wires: [wireKey("task-card-1.inputInt2", "and-2.in1"), wireKey("ctrl-merge.single", "and-2.in2")]
+        }
+      },
+      {
+        text: "מאחדים את שתי התוצאות ב-OR4 ומוציאים אותן מהכרטיס.",
+        highlight: {
+          components: ["or-1"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("and-1.out", "or-1.in1"), wireKey("and-2.out", "or-1.in2"), wireKey("or-1.out", "task-card-1.outputInt")]
         }
       }
     ],
@@ -2629,7 +2707,7 @@
         }
       },
       {
-        text: "כרגע אנחנו מקבלים 1 בדיוק במקרה שבו אנחנו צריכים לקבל 0.",
+        text: "כרגע אנחנו מכבלים 1 בדיוק במקרה שבו אנחנו צריכים לקבל 0.",
         highlight: {
           terminals: ["and-1.out"],
           components: ["and-1"]
@@ -4942,6 +5020,26 @@
     }, true);
   }
 
+  // Secret developer shortcut (Ctrl+Shift+Q): instantly mark the current
+  // workspace task as solved and jump back to its note, so later tasks can be
+  // reached without solving every prerequisite by hand. Not surfaced in the UI.
+  function secretSolveAndExit() {
+    if (state.screen !== "workspace") return;
+    const taskId = state.workspace?.taskId;
+    if (!taskId) return;
+    const completedTasks = !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
+    const base = {
+      taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+      completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+    };
+    if (busTaskDefById(taskId)) {
+      const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+      const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+      return setState({ ...storyTarget(chapterById(returnChapterId), returnPanelIndex), ...base, busesNoteList: true }, true);
+    }
+    return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
+  }
+
   function advanceSolutionDialog() {
     if (!state.solutionDialog) return;
     const taskId = state.solutionDialog.taskId || "Not";
@@ -6246,6 +6344,15 @@
   document.addEventListener("change", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    // Secret dev shortcut: Ctrl+Shift+Q instantly solves the current task and
+    // returns to its note (for quickly reaching later tasks while testing).
+    if (event.ctrlKey && event.shiftKey && event.code === "KeyQ") {
+      event.preventDefault();
+      secretSolveAndExit();
+    }
   });
 
   document.addEventListener("keydown", (event) => {

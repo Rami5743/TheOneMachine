@@ -257,7 +257,7 @@
       { kind: "interactive", title: "רמז 4", action: "dmux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת?" }
     ],
     Not4: [
-      { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-NOTים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 כבלים נפרדים, תפעיל את ה-NOTים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
       { kind: "interactive", title: "רמז 2", action: "not4-split-input" },
       { kind: "interactive", title: "רמז 3", action: "not4-split-and-not" }
     ],
@@ -269,8 +269,8 @@
     ],
     AND4: [
       { kind: "text", title: "רמז 1", text: "זה דומה ל-NOT4 רק שצריך להשתמש ב-AND במקום ב-NOT." },
-      { kind: "text", title: "רמז 2", text: "שים לב, ל-AND יש שתי כניסות, אז צריך לחבר כל פעם שני קבלים מתאימים." },
-      { kind: "text", title: "רמז 3", text: "תפצל את הכניסות ל-4 קבלים נפרדים, תפעיל את ה-ANDים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "text", title: "רמז 2", text: "שים לב, ל-AND יש שתי כניסות, אז צריך לחבר כל פעם שני כבלים מתאימים." },
+      { kind: "text", title: "רמז 3", text: "תפצל את הכניסות ל-4 כבלים נפרדים, תפעיל את ה-ANDים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
       { kind: "interactive", title: "רמז 4", action: "and4-split-one" },
       { kind: "interactive", title: "רמז 5", action: "and4-split-both" },
       { kind: "interactive", title: "רמז 6", action: "and4-split-both-and" }
@@ -284,8 +284,8 @@
     ],
     OR4: [
       { kind: "text", title: "רמז 1", text: "זה דומה ל-AND4 רק שצריך להשתמש ב-OR במקום ב-AND." },
-      { kind: "text", title: "רמז 2", text: "שים לב, ל-OR יש שתי כניסות, אז צריך לחבר כל פעם שני קבלים מתאימים." },
-      { kind: "text", title: "רמז 3", text: "תפצל את הכניסות ל-4 קבלים נפרדים, תפעיל את ה-ORים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "text", title: "רמז 2", text: "שים לב, ל-OR יש שתי כניסות, אז צריך לחבר כל פעם שני כבלים מתאימים." },
+      { kind: "text", title: "רמז 3", text: "תפצל את הכניסות ל-4 כבלים נפרדים, תפעיל את ה-ORים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
       { kind: "interactive", title: "רמז 4", action: "or4-split-one" },
       { kind: "interactive", title: "רמז 5", action: "or4-split-both" },
       { kind: "interactive", title: "רמז 6", action: "or4-split-both-and" }
