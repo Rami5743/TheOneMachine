@@ -450,7 +450,37 @@ function createSolutionWorkspaces({
     return normalizeWorkspace(workspace);
   }
 
+  // Not4 (chapter 2.4): split the input bus into 4 wires, NOT each, merge back.
+  // Built directly (not via standardTaskWorkspace) because bus tasks have no
+  // TASK_DEFS entry and use a bus card with a pre-placed single source.
+  function not4SolutionWorkspaceFrom() {
+    const notYs = [195, 257, 319, 381];
+    const components = [
+      { id: "source-1", type: "source", x: 70, y: 430 },
+      { id: "task-card-1", type: taskCardComponentType("Not4"), x: 500, y: 288 },
+      { id: "split-in", type: "splitter", x: 300, y: 288, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 660, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+    notYs.forEach((y, i) => {
+      components.push({ id: `not-${i}`, type: "gate-Not", x: 470, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `not-${i}.in1`));
+      wires.push(normalizeWire(`not-${i}.out`, `merge.leg${i}`));
+    });
+    wires.push(normalizeWire("merge.single", "task-card-1.outputInt"));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Not4", taskIntroSeen: true
+    });
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
+    if (taskId === "Not4") return not4SolutionWorkspaceFrom();
     if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
     if (taskId === "DMux") return dmuxSolutionFrom();
     if (taskId === "Not") return notSolutionWorkspaceFrom();

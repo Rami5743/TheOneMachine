@@ -94,8 +94,10 @@ function buildNot4(bits) {
     wire("bus-in-split.single", "task-card-1.inputExt1"),
     wire("task-card-1.outputExt", "bus-out-split.single")
   ];
+  // One source wired to the legs of the 1-bits (matches the real harness).
+  components.push({ id: "source-1", type: "source" });
   bits.forEach((bit, i) => {
-    if (bit) { components.push({ id: "src-" + i, type: "source" }); wires.push(wire("src-" + i + ".out", "bus-in-split.leg" + i)); }
+    if (bit) wires.push(wire("source-1.out", "bus-in-split.leg" + i));
   });
   for (let i = 0; i < 4; i += 1) {
     components.push({ id: "bus-out-lamp-" + i, type: "lamp" });

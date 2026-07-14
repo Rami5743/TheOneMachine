@@ -624,7 +624,7 @@
 
   // Task-building UI (shell/intro/hint/check) lives in js/task-mode-view.js.
   const __taskModeView = createTaskModeView({
-    getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, taskInputYs, solutionHighlightConfig,
+    getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, busCheckDisplayRow, taskInputYs, solutionHighlightConfig,
     isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
@@ -2215,6 +2215,42 @@
   }
 
   const TASK_SOLUTION_STEPS = {
+    Not4: [
+      {
+        text: "מפצלים את בס הכניסה ל-4 קבלים נפרדים בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single", "split-in.leg0", "split-in.leg1", "split-in.leg2", "split-in.leg3"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "מפעילים NOT על כל אחד מ-4 הקבלים בנפרד.",
+        highlight: {
+          components: ["not-0", "not-1", "not-2", "not-3"],
+          wires: [
+            wireKey("split-in.leg0", "not-0.in1"),
+            wireKey("split-in.leg1", "not-1.in1"),
+            wireKey("split-in.leg2", "not-2.in1"),
+            wireKey("split-in.leg3", "not-3.in1")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 הקבלים חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("not-0.out", "merge.leg0"),
+            wireKey("not-1.out", "merge.leg1"),
+            wireKey("not-2.out", "merge.leg2"),
+            wireKey("not-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
     And: [
       {
         text: "אנחנו מחברים את שתי הכניסות ל־NAND.",
@@ -4162,10 +4198,22 @@
     return inputs.slice();
   }
 
+  // While a bus check runs, the case currently under test as a truth-table row
+  // (input bus + expected output bus); null when no bus check is active.
+  function busCheckDisplayRow() {
+    if (!state.notTest?.active && !state.notTest?.result) return null;
+    const def = busTaskDefById(state.notTest?.taskId);
+    if (!def) return null;
+    const inputs = busTaskCases(def.id)[state.notTest?.rowIndex];
+    if (!inputs) return null;
+    return { inputs: inputs.slice(), outputs: busTaskExpected(def, inputs) };
+  }
+
   // Assemble the check circuit for one input case. The learner's circuit inside
-  // the card is kept; the card is then wrapped in a splitter harness — a merging
-  // splitter fed by per-bit sources drives the input bus, and a splitting
-  // splitter fans the output bus out to one lamp per bit.
+  // the card is kept, together with the pre-placed voltage source; the card is
+  // then wrapped in a splitter harness — a merging splitter driven by that one
+  // source (wired to the legs of the 1-bits) feeds the input bus, and a
+  // splitting splitter fans the output bus out to one lamp per bit.
   function busTestHarnessWorkspace(baseWorkspace, def, inputs) {
     const workspace = normalizeWorkspace(clonePlain(baseWorkspace));
     workspace.selectedTerminal = null;
@@ -4173,31 +4221,42 @@
     workspace.focusedComponentId = null;
     const frame = TASK_TEST_FRAME;
     workspace.components = workspace.components.filter((component) =>
-      component.id === "task-card-1" ||
+      component.id === "task-card-1" || component.id === "source-1" ||
       (component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2));
+    // The pre-placed source drives the input; drop anything the learner wired to
+    // it so the check controls it.
+    workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
     removeInvalidWires(workspace);
 
     const width = def.width;
-    // Input side: a mirrored splitter (legs = inputs) merges `width` source bits
-    // into the input bus. A missing source encodes a 0 bit.
-    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 150, y: 288, mirrored: true, outputs: width, width: 1 });
+    // Input side: a mirrored splitter (legs = inputs) merges the bits into the
+    // input bus. The single pre-placed source is wired to the legs of the
+    // 1-bits; a leg with no source reads as a 0 bit.
+    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 120, y: 288, mirrored: true, outputs: width, width: 1 });
     inputs.forEach((bit, i) => {
-      const srcId = `bus-in-src-${i}`;
-      workspace.components.push({ id: srcId, type: "source", x: 45, y: 120 + i * 92 });
-      if (bit) workspace.wires.push(normalizeWire(`${srcId}.out`, `bus-in-split.leg${i}`));
+      if (bit) workspace.wires.push(normalizeWire("source-1.out", `bus-in-split.leg${i}`));
     });
     workspace.wires.push(normalizeWire("bus-in-split.single", "task-card-1.inputExt1"));
 
     // Output side: an unmirrored splitter (single = input) fans the output bus
-    // out to `width` lamps, one per bit.
-    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 850, y: 288, mirrored: false, outputs: width, width: 1 });
+    // out to `width` lamps, one per bit, spaced so they do not overlap.
+    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 880, y: 288, mirrored: false, outputs: width, width: 1 });
     workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
+    const lampYs = busLampYs(width);
     for (let i = 0; i < width; i += 1) {
       const lampId = `bus-out-lamp-${i}`;
-      workspace.components.push({ id: lampId, type: "lamp", x: 955, y: 120 + i * 92 });
+      workspace.components.push({ id: lampId, type: "lamp", x: 950, y: lampYs[i] });
       workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
     }
     return workspace;
+  }
+
+  // Evenly spread `count` output lamps down the board without overlapping (each
+  // lamp is ~140 tall on a ~600-tall board).
+  function busLampYs(count) {
+    const spacing = 133;
+    const top = 300 - ((count - 1) / 2) * spacing;
+    return Array.from({ length: count }, (_, i) => Math.round(top + i * spacing));
   }
 
   function runBusTestCase(baseWorkspace, caseIndex) {
@@ -4243,24 +4302,7 @@
       muxTableSnapshot = null;
       clearNotTestTimer();
 
-      // Bus tasks (chapter 2.4): no solution walkthrough. Mark complete and
-      // return to the worktable with the note reopened for the next task.
-      if (busTaskDefById(taskId)) {
-        const completedTasks = !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
-        const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
-        const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
-        return setState({
-          ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
-          notTest: null,
-          muxTable: null,
-          completedTasks,
-          busesNoteList: true,
-          workspace: createDefaultWorkspace(),
-          replayNonce: state.replayNonce + 1
-        }, true);
-      }
-
-      if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
+      if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || busTaskDefById(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 
       const completedTasks = taskId && !taskCompleted(taskId)
         ? [...completedTaskIds(), taskId]
@@ -4282,10 +4324,11 @@
 
   function showTaskSolution(taskId, options = {}) {
     const routing = isRoutingTask(taskId);
-    const chapter = routing ? chapterById("chapter-6") : simpleGatesChapter();
+    const bus = Boolean(busTaskDefById(taskId));
+    const chapter = (routing || bus) ? chapterById(bus ? "chapter-7" : "chapter-6") : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing) {
-      // Keep the return target so leaving the solution goes back to the 2.3 worktable.
+    if (routing || bus) {
+      // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
         ? state.workspace.sessionReturnPanelIndex
@@ -4386,6 +4429,11 @@
     if (!busTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
     }
+    // A completed task reopens its solution walkthrough (like the other tasks);
+    // an unbuilt one opens the build workspace.
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
     openBusTaskWorkspace(task.id);
   }
 
@@ -4419,6 +4467,24 @@
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
+
+    // Bus tasks (chapter 2.4): back to the worktable with the note reopened.
+    if (busTaskDefById(taskId)) {
+      const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+      const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+      return setState({
+        ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
+        taskDialog: null,
+        solutionDialog: null,
+        notTest: null,
+        hintDialog: null,
+        muxTable: null,
+        completedTasks,
+        busesNoteList: true,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, true);
+    }
 
     if (shouldComplete && allNoteTasksCompletedIn(completedTasks)) {
       // Finishing both routing cards (MUX+DMUX) advances from 2.3 into 2.4;
@@ -4474,8 +4540,8 @@
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
     const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
-    if (isRoutingTask(taskId)) {
-      // The rebuilt solution workspace must keep the 2.3 return target.
+    if (isRoutingTask(taskId) || busTaskDefById(taskId)) {
+      // The rebuilt solution workspace must keep the worktable return target.
       nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
       if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
         nextWorkspace.sessionReturnPanelIndex = state.workspace.sessionReturnPanelIndex;
@@ -4913,7 +4979,10 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(def.id), x: 500, y: 288 }
+        { id: "task-card-1", type: taskCardComponentType(def.id), x: 500, y: 288 },
+        // The check's single voltage source, pre-placed. The space to its right
+        // (around x 120) is left free for the check to drop the input splitter.
+        { id: "source-1", type: "source", x: 70, y: 430 }
       ],
       wires: [],
       nextId: 2,

@@ -16,6 +16,7 @@ function createTaskModeView({
   adaptGender,
   taskDefById,
   busTaskDefById,
+  busCheckDisplayRow,
   taskInputYs,
   solutionHighlightConfig,
   isNotTaskWorkspace,
@@ -29,23 +30,46 @@ function createTaskModeView({
 
   // One bus pin on the task frame: a thick black bar with a light dashed line
   // along it (the "bus" look) and the bit width above — same visual as the bus
-  // wires and the splitter pins.
-  function busPinBar(x1, x2, y, width) {
-    const midX = (x1 + x2) / 2;
+  // wires and the splitter pins. The width label sits over `labelX` (kept
+  // outside the frame, over the external stub).
+  function busPinBar(x1, x2, y, labelX, width) {
     return `
       <line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
       <line class="workspace-task-shell-bus-stripe" x1="${x1 + 4}" y1="${y}" x2="${x2 - 4}" y2="${y}" />
-      <text class="splitter-width-label" x="${midX}" y="${y - 16}" text-anchor="middle">${width}</text>`;
+      <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${width}</text>`;
   }
 
   function renderBusTaskShell(def) {
+    // Frame spans x 200..800. The input stub pokes out on the left (160..200)
+    // and the output stub on the right (800..840); the width labels sit over
+    // those external stubs so they clear the frame edge.
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
         <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(def.label)}</text>
-        ${busPinBar(160, 240, 288, def.width)}
-        ${busPinBar(760, 840, 288, def.width)}
+        ${busPinBar(160, 240, 288, 178, def.width)}
+        ${busPinBar(760, 840, 288, 822, def.width)}
       </g>`;
+  }
+
+  // The single-row truth table shown for the case currently under test: the
+  // input bus value and the expected output bus value, one bit per cell.
+  function renderBusCheckRow(def, row) {
+    const cell = (bit, isOut) => `<td class="${isOut ? "truth-output-cell" : ""}">${bit ? 1 : 0}</td>`;
+    // LTR DOM == left-to-right; read right-to-left as כניסה then יציאה, so the
+    // input group is last in the DOM and each group runs bit-N..bit-0.
+    const outCells = row.outputs.slice().reverse().map((b) => cell(b, true)).join("");
+    const inCells = row.inputs.slice().reverse().map((b) => cell(b, false)).join("");
+    return `
+      <table class="workspace-task-hint-table bus-check-table">
+        <thead>
+          <tr>
+            <th class="truth-output-cell" colspan="${row.outputs.length}">יציאה</th>
+            <th colspan="${row.inputs.length}">כניסה</th>
+          </tr>
+        </thead>
+        <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
+      </table>`;
   }
   function renderMuxTaskShell(task) {
     // Custom layout: two numbered data inputs on the left, the control input on
@@ -213,10 +237,14 @@ function createTaskModeView({
     if (!isNotTaskWorkspace()) return "";
     const busDef = busDefFor();
     if (busDef) {
-      // Bus tasks: just the requirements text, no truth table.
+      // Bus tasks: the requirements text, plus — while a check is running — a
+      // single-row truth table for the case currently under test.
+      const row = typeof busCheckDisplayRow === "function" ? busCheckDisplayRow() : null;
+      const table = row ? renderBusCheckRow(busDef, row) : "";
       return `
         <section class="workspace-task-hint" aria-label="הסבר על ${esc(busDef.label)}">
           <p>${esc(adaptGender(busDef.description || ""))}</p>
+          ${table}
         </section>`;
     }
     const task = taskDefById(state.workspace?.taskId);
