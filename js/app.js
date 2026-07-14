@@ -6347,9 +6347,11 @@
   });
 
   document.addEventListener("keydown", (event) => {
-    // Secret dev shortcut: Ctrl+Shift+Q instantly solves the current task and
+    // Secret dev shortcut: Ctrl+Shift+9 instantly solves the current task and
     // returns to its note (for quickly reaching later tasks while testing).
-    if (event.ctrlKey && event.shiftKey && event.code === "KeyQ") {
+    // Chosen because Ctrl+Shift+<digit> isn't reserved by browsers or the OS.
+    // (event.code is layout-independent, so it works on any keyboard.)
+    if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
       secretSolveAndExit();
     }
