@@ -3996,6 +3996,10 @@
         name: "כרטיס חדש",
         inputs: 2,
         outputs: 1,
+        inputWidths: [1, 1],
+        outputWidths: [1],
+        introSeen: false,
+        pinEdit: null,
         returnChapterId: ws.sessionReturnChapterId || state.chapterId || "chapter-7",
         returnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0)
       }
@@ -4009,21 +4013,59 @@
     setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null }, false);
   }
 
-  // Pin stubs poking out of the frame (workspace coordinates: the frame sits at
-  // x 200..800, y 100..476, like a task shell). `count` stubs on the given side.
-  function cardCreationPinStubs(count, side) {
-    const n = Math.min(8, Math.max(1, Math.round(Number(count) || 1)));
+  // The y of pin i of a side with `n` pins (workspace coordinates: the frame
+  // sits at x 200..800, y 100..476, like a task shell).
+  function cardCreationPinY(index, n) {
     const top = 150, bottom = 426;
-    const xs = side === "in" ? [160, 200] : [800, 840];
+    return Math.round(top + (index + 1) * (bottom - top) / (Math.max(1, n) + 1));
+  }
+
+  // One pin on the frame's edge, drawn like other cards' pins: it ENTERS the
+  // card (crosses the frame edge). Width 1 is a thin cable; wider is a bus bar
+  // with its width number. A transparent hit rect makes it double-clickable.
+  function cardCreationPinBar(side, index, y, width) {
+    const [x1, x2] = side === "in" ? [160, 240] : [760, 840];
+    const labelX = side === "in" ? 210 : 790;
+    const bar = width > 1
+      ? `<line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
+         <line class="workspace-task-shell-bus-stripe" x1="${x1 + 4}" y1="${y}" x2="${x2 - 4}" y2="${y}" />
+         <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${width}</text>`
+      : `<line class="workspace-task-shell-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
+    const hit = `<rect class="card-pin-hit" x="${Math.min(x1, x2) - 6}" y="${y - 16}" width="${Math.abs(x2 - x1) + 12}" height="32" fill="transparent" data-card-pin data-pin-side="${side}" data-pin-index="${index}" />`;
+    return `<g class="card-pin">${bar}${hit}</g>`;
+  }
+
+  function cardCreationPins(cc, side) {
+    const count = side === "in" ? cc.inputs : cc.outputs;
+    const widths = (side === "in" ? cc.inputWidths : cc.outputWidths) || [];
+    const n = Math.min(8, Math.max(1, Math.round(Number(count) || 1)));
     let out = "";
     for (let i = 0; i < n; i += 1) {
-      const y = Math.round(top + (i + 1) * (bottom - top) / (n + 1));
-      out += `<line class="workspace-task-shell-pin" x1="${xs[0]}" y1="${y}" x2="${xs[1]}" y2="${y}" />`;
+      out += cardCreationPinBar(side, i, cardCreationPinY(i, n), Math.round(Number(widths[i]) || 1));
     }
     return out;
   }
 
+  // The little width picker shown after double-clicking a pin (turn it into a
+  // bus). Positioned just outside the pin, on the board.
+  function renderCardPinWidthBox() {
+    const cc = state.cardCreation;
+    if (!cc || !cc.pinEdit) return "";
+    const { side, index } = cc.pinEdit;
+    const n = Math.min(8, Math.max(1, side === "in" ? cc.inputs : cc.outputs));
+    const y = cardCreationPinY(index, n);
+    const x = side === "in" ? 118 : 882;
+    const w = Math.round(Number((side === "in" ? cc.inputWidths : cc.outputWidths)[index]) || 1);
+    return `
+      <div class="splitter-count-box card-pin-width-box" style="left:${x}px; top:${y}px;">
+        <label>רוחב
+          <input type="number" min="1" max="16" step="1" value="${w}" data-card-pin-width aria-label="רוחב הפין" />
+        </label>
+      </div>`;
+  }
+
   function renderCardCreationIntro() {
+    if (state.cardCreation && state.cardCreation.introSeen) return "";
     return `
       <div class="card-creation-intro" role="dialog" aria-label="הסבר יצירת כרטיס">
         <p>אתה יכול להוסיף כניסות ויציאות. לחיצה כפולה על כל אחת מהן מאפשרת לך להפוך אותן לבס ברוחב שאתה רוצה.</p>
@@ -4049,8 +4091,8 @@
                 <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
                 <g class="workspace-task-shell-layer">
                   <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
-                  ${cardCreationPinStubs(cc.inputs, "in")}
-                  ${cardCreationPinStubs(cc.outputs, "out")}
+                  ${cardCreationPins(cc, "in")}
+                  ${cardCreationPins(cc, "out")}
                 </g>
               </svg>
               <div class="card-creation-name-overlay">
@@ -4064,13 +4106,15 @@
                 <label>יציאות</label>
                 <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
               </div>
+              ${renderCardPinWidthBox()}
               ${renderCardCreationIntro()}
             </div>
           </section>
         </section>
         <section class="controls">
+          ${navButton("card-creation-reset", "restart", "נקה שולחן")}
           ${navButton("card-creation-back", "arrow-right", "חזרה למחסן")}
-          <button class="btn btn-primary" data-action="card-creation-save" type="button">שמירה</button>
+          ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
   }
@@ -6515,13 +6559,40 @@
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
   });
 
-  // Card-creation input/output count boxes re-render the frame's pin stubs.
+  // Card-creation: the pin-width picker (double-click a pin) and the input/output
+  // count boxes (which re-draw the frame's pins and resize the width arrays).
   document.addEventListener("change", (event) => {
+    if (!state.cardCreation) return;
+    const widthBox = event.target.closest("[data-card-pin-width]");
+    if (widthBox && state.cardCreation.pinEdit) {
+      const { side, index } = state.cardCreation.pinEdit;
+      const w = Math.min(16, Math.max(1, Math.round(Number(widthBox.value) || 1)));
+      const cc = { ...state.cardCreation };
+      const key = side === "in" ? "inputWidths" : "outputWidths";
+      const arr = [...(cc[key] || [])]; arr[index] = w; cc[key] = arr;
+      cc.pinEdit = null;
+      return setState({ cardCreation: cc }, false);
+    }
     const box = event.target.closest("[data-card-io]");
-    if (!box || !state.cardCreation) return;
+    if (!box) return;
     const which = box.dataset.cardIo === "outputs" ? "outputs" : "inputs";
     const val = Math.min(8, Math.max(1, Math.round(Number(box.value) || 1)));
-    setState({ cardCreation: { ...state.cardCreation, [which]: val } }, false);
+    const cc = { ...state.cardCreation, [which]: val, pinEdit: null };
+    const key = which === "inputs" ? "inputWidths" : "outputWidths";
+    const arr = [...(cc[key] || [])];
+    while (arr.length < val) arr.push(1);
+    arr.length = val;
+    cc[key] = arr;
+    setState({ cardCreation: cc }, false);
+  });
+
+  // Double-click a pin to open its width picker (turn it into a bus).
+  document.addEventListener("dblclick", (event) => {
+    const pin = event.target.closest("[data-card-pin]");
+    if (!pin || !state.cardCreation) return;
+    const side = pin.dataset.pinSide === "out" ? "out" : "in";
+    const index = Math.max(0, Math.round(Number(pin.dataset.pinIndex) || 0));
+    setState({ cardCreation: { ...state.cardCreation, pinEdit: { side, index } } }, false);
   });
 
   // Keep the (uncontrolled) card name in state without re-rendering, so typing
@@ -6733,8 +6804,8 @@
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
     if (action === "create-card-tool") return enterCardCreation(); // the bubble + tool share this
     if (action === "card-creation-back") return exitCardCreation();
-    if (action === "card-creation-save") return; // saving a card is not implemented yet
-    if (action === "card-creation-intro-ok") return; // intentionally no-op for now
+    if (action === "card-creation-reset") return setState({ cardCreation: { ...state.cardCreation, inputs: 2, outputs: 1, inputWidths: [1, 1], outputWidths: [1], pinEdit: null } }, false);
+    if (action === "card-creation-intro-ok") return setState({ cardCreation: { ...state.cardCreation, introSeen: true } }, false);
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();

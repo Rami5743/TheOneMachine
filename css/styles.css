@@ -827,6 +827,14 @@ button { font: inherit; }
   justify-content: center;
 }
 
+.card-pin-hit {
+  cursor: pointer;
+}
+
+.card-pin-width-box {
+  transform: translate(-50%, -50%);
+}
+
 .toolbox-trash {
   margin-top: auto;
   min-height: 76px;
