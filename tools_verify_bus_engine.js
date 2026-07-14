@@ -10,19 +10,28 @@ const path = require("path");
 const ROOT = process.cwd();
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
-const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }];
+const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "And", inputs: 2 }];
 
-// Card defs mirror WORKSPACE_COMPONENT_DEFS["taskCard-Not4"/"taskCard-Not16"].
-const CARD_PINS = {
-  inputExt1: { direction: "in" }, inputInt1: { direction: "out" },
-  outputInt: { direction: "in" }, outputExt: { direction: "out" }
+// Card defs mirror WORKSPACE_COMPONENT_DEFS bus cards: width + input count.
+const CARD = {
+  "taskCard-Not4": { width: 4, inputs: 1 },
+  "taskCard-Not16": { width: 16, inputs: 1 },
+  "taskCard-AND4": { width: 4, inputs: 2 }
 };
-const CARD_BUS_WIDTH = { "taskCard-Not4": 4, "taskCard-Not16": 16 };
-// Placeable bus gates (gate-Not4).
-const BUS_GATE = { "gate-Not4": { op: "Not", inputs: 1, width: 4 } };
+// Placeable bus gates (gate-Not4, gate-AND4).
+const BUS_GATE = { "gate-Not4": { op: "Not", inputs: 1, width: 4 }, "gate-AND4": { op: "And", inputs: 2, width: 4 } };
 const busGateSpec = (type) => BUS_GATE[type] || null;
 
 const splitterOutputCount = (c) => Math.min(16, Math.max(2, Number(c && c.outputs) || 4));
+
+function cardPins(inputs) {
+  const pins = { outputInt: { direction: "in" }, outputExt: { direction: "out" } };
+  for (let i = 1; i <= inputs; i += 1) {
+    pins["inputExt" + i] = { direction: "in" };
+    pins["inputInt" + i] = { direction: "out" };
+  }
+  return pins;
+}
 
 function componentPins(component) {
   const type = component && component.type;
@@ -33,11 +42,16 @@ function componentPins(component) {
     for (let i = 0; i < n; i += 1) pins["leg" + i] = { direction: mirrored ? "in" : "out" };
     return pins;
   }
-  if (type in CARD_BUS_WIDTH) return CARD_PINS;
+  if (CARD[type]) return cardPins(CARD[type].inputs);
   if (type === "source") return { out: { direction: "out" } };
   if (type === "nand") return { in1: { direction: "in" }, in2: { direction: "in" }, out: { direction: "out" } };
   if (type === "lamp") return { in: { direction: "in" } };
-  if (type && type.indexOf("gate-") === 0) return { in1: { direction: "in" }, out: { direction: "out" } };
+  if (busGateSpec(type)) {
+    const pins = { out: { direction: "out" } };
+    for (let i = 1; i <= busGateSpec(type).inputs; i += 1) pins["in" + i] = { direction: "in" };
+    return pins;
+  }
+  if (type && type.indexOf("gate-") === 0) return { in1: { direction: "in" }, in2: { direction: "in" }, out: { direction: "out" } };
   return {};
 }
 
@@ -60,7 +74,7 @@ function pinWidth(ws, ref) {
     if (w === null) return null;
     return pin === "single" ? w * splitterOutputCount(c) : w;
   }
-  if (c.type in CARD_BUS_WIDTH) return CARD_BUS_WIDTH[c.type];
+  if (CARD[c.type]) return CARD[c.type].width;
   if (busGateSpec(c.type)) return busGateSpec(c.type).width;
   return 1;
 }
@@ -191,6 +205,66 @@ const cases16 = [
   [1,1,1,1, 0,0,0,0, 1,0,1,0, 0,1,0,1]
 ];
 for (const bits of cases16) check16(`Not16(${bits.join("")})`, buildNot16(bits), bits.map((b) => b ? 0 : 1));
+
+// --- AND4: two 4-bit inputs, split each, AND matching pairs, merge ----------
+function buildAnd4(busA, busB) {
+  const components = [
+    { id: "task-card-1", type: "taskCard-AND4" },
+    { id: "split-a", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "split-b", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "merge", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    // harness: one input splitter per input bus + one source
+    { id: "bus-in-split-0", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    { id: "bus-in-split-1", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+    { id: "bus-out-split", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+    { id: "source-1", type: "source" }
+  ];
+  const wires = [
+    wire("task-card-1.inputInt1", "split-a.single"),
+    wire("task-card-1.inputInt2", "split-b.single"),
+    wire("merge.single", "task-card-1.outputInt"),
+    wire("bus-in-split-0.single", "task-card-1.inputExt1"),
+    wire("bus-in-split-1.single", "task-card-1.inputExt2"),
+    wire("task-card-1.outputExt", "bus-out-split.single")
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "and-" + i, type: "gate-And" });
+    wires.push(wire("split-a.leg" + i, "and-" + i + ".in1"));
+    wires.push(wire("split-b.leg" + i, "and-" + i + ".in2"));
+    wires.push(wire("and-" + i + ".out", "merge.leg" + i));
+  }
+  busA.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-0.leg" + i)); });
+  busB.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split-1.leg" + i)); });
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "bus-out-lamp-" + i, type: "lamp" });
+    wires.push(wire("bus-out-split.leg" + i, "bus-out-lamp-" + i + ".in"));
+  }
+  return { components, wires };
+}
+
+console.log("\nBus-engine (AND4 + AND4 bus gate)\n");
+const and4Cases = [[[1,0,1,1],[1,1,0,1]], [[0,1,1,0],[1,1,1,0]], [[1,1,0,0],[0,1,0,1]], [[0,0,1,1],[1,0,1,1]]];
+for (const [a, b] of and4Cases) {
+  const exp = a.map((bit, i) => (bit && b[i]) ? 1 : 0);
+  check(`AND4(${a.join("")},${b.join("")})`, buildAnd4(a.map(Boolean), b.map(Boolean)), exp);
+}
+
+// The AND4 bus gate on its own (used inside AND16 later): width-4 AND per bit.
+(function () {
+  const a = [1,1,0,1], b = [1,0,0,1];
+  const ws = {
+    components: [
+      { id: "ga", type: "gate-AND4" }, { id: "sa", type: "splitter", mirrored: true, outputs: 4, width: 1 },
+      { id: "sb", type: "splitter", mirrored: true, outputs: 4, width: 1 }, { id: "so", type: "splitter", mirrored: false, outputs: 4, width: 1 },
+      { id: "source-1", type: "source" }
+    ],
+    wires: [wire("sa.single", "ga.in1"), wire("sb.single", "ga.in2"), wire("ga.out", "so.single")]
+  };
+  a.forEach((bit, i) => { if (bit) ws.wires.push(wire("source-1.out", "sa.leg" + i)); });
+  b.forEach((bit, i) => { if (bit) ws.wires.push(wire("source-1.out", "sb.leg" + i)); });
+  for (let i = 0; i < 4; i += 1) { ws.components.push({ id: "bus-out-lamp-" + i, type: "lamp" }); ws.wires.push(wire("so.leg" + i, "bus-out-lamp-" + i + ".in")); }
+  check(`gate-AND4(${a.join("")},${b.join("")})`, ws, a.map((bit, i) => (bit && b[i]) ? 1 : 0));
+})();
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);

@@ -7,7 +7,7 @@
   const TASK_DEFS = [
     {
       id: "Not",
-      label: "Not",
+      label: "NOT",
       inputs: 1,
       description: "ה־NOT הוא כרטיס עם כניסה אחת ויציאה אחת. הוא מוציא את ההפך ממה שנכנס אליו. אם נכנס אליו מתח הוא לא מוציא מתח, ואם לא נכנס אליו מתח הוא מוציא מתח. הנה טבלת האמת שלו.",
       rows: [
@@ -206,9 +206,9 @@
   // (null = available from the start). Unlock graph: Not4 opens
   // Not16/AND4/OR4/MUX4; AND4 opens AND16; MUX4 opens MUX16.
   const BUS_TASK_DEFS = [
-    { id: "Not4",  label: "Not4",  op: "Not", width: 4,  inputs: 1, requires: null, description: "ה-Not4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
-    { id: "Not16", label: "Not16", op: "Not", width: 16, inputs: 1, requires: "Not4", description: "ה-Not16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
-    { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4" },
+    { id: "Not4",  label: "NOT4",  op: "Not", width: 4,  inputs: 1, requires: null, description: "ה-NOT4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
+    { id: "Not16", label: "NOT16", op: "Not", width: 16, inputs: 1, requires: "Not4", description: "ה-NOT16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
+    { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4", description: "ה-AND4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת AND על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
     { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4" },
     { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "Not4" },
     { id: "MUX4",  label: "MUX4",  op: "Mux", width: 4,  inputs: 2, requires: "Not4" },
@@ -256,15 +256,23 @@
       { kind: "interactive", title: "רמז 4", action: "dmux-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת?" }
     ],
     Not4: [
-      { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-Notים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-NOTים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
       { kind: "interactive", title: "רמז 2", action: "not4-split-input" },
       { kind: "interactive", title: "רמז 3", action: "not4-split-and-not" }
     ],
     Not16: [
-      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-Not4." },
-      { kind: "text", title: "רמז 2", text: "אתה יכול לפצל את הכניסה ל-4 בסים ברוחב 4 כל אחד. אחר כך זה ממש דומה ל-Not4 רק שאתה משתמש ב-Not4 במקום ב-Not." },
+      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-NOT4." },
+      { kind: "text", title: "רמז 2", text: "אתה יכול לפצל את הכניסה ל-4 בסים ברוחב 4 כל אחד. אחר כך זה ממש דומה ל-NOT4 רק שאתה משתמש ב-NOT4 במקום ב-NOT." },
       { kind: "interactive", title: "רמז 3", action: "not16-split-input" },
       { kind: "interactive", title: "רמז 4", action: "not16-split-and-not" }
+    ],
+    AND4: [
+      { kind: "text", title: "רמז 1", text: "זה דומה ל-NOT4 רק שצריך להשתמש ב-AND במקום ב-NOT." },
+      { kind: "text", title: "רמז 2", text: "שים לב, ל-AND יש שתי כניסות, אז צריך לחבר כל פעם שני קבלים מתאימים." },
+      { kind: "text", title: "רמז 3", text: "תפצל את הכניסות ל-4 קבלים נפרדים, תפעיל את ה-ANDים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
+      { kind: "interactive", title: "רמז 4", action: "and4-split-one" },
+      { kind: "interactive", title: "רמז 5", action: "and4-split-both" },
+      { kind: "interactive", title: "רמז 6", action: "and4-split-both-and" }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },

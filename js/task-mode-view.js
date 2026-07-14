@@ -43,35 +43,42 @@ function createTaskModeView({
     // The frame follows the card component's position. Card pin offsets are
     // ±340 (external) / ±260 (internal); the frame edges sit at ±300, so the
     // external stub pokes out on each side. The width labels sit over those
-    // external stubs (at ±320) so they clear the frame edge.
+    // external stubs (at ±320) so they clear the frame edge. A 2-input card
+    // (AND4 …) draws two input buses on the left (at y ±90, matching the pins).
     const state = getState();
     const card = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
     const cx = Number.isFinite(card?.x) ? card.x : 640;
+    const nIn = def.inputs || 1;
+    const inYs = nIn <= 1 ? [0] : [-90, 90];
+    const inputBars = inYs.map((dy) => busPinBar(cx - 340, cx - 260, 288 + dy, cx - 320, def.width)).join("");
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="${cx - 300}" y="100" width="600" height="376" rx="18" />
         <text class="workspace-task-shell-title" x="${cx}" y="90" text-anchor="middle">${esc(def.label)}</text>
-        ${busPinBar(cx - 340, cx - 260, 288, cx - 320, def.width)}
+        ${inputBars}
         ${busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width)}
       </g>`;
   }
 
   // The single-row truth table shown for the case currently under test: the
-  // input bus value and the expected output bus value, one bit per cell.
+  // input bus value(s) and the expected output bus value, one bit per cell.
+  // row.inputs is an array of buses (one per card input). LTR DOM == left to
+  // right; read right-to-left as כניסה 1, כניסה 2 …, then יציאה — so the output
+  // group is first in the DOM, the inputs run from last to first, and within
+  // each group the bits run component-N..component-0 (component 0 rightmost).
   function renderBusCheckRow(def, row) {
     const cell = (bit, isOut) => `<td class="${isOut ? "truth-output-cell" : ""}">${bit ? 1 : 0}</td>`;
-    // LTR DOM == left-to-right; read right-to-left as כניסה then יציאה, so the
-    // input group is last in the DOM and each group runs bit-N..bit-0.
+    const n = row.inputs.length;
+    const outHead = `<th class="truth-output-cell" colspan="${row.outputs.length}">יציאה</th>`;
     const outCells = row.outputs.slice().reverse().map((b) => cell(b, true)).join("");
-    const inCells = row.inputs.slice().reverse().map((b) => cell(b, false)).join("");
+    let inHeads = "", inCells = "";
+    for (let j = n - 1; j >= 0; j -= 1) {
+      inHeads += `<th colspan="${row.inputs[j].length}">${n > 1 ? `כניסה ${j + 1}` : "כניסה"}</th>`;
+      inCells += row.inputs[j].slice().reverse().map((b) => cell(b, false)).join("");
+    }
     return `
       <table class="workspace-task-hint-table bus-check-table">
-        <thead>
-          <tr>
-            <th class="truth-output-cell" colspan="${row.outputs.length}">יציאה</th>
-            <th colspan="${row.inputs.length}">כניסה</th>
-          </tr>
-        </thead>
+        <thead><tr>${outHead}${inHeads}</tr></thead>
         <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
       </table>`;
   }

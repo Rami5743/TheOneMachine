@@ -228,43 +228,52 @@
   //    inputInt1 / outputInt render as buses and obey the width rules; and
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
-  // The card is only built for tasks that have a real build workspace; the gate
-  // for the single-input "Not" family (the only ops wired up so far).
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16"];
+  // The card/gate are only built for tasks with a real build workspace so far.
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4"];
+  // Vertical positions of a bus card's / bus gate's input pins by input count.
+  function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
+  function busGateInputYs(n) { return n <= 1 ? [0] : [-24, 24]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
+    const nIn = busTask.inputs || 1;
     if (BUS_TASKS_WITH_CARD.includes(busTask.id)) {
+      const cardPins = {};
+      busCardInputYs(nIn).forEach((y, i) => {
+        const num = nIn > 1 ? ` ${i + 1}` : "";
+        cardPins[`inputExt${i + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${busTask.label}${num} חיצונית` };
+        cardPins[`inputInt${i + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${busTask.label}${num} פנימית` };
+      });
+      cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` };
+      cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` };
       WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
         label: `מסגרת ${busTask.label}`,
         fixed: true,
         taskId: busTask.id,
         busWidth: busTask.width,
         busTask: true,
-        pins: {
-          inputExt1: { x: -340, y: 0, direction: "in", label: `כניסת ${busTask.label} חיצונית` },
-          inputInt1: { x: -260, y: 0, direction: "out", label: `כניסת ${busTask.label} פנימית` },
-          outputInt: { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` },
-          outputExt: { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` }
-        },
+        busInputs: nIn,
+        pins: cardPins,
         bounds: { left: 340, right: 340, top: 190, bottom: 190 }
       };
     }
 
     if (BUS_TASKS_WITH_GATE.includes(busTask.id)) {
-      // A single-input bus gate: one input bus on the left, one output bus on
-      // the right, applying the op componentwise. (Multi-input bus gates — And4
-      // etc. — will extend this when those tasks are built.)
+      // A placeable bus gate: `nIn` input buses on the left, one output bus on
+      // the right, applying the op componentwise.
+      const gatePins = {};
+      busGateInputYs(nIn).forEach((y, i) => {
+        const num = nIn > 1 ? ` ${i + 1}` : "";
+        gatePins[`in${i + 1}`] = { x: -92, y, direction: "in", label: `כניסת ${busTask.label}${num}` };
+      });
+      gatePins.out = { x: 92, y: 0, direction: "out", label: `יציאת ${busTask.label}` };
       WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
         label: busTask.label,
         gate: true,
         busGate: true,
         busWidth: busTask.width,
         op: busTask.op,
-        inputs: 1,
-        pins: {
-          in1: { x: -92, y: 0, direction: "in", label: `כניסת ${busTask.label}` },
-          out: { x: 92, y: 0, direction: "out", label: `יציאת ${busTask.label}` }
-        },
+        inputs: nIn,
+        pins: gatePins,
         bounds: { left: 100, right: 100, top: 52, bottom: 52 }
       };
     }
@@ -2289,7 +2298,7 @@
         }
       },
       {
-        text: "מפעילים Not4 על כל אחד מ-4 הבסים.",
+        text: "מפעילים NOT4 על כל אחד מ-4 הבסים.",
         highlight: {
           components: ["not4-0", "not4-1", "not4-2", "not4-3"],
           wires: [
@@ -2310,6 +2319,43 @@
             wireKey("not4-1.out", "merge.leg1"),
             wireKey("not4-2.out", "merge.leg2"),
             wireKey("not4-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
+    AND4: [
+      {
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-AND.",
+        highlight: {
+          components: ["and-0", "and-1", "and-2", "and-3"],
+          wires: [
+            wireKey("split-a.leg0", "and-0.in1"), wireKey("split-b.leg0", "and-0.in2"),
+            wireKey("split-a.leg1", "and-1.in1"), wireKey("split-b.leg1", "and-1.in2"),
+            wireKey("split-a.leg2", "and-2.in1"), wireKey("split-b.leg2", "and-2.in2"),
+            wireKey("split-a.leg3", "and-3.in1"), wireKey("split-b.leg3", "and-3.in2")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 התוצאות חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("and-0.out", "merge.leg0"), wireKey("and-1.out", "merge.leg1"),
+            wireKey("and-2.out", "merge.leg2"), wireKey("and-3.out", "merge.leg3"),
             wireKey("merge.single", "task-card-1.outputInt")
           ]
         }
@@ -4256,6 +4302,14 @@
       [0,1,0,0, 1,1,1,0, 0,0,1,1, 1,0,1,0].map(Boolean),
       [1,1,0,1, 0,1,0,0, 1,0,1,1, 0,0,1,0].map(Boolean),
       [0,0,1,0, 1,0,1,1, 0,1,1,0, 1,1,0,1].map(Boolean)
+    ],
+    // A 2-input task: each case is [inputA, inputB], each a 4-bit bus.
+    AND4: [
+      [[1,0,1,1].map(Boolean), [1,1,0,1].map(Boolean)],
+      [[0,1,1,0].map(Boolean), [1,1,1,0].map(Boolean)],
+      [[1,1,0,0].map(Boolean), [0,1,0,1].map(Boolean)],
+      [[0,0,1,1].map(Boolean), [1,0,1,1].map(Boolean)],
+      [[1,0,0,1].map(Boolean), [1,1,1,1].map(Boolean)]
     ]
   };
 
@@ -4263,21 +4317,27 @@
     return BUS_TEST_CASES[taskId] || [];
   }
 
-  // The expected output bus for an input bus, componentwise per the task's op.
-  function busTaskExpected(def, inputs) {
-    if (def.op === "Not") return inputs.map((bit) => !bit);
-    return inputs.slice();
+  // The input buses of a test case as an array (one entry per card input). A
+  // single-input task stores the bus bare; a multi-input task stores an array.
+  function caseInputBuses(def, testCase) {
+    return (def.inputs || 1) > 1 ? testCase : [testCase];
+  }
+
+  // The expected output bus, componentwise per the task's op over the inputs.
+  function busTaskExpected(def, buses) {
+    return Array.from({ length: def.width }, (_, i) => Boolean(taskOutput(def.op, buses.map((bus) => bus[i]))));
   }
 
   // While a bus check runs, the case currently under test as a truth-table row
-  // (input bus + expected output bus); null when no bus check is active.
+  // (the input buses + expected output bus); null when no bus check is active.
   function busCheckDisplayRow() {
     if (!state.notTest?.active && !state.notTest?.result) return null;
     const def = busTaskDefById(state.notTest?.taskId);
     if (!def) return null;
-    const inputs = busTaskCases(def.id)[state.notTest?.rowIndex];
-    if (!inputs) return null;
-    return { inputs: inputs.slice(), outputs: busTaskExpected(def, inputs) };
+    const testCase = busTaskCases(def.id)[state.notTest?.rowIndex];
+    if (!testCase) return null;
+    const buses = caseInputBuses(def, testCase);
+    return { inputs: buses, outputs: busTaskExpected(def, buses) };
   }
 
   // Assemble the check circuit for one input case. The learner's circuit inside
@@ -4285,7 +4345,7 @@
   // then wrapped in a splitter harness — a merging splitter driven by that one
   // source (wired to the legs of the 1-bits) feeds the input bus, and a
   // splitting splitter fans the output bus out to one lamp per bit.
-  function busTestHarnessWorkspace(baseWorkspace, def, inputs) {
+  function busTestHarnessWorkspace(baseWorkspace, def, buses) {
     const workspace = normalizeWorkspace(clonePlain(baseWorkspace));
     workspace.selectedTerminal = null;
     workspace.accident = null;
@@ -4298,21 +4358,24 @@
     workspace.components = workspace.components.filter((component) =>
       component.id === "task-card-1" || component.id === "source-1" ||
       (component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2));
-    // The pre-placed source drives the input; drop anything the learner wired to
-    // it so the check controls it.
+    // The pre-placed source drives every input; drop anything the learner wired
+    // to it so the check controls it.
     workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
     removeInvalidWires(workspace);
 
     const width = def.width;
-    // Input side: a mirrored splitter (legs = inputs) merges the bits into the
-    // input bus. Its single pin sits at the card's input pin (board x 300); the
-    // pre-placed source is far to the left, wired up to the legs of the 1-bits.
-    // A leg with no source reads as a 0 bit.
-    workspace.components.push({ id: "bus-in-split", type: "splitter", x: 230, y: 288, mirrored: true, outputs: width, width: 1 });
-    inputs.forEach((bit, i) => {
-      if (bit) workspace.wires.push(normalizeWire("source-1.out", `bus-in-split.leg${i}`));
+    // Input side: one mirrored splitter per input bus (legs = individual bits),
+    // each sitting at its card input pin. The single pre-placed source is wired
+    // to the legs of the 1-bits; a leg with no source reads as a 0 bit.
+    const inYs = busCardInputYs(def.inputs || 1);
+    buses.forEach((bits, j) => {
+      const splitId = `bus-in-split-${j}`;
+      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: 288 + inYs[j], mirrored: true, outputs: width, width: 1 });
+      bits.forEach((bit, i) => {
+        if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
+      });
+      workspace.wires.push(normalizeWire(`${splitId}.single`, `task-card-1.inputExt${j + 1}`));
     });
-    workspace.wires.push(normalizeWire("bus-in-split.single", "task-card-1.inputExt1"));
 
     // Output side: an unmirrored splitter (single = input) at the card's output
     // pin fans the output bus out to one lamp per bit.
@@ -4348,13 +4411,13 @@
     const cases = busTaskCases(def.id);
     if (caseIndex >= cases.length) return showNotTestResult("success", baseWorkspace, def.id);
 
-    const inputs = cases[caseIndex];
-    const workspace = busTestHarnessWorkspace(baseWorkspace, def, inputs);
+    const buses = caseInputBuses(def, cases[caseIndex]);
+    const workspace = busTestHarnessWorkspace(baseWorkspace, def, buses);
     setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
 
     notTestTimer = window.setTimeout(() => {
       const evaluation = evaluateWorkspaceBits(workspace);
-      const expected = busTaskExpected(def, inputs);
+      const expected = busTaskExpected(def, buses);
       const ok = expected.every((bit, i) => Boolean(evaluation.lamps.get(`bus-out-lamp-${i}`)) === Boolean(bit));
       if (!ok) return showNotTestResult("failure", workspace, def.id);
       runBusTestCase(workspace, caseIndex + 1);
@@ -4492,7 +4555,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return id === "Not4" || id === "Not16";
+    return id === "Not4" || id === "Not16" || id === "AND4";
   }
 
   function openBusesNote() {
@@ -4705,25 +4768,38 @@
       return setState(patch, false);
     }
 
-    // Bus tasks: the interactive hints scaffold a splitter on the input bus
-    // (and, at the next step, one sub-gate wired to one of its legs). Not4
-    // splits into 4 single wires and uses a NOT; Not16 splits into 4 buses of
-    // width 4 and uses a Not4.
+    // Bus tasks: the interactive hints scaffold splitter(s) on the input bus(es)
+    // and, at the next step, one sub-gate wired to a leg. Not4 splits into 4
+    // single wires and uses a NOT; Not16 splits into 4 buses of width 4 and uses
+    // a Not4; AND4 splits both inputs and uses a (single-bit) AND on a matching
+    // pair of legs.
     if (busTaskDefById(taskId)) {
       const busWorkspace = normalizeWorkspace(clonePlain(state.workspace));
       const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
-      const isNot16 = taskId === "Not16";
-      const legWidth = isNot16 ? 4 : 1;
-      const subGate = isNot16 ? "gate-Not4" : "gate-Not";
-      const subId = isNot16 ? "not4-1" : "not-1";
-      const components = [
-        clonePlain(card),
-        { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: legWidth }
-      ];
-      const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
-      if (hint.action.endsWith("split-and-not")) {
-        components.push({ id: subId, type: subGate, x: 640, y: 200 });
-        wires.push(normalizeWire("split-in.leg0", `${subId}.in1`));
+      let components, wires;
+      if (taskId === "AND4") {
+        components = [clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 }];
+        wires = [normalizeWire("task-card-1.inputInt1", "split-a.single")];
+        if (hint.action !== "and4-split-one") {
+          components.push({ id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 1 });
+          wires.push(normalizeWire("task-card-1.inputInt2", "split-b.single"));
+        }
+        if (hint.action === "and4-split-both-and") {
+          components.push({ id: "and-1", type: "gate-And", x: 660, y: 288 });
+          wires.push(normalizeWire("split-a.leg0", "and-1.in1"));
+          wires.push(normalizeWire("split-b.leg0", "and-1.in2"));
+        }
+      } else {
+        const isNot16 = taskId === "Not16";
+        const legWidth = isNot16 ? 4 : 1;
+        const subGate = isNot16 ? "gate-Not4" : "gate-Not";
+        const subId = isNot16 ? "not4-1" : "not-1";
+        components = [clonePlain(card), { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: legWidth }];
+        wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+        if (hint.action.endsWith("split-and-not")) {
+          components.push({ id: subId, type: subGate, x: 640, y: 200 });
+          wires.push(normalizeWire("split-in.leg0", `${subId}.in1`));
+        }
       }
       busWorkspace.components = components;
       busWorkspace.wires = wires;
@@ -5323,9 +5399,12 @@
     return Math.min(16, Math.max(2, Number(component?.outputs) || 4));
   }
 
+  // Leg 0 is the BOTTOM leg (largest y); legs count upward. This matches the
+  // project convention that cable/component 0 is the lowest one — the same
+  // component that appears rightmost in a truth-table row.
   function splitterOutputYs(n) {
     const ys = [];
-    for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * SPLITTER_OUTPUT_SPACING));
+    for (let i = 0; i < n; i++) ys.push(Math.round(((n - 1) / 2 - i) * SPLITTER_OUTPUT_SPACING));
     return ys;
   }
 
