@@ -112,7 +112,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // bus gates. Each entry is the [x1,x2] extent (and y) of a stub line.
   const BUS_GATE_BARS = {
     Not: [{ x1: -60, x2: -42, y: 0 }, { x1: 48, x2: 80, y: 0 }],
-    And: [{ x1: -62, x2: -44, y: -23 }, { x1: -62, x2: -44, y: 23 }, { x1: 44, x2: 66, y: 0 }]
+    And: [{ x1: -62, x2: -44, y: -23 }, { x1: -62, x2: -44, y: 23 }, { x1: 44, x2: 66, y: 0 }],
+    Or: [{ x1: -58, x2: -28, y: -23 }, { x1: -58, x2: -28, y: 23 }, { x1: 62, x2: 80, y: 0 }]
   };
 
   // A bus gate (gate-Not4 …): the base gate's schematic symbol, with its thin

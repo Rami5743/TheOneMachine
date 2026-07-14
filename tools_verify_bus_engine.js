@@ -10,14 +10,15 @@ const path = require("path");
 const ROOT = process.cwd();
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
-const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "And", inputs: 2 }];
+const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }, { id: "And", label: "And", inputs: 2 }, { id: "Or", label: "Or", inputs: 2 }];
 
 // Card defs mirror WORKSPACE_COMPONENT_DEFS bus cards: width + input count.
 const CARD = {
   "taskCard-Not4": { width: 4, inputs: 1 },
   "taskCard-Not16": { width: 16, inputs: 1 },
   "taskCard-AND4": { width: 4, inputs: 2 },
-  "taskCard-AND16": { width: 16, inputs: 2 }
+  "taskCard-AND16": { width: 16, inputs: 2 },
+  "taskCard-OR4": { width: 4, inputs: 2 }
 };
 // Placeable bus gates.
 const BUS_GATE = {
@@ -313,6 +314,19 @@ const and16Cases = [
 ];
 for (const [a, b] of and16Cases) {
   check16(`AND16(${a.join("")},${b.join("")})`, buildAnd16(a.map(Boolean), b.map(Boolean)), a.map((bit, i) => (bit && b[i]) ? 1 : 0));
+}
+
+// --- OR4: two 4-bit inputs, split each, OR the matching pairs, merge ----------
+function buildOr4(busA, busB) {
+  const ws = buildAnd4(busA, busB);
+  // Swap the AND gates for OR gates (same wiring).
+  ws.components.forEach((c) => { if (/^and-\d+$/.test(c.id)) c.type = "gate-Or"; });
+  return ws;
+}
+console.log("\nBus-engine (OR4)\n");
+const or4Cases = [[[1,0,1,0],[0,0,1,1]], [[0,1,0,0],[1,0,0,1]], [[0,0,0,0],[0,0,0,0]], [[1,1,1,1],[0,0,0,0]]];
+for (const [a, b] of or4Cases) {
+  check(`OR4(${a.join("")},${b.join("")})`, buildOr4(a.map(Boolean), b.map(Boolean)), a.map((bit, i) => (bit || b[i]) ? 1 : 0));
 }
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);

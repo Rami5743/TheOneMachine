@@ -229,8 +229,8 @@
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
   // The card/gate are only built for tasks with a real build workspace so far.
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16"];
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4"];
   // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
@@ -2370,6 +2370,43 @@
         }
       }
     ],
+    OR4: [
+      {
+        text: "מפצלים כל אחת משתי כניסות הבס ל-4 קבלים נפרדים בעזרת שני מפצלים.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מחברים כל שני קבלים מתאימים (אחד מכל כניסה) ל-OR.",
+        highlight: {
+          components: ["or-0", "or-1", "or-2", "or-3"],
+          wires: [
+            wireKey("split-a.leg0", "or-0.in1"), wireKey("split-b.leg0", "or-0.in2"),
+            wireKey("split-a.leg1", "or-1.in1"), wireKey("split-b.leg1", "or-1.in2"),
+            wireKey("split-a.leg2", "or-2.in1"), wireKey("split-b.leg2", "or-2.in2"),
+            wireKey("split-a.leg3", "or-3.in1"), wireKey("split-b.leg3", "or-3.in2")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 התוצאות חזרה לבס אחד בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("or-0.out", "merge.leg0"), wireKey("or-1.out", "merge.leg1"),
+            wireKey("or-2.out", "merge.leg2"), wireKey("or-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
     AND16: [
       {
         text: "מפצלים כל אחת משתי כניסות הבס (רוחב 16) ל-4 בסים ברוחב 4 בעזרת שני מפצלים.",
@@ -4357,6 +4394,14 @@
       [[0,0,1,1].map(Boolean), [1,0,1,1].map(Boolean)],
       [[1,0,0,1].map(Boolean), [1,1,1,1].map(Boolean)]
     ],
+    // OR4: 2 input buses of width 4.
+    OR4: [
+      [[1,0,1,0].map(Boolean), [0,0,1,1].map(Boolean)],
+      [[0,1,0,0].map(Boolean), [1,0,0,1].map(Boolean)],
+      [[1,1,0,0].map(Boolean), [0,0,0,1].map(Boolean)],
+      [[0,0,1,0].map(Boolean), [0,1,1,0].map(Boolean)],
+      [[1,0,0,0].map(Boolean), [0,0,0,0].map(Boolean)]
+    ],
     // 2 input buses of width 16.
     AND16: [
       [[1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1].map(Boolean), [1,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0].map(Boolean)],
@@ -4413,12 +4458,17 @@
 
     const width = def.width;
     // Input side: one mirrored splitter per input bus (legs = individual bits),
-    // each sitting at its card input pin. The single pre-placed source is wired
-    // to the legs of the 1-bits; a leg with no source reads as a 0 bit.
-    const inYs = busCardInputYs(def.inputs || 1);
+    // the single pre-placed source wired to the legs of the 1-bits (a leg with
+    // no source reads as a 0 bit). Each merging splitter is `width` legs tall, so
+    // for a wide multi-input card (AND16) the two are spread far apart in y —
+    // running off-screen is fine — so they don't overlap.
+    const nIn = def.inputs || 1;
+    const splitHalfH = ((width - 1) * 34) / 2 + 13;
+    const inSep = Math.max(180, splitHalfH * 2 + 30);
     buses.forEach((bits, j) => {
       const splitId = `bus-in-split-${j}`;
-      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: 288 + inYs[j], mirrored: true, outputs: width, width: 1 });
+      const sy = 288 + (j - (nIn - 1) / 2) * inSep;
+      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: width, width: 1 });
       bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
@@ -4603,7 +4653,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return ["Not4", "Not16", "AND4", "AND16"].includes(id);
+    return ["Not4", "Not16", "AND4", "AND16", "OR4"].includes(id);
   }
 
   function openBusesNote() {
@@ -4827,12 +4877,14 @@
       // Keep a voltage source to the left of the card (as in the build/solution).
       const source = componentById(busWorkspace, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
       let components, wires;
-      if (taskId === "AND4" || taskId === "AND16") {
-        // AND4 splits each input into 4 single wires and uses a (single-bit) AND;
-        // AND16 splits each into 4 buses of width 4 and uses an AND4.
-        const isAnd16 = taskId === "AND16";
-        const legWidth = isAnd16 ? 4 : 1;
-        const subGate = isAnd16 ? "gate-AND4" : "gate-And";
+      if (["AND4", "OR4", "AND16"].includes(taskId)) {
+        // A 2-input bus task. A width-4 task (AND4/OR4) splits each input into 4
+        // single wires and uses the matching single-bit gate; a width-16 task
+        // (AND16) splits each into 4 buses of width 4 and uses the ×4 bus gate.
+        const busDef = busTaskDefById(taskId);
+        const isWide = busDef.width === 16;
+        const legWidth = isWide ? 4 : 1;
+        const subGate = isWide ? gateComponentType(`${busDef.op === "And" ? "AND" : "OR"}4`) : gateComponentType(busDef.op);
         components = [clonePlain(source), clonePlain(card), { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: legWidth }];
         wires = [normalizeWire("task-card-1.inputInt1", "split-a.single")];
         if (!hint.action.endsWith("split-one")) {
