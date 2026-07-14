@@ -20,7 +20,9 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
     const override = overrides?.[info.component.id];
     const x = override?.x ?? info.component.x;
     const y = override?.y ?? info.component.y;
-    const scale = renderScale(info.component.type);
+    // A per-instance scale (used for the small bus-check lamps) overrides the
+    // per-type render scale.
+    const scale = Number.isFinite(info.component.scale) ? info.component.scale : renderScale(info.component.type);
     return { x: x + info.pin.x * scale, y: y + info.pin.y * scale };
   }
 

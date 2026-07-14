@@ -12,12 +12,15 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
 const TASK_DEFS = [{ id: "Not", label: "Not", inputs: 1 }];
 
-// Card def mirrors WORKSPACE_COMPONENT_DEFS["taskCard-Not4"] in app.js.
+// Card defs mirror WORKSPACE_COMPONENT_DEFS["taskCard-Not4"/"taskCard-Not16"].
 const CARD_PINS = {
   inputExt1: { direction: "in" }, inputInt1: { direction: "out" },
   outputInt: { direction: "in" }, outputExt: { direction: "out" }
 };
-const CARD_BUS_WIDTH = 4;
+const CARD_BUS_WIDTH = { "taskCard-Not4": 4, "taskCard-Not16": 16 };
+// Placeable bus gates (gate-Not4).
+const BUS_GATE = { "gate-Not4": { op: "Not", inputs: 1, width: 4 } };
+const busGateSpec = (type) => BUS_GATE[type] || null;
 
 const splitterOutputCount = (c) => Math.min(16, Math.max(2, Number(c && c.outputs) || 4));
 
@@ -30,7 +33,7 @@ function componentPins(component) {
     for (let i = 0; i < n; i += 1) pins["leg" + i] = { direction: mirrored ? "in" : "out" };
     return pins;
   }
-  if (type === "taskCard-Not4") return CARD_PINS;
+  if (type in CARD_BUS_WIDTH) return CARD_PINS;
   if (type === "source") return { out: { direction: "out" } };
   if (type === "nand") return { in1: { direction: "in" }, in2: { direction: "in" }, out: { direction: "out" } };
   if (type === "lamp") return { in: { direction: "in" } };
@@ -57,17 +60,18 @@ function pinWidth(ws, ref) {
     if (w === null) return null;
     return pin === "single" ? w * splitterOutputCount(c) : w;
   }
-  if (c.type === "taskCard-Not4") return CARD_BUS_WIDTH;
+  if (c.type in CARD_BUS_WIDTH) return CARD_BUS_WIDTH[c.type];
+  if (busGateSpec(c.type)) return busGateSpec(c.type).width;
   return 1;
 }
 
 const taskDefById = (id) => TASK_DEFS.find((t) => t.id === id) || null;
 
 const makeEngine = new Function(
-  "terminalDirection", "taskDefById", "pinWidth", "splitterOutputCount", "resolvePins",
-  read("js/circuit-engine.js") + "\n return createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins });"
+  "terminalDirection", "taskDefById", "pinWidth", "splitterOutputCount", "resolvePins", "busGateSpec",
+  read("js/circuit-engine.js") + "\n return createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec });"
 );
-const engine = makeEngine(terminalDirection, taskDefById, pinWidth, splitterOutputCount, componentPins);
+const engine = makeEngine(terminalDirection, taskDefById, pinWidth, splitterOutputCount, componentPins, busGateSpec);
 
 const wire = (a, b) => ({ a, b });
 
@@ -137,6 +141,56 @@ const expected = bad.map((b) => b ? 0 : 1);
 const matches = expected.every((bit, i) => Boolean(res.lamps.get("bus-out-lamp-" + i)) === Boolean(bit));
 (!matches ? pass++ : fail++);
 console.log(`  [${!matches ? "PASS" : "FAIL"}] broken Not4 correctly rejected`);
+
+// --- Not16 via 4× Not4 bus gate, with the width-16 splitter harness ----------
+function buildNot16(bits) {
+  const components = [
+    { id: "task-card-1", type: "taskCard-Not16" },
+    // learner circuit: split 16 -> 4 buses of 4, Not4 each, merge back
+    { id: "split-in", type: "splitter", mirrored: false, outputs: 4, width: 4 },
+    { id: "merge", type: "splitter", mirrored: true, outputs: 4, width: 4 },
+    // harness: 16-way splitters + one source
+    { id: "bus-in-split", type: "splitter", mirrored: true, outputs: 16, width: 1 },
+    { id: "bus-out-split", type: "splitter", mirrored: false, outputs: 16, width: 1 },
+    { id: "source-1", type: "source" }
+  ];
+  const wires = [
+    wire("task-card-1.inputInt1", "split-in.single"),
+    wire("merge.single", "task-card-1.outputInt"),
+    wire("bus-in-split.single", "task-card-1.inputExt1"),
+    wire("task-card-1.outputExt", "bus-out-split.single")
+  ];
+  for (let i = 0; i < 4; i += 1) {
+    components.push({ id: "not4-" + i, type: "gate-Not4" });
+    wires.push(wire("split-in.leg" + i, "not4-" + i + ".in1"));
+    wires.push(wire("not4-" + i + ".out", "merge.leg" + i));
+  }
+  bits.forEach((bit, i) => { if (bit) wires.push(wire("source-1.out", "bus-in-split.leg" + i)); });
+  for (let i = 0; i < 16; i += 1) {
+    components.push({ id: "bus-out-lamp-" + i, type: "lamp" });
+    wires.push(wire("bus-out-split.leg" + i, "bus-out-lamp-" + i + ".in"));
+  }
+  return { components, wires };
+}
+
+function check16(name, ws, expectedBits) {
+  const res = engine.evaluateWorkspaceBits(ws);
+  let ok = true, detail = "";
+  expectedBits.forEach((bit, i) => {
+    const got = Boolean(res.lamps.get("bus-out-lamp-" + i));
+    if (got !== Boolean(bit)) { ok = false; detail += ` lamp${i}: exp ${!!bit}, got ${got}`; }
+  });
+  (ok ? pass++ : fail++);
+  console.log(`  [${ok ? "PASS" : "FAIL"}] ${name}${ok ? "" : " ->" + detail}`);
+}
+
+console.log("\nBus-engine (Not16 via Not4 gate)\n");
+const cases16 = [
+  [1,0,1,1, 0,0,1,0, 1,1,0,0, 0,1,0,1],
+  [0,1,0,0, 1,1,1,0, 0,0,1,1, 1,0,1,0],
+  [1,1,1,1, 0,0,0,0, 1,0,1,0, 0,1,0,1]
+];
+for (const bits of cases16) check16(`Not16(${bits.join("")})`, buildNot16(bits), bits.map((b) => b ? 0 : 1));
 
 console.log(`\n${fail ? "FAILURES: " + fail : "ALL PASS"} (${pass} passed, ${fail} failed)`);
 process.exit(fail ? 1 : 0);

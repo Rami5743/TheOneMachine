@@ -207,7 +207,7 @@
   // Not16/AND4/OR4/MUX4; AND4 opens AND16; MUX4 opens MUX16.
   const BUS_TASK_DEFS = [
     { id: "Not4",  label: "Not4",  op: "Not", width: 4,  inputs: 1, requires: null, description: "ה-Not4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
-    { id: "Not16", label: "Not16", op: "Not", width: 16, inputs: 1, requires: "Not4" },
+    { id: "Not16", label: "Not16", op: "Not", width: 16, inputs: 1, requires: "Not4", description: "ה-Not16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת NOT על הרכיב המתאים בכניסה." },
     { id: "AND4",  label: "AND4",  op: "And", width: 4,  inputs: 2, requires: "Not4" },
     { id: "AND16", label: "AND16", op: "And", width: 16, inputs: 2, requires: "AND4" },
     { id: "OR4",   label: "OR4",   op: "Or",  width: 4,  inputs: 2, requires: "Not4" },
@@ -259,6 +259,12 @@
       { kind: "text", title: "רמז 1", text: "תפצל את הכניסה ל-4 קבלים נפרדים, תפעיל את ה-Notים הנדרשים ותצרף את הכניסות חזרה ע\"י מפצל נוסף." },
       { kind: "interactive", title: "רמז 2", action: "not4-split-input" },
       { kind: "interactive", title: "רמז 3", action: "not4-split-and-not" }
+    ],
+    Not16: [
+      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-Not4." },
+      { kind: "text", title: "רמז 2", text: "אתה יכול לפצל את הכניסה ל-4 בסים ברוחב 4 כל אחד. אחר כך זה ממש דומה ל-Not4 רק שאתה משתמש ב-Not4 במקום ב-Not." },
+      { kind: "interactive", title: "רמז 3", action: "not16-split-input" },
+      { kind: "interactive", title: "רמז 4", action: "not16-split-and-not" }
     ],
     Mux: [
       { kind: "text", title: "רמז 1", text: "זכור שמדובר בחישוב, הבן באילו אפשרויות יוצא 1 וטפל בהן." },

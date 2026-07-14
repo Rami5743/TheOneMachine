@@ -222,28 +222,52 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
-  // Chapter 2.4 bus cards. Like the 2.2 task cards, but their single input and
-  // single output are BUSES: pinWidth reports the card's `busWidth`, so every
-  // wire to inputInt1 / outputInt renders as a bus and the width rules apply.
-  // Only Not4 is built for now. inputExt1/inputInt1 (left) and outputInt/
-  // outputExt (right) mirror the standard single-input card layout so the shared
-  // task-frame machinery (cycles, canonical refs, the check harness) just works.
+  // Chapter 2.4 bus tasks build two component kinds each:
+  //  * a bus CARD (the build frame, taskCard-<id>) whose single input and output
+  //    are BUSES — pinWidth reports the card's `busWidth`, so wires to
+  //    inputInt1 / outputInt render as buses and obey the width rules; and
+  //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
+  //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
+  // The card is only built for tasks that have a real build workspace; the gate
+  // for the single-input "Not" family (the only ops wired up so far).
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16"];
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
-    if (busTask.id !== "Not4") continue; // the others are note-list placeholders
-    WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
-      label: `מסגרת ${busTask.label}`,
-      fixed: true,
-      taskId: busTask.id,
-      busWidth: busTask.width,
-      busTask: true,
-      pins: {
-        inputExt1: { x: -340, y: 0, direction: "in", label: `כניסת ${busTask.label} חיצונית` },
-        inputInt1: { x: -260, y: 0, direction: "out", label: `כניסת ${busTask.label} פנימית` },
-        outputInt: { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` },
-        outputExt: { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` }
-      },
-      bounds: { left: 340, right: 340, top: 190, bottom: 190 }
-    };
+    if (BUS_TASKS_WITH_CARD.includes(busTask.id)) {
+      WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
+        label: `מסגרת ${busTask.label}`,
+        fixed: true,
+        taskId: busTask.id,
+        busWidth: busTask.width,
+        busTask: true,
+        pins: {
+          inputExt1: { x: -340, y: 0, direction: "in", label: `כניסת ${busTask.label} חיצונית` },
+          inputInt1: { x: -260, y: 0, direction: "out", label: `כניסת ${busTask.label} פנימית` },
+          outputInt: { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` },
+          outputExt: { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` }
+        },
+        bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+      };
+    }
+
+    if (BUS_TASKS_WITH_GATE.includes(busTask.id)) {
+      // A single-input bus gate: one input bus on the left, one output bus on
+      // the right, applying the op componentwise. (Multi-input bus gates — And4
+      // etc. — will extend this when those tasks are built.)
+      WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
+        label: busTask.label,
+        gate: true,
+        busGate: true,
+        busWidth: busTask.width,
+        op: busTask.op,
+        inputs: 1,
+        pins: {
+          in1: { x: -92, y: 0, direction: "in", label: `כניסת ${busTask.label}` },
+          out: { x: 92, y: 0, direction: "out", label: `יציאת ${busTask.label}` }
+        },
+        bounds: { left: 100, right: 100, top: 52, bottom: 52 }
+      };
+    }
   }
 
 
@@ -546,7 +570,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -554,7 +578,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
@@ -597,7 +621,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -1213,9 +1237,13 @@
 
   function toolbarGateToolIds() {
     if (!isPastSimpleGatesChapter()) return completedTaskIds();
-    // In chapter 2.3: all the 2.2 gates, plus any completed routing card (MUX/DMUX).
+    // In chapter 2.3+: all the 2.2 gates, any completed routing card (MUX/DMUX),
+    // and any completed 2.4 bus task that has a placeable gate (Not4 …).
     const routingCompleted = ROUTING_TASK_DEFS.map((task) => task.id).filter(taskCompleted);
-    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted];
+    const busCompleted = BUS_TASK_DEFS
+      .map((task) => task.id)
+      .filter((id) => taskCompleted(id) && WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
+    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted];
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -2246,6 +2274,42 @@
             wireKey("not-1.out", "merge.leg1"),
             wireKey("not-2.out", "merge.leg2"),
             wireKey("not-3.out", "merge.leg3"),
+            wireKey("merge.single", "task-card-1.outputInt")
+          ]
+        }
+      }
+    ],
+    Not16: [
+      {
+        text: "מפצלים את בס הכניסה (רוחב 16) ל-4 בסים ברוחב 4 בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single", "split-in.leg0", "split-in.leg1", "split-in.leg2", "split-in.leg3"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "מפעילים Not4 על כל אחד מ-4 הבסים.",
+        highlight: {
+          components: ["not4-0", "not4-1", "not4-2", "not4-3"],
+          wires: [
+            wireKey("split-in.leg0", "not4-0.in1"),
+            wireKey("split-in.leg1", "not4-1.in1"),
+            wireKey("split-in.leg2", "not4-2.in1"),
+            wireKey("split-in.leg3", "not4-3.in1")
+          ]
+        }
+      },
+      {
+        text: "מצרפים את 4 הבסים חזרה לבס אחד ברוחב 16 בעזרת מפצל נוסף, ומוציאים אותו מהכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt"],
+          wires: [
+            wireKey("not4-0.out", "merge.leg0"),
+            wireKey("not4-1.out", "merge.leg1"),
+            wireKey("not4-2.out", "merge.leg2"),
+            wireKey("not4-3.out", "merge.leg3"),
             wireKey("merge.single", "task-card-1.outputInt")
           ]
         }
@@ -4185,6 +4249,13 @@
       [true, true, false, true],
       [false, false, true, false],
       [true, false, false, true]
+    ],
+    // A few frozen random 16-bit patterns (0/1 spelled out for readability).
+    Not16: [
+      [1,0,1,1, 0,0,1,0, 1,1,0,0, 0,1,0,1].map(Boolean),
+      [0,1,0,0, 1,1,1,0, 0,0,1,1, 1,0,1,0].map(Boolean),
+      [1,1,0,1, 0,1,0,0, 1,0,1,1, 0,0,1,0].map(Boolean),
+      [0,0,1,0, 1,0,1,1, 0,1,1,0, 1,1,0,1].map(Boolean)
     ]
   };
 
@@ -4244,25 +4315,31 @@
     workspace.wires.push(normalizeWire("bus-in-split.single", "task-card-1.inputExt1"));
 
     // Output side: an unmirrored splitter (single = input) at the card's output
-    // pin (board x 980) fans the output bus out to `width` lamps, placed well to
-    // the right and spaced so they do not overlap.
-    workspace.components.push({ id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, width: 1 });
+    // pin fans the output bus out to one lamp per bit.
+    const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, width: 1 };
+    workspace.components.push(outSplit);
     workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
-    const lampYs = busLampYs(width);
+    const layout = busLampLayout(width, outSplit.y, 1180);
     for (let i = 0; i < width; i += 1) {
       const lampId = `bus-out-lamp-${i}`;
-      workspace.components.push({ id: lampId, type: "lamp", x: 1180, y: lampYs[i] });
+      const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
+      if (layout.scale !== 1) lamp.scale = layout.scale;
+      workspace.components.push(lamp);
       workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
     }
     return workspace;
   }
 
-  // Evenly spread `count` output lamps down the board without overlapping (each
-  // lamp is ~140 tall on a ~600-tall board).
-  function busLampYs(count) {
-    const spacing = 133;
-    const top = 300 - ((count - 1) / 2) * spacing;
-    return Array.from({ length: count }, (_, i) => Math.round(top + i * spacing));
+  // Where (and at what scale) the check's output lamps sit. A narrow bus gets a
+  // few full-size lamps spread down the board; a wide bus (16) gets a dense
+  // column of small lamps aligned with the output splitter's legs.
+  function busLampLayout(width, centerY, x) {
+    if (width <= 6) {
+      const spacing = 133;
+      const top = centerY - ((width - 1) / 2) * spacing;
+      return { scale: 1, positions: Array.from({ length: width }, (_, i) => ({ x, y: Math.round(top + i * spacing) })) };
+    }
+    return { scale: 0.32, positions: splitterOutputYs(width).map((dy) => ({ x, y: centerY + dy })) };
   }
 
   function runBusTestCase(baseWorkspace, caseIndex) {
@@ -4413,9 +4490,9 @@
     return def.requires === null || taskCompleted(def.requires);
   }
 
-  // Which bus tasks have a real build workspace built. For now only Not4.
+  // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return id === "Not4";
+    return id === "Not4" || id === "Not16";
   }
 
   function openBusesNote() {
@@ -4628,19 +4705,25 @@
       return setState(patch, false);
     }
 
-    // Bus tasks (Not4): the interactive hints scaffold a splitter on the input
-    // bus (and, at the next step, one NOT wired to one of its legs).
+    // Bus tasks: the interactive hints scaffold a splitter on the input bus
+    // (and, at the next step, one sub-gate wired to one of its legs). Not4
+    // splits into 4 single wires and uses a NOT; Not16 splits into 4 buses of
+    // width 4 and uses a Not4.
     if (busTaskDefById(taskId)) {
       const busWorkspace = normalizeWorkspace(clonePlain(state.workspace));
       const card = componentById(busWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
+      const isNot16 = taskId === "Not16";
+      const legWidth = isNot16 ? 4 : 1;
+      const subGate = isNot16 ? "gate-Not4" : "gate-Not";
+      const subId = isNot16 ? "not4-1" : "not-1";
       const components = [
         clonePlain(card),
-        { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: 1 }
+        { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: legWidth }
       ];
       const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
-      if (hint.action === "not4-split-and-not") {
-        components.push({ id: "not-1", type: "gate-Not", x: 640, y: 200 });
-        wires.push(normalizeWire("split-in.leg0", "not-1.in1"));
+      if (hint.action.endsWith("split-and-not")) {
+        components.push({ id: subId, type: subGate, x: 640, y: 200 });
+        wires.push(normalizeWire("split-in.leg0", `${subId}.in1`));
       }
       busWorkspace.components = components;
       busWorkspace.wires = wires;
@@ -5265,6 +5348,15 @@
   function componentPins(component) {
     if (component?.type === "splitter") return splitterPins(component);
     return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
+  }
+
+  // The op/width of a placeable bus gate (gate-Not4 etc.), or null for anything
+  // else. The circuit engine and the visuals use it to apply the op per bit and
+  // to label the gate.
+  function busGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.busGate) return null;
+    return { op: def.op, inputs: def.inputs || 1, width: def.busWidth, label: def.label };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are

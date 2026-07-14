@@ -41,7 +41,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -253,6 +253,18 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         }
 
         if (type.startsWith("gate-")) {
+          // A placeable bus gate (gate-Not4 …): apply the op componentwise over
+          // the whole input bus.
+          const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
+          if (bus) {
+            const inVecs = Array.from({ length: bus.inputs }, (_, k) => inputBits(workspace, `${component.id}.in${k + 1}`, outputs));
+            const outVec = [];
+            for (let i = 0; i < bus.width; i += 1) {
+              outVec.push(Boolean(taskOutput(bus.op, inVecs.map((v) => v[i]))));
+            }
+            if (setBits(outputs, `${component.id}.out`, outVec)) changed = true;
+            continue;
+          }
           const task = taskDefById(type.slice(5));
           if (!task) continue;
           const inputs = Array.from({ length: task.inputs }, (_, i) => inputBits(workspace, `${component.id}.in${i + 1}`, outputs)[0]);

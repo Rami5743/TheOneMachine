@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -36,7 +36,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, gateComponentType,
     const builtGateTools = isNandPresentationWorkspace()
       ? []
       : toolbarGateToolIds()
-          .map((taskId) => taskDefById(taskId))
+          .map((taskId) => taskDefById(taskId) || (busTaskDefById ? busTaskDefById(taskId) : null))
           .filter(Boolean)
           .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
 

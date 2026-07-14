@@ -68,7 +68,7 @@ function createBoardRender({
         const ref = `${component.id}.${pinId}`;
         const selected = workspace.selectedTerminal === ref ? " terminal-selected" : "";
         const solutionClass = highlight.terminals.has(ref) ? " terminal-solution-highlight" : "";
-        const scale = renderScale(component.type);
+        const scale = Number.isFinite(component.scale) ? component.scale : renderScale(component.type);
         return `<circle class="terminal-hit${selected}${solutionClass}" data-action="workspace-terminal" data-terminal-ref="${esc(ref)}" aria-label="${esc(pin.label)}" role="button" tabindex="0" cx="${component.x + pin.x * scale}" cy="${component.y + pin.y * scale}" r="12"></circle>`;
       }).join("");
     }).join("");
@@ -81,7 +81,7 @@ function createBoardRender({
     const burnedClass = smoking && component.type === "nand" ? " component-nand-burned" : "";
     const fixedClass = isFixedWorkspaceComponent(component) ? " component-fixed" : "";
     const solutionHighlightClass = solutionHighlightConfig().components.has(component.id) ? " component-solution-highlight" : "";
-    const scale = renderScale(component.type);
+    const scale = Number.isFinite(component.scale) ? component.scale : renderScale(component.type);
     const scaleTransform = scale === 1 ? "" : ` scale(${scale})`;
     return `
       <g class="workspace-component component-${esc(component.type)}${burnedClass}${fixedClass}${solutionHighlightClass}" data-action="workspace-component" data-component-id="${esc(component.id)}" transform="translate(${component.x} ${component.y})${scaleTransform}">

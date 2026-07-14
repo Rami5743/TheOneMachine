@@ -42,6 +42,8 @@ function createWorkspaceState({
     const y = Number.isFinite(component.y) ? component.y : 300;
     const clamped = clampComponentPosition(type, x, y);
     const base = { id, type, x: clamped.x, y: clamped.y };
+    // A per-instance render scale (the small bus-check lamps carry one).
+    if (Number.isFinite(component.scale) && component.scale > 0) base.scale = component.scale;
     // The splitter carries per-instance state: how many outputs it has (default
     // 4) and whether it is mirrored around the y-axis.
     if (type === "splitter") {
