@@ -422,6 +422,7 @@
     // is the transient one-time speech bubble that points at it.
     createCardUnlocked: false,
     createCardBubble: false,
+    cardCreation: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -982,7 +983,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, cardCreation: null, workspace };
   }
 
   function stateForStorage() {
@@ -3982,9 +3983,92 @@
     }
   }
 
+  // --- Card creation mode (chapter 2.4) ------------------------------------
+  // The shell/interface only: an empty framed workspace where the learner names
+  // a new card and sets its input/output counts. The actual card building,
+  // saving, and use are NOT implemented yet.
+  function enterCardCreation() {
+    const ws = state.workspace || {};
+    setState({
+      screen: "cardCreation",
+      createCardBubble: false,
+      cardCreation: {
+        name: "כרטיס חדש",
+        inputs: 2,
+        outputs: 1,
+        returnChapterId: ws.sessionReturnChapterId || state.chapterId || "chapter-7",
+        returnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0)
+      }
+    }, false);
+  }
+
+  function exitCardCreation() {
+    const cc = state.cardCreation || {};
+    const chapterId = cc.returnChapterId || "chapter-7";
+    const panelIndex = Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0;
+    setState({ ...storyTarget(chapterById(chapterId), panelIndex), cardCreation: null }, false);
+  }
+
+  // Pin stubs poking out of the frame: `count` of them on the given side.
+  function cardCreationPinStubs(count, side) {
+    const n = Math.min(8, Math.max(1, Math.round(Number(count) || 1)));
+    const top = 70, bottom = 370;
+    const xs = side === "in" ? [70, 110] : [550, 590];
+    let out = "";
+    for (let i = 0; i < n; i += 1) {
+      const y = Math.round(top + (i + 1) * (bottom - top) / (n + 1));
+      out += `<line class="workspace-task-shell-pin" x1="${xs[0]}" y1="${y}" x2="${xs[1]}" y2="${y}" />`;
+    }
+    return out;
+  }
+
+  function renderCardCreationIntro() {
+    return `
+      <div class="card-creation-intro" role="dialog" aria-label="הסבר יצירת כרטיס">
+        <p>אתה יכול להוסיף כניסות ויציאות. לחיצה כפולה על כל אחת מהן מאפשרת לך להפוך אותן לבס ברוחב שאתה רוצה.</p>
+        <div class="card-creation-intro-actions">
+          <button class="btn btn-primary" data-action="card-creation-intro-ok" type="button">הבנתי</button>
+        </div>
+      </div>`;
+  }
+
+  function renderCardCreation() {
+    const cc = state.cardCreation || { name: "כרטיס חדש", inputs: 2, outputs: 1 };
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen workspace-screen card-creation-screen">
+        <div class="card-creation-namebar">
+          <input class="card-creation-name" type="text" value="${esc(cc.name)}" aria-label="שם הכרטיס" maxlength="24" />
+        </div>
+        <section class="card-creation-stage">
+          <div class="card-creation-io">
+            <label>כניסות</label>
+            <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.inputs}" data-card-io="inputs" aria-label="מספר כניסות" />
+          </div>
+          <div class="card-creation-board">
+            <svg class="card-creation-svg" viewBox="0 0 660 440" role="img" aria-label="מסגרת כרטיס חדש">
+              <rect class="workspace-task-shell-frame" x="110" y="60" width="440" height="320" rx="18" />
+              ${cardCreationPinStubs(cc.inputs, "in")}
+              ${cardCreationPinStubs(cc.outputs, "out")}
+            </svg>
+          </div>
+          <div class="card-creation-io">
+            <label>יציאות</label>
+            <input class="card-creation-count" type="number" min="1" max="8" step="1" value="${cc.outputs}" data-card-io="outputs" aria-label="מספר יציאות" />
+          </div>
+        </section>
+        <section class="controls">
+          ${navButton("card-creation-back", "arrow-right", "חזרה למחסן")}
+          <button class="btn btn-primary" data-action="card-creation-save" type="button">שמירה</button>
+        </section>
+      </main>
+      ${renderCardCreationIntro()}`;
+  }
+
   function render() {
     syncExplanationUnlocks();
     if (state.hintSlides) return renderHintSlides();
+    if (state.screen === "cardCreation") return renderCardCreation();
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
@@ -6421,6 +6505,24 @@
     if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
   });
 
+  // Card-creation input/output count boxes re-render the frame's pin stubs.
+  document.addEventListener("change", (event) => {
+    const box = event.target.closest("[data-card-io]");
+    if (!box || !state.cardCreation) return;
+    const which = box.dataset.cardIo === "outputs" ? "outputs" : "inputs";
+    const val = Math.min(8, Math.max(1, Math.round(Number(box.value) || 1)));
+    setState({ cardCreation: { ...state.cardCreation, [which]: val } }, false);
+  });
+
+  // Keep the (uncontrolled) card name in state without re-rendering, so typing
+  // is not interrupted and the name survives a count-box re-render.
+  document.addEventListener("input", (event) => {
+    const nameBox = event.target.closest(".card-creation-name");
+    if (!nameBox || !state.cardCreation) return;
+    state.cardCreation.name = nameBox.value;
+    saveState();
+  });
+
   document.addEventListener("keydown", (event) => {
     // Secret dev shortcut: Ctrl+Shift+9 instantly solves the current task and
     // returns to its note (for quickly reaching later tasks while testing).
@@ -6619,7 +6721,10 @@
     if (action === "solution-ok") return finishSolutionDialog();
     if (action === "solution-reveal-create-card") return revealCreateCardTool();
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
-    if (action === "create-card-tool") return; // click intentionally not implemented yet (bubble + tool share it)
+    if (action === "create-card-tool") return enterCardCreation(); // the bubble + tool share this
+    if (action === "card-creation-back") return exitCardCreation();
+    if (action === "card-creation-save") return; // saving a card is not implemented yet
+    if (action === "card-creation-intro-ok") return; // intentionally no-op for now
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();

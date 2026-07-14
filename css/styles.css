@@ -743,6 +743,109 @@ button { font: inherit; }
   line-height: 1.4;
 }
 
+/* --- Card creation mode (interface shell) --- */
+.card-creation-screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.card-creation-namebar {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.card-creation-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: #1c1c1c;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 16px;
+  min-width: 220px;
+  direction: rtl;
+}
+
+.card-creation-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  direction: ltr;
+}
+
+.card-creation-io {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: var(--text);
+  direction: rtl;
+}
+
+.card-creation-io label {
+  font-size: 0.9rem;
+}
+
+.card-creation-count {
+  width: 62px;
+  font-size: 1.05rem;
+  text-align: center;
+  color: var(--text);
+  background: #1c1c1c;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.card-creation-board {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-creation-svg {
+  width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+.card-creation-intro {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  max-width: min(440px, calc(100% - 32px));
+  padding: 12px 16px;
+  border: 3px solid #111;
+  border-radius: 20px;
+  background: #f7f7f2;
+  color: #111;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  direction: rtl;
+  text-align: center;
+}
+
+.card-creation-intro p {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.card-creation-intro-actions {
+  display: flex;
+  justify-content: center;
+}
+
 .toolbox-trash {
   margin-top: auto;
   min-height: 76px;
