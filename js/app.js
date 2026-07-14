@@ -298,8 +298,8 @@
         inputInt1: { x: -260, y: -90, direction: "out", width: W, label: `כניסת ${muxTask.label} 1 פנימית` },
         inputExt2: { x: -340, y: 90, direction: "in", width: W, label: `כניסת ${muxTask.label} 2 חיצונית` },
         inputInt2: { x: -260, y: 90, direction: "out", width: W, label: `כניסת ${muxTask.label} 2 פנימית` },
-        inputExt3: { x: -240, y: -250, direction: "in", width: 1, label: "כניסת בקרה חיצונית" },
-        inputInt3: { x: -240, y: -180, direction: "out", width: 1, label: "כניסת בקרה פנימית" },
+        inputExt3: { x: -130, y: -250, direction: "in", width: 1, label: "כניסת בקרה חיצונית" },
+        inputInt3: { x: -130, y: -180, direction: "out", width: 1, label: "כניסת בקרה פנימית" },
         outputInt: { x: 260, y: 0, direction: "in", width: W, label: `יציאת ${muxTask.label} פנימית` },
         outputExt: { x: 340, y: 0, direction: "out", width: W, label: `יציאת ${muxTask.label} חיצונית` }
       },

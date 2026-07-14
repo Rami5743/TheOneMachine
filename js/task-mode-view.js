@@ -55,11 +55,11 @@ function createTaskModeView({
     // the left so it clears the data buses. Its frame is taller in y to give
     // more building room around the extra input.
     const control = def.control
-      ? `<line class="workspace-task-shell-pin" x1="${cx - 240}" y1="40" x2="${cx - 240}" y2="108" />
-         <text class="workspace-task-shell-pin-label" x="${cx - 240}" y="28" text-anchor="middle">בקרה</text>`
+      ? `<line class="workspace-task-shell-pin" x1="${cx - 130}" y1="40" x2="${cx - 130}" y2="108" />
+         <text class="workspace-task-shell-pin-label" x="${cx - 130}" y="28" text-anchor="middle">בקרה</text>`
       : "";
     const frameTop = def.control ? 90 : 100;
-    const frameH = def.control ? 456 : 376;
+    const frameH = def.control ? 510 : 376;
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="${cx - 300}" y="${frameTop}" width="600" height="${frameH}" rx="18" />
