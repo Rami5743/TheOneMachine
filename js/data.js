@@ -630,6 +630,12 @@ const SCENES = {
             "height": 12
           }
         ]
+      },
+      {
+        "image": "assets/panels/panel99b_chapter_2_4_von_neumann.svg",
+        "read": "פון נוימן: שוב אתה משחק במקום לעבוד?",
+        "femaleImage": "assets/panels/panel99b_chapter_2_4_von_neumann_girl.svg",
+        "femaleRead": "פון נוימן: שוב את משחקת במקום לעבוד?"
       }
     ]
   }

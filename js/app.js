@@ -4324,6 +4324,30 @@
     }, false);
   }
 
+  // The one-off story beat shown the FIRST time the learner opens the
+  // card-building page: on "הבנתי" we leave the table and cut to von Neumann
+  // catching them "playing instead of working", then the plot continues.
+  const VON_NEUMANN_PLAY_PANEL = "panel99b_chapter_2_4_von_neumann.svg";
+  function dismissCardCreationIntro() {
+    const cc = state.cardCreation || {};
+    const chapterId = cc.returnChapterId || "chapter-7";
+    const chapter = chapterById(chapterId);
+    const scene = sceneByChapter(chapter);
+    const panelIndex = panelIndexByImage(scene, VON_NEUMANN_PLAY_PANEL);
+    // If the panel is missing for any reason, just close the intro in place.
+    if (panelIndex < 0) return setState({ cardCreationIntroSeen: true }, false);
+    setState({
+      ...storyTarget(chapter, panelIndex),
+      cardCreationIntroSeen: true,
+      cardCreation: null,
+      workspace: createDefaultWorkspace()
+    }, true);
+  }
+
+  function isVonNeumannPlayPanel(panel) {
+    return panelImageIs(panel, VON_NEUMANN_PLAY_PANEL);
+  }
+
   // Delete a saved card: drop its record and its component defs, then re-render.
   function deleteSavedCard(cardType) {
     const card = savedCardByType(cardType);
@@ -4621,6 +4645,15 @@
 
     const scene = currentScene();
     if (isWorkspaceLaunchPoint()) return openWorkspace();
+
+    // After von Neumann's "playing instead of working?" beat, "המשך" leads back
+    // to the worktable so the learner keeps building, not onward out of the chapter.
+    if (state.screen === "story" && isVonNeumannPlayPanel(currentPanel())) {
+      const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
+      if (worktableIndex >= 0) {
+        return setState({ panelIndex: worktableIndex, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+      }
+    }
 
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
 
@@ -6235,7 +6268,11 @@
     if (chapter.id === "chapter-4") return openWorkspace();
 
     const scene = currentScene();
-    setState({ panelIndex: scene.panels.length - 1, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+    // Skip lands on the chapter's hub. In 2.4 that is the worktable, which is no
+    // longer the last panel (the von Neumann beat follows it), so target it by name.
+    const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
+    const target = worktableIndex >= 0 ? worktableIndex : scene.panels.length - 1;
+    setState({ panelIndex: target, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
   }
 
   function toggleSound() {
@@ -7483,7 +7520,7 @@
       const cc = state.cardCreation || {};
       return setState({ workspace: createCardBuildWorkspace(cc.returnChapterId, cc.returnPanelIndex), cardCreation: { ...cc, pinEdit: null } }, false);
     }
-    if (action === "card-creation-intro-ok") return setState({ cardCreationIntroSeen: true }, false);
+    if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
