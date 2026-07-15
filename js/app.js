@@ -501,9 +501,6 @@
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
     maxChapterReached: 0,
-    // Furthest story-panel index reached, keyed by scene id. Drives the
-    // step-by-step skip gate (can't skip ahead to a panel not yet reached).
-    maxPanelReached: {},
     workspace: createDefaultWorkspace()
   };
 
@@ -1216,15 +1213,6 @@
     if (chapterIdx > (Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0)) {
       state.maxChapterReached = chapterIdx;
     }
-    // Track the furthest story panel reached per scene (drives the step-by-step
-    // skip gate). Only story panels advance it, never workbench/menu screens.
-    if (state.screen === "story" && Number.isInteger(state.panelIndex) && typeof state.sceneId === "string") {
-      const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
-      const prev = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
-      if (state.panelIndex > prev) {
-        state.maxPanelReached = { ...reached, [state.sceneId]: state.panelIndex };
-      }
-    }
     saveState();
     render();
     if (shouldSpeak) speakCurrent();
@@ -1695,7 +1683,29 @@
 
   function workspaceSkipDisabled() {
     if (state.screen !== "workspace") return true;
-    return ![1, 2].includes(Number(state.workspace?.workspaceSession));
+    if (![1, 2].includes(Number(state.workspace?.workspaceSession))) return true;
+    // Step-by-step: the workbench (NAND presentation / task build) can't be
+    // skipped on a first pass through its chapter.
+    return stepFirstVisit();
+  }
+
+  // Step-by-step: skip is disabled on the learner's FIRST pass through a chapter
+  // (the current chapter is the furthest one reached). Once they have gone on to
+  // a later chapter, replaying an earlier one re-enables the shortcut.
+  function stepFirstVisit() {
+    if (!isStepByStepPace()) return false;
+    const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
+    return chapterIndexById(state.chapterId) >= maxChapter;
+  }
+
+  // A skip that would leave the learner on the very same panel does nothing, so
+  // its button is hidden. Only the panel-based skips (part-2 story scenes) can be
+  // no-ops — part-1 jumps to the next chapter and chapter-4 opens the workbench.
+  function skipLeadsNowhere() {
+    if (state.screen !== "story") return false;
+    const chapter = currentChapter();
+    if (chapter?.partId === "part-1" || chapter?.id === "chapter-4") return false;
+    return skipTargetPanelIndex() === state.panelIndex;
   }
 
   function isSkipDisabled() {
@@ -1703,17 +1713,15 @@
     if (state.screen !== "story") return true;
 
     const chapter = currentChapter();
-    // In step-by-step mode you cannot skip AHEAD to content not yet reached:
-    // in the part-1 story that means the next chapter (skip jumps a whole
-    // chapter); in a part-2 story scene it means a panel further than the
-    // furthest one reached (the 2.4 opening slides / von Neumann monologues).
-    if (chapter?.partId === "part-1") {
-      return isStepByStepPace() && !skipTargetReached();
-    }
+    // A skip that leads nowhere (worktable notes, the closing wordless slide) is
+    // hidden in every mode.
+    if (skipLeadsNowhere()) return true;
+    // First pass through a chapter in step-by-step mode: no skipping ahead.
+    if (stepFirstVisit()) return true;
+
+    if (chapter?.partId === "part-1") return false;
     if (chapter?.id === "chapter-4") return false;
     if (chapter?.id === "chapter-5") return state.panelIndex >= currentScene().panels.length - 1;
-
-    if (isStepByStepPace() && !skipTargetReached()) return true;
 
     return false;
   }
@@ -6856,6 +6864,7 @@
 
   function skipStory() {
     if (state.screen === "workspace") {
+      if (workspaceSkipDisabled()) return;
       if (state.workspace?.workspaceSession === 1) {
         const workspace = normalizeWorkspace(state.workspace);
         workspace.workspaceCompleted = true;
@@ -6908,22 +6917,6 @@
     }
     if (worktableIndex >= 0) return worktableIndex;
     return lastIndex;
-  }
-
-  // Whether the learner has already reached what the skip shortcut targets. In
-  // the part-1 story skip jumps to the NEXT chapter, so "reached" means that
-  // chapter has been visited; in a part-2 scene skip moves within the scene, so
-  // it means the furthest panel reached is at or past the skip target.
-  function skipTargetReached() {
-    const chapter = currentChapter();
-    if (chapter?.partId === "part-1") {
-      const nextIndex = chapterIndexById(chapter.id) + 1;
-      const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
-      return maxChapter >= nextIndex;
-    }
-    const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
-    const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
-    return max >= skipTargetPanelIndex();
   }
 
   function toggleSound() {
