@@ -1735,7 +1735,15 @@
     if (chapter?.partId === "part-1") return false;
     const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
     const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
-    return max >= skipTargetPanelIndex();
+    const target = skipTargetPanelIndex();
+    if (max < target) return false;
+    // Skipping the 2.4 opening also skips examining the new bus + splitter, so on
+    // a first pass the shortcut is withheld until that equipment has actually
+    // been examined (the tasks note depends on it).
+    if (chapter?.id === "chapter-7" && target === panelIndexByImage(currentScene(), "panel99_chapter_2_4_worktable.svg")) {
+      return newEquipmentChecked();
+    }
+    return true;
   }
 
   function isSkipDisabled() {
