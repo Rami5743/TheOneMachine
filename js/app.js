@@ -443,6 +443,11 @@
     savedCards: [],
     nextSavedCardId: 1,
     myCardsIntroSeen: false,
+    // The one-time "you can add inputs/outputs…" explainer shown the FIRST time
+    // the learner ever opens the card-building page.
+    cardCreationIntroSeen: false,
+    // The card currently pending a delete confirmation on the "My cards" page.
+    cardDeleteConfirm: null,
     maxChapterReached: 0,
     workspace: createDefaultWorkspace()
   };
@@ -750,7 +755,14 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => (state.savedCards || []).map((card) => ({ type: card.type, label: card.name })) });
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+    // While editing a card, hide it and anything that (transitively) uses it, so
+    // the learner can't build a cycle.
+    const editing = state.cardCreation?.editingType || null;
+    return (state.savedCards || [])
+      .filter((card) => !editing || !cardUsesCard(card.type, editing))
+      .map((card) => ({ type: card.type, label: card.name }));
+  } });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -981,7 +993,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -1026,7 +1038,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, cardCreation: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, cardCreation: null, cardDeleteConfirm: null, workspace };
   }
 
   function stateForStorage() {
@@ -1094,7 +1106,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -1192,6 +1204,22 @@
     // Stacked cards — "my cards".
     if (name === "cards") {
       return `<svg ${common}><rect x="6.5" y="4.5" width="12" height="9" rx="1.6" transform="rotate(-9 12.5 9)" /><rect x="5" y="10" width="12" height="9" rx="1.6" /></svg>`;
+    }
+    // Pencil — edit.
+    if (name === "pencil") {
+      return `<svg ${common}><path d="M4 20 L4 16.5 L15 5.5 L18.5 9 L7.5 20 Z" /><path d="M13 7.5 L16.5 11" /></svg>`;
+    }
+    // Down arrow into a tray — download / save to computer.
+    if (name === "download") {
+      return `<svg ${common}><path d="M12 4 V14" /><path d="M8 10.5 L12 14.5 L16 10.5" /><path d="M4.5 19.5 H19.5" /></svg>`;
+    }
+    // Up arrow out of a tray — upload / load from computer.
+    if (name === "upload") {
+      return `<svg ${common}><path d="M12 15 V5" /><path d="M8 8.5 L12 4.5 L16 8.5" /><path d="M4.5 19.5 H19.5" /></svg>`;
+    }
+    // Plus — create new.
+    if (name === "plus") {
+      return `<svg ${common}><path d="M12 5 V19" /><path d="M5 12 H19" /></svg>`;
     }
     return "";
   }
@@ -2004,6 +2032,75 @@
           </div>
         </section>
       </main>`;
+  }
+
+  // A small generic-chip preview of a saved card, for the "My cards" list.
+  function savedCardPreviewSvg(card) {
+    return `
+      <svg class="my-card-preview-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
+        <g transform="scale(0.72)">${savedCardMarkup(card.type, { toolbar: true })}</g>
+      </svg>`;
+  }
+
+  function renderMyCards() {
+    const cards = state.savedCards || [];
+    const list = cards.length === 0
+      ? `<p class="my-cards-empty">עדיין לא יצרת כרטיסים. אפשר ליצור כרטיס חדש או לטעון כרטיס מהמחשב.</p>`
+      : `<ul class="my-cards-list">
+          ${cards.map((card) => `
+            <li class="my-cards-item">
+              <span class="my-card-preview">${savedCardPreviewSvg(card)}</span>
+              <span class="my-card-info">
+                <span class="my-card-name">${esc(card.name)}</span>
+                <span class="my-card-io">${(card.inputs || []).length} כניסות · ${(card.outputs || []).length} יציאות</span>
+              </span>
+              <span class="my-card-actions">
+                <button class="btn labeled-btn" data-action="my-card-edit" data-card-type="${esc(card.type)}" type="button">${navIcon("pencil")}<span class="btn-label">עריכה</span></button>
+                <button class="btn labeled-btn" data-action="my-card-save-file" data-card-type="${esc(card.type)}" type="button">${navIcon("download")}<span class="btn-label">שמירה למחשב</span></button>
+                <button class="btn labeled-btn my-card-delete-btn" data-action="my-card-delete" data-card-type="${esc(card.type)}" type="button">${navIcon("trash")}<span class="btn-label">מחיקה</span></button>
+              </span>
+            </li>`).join("")}
+        </ul>`;
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen my-cards-screen">
+        <section class="my-cards-card">
+          <h1>הכרטיסים שלי</h1>
+          <div class="my-cards-toolbar">
+            <button class="btn btn-primary labeled-btn" data-action="my-cards-new" type="button">${navIcon("plus")}<span class="btn-label">כרטיס חדש</span></button>
+            <button class="btn labeled-btn" data-action="my-cards-load" type="button">${navIcon("upload")}<span class="btn-label">טעינה מהמחשב</span></button>
+          </div>
+          ${list}
+          <div class="my-cards-back">${pageBackButton()}</div>
+        </section>
+      </main>
+      <input type="file" data-card-file-input accept="application/json,.json" hidden />
+      ${renderInfoDialog()}
+      ${renderCardDeleteDialog()}`;
+  }
+
+  function renderCardDeleteDialog() {
+    if (!state.cardDeleteConfirm) return "";
+    const card = savedCardByType(state.cardDeleteConfirm);
+    if (!card) return "";
+    // Warn if other saved cards depend on this one (their logic would break).
+    const dependents = (state.savedCards || [])
+      .filter((c) => c.type !== card.type && cardUsesCard(c.type, card.type))
+      .map((c) => c.name);
+    const warn = dependents.length
+      ? `<p class="my-card-delete-warn">שים לב: הכרטיסים ${dependents.map((n) => `"${esc(n)}"`).join(", ")} משתמשים בכרטיס הזה ויפסיקו לעבוד.</p>`
+      : "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="אישור מחיקה">
+          <p>למחוק את הכרטיס "${esc(card.name)}"?</p>
+          ${warn}
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="card-delete-confirm" type="button">מחק</button>
+            <button class="btn" data-action="card-delete-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderSettings() {
@@ -4055,13 +4152,18 @@
   // An empty free-build workbench used for card creation. The invisible fixed
   // anchor keeps the normalizer from restoring the default source+NAND+lamp, so
   // the board opens empty; `freeBuild` gives the full palette + drag/wire tools.
-  function createCardBuildWorkspace(returnChapterId, returnPanelIndex) {
+  function createCardBuildWorkspace(returnChapterId, returnPanelIndex, logic) {
+    // When editing, seed the build table with the card's stored internal circuit
+    // (minus the frame anchor, which is re-added). The frame's pins come from
+    // state.cardCreation, so callers editing a card must set it before calling.
+    const extra = logic ? (logic.components || []).filter((c) => c.type !== "cardFrame") : [];
+    const wires = logic ? (logic.wires || []) : [];
     return normalizeWorkspace({
       selectedTerminal: null,
       // The card frame is a fixed anchor: it keeps the normalizer from restoring
       // the default components AND provides the card's connectable I/O pins.
-      components: [{ id: "card-frame-1", type: "cardFrame", x: 500, y: 288 }],
-      wires: [],
+      components: [{ id: "card-frame-1", type: "cardFrame", x: 500, y: 288 }, ...extra],
+      wires,
       nextId: 2,
       unlocked: true,
       accident: null,
@@ -4082,7 +4184,7 @@
     });
   }
 
-  function enterCardCreation() {
+  function enterCardCreation(options = {}) {
     const ws = state.workspace || {};
     const returnChapterId = ws.sessionReturnChapterId || state.chapterId || "chapter-7";
     const returnPanelIndex = Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0);
@@ -4096,12 +4198,39 @@
         outputs: 1,
         inputWidths: [1, 1],
         outputWidths: [1],
-        introSeen: false,
         pinEdit: null,
+        editingType: null,
+        // Where "חזרה למחסן" lands: the warehouse (default) or the My-cards page.
+        returnScreen: options.returnScreen === "myCards" ? "myCards" : "story",
         returnChapterId,
         returnPanelIndex
       }
     }, false);
+  }
+
+  // Open the card-building page pre-loaded with an existing card, to edit it.
+  function enterCardCreationForEdit(cardType) {
+    const card = savedCardByType(cardType);
+    if (!card) return;
+    const returnChapterId = state.chapterId || "chapter-7";
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : 0;
+    const cc = {
+      name: card.name,
+      inputs: Math.max(1, (card.inputs || []).length),
+      outputs: Math.max(1, (card.outputs || []).length),
+      inputWidths: [...(card.inputs || [1])],
+      outputWidths: [...(card.outputs || [1])],
+      pinEdit: null,
+      editingType: cardType,
+      returnScreen: "myCards",
+      returnChapterId,
+      returnPanelIndex
+    };
+    // Set cardCreation BEFORE building the workspace so the frame's pins resolve
+    // and the stored wires to them survive normalization.
+    state.cardCreation = cc;
+    const workspace = createCardBuildWorkspace(returnChapterId, returnPanelIndex, card.logic);
+    setState({ screen: "workspace", createCardBubble: false, workspace, cardCreation: cc }, false);
   }
 
   // The names already taken by the built-in cards/gates — a new card may not
@@ -4120,13 +4249,14 @@
 
   // Validate a would-be card name. Returns an error message (to show in a
   // dialog) or null when the name is fine.
-  function validateCardName(name) {
+  function validateCardName(name, excludeType) {
     const trimmed = String(name || "").trim();
     if (!trimmed) return "יש לתת שם לכרטיס.";
     if (!CARD_NAME_ALLOWED.test(trimmed)) return "השם מכיל תווים לא חוקיים. אפשר להשתמש באותיות, ספרות, רווח, מקף וקו תחתון בלבד.";
     const norm = trimmed.toLowerCase();
     if (builtInCardNames().some((n) => String(n).trim().toLowerCase() === norm)) return "השם הזה כבר תפוס על ידי כרטיס מובנה. בחר שם אחר.";
-    if ((state.savedCards || []).some((card) => String(card.name).trim().toLowerCase() === norm)) return "כבר קיים כרטיס בשם הזה. בחר שם אחר.";
+    // When editing, the card may keep its own name.
+    if ((state.savedCards || []).some((card) => card.type !== excludeType && String(card.name).trim().toLowerCase() === norm)) return "כבר קיים כרטיס בשם הזה. בחר שם אחר.";
     return null;
   }
 
@@ -4143,7 +4273,9 @@
     for (let i = 0; i < nOut; i += 1) outputs.push(Math.round(Number((cc.outputWidths || [])[i]) || 1));
     const id = state.nextSavedCardId || ((state.savedCards || []).length + 1);
     return {
-      type: `${SAVED_CARD_PREFIX}${id}`,
+      // Editing keeps the card's existing type so every placed instance and
+      // dependent card keeps pointing at it.
+      type: cc.editingType || `${SAVED_CARD_PREFIX}${id}`,
       name: String(cc.name || "").trim(),
       inputs,
       outputs,
@@ -4158,25 +4290,137 @@
   // and unused; on any problem we show a dialog and FAIL the exit (stay put).
   function exitCardCreation() {
     const cc = state.cardCreation || {};
-    const err = validateCardName(cc.name);
+    const editing = Boolean(cc.editingType);
+    const err = validateCardName(cc.name, cc.editingType || null);
     if (err) return setState({ infoDialog: err });
 
     const card = buildSavedCardFromCreation();
     registerSavedCard(card);
-    const chapterId = cc.returnChapterId || "chapter-7";
-    const panelIndex = Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0;
-    const firstTime = !state.myCardsIntroSeen;
+
+    // Update the existing card when editing; otherwise append a new one.
+    const savedCards = editing
+      ? (state.savedCards || []).map((c) => (c.type === card.type ? card : c))
+      : [...(state.savedCards || []), card];
+    const nextSavedCardId = editing
+      ? state.nextSavedCardId
+      : (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1;
+
+    // Where to land: back to the My-cards page, or the warehouse (default).
+    const returnPatch = cc.returnScreen === "myCards"
+      ? { screen: "myCards" }
+      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+
+    const firstTime = !state.myCardsIntroSeen && !editing;
     setState({
-      ...storyTarget(chapterById(chapterId), panelIndex),
+      ...returnPatch,
       cardCreation: null,
       workspace: createDefaultWorkspace(),
-      savedCards: [...(state.savedCards || []), card],
-      nextSavedCardId: (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1,
+      savedCards,
+      nextSavedCardId,
       myCardsIntroSeen: true,
       infoDialog: firstTime
         ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
         : null
     }, false);
+  }
+
+  // Delete a saved card: drop its record and its component defs, then re-render.
+  function deleteSavedCard(cardType) {
+    const card = savedCardByType(cardType);
+    if (!card) return setState({ cardDeleteConfirm: null }, false);
+    delete WORKSPACE_COMPONENT_DEFS[cardType];
+    delete WORKSPACE_COMPONENT_DEFS[savedCardFrameType(card)];
+    setState({
+      savedCards: (state.savedCards || []).filter((c) => c.type !== cardType),
+      cardDeleteConfirm: null
+    }, false);
+  }
+
+  // --- Save a card to / load a card from the learner's computer --------------
+  // A card export bundles the card AND every saved card it (transitively) uses,
+  // so it is self-contained. On import, all bundled types are given fresh ids
+  // (rewriting internal references) so nothing collides with existing cards.
+  function cardBundleFor(cardType) {
+    const collected = [];
+    const seen = new Set();
+    const visit = (type) => {
+      if (seen.has(type)) return;
+      seen.add(type);
+      const card = savedCardByType(type);
+      if (!card) return;
+      collected.push(card);
+      for (const comp of (card.logic?.components || [])) {
+        if (String(comp.type).startsWith(SAVED_CARD_PREFIX)) visit(comp.type);
+      }
+    };
+    visit(cardType);
+    return {
+      format: "theonemachine-card",
+      version: 1,
+      root: cardType,
+      cards: collected.map((c) => ({ type: c.type, name: c.name, inputs: c.inputs, outputs: c.outputs, logic: c.logic }))
+    };
+  }
+
+  function downloadCardFile(cardType) {
+    const card = savedCardByType(cardType);
+    if (!card) return;
+    const json = JSON.stringify(cardBundleFor(cardType), null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const safe = String(card.name).trim().replace(/[^\w֐-׿ -]/g, "").replace(/\s+/g, "_") || "card";
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  // Import a bundle: assign fresh types to every bundled card, rewrite the
+  // internal usercard references, register and store them. Returns an error
+  // message or null. The bundle's root card is the one the learner picked.
+  function importCardBundle(data) {
+    if (!data || data.format !== "theonemachine-card" || !Array.isArray(data.cards) || !data.cards.length) {
+      return "הקובץ אינו קובץ כרטיס תקין.";
+    }
+    let nextId = state.nextSavedCardId || ((state.savedCards || []).length + 1);
+    const typeMap = {};
+    for (const c of data.cards) {
+      if (!c || typeof c.type !== "string") return "הקובץ אינו קובץ כרטיס תקין.";
+      typeMap[c.type] = `${SAVED_CARD_PREFIX}${nextId}`;
+      nextId += 1;
+    }
+    const existingNames = new Set((state.savedCards || []).map((c) => String(c.name).trim().toLowerCase()));
+    const remapType = (t) => (typeof t === "string" && typeMap[t]) ? typeMap[t] : t;
+    const imported = data.cards.map((c) => {
+      // Keep names unique against existing cards (append a counter if taken).
+      let name = String(c.name || "כרטיס").trim() || "כרטיס";
+      if (!CARD_NAME_ALLOWED.test(name)) name = "כרטיס";
+      let candidate = name, n = 2;
+      while (existingNames.has(candidate.toLowerCase()) || builtInCardNames().some((b) => String(b).trim().toLowerCase() === candidate.toLowerCase())) {
+        candidate = `${name} ${n}`;
+        n += 1;
+      }
+      existingNames.add(candidate.toLowerCase());
+      return {
+        type: typeMap[c.type],
+        name: candidate,
+        inputs: Array.isArray(c.inputs) ? c.inputs.map((w) => Math.round(Number(w) || 1)) : [1],
+        outputs: Array.isArray(c.outputs) ? c.outputs.map((w) => Math.round(Number(w) || 1)) : [1],
+        logic: {
+          components: ((c.logic && c.logic.components) || []).map((comp) => ({ ...comp, type: remapType(comp.type) })),
+          wires: ((c.logic && c.logic.wires) || []).map((w) => ({ ...w }))
+        }
+      };
+    });
+    imported.forEach(registerSavedCard);
+    setState({
+      savedCards: [...(state.savedCards || []), ...imported],
+      nextSavedCardId: nextId
+    }, false);
+    return null;
   }
 
   // The y of pin i of a side with `n` pins (workspace coordinates: the frame
@@ -4235,7 +4479,8 @@
   }
 
   function renderCardCreationIntro() {
-    if (state.cardCreation && state.cardCreation.introSeen) return "";
+    // Shown only the first time the learner ever opens the card-building page.
+    if (state.cardCreationIntroSeen) return "";
     return `
       <div class="card-creation-intro" role="dialog" aria-label="הסבר יצירת כרטיס">
         <p>אתה יכול להוסיף כניסות ויציאות. לחיצה כפולה על כל אחת מהן מאפשרת לך להפוך אותן לבס ברוחב שאתה רוצה.</p>
@@ -4294,6 +4539,7 @@
     if (state.screen === "about") return renderAbout();
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
+    if (state.screen === "myCards") return renderMyCards();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
 
@@ -6223,6 +6469,19 @@
   function savedCardByType(type) {
     return (state.savedCards || []).find((card) => card.type === type) || null;
   }
+  // Does `cardType` use `targetType` — directly or through a chain of other saved
+  // cards? True also when they are the same card. Used to (a) keep the card being
+  // edited, and anything that depends on it, out of the edit toolbar (no cycles),
+  // and (b) warn before deleting a card others rely on.
+  function cardUsesCard(cardType, targetType, seen = new Set()) {
+    if (cardType === targetType) return true;
+    if (seen.has(cardType)) return false;
+    seen.add(cardType);
+    const card = savedCardByType(cardType);
+    if (!card) return false;
+    return (card.logic?.components || []).some((c) =>
+      String(c.type).startsWith(SAVED_CARD_PREFIX) && cardUsesCard(c.type, targetType, seen));
+  }
   function savedCardGeometry(card) {
     const nIn = Math.max(1, (card.inputs || []).length);
     const nOut = Math.max(1, (card.outputs || []).length);
@@ -6917,6 +7176,24 @@
   // Card-creation: the input/output count boxes re-draw the frame's pins and
   // resize the width arrays. (The pin-width box commits live on input and closes
   // only on focusout — see below — so a spinner click doesn't dismiss it.)
+  // Load a card file picked on the "My cards" page.
+  document.addEventListener("change", (event) => {
+    const fileInput = event.target.closest("[data-card-file-input]");
+    if (!fileInput) return;
+    const file = fileInput.files && fileInput.files[0];
+    fileInput.value = ""; // allow re-picking the same file
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data = null;
+      try { data = JSON.parse(String(reader.result)); } catch { data = null; }
+      const err = data ? importCardBundle(data) : "לא הצלחתי לקרוא את הקובץ.";
+      if (err) setState({ infoDialog: err });
+    };
+    reader.onerror = () => setState({ infoDialog: "לא הצלחתי לקרוא את הקובץ." });
+    reader.readAsText(file);
+  });
+
   document.addEventListener("change", (event) => {
     if (!state.cardCreation) return;
     const box = event.target.closest("[data-card-io]");
@@ -7191,11 +7468,22 @@
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
     if (action === "create-card-tool") return enterCardCreation(); // the bubble + tool share this
     if (action === "card-creation-back") return exitCardCreation();
+    if (action === "my-cards") {
+      if (!myCardsEnabled()) return;
+      return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "myCards" });
+    }
+    if (action === "my-cards-new") return enterCardCreation({ returnScreen: "myCards" });
+    if (action === "my-cards-load") { app.querySelector("[data-card-file-input]")?.click(); return; }
+    if (action === "my-card-edit") return enterCardCreationForEdit(button.dataset.cardType);
+    if (action === "my-card-save-file") return downloadCardFile(button.dataset.cardType);
+    if (action === "my-card-delete") return setState({ cardDeleteConfirm: button.dataset.cardType }, false);
+    if (action === "card-delete-confirm") return deleteSavedCard(state.cardDeleteConfirm);
+    if (action === "card-delete-cancel") return setState({ cardDeleteConfirm: null }, false);
     if (action === "card-creation-reset") {
       const cc = state.cardCreation || {};
       return setState({ workspace: createCardBuildWorkspace(cc.returnChapterId, cc.returnPanelIndex), cardCreation: { ...cc, pinEdit: null } }, false);
     }
-    if (action === "card-creation-intro-ok") return setState({ cardCreation: { ...state.cardCreation, introSeen: true } }, false);
+    if (action === "card-creation-intro-ok") return setState({ cardCreationIntroSeen: true }, false);
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
