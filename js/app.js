@@ -5716,8 +5716,17 @@
     workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
     removeInvalidWires(workspace);
 
-    // Inputs down the left side.
-    const inSep = 150;
+    // Inputs down the left side. The control bus (the input that pokes out the
+    // top of the card) gets its merging splitter placed HIGH, level with the
+    // control pin, above every data splitter. Data splitters are stacked
+    // downward with enough vertical room that their legs never overlap — wide
+    // 16-bit buses run very tall, so running off-screen is fine.
+    const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(baseWorkspace.taskId)] || { pins: {} };
+    const controlIdx = spec.inputs.findIndex((input) => {
+      const p = frameDef.pins[input.ref];
+      return p && p.y < -150;
+    });
+    let stackTop = 100; // top of the next data splitter's leg span (below the control)
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
@@ -5727,7 +5736,15 @@
         return;
       }
       const splitId = `mb-in-split-${idx}`;
-      const sy = 288 + (idx - (spec.inputs.length - 1) / 2) * inSep;
+      const halfH = ((w - 1) * 34) / 2 + 13;
+      let sy;
+      if (idx === controlIdx) {
+        const cp = frameDef.pins[input.ref];
+        sy = 288 + (cp ? cp.y : -250); // level with the control pin, up top
+      } else {
+        sy = stackTop + halfH;          // splitter centre = top + half its height
+        stackTop = sy + halfH + 40;     // next data splitter clears this one's legs
+      }
       workspace.components.push({ id: splitId, type: "splitter", x: 210, y: sy, mirrored: true, outputs: w, width: 1 });
       input.bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
@@ -6233,6 +6250,37 @@
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
+    }
+
+    // Dmux4way interactive hint: scaffold the control-bus splitter and the first
+    // DMUX, wired to the data input and the first (pair-selecting) control bit.
+    // The two DMUX outputs are left for the learner to route onward.
+    if (multibitTaskDefById(taskId) && hint.action === "dmux4way-connect-first-dmux") {
+      const mbWorkspace = normalizeWorkspace(clonePlain(state.workspace));
+      const card = componentById(mbWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
+      const source = componentById(mbWorkspace, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      mbWorkspace.components = [
+        clonePlain(source), clonePlain(card),
+        { id: "ctrl-split", type: "splitter", x: 545, y: 150, mirrored: false, outputs: 2, width: 1 },
+        { id: "dmux-a", type: "gate-DMux", x: 590, y: 300 }
+      ];
+      mbWorkspace.wires = [
+        normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
+        normalizeWire("task-card-1.inputInt1", "dmux-a.in1"),
+        normalizeWire("ctrl-split.leg1", "dmux-a.in2")
+      ];
+      mbWorkspace.nextId = 2;
+      mbWorkspace.selectedTerminal = null;
+      mbWorkspace.accident = null;
+      mbWorkspace.focusedComponentId = null;
+      mbWorkspace.unlocked = true;
+      mbWorkspace.taskIntroSeen = true;
+      const mbPatch = {
+        workspace: normalizeWorkspace(mbWorkspace),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) mbPatch.hintState = hintStateOverride;
+      return setState(mbPatch, false);
     }
 
     // Bus tasks: the interactive hints scaffold splitter(s) on the input bus(es)
