@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 const MODULE_SRC = fs.readFileSync(path.join(process.cwd(), "js/task-mode-view.js"), "utf8");
-const RAW = MODULE_SRC.split("notTestActive\n}) {\n")[1].split("\n  return {")[0];
+const RAW = MODULE_SRC.split("renderMultibitTaskShell\n}) {\n")[1].split("\n  return {")[0];
 const OLD_BODIES = RAW.replace(/ {4}const state = getState\(\);\n/g, "");
 
 const stub = `
