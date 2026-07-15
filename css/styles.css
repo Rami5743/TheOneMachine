@@ -1788,14 +1788,6 @@ button { font: inherit; }
   padding-inline-start: 0.3em;
 }
 
-.note-task-hint {
-  margin: 2px 0 0;
-  font-size: 0.98rem;
-  color: #d8cba8;
-  direction: rtl;
-  text-align: center;
-}
-
 .note-task-button {
   width: 100%;
   padding: 9px 12px;

@@ -3742,8 +3742,14 @@
       // race the <object>'s own fetch of the same file (harmless but noisy). If
       // it was not preloaded, the <object> load event already waits for the
       // embedded raster, so objReady alone covers it.
+      //
+      // `complete` is true once the preloaded image has finished — whether it
+      // loaded OR failed. A failure is expected when panelHeavyUrl guesses the
+      // wrong extension (e.g. an SVG that embeds a .webp, not a .jpg): we must
+      // still treat it as "done" and rely on objReady, otherwise the spinner
+      // would hang waiting for a raster that will never load.
       const raster = preloadedPanelImages.get(cleanAssetUrl(panelHeavyUrl(image)));
-      if (!raster || (raster.complete && raster.naturalWidth > 0)) {
+      if (!raster || raster.complete) {
         rasterReady = true;
       } else {
         raster.addEventListener("load", () => { rasterReady = true; maybeReveal(); }, { once: true });
@@ -5581,6 +5587,15 @@
     return setState({ busesNoteList: true });
   }
 
+  function handleMultibitNoteTask(id) {
+    const task = MULTIBIT_TASKS.find((t) => t.id === id);
+    if (!task) return;
+    // A later task is locked until its predecessor is built.
+    if (task.requires) return setState({ infoDialog: `קודם צריך לבנות את ${task.requires}` });
+    // The available task itself is not implemented yet.
+    return setState({ infoDialog: "המשך יבוא..." });
+  }
+
   function handleBusNoteTask(index) {
     const task = BUS_TASK_DEFS[index];
     if (!task) return;
@@ -5599,22 +5614,28 @@
   }
 
   // The next set of tasks (chapter 2.5 style), shown in the worktable note once
-  // von Neumann's monologue has handed them over. Not implemented yet, so the
-  // items are inert.
-  const MULTIBIT_TASKS = ["Dmux4way", "Mux4way16"];
+  // von Neumann's monologue has handed them over. They must be done in order:
+  // the first is available, the rest wait for their predecessor. Not implemented
+  // yet — the available one shows a "coming soon" note when clicked.
+  const MULTIBIT_TASKS = [
+    { id: "Dmux4way", requires: null },
+    { id: "Mux4way16", requires: "Dmux4way" }
+  ];
 
   function renderBusesNoteList() {
     if (!state.busesNoteList) return "";
     const body = state.multiBitTasksUnlocked
       ? `
           <ol class="note-task-list buses-note-list">
-            ${MULTIBIT_TASKS.map((label) => `
-                <li class="task-locked">
+            ${MULTIBIT_TASKS.map((task) => {
+              const locked = Boolean(task.requires);
+              return `
+                <li class="${locked ? "task-locked" : ""}">
                   <span class="note-task-check" aria-hidden="true"></span>
-                  <button class="note-task-button" type="button" aria-disabled="true" disabled>${esc(label)}</button>
-                </li>`).join("")}
-          </ol>
-          <p class="note-task-hint">צריך לעשות אותם לפי הסדר.</p>`
+                  <button class="note-task-button" data-action="multibit-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.id)}</button>
+                </li>`;
+            }).join("")}
+          </ol>`
       : `
           <ol class="note-task-list buses-note-list">
             ${BUS_TASK_DEFS.map((task, index) => {
@@ -7483,6 +7504,7 @@
     if (action === "buses-note") return openBusesNote();
     if (action === "buses-note-close") return setState({ busesNoteList: false });
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
+    if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
