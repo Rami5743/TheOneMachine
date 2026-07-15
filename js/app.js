@@ -4346,6 +4346,9 @@
     // If the panel is missing for any reason, just close the intro in place.
     if (panelIndex < 0) return setState({ cardIntroPending: false, cardIntroDone: true }, false);
     setState({
+      // Close any open dialog (the tasks note especially) so von Neumann's beat
+      // is shown on a clean story panel.
+      ...transientUiClearPatch(),
       ...storyTarget(chapter, panelIndex),
       cardIntroPending: false,
       cardIntroDone: true,
