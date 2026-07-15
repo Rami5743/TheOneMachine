@@ -1939,6 +1939,11 @@ button { font: inherit; }
   width: min(360px, calc(100% - 32px));
 }
 
+/* A clear blank line between the requirements text and the trailing note. */
+.workspace-task-hint-multibit .mux-hint-text p + p {
+  margin-top: 0.9em;
+}
+
 .workspace-task-hint-mux .mux-hint-table {
   flex: 0 0 auto;
   pointer-events: auto;

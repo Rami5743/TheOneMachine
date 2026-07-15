@@ -287,7 +287,7 @@ function createTaskModeView({
         .split(/\n\s*\n/)
         .map((part) => part.trim())
         .filter(Boolean)
-        .map((part) => `<p>${esc(part)}</p>`)
+        .map((part) => `<p>${esc(part).replace(/^הערה/, "<strong>הערה</strong>")}</p>`)
         .join("");
       return `
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit" aria-label="דרישות ${esc(mbDef.label)}">
