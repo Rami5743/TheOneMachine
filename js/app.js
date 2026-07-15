@@ -4357,8 +4357,10 @@
     }, true);
   }
 
-  function isVonNeumannPlayPanel(panel) {
-    return panelImageIs(panel, VON_NEUMANN_PLAY_PANEL);
+  // The final slide of the post-MUX16 monologue (von Neumann handing over the
+  // new tasks). "המשך" from here returns to the worktable.
+  function isMonologueEndPanel(panel) {
+    return panelImageIs(panel, "panel99f_chapter_2_4_fermi.svg");
   }
 
   // Delete a saved card: drop its record and its component defs, then re-render.
@@ -4660,9 +4662,10 @@
     const scene = currentScene();
     if (isWorkspaceLaunchPoint()) return openWorkspace();
 
-    // After von Neumann's "playing instead of working?" beat, "המשך" leads back
-    // to the worktable so the learner keeps building, not onward out of the chapter.
-    if (state.screen === "story" && isVonNeumannPlayPanel(currentPanel())) {
+    // At the end of von Neumann's monologue (the Fermi "here are your tasks"
+    // slide), "המשך" leads back to the worktable so the learner keeps building,
+    // not onward out of the chapter.
+    if (state.screen === "story" && isMonologueEndPanel(currentPanel())) {
       const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
       if (worktableIndex >= 0) {
         return setState({ panelIndex: worktableIndex, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);

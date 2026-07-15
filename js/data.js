@@ -636,6 +636,28 @@ const SCENES = {
         "read": "פון נוימן: שוב אתה משחק במקום לעבוד?",
         "femaleImage": "assets/panels/panel99b_chapter_2_4_von_neumann_girl.svg",
         "femaleRead": "פון נוימן: שוב את משחקת במקום לעבוד?"
+      },
+      {
+        "image": "assets/panels/panel99c_chapter_2_4_vn_done.svg",
+        "read": "פון נוימן: אהה, גמרת הכול. טוב, עבודה טובה."
+      },
+      {
+        "image": "assets/panels/panel99d_chapter_2_4_vn_multibit.svg",
+        "read": "פון נוימן: עכשיו אנחנו צריכים לבנות כרטיסים שיודעים לבחור בין יותר מ-2 אפשרויות. בשביל זה הם יצטרכו יותר מביט בקרה אחד. למשל, כדי לבחור בין 4 אפשרויות אנחנו צריכים 2 ביטים. הראשון בוחר אם אנחנו רוצים אחת משתי האפשרויות הראשונות או אחת משתי האחרונות, והשני בוחר אחת מבין השתיים שבחר הביט הראשון."
+      },
+      {
+        "image": "assets/panels/panel99e_chapter_2_4_vn_eight.svg",
+        "read": "פון נוימן: תנסה לחשוב כמה ביטים צריך כדי לבחור בין 8 אפשרויות...",
+        "femaleImage": "assets/panels/panel99e_chapter_2_4_vn_eight_girl.svg",
+        "femaleRead": "פון נוימן: תנסי לחשוב כמה ביטים צריך כדי לבחור בין 8 אפשרויות..."
+      },
+      {
+        "image": "assets/panels/panel96_chapter_2_4_placing.svg",
+        "read": ""
+      },
+      {
+        "image": "assets/panels/panel99f_chapter_2_4_fermi.svg",
+        "read": "פון נוימן: הנה המשימות שלך. אני צריך לפגוש את אנריקו פרמי, הוא בדיוק הגיע משיקגו. עכשיו הם צריכים להעתיק את הכור שהוא בנה שם לכאן, ובקנה מידה גדול יותר."
       }
     ]
   }
