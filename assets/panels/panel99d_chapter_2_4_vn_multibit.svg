@@ -1,14 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
-   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel99d_chapter_2_4_vn_multibit.jpg" xlink:href="panel99d_chapter_2_4_vn_multibit.jpg" />
-  <g id="text-bubble-layer">
-    <path id="speech-bubble" d="M 528,70 H 1365 Q 1393,70 1393,98 V 569 Q 1393,597 1365,597 H 528 Q 500,597 500,569 V 164 L 400,150 L 500,120 V 98 Q 500,70 528,70 Z" fill="#ffffff" stroke="#000000" stroke-width="4.1"
-       stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl"
-       unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="946" y="130">עכשיו אנחנו צריכים לבנות כרטיסים</tspan><tspan x="946" y="181">שיודעים לבחור בין יותר מ-2 אפשרויות.</tspan><tspan x="946" y="232">בשביל זה הם יצטרכו יותר מביט בקרה אחד.</tspan><tspan x="946" y="283">למשל, כדי לבחור בין 4 אפשרויות</tspan><tspan x="946" y="334">אנחנו צריכים 2 ביטים. הראשון בוחר</tspan><tspan x="946" y="385">אם אנחנו רוצים אחת משתי האפשרויות</tspan><tspan x="946" y="436">הראשונות או אחת משתי האחרונות,</tspan><tspan x="946" y="487">והשני בוחר אחת מבין השתיים</tspan><tspan x="946" y="538">שבחר הביט הראשון.</tspan></text>
-  </g>
+   id="svg9"
+   sodipodi:docname="panel99d_chapter_2_4_vn_multibit.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     id="namedview9"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.0819521"
+     inkscape:cx="723.69191"
+     inkscape:cy="543"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg9" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel99d_chapter_2_4_vn_multibit.jpg"
+     xlink:href="panel99d_chapter_2_4_vn_multibit.jpg" />
+  <path
+     id="speech-bubble"
+     d="m 498.12043,100.50039 h 638.75077 c 14.2454,0 21.3681,8.22025 21.3681,24.66076 v 414.82919 c 0,16.44051 -7.1227,24.66076 -21.3681,24.66076 H 498.12043 c -14.24535,0 -21.36802,-8.22025 -21.36802,-24.66076 V 183.29008 l -73.05512,-6.65749 73.05512,-14.18647 v -37.28497 c 0,-16.44051 7.12267,-24.66076 21.36802,-24.66076 z"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="4.1"
+     stroke-linejoin="round"
+     stroke-linecap="round"
+     sodipodi:nodetypes="ssssssscccss" />
+  <text
+     id="bubble-text"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     direction="rtl"
+     unicode-bidi="plaintext"
+     font-family="'Noto Sans Hebrew', Arial, sans-serif"
+     font-size="38px"
+     font-weight="400"
+     fill="#000000"
+     stroke="none"
+     xml:space="preserve"
+     x="-126"><tspan
+       x="820"
+       y="130"
+       id="tspan1">עכשיו אנחנו צריכים לבנות כרטיסים</tspan><tspan
+       x="820"
+       y="181"
+       id="tspan2">שיודעים לבחור בין יותר מ-2 אפשרויות.</tspan><tspan
+       x="820"
+       y="232"
+       id="tspan3">בשביל זה הם יצטרכו יותר מביט בקרה אחד.</tspan><tspan
+       x="820"
+       y="283"
+       id="tspan4">למשל, כדי לבחור בין 4 אפשרויות</tspan><tspan
+       x="820"
+       y="334"
+       id="tspan5">אנחנו צריכים 2 ביטים. הראשון בוחר</tspan><tspan
+       x="820"
+       y="385"
+       id="tspan6">אם אנחנו רוצים אחת משתי האפשרויות</tspan><tspan
+       x="820"
+       y="436"
+       id="tspan7">הראשונות או אחת משתי האחרונות,</tspan><tspan
+       x="820"
+       y="487"
+       id="tspan8">והשני בוחר אחת מבין השתיים</tspan><tspan
+       x="820"
+       y="538"
+       id="tspan9">שבחר הביט הראשון.</tspan></text>
 </svg>

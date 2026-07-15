@@ -1,14 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
-   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel99h_chapter_2_4_vn_midnight.jpg" xlink:href="panel99h_chapter_2_4_vn_midnight.jpg" />
-  <g id="text-bubble-layer">
-    <path id="speech-bubble" d="M 573,95 H 1218 Q 1246,95 1246,123 V 543 Q 1246,571 1218,571 H 573 Q 545,571 545,543 V 214 L 410,235 L 545,170 V 123 Q 545,95 573,95 Z" fill="#ffffff" stroke="#000000" stroke-width="4.1"
-       stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl"
-       unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="896" y="154">עבודה מצוינת. עכשיו כבר חצות.</tspan><tspan x="896" y="205">אתה יכול ללכת לישון. נמשיך</tspan><tspan x="896" y="256">לעבוד מחר ב-8 בבוקר. אנחנו</tspan><tspan x="896" y="307">צריכים ללמד את המחשב שלנו</tspan><tspan x="896" y="358">לעבוד עם מספרים, ולא סתם עם</tspan><tspan x="896" y="409">ביטים. אני צריך שתיזכר איך</tspan><tspan x="896" y="460">עושים פעולות חשבון עם</tspan><tspan x="896" y="511">מספרים גדולים.</tspan></text>
+   id="svg8"
+   sodipodi:docname="panel99h_chapter_2_4_vn_midnight.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8" />
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.0819521"
+     inkscape:cx="810.57191"
+     inkscape:cy="321.17872"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="2552"
+     inkscape:window-y="341"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel99h_chapter_2_4_vn_midnight.jpg"
+     xlink:href="panel99h_chapter_2_4_vn_midnight.jpg" />
+  <g
+     id="text-bubble-layer">
+    <path
+       id="speech-bubble"
+       d="m 533.00313,121.80336 h 484.91327 c 14.0337,0 21.0506,8.24598 21.0506,24.73792 V 517.6102 c 0,16.49196 -7.0169,24.73793 -21.0506,24.73793 H 533.00313 c -14.03367,0 -21.0505,-8.24597 -21.0505,-24.73793 V 210.608 l -100.10376,-26.83384 100.10376,4.2915 v -41.52438 c 0,-16.49194 7.01683,-24.73792 21.0505,-24.73792 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       dominant-baseline="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="38px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       x="-118"><tspan
+         x="778"
+         y="154"
+         id="tspan1">עבודה מצוינת. עכשיו כבר חצות.</tspan><tspan
+         x="778"
+         y="205"
+         id="tspan2">אתה יכול ללכת לישון. נמשיך</tspan><tspan
+         x="778"
+         y="256"
+         id="tspan3">לעבוד מחר ב-8 בבוקר. אנחנו</tspan><tspan
+         x="778"
+         y="307"
+         id="tspan4">צריכים ללמד את המחשב שלנו</tspan><tspan
+         x="778"
+         y="358"
+         id="tspan5">לעבוד עם מספרים, ולא סתם עם</tspan><tspan
+         x="778"
+         y="409"
+         id="tspan6">ביטים. אני צריך שתיזכר איך</tspan><tspan
+         x="778"
+         y="460"
+         id="tspan7">עושים פעולות חשבון עם</tspan><tspan
+         x="778"
+         y="511"
+         id="tspan8">מספרים גדולים.</tspan></text>
   </g>
 </svg>

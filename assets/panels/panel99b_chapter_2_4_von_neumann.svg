@@ -5,8 +5,34 @@
    height="1086"
    viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
+   id="svg2"
+   sodipodi:docname="panel99b_chapter_2_4_von_neumann.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg">
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.0819521"
+     inkscape:cx="723.69191"
+     inkscape:cy="543"
+     inkscape:window-width="2560"
+     inkscape:window-height="1377"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
   <image
      id="raster-base"
      x="0"
@@ -16,26 +42,33 @@
      preserveAspectRatio="none"
      href="panel99b_chapter_2_4_von_neumann.jpg"
      xlink:href="panel99b_chapter_2_4_von_neumann.jpg" />
-  <g id="text-bubble-layer">
-    <path
-       id="speech-bubble"
-       d="M 586,70 H 1134 Q 1160,70 1160,96 V 224 Q 1160,250 1134,250 H 586 Q 560,250 560,224 V 208 L 405,190 L 560,150 V 96 Q 560,70 586,70 Z"
-       fill="#ffffff"
-       stroke="#000000"
-       stroke-width="4.1"
-       stroke-linejoin="round"
-       stroke-linecap="round" />
-    <text
-       id="bubble-text"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="46px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan x="860" y="140">שוב אתה משחק</tspan><tspan x="860" y="200">במקום לעבוד?</tspan></text>
-  </g>
+  <path
+     id="speech-bubble"
+     d="m 508.34762,101.07875 h 322.12265 c 10.18878,0 15.28319,5.67389 15.28319,17.02169 v 83.79912 c 0,11.34779 -5.09441,17.0217 -15.28319,17.0217 H 508.34762 c -10.18879,0 -15.28319,-5.67391 -15.28319,-17.0217 v -31.65311 l -88.98787,7.49217 88.98787,-24.28543 v -35.35275 c 0,-11.3478 5.0944,-17.02169 15.28319,-17.02169 z"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="4.1"
+     stroke-linejoin="round"
+     stroke-linecap="round"
+     sodipodi:nodetypes="ssssssscccss" />
+  <text
+     id="bubble-text"
+     text-anchor="middle"
+     dominant-baseline="middle"
+     direction="rtl"
+     unicode-bidi="plaintext"
+     font-family="'Noto Sans Hebrew', Arial, sans-serif"
+     font-size="46px"
+     font-weight="400"
+     fill="#000000"
+     stroke="none"
+     xml:space="preserve"
+     x="-200"
+     y="-6"><tspan
+       x="660"
+       y="134"
+       id="tspan1">שוב אתה משחק</tspan><tspan
+       x="660"
+       y="194"
+       id="tspan2">במקום לעבוד?</tspan></text>
 </svg>
