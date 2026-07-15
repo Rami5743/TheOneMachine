@@ -5348,6 +5348,7 @@
 
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
+    if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
@@ -5549,6 +5550,155 @@
     runBusTestCase(state.workspace, 0);
   }
 
+  // --- Chapter 2.5 multi-bit routing check (Dmux4way / Mux4way16) -----------
+  // Each case drives every external input pin and reads every external output
+  // pin. A control value v (0..3) maps to the bus bits [v&1 (LSB), v>>1 (MSB)],
+  // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
+  // matching the requirement text.
+  function multibitTaskCases(taskId) {
+    if (taskId === "Dmux4way") {
+      // Data=1 across all four control values (each lights exactly one output),
+      // plus a data=0 sanity case (all outputs stay 0).
+      const cases = [0, 1, 2, 3].map((control) => ({ data: 1, control }));
+      cases.push({ data: 0, control: 2 });
+      return cases;
+    }
+    if (taskId === "Mux4way16") {
+      // Four distinct frozen 16-bit patterns; each control value must select the
+      // matching data input.
+      const P = [
+        [1,0,1,1, 0,0,1,0, 1,1,0,0, 0,1,0,1],
+        [0,1,0,0, 1,1,1,0, 0,0,1,1, 1,0,1,0],
+        [1,1,0,1, 0,1,0,0, 1,0,1,1, 0,0,1,0],
+        [0,0,1,0, 1,0,1,1, 0,1,1,0, 1,1,0,1]
+      ].map((a) => a.map(Boolean));
+      return [0, 1, 2, 3].map((control) => ({ datas: P, control }));
+    }
+    return [];
+  }
+
+  // The input drives and expected output bits for one case, keyed by external
+  // pin ref. control -> the 2-bit bus [LSB, MSB].
+  function multibitCaseSpec(taskId, testCase) {
+    const controlBits = [Boolean(testCase.control & 1), Boolean((testCase.control >> 1) & 1)];
+    if (taskId === "Dmux4way") {
+      const data = Boolean(testCase.data);
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: [data] },
+          { ref: "inputExt2", bits: controlBits }
+        ],
+        outputs: [1, 2, 3, 4].map((n) => ({
+          ref: `outputExt${n}`,
+          expected: [(n - 1) === testCase.control ? data : false]
+        }))
+      };
+    }
+    if (taskId === "Mux4way16") {
+      return {
+        inputs: [
+          ...testCase.datas.map((bits, i) => ({ ref: `inputExt${i + 1}`, bits })),
+          { ref: "inputExt5", bits: controlBits }
+        ],
+        outputs: [{ ref: "outputExt", expected: testCase.datas[testCase.control] }]
+      };
+    }
+    return { inputs: [], outputs: [] };
+  }
+
+  // Wrap the learner's card in a check harness: every external input pin is
+  // driven from the single pre-placed source (single-bit direct, wider via a
+  // merging splitter whose high legs are wired to the source), and every
+  // external output pin is read into lamps (single-bit → one lamp, wider →
+  // a fan-out splitter to one lamp per bit). Returns { workspace, lampGroups }
+  // where lampGroups[outIndex][bitIndex] is a lamp id.
+  function multibitTestHarnessWorkspace(baseWorkspace, spec) {
+    const workspace = normalizeWorkspace(clonePlain(baseWorkspace));
+    workspace.selectedTerminal = null;
+    workspace.accident = null;
+    workspace.focusedComponentId = null;
+    workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
+    removeInvalidWires(workspace);
+
+    // Inputs down the left side.
+    const inSep = 150;
+    spec.inputs.forEach((input, idx) => {
+      const ref = `task-card-1.${input.ref}`;
+      const w = pinWidth(workspace, ref);
+      if (!Number.isInteger(w)) return;
+      if (w === 1) {
+        if (input.bits[0]) workspace.wires.push(normalizeWire("source-1.out", ref));
+        return;
+      }
+      const splitId = `mb-in-split-${idx}`;
+      const sy = 288 + (idx - (spec.inputs.length - 1) / 2) * inSep;
+      workspace.components.push({ id: splitId, type: "splitter", x: 210, y: sy, mirrored: true, outputs: w, width: 1 });
+      input.bits.forEach((bit, i) => {
+        if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
+      });
+      workspace.wires.push(normalizeWire(`${splitId}.single`, ref));
+    });
+
+    // Outputs down the right side.
+    const lampGroups = [];
+    spec.outputs.forEach((output, idx) => {
+      const ref = `task-card-1.${output.ref}`;
+      const w = pinWidth(workspace, ref);
+      const cy = 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
+      const groupLamps = [];
+      if (!Number.isInteger(w) || w === 1) {
+        const lampId = `mb-out-${idx}-lamp-0`;
+        workspace.components.push({ id: lampId, type: "lamp", x: 1180, y: cy });
+        workspace.wires.push(normalizeWire(ref, `${lampId}.in`));
+        groupLamps.push(lampId);
+      } else {
+        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: 1050, y: cy, mirrored: false, outputs: w, width: 1 };
+        workspace.components.push(outSplit);
+        workspace.wires.push(normalizeWire(ref, `${outSplit.id}.single`));
+        const layout = busLampLayout(w, cy, 1180);
+        for (let i = 0; i < w; i += 1) {
+          const lampId = `mb-out-${idx}-lamp-${i}`;
+          const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
+          if (layout.scale !== 1) lamp.scale = layout.scale;
+          workspace.components.push(lamp);
+          workspace.wires.push(normalizeWire(`${outSplit.id}.leg${i}`, `${lampId}.in`));
+          groupLamps.push(lampId);
+        }
+      }
+      lampGroups.push(groupLamps);
+    });
+    return { workspace, lampGroups };
+  }
+
+  function runMultibitTestCase(baseWorkspace, caseIndex) {
+    const def = multibitTaskDefById(baseWorkspace.taskId);
+    if (!def) return showNotTestResult("failure", baseWorkspace, null);
+    const cases = multibitTaskCases(def.id);
+    if (caseIndex >= cases.length) return showNotTestResult("success", baseWorkspace, def.id);
+
+    const spec = multibitCaseSpec(def.id, cases[caseIndex]);
+    const { workspace, lampGroups } = multibitTestHarnessWorkspace(baseWorkspace, spec);
+    setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
+
+    notTestTimer = window.setTimeout(() => {
+      const evaluation = evaluateWorkspaceBits(workspace);
+      const ok = spec.outputs.every((output, idx) =>
+        output.expected.every((bit, i) => Boolean(evaluation.lamps.get(lampGroups[idx][i])) === Boolean(bit)));
+      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      // Re-harness the NEXT case from the pristine learner circuit (see the bus
+      // check note), so harnesses don't pile up.
+      runMultibitTestCase(baseWorkspace, caseIndex + 1);
+    }, 850);
+  }
+
+  function startMultibitTaskTest() {
+    if (!isMultibitTaskWorkspace() || notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    muxTableSnapshot = null;
+    runMultibitTestCase(state.workspace, 0);
+  }
+
   function finishNotTestDialog() {
     if (state.notTest?.result === "failure") {
       const workspace = notTestSnapshot ? normalizeWorkspace(notTestSnapshot) : state.workspace;
@@ -5564,6 +5714,10 @@
       notTestSnapshot = null;
       muxTableSnapshot = null;
       clearNotTestTimer();
+
+      // Multi-bit routing tasks (chapter 2.5): mark complete and return to the
+      // next-tasks worktable with the note reopened (so the next task unlocks).
+      if (multibitTaskDefById(taskId)) return finishMultibitTask(taskId);
 
       if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || busTaskDefById(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 
@@ -5583,6 +5737,27 @@
     }
 
     setState({ notTest: null }, false);
+  }
+
+  // Complete a multi-bit routing task and return to the next-tasks worktable
+  // with the note reopened. Shared by the check-success path and the developer
+  // shortcut.
+  function finishMultibitTask(taskId) {
+    const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    const completedTasks = taskId && !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
+    return setState({
+      ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
+      taskDialog: null,
+      solutionDialog: null,
+      notTest: null,
+      hintDialog: null,
+      muxTable: null,
+      completedTasks,
+      busesNoteList: true,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, true);
   }
 
   function showTaskSolution(taskId, options = {}) {
@@ -5901,7 +6076,7 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
-    if (busTaskDefById(taskId)) {
+    if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
       return setState({ ...storyTarget(chapterById(returnChapterId), returnPanelIndex), ...base, busesNoteList: true }, true);
