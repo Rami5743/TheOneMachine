@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
+     href="panel99i_chapter_2_4_vn_library.jpg" xlink:href="panel99i_chapter_2_4_vn_library.jpg" />
+  <g id="text-bubble-layer">
+    <path id="speech-bubble" d="M 573,120 H 1283 Q 1311,120 1311,148 V 331 Q 1311,359 1283,359 H 573 Q 545,359 545,331 V 234 L 410,250 L 545,190 V 148 Q 545,120 573,120 Z" fill="#ffffff" stroke="#000000" stroke-width="4.1"
+       stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl"
+       unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="42px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="928" y="182">מחר ב-7 בבוקר גש לספרייה</tspan><tspan x="928" y="239">ועבור על הספר באריתמטיקה</tspan><tspan x="928" y="296">של סטון-מיילס כדי שתהיה מוכן.</tspan></text>
+  </g>
+</svg>

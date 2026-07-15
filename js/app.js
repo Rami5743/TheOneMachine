@@ -1708,9 +1708,9 @@
     if (chapter?.id === "chapter-5") return state.panelIndex >= currentScene().panels.length - 1;
 
     // In step-by-step mode you cannot skip AHEAD to a panel you have not yet
-    // reached (2.4 buses scene: the opening slides on a first pass, and the von
-    // Neumann monologue on the way to the next-tasks worktable).
-    if (isStepByStepPace() && state.sceneId === "buses" && !skipTargetReached()) return true;
+    // reached (e.g. the 2.4 opening slides on a first pass, and the von Neumann
+    // monologue on the way to the next-tasks worktable).
+    if (isStepByStepPace() && !skipTargetReached()) return true;
 
     return false;
   }
@@ -6120,9 +6120,31 @@
     // with the note reopened (so the next task unlocks).
     if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+      const returnChapter = chapterById(returnChapterId);
+      // Finishing the LAST multi-bit task (Mux4way16) rolls into the closing von
+      // Neumann monologue ("great work, it's midnight…") instead of returning to
+      // the worktable note.
+      if (taskId === "Mux4way16") {
+        const scene = sceneByChapter(returnChapter);
+        const monologueIndex = panelIndexByImage(scene, "panel99h_chapter_2_4_vn_midnight.svg");
+        if (monologueIndex >= 0) {
+          return setState({
+            ...storyTarget(returnChapter, monologueIndex),
+            taskDialog: null,
+            solutionDialog: null,
+            notTest: null,
+            hintDialog: null,
+            muxTable: null,
+            completedTasks,
+            busesNoteList: false,
+            workspace: createDefaultWorkspace(),
+            replayNonce: state.replayNonce + 1
+          }, true);
+        }
+      }
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
       return setState({
-        ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
+        ...storyTarget(returnChapter, returnPanelIndex),
         taskDialog: null,
         solutionDialog: null,
         notTest: null,
@@ -6206,8 +6228,13 @@
     };
     if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
+      const returnChapter = chapterById(returnChapterId);
+      if (taskId === "Mux4way16") {
+        const monologueIndex = panelIndexByImage(sceneByChapter(returnChapter), "panel99h_chapter_2_4_vn_midnight.svg");
+        if (monologueIndex >= 0) return setState({ ...storyTarget(returnChapter, monologueIndex), ...base, busesNoteList: false }, true);
+      }
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
-      return setState({ ...storyTarget(chapterById(returnChapterId), returnPanelIndex), ...base, busesNoteList: true }, true);
+      return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -6867,11 +6894,17 @@
     if (!scene) return 0;
     const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
     const nextWorktableIndex = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
+    const lastIndex = Math.max(scene.panels.length - 1, 0);
+    // Past the next-tasks worktable (the closing "go to sleep" monologue) → skip
+    // to the end of the scene.
+    if (nextWorktableIndex >= 0 && state.panelIndex > nextWorktableIndex) return lastIndex;
+    // Inside the first von Neumann monologue → skip forward to the next-tasks
+    // worktable that closes it.
     if (worktableIndex >= 0 && nextWorktableIndex >= 0 && state.panelIndex > worktableIndex) {
       return nextWorktableIndex;
     }
     if (worktableIndex >= 0) return worktableIndex;
-    return Math.max(scene.panels.length - 1, 0);
+    return lastIndex;
   }
 
   // Whether the learner has already reached the panel the skip shortcut targets.
@@ -7795,13 +7828,16 @@
     const field = event.target.closest("[data-setting]");
     if (!field) return;
     const key = field.dataset.setting;
-    // The first time the player changes the pace, explain the modes via a dialog
-    // (the change still applies). This needs a re-render, which is fine for a
-    // <select> (unlike the age text box, focus loss doesn't matter here).
-    if (key === "pace" && !state.paceHintShown) {
-      // First attempt to change the pace does NOT apply — only the dialog shows.
-      // The re-render reverts the <select> back to the current pace.
-      return setState({ paceHintShown: true, paceDialog: true });
+    // The recommendation dialog is shown only when LEAVING the recommended
+    // "step by step" mode (step → all), and only the first time. Switching TO
+    // step-by-step applies immediately with no warning. On the warned switch the
+    // first attempt does NOT apply — the re-render reverts the <select> and the
+    // learner confirms by choosing again.
+    if (key === "pace") {
+      const currentPace = state.settings?.pace || DEFAULT_PACE;
+      if (field.value === "all" && currentPace === "step" && !state.paceHintShown) {
+        return setState({ paceHintShown: true, paceDialog: true });
+      }
     }
     updateSetting(key, field.value);
   }
