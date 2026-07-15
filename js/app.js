@@ -1703,13 +1703,16 @@
     if (state.screen !== "story") return true;
 
     const chapter = currentChapter();
-    if (chapter?.partId === "part-1") return false;
+    // In step-by-step mode you cannot skip AHEAD to content not yet reached:
+    // in the part-1 story that means the next chapter (skip jumps a whole
+    // chapter); in a part-2 story scene it means a panel further than the
+    // furthest one reached (the 2.4 opening slides / von Neumann monologues).
+    if (chapter?.partId === "part-1") {
+      return isStepByStepPace() && !skipTargetReached();
+    }
     if (chapter?.id === "chapter-4") return false;
     if (chapter?.id === "chapter-5") return state.panelIndex >= currentScene().panels.length - 1;
 
-    // In step-by-step mode you cannot skip AHEAD to a panel you have not yet
-    // reached (e.g. the 2.4 opening slides on a first pass, and the von Neumann
-    // monologue on the way to the next-tasks worktable).
     if (isStepByStepPace() && !skipTargetReached()) return true;
 
     return false;
@@ -6907,8 +6910,17 @@
     return lastIndex;
   }
 
-  // Whether the learner has already reached the panel the skip shortcut targets.
+  // Whether the learner has already reached what the skip shortcut targets. In
+  // the part-1 story skip jumps to the NEXT chapter, so "reached" means that
+  // chapter has been visited; in a part-2 scene skip moves within the scene, so
+  // it means the furthest panel reached is at or past the skip target.
   function skipTargetReached() {
+    const chapter = currentChapter();
+    if (chapter?.partId === "part-1") {
+      const nextIndex = chapterIndexById(chapter.id) + 1;
+      const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
+      return maxChapter >= nextIndex;
+    }
     const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
     const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
     return max >= skipTargetPanelIndex();
