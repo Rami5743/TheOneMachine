@@ -136,10 +136,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           }
         }
 
-        if (component.type === "cardFrame") {
-          // The card-creation frame is a plain pass-through (single-bit): each
-          // external input drives its internal input, each internal output drives
-          // its external output. Pin roles come from the (dynamic) pin map.
+        if (component.type === "cardFrame" || component.type.startsWith("usercardFrame-")) {
+          // The card-creation frame (and an expanded saved card's frame) is a
+          // plain pass-through (single-bit): each external input drives its
+          // internal input, each internal output drives its external output. Pin
+          // roles come from the pin map.
           const pins = typeof resolvePins === "function" ? resolvePins(component) : {};
           for (const pinId of Object.keys(pins)) {
             const intMatch = pinId.match(/^inputInt(\d*)$/);
@@ -312,7 +313,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           continue;
         }
 
-        if (type.startsWith("taskCard-") || type === "cardFrame") {
+        if (type.startsWith("taskCard-") || type === "cardFrame" || type.startsWith("usercardFrame-")) {
           // A card is a pass-through: external inputs drive internal inputs, and
           // internal outputs drive external outputs. This holds for single-bit
           // and bus cards alike — the vectors are simply wider. Pin roles are

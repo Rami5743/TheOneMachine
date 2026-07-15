@@ -5,6 +5,9 @@
   // the other splitter helpers) because splitter pin resolution runs during the
   // initial loadState()/normalizeWorkspace(), before that later block executes.
   const SPLITTER_OUTPUT_SPACING = 34; // matches component-visuals
+  // Component-type prefix for user-saved cards (see the "User-saved cards"
+  // section). Declared here because registerAllSavedCards() runs at load time.
+  const SAVED_CARD_PREFIX = "usercard-";
 
   const WORKSPACE_COMPONENT_DEFS = {
     source: {
@@ -651,9 +654,16 @@
   });
   const normalizeWorkspace = (...args) => __workspaceState.normalizeWorkspace(...args);
 
+  // Saved cards are placeable components. Register them from raw storage BEFORE
+  // loadState() normalizes the workspace — otherwise normalizeWorkspace, seeing
+  // an unknown component type, would strip any placed saved card off the board.
+  try {
+    const rawSaved = localStorage.getItem(APP.storageKey);
+    if (rawSaved) (JSON.parse(rawSaved).savedCards || []).forEach(registerSavedCard);
+  } catch {}
   let state = loadState();
-  // Saved cards are placeable components; register the loaded ones so the
-  // toolbar and board recognise them from the first render.
+  // Re-register from the loaded state (covers defaults) so the toolbar and board
+  // recognise every saved card from the first render.
   registerAllSavedCards();
   let dragState = null;
   let dialogDragState = null;
@@ -672,10 +682,17 @@
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
   function workspaceHasBusElements(workspace = state.workspace) {
-    return (workspace?.components || []).some((c) => c.type === "splitter" || busGateSpec(c.type));
+    return (workspace?.components || []).some((c) => c.type === "splitter" || busGateSpec(c.type) || String(c.type).startsWith("usercardFrame-"));
   }
-  const workspaceEvaluation = (workspace = state.workspace) =>
-    workspaceHasBusElements(workspace) ? evaluateWorkspaceBits(workspace) : evaluateWorkspace(workspace);
+  // A placed saved card is simulated by expanding it into its internal circuit
+  // first (flattenWorkspaceForEval), then evaluating that. The bus-aware engine
+  // is used whenever the expanded workspace has buses/cards (it handles single
+  // bits too); lamp ids are preserved by the flattening, so lamp results still
+  // key off the real, on-board lamp components.
+  const workspaceEvaluation = (workspace = state.workspace) => {
+    const flat = flattenWorkspaceForEval(workspace);
+    return workspaceHasBusElements(flat) ? evaluateWorkspaceBits(flat) : evaluateWorkspace(flat);
+  };
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
@@ -6186,7 +6203,8 @@
   // A saved card is drawn as a generic chip: a rounded body with its input pins
   // on the left and output pins on the right, and its name beneath. The body and
   // the pins share one geometry so the drawn stubs land on the wiring terminals.
-  const SAVED_CARD_PREFIX = "usercard-";
+  // (SAVED_CARD_PREFIX is declared near the top of the IIFE — registerAllSavedCards
+  // runs at load, before this point, so it must be initialised earlier.)
   function savedCardByType(type) {
     return (state.savedCards || []).find((card) => card.type === type) || null;
   }
@@ -6213,8 +6231,31 @@
     });
     return pins;
   }
+  // The component type of the pass-through "frame" a saved card is expanded into
+  // when its circuit is simulated (see flattenWorkspaceForEval). It carries the
+  // ext/int input & output pins the engine's card pass-through logic understands.
+  function savedCardFrameType(card) {
+    return `usercardFrame-${String(card.type).slice(SAVED_CARD_PREFIX.length)}`;
+  }
+  function savedCardFramePins(card) {
+    const iw = card.inputs || [];
+    const ow = card.outputs || [];
+    const pins = {};
+    iw.forEach((w, i) => {
+      const width = Math.round(Number(w) || 1);
+      pins[`inputExt${i}`] = { x: -340, y: i * 40, direction: "in", width, label: `כניסה ${i + 1} חיצונית` };
+      pins[`inputInt${i}`] = { x: -260, y: i * 40, direction: "out", width, label: `כניסה ${i + 1} פנימית` };
+    });
+    ow.forEach((w, i) => {
+      const width = Math.round(Number(w) || 1);
+      pins[`outputInt${i}`] = { x: 260, y: i * 40, direction: "in", width, label: `יציאה ${i + 1} פנימית` };
+      pins[`outputExt${i}`] = { x: 340, y: i * 40, direction: "out", width, label: `יציאה ${i + 1} חיצונית` };
+    });
+    return pins;
+  }
   // Register a saved card as a placeable component: its def (pins/bounds/label)
   // goes into the shared table so componentDef/clamp/toolbar all recognise it.
+  // The paired frame type (used only during simulation) is registered too.
   function registerSavedCard(card) {
     const g = savedCardGeometry(card);
     WORKSPACE_COMPONENT_DEFS[card.type] = {
@@ -6222,6 +6263,11 @@
       savedCard: true,
       pins: savedCardPins(card),
       bounds: { left: g.bodyW / 2 + 40, right: g.bodyW / 2 + 40, top: g.bodyH / 2 + 16, bottom: g.bodyH / 2 + 44 }
+    };
+    WORKSPACE_COMPONENT_DEFS[savedCardFrameType(card)] = {
+      label: card.name,
+      fixed: true,
+      pins: savedCardFramePins(card)
     };
   }
   function registerAllSavedCards() {
@@ -6246,6 +6292,64 @@
       s += `<text class="usercard-name" x="0" y="${g.bodyH / 2 + 26}" text-anchor="middle">${esc(card.name)}</text>`;
     }
     return `<g class="usercard">${s}</g>`;
+  }
+
+  // Expand every placed saved card into its stored internal circuit so the
+  // engine can simulate it. Each usercard-N component becomes a pass-through
+  // frame (usercardFrame-N, keeping the same id) wired to the card's internal
+  // components (given prefixed ids). The frame's ext pins map to the card's
+  // outer in{i}/out{i}; its int pins carry the card's internal frame node
+  // (card-frame-1). Runs recursively so cards built from other cards expand too,
+  // with a depth cap as a guard against a card that (accidentally) contains
+  // itself. Returns the workspace unchanged when it holds no saved cards.
+  function flattenWorkspaceForEval(workspace, depth = 0) {
+    const comps = workspace.components || [];
+    if (!comps.some((c) => String(c.type).startsWith(SAVED_CARD_PREFIX))) return workspace;
+    if (depth > 8) return workspace;
+
+    const remapOuter = (ref, cid) => {
+      if (typeof ref !== "string" || !ref.startsWith(`${cid}.`)) return ref;
+      const pin = ref.slice(cid.length + 1);
+      const inM = pin.match(/^in(\d+)$/);
+      if (inM) return `${cid}.inputExt${inM[1]}`;
+      const outM = pin.match(/^out(\d+)$/);
+      if (outM) return `${cid}.outputExt${outM[1]}`;
+      return ref;
+    };
+    const remapInternal = (ref, cid, prefix) => {
+      if (typeof ref !== "string") return ref;
+      const dot = ref.indexOf(".");
+      if (dot < 0) return ref;
+      const compId = ref.slice(0, dot);
+      const pin = ref.slice(dot + 1);
+      // The card-build frame anchor becomes the outer card's pass-through frame.
+      if (compId === "card-frame-1") return `${cid}.${pin}`;
+      return `${prefix}${compId}.${pin}`;
+    };
+
+    const components = [];
+    let wires = (workspace.wires || []).map((w) => ({ ...w }));
+
+    for (const comp of comps) {
+      const type = String(comp.type);
+      if (!type.startsWith(SAVED_CARD_PREFIX)) { components.push(comp); continue; }
+      const card = savedCardByType(type);
+      // Replace the card with its pass-through frame (same id) and rewrite the
+      // outer wires touching it from in{i}/out{i} to the frame's ext pins.
+      const frameType = card ? savedCardFrameType(card) : `usercardFrame-${type.slice(SAVED_CARD_PREFIX.length)}`;
+      components.push({ id: comp.id, type: frameType, x: comp.x, y: comp.y });
+      wires = wires.map((w) => ({ ...w, a: remapOuter(w.a, comp.id), b: remapOuter(w.b, comp.id) }));
+      if (!card || !card.logic) continue;
+      const prefix = `${comp.id}~`;
+      for (const ic of (card.logic.components || [])) {
+        components.push({ ...ic, id: `${prefix}${ic.id}` });
+      }
+      for (const iw of (card.logic.wires || [])) {
+        wires.push({ ...iw, a: remapInternal(iw.a, comp.id, prefix), b: remapInternal(iw.b, comp.id, prefix) });
+      }
+    }
+
+    return flattenWorkspaceForEval({ ...workspace, components, wires }, depth + 1);
   }
 
   // The op/width of a placeable bus gate (gate-Not4 etc.), or null for anything
