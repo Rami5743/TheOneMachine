@@ -3,7 +3,7 @@
    preserveAspectRatio="xMidYMid meet"
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel99b_chapter_2_4_von_neumann.jpg" xlink:href="panel99b_chapter_2_4_von_neumann.jpg" />
+     href="panel99d_chapter_2_4_vn_multibit.jpg" xlink:href="panel99d_chapter_2_4_vn_multibit.jpg" />
   <g id="text-bubble-layer">
     <path id="speech-bubble" d="M 528,70 H 1365 Q 1393,70 1393,98 V 569 Q 1393,597 1365,597 H 528 Q 500,597 500,569 V 164 L 400,150 L 500,120 V 98 Q 500,70 528,70 Z" fill="#ffffff" stroke="#000000" stroke-width="4.1"
        stroke-linejoin="round" stroke-linecap="round" />

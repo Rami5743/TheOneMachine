@@ -430,6 +430,10 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
+    // Set once von Neumann's monologue (after MUX16) has played through. From
+    // then on the worktable note shows the next set of tasks (Dmux4way,
+    // Mux4way16) instead of the completed bus-task list.
+    multiBitTasksUnlocked: false,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -4668,7 +4672,7 @@
     if (state.screen === "story" && isMonologueEndPanel(currentPanel())) {
       const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
       if (worktableIndex >= 0) {
-        return setState({ panelIndex: worktableIndex, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+        return setState({ panelIndex: worktableIndex, started: true, replayNonce: state.replayNonce + 1, dialog: null, multiBitTasksUnlocked: true }, true);
       }
     }
 
@@ -5594,12 +5598,24 @@
     openBusTaskWorkspace(task.id);
   }
 
+  // The next set of tasks (chapter 2.5 style), shown in the worktable note once
+  // von Neumann's monologue has handed them over. Not implemented yet, so the
+  // items are inert.
+  const MULTIBIT_TASKS = ["Dmux4way", "Mux4way16"];
+
   function renderBusesNoteList() {
     if (!state.busesNoteList) return "";
-    return `
-      <div class="note-task-overlay" role="presentation">
-        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
-          <h2>משימות</h2>
+    const body = state.multiBitTasksUnlocked
+      ? `
+          <ol class="note-task-list buses-note-list">
+            ${MULTIBIT_TASKS.map((label) => `
+                <li class="task-locked">
+                  <span class="note-task-check" aria-hidden="true"></span>
+                  <button class="note-task-button" type="button" aria-disabled="true" disabled>${esc(label)}</button>
+                </li>`).join("")}
+          </ol>
+          <p class="note-task-hint">צריך לעשות אותם לפי הסדר.</p>`
+      : `
           <ol class="note-task-list buses-note-list">
             ${BUS_TASK_DEFS.map((task, index) => {
               const completed = taskCompleted(task.id);
@@ -5610,7 +5626,12 @@
                   <button class="note-task-button" data-action="bus-note-task" data-task-index="${index}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
                 </li>`;
             }).join("")}
-          </ol>
+          </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="buses-note-close">סגור</button>
           </div>
