@@ -7,7 +7,7 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg2"
    sodipodi:docname="panel99c_chapter_2_4_vn_done.svg"
-   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -25,12 +25,12 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1.0819521"
-     inkscape:cx="723.69191"
-     inkscape:cy="543"
-     inkscape:window-width="2560"
-     inkscape:window-height="1377"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
+     inkscape:cx="723.69193"
+     inkscape:cy="247.2383"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg2" />
   <image
@@ -44,13 +44,13 @@
      xlink:href="panel99c_chapter_2_4_vn_done.jpg" />
   <path
      id="speech-bubble"
-     d="M 508.02912,118.65186 H 829.1962 c 13.62527,0 20.43791,6.68252 20.43791,20.04757 v 97.37391 c 0,13.36504 -6.81264,20.04756 -20.43791,20.04756 H 508.02912 c -13.62527,0 -20.43791,-6.68252 -20.43791,-20.04756 l 0,-54.05014 -88.51528,-0.0912 88.51528,-20.32108 v -22.91151 c 0,-13.36505 6.81264,-20.04757 20.43791,-20.04757 z"
+     d="m 510.39797,118.65186 h 328.14987 c 13.9215,0 20.88226,6.68252 20.88226,20.04757 v 97.37391 c 0,13.36504 -6.96076,20.04756 -20.88226,20.04756 H 510.39797 c -13.92151,0 -20.88227,-6.68252 -20.88227,-20.04756 V 182.0232 l -83.96998,-5.63673 83.96998,-14.77555 v -22.91151 c 0,-13.36505 6.96076,-20.04757 20.88227,-20.04757 z"
      fill="#ffffff"
      stroke="#000000"
-     stroke-width="4.1"
+     stroke-width="4.14433"
      stroke-linejoin="round"
      stroke-linecap="round"
-     sodipodi:nodetypes="ssssssscccss" />
+     sodipodi:nodetypes="ssssssscccsss" />
   <text
      id="bubble-text"
      text-anchor="middle"
@@ -63,11 +63,11 @@
      fill="#000000"
      stroke="none"
      xml:space="preserve"
-     x="-100"><tspan
-       x="668"
+     x="-98"><tspan
+       x="670"
        y="155"
-       id="tspan1">אהה, גמרת הכול.</tspan><tspan
-       x="668"
+       id="tspan1">אהה, גמרת הכול...</tspan><tspan
+       x="670"
        y="217"
        id="tspan2">טוב, עבודה טובה.</tspan></text>
 </svg>
