@@ -501,6 +501,9 @@
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
     maxChapterReached: 0,
+    // Furthest story-panel index reached, keyed by scene id. Drives the
+    // step-by-step skip gate (can't skip ahead to a panel not yet reached).
+    maxPanelReached: {},
     workspace: createDefaultWorkspace()
   };
 
@@ -1213,6 +1216,15 @@
     if (chapterIdx > (Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0)) {
       state.maxChapterReached = chapterIdx;
     }
+    // Track the furthest story panel reached per scene (drives the step-by-step
+    // skip gate). Only story panels advance it, never workbench/menu screens.
+    if (state.screen === "story" && Number.isInteger(state.panelIndex) && typeof state.sceneId === "string") {
+      const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
+      const prev = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
+      if (state.panelIndex > prev) {
+        state.maxPanelReached = { ...reached, [state.sceneId]: state.panelIndex };
+      }
+    }
     saveState();
     render();
     if (shouldSpeak) speakCurrent();
@@ -1694,6 +1706,11 @@
     if (chapter?.partId === "part-1") return false;
     if (chapter?.id === "chapter-4") return false;
     if (chapter?.id === "chapter-5") return state.panelIndex >= currentScene().panels.length - 1;
+
+    // In step-by-step mode you cannot skip AHEAD to a panel you have not yet
+    // reached (2.4 buses scene: the opening slides on a first pass, and the von
+    // Neumann monologue on the way to the next-tasks worktable).
+    if (isStepByStepPace() && state.sceneId === "buses" && !skipTargetReached()) return true;
 
     return false;
   }
@@ -2277,15 +2294,24 @@
       </main>`;
   }
 
-  // A simple single-OK info message modal (e.g. the worktable note prompt).
+  // A simple single-OK info message modal (e.g. the worktable note prompt). When
+  // the value is an object with `discardCard`, a second "discard the card" button
+  // is offered (the card-build exit error, where the card is invalid) that leaves
+  // without saving.
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
+    const isObj = typeof state.infoDialog === "object";
+    const message = isObj ? state.infoDialog.message : state.infoDialog;
+    const discard = isObj && state.infoDialog.discardCard
+      ? `<button class="btn" data-action="card-discard-exit" type="button">השלך את הכרטיס</button>`
+      : "";
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="הודעה">
-          <p>${esc(state.infoDialog)}</p>
+          <p>${esc(message)}</p>
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="info-dialog-ok">הבנתי</button>
+            ${discard}
           </div>
         </section>
       </div>`;
@@ -4518,7 +4544,7 @@
     const cc = state.cardCreation || {};
     const editing = Boolean(cc.editingType);
     const err = validateCardName(cc.name, cc.editingType || null);
-    if (err) return setState({ infoDialog: err });
+    if (err) return setState({ infoDialog: { message: err, discardCard: true } });
 
     const card = buildSavedCardFromCreation();
     registerSavedCard(card);
@@ -4547,6 +4573,22 @@
       infoDialog: firstTime
         ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
         : null
+    }, false);
+  }
+
+  // "השלך את הכרטיס": abandon the card-build page WITHOUT saving (offered when
+  // the exit is blocked by an invalid card). Leaves to the same place a normal
+  // exit would, but touches neither the saved cards nor the intro flag.
+  function discardCardAndExit() {
+    const cc = state.cardCreation || {};
+    const returnPatch = cc.returnScreen === "myCards"
+      ? { screen: "myCards" }
+      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+    setState({
+      ...returnPatch,
+      cardCreation: null,
+      workspace: createDefaultWorkspace(),
+      infoDialog: null
     }, false);
   }
 
@@ -6812,12 +6854,31 @@
 
     if (chapter.id === "chapter-4") return openWorkspace();
 
+    setState({ panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+  }
+
+  // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
+  // worktable — but once PAST that worktable (i.e. inside the von Neumann
+  // monologue) it becomes the next-tasks worktable that closes the monologue,
+  // so skipping the monologue moves the plot forward rather than back to the
+  // original worktable.
+  function skipTargetPanelIndex() {
     const scene = currentScene();
-    // Skip lands on the chapter's hub. In 2.4 that is the worktable, which is no
-    // longer the last panel (the von Neumann beat follows it), so target it by name.
+    if (!scene) return 0;
     const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
-    const target = worktableIndex >= 0 ? worktableIndex : scene.panels.length - 1;
-    setState({ panelIndex: target, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+    const nextWorktableIndex = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
+    if (worktableIndex >= 0 && nextWorktableIndex >= 0 && state.panelIndex > worktableIndex) {
+      return nextWorktableIndex;
+    }
+    if (worktableIndex >= 0) return worktableIndex;
+    return Math.max(scene.panels.length - 1, 0);
+  }
+
+  // Whether the learner has already reached the panel the skip shortcut targets.
+  function skipTargetReached() {
+    const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
+    const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
+    return max >= skipTargetPanelIndex();
   }
 
   function toggleSound() {
@@ -8065,6 +8126,7 @@
     if (action === "solution-toggle-table") return setState({ solutionTableHidden: !state.solutionTableHidden }, false);
     if (action === "create-card-tool") return enterCardCreation(); // the bubble + tool share this
     if (action === "card-creation-back") return exitCardCreation();
+    if (action === "card-discard-exit") return discardCardAndExit();
     if (action === "my-cards") {
       if (!myCardsEnabled()) return;
       return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "myCards" });
