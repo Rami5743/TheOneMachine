@@ -501,6 +501,10 @@
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
     maxChapterReached: 0,
+    // Furthest story-panel index reached, keyed by scene id. Drives the
+    // step-by-step skip gate: skip is disabled until the target panel has been
+    // reached, then stays enabled (even after going back within the chapter).
+    maxPanelReached: {},
     workspace: createDefaultWorkspace()
   };
 
@@ -1213,6 +1217,15 @@
     if (chapterIdx > (Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0)) {
       state.maxChapterReached = chapterIdx;
     }
+    // Track the furthest story panel reached per scene (drives the step-by-step
+    // skip gate). Only story panels advance it, never workbench/menu screens.
+    if (state.screen === "story" && Number.isInteger(state.panelIndex) && typeof state.sceneId === "string") {
+      const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
+      const prev = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
+      if (state.panelIndex > prev) {
+        state.maxPanelReached = { ...reached, [state.sceneId]: state.panelIndex };
+      }
+    }
     saveState();
     render();
     if (shouldSpeak) speakCurrent();
@@ -1708,6 +1721,23 @@
     return skipTargetPanelIndex() === state.panelIndex;
   }
 
+  // Whether the learner has already reached what the STORY skip targets. Once
+  // reached it stays reached (going back within the chapter re-enables skip):
+  //  - past this chapter entirely → reached;
+  //  - part-1: skip jumps to the next chapter → reached once that chapter opens;
+  //  - otherwise (panel-based): the furthest story panel is at/after the target
+  //    (for 2.1 the target is the workbench launch panel).
+  function skipTargetReached() {
+    const chapter = currentChapter();
+    const idx = chapterIndexById(chapter?.id);
+    const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
+    if (maxChapter > idx) return true;
+    if (chapter?.partId === "part-1") return false;
+    const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
+    const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
+    return max >= skipTargetPanelIndex();
+  }
+
   function isSkipDisabled() {
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
@@ -1716,8 +1746,10 @@
     // A skip that leads nowhere (worktable notes, the closing wordless slide) is
     // hidden in every mode.
     if (skipLeadsNowhere()) return true;
-    // First pass through a chapter in step-by-step mode: no skipping ahead.
-    if (stepFirstVisit()) return true;
+    // Step-by-step: no skipping AHEAD to a target not yet reached. Once the
+    // target has been reached the shortcut is available again (e.g. after going
+    // back through the chapter's opening).
+    if (isStepByStepPace() && !skipTargetReached()) return true;
 
     if (chapter?.partId === "part-1") return false;
     if (chapter?.id === "chapter-4") return false;
@@ -1787,6 +1819,8 @@
   }
 
   function explanationUnlocked(id) {
+    // In "see everything" mode every explanation is available from the start.
+    if (!isStepByStepPace()) return Boolean(explanationItem(id));
     return Array.isArray(state.explanationsUnlocked) && state.explanationsUnlocked.includes(id);
   }
 
@@ -4055,6 +4089,22 @@
     );
   }
 
+  // The inline XOR-hint "דלג" jumps to the chapter's last panel, so in step-by-
+  // step mode it is disabled until that panel (or a later chapter) has been
+  // reached — the same rule as the story skip.
+  function inlineXorHintSkipDisabled() {
+    if (!isStepByStepPace()) return false;
+    const returnTo = state.hintSlides?.returnTo || {};
+    const chapter = chapterById(returnTo.chapterId || "chapter-6");
+    const scene = SCENES[returnTo.sceneId] || sceneByChapter(chapter);
+    const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
+    if (maxChapter > chapterIndexById(chapter.id)) return false;
+    const lastPanelIndex = Math.max(scene.panels.length - 1, 0);
+    const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
+    const max = Number.isInteger(reached[scene.id]) ? reached[scene.id] : -1;
+    return max < lastPanelIndex;
+  }
+
   function hintSlidesList() {
     if (!state.hintSlides) return [];
     const allSlides = state.hintSlides.taskId === "Xor" ? XOR_HINT_SLIDES : [];
@@ -4081,6 +4131,7 @@
 
   function skipInlineXorHintToChapterLastPanel() {
     if (!postTasksXorHintSlidesActive()) return closeHintSlides();
+    if (inlineXorHintSkipDisabled()) return;
 
     const returnTo = state.hintSlides?.returnTo || {};
     const chapter = chapterById(returnTo.chapterId || "chapter-6");
@@ -4124,7 +4175,7 @@
           ${navButton("hint-slides-prev", "arrow-right", explanationReplayActive("truth-table-cards") && index === 0 ? "חזרה לתפריט ההסברים" : "הקודם")}
           ${navButton("hint-slides-replay", "restart", "הקרא שוב")}
           ${inlineChapterHint
-            ? `<button class="btn" data-action="hint-slides-skip-to-chapter-last" type="button">דלג</button>`
+            ? `<button class="btn" data-action="hint-slides-skip-to-chapter-last" type="button" ${inlineXorHintSkipDisabled() ? "disabled" : ""}>דלג</button>`
             : (explanationReplayActive("truth-table-cards")
               ? `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`
               : `<button class="btn" data-action="hint-slides-close" type="button">דלג</button>`)}
@@ -6904,6 +6955,12 @@
   function skipTargetPanelIndex() {
     const scene = currentScene();
     if (!scene) return 0;
+    // 2.1 (chapter-4): skip opens the NAND workbench, whose story trigger is the
+    // launch panel — that is the point the learner must reach for the shortcut.
+    if (currentChapter()?.id === "chapter-4") {
+      const launch = workspaceLaunchPanelIndex(scene);
+      return Number.isInteger(launch) && launch >= 0 ? launch : Math.max(scene.panels.length - 1, 0);
+    }
     const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
     const nextWorktableIndex = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
     const lastIndex = Math.max(scene.panels.length - 1, 0);
