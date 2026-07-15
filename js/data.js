@@ -658,6 +658,44 @@ const SCENES = {
       {
         "image": "assets/panels/panel99f_chapter_2_4_fermi.svg",
         "read": "פון נוימן: הנה המשימות שלך. אני צריך לפגוש את אנריקו פרמי, הוא בדיוק הגיע משיקגו. עכשיו הם צריכים להעתיק את הכור שהוא בנה שם לכאן, ובקנה מידה גדול יותר."
+      },
+      {
+        "image": "assets/panels/panel99g_chapter_2_4_worktable_next.svg",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "buses-note",
+            "ariaLabel": "לחץ על הפתק",
+            "left": 14,
+            "top": 58,
+            "width": 17,
+            "height": 15
+          },
+          {
+            "action": "return-to-nand-dialog",
+            "ariaLabel": "הקש על NAND",
+            "left": 39,
+            "top": 59,
+            "width": 18,
+            "height": 24
+          },
+          {
+            "action": "buses-crate-right",
+            "ariaLabel": "האגף הימני של הארגז החדש",
+            "left": 47,
+            "top": 40,
+            "width": 8,
+            "height": 12
+          },
+          {
+            "action": "buses-crate-left",
+            "ariaLabel": "האגף השמאלי של הארגז החדש",
+            "left": 55,
+            "top": 40,
+            "width": 8,
+            "height": 12
+          }
+        ]
       }
     ]
   }

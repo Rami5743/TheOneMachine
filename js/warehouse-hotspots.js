@@ -72,6 +72,7 @@
     if (stem === "panel87_simple_gates_worktable") return "chapter-5";
     if (stem === "panel93_chapter_2_3_worktable") return "chapter-6";
     if (stem === "panel99_chapter_2_4_worktable") return "chapter-7";
+    if (stem === "panel99g_chapter_2_4_worktable_next") return "chapter-7";
     return null;
   }
 
@@ -237,10 +238,14 @@
   function openFreeWorkspace(kind = "chapter-5") {
     const state = readState();
     const target = FREE_WORKSPACE[kind] || FREE_WORKSPACE["chapter-5"];
+    // Return to the worktable the learner actually opened the table from — the
+    // original OR the next-tasks worktable (chapter 2.4 has both) — not a fixed
+    // panel index. The table hotspot is only shown while on a worktable panel.
+    const returnPanel = Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex;
     state.screen = "workspace";
     state.chapterId = target.chapterId;
     state.sceneId = target.sceneId;
-    state.panelIndex = target.panelIndex;
+    state.panelIndex = returnPanel;
     state.dialog = null;
     state.taskDialog = null;
     state.notTest = null;

@@ -430,10 +430,6 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
-    // Set once von Neumann's monologue (after MUX16) has played through. From
-    // then on the worktable note shows the next set of tasks (Dmux4way,
-    // Mux4way16) instead of the completed bus-task list.
-    multiBitTasksUnlocked: false,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -4673,12 +4669,13 @@
     if (isWorkspaceLaunchPoint()) return openWorkspace();
 
     // At the end of von Neumann's monologue (the Fermi "here are your tasks"
-    // slide), "המשך" leads back to the worktable so the learner keeps building,
-    // not onward out of the chapter.
+    // slide), "המשך" leads to the NEXT-tasks worktable — a separate panel that
+    // looks like the worktable but whose note lists Dmux4way / Mux4way16. The
+    // original worktable (reached by replaying the chapter) keeps its own note.
     if (state.screen === "story" && isMonologueEndPanel(currentPanel())) {
-      const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
-      if (worktableIndex >= 0) {
-        return setState({ panelIndex: worktableIndex, started: true, replayNonce: state.replayNonce + 1, dialog: null, multiBitTasksUnlocked: true }, true);
+      const nextWorktable = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
+      if (nextWorktable >= 0) {
+        return setState({ panelIndex: nextWorktable, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
       }
     }
 
@@ -5622,9 +5619,16 @@
     { id: "Mux4way16", requires: "Dmux4way" }
   ];
 
+  // The next-tasks worktable (post-monologue) shows the multi-bit task list; the
+  // original worktable keeps the bus-task list. Keyed off which panel we're on,
+  // so replaying the chapter naturally shows the original note.
+  function onNextTasksWorktable() {
+    return state.screen === "story" && panelImageIs(currentPanel(), "panel99g_chapter_2_4_worktable_next.svg");
+  }
+
   function renderBusesNoteList() {
     if (!state.busesNoteList) return "";
-    const body = state.multiBitTasksUnlocked
+    const body = onNextTasksWorktable()
       ? `
           <ol class="note-task-list buses-note-list">
             ${MULTIBIT_TASKS.map((task) => {
