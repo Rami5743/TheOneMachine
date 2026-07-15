@@ -439,7 +439,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "step";
+  const DEFAULT_PACE = "all";
 
   const defaultState = {
     screen: "menu",
@@ -1711,13 +1711,24 @@
     return chapterIndexById(state.chapterId) >= maxChapter;
   }
 
+  // The 2.4 closing monologue (the "go to sleep / library" slides after the
+  // next-tasks worktable) leads into chapter 2.5, so its skip jumps to the next
+  // chapter rather than to a panel in this scene.
+  function busesClosingMonologue() {
+    if (state.screen !== "story" || state.sceneId !== "buses") return false;
+    const g = panelIndexByImage(currentScene(), "panel99g_chapter_2_4_worktable_next.svg");
+    return g >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex > g;
+  }
+
   // A skip that would leave the learner on the very same panel does nothing, so
   // its button is hidden. Only the panel-based skips (part-2 story scenes) can be
-  // no-ops — part-1 jumps to the next chapter and chapter-4 opens the workbench.
+  // no-ops — part-1 jumps to the next chapter, chapter-4 opens the workbench, and
+  // the 2.4 closing monologue jumps to chapter 2.5.
   function skipLeadsNowhere() {
     if (state.screen !== "story") return false;
     const chapter = currentChapter();
     if (chapter?.partId === "part-1" || chapter?.id === "chapter-4") return false;
+    if (busesClosingMonologue()) return false;
     return skipTargetPanelIndex() === state.panelIndex;
   }
 
@@ -1733,6 +1744,9 @@
     const maxChapter = Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0;
     if (maxChapter > idx) return true;
     if (chapter?.partId === "part-1") return false;
+    // The 2.4 closing monologue skips to chapter 2.5 — reached only once that
+    // chapter has been visited (handled by the maxChapter check above).
+    if (busesClosingMonologue()) return false;
     const reached = (state.maxPanelReached && typeof state.maxPanelReached === "object") ? state.maxPanelReached : {};
     const max = Number.isInteger(reached[state.sceneId]) ? reached[state.sceneId] : -1;
     const target = skipTargetPanelIndex();
@@ -6956,6 +6970,12 @@
     }
 
     if (chapter.id === "chapter-4") return openWorkspace();
+
+    // The 2.4 closing monologue leads into chapter 2.5 — skip jumps there.
+    if (busesClosingMonologue()) {
+      const nextChapter = CHAPTERS[chapterIndex + 1];
+      if (nextChapter) return openChapter(nextChapter.id);
+    }
 
     const patch = { panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null };
     // Skipping the 2.4 opening also skips examining the new bus and splitter, so

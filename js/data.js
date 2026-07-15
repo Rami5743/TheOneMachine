@@ -56,6 +56,12 @@ const CHAPTERS = [
     "partId": "part-2",
     "title": "2.4 בסים",
     "sceneId": "buses"
+  },
+  {
+    "id": "chapter-8",
+    "partId": "part-2",
+    "title": "2.5 אריתמטיקה",
+    "sceneId": "arithmetic"
   }
 ];
 
@@ -707,6 +713,22 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel99j_chapter_2_4_night.svg",
+        "read": ""
+      }
+    ]
+  },
+  "arithmetic": {
+    "id": "arithmetic",
+    "type": "story",
+    "chapterId": "chapter-8",
+    "year": "1943",
+    "panels": [
+      {
+        "image": "assets/panels/panel100_chapter_2_5_library.svg",
+        "read": ""
+      },
+      {
+        "image": "assets/panels/panel101_chapter_2_5_library_inside.svg",
         "read": ""
       }
     ]
