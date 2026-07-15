@@ -266,6 +266,9 @@ function createTaskModeView({
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
     if (typeof isMultibitTaskWorkspace === "function" && isMultibitTaskWorkspace()) {
+      // During the solution walkthrough the solution dialog carries the text, so
+      // the requirements panel steps aside.
+      if (state.solutionDialog) return "";
       const mbDef = typeof multibitTaskDefById === "function" ? multibitTaskDefById(state.workspace?.taskId) : null;
       if (!mbDef) return "";
       // Collapsible, click-through requirements panel (same UX as the MUX/DMUX

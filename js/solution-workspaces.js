@@ -834,7 +834,81 @@ function createSolutionWorkspaces({
     return busSolutionWorkspace("MUX16", components, wires);
   }
 
+  // Dmux4way: split the 2-bit control bus; a DMUX tree routes the input — the
+  // first DMUX (control = MSB / "first bit") picks the pair of outputs, and a
+  // second DMUX in each branch (control = LSB) picks within the pair.
+  function dmux4waySolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Dmux4way"), x: 640, y: 288 },
+      { id: "ctrl-split", type: "splitter", x: 545, y: 150, mirrored: false, outputs: 2, width: 1 },
+      { id: "dmux-a", type: "gate-DMux", x: 590, y: 300 },
+      { id: "dmux-b", type: "gate-DMux", x: 775, y: 205 },
+      { id: "dmux-c", type: "gate-DMux", x: 775, y: 395 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "dmux-a.in1"),
+      normalizeWire("ctrl-split.leg1", "dmux-a.in2"),
+      normalizeWire("dmux-a.out1", "dmux-b.in1"),
+      normalizeWire("dmux-a.out2", "dmux-c.in1"),
+      normalizeWire("ctrl-split.leg0", "dmux-b.in2"),
+      normalizeWire("ctrl-split.leg0", "dmux-c.in2"),
+      normalizeWire("dmux-b.out1", "task-card-1.outputInt1"),
+      normalizeWire("dmux-b.out2", "task-card-1.outputInt2"),
+      normalizeWire("dmux-c.out1", "task-card-1.outputInt3"),
+      normalizeWire("dmux-c.out2", "task-card-1.outputInt4")
+    ];
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Dmux4way", taskIntroSeen: true
+    });
+  }
+
+  // Mux4way16: split the 2-bit control bus; a MUX16 tree selects the output —
+  // two first-level MUX16 choose within each pair by the LSB, and a final
+  // MUX16 chooses between the pairs by the MSB ("first bit").
+  function mux4way16SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Mux4way16"), x: 640, y: 288 },
+      { id: "ctrl-split", type: "splitter", x: 520, y: 128, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux-lo", type: "gate-MUX16", x: 630, y: 205 },
+      { id: "mux-hi", type: "gate-MUX16", x: 630, y: 385 },
+      { id: "mux-fin", type: "gate-MUX16", x: 805, y: 295 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt5", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "mux-lo.in1"),
+      normalizeWire("task-card-1.inputInt2", "mux-lo.in2"),
+      normalizeWire("ctrl-split.leg0", "mux-lo.in3"),
+      normalizeWire("task-card-1.inputInt3", "mux-hi.in1"),
+      normalizeWire("task-card-1.inputInt4", "mux-hi.in2"),
+      normalizeWire("ctrl-split.leg0", "mux-hi.in3"),
+      normalizeWire("mux-lo.out", "mux-fin.in1"),
+      normalizeWire("mux-hi.out", "mux-fin.in2"),
+      normalizeWire("ctrl-split.leg1", "mux-fin.in3"),
+      normalizeWire("mux-fin.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Mux4way16", taskIntroSeen: true
+    });
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
+    if (taskId === "Dmux4way") return dmux4waySolutionFrom();
+    if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
     if (taskId === "Not16") return step >= 3 ? not16DirectSolutionFrom() : not16SolutionWorkspaceFrom();
     if (taskId === "AND4") return and4SolutionWorkspaceFrom();

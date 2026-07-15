@@ -3520,6 +3520,96 @@
           ]
         }
       }
+    ],
+    Dmux4way: [
+      {
+        text: "קודם מפצלים את בס הבקרה לשני הביטים שלו בעזרת מפצל.",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt2", "ctrl-split.single", "ctrl-split.leg0", "ctrl-split.leg1"],
+          wires: [wireKey("task-card-1.inputInt2", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "מחברים DMUX ראשון: הכניסה הרגילה נכנסת אליו, וכניסת הבקרה שלו היא הביט הראשון (זה שבוחר בין הזוגות). כך הכניסה נשלחת לזוג היציאות הנכון.",
+        highlight: {
+          components: ["dmux-a"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg1", "dmux-a.in1", "dmux-a.in2", "dmux-a.out1", "dmux-a.out2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "dmux-a.in1"),
+            wireKey("ctrl-split.leg1", "dmux-a.in2")
+          ]
+        }
+      },
+      {
+        text: "כל אחת משתי היציאות של ה-DMUX הראשון מובילה לזוג יציאות אחר. מחברים לכל אחת מהן DMUX נוסף שכניסת הבקרה שלו היא הביט השני, והוא בוחר בתוך הזוג.",
+        highlight: {
+          components: ["dmux-b", "dmux-c"],
+          terminals: ["dmux-a.out1", "dmux-a.out2", "dmux-b.in1", "dmux-b.in2", "dmux-c.in1", "dmux-c.in2"],
+          wires: [
+            wireKey("dmux-a.out1", "dmux-b.in1"),
+            wireKey("dmux-a.out2", "dmux-c.in1"),
+            wireKey("ctrl-split.leg0", "dmux-b.in2"),
+            wireKey("ctrl-split.leg0", "dmux-c.in2")
+          ]
+        }
+      },
+      {
+        text: "ארבע היציאות של שני ה-DMUX-ים האחרונים הן ארבע היציאות של הכרטיס.",
+        highlight: {
+          terminals: ["dmux-b.out1", "dmux-b.out2", "dmux-c.out1", "dmux-c.out2", "task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4"],
+          wires: [
+            wireKey("dmux-b.out1", "task-card-1.outputInt1"),
+            wireKey("dmux-b.out2", "task-card-1.outputInt2"),
+            wireKey("dmux-c.out1", "task-card-1.outputInt3"),
+            wireKey("dmux-c.out2", "task-card-1.outputInt4")
+          ]
+        }
+      }
+    ],
+    Mux4way16: [
+      {
+        text: "קודם מפצלים את בס הבקרה לשני הביטים שלו בעזרת מפצל.",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt5", "ctrl-split.single", "ctrl-split.leg0", "ctrl-split.leg1"],
+          wires: [wireKey("task-card-1.inputInt5", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "בעזרת MUX16 בוחרים בין שתי הכניסות הראשונות לפי הביט השני של הבקרה, וכך גם בין שתי הכניסות האחרונות בעזרת MUX16 נוסף.",
+        highlight: {
+          components: ["mux-lo", "mux-hi"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "mux-lo.in1", "mux-lo.in2", "mux-lo.in3", "mux-hi.in1", "mux-hi.in2", "mux-hi.in3"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "mux-lo.in1"),
+            wireKey("task-card-1.inputInt2", "mux-lo.in2"),
+            wireKey("ctrl-split.leg0", "mux-lo.in3"),
+            wireKey("task-card-1.inputInt3", "mux-hi.in1"),
+            wireKey("task-card-1.inputInt4", "mux-hi.in2"),
+            wireKey("ctrl-split.leg0", "mux-hi.in3")
+          ]
+        }
+      },
+      {
+        text: "עכשיו יש שתי אפשרויות ליציאה. בעזרת MUX16 נוסף בוחרים ביניהן לפי הביט הראשון של הבקרה.",
+        highlight: {
+          components: ["mux-fin"],
+          terminals: ["mux-lo.out", "mux-hi.out", "mux-fin.in1", "mux-fin.in2", "mux-fin.in3"],
+          wires: [
+            wireKey("mux-lo.out", "mux-fin.in1"),
+            wireKey("mux-hi.out", "mux-fin.in2"),
+            wireKey("ctrl-split.leg1", "mux-fin.in3")
+          ]
+        }
+      },
+      {
+        text: "היציאה של ה-MUX16 האחרון היא היציאה של הכרטיס.",
+        highlight: {
+          terminals: ["mux-fin.out", "task-card-1.outputInt"],
+          wires: [wireKey("mux-fin.out", "task-card-1.outputInt")]
+        }
+      }
     ]
   };
 
@@ -5715,10 +5805,9 @@
       muxTableSnapshot = null;
       clearNotTestTimer();
 
-      // Multi-bit routing tasks (chapter 2.5): mark complete and return to the
-      // next-tasks worktable with the note reopened (so the next task unlocks).
-      if (multibitTaskDefById(taskId)) return finishMultibitTask(taskId);
-
+      // Multi-bit routing tasks (chapter 2.5), like the bus tasks, show their
+      // solution walkthrough on success; finishing it completes the task and
+      // returns to the next-tasks worktable (see finishSolutionDialog).
       if (["Not", "And", "Or", "Xor", "AND3way", "OR4way"].includes(taskId) || busTaskDefById(taskId) || taskHasSolutionWalkthrough(taskId)) return showTaskSolution(taskId, { completeOnClose: true });
 
       const completedTasks = taskId && !taskCompleted(taskId)
@@ -5739,33 +5828,13 @@
     setState({ notTest: null }, false);
   }
 
-  // Complete a multi-bit routing task and return to the next-tasks worktable
-  // with the note reopened. Shared by the check-success path and the developer
-  // shortcut.
-  function finishMultibitTask(taskId) {
-    const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
-    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
-    const completedTasks = taskId && !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
-    return setState({
-      ...storyTarget(chapterById(returnChapterId), returnPanelIndex),
-      taskDialog: null,
-      solutionDialog: null,
-      notTest: null,
-      hintDialog: null,
-      muxTable: null,
-      completedTasks,
-      busesNoteList: true,
-      workspace: createDefaultWorkspace(),
-      replayNonce: state.replayNonce + 1
-    }, true);
-  }
-
   function showTaskSolution(taskId, options = {}) {
     const routing = isRoutingTask(taskId);
     const bus = Boolean(busTaskDefById(taskId));
-    const chapter = (routing || bus) ? chapterById(bus ? "chapter-7" : "chapter-6") : simpleGatesChapter();
+    const multibit = Boolean(multibitTaskDefById(taskId));
+    const chapter = (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6") : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus) {
+    if (routing || bus || multibit) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -5909,30 +5978,14 @@
       label: "DMUX4WAY",
       kind: "dmux4way",
       requires: null,
-      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
-      hints: [
-        "תתחיל מלפצל את בס הבקרה לשני הביטים שלו.",
-        "הביט הראשון של כניסת הבקרה בוחר לאיזה זוג יציאות צריך \"לחבר\" את הכניסה.",
-        "תנסה להשתמש ב-DMUX כדי לשלוח את הכניסה לכיוון זוג היציאות שמתוך אחת מהן היא תצטרך לצאת. תחשוב באיזה ביט בקרה אתה משתמש בשביל זה.",
-        "מחברים את ה-DMUX הראשון.",
-        "נניח שה-DMUX בחר בזוג הראשון. איך מחליטים לאן לשלוח את הכניסה? אולי תשתמש בעוד DMUX?"
-      ]
+      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית."
     },
     {
       id: "Mux4way16",
       label: "MUX4WAY16",
       kind: "mux4way16",
       requires: "Dmux4way",
-      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
-      hints: [
-        "תתחיל מלפצל את בס הבקרה לשני הביטים שלו.",
-        "הביט הראשון של כניסת הבקרה בוחר מאיזה זוג כניסות תבחר הכניסה אותה צריך \"לחבר\" ליציאה.",
-        "תניחו שהביט הראשון של כניסת הבקרה הוא 0. תבנו רכיב שנותן את היציאה הנדרשת במקרה הזה. אל תחברו אותו בינתיים ליציאה.",
-        "אתם מתקשים ליצור רכיב כזה? אתם יכולים להשתמש ב-MUX16.",
-        "תניחו שהביט הראשון של כניסת הבקרה הוא 1. תבנו רכיב שנותן את היציאה הנדרשת במקרה הזה. אל תחברו אותו בינתיים ליציאה.",
-        "קיבלתם 2 אפשרויות ליציאה, אבל רק אחת מהן נכונה. איך בוחרים ביניהן?",
-        "אתם יכולים להשתמש שוב ב-MUX16."
-      ]
+      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית."
     }
   ];
 
@@ -5989,8 +6042,9 @@
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
 
-    // Bus tasks (chapter 2.4): back to the worktable with the note reopened.
-    if (busTaskDefById(taskId)) {
+    // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
+    // with the note reopened (so the next task unlocks).
+    if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
       return setState({
@@ -6093,7 +6147,7 @@
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
     const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
-    if (isRoutingTask(taskId) || busTaskDefById(taskId)) {
+    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
       // The rebuilt solution workspace must keep the worktable return target.
       nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
       if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
