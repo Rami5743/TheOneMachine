@@ -431,10 +431,16 @@
     busesEquipmentSeen: [],
     busesNoteList: false,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
-    // createCardUnlocked persists (the tool stays in the palette); createCardBubble
-    // is the transient one-time speech bubble that points at it.
+    // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
+    // drives the one-time scripted moment right after MUX16: the "new card" speech
+    // bubble is shown, the next click anywhere in the workbench opens the card page
+    // with its explainer, and dismissing the explainer ("הבנתי") continues the plot
+    // (the von Neumann beat). It persists so a page reload mid-sequence keeps it.
     createCardUnlocked: false,
-    createCardBubble: false,
+    cardIntroPending: false,
+    // Set once the von Neumann beat has played, so the scripted moment never
+    // re-arms after the learner has been through it.
+    cardIntroDone: false,
     cardCreation: null,
     // User-built cards, saved locally. Each: { type:"usercard-<n>", name,
     // inputs:[width…], outputs:[width…], logic:{components,wires} }. They become
@@ -443,9 +449,6 @@
     savedCards: [],
     nextSavedCardId: 1,
     myCardsIntroSeen: false,
-    // The one-time "you can add inputs/outputs…" explainer shown the FIRST time
-    // the learner ever opens the card-building page.
-    cardCreationIntroSeen: false,
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
     maxChapterReached: 0,
@@ -677,6 +680,12 @@
   // returns to the workbench rather than the warehouse.
   if (["story", "workspace", "nandBuildHelp"].includes(state.screen) && !state.resumeScreen) {
     state.resumeScreen = state.screen;
+  }
+  // Re-arm the scripted card-intro moment for anyone who unlocked the card tool
+  // but has not yet been through the von Neumann beat (covers states saved before
+  // this sequence existed).
+  if (state.createCardUnlocked && !state.cardIntroDone && !state.cardIntroPending) {
+    state.cardIntroPending = true;
   }
   // Re-register from the loaded state (covers defaults) so the toolbar and board
   // recognise every saved card from the first render.
@@ -1038,7 +1047,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, createCardBubble: false, cardCreation: null, cardDeleteConfirm: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, workspace };
   }
 
   function stateForStorage() {
@@ -2164,10 +2173,11 @@
   // The one-time speech bubble that points at the freshly-revealed "create card"
   // tool in the palette (after the MUX16 walkthrough). Dismissed with "הבנתי".
   function renderCreateCardBubble() {
-    if (!state.createCardBubble || !state.createCardUnlocked) return "";
+    if (!state.cardIntroPending || !state.createCardUnlocked || state.cardCreation) return "";
     const text = "הי, אתה יכול ללחוץ עליי כדי ליצור כרטיס חדש, שתוכל להשתמש בו בכרטיסים האחרים שאתה בונה.";
-    // A comic speech bubble (like the NAND monologue), with no button — clicking
-    // it does whatever clicking the tool does (not implemented yet).
+    // A comic speech bubble (like the NAND monologue). While it is up, a click
+    // anywhere in the workbench opens the card-building page (see the click
+    // dispatcher) — the bubble itself is just the visual cue.
     return `
       <div class="create-card-bubble" role="button" tabindex="0" data-action="create-card-tool" aria-label="יצירת כרטיס חדש">
         <p>${esc(adaptGender(text))}</p>
@@ -4190,7 +4200,6 @@
     const returnPanelIndex = Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0);
     setState({
       screen: "workspace",
-      createCardBubble: false,
       workspace: createCardBuildWorkspace(returnChapterId, returnPanelIndex),
       cardCreation: {
         name: "כרטיס חדש",
@@ -4230,7 +4239,7 @@
     // and the stored wires to them survive normalization.
     state.cardCreation = cc;
     const workspace = createCardBuildWorkspace(returnChapterId, returnPanelIndex, card.logic);
-    setState({ screen: "workspace", createCardBubble: false, workspace, cardCreation: cc }, false);
+    setState({ screen: "workspace", workspace, cardCreation: cc }, false);
   }
 
   // The names already taken by the built-in cards/gates — a new card may not
@@ -4324,9 +4333,9 @@
     }, false);
   }
 
-  // The one-off story beat shown the FIRST time the learner opens the
-  // card-building page: on "הבנתי" we leave the table and cut to von Neumann
-  // catching them "playing instead of working", then the plot continues.
+  // The one-off story beat at the end of the scripted card-intro moment: on
+  // "הבנתי" we leave the table and cut to von Neumann catching the learner
+  // "playing instead of working", then the plot continues.
   const VON_NEUMANN_PLAY_PANEL = "panel99b_chapter_2_4_von_neumann.svg";
   function dismissCardCreationIntro() {
     const cc = state.cardCreation || {};
@@ -4335,10 +4344,11 @@
     const scene = sceneByChapter(chapter);
     const panelIndex = panelIndexByImage(scene, VON_NEUMANN_PLAY_PANEL);
     // If the panel is missing for any reason, just close the intro in place.
-    if (panelIndex < 0) return setState({ cardCreationIntroSeen: true }, false);
+    if (panelIndex < 0) return setState({ cardIntroPending: false, cardIntroDone: true }, false);
     setState({
       ...storyTarget(chapter, panelIndex),
-      cardCreationIntroSeen: true,
+      cardIntroPending: false,
+      cardIntroDone: true,
       cardCreation: null,
       workspace: createDefaultWorkspace()
     }, true);
@@ -4503,8 +4513,9 @@
   }
 
   function renderCardCreationIntro() {
-    // Shown only the first time the learner ever opens the card-building page.
-    if (state.cardCreationIntroSeen) return "";
+    // Shown only during the scripted post-MUX16 moment (cardIntroPending). Later
+    // openings of the card page (via the tool or "My cards") show no explainer.
+    if (!state.cardIntroPending) return "";
     return `
       <div class="card-creation-intro" role="dialog" aria-label="הסבר יצירת כרטיס">
         <p>אתה יכול להוסיף כניסות ויציאות. לחיצה כפולה על כל אחת מהן מאפשרת לך להפוך אותן לבס ברוחב שאתה רוצה.</p>
@@ -5680,7 +5691,7 @@
     const completedTasks = shouldComplete && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
-    setState({ solutionDialog: null, completedTasks, createCardUnlocked: true, createCardBubble: true }, false);
+    setState({ solutionDialog: null, completedTasks, createCardUnlocked: true, cardIntroPending: true }, false);
   }
 
   // Secret developer shortcut (Ctrl+Shift+Q): instantly mark the current
@@ -7325,6 +7336,20 @@
       suppressNextClick = false;
       event.preventDefault();
       return;
+    }
+
+    // Post-MUX16 scripted moment: while the "new card" bubble is up, ANY click in
+    // the workbench (but not the top nav bar) opens the card-building page and its
+    // explainer. Dismissing the explainer ("הבנתי") continues the plot.
+    if (
+      state.cardIntroPending &&
+      state.createCardUnlocked &&
+      state.screen === "workspace" &&
+      !state.cardCreation &&
+      !event.target.closest(".topbar")
+    ) {
+      event.preventDefault();
+      return enterCardCreation();
     }
 
     const button = event.target.closest("[data-action]");
