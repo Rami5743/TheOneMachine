@@ -1932,6 +1932,13 @@ button { font: inherit; }
   pointer-events: none;
 }
 
+/* Multi-bit task requirements: just the text (no scratch table), so keep it
+   narrower than the MUX panel while staying click-through so the card's lower
+   output pins underneath remain reachable. */
+.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-multibit {
+  width: min(360px, calc(100% - 32px));
+}
+
 .workspace-task-hint-mux .mux-hint-table {
   flex: 0 0 auto;
   pointer-events: auto;

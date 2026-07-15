@@ -813,7 +813,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -848,7 +848,8 @@
   // Task-building UI (shell/intro/hint/check) lives in js/task-mode-view.js.
   const __taskModeView = createTaskModeView({
     getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, busCheckDisplayRow, taskInputYs, solutionHighlightConfig,
-    isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive
+    isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive,
+    multibitTaskDefById, isMultibitTaskWorkspace, renderMultibitTaskShell
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
   const renderWorkspaceTaskIntro = (...a) => __taskModeView.renderWorkspaceTaskIntro(...a);
@@ -899,7 +900,63 @@
   }
 
   function isNotTaskWorkspace() {
-    return Boolean(taskDefById(workspaceTaskId())) || isBusTaskWorkspace();
+    return Boolean(taskDefById(workspaceTaskId())) || isBusTaskWorkspace() || isMultibitTaskWorkspace();
+  }
+
+  // Chapter 2.5 multi-bit routing tasks (Dmux4way / Mux4way16). Their card is
+  // built inside a frame like the bus tasks, but with a different I/O shape, so
+  // they get their own shell and check harness.
+  function multibitTaskDefById(id) {
+    return MULTIBIT_TASKS.find((task) => task.id === id) || null;
+  }
+  function isMultibitTaskWorkspace() {
+    return state.screen === "workspace" && Boolean(multibitTaskDefById(state.workspace?.taskId));
+  }
+
+  // The frame shell for a multi-bit routing task: a rounded rectangle around the
+  // card with a stub for every pin (thin cable for width 1, bus bar + width for
+  // wider), drawn from the frame's pin offsets. The control bus pokes out the top.
+  function renderMultibitTaskShell() {
+    const def = multibitTaskDefById(state.workspace?.taskId);
+    if (!def) return "";
+    const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(def.id)];
+    if (!frameDef) return "";
+    const card = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+    const cx = Number.isFinite(card?.x) ? card.x : 640;
+    const cy = Number.isFinite(card?.y) ? card.y : 288;
+    const frameLeft = cx - 300;
+    const frameTop = cy - 210;
+    const frameW = 600;
+    const frameH = 420;
+    const hStub = (edgeX, ax, y, w, labelX) => (w > 1
+      ? `<line class="workspace-task-shell-bus" x1="${edgeX}" y1="${y}" x2="${ax}" y2="${y}" />
+         <line class="workspace-task-shell-bus-stripe" x1="${edgeX + (ax > edgeX ? 4 : -4)}" y1="${y}" x2="${ax - (ax > edgeX ? 4 : -4)}" y2="${y}" />
+         <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${w}</text>`
+      : `<line class="workspace-task-shell-pin" x1="${edgeX}" y1="${y}" x2="${ax}" y2="${y}" />`);
+    let stubs = "";
+    for (const [pinId, pin] of Object.entries(frameDef.pins)) {
+      if (!pinId.includes("Ext")) continue; // one stub per external pin
+      const ax = cx + pin.x;
+      const ay = cy + pin.y;
+      const w = pin.width || 1;
+      if (pin.y < -150) {
+        // Control bus poking out the top.
+        stubs += `<line class="workspace-task-shell-bus" x1="${ax}" y1="${frameTop}" x2="${ax}" y2="${ay}" />
+          <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${frameTop - 3}" x2="${ax}" y2="${ay + 3}" />
+          <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
+          <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`;
+      } else {
+        const edgeX = pin.x < 0 ? frameLeft : frameLeft + frameW;
+        const labelX = pin.x < 0 ? edgeX - 20 : edgeX + 20;
+        stubs += hStub(edgeX, ax, ay, w, labelX);
+      }
+    }
+    return `
+      <g class="workspace-task-shell" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="${frameLeft}" y="${frameTop}" width="${frameW}" height="${frameH}" rx="18" />
+        <text class="workspace-task-shell-title" x="${cx}" y="${frameTop - 10}" text-anchor="middle">${esc(def.label)}</text>
+        ${stubs}
+      </g>`;
   }
 
   // A chapter 2.4 bus-card build workspace (Not4 etc.). Kept separate from the
@@ -5637,10 +5694,15 @@
     const task = MULTIBIT_TASKS.find((t) => t.id === id);
     if (!task) return;
     // A later task is locked until its predecessor is built.
-    if (task.requires) return setState({ infoDialog: `קודם צריך לבנות את ${task.requires}` });
-    // The available task shows its requirements. (The build workspace itself is
-    // the next piece of work.)
-    return setState({ infoDialog: task.requirements });
+    if (task.requires && !taskCompleted(task.requires)) {
+      return setState({ infoDialog: `קודם צריך לבנות את ${task.requires}` });
+    }
+    // A completed task reopens its solution walkthrough; an unbuilt one opens the
+    // build workspace.
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openMultibitTaskWorkspace(task.id);
   }
 
   function handleBusNoteTask(index) {
@@ -5669,6 +5731,8 @@
   const MULTIBIT_TASKS = [
     {
       id: "Dmux4way",
+      label: "DMUX4WAY",
+      kind: "dmux4way",
       requires: null,
       requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
       hints: [
@@ -5681,6 +5745,8 @@
     },
     {
       id: "Mux4way16",
+      label: "MUX4WAY16",
+      kind: "mux4way16",
       requires: "Dmux4way",
       requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
       hints: [
@@ -5708,10 +5774,11 @@
       ? `
           <ol class="note-task-list buses-note-list">
             ${MULTIBIT_TASKS.map((task) => {
-              const locked = Boolean(task.requires);
+              const completed = taskCompleted(task.id);
+              const locked = Boolean(task.requires) && !taskCompleted(task.requires);
               return `
-                <li class="${locked ? "task-locked" : ""}">
-                  <span class="note-task-check" aria-hidden="true"></span>
+                <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+                  <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
                   <button class="note-task-button" data-action="multibit-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.id)}</button>
                 </li>`;
             }).join("")}
@@ -6325,6 +6392,53 @@
         { id: "task-card-1", type: taskCardComponentType(def.id), x: 640, y: 288 },
         // The check's single voltage source, pre-placed opposite the card's
         // centre. The space to its right is left free for the input splitter.
+        { id: "source-1", type: "source", x: 65, y: 288 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: def.id,
+      taskIntroSeen: false
+    };
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      busesNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Open the build workbench for a multi-bit routing task (Dmux4way / Mux4way16).
+  // Mirrors openBusTaskWorkspace: the task-card frame sits right of centre with a
+  // single voltage source pre-placed on the left; the learner builds the card's
+  // internals inside the frame. Returning lands back on the worktable note.
+  function openMultibitTaskWorkspace(taskId) {
+    const def = multibitTaskDefById(taskId);
+    if (!def) return;
+    const chapter = chapterById("chapter-7");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(def.id), x: 640, y: 288 },
         { id: "source-1", type: "source", x: 65, y: 288 }
       ],
       wires: [],

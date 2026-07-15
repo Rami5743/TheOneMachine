@@ -21,7 +21,10 @@ function createTaskModeView({
   solutionHighlightConfig,
   isNotTaskWorkspace,
   workspaceTaskIntroActive,
-  notTestActive
+  notTestActive,
+  multibitTaskDefById,
+  isMultibitTaskWorkspace,
+  renderMultibitTaskShell
 }) {
   function busDefFor() {
     const state = getState();
@@ -132,6 +135,9 @@ function createTaskModeView({
   function renderWorkspaceTaskShell() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
+    if (typeof isMultibitTaskWorkspace === "function" && isMultibitTaskWorkspace()) {
+      return typeof renderMultibitTaskShell === "function" ? renderMultibitTaskShell() : "";
+    }
     const busDef = busDefFor();
     if (busDef) return renderBusTaskShell(busDef);
     const task = taskDefById(state.workspace?.taskId);
@@ -259,6 +265,27 @@ function createTaskModeView({
   function renderNotTaskHint() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
+    if (typeof isMultibitTaskWorkspace === "function" && isMultibitTaskWorkspace()) {
+      const mbDef = typeof multibitTaskDefById === "function" ? multibitTaskDefById(state.workspace?.taskId) : null;
+      if (!mbDef) return "";
+      // Collapsible, click-through requirements panel (same UX as the MUX/DMUX
+      // build): the card's output pins sit in the lower-right, under the panel,
+      // so it must let clicks fall through and be hideable to reach them.
+      const hidden = Boolean(state.requirementsPanelHidden);
+      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>`;
+      if (hidden) {
+        return `
+          <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(mbDef.label)}">
+            ${toggle}
+            <span class="requirements-title">דרישות כרטיס ה-${esc(mbDef.label)}</span>
+          </section>`;
+      }
+      return `
+        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit" aria-label="דרישות ${esc(mbDef.label)}">
+          ${toggle}
+          <div class="mux-hint-text"><p>${esc(adaptGender(mbDef.requirements || ""))}</p></div>
+        </section>`;
+    }
     const busDef = busDefFor();
     if (busDef) {
       // Bus tasks: the requirements text, plus — while a check is running — a

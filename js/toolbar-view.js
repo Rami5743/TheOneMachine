@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, createCardToolAvailable, savedCardTools }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable, savedCardTools }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -54,7 +54,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       { type: "source", label: "מקור מתח" },
       // The splitter is available on the free "empty table" and in the chapter
       // 2.4 bus-task builds (where it is needed to split the input bus).
-      ...((isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : [])
+      ...((isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : [])
     ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
