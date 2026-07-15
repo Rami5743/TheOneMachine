@@ -4174,12 +4174,12 @@
         <section class="controls">
           ${navButton("hint-slides-prev", "arrow-right", explanationReplayActive("truth-table-cards") && index === 0 ? "חזרה לתפריט ההסברים" : "הקודם")}
           ${navButton("hint-slides-replay", "restart", "הקרא שוב")}
+          ${navButton("hint-slides-next", "arrow-left", "המשך", { primary: true })}
           ${inlineChapterHint
             ? `<button class="btn" data-action="hint-slides-skip-to-chapter-last" type="button" ${inlineXorHintSkipDisabled() ? "disabled" : ""}>דלג</button>`
             : (explanationReplayActive("truth-table-cards")
               ? `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`
               : `<button class="btn" data-action="hint-slides-close" type="button">דלג</button>`)}
-          ${navButton("hint-slides-next", "arrow-left", "המשך", { primary: true })}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
