@@ -2487,7 +2487,7 @@
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
-          <button class="btn" data-action="skip" ${routingFinalPanelActive() ? "disabled" : skipDisabled}>דלג</button>
+          ${skipLeadsNowhere() ? "" : `<button class="btn" data-action="skip" ${routingFinalPanelActive() ? "disabled" : skipDisabled}>דלג</button>`}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -3901,9 +3901,14 @@
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
-    // A preference variant SVG (_girl/_young/_older) reuses the base panel's
-    // raster, so strip that suffix before deriving the shared .jpg.
-    return clean.endsWith(".svg") ? clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ".jpg") : clean;
+    if (!clean.endsWith(".svg")) return clean;
+    // Comic panels embed a .jpg raster; the hint slides (assets/hints/…) embed a
+    // .webp. Derive the right one so the preload/readiness signal points at the
+    // file the SVG actually loads (a wrong guess 404s and can stall the slide).
+    // A preference variant SVG (_girl/_young/_older) reuses the base raster, so
+    // strip that suffix first.
+    const ext = clean.includes("/hints/") ? ".webp" : ".jpg";
+    return clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ext);
   }
 
   function preloadAssetUrl(url) {
@@ -6944,7 +6949,12 @@
 
     if (chapter.id === "chapter-4") return openWorkspace();
 
-    setState({ panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+    const patch = { panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null };
+    // Skipping the 2.4 opening also skips examining the new bus and splitter, so
+    // mark them seen — otherwise the worktable's tasks note stays locked behind
+    // "קודם תבדוק את כל הציוד".
+    if (chapter.id === "chapter-7") patch.busesEquipmentSeen = ["bus", "splitter"];
+    setState(patch, true);
   }
 
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
