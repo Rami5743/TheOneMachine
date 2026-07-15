@@ -41,13 +41,13 @@
       bounds: { left: 74, right: 74, top: 96, bottom: 96 }
     },
     notCard: {
-      label: "מסגרת NOT",
+      label: "מסגרת Not",
       fixed: true,
       pins: {
-        inputExt: { x: -340, y: 0, direction: "in", label: "כניסת NOT חיצונית" },
-        inputInt: { x: -260, y: 0, direction: "out", label: "כניסת NOT פנימית" },
-        outputInt: { x: 260, y: 0, direction: "in", label: "יציאת NOT פנימית" },
-        outputExt: { x: 340, y: 0, direction: "out", label: "יציאת NOT חיצונית" }
+        inputExt: { x: -340, y: 0, direction: "in", label: "כניסת Not חיצונית" },
+        inputInt: { x: -260, y: 0, direction: "out", label: "כניסת Not פנימית" },
+        outputInt: { x: 260, y: 0, direction: "in", label: "יציאת Not פנימית" },
+        outputExt: { x: 340, y: 0, direction: "out", label: "יציאת Not חיצונית" }
       },
       bounds: { left: 340, right: 340, top: 190, bottom: 190 }
     }
@@ -156,14 +156,14 @@
           // internal stub (x=-300 → board 200). The control (top) already pokes
           // out above the frame. The output on the RIGHT likewise pokes out
           // (x=375 → board 875, frame edge at 850).
-          inputExt1: { x: -375, y: -100, direction: "in", label: "כניסת MUX 1 חיצונית" },
-          inputInt1: { x: -325, y: -100, direction: "out", label: "כניסת MUX 1 פנימית" },
-          inputExt2: { x: -375, y: 100, direction: "in", label: "כניסת MUX 2 חיצונית" },
-          inputInt2: { x: -325, y: 100, direction: "out", label: "כניסת MUX 2 פנימית" },
+          inputExt1: { x: -375, y: -100, direction: "in", label: "כניסת Mux 1 חיצונית" },
+          inputInt1: { x: -325, y: -100, direction: "out", label: "כניסת Mux 1 פנימית" },
+          inputExt2: { x: -375, y: 100, direction: "in", label: "כניסת Mux 2 חיצונית" },
+          inputInt2: { x: -325, y: 100, direction: "out", label: "כניסת Mux 2 פנימית" },
           inputExt3: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
           inputInt3: { x: -200, y: -208, direction: "out", label: "כניסת בקרה פנימית" },
-          outputInt: { x: 300, y: 0, direction: "in", label: "יציאת MUX פנימית" },
-          outputExt: { x: 375, y: 0, direction: "out", label: "יציאת MUX חיצונית" }
+          outputInt: { x: 300, y: 0, direction: "in", label: "יציאת Mux פנימית" },
+          outputExt: { x: 375, y: 0, direction: "out", label: "יציאת Mux חיצונית" }
         },
         bounds: { left: 380, right: 380, top: 270, bottom: 240 }
       };
@@ -181,14 +181,14 @@
         fixed: true,
         taskId: dmux.id,
         pins: {
-          inputExt1: { x: -375, y: 0, direction: "in", label: "כניסת DMUX חיצונית" },
-          inputInt1: { x: -325, y: 0, direction: "out", label: "כניסת DMUX פנימית" },
+          inputExt1: { x: -375, y: 0, direction: "in", label: "כניסת DMux חיצונית" },
+          inputInt1: { x: -325, y: 0, direction: "out", label: "כניסת DMux פנימית" },
           inputExt2: { x: -200, y: -248, direction: "in", label: "כניסת בקרה חיצונית" },
           inputInt2: { x: -200, y: -208, direction: "out", label: "כניסת בקרה פנימית" },
-          outputInt1: { x: 300, y: -100, direction: "in", label: "יציאת DMUX 1 פנימית" },
-          outputExt1: { x: 375, y: -100, direction: "out", label: "יציאת DMUX 1 חיצונית" },
-          outputInt2: { x: 300, y: 100, direction: "in", label: "יציאת DMUX 2 פנימית" },
-          outputExt2: { x: 375, y: 100, direction: "out", label: "יציאת DMUX 2 חיצונית" }
+          outputInt1: { x: 300, y: -100, direction: "in", label: "יציאת DMux 1 פנימית" },
+          outputExt1: { x: 375, y: -100, direction: "out", label: "יציאת DMux 1 חיצונית" },
+          outputInt2: { x: 300, y: 100, direction: "in", label: "יציאת DMux 2 פנימית" },
+          outputExt2: { x: 375, y: 100, direction: "out", label: "יציאת DMux 2 חיצונית" }
         },
         bounds: { left: 380, right: 380, top: 270, bottom: 240 }
       };
@@ -200,27 +200,27 @@
   // on the left and the select at the top; the DMUX has one input on the left,
   // the select at the top, and two outputs on the right.
   WORKSPACE_COMPONENT_DEFS["gate-Mux"] = {
-    label: "MUX",
+    label: "Mux",
     taskId: "Mux",
     gate: true,
     pins: {
-      in1: { x: -62, y: -23, direction: "in", label: "כניסת MUX 1" },
-      in2: { x: -62, y: 23, direction: "in", label: "כניסת MUX 2" },
-      in3: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של MUX" },
-      out: { x: 66, y: 0, direction: "out", label: "יציאת MUX" }
+      in1: { x: -62, y: -23, direction: "in", label: "כניסת Mux 1" },
+      in2: { x: -62, y: 23, direction: "in", label: "כניסת Mux 2" },
+      in3: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של Mux" },
+      out: { x: 66, y: 0, direction: "out", label: "יציאת Mux" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-DMux"] = {
-    label: "DMUX",
+    label: "DMux",
     taskId: "DMux",
     gate: true,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", label: "כניסת DMUX" },
-      in2: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של DMUX" },
-      out1: { x: 66, y: -23, direction: "out", label: "יציאת DMUX 1" },
-      out2: { x: 66, y: 23, direction: "out", label: "יציאת DMUX 2" }
+      in1: { x: -62, y: 0, direction: "in", label: "כניסת DMux" },
+      in2: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של DMux" },
+      out1: { x: 66, y: -23, direction: "out", label: "יציאת DMux 1" },
+      out2: { x: 66, y: 23, direction: "out", label: "יציאת DMux 2" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
@@ -339,7 +339,7 @@
     const or16Pins = {};
     Object.entries(baseOr16 ? baseOr16.pins : {}).forEach(([pinId, pin]) => { or16Pins[pinId] = { ...pin }; });
     WORKSPACE_COMPONENT_DEFS["gate-OR16"] = {
-      label: "OR16", gate: true, busGate: true, busWidth: 16, op: "Or", inputs: 2,
+      label: "Or16", gate: true, busGate: true, busWidth: 16, op: "Or", inputs: 2,
       pins: or16Pins,
       bounds: baseOr16 ? { ...baseOr16.bounds } : { left: 84, right: 84, top: 62, bottom: 62 }
     };
@@ -349,7 +349,7 @@
   // Dmux4way: one regular input (left) + a 2-bit control bus (top) route the
   // input to one of FOUR regular outputs (right); the other three are 0.
   WORKSPACE_COMPONENT_DEFS["taskCard-Dmux4way"] = {
-    label: "מסגרת DMUX4WAY",
+    label: "מסגרת DMux4Way",
     fixed: true,
     taskId: "Dmux4way",
     routingMultibit: true,
@@ -373,7 +373,7 @@
   // Mux4way16: FOUR 16-bit data inputs (left) + a 2-bit control bus (top) select
   // which data input passes to the single 16-bit output (right).
   WORKSPACE_COMPONENT_DEFS["taskCard-Mux4way16"] = {
-    label: "מסגרת MUX4WAY16",
+    label: "מסגרת Mux4Way16",
     fixed: true,
     taskId: "Mux4way16",
     routingMultibit: true,
@@ -636,7 +636,7 @@
         if (!Array.isArray(steps)) continue;
         for (const st of steps) {
           if (!st || typeof st.text !== "string") continue;
-          if (st.text.includes("NOT הוא בעצם NAND")) add(st.text, ["שים לב", "שימי לב"]);
+          if (st.text.includes("Not הוא בעצם NAND")) add(st.text, ["שים לב", "שימי לב"]);
           if (st.text.includes("להשתמש בכרטיס הזה גם עם 3 כניסות")) add(st.text, ["שים לב", "שימי לב"], ["אתה יכול", "את יכולה"], ["אתה לא חייב", "את לא חייבת"]);
         }
       }
@@ -2736,7 +2736,7 @@
         }
       },
       {
-        text: "מפעילים NOT על כל אחד מ-4 הכבלים בנפרד.",
+        text: "מפעילים Not על כל אחד מ-4 הכבלים בנפרד.",
         highlight: {
           components: ["not-0", "not-1", "not-2", "not-3"],
           wires: [
@@ -2772,7 +2772,7 @@
         }
       },
       {
-        text: "מפעילים NOT4 על כל אחד מ-4 הבסים.",
+        text: "מפעילים Not4 על כל אחד מ-4 הבסים.",
         highlight: {
           components: ["not4-0", "not4-1", "not4-2", "not4-3"],
           wires: [
@@ -2799,7 +2799,7 @@
         }
       },
       {
-        text: "אפשר כמובן גם לעשות את זה ישירות עם NOT. זה גם דומה ל-NOT4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
+        text: "אפשר כמובן גם לעשות את זה ישירות עם Not. זה גם דומה ל-Not4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
         highlight: {
           components: ["split-in", "merge", ...Array.from({ length: 16 }, (_, i) => `not-${i}`)]
         }
@@ -2818,7 +2818,7 @@
         }
       },
       {
-        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-AND.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-And.",
         highlight: {
           components: ["and-0", "and-1", "and-2", "and-3"],
           wires: [
@@ -2855,7 +2855,7 @@
         }
       },
       {
-        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-OR.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-Or.",
         highlight: {
           components: ["or-0", "or-1", "or-2", "or-3"],
           wires: [
@@ -2880,21 +2880,21 @@
         }
       },
       {
-        text: "אפשר גם לממש את OR4 בדיוק כמו שמימשנו את OR הרגיל. נזכיר: OR שקול ל-NOT של AND על שתי הכניסות ההפוכות. קודם מבצעים NOT4 לכל אחת משתי הכניסות.",
+        text: "אפשר גם לממש את Or4 בדיוק כמו שמימשנו את Or הרגיל. נזכיר: Or שקול ל-Not של And על שתי הכניסות ההפוכות. קודם מבצעים Not4 לכל אחת משתי הכניסות.",
         highlight: {
           components: ["not-a", "not-b"],
           wires: [wireKey("task-card-1.inputInt1", "not-a.in1"), wireKey("task-card-1.inputInt2", "not-b.in1")]
         }
       },
       {
-        text: "מכניסים את שתי התוצאות ל-AND4.",
+        text: "מכניסים את שתי התוצאות ל-And4.",
         highlight: {
           components: ["and-1"],
           wires: [wireKey("not-a.out", "and-1.in1"), wireKey("not-b.out", "and-1.in2")]
         }
       },
       {
-        text: "ומבצעים NOT4 על התוצאה. זה בדיוק אותו רעיון כמו במימוש המקורי של OR, רק שהפעם הכול קורה על בסים ברוחב 4.",
+        text: "ומבצעים Not4 על התוצאה. זה בדיוק אותו רעיון כמו במימוש המקורי של Or, רק שהפעם הכול קורה על בסים ברוחב 4.",
         highlight: {
           components: ["not-out"],
           terminals: ["task-card-1.outputInt"],
@@ -2915,7 +2915,7 @@
         }
       },
       {
-        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-AND4.",
+        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-And4.",
         highlight: {
           components: ["and4-0", "and4-1", "and4-2", "and4-3"],
           wires: [
@@ -2940,7 +2940,7 @@
         }
       },
       {
-        text: "אפשר כמובן גם לעשות את זה ישירות עם AND. זה גם דומה ל-AND4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
+        text: "אפשר כמובן גם לעשות את זה ישירות עם And. זה גם דומה ל-And4, רק צריך לפצל ל-16 חלקים במקום ל-4. זה הרבה יותר מסורבל.",
         highlight: {
           components: ["split-a", "split-b", "merge", ...Array.from({ length: 16 }, (_, i) => `and-${i}`)]
         }
@@ -2959,7 +2959,7 @@
         }
       },
       {
-        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-MUX, ומחברים את כניסת הבקרה לכל אחד מה-MUX-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
+        text: "מחברים כל שני כבלים מתאימים (אחד מכל כניסה) ל-Mux, ומחברים את כניסת הבקרה לכל אחד מה-Mux-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
         highlight: {
           components: ["mux-0", "mux-1", "mux-2", "mux-3"],
           wires: [
@@ -2984,7 +2984,7 @@
         }
       },
       {
-        text: "אפשר גם לעשות את זה כמו שבונים מוקס רגיל, רק להשתמש ב-AND4, OR4, NOT4 במקום ב-And, OR, NOT."
+        text: "אפשר גם לעשות את זה כמו שבונים מוקס רגיל, רק להשתמש ב-And4, Or4, Not4 במקום ב-And, Or, Not."
       },
       {
         text: "מתחילים מלשכפל את כניסת הבקרה ולארוז את כל העותקים שלה יחד.",
@@ -2998,7 +2998,7 @@
         }
       },
       {
-        text: "זה יאפשר לנו להשתמש בה בכרטיסים AND4, OR4, NOT4 כך שהיא תשפיע על כל ביט בנפרד.",
+        text: "זה יאפשר לנו להשתמש בה בכרטיסים And4, Or4, Not4 כך שהיא תשפיע על כל ביט בנפרד.",
         highlight: {
           components: ["ctrl-merge"],
           terminals: ["task-card-1.inputInt3", "ctrl-merge.single"],
@@ -3009,28 +3009,28 @@
         }
       },
       {
-        text: "מבצעים NOT4 על בס הבקרה כדי לקבל את ההפך שלו.",
+        text: "מבצעים Not4 על בס הבקרה כדי לקבל את ההפך שלו.",
         highlight: {
           components: ["not4-c"],
           wires: [wireKey("ctrl-merge.single", "not4-c.in1")]
         }
       },
       {
-        text: "עושים AND4 בין הכניסה הראשונה לבס הבקרה ההפוך. כך הכניסה הראשונה עוברת רק כשהבקרה היא 0.",
+        text: "עושים And4 בין הכניסה הראשונה לבס הבקרה ההפוך. כך הכניסה הראשונה עוברת רק כשהבקרה היא 0.",
         highlight: {
           components: ["and-1"],
           wires: [wireKey("not4-c.out", "and-1.in1"), wireKey("task-card-1.inputInt1", "and-1.in2")]
         }
       },
       {
-        text: "ו-AND4 בין הכניסה השנייה לבס הבקרה עצמו. כך הכניסה השנייה עוברת רק כשהבקרה היא 1.",
+        text: "ו-And4 בין הכניסה השנייה לבס הבקרה עצמו. כך הכניסה השנייה עוברת רק כשהבקרה היא 1.",
         highlight: {
           components: ["and-2"],
           wires: [wireKey("ctrl-merge.single", "and-2.in1"), wireKey("task-card-1.inputInt2", "and-2.in2")]
         }
       },
       {
-        text: "מאחדים את שתי התוצאות ב-OR4 ומוציאים אותן מהכרטיס.",
+        text: "מאחדים את שתי התוצאות ב-Or4 ומוציאים אותן מהכרטיס.",
         highlight: {
           components: ["or-1"],
           terminals: ["task-card-1.outputInt"],
@@ -3051,7 +3051,7 @@
         }
       },
       {
-        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-MUX4, ומחברים את כניסת הבקרה לכל אחד מה-MUX4-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
+        text: "מחברים כל שני בסים מתאימים (אחד מכל כניסה) ל-Mux4, ומחברים את כניסת הבקרה לכל אחד מה-Mux4-ים כדי שכולם יבחרו לפי אותו ביט בקרה.",
         highlight: {
           components: ["mux4-0", "mux4-1", "mux4-2", "mux4-3"],
           wires: [
@@ -3076,7 +3076,7 @@
         }
       },
       {
-        text: "גם כאן אפשר לחזור על המימוש המקורי של MUX, אבל הפעם עם AND16, NOT16, OR16 במקום ב-AND, NOT, OR. בשביל זה יהיה צורך לבנות את OR16, שהוא לא אחת מהמשימות.",
+        text: "גם כאן אפשר לחזור על המימוש המקורי של Mux, אבל הפעם עם And16, Not16, OR16 במקום ב-And, Not, Or. בשביל זה יהיה צורך לבנות את OR16, שהוא לא אחת מהמשימות.",
         revealCreateCard: true,
         highlight: {
           components: ["or16-1"]
@@ -3096,13 +3096,13 @@
         }
       },
       {
-        text: "היציאה שלו היא 0 (בלי מתח) רק אם 2 הכניסות הן 1 (עם מתח). זה בדיוק המקרה היחיד שבו הכרטיס AND צריך להוציא 1.",
+        text: "היציאה שלו היא 0 (בלי מתח) רק אם 2 הכניסות הן 1 (עם מתח). זה בדיוק המקרה היחיד שבו הכרטיס And צריך להוציא 1.",
         highlight: {
           terminals: ["nand-1.out"]
         }
       },
       {
-        text: "לכן אנחנו מחברים את היציאה של ה־NAND ל־NOT.",
+        text: "לכן אנחנו מחברים את היציאה של ה־NAND ל־Not.",
         highlight: {
           terminals: ["nand-1.out", "not-1.in1"],
           wires: [wireKey("nand-1.out", "not-1.in1")],
@@ -3110,7 +3110,7 @@
         }
       },
       {
-        text: "היציאה שלו היא בדיוק מה שאנחנו צריכים. לכן אנחנו מוציאים אותה החוצה מכל הכרטיס AND.",
+        text: "היציאה שלו היא בדיוק מה שאנחנו צריכים. לכן אנחנו מוציאים אותה החוצה מכל הכרטיס And.",
         highlight: {
           terminals: ["not-1.out", "task-card-1.outputInt"],
           wires: [wireKey("not-1.out", "task-card-1.outputInt")],
@@ -3120,13 +3120,13 @@
     ],
     Or: [
       {
-        text: "אנחנו צריכים לבדוק האם שתי הכניסות הן 0 ורק במקרה הזה להוציא 0. AND עושה בדיוק את ההפך: הוא בודק אם שתי הכניסות הן 1 ורק במקרה הזה מוציא 1.",
+        text: "אנחנו צריכים לבדוק האם שתי הכניסות הן 0 ורק במקרה הזה להוציא 0. And עושה בדיוק את ההפך: הוא בודק אם שתי הכניסות הן 1 ורק במקרה הזה מוציא 1.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"]
         }
       },
       {
-        text: "לכן אנחנו הופכים את שתי הכניסות על ידי NOT-ים.",
+        text: "לכן אנחנו הופכים את שתי הכניסות על ידי Not-ים.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "not-1.in1", "not-2.in1"],
           wires: [
@@ -3137,7 +3137,7 @@
         }
       },
       {
-        text: "ואז אנחנו מכניסים אותם ל־AND.",
+        text: "ואז אנחנו מכניסים אותם ל־And.",
         highlight: {
           terminals: ["not-1.out", "not-2.out", "and-1.in1", "and-1.in2"],
           wires: [
@@ -3155,7 +3155,7 @@
         }
       },
       {
-        text: "לכן אנחנו מבצעים NOT נוסף.",
+        text: "לכן אנחנו מבצעים Not נוסף.",
         highlight: {
           terminals: ["and-1.out", "not-3.in1"],
           wires: [wireKey("and-1.out", "not-3.in1")],
@@ -3172,7 +3172,7 @@
         }
       },
       {
-        text: "שים לב, שהשילוב בין ה־AND ל־NOT הוא בעצם NAND.",
+        text: "שים לב, שהשילוב בין ה־And ל־Not הוא בעצם NAND.",
         highlight: {
           components: ["and-1", "not-3"],
           terminals: ["and-1.out", "not-3.in1", "not-3.out"]
@@ -3197,14 +3197,14 @@
         }
       },
       {
-        text: "עוד דרך לחשוב על הפתרון הזה היא שגם NAND וגם OR מוציאים 0 רק במקרה אחד. ההבדל ביניהם הוא שאצל OR המקרה הזה הוא כששתי הכניסות הן 0, ואצל NAND המקרה הזה הוא כששתי הכניסות הן 1. ה־NOT-ים בהתחלה מחליפים בין המקרים.",
+        text: "עוד דרך לחשוב על הפתרון הזה היא שגם NAND וגם Or מוציאים 0 רק במקרה אחד. ההבדל ביניהם הוא שאצל Or המקרה הזה הוא כששתי הכניסות הן 0, ואצל NAND המקרה הזה הוא כששתי הכניסות הן 1. ה־Not-ים בהתחלה מחליפים בין המקרים.",
         highlight: {
           components: ["not-1", "not-2"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "not-1.in1", "not-2.in1", "not-1.out", "not-2.out"]
         }
       },
       {
-        text: "כך אנו יכולים לעשות OR באמצעות NAND.",
+        text: "כך אנו יכולים לעשות Or באמצעות NAND.",
         highlight: {
           components: ["not-1", "not-2", "nand-1"],
           wires: [
@@ -3219,7 +3219,7 @@
     ],
     AND3way: [
       {
-        text: "כדי לבדוק ששלוש הכניסות הן 1, נתחיל משתי הכניסות הראשונות. נחבר אותן ל־AND.",
+        text: "כדי לבדוק ששלוש הכניסות הן 1, נתחיל משתי הכניסות הראשונות. נחבר אותן ל־And.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "and-1.in1", "and-1.in2"],
           wires: [
@@ -3230,14 +3230,14 @@
         }
       },
       {
-        text: "היציאה של ה־AND הראשון היא 1 רק אם שתי הכניסות הראשונות הן 1.",
+        text: "היציאה של ה־And הראשון היא 1 רק אם שתי הכניסות הראשונות הן 1.",
         highlight: {
           terminals: ["and-1.out"],
           components: ["and-1"]
         }
       },
       {
-        text: "עכשיו נשאר לבדוק שגם הכניסה השלישית היא 1. לכן נחבר את היציאה של ה־AND הראשון ואת הכניסה השלישית ל־AND נוסף.",
+        text: "עכשיו נשאר לבדוק שגם הכניסה השלישית היא 1. לכן נחבר את היציאה של ה־And הראשון ואת הכניסה השלישית ל־And נוסף.",
         highlight: {
           terminals: ["and-1.out", "task-card-1.inputInt3", "and-2.in1", "and-2.in2"],
           wires: [
@@ -3248,7 +3248,7 @@
         }
       },
       {
-        text: "היציאה של ה־AND השני היא 1 רק אם שתי הכניסות שלו הן 1, כלומר רק אם שלוש הכניסות המקוריות הן 1. לכן נוציא אותה החוצה מהכרטיס.",
+        text: "היציאה של ה־And השני היא 1 רק אם שתי הכניסות שלו הן 1, כלומר רק אם שלוש הכניסות המקוריות הן 1. לכן נוציא אותה החוצה מהכרטיס.",
         highlight: {
           terminals: ["and-2.out", "task-card-1.outputInt"],
           wires: [wireKey("and-2.out", "task-card-1.outputInt")],
@@ -3258,7 +3258,7 @@
     ],
     OR4way: [
       {
-        text: "בפתרון הראשון נתחיל משתי הכניסות הראשונות. נחבר את הכניסות 1 ו־2 ל־OR.",
+        text: "בפתרון הראשון נתחיל משתי הכניסות הראשונות. נחבר את הכניסות 1 ו־2 ל־Or.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "or-ab.in1", "or-ab.in2"],
           wires: [
@@ -3269,14 +3269,14 @@
         }
       },
       {
-        text: "היציאה של ה־OR הראשון היא 1 אם הכניסה הראשונה היא 1 או שהכניסה השנייה היא 1.",
+        text: "היציאה של ה־Or הראשון היא 1 אם הכניסה הראשונה היא 1 או שהכניסה השנייה היא 1.",
         highlight: {
           terminals: ["or-ab.out"],
           components: ["or-ab"]
         }
       },
       {
-        text: "עכשיו נוסיף את הכניסה השלישית. נחבר את התוצאה שקיבלנו ואת הכניסה השלישית ל־OR נוסף. הוא מוציא 1 אם לפחות אחת משלוש הכניסות הראשונות היא 1.",
+        text: "עכשיו נוסיף את הכניסה השלישית. נחבר את התוצאה שקיבלנו ואת הכניסה השלישית ל־Or נוסף. הוא מוציא 1 אם לפחות אחת משלוש הכניסות הראשונות היא 1.",
         highlight: {
           terminals: ["or-ab.out", "task-card-1.inputInt3", "or-abc.in1", "or-abc.in2"],
           wires: [
@@ -3287,7 +3287,7 @@
         }
       },
       {
-        text: "לבסוף נוסיף את הכניסה הרביעית באותה דרך. נחבר את התוצאה הקודמת ואת הכניסה הרביעית ל־OR אחרון, ואת היציאה שלו נוציא החוצה.",
+        text: "לבסוף נוסיף את הכניסה הרביעית באותה דרך. נחבר את התוצאה הקודמת ואת הכניסה הרביעית ל־Or אחרון, ואת היציאה שלו נוציא החוצה.",
         buttonLabel: "פתרון נוסף",
         highlight: {
           terminals: ["or-abc.out", "task-card-1.inputInt4", "or-final.in1", "or-final.in2", "or-final.out", "task-card-1.outputInt"],
@@ -3307,7 +3307,7 @@
         }
       },
       {
-        text: "ה־OR העליון בודק את שתי הכניסות הראשונות.",
+        text: "ה־Or העליון בודק את שתי הכניסות הראשונות.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "or-left.in1", "or-left.in2", "or-left.out"],
           wires: [
@@ -3318,7 +3318,7 @@
         }
       },
       {
-        text: "ה־OR התחתון בודק את שתי הכניסות האחרונות.",
+        text: "ה־Or התחתון בודק את שתי הכניסות האחרונות.",
         highlight: {
           terminals: ["task-card-1.inputInt3", "task-card-1.inputInt4", "or-right.in1", "or-right.in2", "or-right.out"],
           wires: [
@@ -3329,7 +3329,7 @@
         }
       },
       {
-        text: "עכשיו נחבר את שתי התוצאות ל־OR אחרון. אם אחד מהזוגות הכיל 1, היציאה הסופית תהיה 1.",
+        text: "עכשיו נחבר את שתי התוצאות ל־Or אחרון. אם אחד מהזוגות הכיל 1, היציאה הסופית תהיה 1.",
         highlight: {
           terminals: ["or-left.out", "or-right.out", "or-final.in1", "or-final.in2", "or-final.out", "task-card-1.outputInt"],
           wires: [
@@ -3371,7 +3371,7 @@
         }
       },
       {
-        text: "הכרטיס XOR צריך להוציא 1 רק אם החלק הראשון מוציא 1 והשני 0.",
+        text: "הכרטיס Xor צריך להוציא 1 רק אם החלק הראשון מוציא 1 והשני 0.",
         highlight: {
           terminals: ["or-1.out", "and-raw.out"],
           components: ["or-1", "and-raw"]
@@ -3412,7 +3412,7 @@
         }
       },
       {
-        text: "שוב, השילוב בין ה־AND ל־NOT הוא בעצם NAND.",
+        text: "שוב, השילוב בין ה־And ל־Not הוא בעצם NAND.",
         highlight: {
           components: ["and-raw", "not-1"],
           terminals: ["and-raw.out", "not-1.in1", "not-1.out"]
@@ -3487,7 +3487,7 @@
         highlight: {}
       },
       {
-        text: "יציאה 1 היא הכניסה כאשר הבקרה 0 — כלומר הכניסה וגם (לא בקרה). הופכים את הבקרה עם NOT ומבצעים AND עם הכניסה.",
+        text: "יציאה 1 היא הכניסה כאשר הבקרה 0 — כלומר הכניסה וגם (לא בקרה). הופכים את הבקרה עם Not ומבצעים And עם הכניסה.",
         highlight: {
           components: ["not-c", "and-1"],
           terminals: ["task-card-1.inputInt1", "not-c.out", "and-1.out"],
@@ -3500,7 +3500,7 @@
         }
       },
       {
-        text: "יציאה 2 היא הכניסה כאשר הבקרה 1 — כלומר הכניסה וגם הבקרה. פשוט AND בין הכניסה לבקרה.",
+        text: "יציאה 2 היא הכניסה כאשר הבקרה 1 — כלומר הכניסה וגם הבקרה. פשוט And בין הכניסה לבקרה.",
         highlight: {
           components: ["and-2"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "and-2.out"],
@@ -3514,7 +3514,7 @@
     ],
     Mux: [
       {
-        text: "לפי טבלת האמת יש 4 שורות שבהן הכרטיס צריך להוציא 1 (מסומנות). הרעיון הכללי — השיטה שג'ון לימד: לכל שורה כזאת בונים חלק שמוציא 1 בדיוק במקרה שלה, ובסוף מאחדים את כולם עם OR.",
+        text: "לפי טבלת האמת יש 4 שורות שבהן הכרטיס צריך להוציא 1 (מסומנות). הרעיון הכללי — השיטה שג'ון לימד: לכל שורה כזאת בונים חלק שמוציא 1 בדיוק במקרה שלה, ובסוף מאחדים את כולם עם Or.",
         highlight: { truthRows: [2, 3, 5, 7] }
       },
       {
@@ -3573,7 +3573,7 @@
         }
       },
       {
-        text: "בסוף מחברים את כל ארבעת החלקים ל־OR: אם אחד מהם מוציא 1, גם הכרטיס מוציא 1. זה פתרון שעובד תמיד, אבל אפשר לעשות אותו בצורה חסכונית יותר.",
+        text: "בסוף מחברים את כל ארבעת החלקים ל־Or: אם אחד מהם מוציא 1, גם הכרטיס מוציא 1. זה פתרון שעובד תמיד, אבל אפשר לעשות אותו בצורה חסכונית יותר.",
         buttonLabel: "פתרון נוסף",
         highlight: {
           components: ["or-final"],
@@ -3617,7 +3617,7 @@
         }
       },
       {
-        text: "כרגיל בסוף עושים OR לשתיהן.",
+        text: "כרגיל בסוף עושים Or לשתיהן.",
         highlight: {
           components: ["or-1"],
           terminals: ["and-1.out", "and-2.out", "or-1.out", "task-card-1.outputInt"],
@@ -3639,7 +3639,7 @@
         }
       },
       {
-        text: "מחברים DMUX ראשון: הכניסה הרגילה נכנסת אליו, וכניסת הבקרה שלו היא הביט הראשון (זה שבוחר בין הזוגות). כך הכניסה נשלחת לזוג היציאות הנכון.",
+        text: "מחברים DMux ראשון: הכניסה הרגילה נכנסת אליו, וכניסת הבקרה שלו היא הביט הראשון (זה שבוחר בין הזוגות). כך הכניסה נשלחת לזוג היציאות הנכון.",
         highlight: {
           components: ["dmux-a"],
           terminals: ["task-card-1.inputInt1", "ctrl-split.leg1", "dmux-a.in1", "dmux-a.in2", "dmux-a.out1", "dmux-a.out2"],
@@ -3650,7 +3650,7 @@
         }
       },
       {
-        text: "כל אחת משתי היציאות של ה-DMUX הראשון מובילה לזוג יציאות אחר. מחברים לכל אחת מהן DMUX נוסף שכניסת הבקרה שלו היא הביט השני, והוא בוחר בתוך הזוג.",
+        text: "כל אחת משתי היציאות של ה-DMux הראשון מובילה לזוג יציאות אחר. מחברים לכל אחת מהן DMux נוסף שכניסת הבקרה שלו היא הביט השני, והוא בוחר בתוך הזוג.",
         highlight: {
           components: ["dmux-b", "dmux-c"],
           terminals: ["dmux-a.out1", "dmux-a.out2", "dmux-b.in1", "dmux-b.in2", "dmux-c.in1", "dmux-c.in2"],
@@ -3663,7 +3663,7 @@
         }
       },
       {
-        text: "ארבע היציאות של שני ה-DMUX-ים האחרונים הן ארבע היציאות של הכרטיס.",
+        text: "ארבע היציאות של שני ה-DMux-ים האחרונים הן ארבע היציאות של הכרטיס.",
         highlight: {
           terminals: ["dmux-b.out1", "dmux-b.out2", "dmux-c.out1", "dmux-c.out2", "task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4"],
           wires: [
@@ -3685,7 +3685,7 @@
         }
       },
       {
-        text: "בעזרת MUX16 בוחרים בין שתי הכניסות הראשונות לפי הביט השני של הבקרה, וכך גם בין שתי הכניסות האחרונות בעזרת MUX16 נוסף.",
+        text: "בעזרת Mux16 בוחרים בין שתי הכניסות הראשונות לפי הביט השני של הבקרה, וכך גם בין שתי הכניסות האחרונות בעזרת Mux16 נוסף.",
         highlight: {
           components: ["mux-lo", "mux-hi"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "mux-lo.in1", "mux-lo.in2", "mux-lo.in3", "mux-hi.in1", "mux-hi.in2", "mux-hi.in3"],
@@ -3700,7 +3700,7 @@
         }
       },
       {
-        text: "עכשיו יש שתי אפשרויות ליציאה. בעזרת MUX16 נוסף בוחרים ביניהן לפי הביט הראשון של הבקרה.",
+        text: "עכשיו יש שתי אפשרויות ליציאה. בעזרת Mux16 נוסף בוחרים ביניהן לפי הביט הראשון של הבקרה.",
         highlight: {
           components: ["mux-fin"],
           terminals: ["mux-lo.out", "mux-hi.out", "mux-fin.in1", "mux-fin.in2", "mux-fin.in3"],
@@ -3712,7 +3712,7 @@
         }
       },
       {
-        text: "היציאה של ה-MUX16 האחרון היא היציאה של הכרטיס.",
+        text: "היציאה של ה-Mux16 האחרון היא היציאה של הכרטיס.",
         highlight: {
           terminals: ["mux-fin.out", "task-card-1.outputInt"],
           wires: [wireKey("mux-fin.out", "task-card-1.outputInt")]
@@ -3727,10 +3727,10 @@
     const task = taskDefById(taskId);
 
     if (taskId === "Not") {
-      const text = "אם בכניסה של ה־NOT יש מתח, הוא מגיע לשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND אין מתח. אם אין מתח בכניסה של ה־NOT, אין גם מתח בשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND יש מתח.";
+      const text = "אם בכניסה של ה־Not יש מתח, הוא מגיע לשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND אין מתח. אם אין מתח בכניסה של ה־Not, אין גם מתח בשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND יש מתח.";
       return `
         <div class="solution-overlay" role="presentation">
-          <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון NOT">
+          <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון Not">
             <h2>פתרון</h2>
             <p>${esc(text)}</p>
             <div class="solution-actions">
@@ -4087,7 +4087,7 @@
   function renderXorHintTruthTable(index) {
     const highlighted = xorHintHighlightedRows(index);
     return `
-      <section class="xor-hint-truth-table workspace-task-hint" aria-label="טבלת אמת של XOR">
+      <section class="xor-hint-truth-table workspace-task-hint" aria-label="טבלת אמת של Xor">
         <table class="workspace-task-hint-table">
           <thead>
             <tr>
@@ -4192,7 +4192,7 @@
         <section class="image-stage image-stage-no-year">
           <div class="image-frame">
             <div class="image-shell">
-              <object class="panel-image hint-slide-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="רמז XOR ${index + 1}" role="img"></object>
+              <object class="panel-image hint-slide-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="רמז Xor ${index + 1}" role="img"></object>
               ${renderXorHintTruthTable(index)}
             </div>
           </div>
@@ -4577,7 +4577,7 @@
   // The names already taken by the built-in cards/gates — a new card may not
   // reuse any of them (compared case-insensitively, trimmed).
   function builtInCardNames() {
-    const names = ["NAND", "OR16"];
+    const names = ["NAND", "Or16"];
     for (const t of TASK_DEFS) names.push(t.label);
     for (const t of ROUTING_TASK_DEFS) names.push(t.label);
     for (const t of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) names.push(t.label);
@@ -6082,7 +6082,8 @@
   function busTaskLockedMessage(id) {
     if (id === "MUX16") return "צריך קודם לבנות את שאר הכרטיסים.";
     const req = busTaskDefById(id)?.requires;
-    return req ? `צריך קודם לבנות את ${req}.` : "";
+    const reqLabel = req ? (busTaskDefById(req)?.label || req) : "";
+    return reqLabel ? `צריך קודם לבנות את ${reqLabel}.` : "";
   }
 
   // Which bus tasks have a real build workspace built.
@@ -6102,7 +6103,8 @@
     if (!task) return;
     // A later task is locked until its predecessor is built.
     if (task.requires && !taskCompleted(task.requires)) {
-      return setState({ infoDialog: `קודם צריך לבנות את ${task.requires}` });
+      const reqLabel = MULTIBIT_TASKS.find((t) => t.id === task.requires)?.label || task.requires;
+      return setState({ infoDialog: `קודם צריך לבנות את ${reqLabel}` });
     }
     // A completed task reopens its solution walkthrough; an unbuilt one opens the
     // build workspace.
@@ -6138,17 +6140,17 @@
   const MULTIBIT_TASKS = [
     {
       id: "Dmux4way",
-      label: "DMUX4WAY",
+      label: "DMux4Way",
       kind: "dmux4way",
       requires: null,
-      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
+      requirements: "ה-DMux4Way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
     },
     {
       id: "Mux4way16",
-      label: "MUX4WAY16",
+      label: "Mux4Way16",
       kind: "mux4way16",
       requires: "Dmux4way",
-      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
+      requirements: "ה-Mux4Way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
     }
   ];
 
@@ -6170,7 +6172,7 @@
               return `
                 <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
                   <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
-                  <button class="note-task-button" data-action="multibit-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.id)}</button>
+                  <button class="note-task-button" data-action="multibit-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
                 </li>`;
             }).join("")}
           </ol>`
