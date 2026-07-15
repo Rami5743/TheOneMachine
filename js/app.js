@@ -345,6 +345,55 @@
     };
   }
 
+  // ---- Multi-bit routing cards (chapter 2.5): Dmux4way & Mux4way16 ----------
+  // Dmux4way: one regular input (left) + a 2-bit control bus (top) route the
+  // input to one of FOUR regular outputs (right); the other three are 0.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Dmux4way"] = {
+    label: "מסגרת DMUX4WAY",
+    fixed: true,
+    taskId: "Dmux4way",
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 60, direction: "in", width: 1, label: "כניסה חיצונית" },
+      inputInt1: { x: -260, y: 60, direction: "out", width: 1, label: "כניסה פנימית" },
+      inputExt2: { x: -130, y: -250, direction: "in", width: 2, label: "כניסת בקרה חיצונית" },
+      inputInt2: { x: -130, y: -180, direction: "out", width: 2, label: "כניסת בקרה פנימית" },
+      outputInt1: { x: 260, y: -135, direction: "in", width: 1, label: "יציאה 1 פנימית" },
+      outputExt1: { x: 340, y: -135, direction: "out", width: 1, label: "יציאה 1 חיצונית" },
+      outputInt2: { x: 260, y: -45, direction: "in", width: 1, label: "יציאה 2 פנימית" },
+      outputExt2: { x: 340, y: -45, direction: "out", width: 1, label: "יציאה 2 חיצונית" },
+      outputInt3: { x: 260, y: 45, direction: "in", width: 1, label: "יציאה 3 פנימית" },
+      outputExt3: { x: 340, y: 45, direction: "out", width: 1, label: "יציאה 3 חיצונית" },
+      outputInt4: { x: 260, y: 135, direction: "in", width: 1, label: "יציאה 4 פנימית" },
+      outputExt4: { x: 340, y: 135, direction: "out", width: 1, label: "יציאה 4 חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // Mux4way16: FOUR 16-bit data inputs (left) + a 2-bit control bus (top) select
+  // which data input passes to the single 16-bit output (right).
+  WORKSPACE_COMPONENT_DEFS["taskCard-Mux4way16"] = {
+    label: "מסגרת MUX4WAY16",
+    fixed: true,
+    taskId: "Mux4way16",
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -135, direction: "in", width: 16, label: "כניסה 1 חיצונית" },
+      inputInt1: { x: -260, y: -135, direction: "out", width: 16, label: "כניסה 1 פנימית" },
+      inputExt2: { x: -340, y: -45, direction: "in", width: 16, label: "כניסה 2 חיצונית" },
+      inputInt2: { x: -260, y: -45, direction: "out", width: 16, label: "כניסה 2 פנימית" },
+      inputExt3: { x: -340, y: 45, direction: "in", width: 16, label: "כניסה 3 חיצונית" },
+      inputInt3: { x: -260, y: 45, direction: "out", width: 16, label: "כניסה 3 פנימית" },
+      inputExt4: { x: -340, y: 135, direction: "in", width: 16, label: "כניסה 4 חיצונית" },
+      inputInt4: { x: -260, y: 135, direction: "out", width: 16, label: "כניסה 4 פנימית" },
+      inputExt5: { x: -130, y: -250, direction: "in", width: 2, label: "כניסת בקרה חיצונית" },
+      inputInt5: { x: -130, y: -180, direction: "out", width: 2, label: "כניסת בקרה פנימית" },
+      outputInt: { x: 260, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt: { x: 340, y: 0, direction: "out", width: 16, label: "יציאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
   // The card-creation frame: an invisible fixed component (the frame + pins are
   // drawn separately) whose pins are resolved dynamically from state.cardCreation
   // so the learner can wire internal components to the card's inputs/outputs.
