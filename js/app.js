@@ -6281,9 +6281,13 @@
     const g = savedCardGeometry(card);
     const iw = card.inputs || [];
     const ow = card.outputs || [];
-    const stub = (xInner, xOuter, y, width) => (width > 1
-      ? `<line class="usercard-bus" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" /><line class="usercard-bus-stripe" x1="${xInner + (xOuter > xInner ? 3 : -3)}" y1="${y}" x2="${xOuter - (xOuter > xInner ? 3 : -3)}" y2="${y}" />`
-      : `<line class="usercard-pin" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" />`);
+    const stub = (xInner, xOuter, y, width) => {
+      if (width <= 1) return `<line class="usercard-pin" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" />`;
+      // A bus pin: draw it as a bus bar and, on the board, print its width above
+      // the stub so the learner can read how wide the bus is.
+      const label = options.toolbar ? "" : `<text class="splitter-width-label" x="${(xInner + xOuter) / 2}" y="${y - 11}" text-anchor="middle">${width}</text>`;
+      return `<line class="usercard-bus" x1="${xInner}" y1="${y}" x2="${xOuter}" y2="${y}" /><line class="usercard-bus-stripe" x1="${xInner + (xOuter > xInner ? 3 : -3)}" y1="${y}" x2="${xOuter - (xOuter > xInner ? 3 : -3)}" y2="${y}" />${label}`;
+    };
     let s = `<rect class="usercard-body" x="${-g.bodyW / 2}" y="${-g.bodyH / 2}" width="${g.bodyW}" height="${g.bodyH}" rx="12" />`;
     s += `<rect class="usercard-chip" x="${-g.bodyW / 2 + 22}" y="${-g.bodyH / 2 + 16}" width="${g.bodyW - 44}" height="${g.bodyH - 32}" rx="6" />`;
     g.inYs.forEach((y, i) => { s += stub(-g.bodyW / 2, g.inX, y, Math.round(Number(iw[i]) || 1)); });
