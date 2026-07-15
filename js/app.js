@@ -5589,8 +5589,9 @@
     if (!task) return;
     // A later task is locked until its predecessor is built.
     if (task.requires) return setState({ infoDialog: `קודם צריך לבנות את ${task.requires}` });
-    // The available task itself is not implemented yet.
-    return setState({ infoDialog: "המשך יבוא..." });
+    // The available task shows its requirements. (The build workspace itself is
+    // the next piece of work.)
+    return setState({ infoDialog: task.requirements });
   }
 
   function handleBusNoteTask(index) {
@@ -5612,11 +5613,37 @@
 
   // The next set of tasks (chapter 2.5 style), shown in the worktable note once
   // von Neumann's monologue has handed them over. They must be done in order:
-  // the first is available, the rest wait for their predecessor. Not implemented
-  // yet — the available one shows a "coming soon" note when clicked.
+  // the first is available, the rest wait for their predecessor. The build
+  // workspaces/engine/checks are the next piece of work; for now clicking the
+  // available task shows its requirements, and clicking a locked one explains
+  // what must be built first. Hints are kept here for the upcoming hint slides.
   const MULTIBIT_TASKS = [
-    { id: "Dmux4way", requires: null },
-    { id: "Mux4way16", requires: "Dmux4way" }
+    {
+      id: "Dmux4way",
+      requires: null,
+      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
+      hints: [
+        "תתחיל מלפצל את בס הבקרה לשני הביטים שלו.",
+        "הביט הראשון של כניסת הבקרה בוחר לאיזה זוג יציאות צריך \"לחבר\" את הכניסה.",
+        "תנסה להשתמש ב-DMUX כדי לשלוח את הכניסה לכיוון זוג היציאות שמתוך אחת מהן היא תצטרך לצאת. תחשוב באיזה ביט בקרה אתה משתמש בשביל זה.",
+        "מחברים את ה-DMUX הראשון.",
+        "נניח שה-DMUX בחר בזוג הראשון. איך מחליטים לאן לשלוח את הכניסה? אולי תשתמש בעוד DMUX?"
+      ]
+    },
+    {
+      id: "Mux4way16",
+      requires: "Dmux4way",
+      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.",
+      hints: [
+        "תתחיל מלפצל את בס הבקרה לשני הביטים שלו.",
+        "הביט הראשון של כניסת הבקרה בוחר מאיזה זוג כניסות תבחר הכניסה אותה צריך \"לחבר\" ליציאה.",
+        "תניחו שהביט הראשון של כניסת הבקרה הוא 0. תבנו רכיב שנותן את היציאה הנדרשת במקרה הזה. אל תחברו אותו בינתיים ליציאה.",
+        "אתם מתקשים ליצור רכיב כזה? אתם יכולים להשתמש ב-MUX16.",
+        "תניחו שהביט הראשון של כניסת הבקרה הוא 1. תבנו רכיב שנותן את היציאה הנדרשת במקרה הזה. אל תחברו אותו בינתיים ליציאה.",
+        "קיבלתם 2 אפשרויות ליציאה, אבל רק אחת מהן נכונה. איך בוחרים ביניהן?",
+        "אתם יכולים להשתמש שוב ב-MUX16."
+      ]
+    }
   ];
 
   // The next-tasks worktable (post-monologue) shows the multi-bit task list; the
