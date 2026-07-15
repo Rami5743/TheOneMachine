@@ -5736,7 +5736,6 @@
       return p && p.y < -150;
     });
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
-    let controlSplitterY = null;
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
@@ -5751,7 +5750,6 @@
       if (idx === controlIdx) {
         const cp = frameDef.pins[input.ref];
         sy = 288 + (cp ? cp.y : -250); // level with the control pin, up top
-        controlSplitterY = sy;
       } else {
         sy = stackTop + halfH;          // splitter centre = top + half its height
         stackTop = sy + halfH + 40;     // next data splitter clears this one's legs
@@ -5762,14 +5760,6 @@
       });
       workspace.wires.push(normalizeWire(`${splitId}.single`, ref));
     });
-
-    // Dmux4way has a single (direct) data input and just the control splitter, so
-    // lift the source up level with that splitter — the control cables then run
-    // straight across instead of doubling back up from mid-board.
-    if (baseWorkspace.taskId === "Dmux4way" && controlSplitterY !== null) {
-      const src = workspace.components.find((c) => c.id === "source-1");
-      if (src) src.y = controlSplitterY;
-    }
 
     // Outputs down the right side.
     const lampGroups = [];

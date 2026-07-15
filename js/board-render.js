@@ -46,12 +46,19 @@ function createBoardRender({
           ${shape("wire-hit-line")}
         </g>`;
 
-      // A wire reaching a pin ABOVE the card frame (only the MUX control's
-      // external pin, which sits over the top edge) is routed up-and-over so it
-      // does not cross the card. The control's INTERNAL pin sits just inside the
-      // frame (below the top edge), so its wires to the gates stay straight, as
-      // does every other wire.
-      const top = a.y < 60 ? a : (b.y < 60 ? b : null);
+      // A wire reaching the CARD's external control pin (which sits over the top
+      // edge of the frame) is routed up-and-over so it does not cross the card.
+      // The control's INTERNAL pin sits just inside the frame (below the top
+      // edge), so its wires to the gates stay straight. Only a fixed card-frame
+      // pin triggers this — a splitter/gate that merely happens to sit high (e.g.
+      // the check harness's control splitter) still connects with a straight line.
+      const isFrameTopPin = (ref, pos) => {
+        if (!pos || pos.y >= 60) return false;
+        const compId = String(ref).split(".")[0];
+        const comp = workspace.components.find((c) => c.id === compId);
+        return Boolean(comp && componentDef(comp.type)?.fixed);
+      };
+      const top = isFrameTopPin(wire.a, a) ? a : (isFrameTopPin(wire.b, b) ? b : null);
       if (top) {
         const other = top === a ? b : a;
         const d = `M ${other.x} ${other.y} L ${other.x} ${top.y} L ${top.x} ${top.y}`;
