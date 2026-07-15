@@ -419,6 +419,11 @@
     explanationReplay: null,
     settings: { language: "he", gender: "", age: "", pace: DEFAULT_PACE },
     pageReturn: null,
+    // The last in-game screen the learner was on (story / workspace /
+    // nandBuildHelp). setState keeps it current; "continue" from the main menu
+    // returns here, so leaving the workbench for the menu and coming back lands
+    // on the workbench (with its contents), not the warehouse.
+    resumeScreen: null,
     paceHintShown: false,
     paceDialog: false,
     infoDialog: null,
@@ -662,6 +667,12 @@
     if (rawSaved) (JSON.parse(rawSaved).savedCards || []).forEach(registerSavedCard);
   } catch {}
   let state = loadState();
+  // Seed the resume target from the loaded screen (covers states saved before
+  // this field existed, and a page reload while on the workbench), so "continue"
+  // returns to the workbench rather than the warehouse.
+  if (["story", "workspace", "nandBuildHelp"].includes(state.screen) && !state.resumeScreen) {
+    state.resumeScreen = state.screen;
+  }
   // Re-register from the loaded state (covers defaults) so the toolbar and board
   // recognise every saved card from the first render.
   registerAllSavedCards();
@@ -1058,6 +1069,10 @@
   function setState(patch, shouldSpeak = false) {
     stopSpeech();
     state = { ...state, ...patch };
+    // Remember the last in-game screen (story / workspace / nandBuildHelp) so
+    // "continue" from the main menu returns to exactly where the learner was,
+    // including a workbench in mid-build. Menu/overlay screens don't overwrite it.
+    if (IN_GAME_SCREENS.includes(state.screen)) state.resumeScreen = state.screen;
     // Track the furthest chapter reached (drives step-by-step chapter locking).
     // Every chapter change flows through setState, so replaying an earlier
     // chapter never lowers this — completed chapters stay unlocked.
@@ -7116,6 +7131,15 @@
     if (action === "start") return openChapter(CHAPTERS[0].id);
     if (action === "continue") {
       if (!state.started) return openChapter(CHAPTERS[0].id);
+      // Return to the exact in-game screen the learner left (workbench included),
+      // as long as it is still valid — a workspace must still be unlocked.
+      const resume = state.resumeScreen;
+      if (IN_GAME_SCREENS.includes(resume)) {
+        const workspaceScreen = resume === "workspace" || resume === "nandBuildHelp";
+        if (!workspaceScreen || state.workspace?.unlocked) {
+          return setState({ ...transientUiClearPatch(), screen: resume }, resume === "story");
+        }
+      }
       if (state.workspace.unlocked && ["chapter-4", "chapter-5", "chapter-6"].includes(state.chapterId)) return setState({ ...transientUiClearPatch(), screen: "workspace" }, false);
       return setState({ ...transientUiClearPatch(), screen: "story" }, true);
     }
