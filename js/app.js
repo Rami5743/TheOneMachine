@@ -439,7 +439,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "all";
+  const DEFAULT_PACE = "step";
 
   const defaultState = {
     screen: "menu",
