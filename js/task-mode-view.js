@@ -283,10 +283,16 @@ function createTaskModeView({
             <span class="requirements-title">דרישות כרטיס ה-${esc(mbDef.label)}</span>
           </section>`;
       }
+      const paragraphs = String(adaptGender(mbDef.requirements || ""))
+        .split(/\n\s*\n/)
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .map((part) => `<p>${esc(part)}</p>`)
+        .join("");
       return `
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit" aria-label="דרישות ${esc(mbDef.label)}">
           ${toggle}
-          <div class="mux-hint-text"><p>${esc(adaptGender(mbDef.requirements || ""))}</p></div>
+          <div class="mux-hint-text">${paragraphs}</div>
         </section>`;
     }
     const busDef = busDefFor();

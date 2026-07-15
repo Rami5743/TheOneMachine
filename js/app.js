@@ -928,27 +928,33 @@
     const frameTop = cy - 210;
     const frameW = 600;
     const frameH = 420;
-    const hStub = (edgeX, ax, y, w, labelX) => (w > 1
-      ? `<line class="workspace-task-shell-bus" x1="${edgeX}" y1="${y}" x2="${ax}" y2="${y}" />
-         <line class="workspace-task-shell-bus-stripe" x1="${edgeX + (ax > edgeX ? 4 : -4)}" y1="${y}" x2="${ax - (ax > edgeX ? 4 : -4)}" y2="${y}" />
+    // A horizontal stub from the external tip (x1) all the way to the internal
+    // connection point (x2), so BOTH the external pin and the internal pin the
+    // learner wires to are visible (matching the bus-task shell). Same for a
+    // vertical control stub.
+    const hStub = (x1, x2, y, w, labelX) => (w > 1
+      ? `<line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
+         <line class="workspace-task-shell-bus-stripe" x1="${x1 + (x2 > x1 ? 4 : -4)}" y1="${y}" x2="${x2 - (x2 > x1 ? 4 : -4)}" y2="${y}" />
          <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${w}</text>`
-      : `<line class="workspace-task-shell-pin" x1="${edgeX}" y1="${y}" x2="${ax}" y2="${y}" />`);
+      : `<line class="workspace-task-shell-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`);
     let stubs = "";
     for (const [pinId, pin] of Object.entries(frameDef.pins)) {
       if (!pinId.includes("Ext")) continue; // one stub per external pin
+      const internalPin = frameDef.pins[pinId.replace("Ext", "Int")];
       const ax = cx + pin.x;
       const ay = cy + pin.y;
       const w = pin.width || 1;
       if (pin.y < -150) {
-        // Control bus poking out the top.
-        stubs += `<line class="workspace-task-shell-bus" x1="${ax}" y1="${frameTop}" x2="${ax}" y2="${ay}" />
-          <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${frameTop - 3}" x2="${ax}" y2="${ay + 3}" />
+        // Control bus poking out the top, drawn down to its internal pin.
+        const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
+        stubs += `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
+          <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
           <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
           <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`;
       } else {
-        const edgeX = pin.x < 0 ? frameLeft : frameLeft + frameW;
-        const labelX = pin.x < 0 ? edgeX - 20 : edgeX + 20;
-        stubs += hStub(edgeX, ax, ay, w, labelX);
+        const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
+        const labelX = pin.x < 0 ? ax + 20 : ax - 20;
+        stubs += hStub(ax, ix, ay, w, labelX);
       }
     }
     return `
@@ -5978,14 +5984,14 @@
       label: "DMUX4WAY",
       kind: "dmux4way",
       requires: null,
-      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית."
+      requirements: "ה-Dmux4way הוא כרטיס עם 2 כניסות ו-4 יציאות: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסה האחרת היא כניסה רגילה. היציאות הן רגילות. אחת מהיציאות צריכה להיות זהה לכניסה הרגילה והאחרות - 0. כניסת הבקרה קובעת איזו מהיציאות תהיה זהה לכניסה (הרגילה). אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
     },
     {
       id: "Mux4way16",
       label: "MUX4WAY16",
       kind: "mux4way16",
       requires: "Dmux4way",
-      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית."
+      requirements: "ה-Mux4way16 הוא כרטיס עם 5 כניסות ויציאה אחת: אחת מהכניסות היא כניסת בקרה (מלמעלה) והיא בס ברוחב 2. הכניסות האחרות הן בסים ברוחב 16. היציאה היא בס ברוחב 16. היציאה צריכה להיות זהה לאחת הכניסות. כניסת הבקרה קובעת איזו מהכניסות (משמאל) תהיה זהה ליציאה. אם שני הביטים הם 0, אז זאת הראשונה; אם הם 01 אז השנייה; אם 10 אז השלישית; ואם 11 אז הרביעית.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
     }
   ];
 
