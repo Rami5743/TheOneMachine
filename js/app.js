@@ -2503,7 +2503,8 @@
     // forward, so it disables the plain המשך button. Hotspots that merely open
     // an external reference, or the reserved Stone-Millis book, do not — the
     // learner still advances normally.
-    const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && h.action !== "stone-millis-book");
+    const nonBlockingActions = ["stone-millis-book", "binary-booklet"];
+    const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
     const nextDisabled = blockingHotspots.length ? "disabled" : "";
     const skipDisabled = isSkipDisabled() ? "disabled" : "";
 
@@ -5237,11 +5238,18 @@
   }
 
   // ---- Result / hint dialog transitions ----
-  // A clean first-try solve continues the plot (not built yet); otherwise the
-  // learner is offered another exercise until one is solved with no failures.
+  // A clean solve continues the plot: von Neumann's binary lesson, which sits
+  // just after the library slides in the arithmetic scene.
   function notebookContinue() {
-    const nb = state.notebook;
-    setState({ notebook: { ...nb, dialog: "explanation-stub" } });
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: "chapter-8",
+      sceneId: "arithmetic",
+      panelIndex: 2,
+      replayNonce: state.replayNonce + 1,
+      notebook: null
+    }, true);
   }
 
   function notebookNextExercise() {
@@ -8900,6 +8908,7 @@
     if (action === "panel-hotspot") return activatePanelHotspot();
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
     if (action === "stone-millis-book") return openNotebook();
+    if (action === "binary-booklet") return; // binary-exercises booklet — reserved, no destination yet
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();

@@ -73,9 +73,10 @@
     if (stem === "panel93_chapter_2_3_worktable") return "chapter-6";
     if (stem === "panel99_chapter_2_4_worktable") return "chapter-7";
     if (stem === "panel99g_chapter_2_4_worktable_next") return "chapter-7";
-    // The 2.5 library: reference links only (no worktable/free-build), driven
-    // entirely by the object rects the panel SVG posts.
+    // The 2.5 library / binary workshop: reference links only (no worktable /
+    // free-build), driven entirely by the object rects the panel SVG posts.
     if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
+    if (stem === "panel104_chapter_2_5_workshop") return "binary-workshop";
     return null;
   }
 
@@ -313,8 +314,10 @@
     }
 
     // The warehouse fallback item set (bulbs/triodes/…) belongs only to the
-    // worktable panels; the library must show nothing until its own SVG posts.
-    const fallbackItems = kind === "library" ? [] : FALLBACK_ITEMS;
+    // worktable panels; the library / binary workshop show nothing until their
+    // own SVG posts.
+    const isWorktable = kind === "chapter-4" || kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7";
+    const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
     const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7");
