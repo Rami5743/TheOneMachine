@@ -12,36 +12,36 @@
      data-hotspot="object" data-id="project-y" data-label="פרויקט Y"
      data-url="https://he.wikipedia.org/wiki/%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98_%D7%9E%D7%A0%D7%94%D7%98%D7%9F#%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98_Y"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="190" y="100" width="175" height="150" />
+     style="opacity:0;fill:#22a7ff" x="208.65523" y="109.32761" width="139.24417" height="52.726379" />
   <rect id="hotspot-object-physical-review"
      data-hotspot="object" data-id="physical-review" data-label="Physical Review"
      data-url="https://journals.aps.org/pr/issues/64/3-4"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="9" y="836" width="250" height="60" />
+     style="opacity:0;fill:#22a7ff" x="3.6699386" y="845.32764" width="227.34724" height="73.325157" />
   <rect id="hotspot-object-jcp"
      data-hotspot="object" data-id="jcp" data-label="Journal of Chemical Physics"
      data-url="https://pubs.aip.org/aip/jcp/issue/11/1"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="10" y="898" width="262" height="48" />
+     style="opacity:0;fill:#22a7ff" x="3.3374233" y="899.33246" width="242.01227" height="75.982819" />
   <rect id="hotspot-object-rmp"
      data-hotspot="object" data-id="rmp" data-label="Reviews of Modern Physics"
      data-url="https://journals.aps.org/rmp/issues/14/4"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="17" y="948" width="269" height="48" />
+     style="opacity:0;fill:#22a7ff" x="-21.642944" y="945.33496" width="269" height="69.320244" />
   <rect id="hotspot-object-relativity"
      data-hotspot="object" data-id="relativity" data-label="תורת היחסות"
      data-url="https://he.wikipedia.org/wiki/תורת_היחסות"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="1179" y="94" width="42" height="205" />
+     style="opacity:0;fill:#22a7ff" x="1137.692" y="87.337425" width="42" height="295.61105" />
   <rect id="hotspot-object-quantum"
      data-hotspot="object" data-id="quantum" data-label="מכניקת הקוונטים"
      data-url="https://he.wikipedia.org/wiki/מכניקת_הקוונטים"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="1305" y="500" width="59" height="290" />
+     style="opacity:0;fill:#22a7ff" x="1298.3374" y="537.31042" width="59" height="393.93619" />
   <rect id="hotspot-action-stone-millis-book"
      data-hotspot="action" data-action="stone-millis-book" data-aria-label="מחברת האריתמטיקה"
      class="hotspot hotspot-action" pointer-events="none"
-     style="opacity:0;fill:#ff2fb0" x="980" y="470" width="175" height="340" />
+     style="opacity:0;fill:#ff2fb0" x="964.00983" y="463.3374" width="176.33252" height="381.30795" />
 
   <script type="text/javascript"><![CDATA[
 (function () {

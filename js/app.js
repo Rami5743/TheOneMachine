@@ -1050,7 +1050,7 @@
   }
 
   function isGlobalNavigationAction(action) {
-    return ["menu", "chapters", "about", "explanations", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
+    return ["menu", "chapters", "about", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
   }
 
   // FALLBACK_END_DIALOGS moved to js/app-data.js
@@ -1767,6 +1767,9 @@
   function isSkipDisabled() {
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
+
+    // The library slide forces the arithmetic notebook — no skipping past it.
+    if (panelHotspots(currentPanel()).some((h) => h.action === "stone-millis-book")) return true;
 
     const chapter = currentChapter();
     // A skip that leads nowhere (worktable notes, the closing wordless slide) is
@@ -2503,7 +2506,10 @@
     // forward, so it disables the plain המשך button. Hotspots that merely open
     // an external reference, or the reserved Stone-Millis book, do not — the
     // learner still advances normally.
-    const nonBlockingActions = ["stone-millis-book", "binary-booklet"];
+    // The Stone-Millis book is the ONLY way forward from the library slide, so it
+    // disables המשך (and דלג, below) — the learner must go through the notebook.
+    // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
+    const nonBlockingActions = ["binary-booklet"];
     const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
     const nextDisabled = blockingHotspots.length ? "disabled" : "";
     const skipDisabled = isSkipDisabled() ? "disabled" : "";
@@ -5235,6 +5241,18 @@
     if (!nb) return;
     // Clear the scribbles (but keep the exercise and the earned hint progress).
     setState({ notebook: { ...nb, cells: {}, active: null, dialog: null } });
+  }
+
+  // Dev shortcut (Ctrl+Shift+9): fill in the correct answer and check it.
+  function secretSolveNotebook() {
+    const nb = state.notebook;
+    if (!nb || !nb.exercise) return;
+    const sum = String(nb.exercise.a + nb.exercise.b);
+    const startCol = NB_UNITS_COL + 1 - sum.length;
+    const cells = {};
+    for (let i = 0; i < sum.length; i++) cells[`${NB_ANSWER_ROW},${startCol + i}`] = sum[i];
+    setState({ notebook: { ...nb, cells, active: null, mistake: null } }, false);
+    checkNotebook();
   }
 
   // ---- Result / hint dialog transitions ----
@@ -8674,7 +8692,8 @@
     // (event.code is layout-independent, so it works on any keyboard.)
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
-      secretSolveAndExit();
+      if (state.screen === "notebook") secretSolveNotebook();
+      else secretSolveAndExit();
     }
   });
 

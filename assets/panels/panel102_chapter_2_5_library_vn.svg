@@ -4,4 +4,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
      href="panel102_chapter_2_5_library_vn.jpg" xlink:href="panel102_chapter_2_5_library_vn.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+    <path id="speech-bubble"
+       d="M 601,55 H 1114 C 1128,55 1140,67 1140,81 V 274 C 1140,288 1128,300 1114,300 H 720 L 440,415 L 620,300 H 601 C 587,300 575,288 575,274 V 81 C 575,67 587,55 601,55 Z"
+       fill="#ffffff" stroke="#000000" stroke-width="4.11818" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="46px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="857" y="130" id="tline1">אני מקווה שעברת על החומר</tspan><tspan x="857" y="197" id="tline2">כמו שצריך. בוא, יש לנו</tspan><tspan x="857" y="264" id="tline3">הרבה עבודה.</tspan></text>
+  </g>
 </svg>

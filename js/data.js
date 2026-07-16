@@ -732,7 +732,7 @@ const SCENES = {
         "read": "",
         "comment": "Click-zones live in panel101_chapter_2_5_library_inside_v2.svg (editable in Inkscape). The 6 reference links are 'object' rects; the Stone-Millis book is an 'action' rect whose geometry is synced onto this button. The position below is only a fallback for when the SVG script has not posted yet.",
         "hotspots": [
-          { "ariaLabel": "מחברת האריתמטיקה", "action": "stone-millis-book", "left": 67.7, "top": 43.3, "width": 12.1, "height": 31.3 }
+          { "ariaLabel": "מחברת האריתמטיקה", "action": "stone-millis-book", "left": 66.6, "top": 42.7, "width": 12.2, "height": 35.1 }
         ]
       },
       {
@@ -740,15 +740,15 @@ const SCENES = {
         "read": "פון נוימן: אני מקווה שעברת על החומר כמו שצריך. בוא, יש לנו הרבה עבודה."
       },
       {
-        "image": "assets/panels/panel94_chapter_2_4_intro.svg",
+        "image": "assets/panels/panel_chapter_2_5_binary_1.svg",
         "read": "פון נוימן: אני צריך לספר לך איך מכונות חישוב עובדות עם מספרים. זה לא נוח לעבוד עם ספרות. אנחנו מעדיפים לעבוד עם ביטים. לביט יש רק שתי אפשרויות: 0 ו-1. כך שעם ביט אחד אפשר לכתוב רק את המספרים האלה. אם אנחנו רוצים לכתוב את 2 אנחנו נצטרך ביט נוסף. בדיוק כמו שכשמשתמשים בספרות אנחנו צריכים ספרה נוספת למספרים שגדולים מ-9."
       },
       {
-        "image": "assets/panels/panel94_chapter_2_4_intro.svg",
+        "image": "assets/panels/panel_chapter_2_5_binary_2.svg",
         "read": "פון נוימן: השיטה לכתוב מספרים עם ביטים נקראת השיטה הבינרית, כתיבה בבסיס ספירה 2. היא דומה לשיטה העשרונית שאתה מכיר אבל הבסיס הוא 2 במקום 10. כשכותבים בשיטה הבינרית הספרה הימנית ביותר היא ספרת האחדות (כמו בשיטה העשרונית). הספרה הבאה מימין היא ספרת ה-2, אחריה ספרת ה-4 אז ספרת ה-8 וכך הלאה (כל פעם מכפילים פי-2). כל ספרה היא בעצם ביט (היא יכולה להיות רק 0 או 1). למשל המספר 101 בשיטה הבינרית הוא 5: ה-1 הימני מייצג 1, ה-0 שאחריו מייצג 0 פעמים 2 (שהם 0) וה-1 שאחריו מייצג 4. דוגמה נוספת היא המספר 111 שהוא המספר התלת-ספרתי הגדול ביותר בשיטה הבינרית. הוא למעשה המספר 1+2+4=7. בשביל לכתוב 8 יש צורך בספרה נוספת: 1000. באופן כללי התפקיד של כל ספרה הוא פי 2 יותר מאשר של הספרה הקודמת, בדיוק כמו שבשיטה העשרונית התפקיד של כל ספרה הוא פי-10 יותר משל הספרה הקודמת."
       },
       {
-        "image": "assets/panels/panel94_chapter_2_4_intro.svg",
+        "image": "assets/panels/panel_chapter_2_5_binary_3.svg",
         "read": "פון נוימן: כדי לציין שאנחנו כותבים מספר בשיטה הבינרית אנחנו מוסיפים 2 קטן בתחתית המספר. למשל 110₂=6."
       },
       {
