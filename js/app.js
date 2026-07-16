@@ -4953,21 +4953,108 @@
   const NB_UNITS_COL = 12;
   const NB_TENS_COL = 11;
 
-  // The two progressive hints, mirroring the worktable tasks. Hint 1 is plain
-  // text; hint 2 is interactive (הפעל רמז fills in the units step). They unlock
-  // by failed checks and are browsed from a bottom "רוצה רמז?" button, exactly
-  // like the worktable hint list.
-  const NOTEBOOK_HINTS = [
-    { title: "רמז 1", kind: "text", text: "התחל מלחשב את הסכום של ספרת האחדות של המספר הראשון עם ספרת האחדות של המספר השני." },
-    { title: "רמז 2", kind: "interactive", text: "צריך עזרה עם הרמז הראשון?", note: "(לחיצה על \"הפעל רמז\" תמחק את מה שעשית)" }
-  ];
+  const NB_COLUMN_NAMES = ["אחדות", "עשרות", "מאות", "אלפים"];
+  const NOTEBOOK_HINT_NOTE = "(לחיצה על \"הפעל רמז\" תמחק את מה שעשית)";
+
+  // Digit at position i (0=units … 3=thousands) of a number.
+  function nbDigit(n, i) {
+    return Math.floor(n / Math.pow(10, i)) % 10;
+  }
+
+  // The per-column breakdown of the current addition: for each of the four
+  // columns, the two digits, the incoming carry, the sum, the digit written and
+  // the outgoing carry. Drives the hints and the solution walkthrough.
+  function notebookColumns() {
+    const ex = state.notebook?.exercise;
+    if (!ex) return [];
+    const cols = [];
+    let carry = 0;
+    for (let i = 0; i < 4; i++) {
+      const d1 = nbDigit(ex.a, i);
+      const d2 = nbDigit(ex.b, i);
+      const sum = d1 + d2 + carry;
+      cols.push({ i, d1, d2, carryIn: carry, sum, digit: sum % 10, carryOut: Math.floor(sum / 10) });
+      carry = Math.floor(sum / 10);
+    }
+    return cols;
+  }
+
+  function notebookColumnTextHint(i) {
+    if (i === 0) return "התחל מלחשב את הסכום של ספרת האחדות של המספר הראשון עם ספרת האחדות של המספר השני.";
+    const name = NB_COLUMN_NAMES[i];
+    const base = `המשך לספרת ה${name}: חבר את ספרת ה${name} של המספר הראשון עם ספרת ה${name} של המספר השני`;
+    return (notebookColumns()[i]?.carryIn > 0) ? `${base}, ואל תשכח להוסיף את הספרה שנשאת מהשלב הקודם.` : `${base}.`;
+  }
+
+  function notebookColumnPrompt(i) {
+    return i === 0 ? "צריך עזרה עם הרמז הראשון?" : `צריך עזרה עם חישוב ספרת ה${NB_COLUMN_NAMES[i]}?`;
+  }
+
+  // The explanation shown when a column's step is filled in (interactive hint or
+  // a walkthrough step). Adapts to a carry coming in and/or going out.
+  function notebookColumnMessage(i) {
+    const col = notebookColumns()[i];
+    if (!col) return "";
+    const name = NB_COLUMN_NAMES[i];
+    let msg;
+    if (i === 0) {
+      msg = `הסכום הוא ${col.d1} + ${col.d2} = ${col.sum}.`;
+    } else if (col.carryIn > 0) {
+      msg = `סכום ספרות ה${name} הוא ${col.d1} + ${col.d2}, ועוד ${col.carryIn} שנשאנו מהשלב הקודם — סך הכל ${col.sum}.`;
+    } else {
+      msg = `סכום ספרות ה${name} הוא ${col.d1} + ${col.d2} = ${col.sum}.`;
+    }
+    if (col.carryOut > 0) {
+      if (i === 0) {
+        msg += " מכיוון שהתוצאה גדולה מ-10 אנחנו לא יכולים לכתוב אותה בספרת האחדות, לכן אנחנו שומרים את העשר לאחר כך. מכיוון שהוא עשרה אחת אנחנו כותבים אותו כ-1 מעל המקום של ספרת העשרות.";
+      } else if (i < 3) {
+        msg += ` מכיוון שהתוצאה גדולה מ-10, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ונושאים 1 אל ספרת ה${NB_COLUMN_NAMES[i + 1]} (כותבים אותו מעל).`;
+      } else {
+        msg += ` מכיוון שהתוצאה גדולה מ-10, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ואת ה-1 שנשאנו כותבים כספרה השמאלית ביותר של התשובה.`;
+      }
+    }
+    return msg;
+  }
+
+  // The full hint list: one verbal + one interactive hint per digit column.
+  function notebookHints() {
+    if (!state.notebook?.exercise) return [];
+    const hints = [];
+    for (let i = 0; i < 4; i++) {
+      hints.push({ title: `רמז ${hints.length + 1}`, kind: "text", col: i, text: notebookColumnTextHint(i) });
+      hints.push({ title: `רמז ${hints.length + 1}`, kind: "interactive", col: i, text: notebookColumnPrompt(i), note: NOTEBOOK_HINT_NOTE });
+    }
+    return hints;
+  }
 
   // Hints unlock like the worktable: none until the second failed check, then
   // one more per failure (failCount - 1, capped at the hint count).
   function notebookUnlockedHints() {
     const nb = state.notebook;
     if (!nb) return 0;
-    return Math.min(NOTEBOOK_HINTS.length, Math.max(0, (nb.failCount || 0) - 1));
+    return Math.min(notebookHints().length, Math.max(0, (nb.failCount || 0) - 1));
+  }
+
+  // The solution walkthrough becomes offerable once every hint is unlocked.
+  function notebookSolutionAvailable() {
+    const hints = notebookHints();
+    return hints.length > 0 && notebookUnlockedHints() >= hints.length;
+  }
+
+  // The correct answer (and its carries) filled in for columns 0..upToCol.
+  function notebookSolutionCells(upToCol) {
+    const cols = notebookColumns();
+    const cells = {};
+    for (let i = 0; i <= upToCol && i < cols.length; i++) {
+      const col = cols[i];
+      const digitCol = NB_UNITS_COL - i;
+      cells[`${NB_ANSWER_ROW},${digitCol}`] = String(col.digit);
+      if (col.carryOut > 0) {
+        if (i < 3) cells[`${NB_CARRY_ROW},${digitCol - 1}`] = String(col.carryOut);
+        else cells[`${NB_ANSWER_ROW},${digitCol - 1}`] = String(col.carryOut);
+      }
+    }
+    return cells;
   }
 
   // Two 4-digit numbers whose column addition produces at least one carry.
@@ -4997,18 +5084,26 @@
 
   function openNotebook() {
     const existing = state.notebook && state.notebook.exercise ? state.notebook : null;
-    const notebook = existing || {
+    const notebook = existing || freshNotebook();
+    setState({ screen: "notebook", notebook });
+  }
+
+  function freshNotebook() {
+    return {
       exercise: makeAdditionExercise(),
       cells: {},
       active: null,
       failCount: 0,
       hintsSeen: 0,
       hintIndex: 0,
+      solutionStep: 0,
+      solutionReturn: null,
+      // Position of the movable hint/explanation window (null → default spot).
+      winPos: null,
       // Current overlay: null | "correct" | "wrong" | "explanation-stub" |
-      // "hints" (the browsable hint list) | "hint-applied".
+      // "hints" | "hint-applied" | "solution".
       dialog: null
     };
-    setState({ screen: "notebook", notebook });
   }
 
   // The pre-printed (non-editable) exercise cells: "r,c" -> character.
@@ -5028,9 +5123,16 @@
     return Object.prototype.hasOwnProperty.call(notebookFixedCells(), `${r},${c}`);
   }
 
+  // The movable hint/explanation windows leave the page interactive; the
+  // centred result dialogs and the solution walkthrough do not.
+  function notebookInteractionBlocked() {
+    const d = state.notebook?.dialog;
+    return Boolean(d) && !["hints", "hint-applied"].includes(d);
+  }
+
   function notebookSelectCell(r, c) {
     const nb = state.notebook;
-    if (!nb || isLockedNotebookCell(r, c)) return;
+    if (!nb || notebookInteractionBlocked() || isLockedNotebookCell(r, c)) return;
     setState({ notebook: { ...nb, active: `${r},${c}` } }, false);
   }
 
@@ -5067,10 +5169,15 @@
   }
 
   // ---- Result / hint dialog transitions ----
+  // A clean first-try solve continues the plot (not built yet); otherwise the
+  // learner is offered another exercise until one is solved with no failures.
   function notebookContinue() {
-    // The success path leads to an explanation that is not built yet.
     const nb = state.notebook;
     setState({ notebook: { ...nb, dialog: "explanation-stub" } });
+  }
+
+  function notebookNextExercise() {
+    setState({ notebook: freshNotebook() });
   }
 
   function notebookRetry() {
@@ -5099,16 +5206,35 @@
     setState({ notebook: { ...nb, dialog: null } });
   }
 
-  // Interactive hint: fill in the units step (its digit under the units column,
-  // and the carry above the tens column when the units sum reaches ten),
-  // erasing the learner's own scribbles first.
-  function notebookApplyUnitsHint() {
+  // Interactive hint for a column: fill the correct answer up to that column
+  // (its digit, and any carry above the next column), erasing the learner's own
+  // scribbles first, then explain that column's step.
+  function notebookApplyHint(col) {
     const nb = state.notebook;
-    const unitsSum = (nb.exercise.a % 10) + (nb.exercise.b % 10);
-    const cells = {};
-    cells[`${NB_ANSWER_ROW},${NB_UNITS_COL}`] = String(unitsSum % 10);
-    if (unitsSum >= 10) cells[`${NB_CARRY_ROW},${NB_TENS_COL}`] = String(Math.floor(unitsSum / 10));
-    setState({ notebook: { ...nb, cells, active: null, dialog: "hint-applied" } });
+    setState({ notebook: { ...nb, cells: notebookSolutionCells(col), active: null, appliedCol: col, dialog: "hint-applied" } });
+  }
+
+  // ---- Solution walkthrough ----
+  function notebookOpenSolution(fromSuccess) {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, solutionReturn: fromSuccess ? "correct" : null } });
+  }
+
+  function notebookSolutionNext() {
+    const nb = state.notebook;
+    const last = notebookColumns().length - 1;
+    if ((nb.solutionStep || 0) >= last) return notebookSolutionClose();
+    setState({ notebook: { ...nb, solutionStep: (nb.solutionStep || 0) + 1 } });
+  }
+
+  function notebookSolutionPrev() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, solutionStep: Math.max(0, (nb.solutionStep || 0) - 1) } });
+  }
+
+  function notebookSolutionClose() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: nb.solutionReturn || null, solutionReturn: null } });
   }
 
   function notebookBackToLibrary() {
@@ -5123,7 +5249,7 @@
 
   function handleNotebookKey(event) {
     const nb = state.notebook;
-    if (!nb || nb.dialog) return;
+    if (!nb || notebookInteractionBlocked()) return;
     if (event.key === "Escape") {
       if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
       return;
@@ -5160,6 +5286,8 @@
 
   function renderNotebook() {
     const nb = state.notebook || {};
+    const inSolution = nb.dialog === "solution";
+    const displayCells = inSolution ? notebookSolutionCells(nb.solutionStep || 0) : (nb.cells || {});
     const fixed = notebookFixedCells();
     const answerCols = new Set(NB_DIGIT_COLS.map((c) => `${NB_ANSWER_ROW},${c}`));
     const rows = [];
@@ -5168,11 +5296,10 @@
       for (let c = 0; c < NB_COLS; c++) {
         const key = `${r},${c}`;
         const fixedChar = fixed[key];
-        const userChar = nb.cells ? nb.cells[key] : "";
-        const char = fixedChar != null ? fixedChar : (userChar || "");
+        const char = fixedChar != null ? fixedChar : (displayCells[key] || "");
         const classes = ["notebook-cell"];
         if (fixedChar != null) classes.push("notebook-cell-fixed");
-        if (nb.active === key) classes.push("notebook-cell-active");
+        if (!inSolution && nb.active === key) classes.push("notebook-cell-active");
         // The addition line: a heavier bottom edge under the second operand.
         if (r === NB_OP2_ROW && NB_DIGIT_COLS.includes(c)) classes.push("notebook-cell-underline");
         if (answerCols.has(key)) classes.push("notebook-cell-answer");
@@ -5184,23 +5311,24 @@
     const unlocked = notebookUnlockedHints();
     const hintFresh = (nb.hintsSeen || 0) < unlocked;
     const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
-    const hintButton = unlocked > 0
+    const showHintBtn = unlocked > 0 || notebookSolutionAvailable();
+    const hintButton = showHintBtn
       ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="notebook-hints-open" type="button">${esc(hintLabel)}</button>`
       : "";
+    const footer = inSolution ? "" : `
+        <div class="notebook-actions">
+          <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
+          ${hintButton}
+          <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
+          <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
+        </div>`;
     app.innerHTML = `
       ${topbar()}
       <main class="screen notebook-screen">
         <div class="notebook-page" data-notebook-page>
           ${rows.join("")}
         </div>
-        <div class="notebook-footer">
-          <div class="notebook-actions">
-            <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
-            ${hintButton}
-            <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
-            <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
-          </div>
-        </div>
+        <div class="notebook-footer">${footer}</div>
         ${renderNotebookDialog(nb)}
       </main>`;
   }
@@ -5208,25 +5336,26 @@
   function renderNotebookDialog(nb) {
     const dialog = nb.dialog;
     if (!dialog) return "";
+    // The hint, explanation and solution windows are movable and do not cover
+    // the exercise; only the brief result messages are centred modals.
+    if (dialog === "hints") return renderNotebookHints(nb);
+    if (dialog === "hint-applied") return renderNotebookExplain(nb);
+    if (dialog === "solution") return renderNotebookSolution(nb);
     let body = "";
     let actions = "";
     if (dialog === "correct") {
+      const clean = (nb.failCount || 0) === 0;
       body = "<p>כל הכבוד! פתרת נכון.</p>";
-      actions = '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>';
+      actions =
+        '<button class="btn" data-action="notebook-solution-open" data-from="success" type="button">הצגת פתרון</button>' +
+        (clean
+          ? '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>'
+          : '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button>');
     } else if (dialog === "wrong") {
       body = "<p>התשובה עדיין לא נכונה.</p>";
       actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
-    } else if (dialog === "hints") {
-      return renderNotebookHints(nb);
-    } else if (dialog === "hint-applied") {
-      const unitsSum = (nb.exercise.a % 10) + (nb.exercise.b % 10);
-      const carryNote = unitsSum >= 10
-        ? '<p>מכיוון שהתוצאה גדולה מ-10 אנחנו לא יכולים לכתוב אותה בספרת האחדות, לכן אנחנו שומרים את העשר לאחר כך. מכיוון שהוא עשרה אחת אנחנו כותבים אותו כ-1 מעל המקום של ספרת העשרות.</p>'
-        : "";
-      body = `<p>הסכום הוא ${unitsSum}.</p>${carryNote}`;
-      actions = '<button class="btn btn-primary" data-action="notebook-hint-close" type="button">הבנתי</button>';
     } else if (dialog === "explanation-stub") {
-      body = "<p>ההסבר יגיע בהמשך…</p>";
+      body = "<p>שקף העלילה הבא יגיע בהמשך…</p>";
       actions = '<button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>';
     }
     return `
@@ -5238,33 +5367,67 @@
       </div>`;
   }
 
+  // A movable window (drag by its header) that does not cover the exercise —
+  // used for the hint list, the step explanation and the solution walkthrough.
+  function notebookWindow(nb, title, bodyHtml, actionsHtml) {
+    const pos = nb.winPos;
+    const style = pos ? `left:${pos.left}px;top:${pos.top}px;bottom:auto;transform:none;` : "";
+    return `
+      <div class="nb-window" data-nb-window style="${style}">
+        <div class="nb-window-head" data-nb-drag>
+          <span class="nb-window-title">${esc(title)}</span>
+          <span class="nb-window-grip" aria-hidden="true">⠿</span>
+        </div>
+        <div class="nb-window-body">${bodyHtml}</div>
+        <div class="nb-window-actions">${actionsHtml}</div>
+      </div>`;
+  }
+
   // The browsable hint list, styled like the worktable's (hint titles on one
-  // side, the selected hint's content on the other).
+  // side, the selected hint's content on the other). The last item is the
+  // solution walkthrough once every hint has unlocked.
   function renderNotebookHints(nb) {
     const unlocked = notebookUnlockedHints();
-    if (unlocked <= 0) return "";
-    const selectedIndex = Math.min(Math.max(0, nb.hintIndex || 0), unlocked - 1);
-    const selected = NOTEBOOK_HINTS[selectedIndex];
-    const list = NOTEBOOK_HINTS.slice(0, unlocked).map((hint, index) => `
+    const solutionOffered = notebookSolutionAvailable();
+    if (unlocked <= 0 && !solutionOffered) return "";
+    const hints = notebookHints();
+    const selectedIndex = Math.min(Math.max(0, nb.hintIndex || 0), Math.max(0, unlocked - 1));
+    const selected = hints[selectedIndex];
+    const items = hints.slice(0, unlocked).map((hint, index) => `
       <button class="hint-list-item ${index === selectedIndex ? "hint-list-item-active" : ""}" data-action="notebook-hint-select" data-hint-index="${index}" type="button">
         ${esc(hint.title)}
       </button>`).join("");
-    const content = selected.kind === "interactive"
-      ? `<p>${esc(selected.text)}</p>${selected.note ? `<p class="notebook-dialog-note">${esc(selected.note)}</p>` : ""}<button class="btn btn-primary" data-action="notebook-hint-apply" type="button">הפעל רמז</button>`
-      : `<p>${esc(selected.text)}</p>`;
-    return `
-      <div class="hint-overlay" role="presentation">
-        <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
-          <h2>רמזים</h2>
-          <div class="hint-layout">
-            <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
-            <div class="hint-content">${content}</div>
-          </div>
-          <div class="hint-actions">
-            <button class="btn" data-action="notebook-hint-close" type="button">סגור</button>
-          </div>
-        </section>
+    const solutionItem = solutionOffered
+      ? '<button class="hint-list-item hint-solution-item" data-action="notebook-solution-open" type="button">הצגת פתרון</button>'
+      : "";
+    const content = (unlocked > 0 && selected)
+      ? (selected.kind === "interactive"
+        ? `<p>${esc(selected.text)}</p>${selected.note ? `<p class="notebook-dialog-note">${esc(selected.note)}</p>` : ""}<button class="btn btn-primary" data-action="notebook-hint-apply" data-col="${selected.col}" type="button">הפעל רמז</button>`
+        : `<p>${esc(selected.text)}</p>`)
+      : '<p>אפשר לראות את הפתרון המלא.</p>';
+    const body = `
+      <div class="hint-layout">
+        <nav class="hint-list" aria-label="רשימת רמזים">${items}${solutionItem}</nav>
+        <div class="hint-content">${content}</div>
       </div>`;
+    return notebookWindow(nb, "רמזים", body, '<button class="btn" data-action="notebook-hint-close" type="button">סגור</button>');
+  }
+
+  function renderNotebookExplain(nb) {
+    const body = hintParagraphsHtml(notebookColumnMessage(nb.appliedCol || 0));
+    return notebookWindow(nb, "הסבר", body, '<button class="btn btn-primary" data-action="notebook-hint-close" type="button">הבנתי</button>');
+  }
+
+  function renderNotebookSolution(nb) {
+    const cols = notebookColumns();
+    const step = Math.min(Math.max(0, nb.solutionStep || 0), Math.max(0, cols.length - 1));
+    const isLast = step >= cols.length - 1;
+    const body = hintParagraphsHtml(notebookColumnMessage(step));
+    const actions =
+      (step > 0 ? '<button class="btn" data-action="notebook-solution-prev" type="button">הקודם</button>' : "") +
+      `<button class="btn btn-primary" data-action="notebook-solution-next" type="button">${isLast ? "סיום" : "המשך"}</button>` +
+      '<button class="btn" data-action="notebook-solution-close" type="button">סגור</button>';
+    return notebookWindow(nb, `פתרון — ספרת ה${NB_COLUMN_NAMES[step]}`, body, actions);
   }
 
   function render() {
@@ -8418,6 +8581,42 @@
     handleNotebookKey(event);
   });
 
+  // Dragging the movable notebook windows (hints / explanation / solution) by
+  // their header. The position is applied live to the element and persisted to
+  // state on release so it survives re-renders.
+  let nbWindowDrag = null;
+  document.addEventListener("mousedown", (event) => {
+    const handle = event.target.closest("[data-nb-drag]");
+    if (!handle) return;
+    const win = handle.closest("[data-nb-window]");
+    if (!win) return;
+    const rect = win.getBoundingClientRect();
+    nbWindowDrag = { win, dx: event.clientX - rect.left, dy: event.clientY - rect.top };
+    win.style.left = `${rect.left}px`;
+    win.style.top = `${rect.top}px`;
+    win.style.bottom = "auto";
+    win.style.transform = "none";
+    event.preventDefault();
+  });
+  document.addEventListener("mousemove", (event) => {
+    if (!nbWindowDrag) return;
+    const x = Math.max(0, Math.min(window.innerWidth - 60, event.clientX - nbWindowDrag.dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 40, event.clientY - nbWindowDrag.dy));
+    nbWindowDrag.win.style.left = `${x}px`;
+    nbWindowDrag.win.style.top = `${y}px`;
+  });
+  document.addEventListener("mouseup", () => {
+    if (!nbWindowDrag) return;
+    const win = nbWindowDrag.win;
+    const left = parseInt(win.style.left, 10);
+    const top = parseInt(win.style.top, 10);
+    nbWindowDrag = null;
+    const nb = state.notebook;
+    if (nb && Number.isFinite(left) && Number.isFinite(top)) {
+      setState({ notebook: { ...nb, winPos: { left, top } } }, false);
+    }
+  });
+
   document.addEventListener("keydown", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (!box) return;
@@ -8609,11 +8808,16 @@
     if (action === "notebook-reset") return resetNotebook();
     if (action === "notebook-back-to-library") return notebookBackToLibrary();
     if (action === "notebook-continue") return notebookContinue();
+    if (action === "notebook-next-exercise") return notebookNextExercise();
     if (action === "notebook-retry") return notebookRetry();
     if (action === "notebook-hints-open") return notebookOpenHints();
     if (action === "notebook-hint-select") return notebookSelectHint(Number(button.dataset.hintIndex));
     if (action === "notebook-hint-close") return notebookHintClose();
-    if (action === "notebook-hint-apply") return notebookApplyUnitsHint();
+    if (action === "notebook-hint-apply") return notebookApplyHint(Number(button.dataset.col));
+    if (action === "notebook-solution-open") return notebookOpenSolution(button.dataset.from === "success");
+    if (action === "notebook-solution-next") return notebookSolutionNext();
+    if (action === "notebook-solution-prev") return notebookSolutionPrev();
+    if (action === "notebook-solution-close") return notebookSolutionClose();
     if (action === "open-note-tasks") return openNoteTaskDialog();
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();

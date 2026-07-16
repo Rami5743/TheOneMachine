@@ -3337,3 +3337,52 @@ object.panel-image.is-pending {
   justify-content: center;
   flex-wrap: wrap;
 }
+
+/* Movable hint / explanation / solution window — positioned away from the
+   exercise and draggable by its header. */
+.nb-window {
+  position: fixed;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  z-index: 210;
+  width: min(560px, calc(100vw - 32px));
+  max-height: 40dvh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.6);
+  direction: rtl;
+  overflow: hidden;
+}
+
+.nb-window-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: move;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--line);
+}
+
+.nb-window-title { font-weight: 800; }
+.nb-window-grip { opacity: 0.55; letter-spacing: 2px; }
+
+.nb-window-body {
+  padding: 14px;
+  overflow: auto;
+}
+
+.nb-window-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 14px 14px;
+}
