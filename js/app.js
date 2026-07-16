@@ -505,6 +505,10 @@
     // step-by-step skip gate: skip is disabled until the target panel has been
     // reached, then stays enabled (even after going back within the chapter).
     maxPanelReached: {},
+    // The arithmetic notebook (chapter 2.5), opened from the Stone-Millis book.
+    // { exercise:{a,b}, cells:{"r,c":char}, active:"r,c"|null, result:null|"correct"|"wrong" }
+    // Persisted so the learner's work survives leaving for the library and back.
+    notebook: null,
     workspace: createDefaultWorkspace()
   };
 
@@ -1118,7 +1122,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -4931,6 +4935,184 @@
       </section>`;
   }
 
+  // --- Arithmetic notebook (chapter 2.5) -----------------------------------
+  // Opened from the Stone-Millis book. A squared-paper page: every cell can be
+  // clicked and typed into. A 4-digit + 4-digit column-addition exercise (with
+  // at least one carry) is pre-printed high on the page; the learner writes the
+  // carries and the answer in the surrounding cells.
+  const NB_COLS = 21;
+  const NB_ROWS = 13;
+  // The exercise block anchors: digit columns 8..12 (5 slots, right-aligned),
+  // operand rows 3 and 4, the sum line under row 4, the answer on row 5.
+  const NB_DIGIT_COLS = [8, 9, 10, 11, 12];
+  const NB_OP1_ROW = 3;
+  const NB_OP2_ROW = 4;
+  const NB_ANSWER_ROW = 5;
+  const NB_PLUS_COL = 8;
+
+  // Two 4-digit numbers whose column addition produces at least one carry.
+  function additionHasCarry(a, b) {
+    const sa = String(a).padStart(4, "0");
+    const sb = String(b).padStart(4, "0");
+    let carry = 0;
+    let any = false;
+    for (let i = 3; i >= 0; i--) {
+      const s = Number(sa[i]) + Number(sb[i]) + carry;
+      if (s >= 10) { any = true; carry = 1; } else { carry = 0; }
+    }
+    return any;
+  }
+
+  function makeAdditionExercise() {
+    let a = 0;
+    let b = 0;
+    let guard = 0;
+    do {
+      a = 1000 + Math.floor(Math.random() * 9000);
+      b = 1000 + Math.floor(Math.random() * 9000);
+      guard += 1;
+    } while (!additionHasCarry(a, b) && guard < 200);
+    return { a, b };
+  }
+
+  function openNotebook() {
+    const existing = state.notebook && state.notebook.exercise ? state.notebook : null;
+    const notebook = existing || { exercise: makeAdditionExercise(), cells: {}, active: null, result: null };
+    setState({ screen: "notebook", notebook });
+  }
+
+  // The pre-printed (non-editable) exercise cells: "r,c" -> character.
+  function notebookFixedCells() {
+    const ex = state.notebook?.exercise;
+    if (!ex) return {};
+    const a = String(ex.a).padStart(4, "0").split("");
+    const b = String(ex.b).padStart(4, "0").split("");
+    const cells = {};
+    for (let i = 0; i < 4; i++) cells[`${NB_OP1_ROW},${NB_DIGIT_COLS[i + 1]}`] = a[i];
+    cells[`${NB_OP2_ROW},${NB_PLUS_COL}`] = "+";
+    for (let i = 0; i < 4; i++) cells[`${NB_OP2_ROW},${NB_DIGIT_COLS[i + 1]}`] = b[i];
+    return cells;
+  }
+
+  function isLockedNotebookCell(r, c) {
+    return Object.prototype.hasOwnProperty.call(notebookFixedCells(), `${r},${c}`);
+  }
+
+  function notebookSelectCell(r, c) {
+    const nb = state.notebook;
+    if (!nb || isLockedNotebookCell(r, c)) return;
+    setState({ notebook: { ...nb, active: `${r},${c}` } }, false);
+  }
+
+  function checkNotebook() {
+    const nb = state.notebook;
+    if (!nb || !nb.exercise) return;
+    const expected = String(nb.exercise.a + nb.exercise.b);
+    let written = "";
+    for (const c of NB_DIGIT_COLS) written += (nb.cells[`${NB_ANSWER_ROW},${c}`] || "");
+    const result = written === expected ? "correct" : "wrong";
+    setState({ notebook: { ...nb, result } });
+  }
+
+  function resetNotebook() {
+    const nb = state.notebook;
+    if (!nb) return;
+    setState({ notebook: { ...nb, cells: {}, active: null, result: null } });
+  }
+
+  function notebookBackToLibrary() {
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: "chapter-8",
+      sceneId: "arithmetic",
+      panelIndex: 1
+    }, true);
+  }
+
+  function handleNotebookKey(event) {
+    const nb = state.notebook;
+    if (!nb) return;
+    if (event.key === "Escape") {
+      if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
+      return;
+    }
+    const active = nb.active;
+    if (!active) return;
+    const [r, c] = active.split(",").map(Number);
+    if (["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      let nr = r;
+      let nc = c;
+      if (event.key === "ArrowRight") nc = Math.min(NB_COLS - 1, c + 1);
+      if (event.key === "ArrowLeft") nc = Math.max(0, c - 1);
+      if (event.key === "ArrowUp") nr = Math.max(0, r - 1);
+      if (event.key === "ArrowDown") nr = Math.min(NB_ROWS - 1, r + 1);
+      setState({ notebook: { ...nb, active: `${nr},${nc}` } }, false);
+      event.preventDefault();
+      return;
+    }
+    if (isLockedNotebookCell(r, c)) return;
+    if (event.key === "Backspace" || event.key === "Delete") {
+      const cells = { ...nb.cells };
+      delete cells[active];
+      setState({ notebook: { ...nb, cells, result: null } }, false);
+      event.preventDefault();
+      return;
+    }
+    if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      const cells = { ...nb.cells };
+      cells[active] = event.key;
+      setState({ notebook: { ...nb, cells, result: null } }, false);
+      event.preventDefault();
+    }
+  }
+
+  function renderNotebook() {
+    const nb = state.notebook || {};
+    const fixed = notebookFixedCells();
+    const answerCols = new Set(NB_DIGIT_COLS.map((c) => `${NB_ANSWER_ROW},${c}`));
+    const rows = [];
+    for (let r = 0; r < NB_ROWS; r++) {
+      let cells = "";
+      for (let c = 0; c < NB_COLS; c++) {
+        const key = `${r},${c}`;
+        const fixedChar = fixed[key];
+        const userChar = nb.cells ? nb.cells[key] : "";
+        const char = fixedChar != null ? fixedChar : (userChar || "");
+        const classes = ["notebook-cell"];
+        if (fixedChar != null) classes.push("notebook-cell-fixed");
+        if (nb.active === key) classes.push("notebook-cell-active");
+        // The addition line: a heavier bottom edge under the second operand.
+        if (r === NB_OP2_ROW && NB_DIGIT_COLS.includes(c)) classes.push("notebook-cell-underline");
+        if (answerCols.has(key)) {
+          classes.push("notebook-cell-answer");
+          if (nb.result === "correct") classes.push("notebook-cell-correct");
+          if (nb.result === "wrong") classes.push("notebook-cell-wrong");
+        }
+        const lockAttr = fixedChar != null ? ' aria-disabled="true"' : "";
+        cells += `<button type="button" class="${classes.join(" ")}" data-action="notebook-cell" data-r="${r}" data-c="${c}"${lockAttr}>${esc(char)}</button>`;
+      }
+      rows.push(`<div class="notebook-row">${cells}</div>`);
+    }
+    const resultMsg = nb.result === "correct"
+      ? '<span class="notebook-result notebook-result-correct">כל הכבוד! נכון.</span>'
+      : (nb.result === "wrong" ? '<span class="notebook-result notebook-result-wrong">עדיין לא נכון. נסה שוב.</span>' : "");
+    app.innerHTML = `
+      <main class="screen notebook-screen">
+        <div class="notebook-page" data-notebook-page>
+          ${rows.join("")}
+        </div>
+        <div class="notebook-footer">
+          ${resultMsg}
+          <div class="notebook-actions">
+            <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
+            <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
+            <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
+          </div>
+        </div>
+      </main>`;
+  }
+
   function render() {
     syncExplanationUnlocks();
     if (state.hintSlides) return renderHintSlides();
@@ -4942,6 +5124,7 @@
     if (state.screen === "myCards") return renderMyCards();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
+    if (state.screen === "notebook") return renderNotebook();
 
     if (state.screen === "workspace") {
       renderWorkspace();
@@ -8073,6 +8256,14 @@
     }
   });
 
+  // The arithmetic notebook grabs the keyboard while it is on screen: the
+  // selected cell takes a typed character, Backspace/Delete clears it, the
+  // arrows move the selection, Escape deselects.
+  document.addEventListener("keydown", (event) => {
+    if (state.screen !== "notebook") return;
+    handleNotebookKey(event);
+  });
+
   document.addEventListener("keydown", (event) => {
     const box = event.target.closest("[data-splitter-count]");
     if (!box) return;
@@ -8258,7 +8449,11 @@
     if (action === "dialog-no") return rejectInteractiveDialog();
     if (action === "panel-hotspot") return activatePanelHotspot();
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
-    if (action === "stone-millis-book") return; // reading room next chapter — clickable area reserved, no destination yet
+    if (action === "stone-millis-book") return openNotebook();
+    if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
+    if (action === "notebook-check") return checkNotebook();
+    if (action === "notebook-reset") return resetNotebook();
+    if (action === "notebook-back-to-library") return notebookBackToLibrary();
     if (action === "open-note-tasks") return openNoteTaskDialog();
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();

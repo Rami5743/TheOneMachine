@@ -3203,3 +3203,100 @@ object.panel-image.is-pending {
   .panel-spinner-icon { animation-duration: 2.4s; }
   object.panel-image { transition: none; }
 }
+
+/* --- Arithmetic notebook (chapter 2.5) ---------------------------------- */
+.notebook-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 100dvh;
+  padding: 16px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(120% 120% at 50% 0%, #fbf3dd 0%, #f3e6c4 60%, #ecdcb2 100%);
+}
+
+.notebook-page {
+  --nb-cell: clamp(24px, 4.4vw, 44px);
+  background: #fbf5e2;
+  border: 1px solid #cbb888;
+  border-radius: 6px;
+  box-shadow: 0 12px 34px rgba(60, 44, 18, 0.28);
+  padding: 6px;
+  direction: ltr;
+  overflow: auto;
+  max-width: 100%;
+}
+
+.notebook-row {
+  display: flex;
+}
+
+.notebook-cell {
+  width: var(--nb-cell);
+  height: var(--nb-cell);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid #e3d4ab;
+  border-bottom: 1px solid #e3d4ab;
+  background: transparent;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--nb-cell) * 0.6);
+  line-height: 1;
+  color: #2a2a44;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notebook-row .notebook-cell:first-child { border-left: 1px solid #e3d4ab; }
+.notebook-row:first-child .notebook-cell { border-top: 1px solid #e3d4ab; }
+
+.notebook-cell:hover { background: rgba(120, 90, 30, 0.06); }
+
+.notebook-cell-fixed {
+  color: #1c2c5a;
+  font-weight: 700;
+  cursor: default;
+}
+.notebook-cell-fixed:hover { background: transparent; }
+
+.notebook-cell-active {
+  background: rgba(60, 110, 220, 0.14);
+  box-shadow: inset 0 0 0 2px #3a6edc;
+}
+
+.notebook-cell-underline {
+  border-bottom: 3px solid #1c2c5a;
+}
+
+.notebook-cell-answer { color: #123; }
+.notebook-cell-correct { background: rgba(60, 170, 90, 0.22); }
+.notebook-cell-wrong { background: rgba(210, 70, 60, 0.18); }
+
+.notebook-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.notebook-result { font-weight: 700; font-size: 1.05rem; }
+.notebook-result-correct { color: #1d7a3d; }
+.notebook-result-wrong { color: #b23a2f; }
+
+.notebook-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.notebook-reset-btn {
+  font-size: 1.25rem;
+  line-height: 1;
+  min-width: 44px;
+}
