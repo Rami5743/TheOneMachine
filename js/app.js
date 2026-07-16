@@ -1830,8 +1830,15 @@
   function renderHotspots(panel) {
     const hotspots = panelHotspots(panel);
     if (!hotspots.length) return "";
-    return hotspots.map((h) => `
-      <button class="panel-hotspot" type="button" data-action="${esc(h.action || "panel-hotspot")}" aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`).join("");
+    return hotspots.map((h) => {
+      // A hotspot that carries a `url` opens that page in a new tab; it is
+      // wired through the dedicated "open-external-url" action and stashes the
+      // target in a data attribute the click handler reads.
+      const action = h.url ? "open-external-url" : (h.action || "panel-hotspot");
+      const urlAttr = h.url ? ` data-url="${esc(h.url)}"` : "";
+      return `
+      <button class="panel-hotspot" type="button" data-action="${esc(action)}"${urlAttr} aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`;
+    }).join("");
   }
 
   // EXPLANATION_ITEMS moved to js/app-data.js
@@ -6092,7 +6099,10 @@
   }
 
   function openBusesNote() {
-    if (!newEquipmentChecked()) {
+    // The equipment (bus + splitter) must be examined only before the FIRST
+    // note (the 2.4 bus-task worktable). The second note (the multi-bit
+    // next-tasks worktable, reachable by skipping) has no such gate.
+    if (!onNextTasksWorktable() && !newEquipmentChecked()) {
       return setState({ infoDialog: "קודם תבדוק את כל הציוד." });
     }
     return setState({ busesNoteList: true });
@@ -7098,6 +7108,13 @@
     const hotspot = currentPanel().hotspot;
     if (!hotspot) return;
     if (hotspot.action === "next") return nextPanel();
+  }
+
+  // Open an external reference (a hotspot over a book/journal/sign) in a new
+  // browser tab, without handing the opened page a reference back to us.
+  function openExternalUrl(url) {
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   function withWorkspace(mutator) {
@@ -8235,6 +8252,8 @@
     if (action === "dialog-yes") return continueInteractiveDialog();
     if (action === "dialog-no") return rejectInteractiveDialog();
     if (action === "panel-hotspot") return activatePanelHotspot();
+    if (action === "open-external-url") return openExternalUrl(button.dataset.url);
+    if (action === "stone-millis-book") return; // reading room next chapter — clickable area reserved, no destination yet
     if (action === "open-note-tasks") return openNoteTaskDialog();
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();
