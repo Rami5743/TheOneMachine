@@ -5555,6 +5555,410 @@
     return notebookWindow(nb, `פתרון — ספרת ה${NB_COLUMN_NAMES[step]}`, body, actions);
   }
 
+  // =====================================================================
+  // Binary-conversion booklet (opened from the workshop, panel107).
+  // A "variant" of the notebook screen: it reuses the notebook shell and the
+  // movable nb-window chrome, but has its own equation display, calculator-
+  // style digit entry (the cursor advances left→right as you type), its own
+  // deterministic exercises, hints and walkthroughs. Two stages, each of
+  // which repeats until the learner solves one with NO help and NO mistakes:
+  //   "bin2dec": read a binary number, type its decimal value.
+  //   "dec2bin": read a decimal number, type its binary form.
+  // =====================================================================
+  const BIN_BOOKLET_SEED = 1943;
+  // Frozen teaching values (the rest come from the seeded generator, keyed by
+  // index, so exercise N is always the same). bin2dec[0] = 22 = 10110₂.
+  const BIN2DEC_HARDCODED = [22, 45, 27, 53, 38];
+  const DEC2BIN_HARDCODED = [11, 26, 43, 52, 37];
+  const DEC2BIN_ANSWER_WIDTH = 6; // values stay ≤ 63 (six bits)
+
+  function toBinaryString(n) { return (n >>> 0).toString(2); }
+
+  // The powers of two present in n, high→low: 22 → [16, 4, 2].
+  function binaryPowers(n) {
+    const out = [];
+    for (let p = 1; p <= n; p *= 2) { if (n & p) out.unshift(p); }
+    return out;
+  }
+
+  function nthBinValue(stage, index) {
+    const hard = stage === "bin2dec" ? BIN2DEC_HARDCODED : DEC2BIN_HARDCODED;
+    if (index < hard.length) return hard[index];
+    const salt = stage === "dec2bin" ? 777 : 0;
+    const rng = mulberry32((BIN_BOOKLET_SEED + Math.imul(index + salt, 2654435761)) >>> 0);
+    return 8 + Math.floor(rng() * 56); // 8..63 → 4–6 bit numbers
+  }
+
+  function openBinaryBooklet() {
+    const existing = state.notebook && state.notebook.variant === "binary" ? state.notebook : null;
+    setState({ screen: "notebook", notebook: existing || freshBinExercise("bin2dec", 0, 0) });
+  }
+
+  function freshBinExercise(stage, index, dec2binExplainCount) {
+    return {
+      variant: "binary",
+      stage,
+      exerciseIndex: index,
+      value: nthBinValue(stage, index),
+      entry: "",
+      active: true,
+      failCount: 0,
+      hintUsed: false,
+      dialog: null, // null | "correct" | "wrong" | "hints" | "walkthrough"
+      hintIndex: 0,
+      hintsSeen: 0,
+      winPos: null,
+      dec2binExplainCount: dec2binExplainCount || 0
+    };
+  }
+
+  function binAnswerWidth(nb) {
+    return nb.stage === "bin2dec" ? String(nb.value).length : DEC2BIN_ANSWER_WIDTH;
+  }
+  function binExpectedAnswer(nb) {
+    return nb.stage === "bin2dec" ? String(nb.value) : toBinaryString(nb.value);
+  }
+  function binDigitAllowed(nb, ch) {
+    return nb.stage === "bin2dec" ? /[0-9]/.test(ch) : /[01]/.test(ch);
+  }
+  function binSolved(nb) {
+    return nb.entry === binExpectedAnswer(nb);
+  }
+  function binClean(nb) {
+    return (nb.failCount || 0) === 0 && !nb.hintUsed;
+  }
+
+  // ---- hints -------------------------------------------------------------
+  function binHintList(nb) {
+    if (nb.stage === "bin2dec") {
+      const powers = binaryPowers(nb.value);
+      return [{
+        title: "רמז",
+        text: `כל ביט שדלוק (1) מייצג חזקה של 2 לפי מיקומו. כאן הביטים הדלוקים הם ${powers.join(" + ")}. חבר אותם כדי לקבל את המספר.`
+      }];
+    }
+    return [
+      { title: "רמז 1", text: "תנסה לחשוב כמה ספרות אתה צריך." },
+      { title: "רמז 2", text: "כל ספרה משמעותית פי שתיים מהקודמת. תנסה לראות כמה משמעותית יכולה להיות הספרה השמאלית ועדיין להיכנס למספר. למשל, אם המספר הוא 10 אז 8 נכנס לתוכו אבל 16 לא." },
+      { title: "רמז 3", text: "ברגע שמצאת את הספרה הכי משמעותית, אתה יכול להפחית את המשמעות שלה מהמספר ולעבוד עם מה שנשאר." }
+    ];
+  }
+  function binUnlockedHints(nb) {
+    return Math.min(binHintList(nb).length, Math.max(0, nb.failCount || 0));
+  }
+  function binSolutionAvailable(nb) {
+    return (nb.failCount || 0) >= binHintList(nb).length + 1;
+  }
+
+  // ---- walkthroughs ------------------------------------------------------
+  // Allow a light markup inside otherwise-escaped text: *bold*, and @[...] to
+  // isolate a left-to-right math run so digits/operators keep their order
+  // inside the surrounding right-to-left Hebrew.
+  function binParagraphsHtml(text) {
+    return String(text).split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => {
+      const safe = esc(p)
+        .replace(/@\[([^\]]+)\]/g, '<span class="bin-ltr" dir="ltr">$1</span>')
+        .replace(/\*([^*]+)\*/g, "<strong>$1</strong>");
+      return `<p>${safe}</p>`;
+    }).join("");
+  }
+
+  function binBin2decWalkthrough(value) {
+    const bin = toBinaryString(value);
+    const places = [];
+    for (let i = 0; i < bin.length; i++) places.unshift(Math.pow(2, i)); // high→low, aligned with bin
+    const powers = binaryPowers(value);
+    const perDigit = bin.split("").map((b, i) => `${b}×${places[i]}`).join("  ,  ");
+    return [
+      `נתרגם את *@[${bin}₂]* לכתיב עשרוני. כל ספרה (ביט) מייצגת חזקה של 2 לפי מיקומה — מימין לשמאל: @[${places.slice().reverse().join(", ")}].`,
+      `מכפילים כל ביט במשמעות המקום שלו: @[${perDigit}].`,
+      `נשארות רק החזקות של הביטים הדלוקים: *@[${powers.join(" + ")}]*.`,
+      `לכן @[${bin}₂ = ${powers.join(" + ")} = ${value}].`
+    ].join("\n\n");
+  }
+
+  // The two-method decimal→binary explanation, parameterised by the value.
+  // First time: full prose for both methods. From the 2nd time: shortened,
+  // focused on the operations themselves.
+  function binDec2binWalkthrough(value, shorten) {
+    const bin = toBinaryString(value);
+    // Method 1 — greedy decomposition into powers of two.
+    const parts = [];
+    let rem = value;
+    while (rem > 0) { let p = 1; while (p * 2 <= rem) p *= 2; parts.push(p); rem -= p; }
+    const topPower = parts[0];
+    const rawSteps = [];
+    let acc = value;
+    const shown = [];
+    for (let k = 0; k < parts.length; k++) {
+      shown.push(parts[k]);
+      acc -= parts[k];
+      const tail = acc > 0 ? ` + ${acc}` : "";
+      rawSteps.push(`${value} = ${shown.join(" + ")}${tail}`);
+    }
+    // The final line repeats once the remainder is itself a power — drop dups.
+    const decompSteps = rawSteps.filter((s, i) => i === 0 || s !== rawSteps[i - 1]);
+    // Method 2 — parity / halving.
+    const halveRows = [];
+    let m = value;
+    while (m > 0) { halveRows.push({ n: m, bit: m % 2 }); m = Math.floor(m / 2); }
+    const parity = (value % 2 === 0) ? "זוגי" : "אי-זוגי";
+    const units = value % 2;
+
+    if (shorten) {
+      return [
+        `נזכיר בקצרה איך ממירים את @[${value}] לבינארי.`,
+        `*שיטה א׳ (חזקות של 2):* @[${decompSteps[decompSteps.length - 1]}]. סימון החזקות שמופיעות נותן @[${value} = ${bin}₂].`,
+        `*שיטה ב׳ (זוגיות וחלוקה):* ` + halveRows.map((r) => `@[${r.n}]${r.n % 2 === 0 ? "→0" : "→1"}`).join("  ,  ") + `. קוראים את הביטים מלמטה למעלה: *@[${bin}₂]*.`
+      ].join("\n\n");
+    }
+
+    const method1 = [
+      `*שיטה ראשונה — מהספרה המשמעותית ביותר:*`,
+      `רושמים בצד את המשמעויות של הספרות: @[1, 2, 4, 8, 16, 32, ...] (חזקות של 2), וממשיכים עד שעוברים את המספר.`,
+      `החזקה הגדולה ביותר של 2 שנכנסת לתוך @[${value}] היא @[${topPower}]. כותבים @[${decompSteps[0]}]. חוזרים על אותו תהליך עם מה שנשאר:`,
+      decompSteps.map((s) => `@[${s}]`).join("\n"),
+      `עכשיו כותבים @[1] בכל מקום שהחזקה שלו מופיעה בפירוק, ו-@[0] בכל מקום שלא. מקבלים @[${value} = ${bin}₂].`
+    ].join("\n\n");
+
+    const method2 = [
+      `*שיטה שנייה — מספרת האחדות:*`,
+      `המשמעות של כל הספרות פרט לספרת האחדות היא זוגית, לכן אם המספר זוגי ספרת האחדות היא @[0], ואם הוא אי-זוגי היא @[1].`,
+      `@[${value}] הוא ${parity}, לכן ספרת האחדות היא @[${units}]. מפחיתים אותה ומחלקים ב-2, וחוזרים על התהליך עם התוצאה — כל פעם הזוגיות נותנת את הספרה הבאה:`,
+      halveRows.map((r) => `@[${r.n}] → ${r.n % 2 === 0 ? "זוגי" : "אי-זוגי"} → @[${r.bit}]`).join("\n"),
+      `קוראים את הביטים שהתקבלו מלמטה למעלה ומקבלים @[${value} = ${bin}₂].`
+    ].join("\n\n");
+
+    return [
+      `נראה איך ממירים את @[${value}] מעשרוני לכתיב בינארי. יש שתי דרכים:`,
+      method1,
+      method2
+    ].join("\n\n");
+  }
+
+  function binWalkthroughText(nb) {
+    return nb.stage === "bin2dec"
+      ? binBin2decWalkthrough(nb.value)
+      : binDec2binWalkthrough(nb.value, (nb.dec2binExplainCount || 0) > 0);
+  }
+
+  function binTaskPrompt(nb) {
+    return nb.stage === "bin2dec"
+      ? "מהו הערך העשרוני של המספר הבינארי הבא?"
+      : "כתוב את המספר הבא בכתיב בינארי:";
+  }
+
+  // ---- interactions ------------------------------------------------------
+  function binFocusEntry() {
+    const nb = state.notebook;
+    if (!nb || nb.dialog === "walkthrough") return;
+    const dialog = nb.dialog === "wrong" ? null : nb.dialog;
+    setState({ notebook: { ...nb, active: true, dialog } }, false);
+  }
+
+  function handleBinaryNotebookKey(event) {
+    const nb = state.notebook;
+    if (!nb || nb.dialog === "walkthrough") return;
+    if (event.key === "Escape") {
+      if (nb.active) { setState({ notebook: { ...nb, active: false } }, false); event.preventDefault(); }
+      return;
+    }
+    if (!nb.active) return;
+    const clearWrong = nb.dialog === "wrong" ? null : nb.dialog;
+    if (event.key === "Backspace" || event.key === "Delete") {
+      setState({ notebook: { ...nb, entry: nb.entry.slice(0, -1), dialog: clearWrong } }, false);
+      event.preventDefault();
+      return;
+    }
+    if (event.key === "Enter") { checkBinaryNotebook(); event.preventDefault(); return; }
+    if (event.key.length === 1 && binDigitAllowed(nb, event.key) && nb.entry.length < binAnswerWidth(nb)) {
+      setState({ notebook: { ...nb, entry: nb.entry + event.key, dialog: clearWrong } }, false);
+      event.preventDefault();
+    }
+  }
+
+  function checkBinaryNotebook() {
+    const nb = state.notebook;
+    if (!nb || nb.dialog === "walkthrough") return;
+    if (binSolved(nb)) { setState({ notebook: { ...nb, active: false, dialog: "correct" } }); return; }
+    setState({ notebook: { ...nb, active: false, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
+  }
+
+  function binResetEntry() {
+    const nb = state.notebook;
+    if (!nb) return;
+    setState({ notebook: { ...nb, entry: "", active: true, dialog: null } });
+  }
+
+  function binRetry() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: null } });
+  }
+
+  // The workshop is where the booklet lives, so the exit returns there
+  // (panel107), not to the library.
+  // Leaving via the footer keeps the booklet state so re-opening it resumes
+  // (like the arithmetic notebook); finishing the whole booklet clears it so a
+  // later visit starts fresh.
+  function binBackToWorkshop(clearNotebook) {
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: "chapter-8",
+      sceneId: "arithmetic",
+      panelIndex: 7,
+      ...(clearNotebook ? { notebook: null } : {})
+    }, true);
+  }
+
+  function binOpenHints() {
+    const nb = state.notebook;
+    const unlocked = binUnlockedHints(nb);
+    if (unlocked <= 0 && !binSolutionAvailable(nb)) return;
+    const solutionSlot = binHintList(nb).length;
+    const hintIndex = binSolutionAvailable(nb) ? solutionSlot : unlocked - 1;
+    setState({ notebook: { ...nb, dialog: "hints", hintIndex, hintUsed: true, hintsSeen: Math.max(nb.hintsSeen || 0, unlocked) } });
+  }
+  function binSelectHint(index) {
+    const nb = state.notebook;
+    const solutionSlot = binHintList(nb).length;
+    const max = binSolutionAvailable(nb) ? solutionSlot : Math.max(0, binUnlockedHints(nb) - 1);
+    setState({ notebook: { ...nb, hintIndex: Math.min(Math.max(0, index), max) } }, false);
+  }
+  function binCloseHints() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: null } });
+  }
+
+  function binOpenWalkthrough() {
+    const nb = state.notebook;
+    // Opening the walkthrough from a failed attempt counts as using help.
+    const hintUsed = nb.dialog === "wrong" ? true : nb.hintUsed;
+    setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed } });
+  }
+
+  // The walkthrough always ends by moving on: a clean solve advances to the
+  // next stage (or leaves the booklet), any help/mistake gives another
+  // exercise of the same kind.
+  function binWalkthroughFinish() {
+    const nb = state.notebook;
+    if (binClean(nb)) {
+      if (nb.stage === "bin2dec") {
+        setState({ notebook: freshBinExercise("dec2bin", 0, nb.dec2binExplainCount || 0) });
+      } else {
+        binBackToWorkshop(true);
+      }
+      return;
+    }
+    const nextCount = nb.stage === "dec2bin" ? (nb.dec2binExplainCount || 0) + 1 : (nb.dec2binExplainCount || 0);
+    setState({ notebook: freshBinExercise(nb.stage, (nb.exerciseIndex || 0) + 1, nextCount) });
+  }
+
+  function renderBinaryNotebook() {
+    const nb = state.notebook || {};
+    const width = binAnswerWidth(nb);
+    const entry = nb.entry || "";
+    const fixedCells = (str) => str.split("").map((ch) => `<span class="notebook-cell notebook-cell-fixed bin-cell">${esc(ch)}</span>`).join("");
+    // bin2dec shows a fixed row of answer boxes; dec2bin grows with typing so the
+    // ₂ subscript always sits right after the number (and the digit count is not
+    // given away — that is the point of hint 1).
+    const cellCount = nb.stage === "bin2dec"
+      ? width
+      : Math.min(width, Math.max(1, entry.length + (nb.active && entry.length < width ? 1 : 0)));
+    let entryCells = "";
+    for (let i = 0; i < cellCount; i++) {
+      const ch = entry[i] || "";
+      const cursor = nb.active && i === entry.length && i < width;
+      entryCells += `<button type="button" class="notebook-cell notebook-cell-answer bin-cell bin-entry-cell${cursor ? " notebook-cell-active" : ""}" data-action="binbk-entry">${esc(ch)}</button>`;
+    }
+    const opBlock = nb.stage === "bin2dec"
+      ? `<span class="bin-op"><span class="bin-q">?</span><span class="bin-eqsign">=</span></span>`
+      : `<span class="bin-op"><span class="bin-eqsign">=</span></span>`;
+    const equation = nb.stage === "bin2dec"
+      ? `<span class="bin-group">${fixedCells(toBinaryString(nb.value))}<sub class="bin-sub">2</sub></span>${opBlock}<span class="bin-group">${entryCells}</span>`
+      : `<span class="bin-group">${fixedCells(String(nb.value))}</span>${opBlock}<span class="bin-group">${entryCells}<sub class="bin-sub">2</sub></span>`;
+
+    const unlocked = binUnlockedHints(nb);
+    const showHintBtn = unlocked > 0 || binSolutionAvailable(nb);
+    const hintFresh = (nb.hintsSeen || 0) < unlocked;
+    const hintLabel = binSolutionAvailable(nb) ? "פתרון" : ((nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?");
+    const hintButton = showHintBtn
+      ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="binbk-hints-open" type="button">${esc(hintLabel)}</button>`
+      : "";
+    const footer = nb.dialog === "walkthrough" ? "" : `
+        <div class="notebook-actions">
+          <button class="btn btn-primary" data-action="binbk-check" type="button">בדיקה</button>
+          ${hintButton}
+          <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
+          <button class="btn notebook-reset-btn" data-action="binbk-reset" type="button" aria-label="נקה">↻</button>
+        </div>`;
+
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen notebook-screen">
+        <div class="bin-prompt">${esc(binTaskPrompt(nb))}</div>
+        <div class="notebook-page bin-page">
+          <div class="bin-equation" data-action="binbk-entry">${equation}</div>
+        </div>
+        <div class="notebook-footer">${footer}</div>
+        ${renderBinaryDialog(nb)}
+      </main>`;
+  }
+
+  function renderBinaryDialog(nb) {
+    const dialog = nb.dialog;
+    if (!dialog) return "";
+    if (dialog === "hints") return renderBinaryHints(nb);
+    if (dialog === "walkthrough") return renderBinaryWalkthrough(nb);
+    let title = "";
+    let body = "";
+    let actions = "";
+    if (dialog === "correct") {
+      title = "יפה מאוד!";
+      body = "<p>כל הכבוד! פתרת נכון. עכשיו נעבור על ההסבר.</p>";
+      actions = '<button class="btn btn-primary" data-action="binbk-walk-open" type="button">הצגת הסבר</button>';
+    } else if (dialog === "wrong") {
+      title = "בדיקה";
+      body = "<p>התשובה עדיין לא נכונה.</p>";
+      actions = '<button class="btn btn-primary" data-action="binbk-retry" type="button">נסה שוב</button>'
+        + (binSolutionAvailable(nb) ? '<button class="btn" data-action="binbk-walk-open" type="button">רוצה לראות את הפתרון</button>' : "");
+    }
+    return notebookWindow(nb, title, body, actions);
+  }
+
+  function renderBinaryHints(nb) {
+    const hints = binHintList(nb);
+    const unlocked = binUnlockedHints(nb);
+    const solutionOffered = binSolutionAvailable(nb);
+    if (unlocked <= 0 && !solutionOffered) return "";
+    const solutionSlot = hints.length;
+    const selected = Math.min(Math.max(0, nb.hintIndex || 0), solutionOffered ? solutionSlot : Math.max(0, unlocked - 1));
+    const onSolution = solutionOffered && selected === solutionSlot;
+    const items = hints.slice(0, unlocked).map((hint, index) => `
+      <button class="hint-list-item ${index === selected ? "hint-list-item-active" : ""}" data-action="binbk-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
+    const solutionItem = solutionOffered
+      ? `<button class="hint-list-item hint-solution-item ${onSolution ? "hint-list-item-active" : ""}" data-action="binbk-hint-select" data-hint-index="${solutionSlot}" type="button">פתרון</button>`
+      : "";
+    const content = onSolution
+      ? '<p>אפשר לראות את הפתרון המלא של התרגיל.</p><button class="btn btn-primary" data-action="binbk-walk-open" type="button">הצג פתרון</button>'
+      : `<p>${esc((hints[selected] || {}).text || "")}</p>`;
+    const body = `
+      <div class="hint-layout">
+        <nav class="hint-list" aria-label="רשימת רמזים">${items}${solutionItem}</nav>
+        <div class="hint-content">${content}</div>
+      </div>`;
+    return notebookWindow(nb, "רמזים", body, '<button class="btn" data-action="binbk-hint-close" type="button">סגור</button>');
+  }
+
+  function renderBinaryWalkthrough(nb) {
+    const body = binParagraphsHtml(binWalkthroughText(nb));
+    const clean = binClean(nb);
+    const label = clean ? "המשך" : "תרגיל נוסף";
+    const actions = `<button class="btn btn-primary" data-action="binbk-walk-finish" type="button">${esc(label)}</button>`;
+    const title = nb.stage === "bin2dec" ? "המרה לעשרוני" : "המרה לבינארי";
+    return notebookWindow(nb, title, `<div class="bin-walkthrough">${body}</div>`, actions);
+  }
+
   function render() {
     syncExplanationUnlocks();
     if (state.hintSlides) return renderHintSlides();
@@ -5566,7 +5970,7 @@
     if (state.screen === "myCards") return renderMyCards();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
-    if (state.screen === "notebook") return renderNotebook();
+    if (state.screen === "notebook") return state.notebook?.variant === "binary" ? renderBinaryNotebook() : renderNotebook();
 
     if (state.screen === "workspace") {
       renderWorkspace();
@@ -8704,7 +9108,8 @@
   // arrows move the selection, Escape deselects.
   document.addEventListener("keydown", (event) => {
     if (state.screen !== "notebook") return;
-    handleNotebookKey(event);
+    if (state.notebook?.variant === "binary") handleBinaryNotebookKey(event);
+    else handleNotebookKey(event);
   });
 
   // Dragging the movable notebook windows (hints / explanation / solution) by
@@ -8929,7 +9334,17 @@
     if (action === "panel-hotspot") return activatePanelHotspot();
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
     if (action === "stone-millis-book") return openNotebook();
-    if (action === "binary-booklet") return; // binary-exercises booklet — reserved, no destination yet
+    if (action === "binary-booklet") return openBinaryBooklet();
+    if (action === "binbk-entry") return binFocusEntry();
+    if (action === "binbk-check") return checkBinaryNotebook();
+    if (action === "binbk-reset") return binResetEntry();
+    if (action === "binbk-back") return binBackToWorkshop(false);
+    if (action === "binbk-retry") return binRetry();
+    if (action === "binbk-hints-open") return binOpenHints();
+    if (action === "binbk-hint-select") return binSelectHint(Number(button.dataset.hintIndex));
+    if (action === "binbk-hint-close") return binCloseHints();
+    if (action === "binbk-walk-open") return binOpenWalkthrough();
+    if (action === "binbk-walk-finish") return binWalkthroughFinish();
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();
