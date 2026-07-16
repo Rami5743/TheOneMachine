@@ -3211,11 +3211,14 @@ object.panel-image.is-pending {
   align-items: center;
   justify-content: center;
   gap: 18px;
-  min-height: 100dvh;
-  padding: 16px;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
   box-sizing: border-box;
-  background:
-    radial-gradient(120% 120% at 50% 0%, #fbf3dd 0%, #f3e6c4 60%, #ecdcb2 100%);
+  overflow: auto;
+  /* The surround matches the rest of the game (the dark app background); only
+     the notebook page itself is warm paper. */
+  background: transparent;
 }
 
 .notebook-page {

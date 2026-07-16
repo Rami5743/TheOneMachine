@@ -1386,7 +1386,7 @@
   }
 
   function topbar() {
-    const contentScreens = ["story", "workspace", "nandBuildHelp"];
+    const contentScreens = ["story", "workspace", "nandBuildHelp", "notebook"];
     const showChapter = Boolean(state.started) && (Boolean(state.hintSlides) || contentScreens.includes(state.screen));
     const chapter = showChapter ? currentChapter() : null;
     const subtitle = chapter
@@ -4954,11 +4954,21 @@
   const NB_TENS_COL = 11;
 
   // The two progressive hints, mirroring the worktable tasks. Hint 1 is plain
-  // text; hint 2 is interactive (הפעל רמז fills in the units step).
+  // text; hint 2 is interactive (הפעל רמז fills in the units step). They unlock
+  // by failed checks and are browsed from a bottom "רוצה רמז?" button, exactly
+  // like the worktable hint list.
   const NOTEBOOK_HINTS = [
-    "התחל מלחשב את הסכום של ספרת האחדות של המספר הראשון עם ספרת האחדות של המספר השני.",
-    "צריך עזרה עם הרמז הראשון?"
+    { title: "רמז 1", kind: "text", text: "התחל מלחשב את הסכום של ספרת האחדות של המספר הראשון עם ספרת האחדות של המספר השני." },
+    { title: "רמז 2", kind: "interactive", text: "צריך עזרה עם הרמז הראשון?", note: "(לחיצה על \"הפעל רמז\" תמחק את מה שעשית)" }
   ];
+
+  // Hints unlock like the worktable: none until the second failed check, then
+  // one more per failure (failCount - 1, capped at the hint count).
+  function notebookUnlockedHints() {
+    const nb = state.notebook;
+    if (!nb) return 0;
+    return Math.min(NOTEBOOK_HINTS.length, Math.max(0, (nb.failCount || 0) - 1));
+  }
 
   // Two 4-digit numbers whose column addition produces at least one carry.
   function additionHasCarry(a, b) {
@@ -4993,8 +5003,9 @@
       active: null,
       failCount: 0,
       hintsSeen: 0,
-      // Current overlay: null | "correct" | "wrong" | "hint-0" | "hint-1" |
-      // "hint-applied" | "explanation-stub".
+      hintIndex: 0,
+      // Current overlay: null | "correct" | "wrong" | "explanation-stub" |
+      // "hints" (the browsable hint list) | "hint-applied".
       dialog: null
     };
     setState({ screen: "notebook", notebook });
@@ -5067,11 +5078,20 @@
     setState({ notebook: { ...nb, dialog: null } });
   }
 
-  function notebookRevealHint() {
+  // The bottom "רוצה רמז?" button opens the browsable hint list (all unlocked
+  // hints), selecting the newest and marking them seen — like the worktable.
+  function notebookOpenHints() {
     const nb = state.notebook;
-    const index = nb.hintsSeen || 0;
-    if (index >= NOTEBOOK_HINTS.length) return;
-    setState({ notebook: { ...nb, dialog: `hint-${index}`, hintsSeen: index + 1 } });
+    const unlocked = notebookUnlockedHints();
+    if (unlocked <= 0) return;
+    setState({ notebook: { ...nb, dialog: "hints", hintIndex: unlocked - 1, hintsSeen: Math.max(nb.hintsSeen || 0, unlocked) } });
+  }
+
+  function notebookSelectHint(index) {
+    const nb = state.notebook;
+    const unlocked = notebookUnlockedHints();
+    const clamped = Math.min(Math.max(0, index), Math.max(0, unlocked - 1));
+    setState({ notebook: { ...nb, hintIndex: clamped } }, false);
   }
 
   function notebookHintClose() {
@@ -5161,7 +5181,14 @@
       }
       rows.push(`<div class="notebook-row">${cells}</div>`);
     }
+    const unlocked = notebookUnlockedHints();
+    const hintFresh = (nb.hintsSeen || 0) < unlocked;
+    const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
+    const hintButton = unlocked > 0
+      ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="notebook-hints-open" type="button">${esc(hintLabel)}</button>`
+      : "";
     app.innerHTML = `
+      ${topbar()}
       <main class="screen notebook-screen">
         <div class="notebook-page" data-notebook-page>
           ${rows.join("")}
@@ -5169,6 +5196,7 @@
         <div class="notebook-footer">
           <div class="notebook-actions">
             <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
+            ${hintButton}
             <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
             <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
           </div>
@@ -5186,21 +5214,10 @@
       body = "<p>כל הכבוד! פתרת נכון.</p>";
       actions = '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>';
     } else if (dialog === "wrong") {
-      const hintLeft = (nb.hintsSeen || 0) < NOTEBOOK_HINTS.length;
-      const showHint = (nb.failCount || 0) >= 2 && hintLeft;
-      const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
       body = "<p>התשובה עדיין לא נכונה.</p>";
-      actions =
-        '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>' +
-        (showHint ? `<button class="btn" data-action="notebook-hint" type="button">${esc(hintLabel)}</button>` : "");
-    } else if (dialog === "hint-0") {
-      body = `<p>${esc(NOTEBOOK_HINTS[0])}</p>`;
-      actions = '<button class="btn btn-primary" data-action="notebook-hint-close" type="button">הבנתי</button>';
-    } else if (dialog === "hint-1") {
-      body = `<p>${esc(NOTEBOOK_HINTS[1])}</p><p class="notebook-dialog-note">(לחיצה על "הפעל רמז" תמחק את מה שעשית)</p>`;
-      actions =
-        '<button class="btn btn-primary" data-action="notebook-hint-apply" type="button">הפעל רמז</button>' +
-        '<button class="btn" data-action="notebook-hint-close" type="button">סגור</button>';
+      actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
+    } else if (dialog === "hints") {
+      return renderNotebookHints(nb);
     } else if (dialog === "hint-applied") {
       const unitsSum = (nb.exercise.a % 10) + (nb.exercise.b % 10);
       const carryNote = unitsSum >= 10
@@ -5217,6 +5234,35 @@
         <section class="notebook-dialog" role="dialog" aria-modal="true">
           ${body}
           <div class="notebook-dialog-actions">${actions}</div>
+        </section>
+      </div>`;
+  }
+
+  // The browsable hint list, styled like the worktable's (hint titles on one
+  // side, the selected hint's content on the other).
+  function renderNotebookHints(nb) {
+    const unlocked = notebookUnlockedHints();
+    if (unlocked <= 0) return "";
+    const selectedIndex = Math.min(Math.max(0, nb.hintIndex || 0), unlocked - 1);
+    const selected = NOTEBOOK_HINTS[selectedIndex];
+    const list = NOTEBOOK_HINTS.slice(0, unlocked).map((hint, index) => `
+      <button class="hint-list-item ${index === selectedIndex ? "hint-list-item-active" : ""}" data-action="notebook-hint-select" data-hint-index="${index}" type="button">
+        ${esc(hint.title)}
+      </button>`).join("");
+    const content = selected.kind === "interactive"
+      ? `<p>${esc(selected.text)}</p>${selected.note ? `<p class="notebook-dialog-note">${esc(selected.note)}</p>` : ""}<button class="btn btn-primary" data-action="notebook-hint-apply" type="button">הפעל רמז</button>`
+      : `<p>${esc(selected.text)}</p>`;
+    return `
+      <div class="hint-overlay" role="presentation">
+        <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
+          <h2>רמזים</h2>
+          <div class="hint-layout">
+            <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
+            <div class="hint-content">${content}</div>
+          </div>
+          <div class="hint-actions">
+            <button class="btn" data-action="notebook-hint-close" type="button">סגור</button>
+          </div>
         </section>
       </div>`;
   }
@@ -8564,7 +8610,8 @@
     if (action === "notebook-back-to-library") return notebookBackToLibrary();
     if (action === "notebook-continue") return notebookContinue();
     if (action === "notebook-retry") return notebookRetry();
-    if (action === "notebook-hint") return notebookRevealHint();
+    if (action === "notebook-hints-open") return notebookOpenHints();
+    if (action === "notebook-hint-select") return notebookSelectHint(Number(button.dataset.hintIndex));
     if (action === "notebook-hint-close") return notebookHintClose();
     if (action === "notebook-hint-apply") return notebookApplyUnitsHint();
     if (action === "open-note-tasks") return openNoteTaskDialog();
