@@ -737,28 +737,34 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel102_chapter_2_5_library_vn.svg",
+        "year": "07:55",
         "read": "פון נוימן: אני מקווה שעברת על החומר כמו שצריך. בוא, יש לנו הרבה עבודה."
       },
       {
-        "image": "assets/panels/panel_chapter_2_5_binary_1.svg",
+        "image": "assets/panels/panel103_chapter_2_5_binary_1.svg",
+        "year": "1943",
         "read": "פון נוימן: אני צריך לספר לך איך מכונות חישוב עובדות עם מספרים. זה לא נוח לעבוד עם ספרות. אנחנו מעדיפים לעבוד עם ביטים. לביט יש רק שתי אפשרויות: 0 ו-1. כך שעם ביט אחד אפשר לכתוב רק את המספרים האלה. אם אנחנו רוצים לכתוב את 2 אנחנו נצטרך ביט נוסף. בדיוק כמו שכשמשתמשים בספרות אנחנו צריכים ספרה נוספת למספרים שגדולים מ-9."
       },
       {
-        "image": "assets/panels/panel_chapter_2_5_binary_2.svg",
+        "image": "assets/panels/panel104_chapter_2_5_binary_2.svg",
+        "year": "1943",
         "read": "פון נוימן: השיטה לכתוב מספרים עם ביטים נקראת השיטה הבינרית, כתיבה בבסיס ספירה 2. היא דומה לשיטה העשרונית שאתה מכיר אבל הבסיס הוא 2 במקום 10. כשכותבים בשיטה הבינרית הספרה הימנית ביותר היא ספרת האחדות (כמו בשיטה העשרונית). הספרה הבאה מימין היא ספרת ה-2, אחריה ספרת ה-4 אז ספרת ה-8 וכך הלאה (כל פעם מכפילים פי-2). כל ספרה היא בעצם ביט (היא יכולה להיות רק 0 או 1). למשל המספר 101 בשיטה הבינרית הוא 5: ה-1 הימני מייצג 1, ה-0 שאחריו מייצג 0 פעמים 2 (שהם 0) וה-1 שאחריו מייצג 4. דוגמה נוספת היא המספר 111 שהוא המספר התלת-ספרתי הגדול ביותר בשיטה הבינרית. הוא למעשה המספר 1+2+4=7. בשביל לכתוב 8 יש צורך בספרה נוספת: 1000. באופן כללי התפקיד של כל ספרה הוא פי 2 יותר מאשר של הספרה הקודמת, בדיוק כמו שבשיטה העשרונית התפקיד של כל ספרה הוא פי-10 יותר משל הספרה הקודמת."
       },
       {
-        "image": "assets/panels/panel_chapter_2_5_binary_3.svg",
+        "image": "assets/panels/panel105_chapter_2_5_binary_3.svg",
+        "year": "1943",
         "read": "פון נוימן: כדי לציין שאנחנו כותבים מספר בשיטה הבינרית אנחנו מוסיפים 2 קטן בתחתית המספר. למשל 110₂=6."
       },
       {
-        "image": "assets/panels/panel103_chapter_2_5_workshop_vn.svg",
+        "image": "assets/panels/panel106_chapter_2_5_workshop_vn.svg",
+        "year": "1943",
         "read": "פון נוימן: יש כאן כמה תרגילים על השיטה הבינרית. לפני שאתה מלמד את המחשב לעבוד עם השיטה הבינרית, כדאי שתכיר אותה טוב בעצמך. אני הולך עכשיו לפגוש את נילס בוהר. הוא הגיע מאנגליה. מזל שהוא הצליח לצאת מדנמרק ברגע האחרון."
       },
       {
-        "image": "assets/panels/panel104_chapter_2_5_workshop.svg",
+        "image": "assets/panels/panel107_chapter_2_5_workshop.svg",
+        "year": "1943",
         "read": "",
-        "comment": "Click-zones live in panel104_chapter_2_5_workshop.svg (editable in Inkscape). Object rects link to reference articles; the exercise booklet is an 'action' rect (binary-booklet) whose destination is not built yet. The position below is a fallback for the booklet button before the SVG posts.",
+        "comment": "Click-zones live in panel107_chapter_2_5_workshop.svg (editable in Inkscape). Object rects link to reference articles; the exercise booklet is an 'action' rect (binary-booklet) whose destination is not built yet. The position below is a fallback for the booklet button before the SVG posts.",
         "hotspots": [
           { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 }
         ]

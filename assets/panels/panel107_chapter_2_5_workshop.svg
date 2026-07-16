@@ -3,31 +3,42 @@
    preserveAspectRatio="xMidYMid meet"
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel104_chapter_2_5_workshop.jpg" xlink:href="panel104_chapter_2_5_workshop.jpg" />
+     href="panel107_chapter_2_5_workshop.jpg" xlink:href="panel107_chapter_2_5_workshop.jpg" />
 
   <!-- Editable click-zones (invisible). Move / resize in Inkscape. The object
-       rects link to reference articles; the booklet is an action rect wired to
-       the app's own hotspot button. -->
+       rects (copied from panel99, the same worktable image) link to reference
+       articles; the exercise booklet is an action rect wired to the app's own
+       hotspot button. -->
   <rect id="hotspot-object-bulbs"
      data-hotspot="object" data-id="bulbs" data-label="נורות חשמליות"
      data-url="https://he.wikipedia.org/wiki/נורה_חשמלית"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="1195" y="880" width="250" height="200" />
+     style="opacity:0;fill:#22a7ff" x="1086" y="817" width="319" height="206" />
   <rect id="hotspot-object-triodes"
      data-hotspot="object" data-id="triodes" data-label="טריודות"
      data-url="https://he.wikipedia.org/wiki/טריודה"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="715" y="335" width="205" height="140" />
+     style="opacity:0;fill:#22a7ff" x="78" y="763" width="188" height="195" />
+  <rect id="hotspot-object-diode"
+     data-hotspot="object" data-id="diode" data-label="דיודה"
+     data-url="https://he.wikipedia.org/wiki/דיודה"
+     class="hotspot hotspot-object" pointer-events="none"
+     style="opacity:0;fill:#22a7ff" x="24" y="834" width="116" height="141" />
   <rect id="hotspot-object-cable"
      data-hotspot="object" data-id="cable" data-label="כבל חשמלי"
      data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="1095" y="570" width="95" height="120" />
+     style="opacity:0;fill:#22a7ff" x="1075.6373" y="559" width="163.3627" height="172.12251" />
   <rect id="hotspot-object-source"
      data-hotspot="object" data-id="source" data-label="מקור מתח"
      data-url="https://he.wikipedia.org/wiki/מקור_מתח"
      class="hotspot hotspot-object" pointer-events="none"
-     style="opacity:0;fill:#22a7ff" x="1300" y="215" width="125" height="215" />
+     style="opacity:0;fill:#22a7ff" x="1264" y="212" width="130" height="217" />
+  <rect id="hotspot-object-voltmeter"
+     data-hotspot="object" data-id="voltmeter" data-label="מד מתח"
+     data-url="https://he.wikipedia.org/wiki/וולטמטר"
+     class="hotspot hotspot-object" pointer-events="none"
+     style="opacity:0;fill:#22a7ff" x="270.40677" y="790.80865" width="306.75497" height="242.19128" />
   <rect id="hotspot-action-binary-booklet"
      data-hotspot="action" data-action="binary-booklet" data-aria-label="חוברת התרגילים"
      class="hotspot hotspot-action" pointer-events="none"
@@ -35,7 +46,7 @@
 
   <script type="text/javascript"><![CDATA[
 (function () {
-  var PANEL = "panel104_chapter_2_5_workshop";
+  var PANEL = "panel107_chapter_2_5_workshop";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

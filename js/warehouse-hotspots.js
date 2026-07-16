@@ -76,7 +76,7 @@
     // The 2.5 library / binary workshop: reference links only (no worktable /
     // free-build), driven entirely by the object rects the panel SVG posts.
     if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
-    if (stem === "panel104_chapter_2_5_workshop") return "binary-workshop";
+    if (stem === "panel107_chapter_2_5_workshop") return "binary-workshop";
     return null;
   }
 

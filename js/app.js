@@ -1768,7 +1768,9 @@
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
 
-    // The library slide forces the arithmetic notebook — no skipping past it.
+    // The two library slides (the exterior and the notebook slide) keep the
+    // learner in the library sequence — no skipping past either of them.
+    if (panelImageName(currentPanel()) === "panel100_chapter_2_5_library.svg") return true;
     if (panelHotspots(currentPanel()).some((h) => h.action === "stone-millis-book")) return true;
 
     const chapter = currentChapter();
