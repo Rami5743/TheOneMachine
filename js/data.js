@@ -729,7 +729,16 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel101_chapter_2_5_library_inside.svg",
-        "read": ""
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פרויקט Y", "url": "https://en.wikipedia.org/wiki/Project_Y", "left": 13.1, "top": 9.2, "width": 12.1, "height": 13.8 },
+          { "ariaLabel": "Physical Review", "url": "https://journals.aps.org/pr/issues/64/3-4", "left": 0.6, "top": 77.0, "width": 17.3, "height": 5.5 },
+          { "ariaLabel": "Journal of Chemical Physics", "url": "https://pubs.aip.org/aip/jcp/issue/11/1", "left": 0.7, "top": 82.7, "width": 18.1, "height": 4.4 },
+          { "ariaLabel": "Reviews of Modern Physics", "url": "https://journals.aps.org/rmp/issues/14/4", "left": 1.2, "top": 87.3, "width": 18.6, "height": 4.4 },
+          { "ariaLabel": "תורת היחסות", "url": "https://he.wikipedia.org/wiki/%D7%AA%D7%95%D7%A8%D7%AA_%D7%94%D7%99%D7%97%D7%A1%D7%95%D7%AA", "left": 81.4, "top": 8.7, "width": 2.9, "height": 18.9 },
+          { "ariaLabel": "מכניקת הקוונטים", "url": "https://he.wikipedia.org/wiki/%D7%9E%D7%9B%D7%A0%D7%99%D7%A7%D7%AA_%D7%94%D7%A7%D7%95%D7%95%D7%A0%D7%98%D7%99%D7%9D", "left": 90.1, "top": 46.0, "width": 4.1, "height": 26.7 },
+          { "ariaLabel": "הספר של סטון-מיילס", "action": "stone-millis-book", "left": 67.7, "top": 43.3, "width": 12.1, "height": 31.3 }
+        ]
       }
     ]
   }

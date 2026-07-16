@@ -2495,7 +2495,12 @@
     const imageSrc = `${panelImage}?r=${state.replayNonce}`;
     const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
     const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
-    const nextDisabled = panelHotspots(panel).length ? "disabled" : "";
+    // A "navigational" hotspot (e.g. the return-to-Nand panel) IS the way
+    // forward, so it disables the plain המשך button. Hotspots that merely open
+    // an external reference, or the reserved Stone-Millis book, do not — the
+    // learner still advances normally.
+    const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && h.action !== "stone-millis-book");
+    const nextDisabled = blockingHotspots.length ? "disabled" : "";
     const skipDisabled = isSkipDisabled() ? "disabled" : "";
 
     app.innerHTML = `
