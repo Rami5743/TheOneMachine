@@ -5133,7 +5133,6 @@
       hintsSeen: 0,
       hintIndex: 0,
       solutionStep: 0,
-      solutionReturn: null,
       // From the 2nd exercise on, a failed check points at the first wrong digit
       // (position index) and highlights it until the next click.
       mistake: null,
@@ -5251,19 +5250,30 @@
     setState({ notebook: { ...nb, dialog: null, mistake: null } });
   }
 
-  // The bottom "רוצה רמז?" button opens the browsable hint list (all unlocked
-  // hints), selecting the newest and marking them seen — like the worktable.
+  // The solution occupies the slot after the last hint. Its index is the hint
+  // count (so hintIndex === notebookHints().length selects the solution).
+  function notebookSolutionSlot() {
+    return notebookHints().length;
+  }
+
+  function notebookMaxHintIndex() {
+    const unlocked = notebookUnlockedHints();
+    return notebookSolutionAvailable() ? notebookSolutionSlot() : Math.max(0, unlocked - 1);
+  }
+
+  // The bottom button opens the browsable list; once the hints are exhausted it
+  // opens straight on the solution slot instead of the last hint.
   function notebookOpenHints() {
     const nb = state.notebook;
     const unlocked = notebookUnlockedHints();
-    if (unlocked <= 0) return;
-    setState({ notebook: { ...nb, dialog: "hints", hintIndex: unlocked - 1, hintsSeen: Math.max(nb.hintsSeen || 0, unlocked) } });
+    if (unlocked <= 0 && !notebookSolutionAvailable()) return;
+    const hintIndex = notebookSolutionAvailable() ? notebookSolutionSlot() : unlocked - 1;
+    setState({ notebook: { ...nb, dialog: "hints", hintIndex, hintsSeen: Math.max(nb.hintsSeen || 0, unlocked) } });
   }
 
   function notebookSelectHint(index) {
     const nb = state.notebook;
-    const unlocked = notebookUnlockedHints();
-    const clamped = Math.min(Math.max(0, index), Math.max(0, unlocked - 1));
+    const clamped = Math.min(Math.max(0, index), notebookMaxHintIndex());
     setState({ notebook: { ...nb, hintIndex: clamped } }, false);
   }
 
@@ -5281,26 +5291,22 @@
   }
 
   // ---- Solution walkthrough ----
-  function notebookOpenSolution(fromSuccess) {
+  // The walkthrough has no early exit: it always ends by moving on (to the next
+  // exercise, or the story when the exercise was solved with no mistakes).
+  function notebookOpenSolution() {
     const nb = state.notebook;
-    setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, solutionReturn: fromSuccess ? "correct" : null } });
+    setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0 } });
   }
 
   function notebookSolutionNext() {
     const nb = state.notebook;
     const last = notebookColumns().length - 1;
-    if ((nb.solutionStep || 0) >= last) return notebookSolutionClose();
-    setState({ notebook: { ...nb, solutionStep: (nb.solutionStep || 0) + 1 } });
+    setState({ notebook: { ...nb, solutionStep: Math.min(last, (nb.solutionStep || 0) + 1) } });
   }
 
   function notebookSolutionPrev() {
     const nb = state.notebook;
     setState({ notebook: { ...nb, solutionStep: Math.max(0, (nb.solutionStep || 0) - 1) } });
-  }
-
-  function notebookSolutionClose() {
-    const nb = state.notebook;
-    setState({ notebook: { ...nb, dialog: nb.solutionReturn || null, solutionReturn: null } });
   }
 
   function notebookBackToLibrary() {
@@ -5377,7 +5383,11 @@
     }
     const unlocked = notebookUnlockedHints();
     const hintFresh = (nb.hintsSeen || 0) < unlocked;
-    const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
+    // Once every hint is unlocked the button becomes "פתרון" (opening the list
+    // straight on the solution); before that it invites the next hint.
+    const hintLabel = notebookSolutionAvailable()
+      ? "פתרון"
+      : ((nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?");
     // The hint button belongs only to the first, teaching exercise.
     const showHintBtn = notebookHintsMode() && (unlocked > 0 || notebookSolutionAvailable());
     const hintButton = showHintBtn
@@ -5412,14 +5422,10 @@
     let body = "";
     let actions = "";
     if (dialog === "correct") {
-      const clean = (nb.failCount || 0) === 0;
+      // Reviewing the solution is mandatory, so it is the only way onward.
       title = "יפה מאוד!";
-      body = "<p>כל הכבוד! פתרת נכון.</p>";
-      actions =
-        '<button class="btn" data-action="notebook-solution-open" data-from="success" type="button">הצגת פתרון</button>' +
-        (clean
-          ? '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>'
-          : '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button>');
+      body = "<p>כל הכבוד! פתרת נכון. עכשיו נעבור על הפתרון.</p>";
+      actions = '<button class="btn btn-primary" data-action="notebook-solution-open" type="button">הצגת פתרון</button>';
     } else if (dialog === "wrong") {
       title = "בדיקה";
       if (notebookHintsMode()) {
@@ -5464,20 +5470,26 @@
     const solutionOffered = notebookSolutionAvailable();
     if (unlocked <= 0 && !solutionOffered) return "";
     const hints = notebookHints();
-    const selectedIndex = Math.min(Math.max(0, nb.hintIndex || 0), Math.max(0, unlocked - 1));
-    const selected = hints[selectedIndex];
+    const solutionSlot = notebookSolutionSlot();
+    const selectedIndex = Math.min(Math.max(0, nb.hintIndex || 0), notebookMaxHintIndex());
+    const onSolution = solutionOffered && selectedIndex === solutionSlot;
     const items = hints.slice(0, unlocked).map((hint, index) => `
       <button class="hint-list-item ${index === selectedIndex ? "hint-list-item-active" : ""}" data-action="notebook-hint-select" data-hint-index="${index}" type="button">
         ${esc(hint.title)}
       </button>`).join("");
+    // The solution is the final selectable slot; picking it shows a start button.
     const solutionItem = solutionOffered
-      ? '<button class="hint-list-item hint-solution-item" data-action="notebook-solution-open" type="button">הצגת פתרון</button>'
+      ? `<button class="hint-list-item hint-solution-item ${onSolution ? "hint-list-item-active" : ""}" data-action="notebook-hint-select" data-hint-index="${solutionSlot}" type="button">פתרון</button>`
       : "";
-    const content = (unlocked > 0 && selected)
-      ? (selected.kind === "interactive"
+    let content;
+    if (onSolution) {
+      content = '<p>אפשר לראות את הפתרון המלא של התרגיל.</p><button class="btn btn-primary" data-action="notebook-solution-open" type="button">הצג פתרון</button>';
+    } else {
+      const selected = hints[selectedIndex];
+      content = selected && selected.kind === "interactive"
         ? `<p>${esc(selected.text)}</p>${selected.note ? `<p class="notebook-dialog-note">${esc(selected.note)}</p>` : ""}<button class="btn btn-primary" data-action="notebook-hint-apply" data-col="${selected.col}" type="button">הפעל רמז</button>`
-        : `<p>${esc(selected.text)}</p>`)
-      : '<p>אפשר לראות את הפתרון המלא.</p>';
+        : `<p>${esc(selected ? selected.text : "")}</p>`;
+    }
     const body = `
       <div class="hint-layout">
         <nav class="hint-list" aria-label="רשימת רמזים">${items}${solutionItem}</nav>
@@ -5500,13 +5512,13 @@
     const prev = step > 0 ? '<button class="btn" data-action="notebook-solution-prev" type="button">הקודם</button>' : "";
     let actions;
     if (isLast) {
-      // At the end of the walkthrough, offer another exercise when the learner
-      // needed help; a clean solve just closes back to its result.
+      // The walkthrough ends by moving on: another exercise if the learner made
+      // any mistake, otherwise straight to the story. No "close" escape.
       actions = hadFailures
-        ? prev + '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button><button class="btn" data-action="notebook-solution-close" type="button">סגור</button>'
-        : prev + '<button class="btn btn-primary" data-action="notebook-solution-close" type="button">סיום</button>';
+        ? prev + '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button>'
+        : prev + '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>';
     } else {
-      actions = prev + '<button class="btn btn-primary" data-action="notebook-solution-next" type="button">המשך</button><button class="btn" data-action="notebook-solution-close" type="button">סגור</button>';
+      actions = prev + '<button class="btn btn-primary" data-action="notebook-solution-next" type="button">המשך</button>';
     }
     return notebookWindow(nb, `פתרון — ספרת ה${NB_COLUMN_NAMES[step]}`, body, actions);
   }
@@ -8895,10 +8907,9 @@
     if (action === "notebook-hint-select") return notebookSelectHint(Number(button.dataset.hintIndex));
     if (action === "notebook-hint-close") return notebookHintClose();
     if (action === "notebook-hint-apply") return notebookApplyHint(Number(button.dataset.col));
-    if (action === "notebook-solution-open") return notebookOpenSolution(button.dataset.from === "success");
+    if (action === "notebook-solution-open") return notebookOpenSolution();
     if (action === "notebook-solution-next") return notebookSolutionNext();
     if (action === "notebook-solution-prev") return notebookSolutionPrev();
-    if (action === "notebook-solution-close") return notebookSolutionClose();
     if (action === "open-note-tasks") return openNoteTaskDialog();
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();
