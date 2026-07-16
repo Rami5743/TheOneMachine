@@ -5976,10 +5976,84 @@
     return steps;
   }
 
-  // Whether the current walkthrough is drawn inside the grid (bin→dec) rather
-  // than shown as a text panel (dec→bin, until its own script lands).
+  // The dec→bin solution (method 1: powers of two), drawn into the grid: a
+  // column of the powers of 2 appears on the side; the largest that fits is
+  // highlighted; the number is decomposed into a growing "V = 32 + 11 = ..."
+  // chain shown as an emphasised line under the equation (kept out of the grid
+  // cells because it can get long); finally the binary answer is written in.
+  function binDec2binSolutionSteps(nb) {
+    const layout = binLayout(nb);
+    const row = layout.row;
+    const V = nb.value;
+    const bin = toBinaryString(V);
+    // Powers of two up to and including the first one past V.
+    const powers = [];
+    for (let p = 1; ; p *= 2) { powers.push(p); if (p > V) break; }
+    // Powers column on the left (right-aligned, units at col 2), top→bottom.
+    const pUnitsCol = 2;
+    const baseCells = {};
+    const powerCells = {};
+    for (let i = 0; i < powers.length; i++) {
+      const s = String(powers[i]);
+      const r = 1 + i;
+      const startC = pUnitsCol - (s.length - 1);
+      const list = [];
+      for (let j = 0; j < s.length; j++) { const c = startC + j; baseCells[`${r},${c}`] = s[j]; list.push(`${r},${c}`); }
+      powerCells[powers[i]] = list;
+    }
+    // Greedy decomposition into powers of two → the chain segments.
+    const rhsList = [];
+    const usedPowers = [];
+    let rem = V;
+    const chosen = [];
+    while (rem > 0) {
+      let p = 1; while (p * 2 <= rem) p *= 2;
+      chosen.push(p); usedPowers.push(p); rem -= p;
+      rhsList.push(chosen.join(" + ") + (rem > 0 ? " + " + rem : ""));
+    }
+    const dedup = rhsList.filter((s, i) => i === 0 || s !== rhsList[i - 1]);
+    const topPower = chosen[0];
+    const fullChain = { head: `${V} = ${dedup.join(" = ")}`, tail: "" };
+
+    const steps = [];
+    steps.push({
+      text: "יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי: (1) להתחיל מהספרה המשמעותית ביותר; (2) להתחיל מספרת האחדות. השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה. כאן נדגים את הדרך הראשונה.",
+      cells: {}, highlight: []
+    });
+    steps.push({
+      text: "ראשית רושמים בצד את המשמעויות של הספרות — הן חזקות של 2: @[1, 2, 4, 8, 16, ...]. ממשיכים עד שעוברים את המספר.",
+      cells: { ...baseCells }, highlight: []
+    });
+    steps.push({
+      text: `החזקה הגדולה ביותר של 2 שנכנסת לתוך @[${V}] היא @[${topPower}].`,
+      cells: { ...baseCells }, highlight: powerCells[topPower] || []
+    });
+    for (let i = 0; i < dedup.length; i++) {
+      let text;
+      if (i === 0) text = `אנו יכולים לכתוב את @[${V}] כך:`;
+      else if (i === dedup.length - 1) text = "ממשיכים כך עד שהמספר נגמר.";
+      else { const prevRem = dedup[i - 1].split(" + ").pop(); text = `כעת חוזרים על אותו התהליך עם @[${prevRem}].`; }
+      const head = `${V} = ` + dedup.slice(0, i).map((s) => s + " = ").join("");
+      steps.push({ text, cells: { ...baseCells }, highlight: [], chain: { head, tail: dedup[i] } });
+    }
+    steps.push({
+      text: "כעת רואים אילו ספרות הן @[1] — אלה שהחזקה המתאימה שלהן מופיעה בפירוק — ואילו @[0] (אלה שלא מופיעות).",
+      cells: { ...baseCells }, highlight: usedPowers.flatMap((p) => powerCells[p] || []), chain: fullChain
+    });
+    const ansCells = [];
+    const withAns = { ...baseCells };
+    for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; withAns[`${row},${c}`] = bin[i]; ansCells.push(`${row},${c}`); }
+    steps.push({ text: "נקבל את הפתרון.", cells: withAns, highlight: ansCells, chain: fullChain });
+    return steps;
+  }
+
+  function binSolutionSteps(nb) {
+    return nb.stage === "bin2dec" ? binBin2decSolutionSteps(nb) : binDec2binSolutionSteps(nb);
+  }
+
+  // The solution now always plays inside the grid (both directions).
   function binInGridSolution(nb) {
-    return nb && nb.dialog === "walkthrough" && nb.stage === "bin2dec";
+    return Boolean(nb && nb.dialog === "walkthrough");
   }
 
   function binOpenWalkthrough() {
@@ -5992,7 +6066,7 @@
   function binWalkStep(delta) {
     const nb = state.notebook;
     if (!nb) return;
-    const steps = binBin2decSolutionSteps(nb);
+    const steps = binSolutionSteps(nb);
     const next = Math.min(Math.max(0, (nb.walkStep || 0) + delta), steps.length - 1);
     setState({ notebook: { ...nb, walkStep: next } });
   }
@@ -6027,7 +6101,7 @@
     let steps = null;
     let stepIndex = 0;
     if (inGrid) {
-      steps = binBin2decSolutionSteps(nb);
+      steps = binSolutionSteps(nb);
       stepIndex = Math.min(Math.max(0, nb.walkStep || 0), steps.length - 1);
       displayCells = steps[stepIndex].cells;
       highlightSet = new Set(steps[stepIndex].highlight);
@@ -6053,12 +6127,16 @@
 
     let footer;
     if (inGrid) {
+      const step = steps[stepIndex];
       const isLast = stepIndex >= steps.length - 1;
       const prev = stepIndex > 0 ? '<button class="btn" data-action="binbk-walk-prev" type="button">הקודם</button>' : "";
       const nextLabel = isLast ? (binClean(nb) ? "המשך" : "תרגיל נוסף") : "המשך";
       const nextAction = isLast ? "binbk-walk-finish" : "binbk-walk-next";
+      const chainHtml = step.chain
+        ? `<div class="bin-chain" dir="ltr">${esc(step.chain.head)}${step.chain.tail ? `<strong>${esc(step.chain.tail)}</strong>` : ""}</div>`
+        : "";
       footer = `
-        <div class="bin-solution-caption">${binParagraphsHtml(steps[stepIndex].text)}</div>
+        <div class="bin-solution-caption">${binParagraphsHtml(step.text)}${chainHtml}</div>
         <div class="notebook-actions">
           ${prev}
           <button class="btn btn-primary" data-action="${nextAction}" type="button">${esc(nextLabel)}</button>
