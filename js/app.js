@@ -5005,24 +5005,29 @@
       msg = `סכום ספרות ה${name} הוא ${col.d1} + ${col.d2} = ${col.sum}.`;
     }
     if (col.carryOut > 0) {
+      // "greater than 10" is wrong when the sum is exactly 10 — use "not less
+      // than 10" there.
+      const geTen = col.sum === 10 ? "לא קטנה מ-10" : "גדולה מ-10";
       if (i === 0) {
-        msg += " מכיוון שהתוצאה גדולה מ-10 אנחנו לא יכולים לכתוב אותה בספרת האחדות, לכן אנחנו שומרים את העשר לאחר כך. מכיוון שהוא עשרה אחת אנחנו כותבים אותו כ-1 מעל המקום של ספרת העשרות.";
+        msg += ` מכיוון שהתוצאה ${geTen} אנחנו לא יכולים לכתוב אותה בספרת האחדות, לכן אנחנו שומרים את העשר לאחר כך. מכיוון שהוא עשרה אחת אנחנו כותבים אותו כ-1 מעל המקום של ספרת העשרות.`;
       } else if (i < 3) {
-        msg += ` מכיוון שהתוצאה גדולה מ-10, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ונושאים 1 אל ספרת ה${NB_COLUMN_NAMES[i + 1]} (כותבים אותו מעל).`;
+        msg += ` מכיוון שהתוצאה ${geTen}, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ונושאים 1 אל ספרת ה${NB_COLUMN_NAMES[i + 1]} (כותבים אותו מעל).`;
       } else {
-        msg += ` מכיוון שהתוצאה גדולה מ-10, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ואת ה-1 שנשאנו כותבים כספרה השמאלית ביותר של התשובה.`;
+        msg += ` מכיוון שהתוצאה ${geTen}, כותבים את ספרת האחדות שלה (${col.digit}) במקום, ואת ה-1 שנשאנו כותבים כספרה השמאלית ביותר של התשובה.`;
       }
     }
     return msg;
   }
 
-  // The full hint list: one verbal + one interactive hint per digit column.
+  // The hint list: one verbal + one interactive hint per digit column, except
+  // the last column keeps only its verbal hint — the interactive step for it is
+  // replaced by the "הצגת פתרון" walkthrough, which is the final list item.
   function notebookHints() {
     if (!state.notebook?.exercise) return [];
     const hints = [];
     for (let i = 0; i < 4; i++) {
       hints.push({ title: `רמז ${hints.length + 1}`, kind: "text", col: i, text: notebookColumnTextHint(i) });
-      hints.push({ title: `רמז ${hints.length + 1}`, kind: "interactive", col: i, text: notebookColumnPrompt(i), note: NOTEBOOK_HINT_NOTE });
+      if (i < 3) hints.push({ title: `רמז ${hints.length + 1}`, kind: "interactive", col: i, text: notebookColumnPrompt(i), note: NOTEBOOK_HINT_NOTE });
     }
     return hints;
   }
@@ -5057,40 +5062,71 @@
     return cells;
   }
 
-  // Two 4-digit numbers whose column addition produces at least one carry.
-  function additionHasCarry(a, b) {
-    const sa = String(a).padStart(4, "0");
-    const sb = String(b).padStart(4, "0");
-    let carry = 0;
-    let any = false;
-    for (let i = 3; i >= 0; i--) {
-      const s = Number(sa[i]) + Number(sb[i]) + carry;
-      if (s >= 10) { any = true; carry = 1; } else { carry = 0; }
-    }
-    return any;
+  // The exercise sequence is deterministic (reproducible): the first five were
+  // drawn once and frozen here; the rest are drawn from a seeded generator,
+  // keyed by index so exercise N is always the same pair.
+  const NB_HARDCODED_EXERCISES = [
+    { a: 4166, b: 4932 },
+    { a: 3394, b: 7917 },
+    { a: 4374, b: 7169 },
+    { a: 2345, b: 7518 },
+    { a: 5573, b: 2588 }
+  ];
+  const NB_EXERCISE_SEED = 1943;
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
 
-  function makeAdditionExercise() {
+  // Every exercise must have at least one carry that is NOT the final overflow —
+  // i.e. a carry out of the units, tens or hundreds column (so mid-addition
+  // carrying is actually practised).
+  function exerciseHasMidCarry(a, b) {
+    let carry = 0;
+    for (let i = 0; i < 4; i++) {
+      const s = nbDigit(a, i) + nbDigit(b, i) + carry;
+      const carryOut = s >= 10 ? 1 : 0;
+      if (carryOut && i < 3) return true;
+      carry = carryOut;
+    }
+    return false;
+  }
+
+  function drawExercise(rng) {
     let a = 0;
     let b = 0;
     let guard = 0;
     do {
-      a = 1000 + Math.floor(Math.random() * 9000);
-      b = 1000 + Math.floor(Math.random() * 9000);
+      a = 1000 + Math.floor(rng() * 9000);
+      b = 1000 + Math.floor(rng() * 9000);
       guard += 1;
-    } while (!additionHasCarry(a, b) && guard < 200);
+    } while (!exerciseHasMidCarry(a, b) && guard < 400);
     return { a, b };
+  }
+
+  // The exercise at a given index: frozen for the first five, seeded afterwards.
+  function nthExercise(index) {
+    if (index < NB_HARDCODED_EXERCISES.length) return { ...NB_HARDCODED_EXERCISES[index] };
+    const rng = mulberry32((NB_EXERCISE_SEED + Math.imul(index, 2654435761)) >>> 0);
+    return drawExercise(rng);
   }
 
   function openNotebook() {
     const existing = state.notebook && state.notebook.exercise ? state.notebook : null;
-    const notebook = existing || freshNotebook();
+    const notebook = existing || freshNotebook(0);
     setState({ screen: "notebook", notebook });
   }
 
-  function freshNotebook() {
+  function freshNotebook(index) {
     return {
-      exercise: makeAdditionExercise(),
+      exerciseIndex: index,
+      exercise: nthExercise(index),
       cells: {},
       active: null,
       failCount: 0,
@@ -5123,11 +5159,10 @@
     return Object.prototype.hasOwnProperty.call(notebookFixedCells(), `${r},${c}`);
   }
 
-  // The movable hint/explanation windows leave the page interactive; the
-  // centred result dialogs and the solution walkthrough do not.
+  // All notebook messages are movable windows that leave the page interactive;
+  // only the read-only solution walkthrough freezes editing.
   function notebookInteractionBlocked() {
-    const d = state.notebook?.dialog;
-    return Boolean(d) && !["hints", "hint-applied"].includes(d);
+    return state.notebook?.dialog === "solution";
   }
 
   function notebookSelectCell(r, c) {
@@ -5177,7 +5212,8 @@
   }
 
   function notebookNextExercise() {
-    setState({ notebook: freshNotebook() });
+    const nb = state.notebook;
+    setState({ notebook: freshNotebook((nb?.exerciseIndex || 0) + 1) });
   }
 
   function notebookRetry() {
@@ -5333,18 +5369,19 @@
       </main>`;
   }
 
+  // Every notebook message is a movable window that leaves the exercise visible.
   function renderNotebookDialog(nb) {
     const dialog = nb.dialog;
     if (!dialog) return "";
-    // The hint, explanation and solution windows are movable and do not cover
-    // the exercise; only the brief result messages are centred modals.
     if (dialog === "hints") return renderNotebookHints(nb);
     if (dialog === "hint-applied") return renderNotebookExplain(nb);
     if (dialog === "solution") return renderNotebookSolution(nb);
+    let title = "";
     let body = "";
     let actions = "";
     if (dialog === "correct") {
       const clean = (nb.failCount || 0) === 0;
+      title = "יפה מאוד!";
       body = "<p>כל הכבוד! פתרת נכון.</p>";
       actions =
         '<button class="btn" data-action="notebook-solution-open" data-from="success" type="button">הצגת פתרון</button>' +
@@ -5352,19 +5389,15 @@
           ? '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>'
           : '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button>');
     } else if (dialog === "wrong") {
+      title = "בדיקה";
       body = "<p>התשובה עדיין לא נכונה.</p>";
       actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
     } else if (dialog === "explanation-stub") {
+      title = "המשך";
       body = "<p>שקף העלילה הבא יגיע בהמשך…</p>";
       actions = '<button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>';
     }
-    return `
-      <div class="notebook-overlay" role="presentation">
-        <section class="notebook-dialog" role="dialog" aria-modal="true">
-          ${body}
-          <div class="notebook-dialog-actions">${actions}</div>
-        </section>
-      </div>`;
+    return notebookWindow(nb, title, body, actions);
   }
 
   // A movable window (drag by its header) that does not cover the exercise —
@@ -5422,11 +5455,19 @@
     const cols = notebookColumns();
     const step = Math.min(Math.max(0, nb.solutionStep || 0), Math.max(0, cols.length - 1));
     const isLast = step >= cols.length - 1;
+    const hadFailures = (nb.failCount || 0) > 0;
     const body = hintParagraphsHtml(notebookColumnMessage(step));
-    const actions =
-      (step > 0 ? '<button class="btn" data-action="notebook-solution-prev" type="button">הקודם</button>' : "") +
-      `<button class="btn btn-primary" data-action="notebook-solution-next" type="button">${isLast ? "סיום" : "המשך"}</button>` +
-      '<button class="btn" data-action="notebook-solution-close" type="button">סגור</button>';
+    const prev = step > 0 ? '<button class="btn" data-action="notebook-solution-prev" type="button">הקודם</button>' : "";
+    let actions;
+    if (isLast) {
+      // At the end of the walkthrough, offer another exercise when the learner
+      // needed help; a clean solve just closes back to its result.
+      actions = hadFailures
+        ? prev + '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button><button class="btn" data-action="notebook-solution-close" type="button">סגור</button>'
+        : prev + '<button class="btn btn-primary" data-action="notebook-solution-close" type="button">סיום</button>';
+    } else {
+      actions = prev + '<button class="btn btn-primary" data-action="notebook-solution-next" type="button">המשך</button><button class="btn" data-action="notebook-solution-close" type="button">סגור</button>';
+    }
     return notebookWindow(nb, `פתרון — ספרת ה${NB_COLUMN_NAMES[step]}`, body, actions);
   }
 
