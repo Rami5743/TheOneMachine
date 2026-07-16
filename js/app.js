@@ -4945,10 +4945,20 @@
   // The exercise block anchors: digit columns 8..12 (5 slots, right-aligned),
   // operand rows 3 and 4, the sum line under row 4, the answer on row 5.
   const NB_DIGIT_COLS = [8, 9, 10, 11, 12];
+  const NB_CARRY_ROW = 2;
   const NB_OP1_ROW = 3;
   const NB_OP2_ROW = 4;
   const NB_ANSWER_ROW = 5;
   const NB_PLUS_COL = 8;
+  const NB_UNITS_COL = 12;
+  const NB_TENS_COL = 11;
+
+  // The two progressive hints, mirroring the worktable tasks. Hint 1 is plain
+  // text; hint 2 is interactive (הפעל רמז fills in the units step).
+  const NOTEBOOK_HINTS = [
+    "התחל מלחשב את הסכום של ספרת האחדות של המספר הראשון עם ספרת האחדות של המספר השני.",
+    "צריך עזרה עם הרמז הראשון?"
+  ];
 
   // Two 4-digit numbers whose column addition produces at least one carry.
   function additionHasCarry(a, b) {
@@ -4977,7 +4987,16 @@
 
   function openNotebook() {
     const existing = state.notebook && state.notebook.exercise ? state.notebook : null;
-    const notebook = existing || { exercise: makeAdditionExercise(), cells: {}, active: null, result: null };
+    const notebook = existing || {
+      exercise: makeAdditionExercise(),
+      cells: {},
+      active: null,
+      failCount: 0,
+      hintsSeen: 0,
+      // Current overlay: null | "correct" | "wrong" | "hint-0" | "hint-1" |
+      // "hint-applied" | "explanation-stub".
+      dialog: null
+    };
     setState({ screen: "notebook", notebook });
   }
 
@@ -5004,20 +5023,72 @@
     setState({ notebook: { ...nb, active: `${r},${c}` } }, false);
   }
 
+  // Check only the answer cells (the digits of the sum, right-aligned under the
+  // units column) plus the single guard cell on either side, which must be
+  // empty. Everything else on the page may be scribbled on freely.
+  function notebookSolved(nb) {
+    const cell = (r, c) => (nb.cells[`${r},${c}`] || "");
+    const expected = String(nb.exercise.a + nb.exercise.b);
+    const startCol = NB_UNITS_COL + 1 - expected.length; // leftmost answer column
+    for (let i = 0; i < expected.length; i++) {
+      if (cell(NB_ANSWER_ROW, startCol + i) !== expected[i]) return false;
+    }
+    if (cell(NB_ANSWER_ROW, startCol - 1) !== "") return false;      // guard left of the answer
+    if (cell(NB_ANSWER_ROW, NB_UNITS_COL + 1) !== "") return false;  // guard right of the answer
+    return true;
+  }
+
   function checkNotebook() {
     const nb = state.notebook;
     if (!nb || !nb.exercise) return;
-    const expected = String(nb.exercise.a + nb.exercise.b);
-    let written = "";
-    for (const c of NB_DIGIT_COLS) written += (nb.cells[`${NB_ANSWER_ROW},${c}`] || "");
-    const result = written === expected ? "correct" : "wrong";
-    setState({ notebook: { ...nb, result } });
+    if (notebookSolved(nb)) {
+      setState({ notebook: { ...nb, active: null, dialog: "correct" } });
+    } else {
+      setState({ notebook: { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
+    }
   }
 
   function resetNotebook() {
     const nb = state.notebook;
     if (!nb) return;
-    setState({ notebook: { ...nb, cells: {}, active: null, result: null } });
+    // Clear the scribbles (but keep the exercise and the earned hint progress).
+    setState({ notebook: { ...nb, cells: {}, active: null, dialog: null } });
+  }
+
+  // ---- Result / hint dialog transitions ----
+  function notebookContinue() {
+    // The success path leads to an explanation that is not built yet.
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: "explanation-stub" } });
+  }
+
+  function notebookRetry() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: null } });
+  }
+
+  function notebookRevealHint() {
+    const nb = state.notebook;
+    const index = nb.hintsSeen || 0;
+    if (index >= NOTEBOOK_HINTS.length) return;
+    setState({ notebook: { ...nb, dialog: `hint-${index}`, hintsSeen: index + 1 } });
+  }
+
+  function notebookHintClose() {
+    const nb = state.notebook;
+    setState({ notebook: { ...nb, dialog: null } });
+  }
+
+  // Interactive hint: fill in the units step (its digit under the units column,
+  // and the carry above the tens column when the units sum reaches ten),
+  // erasing the learner's own scribbles first.
+  function notebookApplyUnitsHint() {
+    const nb = state.notebook;
+    const unitsSum = (nb.exercise.a % 10) + (nb.exercise.b % 10);
+    const cells = {};
+    cells[`${NB_ANSWER_ROW},${NB_UNITS_COL}`] = String(unitsSum % 10);
+    if (unitsSum >= 10) cells[`${NB_CARRY_ROW},${NB_TENS_COL}`] = String(Math.floor(unitsSum / 10));
+    setState({ notebook: { ...nb, cells, active: null, dialog: "hint-applied" } });
   }
 
   function notebookBackToLibrary() {
@@ -5032,7 +5103,7 @@
 
   function handleNotebookKey(event) {
     const nb = state.notebook;
-    if (!nb) return;
+    if (!nb || nb.dialog) return;
     if (event.key === "Escape") {
       if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
       return;
@@ -5055,14 +5126,14 @@
     if (event.key === "Backspace" || event.key === "Delete") {
       const cells = { ...nb.cells };
       delete cells[active];
-      setState({ notebook: { ...nb, cells, result: null } }, false);
+      setState({ notebook: { ...nb, cells } }, false);
       event.preventDefault();
       return;
     }
     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
       const cells = { ...nb.cells };
       cells[active] = event.key;
-      setState({ notebook: { ...nb, cells, result: null } }, false);
+      setState({ notebook: { ...nb, cells } }, false);
       event.preventDefault();
     }
   }
@@ -5084,33 +5155,70 @@
         if (nb.active === key) classes.push("notebook-cell-active");
         // The addition line: a heavier bottom edge under the second operand.
         if (r === NB_OP2_ROW && NB_DIGIT_COLS.includes(c)) classes.push("notebook-cell-underline");
-        if (answerCols.has(key)) {
-          classes.push("notebook-cell-answer");
-          if (nb.result === "correct") classes.push("notebook-cell-correct");
-          if (nb.result === "wrong") classes.push("notebook-cell-wrong");
-        }
+        if (answerCols.has(key)) classes.push("notebook-cell-answer");
         const lockAttr = fixedChar != null ? ' aria-disabled="true"' : "";
         cells += `<button type="button" class="${classes.join(" ")}" data-action="notebook-cell" data-r="${r}" data-c="${c}"${lockAttr}>${esc(char)}</button>`;
       }
       rows.push(`<div class="notebook-row">${cells}</div>`);
     }
-    const resultMsg = nb.result === "correct"
-      ? '<span class="notebook-result notebook-result-correct">כל הכבוד! נכון.</span>'
-      : (nb.result === "wrong" ? '<span class="notebook-result notebook-result-wrong">עדיין לא נכון. נסה שוב.</span>' : "");
     app.innerHTML = `
       <main class="screen notebook-screen">
         <div class="notebook-page" data-notebook-page>
           ${rows.join("")}
         </div>
         <div class="notebook-footer">
-          ${resultMsg}
           <div class="notebook-actions">
             <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
             <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
             <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
           </div>
         </div>
+        ${renderNotebookDialog(nb)}
       </main>`;
+  }
+
+  function renderNotebookDialog(nb) {
+    const dialog = nb.dialog;
+    if (!dialog) return "";
+    let body = "";
+    let actions = "";
+    if (dialog === "correct") {
+      body = "<p>כל הכבוד! פתרת נכון.</p>";
+      actions = '<button class="btn btn-primary" data-action="notebook-continue" type="button">המשך</button>';
+    } else if (dialog === "wrong") {
+      const hintLeft = (nb.hintsSeen || 0) < NOTEBOOK_HINTS.length;
+      const showHint = (nb.failCount || 0) >= 2 && hintLeft;
+      const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
+      body = "<p>התשובה עדיין לא נכונה.</p>";
+      actions =
+        '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>' +
+        (showHint ? `<button class="btn" data-action="notebook-hint" type="button">${esc(hintLabel)}</button>` : "");
+    } else if (dialog === "hint-0") {
+      body = `<p>${esc(NOTEBOOK_HINTS[0])}</p>`;
+      actions = '<button class="btn btn-primary" data-action="notebook-hint-close" type="button">הבנתי</button>';
+    } else if (dialog === "hint-1") {
+      body = `<p>${esc(NOTEBOOK_HINTS[1])}</p><p class="notebook-dialog-note">(לחיצה על "הפעל רמז" תמחק את מה שעשית)</p>`;
+      actions =
+        '<button class="btn btn-primary" data-action="notebook-hint-apply" type="button">הפעל רמז</button>' +
+        '<button class="btn" data-action="notebook-hint-close" type="button">סגור</button>';
+    } else if (dialog === "hint-applied") {
+      const unitsSum = (nb.exercise.a % 10) + (nb.exercise.b % 10);
+      const carryNote = unitsSum >= 10
+        ? '<p>מכיוון שהתוצאה גדולה מ-10 אנחנו לא יכולים לכתוב אותה בספרת האחדות, לכן אנחנו שומרים את העשר לאחר כך. מכיוון שהוא עשרה אחת אנחנו כותבים אותו כ-1 מעל המקום של ספרת העשרות.</p>'
+        : "";
+      body = `<p>הסכום הוא ${unitsSum}.</p>${carryNote}`;
+      actions = '<button class="btn btn-primary" data-action="notebook-hint-close" type="button">הבנתי</button>';
+    } else if (dialog === "explanation-stub") {
+      body = "<p>ההסבר יגיע בהמשך…</p>";
+      actions = '<button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>';
+    }
+    return `
+      <div class="notebook-overlay" role="presentation">
+        <section class="notebook-dialog" role="dialog" aria-modal="true">
+          ${body}
+          <div class="notebook-dialog-actions">${actions}</div>
+        </section>
+      </div>`;
   }
 
   function render() {
@@ -8454,6 +8562,11 @@
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();
     if (action === "notebook-back-to-library") return notebookBackToLibrary();
+    if (action === "notebook-continue") return notebookContinue();
+    if (action === "notebook-retry") return notebookRetry();
+    if (action === "notebook-hint") return notebookRevealHint();
+    if (action === "notebook-hint-close") return notebookHintClose();
+    if (action === "notebook-hint-apply") return notebookApplyUnitsHint();
     if (action === "open-note-tasks") return openNoteTaskDialog();
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();

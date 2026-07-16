@@ -3275,8 +3275,6 @@ object.panel-image.is-pending {
 }
 
 .notebook-cell-answer { color: #123; }
-.notebook-cell-correct { background: rgba(60, 170, 90, 0.22); }
-.notebook-cell-wrong { background: rgba(210, 70, 60, 0.18); }
 
 .notebook-footer {
   display: flex;
@@ -3284,10 +3282,6 @@ object.panel-image.is-pending {
   align-items: center;
   gap: 10px;
 }
-
-.notebook-result { font-weight: 700; font-size: 1.05rem; }
-.notebook-result-correct { color: #1d7a3d; }
-.notebook-result-wrong { color: #b23a2f; }
 
 .notebook-actions {
   display: flex;
@@ -3299,4 +3293,44 @@ object.panel-image.is-pending {
   font-size: 1.25rem;
   line-height: 1;
   min-width: 44px;
+}
+
+.notebook-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(30, 22, 8, 0.45);
+}
+
+.notebook-dialog {
+  direction: rtl;
+  max-width: 460px;
+  width: min(92vw, 460px);
+  background: #fbf5e2;
+  color: #23201a;
+  border: 1px solid #cbb888;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(30, 22, 8, 0.4);
+  padding: 22px 22px 18px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.notebook-dialog p { margin: 0 0 12px; }
+.notebook-dialog p:last-of-type { margin-bottom: 16px; }
+
+.notebook-dialog-note {
+  font-size: 0.9rem;
+  color: #6a5c3d;
+}
+
+.notebook-dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
