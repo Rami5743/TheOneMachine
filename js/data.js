@@ -728,9 +728,9 @@ const SCENES = {
         "read": ""
       },
       {
-        "image": "assets/panels/panel101_chapter_2_5_library_inside.svg",
+        "image": "assets/panels/panel101_chapter_2_5_library_inside_v2.svg",
         "read": "",
-        "comment": "Click-zones live in panel101_chapter_2_5_library_inside.svg (editable in Inkscape). The 6 reference links are 'object' rects; the Stone-Millis book is an 'action' rect whose geometry is synced onto this button. The position below is only a fallback for when the SVG script has not posted yet.",
+        "comment": "Click-zones live in panel101_chapter_2_5_library_inside_v2.svg (editable in Inkscape). The 6 reference links are 'object' rects; the Stone-Millis book is an 'action' rect whose geometry is synced onto this button. The position below is only a fallback for when the SVG script has not posted yet.",
         "hotspots": [
           { "ariaLabel": "מחברת האריתמטיקה", "action": "stone-millis-book", "left": 67.7, "top": 43.3, "width": 12.1, "height": 31.3 }
         ]

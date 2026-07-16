@@ -3,13 +3,13 @@
    preserveAspectRatio="xMidYMid meet"
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel101_chapter_2_5_library_inside.jpg" xlink:href="panel101_chapter_2_5_library_inside.jpg" />
+     href="panel101_chapter_2_5_library_inside_v2.jpg" xlink:href="panel101_chapter_2_5_library_inside_v2.jpg" />
 
   <!-- Editable click-zones. They are invisible (opacity 0) and non-interactive
        here; a script below reads their geometry and posts it to the app, which
        overlays the real clickable areas. Move / resize these in Inkscape. -->
   <rect id="hotspot-object-project-y"
-     data-hotspot="object" data-id="project-y" data-label="Project Y"
+     data-hotspot="object" data-id="project-y" data-label="פרויקט Y"
      data-url="https://he.wikipedia.org/wiki/%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98_%D7%9E%D7%A0%D7%94%D7%98%D7%9F#%D7%A4%D7%A8%D7%95%D7%99%D7%A7%D7%98_Y"
      class="hotspot hotspot-object" pointer-events="none"
      style="opacity:0;fill:#22a7ff" x="190" y="100" width="175" height="150" />
@@ -45,7 +45,7 @@
 
   <script type="text/javascript"><![CDATA[
 (function () {
-  var PANEL = "panel101_chapter_2_5_library_inside";
+  var PANEL = "panel101_chapter_2_5_library_inside_v2";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

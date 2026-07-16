@@ -75,7 +75,7 @@
     if (stem === "panel99g_chapter_2_4_worktable_next") return "chapter-7";
     // The 2.5 library: reference links only (no worktable/free-build), driven
     // entirely by the object rects the panel SVG posts.
-    if (stem === "panel101_chapter_2_5_library_inside") return "library";
+    if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
     return null;
   }
 
