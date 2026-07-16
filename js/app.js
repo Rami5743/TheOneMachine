@@ -5570,7 +5570,14 @@
   // index, so exercise N is always the same). bin2dec[0] = 22 = 10110₂.
   const BIN2DEC_HARDCODED = [22, 45, 27, 53, 38];
   const DEC2BIN_HARDCODED = [11, 26, 43, 52, 37];
-  const DEC2BIN_ANSWER_WIDTH = 6; // values stay ≤ 63 (six bits)
+  // The booklet uses the same squared-paper grid as the arithmetic notebook:
+  // the task is pre-printed on one row, every other cell is free scribble
+  // space, and only the answer cells (right of the "=") are checked.
+  const BIN_NB_COLS = 21;
+  const BIN_NB_ROWS = 13;
+  const BIN_EQ_ROW = 4;
+  const BIN2DEC_ANS_W = 4; // decimal answers (values ≤ 63 → ≤ 2 digits) + guard
+  const DEC2BIN_ANS_W = 6; // binary answers (values ≤ 63 → ≤ 6 bits)
 
   function toBinaryString(n) { return (n >>> 0).toString(2); }
 
@@ -5595,13 +5602,13 @@
   }
 
   function freshBinExercise(stage, index, dec2binExplainCount) {
-    return {
+    const base = {
       variant: "binary",
       stage,
       exerciseIndex: index,
       value: nthBinValue(stage, index),
-      entry: "",
-      active: true,
+      cells: {},
+      active: null,
       failCount: 0,
       hintUsed: false,
       dialog: null, // null | "correct" | "wrong" | "hints" | "walkthrough"
@@ -5610,19 +5617,63 @@
       winPos: null,
       dec2binExplainCount: dec2binExplainCount || 0
     };
+    // Pre-select the first answer cell so the learner can start typing at once.
+    const layout = binLayout(base);
+    base.active = `${layout.row},${layout.answerCols[0]}`;
+    return base;
   }
 
-  function binAnswerWidth(nb) {
-    return nb.stage === "bin2dec" ? String(nb.value).length : DEC2BIN_ANSWER_WIDTH;
-  }
   function binExpectedAnswer(nb) {
     return nb.stage === "bin2dec" ? String(nb.value) : toBinaryString(nb.value);
   }
-  function binDigitAllowed(nb, ch) {
-    return nb.stage === "bin2dec" ? /[0-9]/.test(ch) : /[01]/.test(ch);
+
+  // The pre-printed equation and the answer cells, on one row of the grid. The
+  // answer sits just right of the "=", written left→right (most significant
+  // digit first). Only these answer cells are checked.
+  function binLayout(nb) {
+    const fixed = {};
+    const row = BIN_EQ_ROW;
+    const answerCols = [];
+    const expected = binExpectedAnswer(nb);
+    if (nb.stage === "bin2dec") {
+      const bin = toBinaryString(nb.value);
+      const w = BIN2DEC_ANS_W;
+      const total = bin.length + 1 /*₂*/ + 1 /*=*/ + w;
+      let c = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
+      for (const ch of bin) fixed[`${row},${c++}`] = ch;
+      fixed[`${row},${c++}`] = "₂";
+      fixed[`${row},${c++}`] = "=";
+      for (let i = 0; i < w; i++) answerCols.push(c++);
+    } else {
+      const dec = String(nb.value);
+      const w = DEC2BIN_ANS_W;
+      const total = dec.length + 1 /*=*/ + w + 1 /*₂*/;
+      let c = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
+      for (const ch of dec) fixed[`${row},${c++}`] = ch;
+      fixed[`${row},${c++}`] = "=";
+      for (let i = 0; i < w; i++) answerCols.push(c++);
+      fixed[`${row},${c++}`] = "₂";
+    }
+    return { fixed, row, answerCols, expected };
   }
+
+  function binFixedCells(nb) {
+    return binLayout(nb).fixed;
+  }
+  function isLockedBinCell(nb, r, c) {
+    return Object.prototype.hasOwnProperty.call(binFixedCells(nb), `${r},${c}`);
+  }
+
+  // Only the answer cells are graded: read left→right they must spell the
+  // expected answer, and any answer cell past the answer must be empty (so the
+  // digit count has to be right — the point of the dec→bin task).
   function binSolved(nb) {
-    return nb.entry === binExpectedAnswer(nb);
+    const { row, answerCols, expected } = binLayout(nb);
+    for (let i = 0; i < answerCols.length; i++) {
+      const want = i < expected.length ? expected[i] : "";
+      if ((nb.cells?.[`${row},${answerCols[i]}`] || "") !== want) return false;
+    }
+    return true;
   }
   function binClean(nb) {
     return (nb.failCount || 0) === 0 && !nb.hintUsed;
@@ -5749,30 +5800,54 @@
   }
 
   // ---- interactions ------------------------------------------------------
-  function binFocusEntry() {
+  function binSelectCell(r, c) {
     const nb = state.notebook;
-    if (!nb || nb.dialog === "walkthrough") return;
+    if (!nb || nb.dialog === "walkthrough" || isLockedBinCell(nb, r, c)) return;
     const dialog = nb.dialog === "wrong" ? null : nb.dialog;
-    setState({ notebook: { ...nb, active: true, dialog } }, false);
+    setState({ notebook: { ...nb, active: `${r},${c}`, dialog } }, false);
   }
 
+  // Grid entry like the arithmetic notebook, plus an auto-advancing cursor:
+  // typing a character moves the selection one cell to the right so a multi-
+  // digit answer can be typed in a run (left→right). Backspace steps back.
   function handleBinaryNotebookKey(event) {
     const nb = state.notebook;
     if (!nb || nb.dialog === "walkthrough") return;
     if (event.key === "Escape") {
-      if (nb.active) { setState({ notebook: { ...nb, active: false } }, false); event.preventDefault(); }
-      return;
-    }
-    if (!nb.active) return;
-    const clearWrong = nb.dialog === "wrong" ? null : nb.dialog;
-    if (event.key === "Backspace" || event.key === "Delete") {
-      setState({ notebook: { ...nb, entry: nb.entry.slice(0, -1), dialog: clearWrong } }, false);
-      event.preventDefault();
+      if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
       return;
     }
     if (event.key === "Enter") { checkBinaryNotebook(); event.preventDefault(); return; }
-    if (event.key.length === 1 && binDigitAllowed(nb, event.key) && nb.entry.length < binAnswerWidth(nb)) {
-      setState({ notebook: { ...nb, entry: nb.entry + event.key, dialog: clearWrong } }, false);
+    const active = nb.active;
+    if (!active) return;
+    const [r, c] = active.split(",").map(Number);
+    if (["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      let nr = r, nc = c;
+      if (event.key === "ArrowRight") nc = Math.min(BIN_NB_COLS - 1, c + 1);
+      if (event.key === "ArrowLeft") nc = Math.max(0, c - 1);
+      if (event.key === "ArrowUp") nr = Math.max(0, r - 1);
+      if (event.key === "ArrowDown") nr = Math.min(BIN_NB_ROWS - 1, r + 1);
+      setState({ notebook: { ...nb, active: `${nr},${nc}` } }, false);
+      event.preventDefault();
+      return;
+    }
+    const clearWrong = nb.dialog === "wrong" ? null : nb.dialog;
+    if (event.key === "Backspace" || event.key === "Delete") {
+      const cells = { ...nb.cells };
+      let target = active, nc = c;
+      if (!cells[active] && c > 0) { nc = c - 1; target = `${r},${nc}`; } // step back into the previous cell
+      if (isLockedBinCell(nb, r, nc)) { event.preventDefault(); return; }
+      delete cells[target];
+      setState({ notebook: { ...nb, cells, active: target, dialog: clearWrong } }, false);
+      event.preventDefault();
+      return;
+    }
+    if (isLockedBinCell(nb, r, c)) return;
+    if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      const cells = { ...nb.cells };
+      cells[active] = event.key;
+      const nc = Math.min(BIN_NB_COLS - 1, c + 1); // auto-advance left→right
+      setState({ notebook: { ...nb, cells, active: `${r},${nc}`, dialog: clearWrong } }, false);
       event.preventDefault();
     }
   }
@@ -5780,14 +5855,26 @@
   function checkBinaryNotebook() {
     const nb = state.notebook;
     if (!nb || nb.dialog === "walkthrough") return;
-    if (binSolved(nb)) { setState({ notebook: { ...nb, active: false, dialog: "correct" } }); return; }
-    setState({ notebook: { ...nb, active: false, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
+    if (binSolved(nb)) { setState({ notebook: { ...nb, active: null, dialog: "correct" } }); return; }
+    setState({ notebook: { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
   }
 
   function binResetEntry() {
     const nb = state.notebook;
     if (!nb) return;
-    setState({ notebook: { ...nb, entry: "", active: true, dialog: null } });
+    const layout = binLayout(nb);
+    setState({ notebook: { ...nb, cells: {}, active: `${layout.row},${layout.answerCols[0]}`, dialog: null } });
+  }
+
+  // Dev shortcut (Ctrl+Shift+9): fill the answer cells correctly and check.
+  function binSecretSolve() {
+    const nb = state.notebook;
+    if (!nb) return;
+    const { row, answerCols, expected } = binLayout(nb);
+    const cells = { ...nb.cells };
+    for (let i = 0; i < expected.length; i++) cells[`${row},${answerCols[i]}`] = expected[i];
+    setState({ notebook: { ...nb, cells, active: null } }, false);
+    checkBinaryNotebook();
   }
 
   function binRetry() {
@@ -5856,27 +5943,25 @@
 
   function renderBinaryNotebook() {
     const nb = state.notebook || {};
-    const width = binAnswerWidth(nb);
-    const entry = nb.entry || "";
-    const fixedCells = (str) => str.split("").map((ch) => `<span class="notebook-cell notebook-cell-fixed bin-cell">${esc(ch)}</span>`).join("");
-    // bin2dec shows a fixed row of answer boxes; dec2bin grows with typing so the
-    // ₂ subscript always sits right after the number (and the digit count is not
-    // given away — that is the point of hint 1).
-    const cellCount = nb.stage === "bin2dec"
-      ? width
-      : Math.min(width, Math.max(1, entry.length + (nb.active && entry.length < width ? 1 : 0)));
-    let entryCells = "";
-    for (let i = 0; i < cellCount; i++) {
-      const ch = entry[i] || "";
-      const cursor = nb.active && i === entry.length && i < width;
-      entryCells += `<button type="button" class="notebook-cell notebook-cell-answer bin-cell bin-entry-cell${cursor ? " notebook-cell-active" : ""}" data-action="binbk-entry">${esc(ch)}</button>`;
+    const { fixed, row, answerCols } = binLayout(nb);
+    const answerSet = new Set(answerCols.map((c) => `${row},${c}`));
+    const cellsData = nb.cells || {};
+    const rows = [];
+    for (let r = 0; r < BIN_NB_ROWS; r++) {
+      let cells = "";
+      for (let c = 0; c < BIN_NB_COLS; c++) {
+        const key = `${r},${c}`;
+        const fx = fixed[key];
+        const char = fx != null ? fx : (cellsData[key] || "");
+        const classes = ["notebook-cell"];
+        if (fx != null) classes.push("notebook-cell-fixed");
+        if (nb.active === key) classes.push("notebook-cell-active");
+        if (answerSet.has(key)) classes.push("notebook-cell-answer", "bin-answer-cell");
+        const lock = fx != null ? ' aria-disabled="true"' : "";
+        cells += `<button type="button" class="${classes.join(" ")}" data-action="binbk-cell" data-r="${r}" data-c="${c}"${lock}>${esc(char)}</button>`;
+      }
+      rows.push(`<div class="notebook-row">${cells}</div>`);
     }
-    const opBlock = nb.stage === "bin2dec"
-      ? `<span class="bin-op"><span class="bin-q">?</span><span class="bin-eqsign">=</span></span>`
-      : `<span class="bin-op"><span class="bin-eqsign">=</span></span>`;
-    const equation = nb.stage === "bin2dec"
-      ? `<span class="bin-group">${fixedCells(toBinaryString(nb.value))}<sub class="bin-sub">2</sub></span>${opBlock}<span class="bin-group">${entryCells}</span>`
-      : `<span class="bin-group">${fixedCells(String(nb.value))}</span>${opBlock}<span class="bin-group">${entryCells}<sub class="bin-sub">2</sub></span>`;
 
     const unlocked = binUnlockedHints(nb);
     const showHintBtn = unlocked > 0 || binSolutionAvailable(nb);
@@ -5897,9 +5982,7 @@
       ${topbar()}
       <main class="screen notebook-screen">
         <div class="bin-prompt">${esc(binTaskPrompt(nb))}</div>
-        <div class="notebook-page bin-page">
-          <div class="bin-equation" data-action="binbk-entry">${equation}</div>
-        </div>
+        <div class="notebook-page">${rows.join("")}</div>
         <div class="notebook-footer">${footer}</div>
         ${renderBinaryDialog(nb)}
       </main>`;
@@ -9098,7 +9181,7 @@
     // (event.code is layout-independent, so it works on any keyboard.)
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
-      if (state.screen === "notebook") secretSolveNotebook();
+      if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
       else secretSolveAndExit();
     }
   });
@@ -9335,7 +9418,7 @@
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
     if (action === "stone-millis-book") return openNotebook();
     if (action === "binary-booklet") return openBinaryBooklet();
-    if (action === "binbk-entry") return binFocusEntry();
+    if (action === "binbk-cell") return binSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "binbk-check") return checkBinaryNotebook();
     if (action === "binbk-reset") return binResetEntry();
     if (action === "binbk-back") return binBackToWorkshop(false);
