@@ -3330,6 +3330,29 @@ object.panel-image.is-pending {
   background: rgba(60, 110, 220, 0.18);
 }
 
+/* A cell emphasised by the solution walkthrough. */
+.bin-hl {
+  background: rgba(240, 190, 70, 0.6) !important;
+  box-shadow: inset 0 0 0 2px #d99a1f;
+  font-weight: 800;
+  color: #5a3d05;
+}
+
+/* The solution walkthrough's step caption, shown under the grid. */
+.bin-solution-caption {
+  direction: rtl;
+  background: #fbf5e2;
+  border: 1px solid #cbb888;
+  border-radius: 8px;
+  padding: 8px 16px;
+  max-width: min(92vw, 640px);
+  color: #2a2416;
+  text-align: center;
+  font-size: 1.05rem;
+}
+.bin-solution-caption p { margin: 0; }
+.bin-solution-caption strong { color: #1c2c5a; }
+
 .bin-walkthrough {
   direction: rtl;
   max-height: 46vh;

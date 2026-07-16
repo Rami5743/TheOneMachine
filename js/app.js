@@ -5575,7 +5575,9 @@
   // space, and only the answer cells (right of the "=") are checked.
   const BIN_NB_COLS = 21;
   const BIN_NB_ROWS = 13;
-  const BIN_EQ_ROW = 4;
+  // The equation sits low enough to leave room above for the solution
+  // walkthrough, which stacks each bit's contribution over the answer.
+  const BIN_EQ_ROW = 8;
   const BIN2DEC_ANS_W = 4; // decimal answers (values ≤ 63 → ≤ 2 digits) + guard
   const DEC2BIN_ANS_W = 6; // binary answers (values ≤ 63 → ≤ 6 bits)
 
@@ -5635,14 +5637,20 @@
     const row = BIN_EQ_ROW;
     const answerCols = [];
     const expected = binExpectedAnswer(nb);
+    let binStart = null;
+    let binLen = 0;
+    let ansStart = null;
     if (nb.stage === "bin2dec") {
       const bin = toBinaryString(nb.value);
+      binLen = bin.length;
       const w = BIN2DEC_ANS_W;
       const total = bin.length + 1 /*₂*/ + 1 /*=*/ + w;
       let c = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
+      binStart = c;
       for (const ch of bin) fixed[`${row},${c++}`] = ch;
       fixed[`${row},${c++}`] = "₂";
       fixed[`${row},${c++}`] = "=";
+      ansStart = c;
       for (let i = 0; i < w; i++) answerCols.push(c++);
     } else {
       const dec = String(nb.value);
@@ -5651,10 +5659,11 @@
       let c = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
       for (const ch of dec) fixed[`${row},${c++}`] = ch;
       fixed[`${row},${c++}`] = "=";
+      ansStart = c;
       for (let i = 0; i < w; i++) answerCols.push(c++);
       fixed[`${row},${c++}`] = "₂";
     }
-    return { fixed, row, answerCols, expected };
+    return { fixed, row, answerCols, expected, binStart, binLen, ansStart };
   }
 
   function binFixedCells(nb) {
@@ -5917,11 +5926,75 @@
     setState({ notebook: { ...nb, dialog: null } });
   }
 
+  // The bin→dec solution, drawn step by step INTO the grid: each set bit's
+  // place value is stacked over the answer's units column and highlighted (with
+  // the matching bit), then everything is summed into the answer. Each step is
+  // a full snapshot { text, cells, highlight } advanced by a "המשך" click.
+  function binBin2decSolutionSteps(nb) {
+    const layout = binLayout(nb);
+    const row = layout.row;
+    const B = toBinaryString(nb.value);
+    const len = B.length;
+    const binStart = layout.binStart;
+    const ansStr = String(nb.value);
+    const unitsCol = layout.ansStart + ansStr.length - 1;
+    const steps = [];
+    const cum = {};
+    const contribCells = [];
+    let writeRow = row - 1;
+    let leftmostCol = unitsCol;
+    for (let k = 0; k < len; k++) {
+      const bit = B[len - 1 - k];
+      const binCol = binStart + (len - 1 - k);
+      const place = Math.pow(2, k);
+      const placeName = k === 0 ? "האחדות" : `ה-${place}`;
+      if (bit === "1") {
+        const s = String(place);
+        const startCol = unitsCol - s.length + 1;
+        const written = [];
+        for (let i = 0; i < s.length; i++) { const c = startCol + i; cum[`${writeRow},${c}`] = s[i]; written.push(`${writeRow},${c}`); }
+        if (startCol < leftmostCol) leftmostCol = startCol;
+        contribCells.push(...written);
+        const text = k === 0
+          ? `ביט האחדות הוא @[1]. הוא תורם @[${place}].`
+          : `ביט ${placeName} הוא @[1]. זה תורם לנו @[${place}].`;
+        steps.push({ text, cells: { ...cum }, highlight: [...written, `${row},${binCol}`] });
+        writeRow -= 1;
+      } else {
+        const text = k === 0
+          ? `ביט האחדות הוא @[0]. הוא לא תורם כלום.`
+          : `ביט ${placeName} הוא @[0]. הוא לא תורם כלום.`;
+        steps.push({ text, cells: { ...cum }, highlight: [`${row},${binCol}`] });
+      }
+    }
+    const plusCol = Math.max(0, leftmostCol - 1);
+    cum[`${row - 1},${plusCol}`] = "+";
+    steps.push({ text: "עכשיו צריך לסכם הכל.", cells: { ...cum }, highlight: [...contribCells] });
+    const ansCells = [];
+    for (let i = 0; i < ansStr.length; i++) { const c = layout.ansStart + i; cum[`${row},${c}`] = ansStr[i]; ansCells.push(`${row},${c}`); }
+    steps.push({ text: `מקבלים את התשובה: @[${ansStr}].`, cells: { ...cum }, highlight: ansCells });
+    return steps;
+  }
+
+  // Whether the current walkthrough is drawn inside the grid (bin→dec) rather
+  // than shown as a text panel (dec→bin, until its own script lands).
+  function binInGridSolution(nb) {
+    return nb && nb.dialog === "walkthrough" && nb.stage === "bin2dec";
+  }
+
   function binOpenWalkthrough() {
     const nb = state.notebook;
     // Opening the walkthrough from a failed attempt counts as using help.
     const hintUsed = nb.dialog === "wrong" ? true : nb.hintUsed;
-    setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed } });
+    setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed, walkStep: 0 } });
+  }
+
+  function binWalkStep(delta) {
+    const nb = state.notebook;
+    if (!nb) return;
+    const steps = binBin2decSolutionSteps(nb);
+    const next = Math.min(Math.max(0, (nb.walkStep || 0) + delta), steps.length - 1);
+    setState({ notebook: { ...nb, walkStep: next } });
   }
 
   // The walkthrough always ends by moving on: a clean solve advances to the
@@ -5945,38 +6018,67 @@
     const nb = state.notebook || {};
     const { fixed, row, answerCols } = binLayout(nb);
     const answerSet = new Set(answerCols.map((c) => `${row},${c}`));
-    const cellsData = nb.cells || {};
+
+    // While the bin→dec solution plays, the grid shows the walkthrough's own
+    // cells and highlights instead of the learner's scribbles.
+    const inGrid = binInGridSolution(nb);
+    let displayCells = nb.cells || {};
+    let highlightSet = new Set();
+    let steps = null;
+    let stepIndex = 0;
+    if (inGrid) {
+      steps = binBin2decSolutionSteps(nb);
+      stepIndex = Math.min(Math.max(0, nb.walkStep || 0), steps.length - 1);
+      displayCells = steps[stepIndex].cells;
+      highlightSet = new Set(steps[stepIndex].highlight);
+    }
+
     const rows = [];
     for (let r = 0; r < BIN_NB_ROWS; r++) {
       let cells = "";
       for (let c = 0; c < BIN_NB_COLS; c++) {
         const key = `${r},${c}`;
         const fx = fixed[key];
-        const char = fx != null ? fx : (cellsData[key] || "");
+        const char = fx != null ? fx : (displayCells[key] || "");
         const classes = ["notebook-cell"];
         if (fx != null) classes.push("notebook-cell-fixed");
-        if (nb.active === key) classes.push("notebook-cell-active");
+        if (!inGrid && nb.active === key) classes.push("notebook-cell-active");
         if (answerSet.has(key)) classes.push("notebook-cell-answer", "bin-answer-cell");
+        if (highlightSet.has(key)) classes.push("bin-hl");
         const lock = fx != null ? ' aria-disabled="true"' : "";
         cells += `<button type="button" class="${classes.join(" ")}" data-action="binbk-cell" data-r="${r}" data-c="${c}"${lock}>${esc(char)}</button>`;
       }
       rows.push(`<div class="notebook-row">${cells}</div>`);
     }
 
-    const unlocked = binUnlockedHints(nb);
-    const showHintBtn = unlocked > 0 || binSolutionAvailable(nb);
-    const hintFresh = (nb.hintsSeen || 0) < unlocked;
-    const hintLabel = binSolutionAvailable(nb) ? "פתרון" : ((nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?");
-    const hintButton = showHintBtn
-      ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="binbk-hints-open" type="button">${esc(hintLabel)}</button>`
-      : "";
-    const footer = nb.dialog === "walkthrough" ? "" : `
+    let footer;
+    if (inGrid) {
+      const isLast = stepIndex >= steps.length - 1;
+      const prev = stepIndex > 0 ? '<button class="btn" data-action="binbk-walk-prev" type="button">הקודם</button>' : "";
+      const nextLabel = isLast ? (binClean(nb) ? "המשך" : "תרגיל נוסף") : "המשך";
+      const nextAction = isLast ? "binbk-walk-finish" : "binbk-walk-next";
+      footer = `
+        <div class="bin-solution-caption">${binParagraphsHtml(steps[stepIndex].text)}</div>
+        <div class="notebook-actions">
+          ${prev}
+          <button class="btn btn-primary" data-action="${nextAction}" type="button">${esc(nextLabel)}</button>
+        </div>`;
+    } else {
+      const unlocked = binUnlockedHints(nb);
+      const showHintBtn = unlocked > 0 || binSolutionAvailable(nb);
+      const hintFresh = (nb.hintsSeen || 0) < unlocked;
+      const hintLabel = binSolutionAvailable(nb) ? "פתרון" : ((nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?");
+      const hintButton = showHintBtn
+        ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="binbk-hints-open" type="button">${esc(hintLabel)}</button>`
+        : "";
+      footer = nb.dialog === "walkthrough" ? "" : `
         <div class="notebook-actions">
           <button class="btn btn-primary" data-action="binbk-check" type="button">בדיקה</button>
           ${hintButton}
           <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
           <button class="btn notebook-reset-btn" data-action="binbk-reset" type="button" aria-label="נקה">↻</button>
         </div>`;
+    }
 
     app.innerHTML = `
       ${topbar()}
@@ -5984,7 +6086,7 @@
         <div class="bin-prompt">${esc(binTaskPrompt(nb))}</div>
         <div class="notebook-page">${rows.join("")}</div>
         <div class="notebook-footer">${footer}</div>
-        ${renderBinaryDialog(nb)}
+        ${inGrid ? "" : renderBinaryDialog(nb)}
       </main>`;
   }
 
@@ -9427,6 +9529,8 @@
     if (action === "binbk-hint-select") return binSelectHint(Number(button.dataset.hintIndex));
     if (action === "binbk-hint-close") return binCloseHints();
     if (action === "binbk-walk-open") return binOpenWalkthrough();
+    if (action === "binbk-walk-next") return binWalkStep(1);
+    if (action === "binbk-walk-prev") return binWalkStep(-1);
     if (action === "binbk-walk-finish") return binWalkthroughFinish();
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
