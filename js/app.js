@@ -5062,11 +5062,15 @@
     return cells;
   }
 
-  // The exercise sequence is deterministic (reproducible): the first five were
-  // drawn once and frozen here; the rest are drawn from a seeded generator,
-  // keyed by index so exercise N is always the same pair.
+  // The exercise sequence is deterministic (reproducible). The first, teaching
+  // exercise is hand-built so its columns cover every case in order: units 3+4=7
+  // (no carry), tens 6+4=10 (a carry whose sum is exactly 10), hundreds 7+5+1=13
+  // (an ordinary carry, sum > 10) and thousands 8+9+1=18 (the last digit
+  // overflows into a fifth digit) — 8763 + 9544 = 18307. The rest were drawn
+  // once and frozen; anything past them comes from a seeded generator keyed by
+  // index, so exercise N is always the same pair.
   const NB_HARDCODED_EXERCISES = [
-    { a: 4166, b: 4932 },
+    { a: 8763, b: 9544 },
     { a: 3394, b: 7917 },
     { a: 4374, b: 7169 },
     { a: 2345, b: 7518 },
@@ -5295,7 +5299,7 @@
   // exercise, or the story when the exercise was solved with no mistakes).
   function notebookOpenSolution() {
     const nb = state.notebook;
-    setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0 } });
+    setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, mistake: null } });
   }
 
   function notebookSolutionNext() {
@@ -5375,7 +5379,7 @@
         // The addition line: a heavier bottom edge under the second operand.
         if (r === NB_OP2_ROW && NB_DIGIT_COLS.includes(c)) classes.push("notebook-cell-underline");
         if (answerCols.has(key)) classes.push("notebook-cell-answer");
-        if (nb.mistake != null && key === `${NB_ANSWER_ROW},${NB_UNITS_COL - nb.mistake}`) classes.push("notebook-cell-mistake");
+        if (!inSolution && nb.mistake != null && key === `${NB_ANSWER_ROW},${NB_UNITS_COL - nb.mistake}`) classes.push("notebook-cell-mistake");
         const lockAttr = fixedChar != null ? ' aria-disabled="true"' : "";
         cells += `<button type="button" class="${classes.join(" ")}" data-action="notebook-cell" data-r="${r}" data-c="${c}"${lockAttr}>${esc(char)}</button>`;
       }
