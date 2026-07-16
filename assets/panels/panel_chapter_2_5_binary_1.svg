@@ -7,4 +7,12 @@
        lives in js/data.js. -->
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
      href="panel94_chapter_2_4_intro.jpg" xlink:href="panel94_chapter_2_4_intro.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+    <path id="speech-bubble"
+       d="M 496,50 H 1384 C 1410,50 1410,50 1410,76 V 529 C 1410,555 1410,555 1384,555 H 496 C 470,555 470,555 470,529 V 215 L 370,175 L 470,150 V 76 C 470,50 470,50 496,50 Z"
+       fill="#ffffff" stroke="#000000" stroke-width="4.11818" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="940" y="105" id="tline1">אני צריך לספר לך איך מכונות חישוב עובדות</tspan><tspan x="940" y="163" id="tline2">עם מספרים. זה לא נוח לעבוד עם ספרות.</tspan><tspan x="940" y="221" id="tline3">אנחנו מעדיפים לעבוד עם ביטים. לביט יש</tspan><tspan x="940" y="279" id="tline4">רק שתי אפשרויות: 0 ו-1. כך שעם ביט אחד</tspan><tspan x="940" y="337" id="tline5">אפשר לכתוב רק את המספרים האלה. אם אנחנו</tspan><tspan x="940" y="395" id="tline6">רוצים לכתוב את 2 אנחנו נצטרך ביט נוסף.</tspan><tspan x="940" y="453" id="tline7">בדיוק כמו שכשמשתמשים בספרות אנחנו צריכים</tspan><tspan x="940" y="511" id="tline8">ספרה נוספת למספרים שגדולים מ-9.</tspan></text>
+  </g>
 </svg>

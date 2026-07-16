@@ -4,7 +4,16 @@
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <!-- Story slide 2 of the binary lesson. Its own vector file (per the
        one-SVG-per-slide rule); it shares the panel94 raster. Narration text
-       lives in js/data.js. -->
+       lives in js/data.js. NOTE: this narration is very long; the bubble here
+       fills almost the whole panel — candidate for splitting into 2-3 slides. -->
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
      href="panel94_chapter_2_4_intro.jpg" xlink:href="panel94_chapter_2_4_intro.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+    <path id="speech-bubble"
+       d="M 120,40 H 1330 C 1360,40 1360,40 1360,70 V 715 C 1360,745 1360,745 1330,745 H 120 C 90,745 90,745 90,715 V 70 C 90,40 90,40 120,40 Z"
+       fill="#ffffff" stroke="#000000" stroke-width="4.11818" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="32px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="725" y="78" id="tline1">השיטה לכתוב מספרים עם ביטים נקראת השיטה הבינרית,</tspan><tspan x="725" y="120" id="tline2">כתיבה בבסיס ספירה 2. היא דומה לשיטה העשרונית שאתה</tspan><tspan x="725" y="162" id="tline3">מכיר אבל הבסיס הוא 2 במקום 10. כשכותבים בשיטה</tspan><tspan x="725" y="204" id="tline4">הבינרית הספרה הימנית ביותר היא ספרת האחדות (כמו</tspan><tspan x="725" y="246" id="tline5">בשיטה העשרונית). הספרה הבאה מימין היא ספרת ה-2,</tspan><tspan x="725" y="288" id="tline6">אחריה ספרת ה-4 אז ספרת ה-8 וכך הלאה (כל פעם</tspan><tspan x="725" y="330" id="tline7">מכפילים פי-2). כל ספרה היא בעצם ביט (היא יכולה</tspan><tspan x="725" y="372" id="tline8">להיות רק 0 או 1). למשל המספר 101 בשיטה הבינרית</tspan><tspan x="725" y="414" id="tline9">הוא 5: ה-1 הימני מייצג 1, ה-0 שאחריו מייצג 0 פעמים</tspan><tspan x="725" y="456" id="tline10">2 (שהם 0) וה-1 שאחריו מייצג 4. דוגמה נוספת היא</tspan><tspan x="725" y="498" id="tline11">המספר 111 שהוא המספר התלת-ספרתי הגדול ביותר</tspan><tspan x="725" y="540" id="tline12">בשיטה הבינרית. הוא למעשה המספר 1+2+4=7. בשביל</tspan><tspan x="725" y="582" id="tline13">לכתוב 8 יש צורך בספרה נוספת: 1000. באופן כללי</tspan><tspan x="725" y="624" id="tline14">התפקיד של כל ספרה הוא פי 2 יותר מאשר של הספרה</tspan><tspan x="725" y="666" id="tline15">הקודמת, בדיוק כמו שבשיטה העשרונית התפקיד של כל</tspan><tspan x="725" y="708" id="tline16">ספרה הוא פי-10 יותר משל הספרה הקודמת.</tspan></text>
+  </g>
 </svg>

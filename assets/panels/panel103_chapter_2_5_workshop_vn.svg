@@ -4,4 +4,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
      href="panel103_chapter_2_5_workshop_vn.jpg" xlink:href="panel103_chapter_2_5_workshop_vn.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble"
+     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+    <path id="speech-bubble"
+       d="M 496,55 H 1394 C 1420,55 1420,55 1420,81 V 429 C 1420,455 1420,455 1394,455 H 496 C 470,455 470,455 470,429 V 215 L 370,175 L 470,150 V 81 C 470,55 470,55 496,55 Z"
+       fill="#ffffff" stroke="#000000" stroke-width="4.11818" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" dominant-baseline="middle" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="945" y="110" id="tline1">יש כאן כמה תרגילים על השיטה הבינרית. לפני</tspan><tspan x="945" y="170" id="tline2">שאתה מלמד את המחשב לעבוד עם השיטה</tspan><tspan x="945" y="230" id="tline3">הבינרית, כדאי שתכיר אותה טוב בעצמך.</tspan><tspan x="945" y="290" id="tline4">אני הולך עכשיו לפגוש את נילס בוהר. הוא</tspan><tspan x="945" y="350" id="tline5">הגיע מאנגליה. מזל שהוא הצליח לצאת</tspan><tspan x="945" y="410" id="tline6">מדנמרק ברגע האחרון.</tspan></text>
+  </g>
 </svg>
