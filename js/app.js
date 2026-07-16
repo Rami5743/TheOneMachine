@@ -4953,7 +4953,7 @@
   const NB_UNITS_COL = 12;
   const NB_TENS_COL = 11;
 
-  const NB_COLUMN_NAMES = ["אחדות", "עשרות", "מאות", "אלפים"];
+  const NB_COLUMN_NAMES = ["אחדות", "עשרות", "מאות", "אלפים", "עשרות אלפים"];
   const NOTEBOOK_HINT_NOTE = "(לחיצה על \"הפעל רמז\" תמחק את מה שעשית)";
 
   // Digit at position i (0=units … 3=thousands) of a number.
@@ -5134,12 +5134,37 @@
       hintIndex: 0,
       solutionStep: 0,
       solutionReturn: null,
+      // From the 2nd exercise on, a failed check points at the first wrong digit
+      // (position index) and highlights it until the next click.
+      mistake: null,
       // Position of the movable hint/explanation window (null → default spot).
       winPos: null,
       // Current overlay: null | "correct" | "wrong" | "explanation-stub" |
       // "hints" | "hint-applied" | "solution".
       dialog: null
     };
+  }
+
+  // The first exercise teaches with the worktable-style hints; later exercises
+  // (only reached after a non-clean solve) instead point at the first wrong
+  // digit and, after five failures, offer the walkthrough.
+  function notebookHintsMode() {
+    return (state.notebook?.exerciseIndex || 0) === 0;
+  }
+
+  // The position (0 = units) of the learner's first wrong answer digit, scanning
+  // from the units column up; also catches a stray digit in a guard column.
+  function notebookMistakePosition(nb) {
+    const expected = String(nb.exercise.a + nb.exercise.b);
+    const L = expected.length;
+    const startCol = NB_UNITS_COL + 1 - L;
+    const cell = (c) => (nb.cells[`${NB_ANSWER_ROW},${c}`] || "");
+    if (cell(NB_UNITS_COL + 1) !== "") return 0; // a stray digit right of the units
+    for (let i = 0; i < L; i++) {
+      if (cell(NB_UNITS_COL - i) !== expected[L - 1 - i]) return i;
+    }
+    if (cell(startCol - 1) !== "") return L; // a stray leading digit
+    return 0;
   }
 
   // The pre-printed (non-editable) exercise cells: "r,c" -> character.
@@ -5168,7 +5193,9 @@
   function notebookSelectCell(r, c) {
     const nb = state.notebook;
     if (!nb || notebookInteractionBlocked() || isLockedNotebookCell(r, c)) return;
-    setState({ notebook: { ...nb, active: `${r},${c}` } }, false);
+    // Starting to write dismisses a "wrong" message and clears the mistake mark.
+    const dialog = nb.dialog === "wrong" ? null : nb.dialog;
+    setState({ notebook: { ...nb, active: `${r},${c}`, mistake: null, dialog } }, false);
   }
 
   // Check only the answer cells (the digits of the sum, right-aligned under the
@@ -5191,9 +5218,12 @@
     if (!nb || !nb.exercise) return;
     if (notebookSolved(nb)) {
       setState({ notebook: { ...nb, active: null, dialog: "correct" } });
-    } else {
-      setState({ notebook: { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
+      return;
     }
+    const patch = { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" };
+    // Later exercises flag the first wrong digit instead of offering hints.
+    if (!notebookHintsMode()) patch.mistake = notebookMistakePosition(nb);
+    setState({ notebook: patch });
   }
 
   function resetNotebook() {
@@ -5218,7 +5248,7 @@
 
   function notebookRetry() {
     const nb = state.notebook;
-    setState({ notebook: { ...nb, dialog: null } });
+    setState({ notebook: { ...nb, dialog: null, mistake: null } });
   }
 
   // The bottom "רוצה רמז?" button opens the browsable hint list (all unlocked
@@ -5339,6 +5369,7 @@
         // The addition line: a heavier bottom edge under the second operand.
         if (r === NB_OP2_ROW && NB_DIGIT_COLS.includes(c)) classes.push("notebook-cell-underline");
         if (answerCols.has(key)) classes.push("notebook-cell-answer");
+        if (nb.mistake != null && key === `${NB_ANSWER_ROW},${NB_UNITS_COL - nb.mistake}`) classes.push("notebook-cell-mistake");
         const lockAttr = fixedChar != null ? ' aria-disabled="true"' : "";
         cells += `<button type="button" class="${classes.join(" ")}" data-action="notebook-cell" data-r="${r}" data-c="${c}"${lockAttr}>${esc(char)}</button>`;
       }
@@ -5347,7 +5378,8 @@
     const unlocked = notebookUnlockedHints();
     const hintFresh = (nb.hintsSeen || 0) < unlocked;
     const hintLabel = (nb.hintsSeen || 0) === 0 ? "רוצה רמז?" : "רוצה עוד רמז?";
-    const showHintBtn = unlocked > 0 || notebookSolutionAvailable();
+    // The hint button belongs only to the first, teaching exercise.
+    const showHintBtn = notebookHintsMode() && (unlocked > 0 || notebookSolutionAvailable());
     const hintButton = showHintBtn
       ? `<button class="btn hint-btn ${hintFresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="notebook-hints-open" type="button">${esc(hintLabel)}</button>`
       : "";
@@ -5390,8 +5422,16 @@
           : '<button class="btn btn-primary" data-action="notebook-next-exercise" type="button">תרגיל נוסף</button>');
     } else if (dialog === "wrong") {
       title = "בדיקה";
-      body = "<p>התשובה עדיין לא נכונה.</p>";
-      actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
+      if (notebookHintsMode()) {
+        body = "<p>התשובה עדיין לא נכונה.</p>";
+        actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
+      } else {
+        const name = NB_COLUMN_NAMES[nb.mistake || 0] || "אחדות";
+        body = `<p>הטעות הראשונה שלך היא בספרת ה${name}.</p>`;
+        actions =
+          '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>' +
+          ((nb.failCount || 0) >= 5 ? '<button class="btn" data-action="notebook-solution-open" type="button">רוצה לראות את הפתרון</button>' : "");
+      }
     } else if (dialog === "explanation-stub") {
       title = "המשך";
       body = "<p>שקף העלילה הבא יגיע בהמשך…</p>";
