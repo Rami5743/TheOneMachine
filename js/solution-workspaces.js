@@ -1,6 +1,6 @@
 // solution-workspaces.js — builders that assemble complete workbench layouts as
 // DATA, extracted from app.js: the reference solution for each task (Not, And,
-// Or, Xor, AND3way, OR4way, including the alternative NAND-based / balanced
+// Or, Xor, AND3way, OR4way, including the alternative Nand-based / balanced
 // variants shown at later hint steps), the blank standard task workbench, and
 // the workspaces used while running an automated task test row by row. They are
 // pure: every host helper (normalizer, wire builder, wire ops, task lookups,

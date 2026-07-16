@@ -258,7 +258,7 @@
     state.workspace = {
       selectedTerminal: null,
       // A single invisible fixed component prevents the app's normalizer from
-      // restoring the default source+NAND+lamp set. It is not rendered on the
+      // restoring the default source+Nand+lamp set. It is not rendered on the
       // board, so the workbench opens visually empty.
       components: [{ id: "free-anchor-1", type: "notCard", x: 500, y: 288 }],
       wires: [],

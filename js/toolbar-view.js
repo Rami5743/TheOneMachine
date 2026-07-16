@@ -1,5 +1,5 @@
 // toolbar-view.js — the workbench tool palette markup, extracted from app.js.
-// renderToolbar builds the left-hand palette: NAND, any gates the learner has
+// renderToolbar builds the left-hand palette: Nand, any gates the learner has
 // already completed (so they can be reused), a lamp, a voltage source, and the
 // trash bin. toolbarIcon/trashIcon are its internal SVG helpers. Pure string
 // building; host lookups are INJECTED.
@@ -29,8 +29,8 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
   }
 
   function renderToolbar() {
-    // In the NAND-presentation workbench the palette is deliberately minimal —
-    // only the NAND, the voltage source and the lamp. Elsewhere (the task-card
+    // In the Nand-presentation workbench the palette is deliberately minimal —
+    // only the Nand, the voltage source and the lamp. Elsewhere (the task-card
     // build and the free "empty table") the learner may also reuse every gate
     // they have already built.
     const builtGateTools = isNandPresentationWorkspace()
@@ -47,7 +47,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       : (typeof savedCardTools === "function" ? savedCardTools() : []);
 
     const tools = [
-      { type: "nand", label: "NAND" },
+      { type: "nand", label: "Nand" },
       ...builtGateTools,
       ...cardTools,
       { type: "lamp", label: "מנורה" },

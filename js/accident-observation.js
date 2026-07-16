@@ -1,7 +1,7 @@
 // accident-observation.js — the two safety/learning signals derived from a live
-// workbench, extracted from app.js. detectWorkspaceAccident spots a NAND whose
+// workbench, extracted from app.js. detectWorkspaceAccident spots a Nand whose
 // two inputs AND its output are all driven high by external outputs (a short
-// that "burns" it). updateNandOutputObservation watches lamps wired to NAND
+// that "burns" it). updateNandOutputObservation watches lamps wired to Nand
 // outputs and records whether the learner has seen both a 0 and a 1, flipping
 // the "understood" prompt once both are observed. Pure: all host helpers are
 // INJECTED; updateNandOutputObservation mutates the workspace it is given.

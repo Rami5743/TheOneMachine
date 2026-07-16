@@ -18,11 +18,11 @@
       bounds: { left: 34, right: 52, top: 46, bottom: 46 }
     },
     nand: {
-      label: "NAND",
+      label: "Nand",
       pins: {
-        in1: { x: -60, y: -24, direction: "in", label: "כניסת NAND עליונה" },
-        in2: { x: -60, y: 24, direction: "in", label: "כניסת NAND תחתונה" },
-        out: { x: 80, y: 0, direction: "out", label: "יציאת NAND" }
+        in1: { x: -60, y: -24, direction: "in", label: "כניסת Nand עליונה" },
+        in2: { x: -60, y: 24, direction: "in", label: "כניסת Nand תחתונה" },
+        out: { x: 80, y: 0, direction: "out", label: "יציאת Nand" }
       },
       bounds: { left: 64, right: 84, top: 46, bottom: 46 }
     },
@@ -636,7 +636,7 @@
         if (!Array.isArray(steps)) continue;
         for (const st of steps) {
           if (!st || typeof st.text !== "string") continue;
-          if (st.text.includes("Not הוא בעצם NAND")) add(st.text, ["שים לב", "שימי לב"]);
+          if (st.text.includes("Not הוא בעצם Nand")) add(st.text, ["שים לב", "שימי לב"]);
           if (st.text.includes("להשתמש בכרטיס הזה גם עם 3 כניסות")) add(st.text, ["שים לב", "שימי לב"], ["אתה יכול", "את יכולה"], ["אתה לא חייב", "את לא חייבת"]);
         }
       }
@@ -700,7 +700,7 @@
   const GATE_RENDER_SCALE = 0.6;
   function componentRenderScale(type) {
     const t = String(type || "");
-    // Past chapter 2.2 the schematic shrinks — gates AND the NAND itself.
+    // Past chapter 2.2 the schematic shrinks — gates AND the Nand itself.
     if (!t.startsWith("gate-") && t !== "nand") return 1;
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
@@ -806,7 +806,7 @@
   const addTestWire = (...args) => __wireOps.addTestWire(...args);
   const applyWireToggle = (...args) => __wireOps.applyWireToggle(...args);
 
-  // Accident detection + NAND-output observation live in js/accident-observation.js
+  // Accident detection + Nand-output observation live in js/accident-observation.js
   // (deps injected). Created after wire-ops (it uses connectedTerminals). Thin
   // wrappers keep existing call sites unchanged.
   const __accidentObservation = createAccidentObservation({
@@ -843,7 +843,7 @@
   const renderWorkspaceSkipButton = (...a) => __workspaceChromeView.renderWorkspaceSkipButton(...a);
   const renderWorkspaceUnderstoodPrompt = (...a) => __workspaceChromeView.renderWorkspaceUnderstoodPrompt(...a);
 
-  // NAND monologue speech + truth table markup live in js/nand-monologue-view.js.
+  // Nand monologue speech + truth table markup live in js/nand-monologue-view.js.
   const __nandMonologueView = createNandMonologueView({
     getState: () => state, esc, workspaceNandMonologueActive, NAND_MONOLOGUE_TEXTS
   });
@@ -977,10 +977,10 @@
   }
 
   // The workbench has three variants. This is the first one: "הצגת הנאנד" — the
-  // NAND-presentation workbench (default source+NAND+lamp, the observe/"הבנת?"/
+  // Nand-presentation workbench (default source+Nand+lamp, the observe/"הבנת?"/
   // monologue flow). The other two are the task-card build (taskId set) and the
   // "empty table" free build (freeBuild set). Toolbar contents and the ability to
-  // short the NAND both depend on being in this mode.
+  // short the Nand both depend on being in this mode.
   function isNandPresentationWorkspace() {
     return (
       state.screen === "workspace" &&
@@ -1697,7 +1697,7 @@
   function workspaceSkipDisabled() {
     if (state.screen !== "workspace") return true;
     if (![1, 2].includes(Number(state.workspace?.workspaceSession))) return true;
-    // Step-by-step: the workbench (NAND presentation / task build) can't be
+    // Step-by-step: the workbench (Nand presentation / task build) can't be
     // skipped on a first pass through its chapter.
     return stepFirstVisit();
   }
@@ -1808,7 +1808,7 @@
     if (isReturnToNandPanel(panel) && !hasReturnHotspot) {
       return [{
         action: "return-to-nand-dialog",
-        ariaLabel: "לחץ על ה-NAND",
+        ariaLabel: "לחץ על ה-Nand",
         left: 40,
         top: 56,
         width: 22,
@@ -2396,7 +2396,7 @@
   function renderCreateCardBubble() {
     if (!state.cardIntroPending || !state.createCardUnlocked || state.cardCreation) return "";
     const text = "הי, אתה יכול ללחוץ עליי כדי ליצור כרטיס חדש, שתוכל להשתמש בו בכרטיסים האחרים שאתה בונה.";
-    // A comic speech bubble (like the NAND monologue). While it is up, a click
+    // A comic speech bubble (like the Nand monologue). While it is up, a click
     // anywhere in the workbench opens the card-building page (see the click
     // dispatcher) — the bubble itself is just the visual cue.
     return `
@@ -3092,7 +3092,7 @@
     ],
     And: [
       {
-        text: "אנחנו מחברים את שתי הכניסות ל־NAND.",
+        text: "אנחנו מחברים את שתי הכניסות ל־Nand.",
         highlight: {
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "nand-1.in1", "nand-1.in2"],
           wires: [
@@ -3109,7 +3109,7 @@
         }
       },
       {
-        text: "לכן אנחנו מחברים את היציאה של ה־NAND ל־Not.",
+        text: "לכן אנחנו מחברים את היציאה של ה־Nand ל־Not.",
         highlight: {
           terminals: ["nand-1.out", "not-1.in1"],
           wires: [wireKey("nand-1.out", "not-1.in1")],
@@ -3179,14 +3179,14 @@
         }
       },
       {
-        text: "שים לב, שהשילוב בין ה־And ל־Not הוא בעצם NAND.",
+        text: "שים לב, שהשילוב בין ה־And ל־Not הוא בעצם Nand.",
         highlight: {
           components: ["and-1", "not-3"],
           terminals: ["and-1.out", "not-3.in1", "not-3.out"]
         }
       },
       {
-        text: "כך שאפשר להחליף אותם ב־NAND ולחסוך.",
+        text: "כך שאפשר להחליף אותם ב־Nand ולחסוך.",
         highlight: {
           components: ["nand-1"],
           terminals: ["not-1.out", "not-2.out", "nand-1.in1", "nand-1.in2", "nand-1.out"],
@@ -3204,14 +3204,14 @@
         }
       },
       {
-        text: "עוד דרך לחשוב על הפתרון הזה היא שגם NAND וגם Or מוציאים 0 רק במקרה אחד. ההבדל ביניהם הוא שאצל Or המקרה הזה הוא כששתי הכניסות הן 0, ואצל NAND המקרה הזה הוא כששתי הכניסות הן 1. ה־Not-ים בהתחלה מחליפים בין המקרים.",
+        text: "עוד דרך לחשוב על הפתרון הזה היא שגם Nand וגם Or מוציאים 0 רק במקרה אחד. ההבדל ביניהם הוא שאצל Or המקרה הזה הוא כששתי הכניסות הן 0, ואצל Nand המקרה הזה הוא כששתי הכניסות הן 1. ה־Not-ים בהתחלה מחליפים בין המקרים.",
         highlight: {
           components: ["not-1", "not-2"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "not-1.in1", "not-2.in1", "not-1.out", "not-2.out"]
         }
       },
       {
-        text: "כך אנו יכולים לעשות Or באמצעות NAND.",
+        text: "כך אנו יכולים לעשות Or באמצעות Nand.",
         highlight: {
           components: ["not-1", "not-2", "nand-1"],
           wires: [
@@ -3419,14 +3419,14 @@
         }
       },
       {
-        text: "שוב, השילוב בין ה־And ל־Not הוא בעצם NAND.",
+        text: "שוב, השילוב בין ה־And ל־Not הוא בעצם Nand.",
         highlight: {
           components: ["and-raw", "not-1"],
           terminals: ["and-raw.out", "not-1.in1", "not-1.out"]
         }
       },
       {
-        text: "כך שאפשר להחליף אותם ב־NAND ולחסוך.",
+        text: "כך שאפשר להחליף אותם ב־Nand ולחסוך.",
         highlight: {
           components: ["nand-1"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "nand-1.in1", "nand-1.in2", "nand-1.out"],
@@ -3734,7 +3734,7 @@
     const task = taskDefById(taskId);
 
     if (taskId === "Not") {
-      const text = "אם בכניסה של ה־Not יש מתח, הוא מגיע לשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND אין מתח. אם אין מתח בכניסה של ה־Not, אין גם מתח בשתי הכניסות של ה־NAND, ולכן ביציאה של ה־NAND יש מתח.";
+      const text = "אם בכניסה של ה־Not יש מתח, הוא מגיע לשתי הכניסות של ה־Nand, ולכן ביציאה של ה־Nand אין מתח. אם אין מתח בכניסה של ה־Not, אין גם מתח בשתי הכניסות של ה־Nand, ולכן ביציאה של ה־Nand יש מתח.";
       return `
         <div class="solution-overlay" role="presentation">
           <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון Not">
@@ -4460,7 +4460,7 @@
     let top = nandTop - speechH - gapY;
     top = Math.min(boardH - speechH - margin, Math.max(margin, top));
 
-    // The bubble should stay above the NAND and avoid covering it.
+    // The bubble should stay above the Nand and avoid covering it.
     if (top + speechH > nandTop - 8) {
       top = Math.max(margin, nandTop - speechH - 8);
     }
@@ -4499,7 +4499,7 @@
   // a new card and sets its input/output counts. The actual card building,
   // saving, and use are NOT implemented yet.
   // An empty free-build workbench used for card creation. The invisible fixed
-  // anchor keeps the normalizer from restoring the default source+NAND+lamp, so
+  // anchor keeps the normalizer from restoring the default source+Nand+lamp, so
   // the board opens empty; `freeBuild` gives the full palette + drag/wire tools.
   function createCardBuildWorkspace(returnChapterId, returnPanelIndex, logic) {
     // When editing, seed the build table with the card's stored internal circuit
@@ -4584,7 +4584,7 @@
   // The names already taken by the built-in cards/gates — a new card may not
   // reuse any of them (compared case-insensitively, trimmed).
   function builtInCardNames() {
-    const names = ["NAND", "Or16"];
+    const names = ["Nand", "Or16"];
     for (const t of TASK_DEFS) names.push(t.label);
     for (const t of ROUTING_TASK_DEFS) names.push(t.label);
     for (const t of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) names.push(t.label);
@@ -5195,7 +5195,7 @@
       workspaceSession: session,
       exitTargetPanelIndex,
       returnToWorkspaceAfterMonologue: false,
-      // Preserve where this NAND session must return to (e.g. chapter 2.3),
+      // Preserve where this Nand session must return to (e.g. chapter 2.3),
       // otherwise the rebuilt workbench loses it and exit falls back to 2.2.
       sessionReturnChapterId: currentWorkspace.sessionReturnChapterId,
       sessionReturnPanelIndex: currentWorkspace.sessionReturnPanelIndex
@@ -5221,9 +5221,9 @@
     const scene = sceneByChapter(nandChapter);
     const panel75Index = panelIndexByImage(scene, "panel75.png");
 
-    // Replaying the NAND monologue from the final warehouse must not reuse the
+    // Replaying the Nand monologue from the final warehouse must not reuse the
     // previous workbench state. Start from the same clean workbench as the
-    // first NAND workbench visit, with the "הבנת?" button already available.
+    // first Nand workbench visit, with the "הבנת?" button already available.
     const workspace = {
       ...createDefaultWorkspace(),
       unlocked: true,
@@ -7005,7 +7005,7 @@
   function skipTargetPanelIndex() {
     const scene = currentScene();
     if (!scene) return 0;
-    // 2.1 (chapter-4): skip opens the NAND workbench, whose story trigger is the
+    // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
       const launch = workspaceLaunchPanelIndex(scene);
@@ -8109,7 +8109,7 @@
         return nextHintSlide();
       }
 
-      // During the NAND monologue a plain click on the board advances it, the
+      // During the Nand monologue a plain click on the board advances it, the
       // same as the advance key. (The explicit prev/next/reset/sound controls
       // carry a data-action, so they are handled by the button branch below and
       // never reach here.)

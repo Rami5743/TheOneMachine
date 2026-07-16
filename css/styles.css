@@ -808,7 +808,7 @@ button { font: inherit; }
   border-color: var(--primary);
 }
 
-/* A comic speech bubble (matching the NAND monologue in ch. 2.1), pointing left
+/* A comic speech bubble (matching the Nand monologue in ch. 2.1), pointing left
    at the "create new card" tool. The whole bubble is clickable. */
 .create-card-bubble {
   position: absolute;
