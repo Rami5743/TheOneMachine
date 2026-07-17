@@ -1,9 +1,105 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <defs id="defs1" />
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel118_chapter_2_5_doorway.jpg" xlink:href="panel118_chapter_2_5_doorway.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 228,45 H 1220 A 28 28 0 0 1 1248,73 V 527 A 28 28 0 0 1 1220,555 H 620 L 560,633 L 500,555 H 228 A 28 28 0 0 1 200,527 V 73 A 28 28 0 0 1 228,45 Z" fill="#ffffff" stroke="#000000" stroke-width="4.2" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="724" y="105" id="tline1">טוב, הנה המשימות שלך. אני צריך לחזור לנילס. יש לו</tspan><tspan x="724" y="163" id="tline2">רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני</tspan><tspan x="724" y="221" id="tline3">צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב</tspan><tspan x="724" y="279" id="tline4">משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה</tspan><tspan x="724" y="337" id="tline5">אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת</tspan><tspan x="724" y="395" id="tline6">בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק</tspan><tspan x="724" y="453" id="tline7">כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים</tspan><tspan x="724" y="511" id="tline8">שעליהם אנחנו שומעים מרחוק.</tspan></text>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel118_chapter_2_5_doorway.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="1062.537"
+     inkscape:cy="275.41049"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <defs
+     id="defs1" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel118_chapter_2_5_doorway.jpg"
+     xlink:href="panel118_chapter_2_5_doorway.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="m 543.21677,24.531504 h 800.52203 c 12.4792,0 22.5953,10.481415 22.5953,23.410894 V 427.53332 c 0,12.92948 -10.1161,23.4109 -22.5953,23.4109 H 859.55206 762.71474 543.21677 c -12.47908,0 -22.59538,-10.48142 -22.59538,-23.4109 V 203.09988 l -92.7442,-17.96251 92.7442,-10.56617 V 47.942398 c 0,-12.929479 10.1163,-23.410894 22.59538,-23.410894 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.44993"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="sssssccsscccss" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="36.2908px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       x="288.32861"
+       y="-35.31979"
+       style="stroke-width:0.907271"><tspan
+         x="945.19293"
+         y="59.943676"
+         id="tline1"
+         style="stroke-width:0.907271">טוב, הנה המשימות שלך. אני צריך לחזור לנילס. יש לו</tspan><tspan
+         x="945.19293"
+         y="112.56541"
+         id="tline2"
+         style="stroke-width:0.907271">רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני</tspan><tspan
+         x="945.19293"
+         y="165.18713"
+         id="tline3"
+         style="stroke-width:0.907271">צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב</tspan><tspan
+         x="945.19293"
+         y="217.80885"
+         id="tline4"
+         style="stroke-width:0.907271">משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה</tspan><tspan
+         x="945.19293"
+         y="270.43057"
+         id="tline5"
+         style="stroke-width:0.907271">אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת</tspan><tspan
+         x="945.19293"
+         y="323.05231"
+         id="tline6"
+         style="stroke-width:0.907271">בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק</tspan><tspan
+         x="945.19293"
+         y="375.67401"
+         id="tline7"
+         style="stroke-width:0.907271">כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים</tspan><tspan
+         x="945.19293"
+         y="428.29575"
+         id="tline8"
+         style="stroke-width:0.907271">שעליהם אנחנו שומעים מרחוק.</tspan></text>
   </g>
 </svg>
