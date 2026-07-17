@@ -1,9 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
-  <defs id="defs1" />
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel106_chapter_2_5_workshop_vn.jpg" xlink:href="panel106_chapter_2_5_workshop_vn.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 228,45 H 1220 A 28 28 0 0 1 1248,73 V 237 A 28 28 0 0 1 1220,265 H 620 L 560,343 L 500,265 H 228 A 28 28 0 0 1 200,237 V 73 A 28 28 0 0 1 228,45 Z" fill="#ffffff" stroke="#000000" stroke-width="4.2" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="724" y="105" id="tline1">נכון. המספר ה-5 ספרתי הכי קטן הוא 10000₂ שזה בעצם</tspan><tspan x="724" y="163" id="tline2">16. לכן המספר ה-4 ספרתי הכי גדול, הוא אחד פחות מזה</tspan><tspan x="724" y="221" id="tline3">1111₂ שזה בעצם 15.</tspan></text>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel109_chapter_2_5_bits_2.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724"
+     inkscape:cy="275"
+     inkscape:current-layer="text-bubble-layer" />
+  <defs
+     id="defs1" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel106_chapter_2_5_workshop_vn.jpg"
+     xlink:href="panel106_chapter_2_5_workshop_vn.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="M 506.75,78.321 L 1386.25,78.321 A 23.75 23.75 0 0 1 1410,102.071 L 1410,253.924 A 23.75 23.75 0 0 1 1386.25,277.674 L 506.75,277.674 A 23.75 23.75 0 0 1 483,253.924 L 483,199 L 370,178 L 483,157 L 483,102.071 A 23.75 23.75 0 0 1 506.75,78.321 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.2"
+       stroke-linejoin="round"
+       stroke-linecap="round" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="40px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"><tspan x="946.5" y="136.284" id="tline1">נכון. המספר ה-5 ספרתי הכי קטן הוא 10000₂ שזה בעצם</tspan><tspan x="946.5" y="194.284" id="tline2">16. לכן המספר ה-4 ספרתי הכי גדול, הוא אחד פחות מזה</tspan><tspan x="946.5" y="252.284" id="tline3">1111₂ שזה בעצם 15.</tspan></text>
   </g>
 </svg>
