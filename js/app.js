@@ -476,6 +476,8 @@
     paceHintShown: false,
     paceDialog: false,
     infoDialog: null,
+    // Routing-card requirements dialog (Mux/DMux) opened from the explanations menu.
+    explRoutingInfo: null,
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
@@ -1171,7 +1173,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, workspace };
   }
 
   function stateForStorage() {
@@ -1987,6 +1989,10 @@
     if (reachedChapter6 || state.explanationReplay?.id === "why-route") {
       unlockExplanation("why-route");
     }
+
+    // The routing cards' menu buttons unlock once their task is solved.
+    if (!isStepByStepPace() || taskCompleted("Mux")) unlockExplanation("gate-Mux");
+    if (!isStepByStepPace() || taskCompleted("DMux")) unlockExplanation("gate-DMux");
   }
 
   function explanationReplayActive(id = null) {
@@ -2263,7 +2269,7 @@
     },
     {
       title: "ניתוב",
-      inGame: ["why-route", { gates: ["Mux", "DMux"] }],
+      inGame: ["why-route", { gates: ["Mux", "DMux"], mode: "routing-info" }],
       enrichment: []
     },
     { title: "חשבון", inGame: [], enrichment: [] }
@@ -2278,9 +2284,16 @@
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
-      // An optional (unlinked) label followed by a button per gate; each opens
-      // that gate's solution walkthrough and returns to this menu when done.
-      const gates = spec.gates.map((g) => `<button class="btn expl-gate-btn" data-action="expl-gate-solution" data-task-id="${esc(g)}" type="button">${esc(g)}</button>`).join("");
+      // An optional (unlinked) label followed by a button per gate. The basic
+      // gates open their solution walkthrough; the routing cards open a
+      // requirements + truth-table dialog. Like the other explanations, a gate is
+      // a light (active) button once unlocked, and a dark, disabled one until then.
+      const act = spec.mode === "routing-info" ? "expl-routing-info" : "expl-gate-solution";
+      const gates = spec.gates.map((g) => (
+        explanationUnlocked(`gate-${g}`)
+          ? `<button class="btn btn-primary expl-gate-btn" data-action="${act}" data-task-id="${esc(g)}" type="button">${esc(g)}</button>`
+          : `<button class="btn expl-gate-btn" type="button" disabled aria-disabled="true">${esc(g)}</button>`
+      )).join("");
       const label = spec.gatesLabel ? `<span class="expl-gate-label">${esc(spec.gatesLabel)}:</span>` : "";
       return `<div class="expl-gate-line">${label}<span class="expl-gate-buttons">${gates}</span></div>`;
     }
@@ -2309,7 +2322,36 @@
             <button class="btn" data-action="explanations-return" type="button" style="background:#5b4328;color:#fff8ec;border-color:#3f2d19;min-width:12rem;">חזרה למשחק</button>
           </div>
         </section>
+        ${renderExplRoutingInfoDialog()}
       </main>`;
+  }
+
+  // The routing cards' requirements dialog (Mux/DMux): the card's description
+  // plus its truth table, shown over the explanations menu.
+  const ROUTING_INFO_TABLE = {
+    Mux: { headers: ["בקרה", "כניסה 1", "כניסה 2", "יציאה"], cells: (r) => [r.inputs[2], r.inputs[0], r.inputs[1], r.output] },
+    DMux: { headers: ["בקרה", "כניסה", "יציאה 1", "יציאה 2"], cells: (r) => [r.inputs[1], r.inputs[0], r.outputs[0], r.outputs[1]] }
+  };
+  function renderExplRoutingInfoDialog() {
+    const info = state.explRoutingInfo;
+    if (!info) return "";
+    const def = ROUTING_TASK_DEFS.find((t) => t.id === info.taskId);
+    const cfg = ROUTING_INFO_TABLE[info.taskId];
+    if (!def || !cfg) return "";
+    const bit = (b) => (b ? "1" : "0");
+    const head = cfg.headers.map((h) => `<th>${esc(h)}</th>`).join("");
+    const body = def.rows.map((r) => `<tr>${cfg.cells(r).map((v) => `<td>${bit(v)}</td>`).join("")}</tr>`).join("");
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card expl-routing-card" role="dialog" aria-modal="false" aria-label="${esc(def.label)}">
+          <h2 class="expl-routing-title">${esc(def.label)}</h2>
+          <p class="expl-routing-desc">${esc(def.description)}</p>
+          <table class="expl-truth-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="expl-routing-info-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderMenu() {
@@ -7907,6 +7949,10 @@
   }
 
   function showTaskSolution(taskId, options = {}) {
+    // Seeing a basic gate's solution unlocks its button in the explanations menu
+    // (and plays the unlock flourish the first time). The routing cards unlock on
+    // completion instead (see syncExplanationUnlocks).
+    if (["Not", "And", "Or"].includes(taskId)) unlockExplanation(`gate-${taskId}`);
     const routing = isRoutingTask(taskId);
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
@@ -10190,6 +10236,8 @@
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
     if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
+    if (action === "expl-routing-info") return setState({ explRoutingInfo: { taskId: button.dataset.taskId } }, false);
+    if (action === "expl-routing-info-close") return setState({ explRoutingInfo: null }, false);
     if (action === "explanations-return-to-menu") return returnToExplanationsMenuFromReplay();
     if (action === "explanation-prev") return previousExplanationPanel();
     if (action === "explanation-next") return nextExplanationPanel();

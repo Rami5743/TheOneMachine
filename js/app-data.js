@@ -328,7 +328,15 @@
     { id: "build-nand", title: "איך עושים Nand" },
     { id: "bit-info", title: "מה זה ביט" },
     { id: "truth-table-cards", title: "הכנת כרטיסים מטבלת אמת" },
-    { id: "why-route", title: "למה לנתב" }
+    { id: "why-route", title: "למה לנתב" },
+    // The gate buttons in the menu (Not/And/Or, Mux/DMux) unlock once their
+    // solution has been seen; each has an "unlock" id here so the shared
+    // explanation-unlock machinery (and its animation) applies to them too.
+    { id: "gate-Not", title: "Not" },
+    { id: "gate-And", title: "And" },
+    { id: "gate-Or", title: "Or" },
+    { id: "gate-Mux", title: "Mux" },
+    { id: "gate-DMux", title: "DMux" }
   ];
 
   const BIT_EXPLANATION_STEPS = [

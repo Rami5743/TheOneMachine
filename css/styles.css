@@ -309,6 +309,25 @@ button { font: inherit; }
 .expl-gate-buttons { display: flex; gap: 8px; }
 .expl-gate-btn { padding: 0.3em 0.9em; min-width: 0; }
 
+/* The routing card (Mux/DMux) requirements dialog: description + truth table. */
+.expl-routing-card { max-width: min(94vw, 620px); max-height: 90vh; overflow-y: auto; text-align: right; direction: rtl; }
+.expl-routing-title { margin: 0 0 0.4rem; font-size: clamp(1.3rem, 3vw, 1.9rem); }
+.expl-routing-desc { margin: 0 0 1rem; line-height: 1.55; }
+.expl-truth-table {
+  margin: 0 auto 0.4rem;
+  border-collapse: collapse;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+.expl-truth-table th,
+.expl-truth-table td {
+  border: 1px solid rgba(120, 120, 120, 0.6);
+  padding: 0.35em 0.8em;
+  text-align: center;
+  min-width: 2.6em;
+}
+.expl-truth-table th { font-weight: 700; background: rgba(243, 210, 122, 0.12); }
+
 /* The "new explanation unlocked" flourish: an icon that flies from the centre
    of the screen into the topbar's הסברים button. */
 .expl-unlock-fly {
