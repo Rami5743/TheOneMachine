@@ -500,6 +500,9 @@
     //     already done → "מחשב יסודי" / "מחשב יסודי מאוד".
     binFirstTryClean: [],
     binMenuResolved: [],
+    // Cards (build tasks) whose test has failed at least once — a later success
+    // then no longer counts toward the "מהנדס מדויק" first-try achievement.
+    tasksFailedOnce: [],
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -5114,6 +5117,13 @@
       : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
 
     const firstTime = !state.myCardsIntroSeen && !editing;
+    // Saving a brand-new card (not an edit) earns "ממציא כרטיסים"; if that card
+    // is built out of a card from "הכרטיסים שלי", it also earns "ממציא שימושי".
+    if (!editing) {
+      unlockAchievement("card-inventor");
+      const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
+      if (usesSavedCard) unlockAchievement("useful-inventor");
+    }
     setState({
       ...returnPatch,
       cardCreation: null,
@@ -5225,6 +5235,12 @@
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
+    // Saving a card to the hard disk earns "שומר כרטיסים". Re-render so the
+    // unlock flourish plays (download itself does not change app state).
+    if (!achievementUnlocked("card-saver")) {
+      unlockAchievement("card-saver");
+      setState({}, false);
+    }
   }
 
   // Import a bundle: assign fresh types to every bundled card, rewrite the
@@ -5265,6 +5281,8 @@
       };
     });
     imported.forEach(registerSavedCard);
+    // Loading a card from the hard disk earns "מעלה מן האוב".
+    unlockAchievement("card-necromancer");
     setState({
       savedCards: [...(state.savedCards || []), ...imported],
       nextSavedCardId: nextId
@@ -6929,11 +6947,22 @@
   function binWalkthroughFinish() {
     const nb = state.notebook;
     const clean = binClean(nb);
-    // A sample opened from the explanations menu returns there when done.
+    // A sample opened from the explanations menu returns there when done — it is a
+    // demonstration, so it earns no calculation achievement.
     if (nb.fromExplanations) { setState({ screen: "explanations", notebook: null }, false); return; }
+    // A clean solve (no mistakes, no hint) is a correct-on-the-first-try
+    // calculation → "מחשב מדויק".
+    if (clean) unlockAchievement("precise-calc");
     // Practising a task from the menu (once everything is done): a single pass,
-    // then straight back to the menu regardless of help/mistakes.
-    if (nb.fromMenu) { openBinMenu(); return; }
+    // then straight back to the menu regardless of help/mistakes. Reaching here
+    // means the task was solved, so record the menu re-solve (→ "מחשב יסודי" /
+    // "מחשב יסודי מאוד" via syncAchievements).
+    if (nb.fromMenu) {
+      const resolved = Array.isArray(state.binMenuResolved) ? state.binMenuResolved : [];
+      if (!resolved.includes(nb.stage)) state.binMenuResolved = [...resolved, nb.stage];
+      openBinMenu();
+      return;
+    }
     if (!clean) {
       const nextCount = nb.stage === "dec2bin" ? (nb.dec2binExplainCount || 0) + 1 : (nb.dec2binExplainCount || 0);
       setState({ notebook: freshBinExercise(nb.stage, (nb.exerciseIndex || 0) + 1, nextCount) });
@@ -6941,18 +6970,23 @@
     }
     // A clean solve completes the task: record it and move to the next unfinished
     // one — or leave the booklet once all three are done (the next visit shows
-    // the menu).
+    // the menu). Solving the stage's very first exercise cleanly (no earlier
+    // practice run) counts as first-try for "מחשב יסודי ומדויק".
+    const firstTryClean = Array.isArray(state.binFirstTryClean) ? state.binFirstTryClean : [];
+    const nextFirstTryClean = ((nb.exerciseIndex || 0) === 0 && !firstTryClean.includes(nb.stage))
+      ? [...firstTryClean, nb.stage]
+      : firstTryClean;
     const done = binDone().includes(nb.stage) ? binDone() : [...binDone(), nb.stage];
     const next = binFirstUnfinished(done);
     if (!next) {
       // All tasks done: stay in the booklet and open its task menu (leaving to
       // the warehouse only happens on "חזרה למחסן").
-      setState({ binBookletDone: done, notebook: { variant: "binary", mode: "menu" } });
+      setState({ binBookletDone: done, binFirstTryClean: nextFirstTryClean, notebook: { variant: "binary", mode: "menu" } });
       return;
     }
     const ex = freshBinExercise(next, 0, next === "dec2bin" ? (nb.dec2binExplainCount || 0) : 0);
     if (next === "binadd") ex.dialog = "addintro";
-    setState({ binBookletDone: done, notebook: ex });
+    setState({ binBookletDone: done, binFirstTryClean: nextFirstTryClean, notebook: ex });
   }
 
   // The read-only menu of the three tasks, shown once all are done.
@@ -7810,8 +7844,18 @@
       workspace,
       notTest: { result, taskId }
     };
-    if (result === "failure" && taskHasHints(taskId)) {
-      patch.hintState = recordHintFailure(taskId);
+    if (result === "failure") {
+      // Remember that this card's test has failed at least once, so a later
+      // success no longer counts as "built correctly on the first try".
+      if (taskId) {
+        const failed = Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : [];
+        if (!failed.includes(taskId)) patch.tasksFailedOnce = [...failed, taskId];
+      }
+      if (taskHasHints(taskId)) patch.hintState = recordHintFailure(taskId);
+    } else if (result === "success" && taskId && !taskCompleted(taskId)
+        && !(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []).includes(taskId)) {
+      // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
+      unlockAchievement("precise-engineer");
     }
     setState(patch, false);
   }
@@ -9395,6 +9439,8 @@
     workspace.unlocked = true;
     workspace.accident = detectWorkspaceAccident(workspace);
     if (workspace.accident) workspace.selectedTerminal = null;
+    // Burning a Nand (over-voltage) earns the "משחית ציוד" achievement.
+    if (workspace.accident?.type === "nand-overvoltage") unlockAchievement("equipment-destroyer");
     updateNandOutputObservation(workspace);
     setState({ workspace }, false);
   }
