@@ -6138,8 +6138,9 @@
 
     const colCum = { ...baseCells };
     const colUnderlines = [];
-    let cr = row + 2;
-    put(colCum, cr, V); cr += 1;
+    // The equation's own number is the minuend — start the subtractions right
+    // below it instead of re-writing it.
+    let cr = row + 1;
     steps.push({
       text: firstTime ? "אפשר לכתוב את זה גם בטור." : "נמיר את המספר בטור.",
       cells: { ...colCum }, highlight: [], underline: []
@@ -6177,6 +6178,63 @@
     const colWithAns = { ...colCum };
     for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; colWithAns[`${row},${c}`] = bin[i]; colAnsCells.push(`${row},${c}`); }
     steps.push({ text: "ומקבלים את התוצאה.", cells: colWithAns, highlight: colAnsCells, underline: [...colUnderlines] });
+
+    // ===== Second method (first time only): parity / halving. The board is
+    // cleared to just the exercise; the units bit is read off the number's
+    // parity, the units digit is subtracted and the number halved, and this
+    // repeats — each parity giving the next bit, written right→left. =====
+    if (firstTime) {
+      const numUnits = startCol + decStr.length - 1;
+      const putN = (cells, gr, n) => {
+        const s = String(n); const out = [];
+        for (let i = 0; i < s.length; i++) { const c = numUnits - s.length + 1 + i; cells[`${gr},${c}`] = s[i]; out.push(`${gr},${c}`); }
+        return out;
+      };
+      const m2 = {};
+      let nr = row + 1;
+      let bj = 0; // answer bit index, 0 = units (rightmost)
+      const allAnsCells = [];
+      const writeBit = (val) => { const c = layout.ansStart + (bin.length - 1 - bj); m2[`${row},${c}`] = String(val); bj += 1; allAnsCells.push(`${row},${c}`); return `${row},${c}`; };
+
+      steps.push({ text: "נעבור לשיטה השנייה.", cells: {}, highlight: [] });
+      steps.push({ text: "בשיטה הבינרית (כמו גם בעשרונית) אם המספר זוגי אז ביט האחדות הוא @[0], ואם הוא אי-זוגי אז ביט האחדות הוא @[1].", cells: {}, highlight: [] });
+      steps.push({ text: "זאת מכיוון שכל הספרות חוץ מביט האחדות מסמלות מספרים זוגיים.", cells: {}, highlight: [] });
+      steps.push({ text: "כך קל לזהות את ביט האחדות.", cells: {}, highlight: [] });
+
+      const bV = V % 2;
+      const bcellV = writeBit(bV);
+      steps.push({ text: `במקרה שלנו ביט האחדות הוא @[${bV}].`, cells: { ...m2 }, highlight: [bcellV] });
+
+      const even0 = V - bV;
+      const cEven0 = putN(m2, nr, even0); nr += 1;
+      steps.push({ text: "נפחית את ספרת האחדות.", cells: { ...m2 }, highlight: cEven0 });
+      steps.push({ text: "זהו מספר זוגי, לכן בכתב בינרי הוא מסתיים ב-@[0] — בדיוק כמו שבשיטה העשרונית מספר שמתחלק ב-10 מסתיים ב-@[0].", cells: { ...m2 }, highlight: [] });
+      steps.push({ text: `אם נחלק את המספר ב-2 יימחק ה-@[0] מהסוף. לכן מספיק לתרגם את @[${even0}/2] לבינרי ולהוסיף @[0] מימין. כדי לקבל את @[${V}] נוסיף @[1] במקום ה-@[0].`, cells: { ...m2 }, highlight: [] });
+
+      const half0 = even0 / 2;
+      const cHalf0 = putN(m2, nr, half0); nr += 1;
+      steps.push({ text: `לכן די לתרגם את @[${half0} = ${even0}/2].`, cells: { ...m2 }, highlight: cHalf0 });
+      steps.push({ text: `את התרגום של @[${half0}] אפשר לעשות באותו אופן.`, cells: { ...m2 }, highlight: [] });
+
+      const bH = half0 % 2;
+      const bcellH = writeBit(bH);
+      steps.push({ text: "מוצאים את ביט האחדות.", cells: { ...m2 }, highlight: [bcellH] });
+      let n = half0;
+      if (n % 2 === 1) { n -= 1; const e = putN(m2, nr, n); nr += 1; steps.push({ text: "מפחיתים במידת הצורך.", cells: { ...m2 }, highlight: e }); }
+      else { steps.push({ text: "המספר זוגי, לכן אין צורך להפחית.", cells: { ...m2 }, highlight: [] }); }
+      const half1 = n / 2;
+      const cHalf1 = putN(m2, nr, half1); nr += 1;
+      steps.push({ text: "מחלקים ב-2.", cells: { ...m2 }, highlight: cHalf1 });
+
+      let m = half1;
+      while (m > 0) {
+        writeBit(m % 2);
+        if (m % 2 === 1) { m -= 1; putN(m2, nr, m); nr += 1; }
+        if (m === 0) break;
+        m /= 2; putN(m2, nr, m); nr += 1;
+      }
+      steps.push({ text: "וממשיכים עד שהמספר נגמר. מקבלים שוב את אותה התשובה.", cells: { ...m2 }, highlight: allAnsCells });
+    }
 
     return steps;
   }
