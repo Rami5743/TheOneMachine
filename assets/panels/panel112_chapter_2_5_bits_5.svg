@@ -24,8 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.89502762"
      inkscape:cx="724"
-     inkscape:cy="275"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:cy="274.29321"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1" />
   <defs
      id="defs1" />
   <image
@@ -43,12 +48,13 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 450.75,78.321 L 1386.25,78.321 A 23.75 23.75 0 0 1 1410,102.071 L 1410,659.924 A 23.75 23.75 0 0 1 1386.25,683.674 L 450.75,683.674 A 23.75 23.75 0 0 1 427,659.924 L 427,199 L 314,178 L 427,157 L 427,102.071 A 23.75 23.75 0 0 1 450.75,78.321 Z"
+       d="m 470.75,78.321 h 935.5 c 13.1168,0 23.75,10.633237 23.75,23.75 v 557.853 c 0,13.11676 -10.6332,23.75 -23.75,23.75 h -935.5 c -13.11676,0 -23.75,-10.63324 -23.75,-23.75 V 191.17901 L 388.74691,178 447,165.93827 V 102.071 c 0,-13.116763 10.63324,-23.75 23.75,-23.75 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="4.2"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
     <text
        id="bubble-text"
        text-anchor="middle"
@@ -59,6 +65,37 @@
        font-weight="400"
        fill="#000000"
        stroke="none"
-       xml:space="preserve"><tspan x="918.5" y="136.284" id="tline1">כשאני מדבר על מספרים 16 ספרתיים אני כמובן כולל גם</tspan><tspan x="918.5" y="194.284" id="tline2">מספרים עם פחות ספרות, פשוט אפשר לכתוב 0 בספרות שלא</tspan><tspan x="918.5" y="252.284" id="tline3">מופיעות. אפשר לעשות את זה גם בשיטה העשרונית. למשל,</tspan><tspan x="918.5" y="310.284" id="tline4">לכתוב 032 במקום 32. ביום יום זה לא מקובל, כי ה-0 סתם</tspan><tspan x="918.5" y="368.284" id="tline5">נראה מיותר, אבל בעולם של מכונות חישוב, זה מאוד נוח,</tspan><tspan x="918.5" y="426.284" id="tline6">כי המכונות שלנו עובדות עם מספר קבוע של ספרות, אנחנו</tspan><tspan x="918.5" y="484.284" id="tline7">הרי לא רוצים לחבר כל פעם את החוטים מחדש. לכן, אנחנו</tspan><tspan x="918.5" y="542.284" id="tline8">קובעים מראש את מספר הספרות וכותבים 0 בספרות שלא</tspan><tspan x="918.5" y="600.284" id="tline9">צריך. אנחנו גם מקפידים שלא לחרוג ממספר הספרות</tspan><tspan x="918.5" y="658.284" id="tline10">שקבענו.</tspan></text>
+       xml:space="preserve"
+       x="20"><tspan
+         x="938.5"
+         y="136.284"
+         id="tline1">כשאני מדבר על מספרים 16 ספרתיים אני כמובן כולל גם</tspan><tspan
+         x="938.5"
+         y="194.284"
+         id="tline2">מספרים עם פחות ספרות, פשוט אפשר לכתוב 0 בספרות שלא</tspan><tspan
+         x="938.5"
+         y="252.284"
+         id="tline3">מופיעות. אפשר לעשות את זה גם בשיטה העשרונית. למשל,</tspan><tspan
+         x="938.5"
+         y="310.284"
+         id="tline4">לכתוב 032 במקום 32. ביום יום זה לא מקובל, כי ה-0 סתם</tspan><tspan
+         x="938.5"
+         y="368.284"
+         id="tline5">נראה מיותר, אבל בעולם של מכונות חישוב, זה מאוד נוח,</tspan><tspan
+         x="938.5"
+         y="426.284"
+         id="tline6">כי המכונות שלנו עובדות עם מספר קבוע של ספרות, אנחנו</tspan><tspan
+         x="938.5"
+         y="484.284"
+         id="tline7">הרי לא רוצים לחבר כל פעם את החוטים מחדש. לכן, אנחנו</tspan><tspan
+         x="938.5"
+         y="542.284"
+         id="tline8">קובעים מראש את מספר הספרות וכותבים 0 בספרות שלא</tspan><tspan
+         x="938.5"
+         y="600.284"
+         id="tline9">צריך. אנחנו גם מקפידים שלא לחרוג ממספר הספרות</tspan><tspan
+         x="938.5"
+         y="658.284"
+         id="tline10">שקבענו.</tspan></text>
   </g>
 </svg>

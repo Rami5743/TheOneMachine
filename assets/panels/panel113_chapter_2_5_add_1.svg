@@ -24,8 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.89502762"
      inkscape:cx="724"
-     inkscape:cy="275"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:cy="274.29321"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1" />
   <defs
      id="defs1" />
   <image
@@ -43,10 +48,10 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 435.75,78.321 L 1406.25,78.321 A 23.75 23.75 0 0 1 1430,102.071 L 1430,601.924 A 23.75 23.75 0 0 1 1406.25,625.674 L 435.75,625.674 A 23.75 23.75 0 0 1 412,601.924 L 412,199 L 299,178 L 412,157 L 412,102.071 A 23.75 23.75 0 0 1 435.75,78.321 Z"
+       d="m 515.24298,78.235718 h 892.98912 a 21.853161,23.757401 0 0 1 21.8532,23.757402 v 500.00876 a 21.853161,23.757401 0 0 1 -21.8532,23.7574 H 515.24298 a 21.853161,23.757401 0 0 1 -21.85317,-23.7574 V 198.95232 L 389.41477,177.94578 493.38981,156.93924 v -54.94612 a 21.853161,23.757401 0 0 1 21.85317,-23.757402 z"
        fill="#ffffff"
        stroke="#000000"
-       stroke-width="4.2"
+       stroke-width="4.02942"
        stroke-linejoin="round"
        stroke-linecap="round" />
     <text
@@ -55,10 +60,49 @@
        direction="rtl"
        unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
+       font-size="36.8822px"
        font-weight="400"
        fill="#000000"
        stroke="none"
-       xml:space="preserve"><tspan x="921" y="136.284" id="tline1">פעולת החשבון הכי בסיסית היא חיבור. אנחנו רוצים לבנות</tspan><tspan x="921" y="194.284" id="tline2">כרטיס שמחבר 2 מספרים. הוא יקבל 2 בסים של 16 ביטים</tspan><tspan x="921" y="252.284" id="tline3">(שמייצגים 2 מספרים) ויוציא בס של 16 ביטים (שמייצג את</tspan><tspan x="921" y="310.284" id="tline4">הסכום שלהם). אנחנו נעשה את זה בדיוק כמו שאתה עשית</tspan><tspan x="921" y="368.284" id="tline5">כשחישבת סכום של 2 מספרים בטור. השלב הבסיסי הוא לחבר</tspan><tspan x="921" y="426.284" id="tline6">2 ספרות. שים לב שהתוצאה יכולה להיות דו ספרתית. יש לה</tspan><tspan x="921" y="484.284" id="tline7">ספרת אחדות וספרת 2. בספרת האחדות נשתמש כמו שהיא, ואת</tspan><tspan x="921" y="542.284" id="tline8">ספרת ה-2 נעביר הלאה לספרה הבאה. קוראים לספרה</tspan><tspan x="921" y="600.284" id="tline9">שמעבירים הלאה נשיאה ובאנגלית carry.</tspan></text>
+       xml:space="preserve"
+       x="110.29569"
+       y="8.3908844"
+       style="stroke-width:0.922055"><tspan
+         x="959.50824"
+         y="134.05222"
+         id="tline1"
+         style="stroke-width:0.922055">פעולת החשבון הכי בסיסית היא חיבור. אנחנו רוצים לבנות</tspan><tspan
+         x="959.50824"
+         y="187.53139"
+         id="tline2"
+         style="stroke-width:0.922055">כרטיס שמחבר 2 מספרים. הוא יקבל 2 בסים של 16 ביטים</tspan><tspan
+         x="959.50824"
+         y="241.01057"
+         id="tline3"
+         style="stroke-width:0.922055">(שמייצגים 2 מספרים) ויוציא בס של 16 ביטים (שמייצג את</tspan><tspan
+         x="959.50824"
+         y="294.48975"
+         id="tline4"
+         style="stroke-width:0.922055">הסכום שלהם). אנחנו נעשה את זה בדיוק כמו שאתה עשית</tspan><tspan
+         x="959.50824"
+         y="347.96893"
+         id="tline5"
+         style="stroke-width:0.922055">כשחישבת סכום של 2 מספרים בטור. השלב הבסיסי הוא לחבר</tspan><tspan
+         x="959.50824"
+         y="401.44812"
+         id="tline6"
+         style="stroke-width:0.922055">2 ספרות. שים לב שהתוצאה יכולה להיות דו ספרתית. יש לה</tspan><tspan
+         x="959.50824"
+         y="454.92731"
+         id="tline7"
+         style="stroke-width:0.922055">ספרת אחדות וספרת 2. בספרת האחדות נשתמש כמו שהיא, ואת</tspan><tspan
+         x="959.50824"
+         y="508.40649"
+         id="tline8"
+         style="stroke-width:0.922055">ספרת ה-2 נעביר הלאה לספרה הבאה. קוראים לספרה</tspan><tspan
+         x="959.50824"
+         y="561.88568"
+         id="tline9"
+         style="stroke-width:0.922055">שמעבירים הלאה נשיאה ובאנגלית carry.</tspan></text>
   </g>
 </svg>

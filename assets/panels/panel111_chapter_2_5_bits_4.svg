@@ -24,8 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.89502762"
      inkscape:cx="724"
-     inkscape:cy="275"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:cy="274.29321"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1" />
   <defs
      id="defs1" />
   <image
@@ -43,22 +48,46 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 464.75,78.321 L 1386.25,78.321 A 23.75 23.75 0 0 1 1410,102.071 L 1410,369.924 A 23.75 23.75 0 0 1 1386.25,393.674 L 464.75,393.674 A 23.75 23.75 0 0 1 441,369.924 L 441,199 L 328,178 L 441,157 L 441,102.071 A 23.75 23.75 0 0 1 464.75,78.321 Z"
+       d="m 512.4986,86.268256 h 875.0543 c 12.4556,2.5e-5 22.5529,10.097315 22.5529,22.552944 v 254.3526 c 0,12.45563 -10.0973,22.55291 -22.5529,22.55294 H 512.4986 c -12.45564,0 -22.55294,-10.0973 -22.55294,-22.55294 V 200.86476 l -96.1317,-23.2934 96.1317,-16.58971 V 108.8212 c 0,-12.455645 10.09729,-22.552941 22.55294,-22.552944 z"
        fill="#ffffff"
        stroke="#000000"
-       stroke-width="4.2"
+       stroke-width="3.98831"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ccssccscccsc" />
     <text
        id="bubble-text"
        text-anchor="middle"
        direction="rtl"
        unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
+       font-size="38.461px"
        font-weight="400"
        fill="#000000"
        stroke="none"
-       xml:space="preserve"><tspan x="925.5" y="136.284" id="tline1">נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה בערך</tspan><tspan x="925.5" y="194.284" id="tline2">1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם 15 ביטים</tspan><tspan x="925.5" y="252.284" id="tline3">אפשר לייצג בערך 32,000 מספרים, שזה עוד לא מספיק לנו.</tspan><tspan x="925.5" y="310.284" id="tline4">אבל עם 16 ביטים אפשר לייצג 64,000 מספרים שזה כבר</tspan><tspan x="925.5" y="368.284" id="tline5">סבבה לבינתיים.</tspan></text>
+       xml:space="preserve"
+       x="53.262268"
+       y="4.137331"
+       style="stroke-width:0.961525"><tspan
+         x="943.15399"
+         y="135.17786"
+         id="tline1"
+         style="stroke-width:0.961525">נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה בערך</tspan><tspan
+         x="943.15399"
+         y="190.94632"
+         id="tline2"
+         style="stroke-width:0.961525">1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם 15 ביטים</tspan><tspan
+         x="943.15399"
+         y="246.7148"
+         id="tline3"
+         style="stroke-width:0.961525">אפשר לייצג בערך 32,000 מספרים, שזה עוד לא מספיק לנו.</tspan><tspan
+         x="943.15399"
+         y="302.48328"
+         id="tline4"
+         style="stroke-width:0.961525">אבל עם 16 ביטים אפשר לייצג 64,000 מספרים שזה כבר</tspan><tspan
+         x="943.15399"
+         y="358.25174"
+         id="tline5"
+         style="stroke-width:0.961525">סבבה לבינתיים.</tspan></text>
   </g>
 </svg>

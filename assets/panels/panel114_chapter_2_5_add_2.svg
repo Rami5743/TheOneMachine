@@ -24,8 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.89502762"
      inkscape:cx="724"
-     inkscape:cy="275"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:cy="274.29321"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1" />
   <defs
      id="defs1" />
   <image
@@ -43,12 +48,13 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 448.75,78.321 L 1386.25,78.321 A 23.75 23.75 0 0 1 1410,102.071 L 1410,253.924 A 23.75 23.75 0 0 1 1386.25,277.674 L 448.75,277.674 A 23.75 23.75 0 0 1 425,253.924 L 425,199 L 312,178 L 425,157 L 425,102.071 A 23.75 23.75 0 0 1 448.75,78.321 Z"
+       d="m 474.75,78.321 h 937.5 c 13.1168,0 23.75,10.633237 23.75,23.75 v 151.853 c 0,13.11676 -10.6332,23.75 -23.75,23.75 h -937.5 c -13.11676,0 -23.75,-10.63324 -23.75,-23.75 V 191.17901 L 387.16049,179.11728 451,165.93827 V 102.071 c 0,-13.116763 10.63324,-23.75 23.75,-23.75 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="4.2"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
     <text
        id="bubble-text"
        text-anchor="middle"
@@ -59,6 +65,17 @@
        font-weight="400"
        fill="#000000"
        stroke="none"
-       xml:space="preserve"><tspan x="917.5" y="136.284" id="tline1">הבעיה היא שכרטיס שמחבר 2 ספרות לא מספיק לנו. כי לאחר</tspan><tspan x="917.5" y="194.284" id="tline2">שנחבר את ספרת האחדות, נצטרך גם להתמודד עם ה-carry</tspan><tspan x="917.5" y="252.284" id="tline3">הקודם. לכן אנו צריכים לבנות גם כרטיס שמחבר 3 ספרות.</tspan></text>
+       xml:space="preserve"
+       y="-4"
+       x="26"><tspan
+         x="943.5"
+         y="132.284"
+         id="tline1">הבעיה היא שכרטיס שמחבר 2 ספרות לא מספיק לנו. כי לאחר</tspan><tspan
+         x="943.5"
+         y="190.284"
+         id="tline2">שנחבר את ספרת האחדות, נצטרך גם להתמודד עם ה-carry</tspan><tspan
+         x="943.5"
+         y="248.284"
+         id="tline3">הקודם. לכן אנו צריכים לבנות גם כרטיס שמחבר 3 ספרות.</tspan></text>
   </g>
 </svg>

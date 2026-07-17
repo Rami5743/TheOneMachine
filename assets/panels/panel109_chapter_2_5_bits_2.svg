@@ -24,8 +24,13 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="0.89502762"
      inkscape:cx="724"
-     inkscape:cy="275"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:cy="274.29321"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1" />
   <defs
      id="defs1" />
   <image
@@ -43,12 +48,13 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 506.75,78.321 L 1386.25,78.321 A 23.75 23.75 0 0 1 1410,102.071 L 1410,253.924 A 23.75 23.75 0 0 1 1386.25,277.674 L 506.75,277.674 A 23.75 23.75 0 0 1 483,253.924 L 483,199 L 370,178 L 483,157 L 483,102.071 A 23.75 23.75 0 0 1 506.75,78.321 Z"
+       d="m 506.75,78.321 h 879.5 c 13.1168,0 23.75,10.633237 23.75,23.75 v 151.853 c 0,13.11676 -10.6332,23.75 -23.75,23.75 h -879.5 c -13.11676,0 -23.75,-10.63324 -23.75,-23.75 V 199 L 397.9321,178 483,157 v -54.929 c 0,-13.116763 10.63324,-23.75 23.75,-23.75 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="4.2"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
     <text
        id="bubble-text"
        text-anchor="middle"
@@ -59,6 +65,15 @@
        font-weight="400"
        fill="#000000"
        stroke="none"
-       xml:space="preserve"><tspan x="946.5" y="136.284" id="tline1">נכון. המספר ה-5 ספרתי הכי קטן הוא 10000₂ שזה בעצם</tspan><tspan x="946.5" y="194.284" id="tline2">16. לכן המספר ה-4 ספרתי הכי גדול, הוא אחד פחות מזה</tspan><tspan x="946.5" y="252.284" id="tline3">1111₂ שזה בעצם 15.</tspan></text>
+       xml:space="preserve"><tspan
+         x="946.5"
+         y="136.284"
+         id="tline1">נכון. המספר ה-5 ספרתי הכי קטן הוא 10000₂ שזה בעצם</tspan><tspan
+         x="946.5"
+         y="194.284"
+         id="tline2">16. לכן המספר ה-4 ספרתי הכי גדול, הוא אחד פחות מזה</tspan><tspan
+         x="946.5"
+         y="252.284"
+         id="tline3">1111₂ שזה בעצם 15.</tspan></text>
   </g>
 </svg>
