@@ -3334,6 +3334,9 @@ object.panel-image.is-pending {
   background: rgba(60, 110, 220, 0.18);
 }
 
+/* The subtraction line in the column form (a rule under the subtrahend). */
+.bin-hline { border-bottom: 2px solid #1c2c5a; }
+
 /* A cell emphasised by the solution walkthrough. */
 .bin-hl {
   background: rgba(240, 190, 70, 0.6) !important;

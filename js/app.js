@@ -5575,10 +5575,11 @@
   // the task is pre-printed on one row, every other cell is free scribble
   // space, and only the answer cells (right of the "=") are checked.
   const BIN_NB_COLS = 27;
-  const BIN_NB_ROWS = 15;
-  // The equation sits low enough to leave room above for the solution
-  // walkthrough, which stacks each bit's contribution over the answer.
-  const BIN_EQ_ROW = 8;
+  const BIN_NB_ROWS = 17;
+  // bin→dec stacks each bit's contribution ABOVE the answer, so its equation
+  // sits low; dec→bin writes its solution (chain, and the tall column form)
+  // BELOW the equation, so its equation sits near the top.
+  function binEqRow(stage) { return stage === "bin2dec" ? 8 : 2; }
   const BIN2DEC_ANS_W = 4; // decimal answers (values ≤ 63 → ≤ 2 digits) + guard
   const DEC2BIN_ANS_W = 6; // binary answers (values ≤ 63 → ≤ 6 bits)
 
@@ -5640,7 +5641,7 @@
   // digit first). Only these answer cells are checked.
   function binLayout(nb) {
     const fixed = {};
-    const row = BIN_EQ_ROW;
+    const row = binEqRow(nb.stage);
     const answerCols = [];
     const expected = binExpectedAnswer(nb);
     let binStart = null;
@@ -6060,65 +6061,123 @@
     }
     const colOf = (key) => Number(key.split(",")[1]);
 
+    const firstTime = (nb.dec2binExplainCount || 0) === 0;
     const steps = [];
-    steps.push({
-      html: '<p>יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי:</p>'
-        + '<ol class="bin-methods"><li>להתחיל מהספרה המשמעותית ביותר.</li><li>להתחיל מהספרה הכי פחות משמעותית (ספרת האחדות).</li></ol>'
-        + '<p>השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה.</p>',
-      cells: {}, highlight: []
-    });
-    steps.push({
-      text: "ראשית רושמים בצד את המשמעויות של הספרות — הן חזקות של 2: @[1, 2, 4, 8, 16, ...]. ממשיכים עד שעוברים את המספר.",
-      cells: { ...baseCells }, highlight: []
-    });
-    steps.push({
-      text: `החזקה הגדולה ביותר של 2 שנכנסת לתוך @[${V}] היא @[${topPower}].`,
-      cells: { ...baseCells }, highlight: powerCells[topPower] || []
-    });
-    const cum = { ...baseCells };
-    let gridRow = row + 1;
-    let prevTermCells = null;
-    for (let d = 0; d < shown.length; d++) {
-      const { rowIdx, mode } = shown[d];
-      const r = rows[rowIdx];
-      const prefix = d === 0 ? `${decStr}=` : "=";
-      const sCol = d === 0 ? startCol : eqCol;
-      const placed = placeRow(gridRow, sCol, prefix, r.terms);
-      Object.assign(cum, placed.cells);
-      let text;
-      let highlight;
-      if (mode === "write") {
-        const powCells = r.terms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
-        text = `אנו יכולים לכתוב את @[${V}] כך:`;
-        highlight = [...powCells, ...placed.termCells.flat()];
-      } else {
-        // Highlight, in the powers column, the powers just locked in; the term
-        // that was decomposed (last term of the previous shown row); and the new
-        // terms it split into on this row. "same" names the remainder; "continue"
-        // completes to the end and marks everything that summed to it.
-        const prevRow = rows[shown[d - 1].rowIdx];
-        const decomposed = prevRow.terms[prevRow.terms.length - 1];
-        text = mode === "same" ? `עושים את אותו הדבר עם @[${decomposed}].` : "ממשיכים כך עד שהמספר נגמר.";
-        const commonLen = prevRow.terms.length - 1;
-        const newTerms = r.terms.slice(commonLen);
-        const powCells = newTerms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
-        const newStartCol = colOf(placed.termCells[commonLen][0]);
-        const newPart = Object.keys(placed.cells).filter((k) => colOf(k) >= newStartCol);
-        const prevLast = prevTermCells ? prevTermCells[prevTermCells.length - 1] : [];
-        highlight = [...powCells, ...prevLast, ...newPart];
+
+    // ===== First presentation (first time only): the chain of equalities. =====
+    if (firstTime) {
+      steps.push({
+        html: '<p>יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי:</p>'
+          + '<ol class="bin-methods"><li>להתחיל מהספרה המשמעותית ביותר.</li><li>להתחיל מהספרה הכי פחות משמעותית (ספרת האחדות).</li></ol>'
+          + '<p>השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה.</p>',
+        cells: {}, highlight: []
+      });
+      steps.push({
+        text: "ראשית רושמים בצד את המשמעויות של הספרות — הן חזקות של 2: @[1, 2, 4, 8, 16, ...]. ממשיכים עד שעוברים את המספר.",
+        cells: { ...baseCells }, highlight: []
+      });
+      steps.push({
+        text: `החזקה הגדולה ביותר של 2 שנכנסת לתוך @[${V}] היא @[${topPower}].`,
+        cells: { ...baseCells }, highlight: powerCells[topPower] || []
+      });
+      const cum = { ...baseCells };
+      let gridRow = row + 1;
+      let prevTermCells = null;
+      for (let d = 0; d < shown.length; d++) {
+        const { rowIdx, mode } = shown[d];
+        const r = rows[rowIdx];
+        const prefix = d === 0 ? `${decStr}=` : "=";
+        const sCol = d === 0 ? startCol : eqCol;
+        const placed = placeRow(gridRow, sCol, prefix, r.terms);
+        Object.assign(cum, placed.cells);
+        let text;
+        let highlight;
+        if (mode === "write") {
+          const powCells = r.terms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
+          text = `אנו יכולים לכתוב את @[${V}] כך:`;
+          highlight = [...powCells, ...placed.termCells.flat()];
+        } else {
+          const prevRow = rows[shown[d - 1].rowIdx];
+          const decomposed = prevRow.terms[prevRow.terms.length - 1];
+          text = mode === "same" ? `עושים את אותו הדבר עם @[${decomposed}].` : "ממשיכים כך עד שהמספר נגמר.";
+          const commonLen = prevRow.terms.length - 1;
+          const newTerms = r.terms.slice(commonLen);
+          const powCells = newTerms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
+          const newStartCol = colOf(placed.termCells[commonLen][0]);
+          const newPart = Object.keys(placed.cells).filter((k) => colOf(k) >= newStartCol);
+          const prevLast = prevTermCells ? prevTermCells[prevTermCells.length - 1] : [];
+          highlight = [...powCells, ...prevLast, ...newPart];
+        }
+        steps.push({ text, cells: { ...cum }, highlight });
+        prevTermCells = placed.termCells;
+        gridRow += 1;
       }
-      steps.push({ text, cells: { ...cum }, highlight });
-      prevTermCells = placed.termCells;
-      gridRow += 1;
+      steps.push({
+        text: "כעת רואים אילו ספרות הן @[1] — אלה שהחזקה המתאימה שלהן מופיעה בפירוק — ואילו @[0] (אלה שלא מופיעות).",
+        cells: { ...cum }, highlight: usedPowers.flatMap((p) => powerCells[p] || [])
+      });
+      const ansCells = [];
+      const withAns = { ...cum };
+      for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; withAns[`${row},${c}`] = bin[i]; ansCells.push(`${row},${c}`); }
+      steps.push({ text: "נקבל את הפתרון.", cells: withAns, highlight: ansCells });
+    }
+
+    // ===== The column (בטור) form — shown every time; the board is cleared
+    // back to the exercise and the powers list, then the subtraction is written
+    // straight down: the largest power that fits is subtracted repeatedly. =====
+    const colUnits = startCol + decStr.length - 1; // align the column under the decimal
+    const colMinus = colUnits - 2;
+    const put = (cells, gr, n) => {
+      const s = String(n); const out = [];
+      for (let i = 0; i < s.length; i++) { const c = colUnits - s.length + 1 + i; cells[`${gr},${c}`] = s[i]; out.push(`${gr},${c}`); }
+      return out;
+    };
+    const hlineRow = (gr) => { const out = []; for (let c = colMinus; c <= colUnits; c++) out.push(`${gr},${c}`); return out; };
+    const subs = [];
+    { let m = V; while (m > 0) { let p = 1; while (p * 2 <= m) p *= 2; subs.push({ power: p, result: m - p }); m -= p; } }
+
+    const colCum = { ...baseCells };
+    const colUnderlines = [];
+    let cr = row + 2;
+    put(colCum, cr, V); cr += 1;
+    steps.push({
+      text: firstTime ? "אפשר לכתוב את זה גם בטור." : "נמיר את המספר בטור.",
+      cells: { ...colCum }, highlight: [], underline: []
+    });
+    const allSubCells = [];
+    for (let i = 0; i < subs.length; i++) {
+      const { power, result } = subs[i];
+      const subRow = cr; cr += 1;
+      const resRow = cr; cr += 1;
+      const pcells = put(colCum, subRow, power);
+      allSubCells.push(...pcells);
+      if (i < 2) {
+        steps.push({
+          text: `חזקת השתיים הגדולה ביותר שנכנסת ${i === 0 ? "היא" : "עכשיו היא"} @[${power}].`,
+          cells: { ...colCum }, highlight: [...(powerCells[power] || []), ...pcells], underline: [...colUnderlines]
+        });
+        colCum[`${subRow},${colMinus}`] = "-";
+        const rcells = put(colCum, resRow, result);
+        colUnderlines.push(...hlineRow(subRow));
+        steps.push({ text: "מפחיתים.", cells: { ...colCum }, highlight: rcells, underline: [...colUnderlines] });
+      } else {
+        colCum[`${subRow},${colMinus}`] = "-";
+        put(colCum, resRow, result);
+        colUnderlines.push(...hlineRow(subRow));
+      }
+    }
+    if (subs.length > 2) {
+      steps.push({ text: "ממשיכים כך עד שהמספר נגמר.", cells: { ...colCum }, highlight: [], underline: [...colUnderlines] });
     }
     steps.push({
-      text: "כעת רואים אילו ספרות הן @[1] — אלה שהחזקה המתאימה שלהן מופיעה בפירוק — ואילו @[0] (אלה שלא מופיעות).",
-      cells: { ...cum }, highlight: usedPowers.flatMap((p) => powerCells[p] || [])
+      text: "בודקים אילו חזקות של 2 השתתפו.",
+      cells: { ...colCum }, highlight: [...allSubCells, ...usedPowers.flatMap((p) => powerCells[p] || [])], underline: [...colUnderlines]
     });
-    const ansCells = [];
-    const withAns = { ...cum };
-    for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; withAns[`${row},${c}`] = bin[i]; ansCells.push(`${row},${c}`); }
-    steps.push({ text: "נקבל את הפתרון.", cells: withAns, highlight: ansCells });
+    const colAnsCells = [];
+    const colWithAns = { ...colCum };
+    for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; colWithAns[`${row},${c}`] = bin[i]; colAnsCells.push(`${row},${c}`); }
+    steps.push({ text: "ומקבלים את התוצאה.", cells: colWithAns, highlight: colAnsCells, underline: [...colUnderlines] });
+
     return steps;
   }
 
@@ -6183,6 +6242,7 @@
     const inGrid = binInGridSolution(nb);
     let displayCells = nb.cells || {};
     let highlightSet = new Set();
+    let underlineSet = new Set();
     let steps = null;
     let stepIndex = 0;
     if (inGrid) {
@@ -6190,6 +6250,7 @@
       stepIndex = Math.min(Math.max(0, nb.walkStep || 0), steps.length - 1);
       displayCells = steps[stepIndex].cells;
       highlightSet = new Set(steps[stepIndex].highlight);
+      underlineSet = new Set(steps[stepIndex].underline || []);
     }
 
     const rows = [];
@@ -6204,6 +6265,7 @@
         if (!inGrid && nb.active === key) classes.push("notebook-cell-active");
         if (answerSet.has(key)) classes.push("notebook-cell-answer", "bin-answer-cell");
         if (highlightSet.has(key)) classes.push("bin-hl");
+        if (underlineSet.has(key)) classes.push("bin-hline");
         const lock = fx != null ? ' aria-disabled="true"' : "";
         cells += `<button type="button" class="${classes.join(" ")}" data-action="binbk-cell" data-r="${r}" data-c="${c}"${lock}>${esc(char)}</button>`;
       }
