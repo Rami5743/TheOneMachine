@@ -463,6 +463,8 @@
     postTasksXorHintShown: false,
     hintState: {},
     completedTasks: [],
+    // Achievements the player has earned (a subset of ACHIEVEMENTS ids).
+    achievementsUnlocked: [],
     explanationsUnlocked: [],
     explanationsReturnTo: null,
     explanationReplay: null,
@@ -1056,7 +1058,7 @@
   }
 
   function isGlobalNavigationAction(action) {
-    return ["menu", "chapters", "about", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
+    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
   }
 
   // FALLBACK_END_DIALOGS moved to js/app-data.js
@@ -1128,7 +1130,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -1250,7 +1252,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -1365,6 +1367,10 @@
     if (name === "plus") {
       return `<svg ${common}><path d="M12 5 V19" /><path d="M5 12 H19" /></svg>`;
     }
+    // Trophy — achievements.
+    if (name === "trophy") {
+      return `<svg ${common}><path d="M7 4 H17 V9 A5 5 0 0 1 7 9 Z" /><path d="M7 5.5 H4.2 V7 A3.2 3.2 0 0 0 7.5 10.1" /><path d="M17 5.5 H19.8 V7 A3.2 3.2 0 0 1 16.5 10.1" /><path d="M12 14 V16.5" /><path d="M9 20 H15 L14.3 16.8 H9.7 Z" /></svg>`;
+    }
     return "";
   }
 
@@ -1408,6 +1414,7 @@
           ${labeledButton("menu", "home", "תפריט ראשי")}
           ${labeledButton("chapters", "book", "פרקים")}
           ${labeledButton("explanations", "grad-cap", "הסברים")}
+          ${labeledButton("achievements", "trophy", "השיגים")}
           ${myCardsButton()}
           ${labeledButton("about", "info", "אודות")}
           ${labeledButton("settings", "gear", "הגדרות")}
@@ -2419,6 +2426,7 @@
             ${labeledButton("continue", "resume-rtl", "המשך")}
             ${labeledButton("chapters", "book", "פרקים")}
             ${labeledButton("explanations", "grad-cap", "הסברים")}
+            ${labeledButton("achievements", "trophy", "השיגים")}
             ${myCardsButton()}
             ${labeledButton("about", "info", "אודות")}
             ${labeledButton("settings", "gear", "הגדרות")}
@@ -2446,6 +2454,54 @@
             <button class="btn" data-action="open-not-ready">קשר לקורס</button>
           </div>
           <div class="about-actions">
+            ${pageBackButton()}
+          </div>
+        </section>
+      </main>`;
+  }
+
+  function achievementUnlocked(id) {
+    return Array.isArray(state.achievementsUnlocked) && state.achievementsUnlocked.includes(id);
+  }
+  // Earn an achievement (for use once the list and its triggers exist).
+  function unlockAchievement(id) {
+    if (!ACHIEVEMENTS.some((a) => a.id === id) || achievementUnlocked(id)) return;
+    state.achievementsUnlocked = [...(Array.isArray(state.achievementsUnlocked) ? state.achievementsUnlocked : []), id];
+    saveState();
+  }
+
+  // The achievements page: two columns (progress / special), each showing an
+  // "X מתוך Y" count and the earned achievements. In "see everything" mode the
+  // not-yet-earned ones are also listed, greyed out.
+  function renderAchievements() {
+    const seeAll = !isStepByStepPace();
+    const card = (a, locked) => `
+      <div class="achv-item${locked ? " achv-locked" : ""}">
+        <div class="achv-title">${esc(a.title)}</div>
+        ${a.description ? `<div class="achv-desc">${esc(a.description)}</div>` : ""}
+      </div>`;
+    const column = (cat, title) => {
+      const list = ACHIEVEMENTS.filter((a) => a.category === cat);
+      const earned = list.filter((a) => achievementUnlocked(a.id));
+      const locked = seeAll ? list.filter((a) => !achievementUnlocked(a.id)) : [];
+      const body = earned.map((a) => card(a, false)).join("") + locked.map((a) => card(a, true)).join("");
+      return `
+        <section class="achv-column">
+          <h2 class="achv-col-title">${esc(title)}</h2>
+          <div class="achv-count">${earned.length} מתוך ${list.length}</div>
+          <div class="achv-list">${body}</div>
+        </section>`;
+    };
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen menu-screen achievements-screen">
+        <section class="menu-card achievements-card">
+          <h1>השיגים</h1>
+          <div class="achievements-columns">
+            ${column("progress", "השיגי התקדמות")}
+            ${column("special", "השיגים מיוחדים")}
+          </div>
+          <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
             ${pageBackButton()}
           </div>
         </section>
@@ -6942,6 +6998,7 @@
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
+    if (state.screen === "achievements") return renderAchievements();
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -10279,6 +10336,7 @@
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
     if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
+    if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {

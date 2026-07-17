@@ -322,6 +322,12 @@
     ]
   };
 
+  // Player achievements, shown on the "השיגים" page. Each entry:
+  //   { id, title, description, category: "progress" | "special" }
+  // The list is intentionally empty for now (to be filled in later); the page
+  // renders the two category columns and their counts from whatever is here.
+  const ACHIEVEMENTS = [];
+
   const EXPLANATION_ITEMS = [
     { id: "nand-intro", title: "הצגת ה־Nand" },
     { id: "nand-function", title: "איך Nand פועל" },
