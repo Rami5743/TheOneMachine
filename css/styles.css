@@ -327,6 +327,9 @@ button { font: inherit; }
   min-width: 2.6em;
 }
 .expl-truth-table th { font-weight: 700; background: rgba(243, 210, 122, 0.12); }
+/* Thick rule between the output columns (left) and the input columns (right). */
+.expl-truth-table th.expl-tt-sep,
+.expl-truth-table td.expl-tt-sep { border-left: 3px solid #f3d27a; }
 
 /* The "new explanation unlocked" flourish: an icon that flies from the centre
    of the screen into the topbar's הסברים button. */

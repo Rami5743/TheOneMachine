@@ -2363,19 +2363,33 @@
 
   // The routing cards' requirements dialog (Mux/DMux): the card's description
   // plus its truth table, shown over the explanations menu.
+  // Columns are ordered outputs → inputs (so, read right-to-left in Hebrew, they
+  // are inputs → outputs); a thick rule marks the input/output boundary.
   const ROUTING_INFO_TABLE = {
-    Mux: { headers: ["בקרה", "כניסה 1", "כניסה 2", "יציאה"], cells: (r) => [r.inputs[2], r.inputs[0], r.inputs[1], r.output] },
-    DMux: { headers: ["בקרה", "כניסה", "יציאה 1", "יציאה 2"], cells: (r) => [r.inputs[1], r.inputs[0], r.outputs[0], r.outputs[1]] }
+    Mux: [
+      { h: "יציאה", v: (r) => r.output, kind: "out" },
+      { h: "כניסה 2", v: (r) => r.inputs[1], kind: "in" },
+      { h: "כניסה 1", v: (r) => r.inputs[0], kind: "in" },
+      { h: "בקרה", v: (r) => r.inputs[2], kind: "in" }
+    ],
+    DMux: [
+      { h: "יציאה 2", v: (r) => r.outputs[1], kind: "out" },
+      { h: "יציאה 1", v: (r) => r.outputs[0], kind: "out" },
+      { h: "כניסה", v: (r) => r.inputs[0], kind: "in" },
+      { h: "בקרה", v: (r) => r.inputs[1], kind: "in" }
+    ]
   };
   function renderExplRoutingInfoDialog() {
     const info = state.explRoutingInfo;
     if (!info) return "";
     const def = ROUTING_TASK_DEFS.find((t) => t.id === info.taskId);
-    const cfg = ROUTING_INFO_TABLE[info.taskId];
-    if (!def || !cfg) return "";
+    const cols = ROUTING_INFO_TABLE[info.taskId];
+    if (!def || !cols) return "";
     const bit = (b) => (b ? "1" : "0");
-    const head = cfg.headers.map((h) => `<th>${esc(h)}</th>`).join("");
-    const body = def.rows.map((r) => `<tr>${cfg.cells(r).map((v) => `<td>${bit(v)}</td>`).join("")}</tr>`).join("");
+    const sepIdx = cols.findIndex((c) => c.kind === "in"); // first input column
+    const cls = (i) => (i === sepIdx ? ' class="expl-tt-sep"' : "");
+    const head = cols.map((c, i) => `<th${cls(i)}>${esc(c.h)}</th>`).join("");
+    const body = def.rows.map((r) => `<tr>${cols.map((c, i) => `<td${cls(i)}>${bit(c.v(r))}</td>`).join("")}</tr>`).join("");
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card expl-routing-card" role="dialog" aria-modal="false" aria-label="${esc(def.label)}">
