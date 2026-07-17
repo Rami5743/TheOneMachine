@@ -3062,6 +3062,17 @@ button { font: inherit; }
   box-shadow: inset 0 0 0 2px #111;
 }
 
+/* A highlighted output column in the arith solution walkthrough (sum / carry). */
+.mux-scratch-table td.truth-col-solution-highlight,
+.mux-scratch-table td.truth-col-solution-highlight .mux-truth-cell {
+  background: #ffe08a !important;
+  color: #111;
+  font-weight: 900;
+}
+.mux-scratch-table td.truth-col-solution-highlight {
+  box-shadow: inset 0 0 0 2px #111;
+}
+
 .hint-slides-overlay {
   position: fixed;
   inset: calc(var(--app-pad) + var(--topbar-h) + var(--gap)) 0 0 0;

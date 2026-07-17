@@ -3365,17 +3365,18 @@
   }
 
   function solutionHighlightConfig() {
-    if (!state.solutionDialog) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set() };
+    if (!state.solutionDialog) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
     const taskId = state.solutionDialog.taskId || "Not";
     const steps = TASK_SOLUTION_STEPS[taskId] || [];
-    if (!steps.length) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set() };
+    if (!steps.length) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
     const stepIndex = Math.min(Math.max(Number(state.solutionDialog.step) || 0, 0), steps.length - 1);
     const highlight = steps[stepIndex]?.highlight || {};
     return {
       terminals: new Set(highlight.terminals || []),
       wires: new Set(highlight.wires || []),
       components: new Set(highlight.components || []),
-      truthRows: new Set(highlight.truthRows || [])
+      truthRows: new Set(highlight.truthRows || []),
+      truthCols: new Set(highlight.truthCols || [])
     };
   }
 
@@ -3437,6 +3438,38 @@
   }
 
   const TASK_SOLUTION_STEPS = {
+    halfAdder: [
+      {
+        text: "ראשית ניצור טבלת אמת על ידי חישוב כל ארבע האפשרויות: 0+0=0, 1+0=1, 0+1=1, 1+1=2=10 בבינרית. נמלא את הטבלה בהתאם.",
+        highlight: { truthRows: [0, 1, 2, 3] }
+      },
+      {
+        text: "עכשיו אנחנו רואים שה-sum הוא בעצם XOR.",
+        highlight: {
+          components: ["xor-1"],
+          truthCols: ["sum"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "xor-1.in1"),
+            wireKey("task-card-1.inputInt2", "xor-1.in2"),
+            wireKey("xor-1.out", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "וה-carry הוא בעצם And.",
+        highlight: {
+          components: ["and-1"],
+          truthCols: ["carry"],
+          terminals: ["task-card-1.outputInt2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "and-1.in1"),
+            wireKey("task-card-1.inputInt2", "and-1.in2"),
+            wireKey("and-1.out", "task-card-1.outputInt2")
+          ]
+        }
+      }
+    ],
     Not4: [
       {
         text: "מפצלים את בס הכניסה ל-4 כבלים נפרדים בעזרת מפצל.",
@@ -8595,9 +8628,12 @@
     const routing = isRoutingTask(taskId);
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
-    const chapter = (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6") : simpleGatesChapter();
+    const arith = isArithTask(taskId);
+    const chapter = arith ? chapterById("chapter-8")
+      : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
+      : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit) {
+    if (routing || bus || multibit || arith) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -8616,7 +8652,7 @@
       notTest: null,
       // Show the full, correct truth table during the MUX walkthrough so the
       // highlighted rows are meaningful.
-      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : null,
+      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : isArithTask(taskId) ? arithTableWithInputs(taskId, true) : null,
       solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0, returnToExplanations: Boolean(options.returnToExplanations) },
       workspace
     }, false);

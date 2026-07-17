@@ -171,11 +171,12 @@ function createTaskModeView({
       </div>`;
   }
 
-  function muxScratchCell(row, column, value) {
+  function muxScratchCell(row, column, value, highlighted) {
     const shown = value === 0 ? "0" : value === 1 ? "1" : "";
     const cls = value === null || value === undefined ? "mux-cell-empty" : "";
     const isDivider = column === "out" || column === "out1" || column === "sum";
-    return `<td class="${isDivider ? "truth-output-cell" : ""}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
+    const tdCls = `${isDivider ? "truth-output-cell" : ""}${highlighted ? " truth-col-solution-highlight" : ""}`.trim();
+    return `<td class="${tdCls}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
   }
 
   function renderMuxScratchTable() {
@@ -258,18 +259,20 @@ function createTaskModeView({
         return row;
       });
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
-    const solutionRows = solutionHighlightConfig().truthRows;
+    const hl = solutionHighlightConfig();
+    const solutionRows = hl.truthRows;
+    const solutionCols = hl.truthCols || new Set();
     // DOM order (left→right): carry, sum, in{N}…in1 — so read right-to-left the
     // inputs come first (in1 on the right), then the divider, then sum, carry.
     const inputCells = (row, index) => cols
       .map((c) => ({ c }))
       .reverse()
-      .map(({ c }) => muxScratchCell(index, c, row[c]))
+      .map(({ c }) => muxScratchCell(index, c, row[c], solutionCols.has(c)))
       .join("");
     const rows = table.map((row, index) => `
       <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionRows.has(index) ? "truth-row-solution-highlight" : ""}">
-        ${muxScratchCell(index, "carry", row.carry)}
-        ${muxScratchCell(index, "sum", row.sum)}
+        ${muxScratchCell(index, "carry", row.carry, solutionCols.has("carry"))}
+        ${muxScratchCell(index, "sum", row.sum, solutionCols.has("sum"))}
         ${inputCells(row, index)}
       </tr>`).join("");
     const inputHeaders = cols
