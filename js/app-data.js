@@ -355,6 +355,16 @@
       { kind: "interactive", title: "רמז 4", action: "dmux4way-connect-first-dmux", text: "מחברים את ה-DMux הראשון." },
       { kind: "text", title: "רמז 5", text: "נניח שה-DMux בחר בזוג הראשון. איך מחליטים לאן לשלוח את הכניסה? אולי תשתמש בעוד DMux?" }
     ],
+    halfAdder: [
+      { kind: "text", title: "רמז 1", text: "תחשוב על כל ספרה בנפרד." },
+      { kind: "text", title: "רמז 2", text: "תנסה להרכיב טבלת אמת." },
+      { kind: "text", title: "רמז 3", text: "בשביל לכתוב טבלת אמת אפשר לעבור על כל ארבעת האפשרויות ולכתוב את התוצאה בשיטה הבינרית." },
+      { kind: "interactive", title: "רמז 4", action: "arith-fill-inputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עזרה בהכנת טבלת האמת? (אם תלחץ על כן זה ימחק את כל מה שכתבת בטבלה)." },
+      { kind: "interactive", title: "רמז 5", action: "arith-fill-outputs", confirmBeforeApply: true, applyLabel: "כן", text: "אתה צריך עוד עזרה עם טבלת האמת? (אם תלחץ על כן זה ימחק את כל מה שכתבת בטבלה)." },
+      { kind: "text", title: "רמז 6", text: "שים לב, לכל אחת מהיציאות יש טבלת אמת שכבר ראית פעם." },
+      { kind: "text", title: "רמז 7", text: "ה-sum הוא XOR." },
+      { kind: "text", title: "רמז 8", text: "ה-carry הוא And." }
+    ],
     Mux4way16: [
       { kind: "text", title: "רמז 1", text: "תתחיל מלפצל את בס הבקרה לשני הביטים שלו." },
       { kind: "text", title: "רמז 2", text: "הביט הראשון של כניסת הבקרה בוחר מאיזה זוג כניסות תבחר הכניסה אותה צריך \"לחבר\" ליציאה." },

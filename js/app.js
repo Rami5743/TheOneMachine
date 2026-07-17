@@ -8811,6 +8811,22 @@
     });
   }
 
+  // Fill the scratch table from the task's rows: inputs only (withOutputs=false,
+  // the "empty table" skeleton) or inputs + sum/carry (withOutputs=true). Used by
+  // the arith fill-table interactive hints, mirroring muxTableWithInputs.
+  function arithTableWithInputs(taskId, withOutputs) {
+    const def = taskDefById(taskId);
+    if (!def || !Array.isArray(def.rows)) return arithEmptyScratchTable(taskId);
+    return def.rows.map((row) => {
+      const r = {};
+      row.inputs.forEach((value, index) => { r[`in${index + 1}`] = value ? 1 : 0; });
+      const outs = Array.isArray(row.outputs) ? row.outputs : [row.output];
+      r.sum = withOutputs ? (outs[0] ? 1 : 0) : null;
+      r.carry = withOutputs ? (outs[1] ? 1 : 0) : null;
+      return r;
+    });
+  }
+
   function openArithNote() {
     return setState({ arithNoteList: true });
   }
@@ -9202,6 +9218,17 @@
       const patch = {
         hintDialog: null,
         muxTable: dmuxTableWithInputs(hint.action === "dmux-fill-outputs")
+      };
+      if (hintStateOverride) patch.hintState = hintStateOverride;
+      return setState(patch, false);
+    }
+
+    // Arith fill-table hints (halfAdder/fullAdder): fill only the input columns
+    // (the "empty table" skeleton) or the whole table, like the MUX/DMUX hints.
+    if (isArithTask(taskId) && (hint.action === "arith-fill-inputs" || hint.action === "arith-fill-outputs")) {
+      const patch = {
+        hintDialog: null,
+        muxTable: arithTableWithInputs(taskId, hint.action === "arith-fill-outputs")
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
