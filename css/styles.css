@@ -3311,8 +3311,9 @@ object.panel-image.is-pending {
 }
 
 /* ---- Binary-conversion booklet ---- */
-/* A larger grid than the arithmetic notebook — it has room to spare. */
-.bin-notebook-page { --nb-cell: clamp(28px, 5vw, 52px); }
+/* A larger grid than the arithmetic notebook — more cells, bigger, to fill
+   the available screen. */
+.bin-notebook-page { --nb-cell: clamp(24px, 3.7vw, 50px); max-width: 96vw; }
 
 .bin-prompt {
   direction: rtl;

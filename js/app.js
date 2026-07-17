@@ -5574,8 +5574,8 @@
   // The booklet uses the same squared-paper grid as the arithmetic notebook:
   // the task is pre-printed on one row, every other cell is free scribble
   // space, and only the answer cells (right of the "=") are checked.
-  const BIN_NB_COLS = 21;
-  const BIN_NB_ROWS = 13;
+  const BIN_NB_COLS = 27;
+  const BIN_NB_ROWS = 15;
   // The equation sits low enough to leave room above for the solution
   // walkthrough, which stacks each bit's contribution over the answer.
   const BIN_EQ_ROW = 8;
@@ -6015,39 +6015,50 @@
       powerCells[powers[i]] = list;
     }
 
-    // Greedy decomposition into powers of two → the chain segments.
-    const rhsList = [];
-    const usedPowers = [];
-    let rem = V;
-    const chosen = [];
-    while (rem > 0) {
-      let p = 1; while (p * 2 <= rem) p *= 2;
-      chosen.push(p); usedPowers.push(p); rem -= p;
-      rhsList.push(chosen.join(" + ") + (rem > 0 ? " + " + rem : ""));
-    }
-    const dedup = rhsList.filter((s, i) => i === 0 || s !== rhsList[i - 1]);
-    const topPower = chosen[0];
-
-    // Which segments get their own row: the first decomposition, then up to two
-    // explicit "same again" steps; anything past that collapses to the final.
-    const shown = [];
-    for (let i = 0; i < dedup.length && i < 3; i++) shown.push({ seg: i, mode: i === 0 ? "write" : "same" });
-    if (dedup.length > 3) shown.push({ seg: dedup.length - 1, mode: "continue" });
-
-    // Place a chain equation string on a grid row; return its cells and the
-    // cells of the right-hand side (after the "=").
-    function placeChain(gridRow, sCol, str) {
-      const cells = {};
-      const rhs = [];
-      let eqSeen = false;
-      for (let j = 0; j < str.length; j++) {
-        const c = sCol + j;
-        cells[`${gridRow},${c}`] = str[j];
-        if (eqSeen) rhs.push(`${gridRow},${c}`);
-        if (str[j] === "=") eqSeen = true;
+    // Greedy decomposition into powers of two, as rows of terms. Each row i is
+    // V = P0 + P1 + ... + Pi + Ri (Ri dropped once it is 0).
+    const decompRows = [];
+    {
+      let rem = V;
+      const chosenP = [];
+      while (rem > 0) {
+        let p = 1; while (p * 2 <= rem) p *= 2;
+        chosenP.push(p);
+        const newRem = rem - p;
+        const terms = chosenP.map(String);
+        if (newRem > 0) terms.push(String(newRem));
+        decompRows.push({ terms, power: p });
+        rem = newRem;
       }
-      return { cells, rhs };
     }
+    // Drop the trailing duplicate row (when the remainder was itself a power).
+    const rows = decompRows.filter((r, i) => i === 0 || r.terms.join(",") !== decompRows[i - 1].terms.join(","));
+    const topPower = rows[0].power;
+    const usedPowers = rows[rows.length - 1].terms.map(Number); // final decomposition = the powers
+
+    // Which rows get their own line: the first decomposition, then ONE explicit
+    // "same again" step, then "continue" straight to the final row.
+    const shown = [{ rowIdx: 0, mode: "write" }];
+    if (rows.length >= 2) shown.push({ rowIdx: 1, mode: "same" });
+    if (rows.length >= 3) shown.push({ rowIdx: rows.length - 1, mode: "continue" });
+    const isPow2 = (x) => x > 0 && (x & (x - 1)) === 0;
+
+    // Place a chain equation (prefix + terms joined by "+") on a grid row;
+    // return its cells and, per term, the cells that hold it.
+    function placeRow(gridRow, sCol, prefix, terms) {
+      const cells = {};
+      const termCells = [];
+      let c = sCol;
+      for (const ch of prefix) { cells[`${gridRow},${c}`] = ch; c += 1; }
+      for (let t = 0; t < terms.length; t++) {
+        if (t > 0) { cells[`${gridRow},${c}`] = "+"; c += 1; }
+        const tc = [];
+        for (const ch of terms[t]) { cells[`${gridRow},${c}`] = ch; tc.push(`${gridRow},${c}`); c += 1; }
+        termCells.push(tc);
+      }
+      return { cells, termCells, endCol: c - 1 };
+    }
+    const colOf = (key) => Number(key.split(",")[1]);
 
     const steps = [];
     steps.push({
@@ -6066,18 +6077,38 @@
     });
     const cum = { ...baseCells };
     let gridRow = row + 1;
+    let prevTermCells = null;
     for (let d = 0; d < shown.length; d++) {
-      const { seg, mode } = shown[d];
-      const rhs = dedup[seg].replace(/ /g, "");
-      const str = d === 0 ? `${decStr}=${rhs}` : `=${rhs}`;
+      const { rowIdx, mode } = shown[d];
+      const r = rows[rowIdx];
+      const prefix = d === 0 ? `${decStr}=` : "=";
       const sCol = d === 0 ? startCol : eqCol;
-      const placed = placeChain(gridRow, sCol, str);
+      const placed = placeRow(gridRow, sCol, prefix, r.terms);
       Object.assign(cum, placed.cells);
       let text;
-      if (mode === "write") text = `אנו יכולים לכתוב את @[${V}] כך:`;
-      else if (mode === "continue") text = "ממשיכים כך עד שהמספר נגמר.";
-      else { const prevRem = dedup[seg - 1].split(" + ").pop(); text = `עושים את אותו הדבר עם @[${prevRem}].`; }
-      steps.push({ text, cells: { ...cum }, highlight: placed.rhs });
+      let highlight;
+      if (mode === "write") {
+        const powCells = r.terms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
+        text = `אנו יכולים לכתוב את @[${V}] כך:`;
+        highlight = [...powCells, ...placed.termCells.flat()];
+      } else {
+        // Highlight, in the powers column, the powers just locked in; the term
+        // that was decomposed (last term of the previous shown row); and the new
+        // terms it split into on this row. "same" names the remainder; "continue"
+        // completes to the end and marks everything that summed to it.
+        const prevRow = rows[shown[d - 1].rowIdx];
+        const decomposed = prevRow.terms[prevRow.terms.length - 1];
+        text = mode === "same" ? `עושים את אותו הדבר עם @[${decomposed}].` : "ממשיכים כך עד שהמספר נגמר.";
+        const commonLen = prevRow.terms.length - 1;
+        const newTerms = r.terms.slice(commonLen);
+        const powCells = newTerms.filter((t) => isPow2(Number(t))).flatMap((t) => powerCells[Number(t)] || []);
+        const newStartCol = colOf(placed.termCells[commonLen][0]);
+        const newPart = Object.keys(placed.cells).filter((k) => colOf(k) >= newStartCol);
+        const prevLast = prevTermCells ? prevTermCells[prevTermCells.length - 1] : [];
+        highlight = [...powCells, ...prevLast, ...newPart];
+      }
+      steps.push({ text, cells: { ...cum }, highlight });
+      prevTermCells = placed.termCells;
       gridRow += 1;
     }
     steps.push({
@@ -9657,7 +9688,7 @@
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
     if (action === "stone-millis-book") return openNotebook();
     if (action === "binary-booklet") return openBinaryBooklet();
-    if (action === "binbk-cell") return binSelectCell(Number(button.dataset.r), Number(button.dataset.c));
+    if (action === "binbk-cell") return binInGridSolution(state.notebook) ? binWalkAdvance() : binSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "binbk-check") return checkBinaryNotebook();
     if (action === "binbk-reset") return binResetEntry();
     if (action === "binbk-back") return binBackToWorkshop(false);
