@@ -530,6 +530,9 @@
     // Which task note's "נקה התקדמות" warning is open ("boolean" | "routing" |
     // "buses" | "multibit"), or null when none.
     noteClearConfirm: null,
+    // Transient input state for a story panel that gates advancement behind a
+    // numeric answer: { value, feedback }.
+    panelAnswer: null,
     maxChapterReached: 0,
     // Furthest story-panel index reached, keyed by scene id. Drives the
     // step-by-step skip gate: skip is disabled until the target panel has been
@@ -1075,7 +1078,8 @@
       paceDialog: false,
       infoDialog: null,
       componentMonologue: null,
-      busesNoteList: false
+      busesNoteList: false,
+      panelAnswer: null
     };
   }
 
@@ -1197,7 +1201,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, workspace };
   }
 
   function stateForStorage() {
@@ -3047,8 +3051,11 @@
     // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
     const nonBlockingActions = ["binary-booklet"];
     const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
-    const nextDisabled = blockingHotspots.length ? "disabled" : "";
-    const skipDisabled = isSkipDisabled() ? "disabled" : "";
+    // A panel with a numeric question is the way forward: המשך (and דלג) are
+    // blocked until the learner types the right answer (see checkPanelAnswer).
+    const questionGate = Boolean(panel.question);
+    const nextDisabled = (blockingHotspots.length || questionGate) ? "disabled" : "";
+    const skipDisabled = (isSkipDisabled() || questionGate) ? "disabled" : "";
 
     app.innerHTML = `
       ${topbar()}
@@ -3059,9 +3066,11 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${panel.bubble ? `<div class="story-bubble">${esc(panel.bubble)}</div>` : ""}
             </div>
           </div>
         </section>
+        ${panel.question ? renderPanelQuestion(panel) : ""}
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
         ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
@@ -3083,6 +3092,37 @@
       ${renderBusesNoteList()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
+  }
+
+  // The numeric-answer box for a gating story panel. The value is kept live in
+  // state.panelAnswer (updated on input without a re-render, so focus is not
+  // lost), and graded by checkPanelAnswer.
+  function renderPanelQuestion(panel) {
+    const answer = state.panelAnswer && typeof state.panelAnswer === "object" ? state.panelAnswer : {};
+    const feedback = answer.feedback
+      ? `<div class="panel-question-feedback">${esc(answer.feedback)}</div>`
+      : "";
+    return `
+      <section class="panel-question">
+        <div class="panel-question-row">
+          <input class="panel-question-input" type="number" inputmode="numeric" step="1"
+                 value="${esc(answer.value != null ? String(answer.value) : "")}" aria-label="התשובה שלך" />
+          <button class="btn btn-primary" data-action="panel-answer-check" type="button">בדיקה</button>
+        </div>
+        ${feedback}
+      </section>`;
+  }
+
+  function checkPanelAnswer() {
+    const panel = currentPanel();
+    if (!panel || !panel.question) return;
+    const raw = state.panelAnswer && state.panelAnswer.value != null ? state.panelAnswer.value : "";
+    const value = Number(String(raw).trim());
+    if (String(raw).trim() === "" || !Number.isFinite(value) || value !== Number(panel.question.answer)) {
+      return setState({ panelAnswer: { value: raw, feedback: panel.question.wrong || "אני לא חושב" } });
+    }
+    // Correct: nextPanel() clears panelAnswer as it advances.
+    nextPanel();
   }
 
   function wireKey(a, b) {
@@ -7075,8 +7115,26 @@
     const done = binDone().includes(nb.stage) ? binDone() : [...binDone(), nb.stage];
     const next = binFirstUnfinished(done);
     if (!next) {
-      // All tasks done: stay in the booklet and open its task menu (leaving to
-      // the warehouse only happens on "חזרה למחסן").
+      // First time all booklet tasks are done: continue the plot with the
+      // bits-range dialogue (the workshop-vn slides) instead of opening the
+      // practice menu. Re-opening the booklet later still lands on the menu.
+      const scene = SCENES["arithmetic"];
+      const vnIndex = scene ? scene.panels.findIndex((p) => p.bubble) : -1;
+      if (vnIndex >= 0) {
+        return setState({
+          ...transientUiClearPatch(),
+          binBookletDone: done,
+          binFirstTryClean: nextFirstTryClean,
+          screen: "story",
+          chapterId: "chapter-8",
+          sceneId: "arithmetic",
+          panelIndex: vnIndex,
+          started: true,
+          replayNonce: state.replayNonce + 1,
+          notebook: null
+        }, true);
+      }
+      // Fallback (should not happen): open the practice menu.
       setState({ binBookletDone: done, binFirstTryClean: nextFirstTryClean, notebook: { variant: "binary", mode: "menu" } });
       return;
     }
@@ -7458,7 +7516,7 @@
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
 
     if (state.panelIndex < scene.panels.length - 1) {
-      return setState({ panelIndex: state.panelIndex + 1, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+      return setState({ panelIndex: state.panelIndex + 1, started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
     }
 
     if (isHelpDecisionPoint()) return setState({ dialog: "helpPrompt" });
@@ -7495,7 +7553,7 @@
       if (state.chapterId === "chapter-6" && state.panelIndex === 1 && !xorInteractiveHintUsed()) {
         return openPostTasksXorHintSlides(3, 0);
       }
-      return setState({ panelIndex: state.panelIndex - 1, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
+      return setState({ panelIndex: state.panelIndex - 1, started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
     }
 
     const chapterIndex = chapterIndexById(state.chapterId);
@@ -10572,6 +10630,15 @@
     }
   });
 
+  // The story-panel answer box: keep the typed value live in state (without a
+  // re-render, so focus/caret are preserved) and drop any stale feedback.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".panel-question-input");
+    if (!box) return;
+    state.panelAnswer = { value: box.value, feedback: null };
+    saveState();
+  });
+
   // Close the pin-width box only when its focus leaves (a click elsewhere), then
   // re-render so the pin shows its new width. The width was committed live on
   // input, so nothing is lost.
@@ -10704,6 +10771,7 @@
         !state.dialog &&
         !state.taskDialog &&
         !state.bitDialog &&
+        !currentPanel().question &&
         event.target.closest(".image-shell") &&
         !panelHotspots(currentPanel()).length
       ) {
@@ -10882,6 +10950,7 @@
     if (action === "note-clear-open") return setState({ noteClearConfirm: button.dataset.noteKind || null }, false);
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();
+    if (action === "panel-answer-check") return checkPanelAnswer();
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
@@ -11287,6 +11356,16 @@
     }
 
     if (state.screen !== "story" || state.dialog) return;
+    // A gating question panel: Enter submits the answer; the "next" keys are
+    // blocked until it is right. Typing/arrows inside the answer box are left to
+    // the input itself.
+    if (currentPanel().question) {
+      if (event.key === "Enter") { event.preventDefault(); return checkPanelAnswer(); }
+      if (event.target && event.target.closest && event.target.closest(".panel-question-input")) return;
+      if (event.key === "ArrowRight") { event.preventDefault(); return previousPanel(); }
+      if (event.key === "ArrowLeft" || event.key === " ") { event.preventDefault(); return; }
+      return;
+    }
     // During a story-panel explanation replay the arrow keys / space step the
     // replay, returning to the menu at the first/last slide (like the buttons).
     if (explanationReplayActive()) {
