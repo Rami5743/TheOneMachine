@@ -226,7 +226,11 @@
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = item.label;
-    link.addEventListener("click", () => window.setTimeout(hidePopover, 0));
+    link.addEventListener("click", () => {
+      // Following a reference link from a non-game object earns "סקרן".
+      try { if (typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("curious"); } catch {}
+      window.setTimeout(hidePopover, 0);
+    });
     pop.append(link);
     shell.append(pop);
   }

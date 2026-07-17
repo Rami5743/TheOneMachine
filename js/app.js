@@ -2574,6 +2574,21 @@
     ], { duration: 340, delay: 640, easing: "ease-out" });
   }
 
+  // A bridge for sibling modules (e.g. warehouse-hotspots.js, which owns the
+  // reference-link popovers over story panels): earn an achievement and play its
+  // flourish in place, without a full re-render that would wipe the module's own
+  // DOM. Safe to call from anywhere once app.js has loaded.
+  if (typeof APP !== "undefined") {
+    APP.unlockAchievement = (id) => {
+      if (achievementUnlocked(id)) return;
+      unlockAchievement(id);
+      if (achievementUnlockAnimationPending === id) {
+        achievementUnlockAnimationPending = null;
+        requestAnimationFrame(() => playAchievementUnlockAnimation(id));
+      }
+    };
+  }
+
   // A colourful, detailed trophy graphic, unique per achievement. Every icon
   // shares the same cup/handles/base silhouette but gets its own gradient colour
   // scheme and a distinct emblem drawn on the cup, so each achievement reads at a
@@ -2705,6 +2720,18 @@
           `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
            <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
            <g stroke="#fffdf3" stroke-width="2.4" stroke-linecap="round"><line x1="35" y1="22.5" x2="35" y2="33.5"/><line x1="40" y1="22.5" x2="40" y2="33.5"/><line x1="45" y1="22.5" x2="45" y2="33.5"/></g>` });
+      case "scholar": // warm amber cup, an open book
+        return achievementTrophy(id, { top: "#f0c674", bot: "#9a5b16", rim: "#734211", base: "#9a5b16", handle: "#c07d24", emblem:
+          `<path d="M40 22 C36 20 32 20 30 21 V37 C32 36 36 36 40 38 Z" fill="#fffdf3" stroke="#734211" stroke-width="1.4"/>
+           <path d="M40 22 C44 20 48 20 50 21 V37 C48 36 44 36 40 38 Z" fill="#fdf3df" stroke="#734211" stroke-width="1.4"/>
+           <g stroke="#c07d24" stroke-width="1.2" stroke-linecap="round"><line x1="33" y1="25" x2="38" y2="26"/><line x1="33" y1="29" x2="38" y2="30"/><line x1="42" y1="26" x2="47" y2="25"/><line x1="42" y1="30" x2="47" y2="29"/></g>` });
+      case "curious": // vivid violet cup, a magnifying glass
+        return achievementTrophy(id, { top: "#d59bf0", bot: "#6a1f9c", rim: "#4f1676", base: "#6a1f9c", handle: "#8c33bf", emblem:
+          `<circle cx="37.5" cy="26" r="7" fill="#eaf6ff" stroke="#4f1676" stroke-width="1.8"/>
+           <circle cx="37.5" cy="26" r="7" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+           <path d="M32.5 20.5 A7 7 0 0 1 40 22.5" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
+           <line x1="42.7" y1="31.2" x2="48" y2="37" stroke="#f3d27a" stroke-width="3.4" stroke-linecap="round"/>
+           <text x="37.5" y="29.5" font-size="9" font-weight="900" text-anchor="middle" fill="#6a1f9c" font-family="Arial,sans-serif">?</text>` });
       case "thorough-engineer": // slate cup, a redo arrow around a gear
         return achievementTrophy(id, { top: "#b7c2cf", bot: "#485563", rim: "#33414f", base: "#485563", handle: "#6a7787", emblem:
           `<g transform="translate(40,28)"><circle r="4.4" fill="#ffcf6b" stroke="#33414f" stroke-width="1.2"/><g stroke="#33414f" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="-6.2" x2="0" y2="-4.2"/><line x1="0" y1="6.2" x2="0" y2="4.2"/><line x1="-6.2" y1="0" x2="-4.2" y2="0"/><line x1="6.2" y1="0" x2="4.2" y2="0"/></g><circle r="1.6" fill="#33414f"/></g>
@@ -10766,6 +10793,10 @@
     if (action === "component-monologue-ok") return closeComponentMonologue();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
+    // Opening any explanation from the הסברים menu earns "למדן".
+    if (["explanation-open", "expl-gate-solution", "expl-routing-info", "expl-arith-solution"].includes(action)) {
+      unlockAchievement("scholar");
+    }
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
     if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
     if (action === "expl-routing-info") return setState({ explRoutingInfo: { taskId: button.dataset.taskId } }, false);
