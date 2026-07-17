@@ -10152,7 +10152,9 @@
         !panelHotspots(currentPanel()).length
       ) {
         event.preventDefault();
-        return nextPanel();
+        // During a story-panel explanation replay a plain click advances the
+        // replay (and returns to the menu at the last slide), like "המשך".
+        return explanationReplayActive() ? nextExplanationPanel() : nextPanel();
       }
       return;
     }
@@ -10717,6 +10719,13 @@
     }
 
     if (state.screen !== "story" || state.dialog) return;
+    // During a story-panel explanation replay the arrow keys / space step the
+    // replay, returning to the menu at the first/last slide (like the buttons).
+    if (explanationReplayActive()) {
+      if (event.key === "ArrowRight") { event.preventDefault(); return previousExplanationPanel(); }
+      if (event.key === "ArrowLeft" || event.key === " ") { event.preventDefault(); return nextExplanationPanel(); }
+      return;
+    }
     if (event.key === "ArrowRight") {
       event.preventDefault();
       return previousPanel();
