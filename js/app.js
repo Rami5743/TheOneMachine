@@ -6207,7 +6207,7 @@
 
       const even0 = V - bV;
       const cEven0 = putN(m2, nr, even0); nr += 1;
-      steps.push({ text: "נפחית את ספרת האחדות.", cells: { ...m2 }, highlight: cEven0 });
+      steps.push({ text: "נפחית את ביט האחדות.", cells: { ...m2 }, highlight: cEven0 });
       steps.push({ text: "זהו מספר זוגי, לכן בכתב בינרי הוא מסתיים ב-@[0] — בדיוק כמו שבשיטה העשרונית מספר שמתחלק ב-10 מסתיים ב-@[0].", cells: { ...m2 }, highlight: [] });
       steps.push({ text: `אם נחלק את המספר ב-2 יימחק ה-@[0] מהסוף. לכן מספיק לתרגם את @[${even0}/2] לבינרי ולהוסיף @[0] מימין. כדי לקבל את @[${V}] נוסיף @[1] במקום ה-@[0].`, cells: { ...m2 }, highlight: [] });
 
