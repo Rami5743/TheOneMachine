@@ -500,6 +500,10 @@
     //     already done → "מחשב יסודי" / "מחשב יסודי מאוד".
     binFirstTryClean: [],
     binMenuResolved: [],
+    // Whether the post-booklet "bits-range" plot dialogue has been shown. It
+    // plays once (on the first completion, or the next booklet open for players
+    // who finished it earlier), then booklet visits go straight to the menu.
+    bitsRangeSeen: false,
     // Cards (build tasks) whose test has failed at least once — a later success
     // then no longer counts toward the "מהנדס מדויק" first-try achievement.
     // Cleared for a note's tasks when that note's progress is cleared, so a
@@ -6324,9 +6328,34 @@
   // Opening the booklet: while any task is unfinished, land on the start of the
   // first unfinished one (a FRESH exercise — in-task progress is not resumed).
   // Once all three are done, open the read-only menu of the three tasks.
+  // The plot continues (once) with the bits-range dialogue after the booklet is
+  // finished. Navigate there and mark it seen so later booklet visits go to the
+  // practice menu instead. `extra` carries any state to persist alongside.
+  function goToBitsRange(extra = {}) {
+    const scene = SCENES["arithmetic"];
+    const vnIndex = scene ? scene.panels.findIndex((p) => p.image && p.image.includes("panel108_chapter_2_5_bits_1")) : -1;
+    if (vnIndex < 0) return false;
+    setState({
+      ...transientUiClearPatch(),
+      ...extra,
+      bitsRangeSeen: true,
+      screen: "story",
+      chapterId: "chapter-8",
+      sceneId: "arithmetic",
+      panelIndex: vnIndex,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      notebook: null
+    }, true);
+    return true;
+  }
+
   function openBinaryBooklet() {
     const done = binDone();
     if (!binFirstUnfinished(done)) {
+      // All tasks done: play the bits-range dialogue the first time, otherwise
+      // open the practice menu.
+      if (!state.bitsRangeSeen && goToBitsRange()) return;
       setState({ screen: "notebook", notebook: { variant: "binary", mode: "menu" } });
       return;
     }
@@ -7182,25 +7211,9 @@
     const next = binFirstUnfinished(done);
     if (!next) {
       // First time all booklet tasks are done: continue the plot with the
-      // bits-range dialogue (the workshop-vn slides) instead of opening the
-      // practice menu. Re-opening the booklet later still lands on the menu.
-      const scene = SCENES["arithmetic"];
-      const vnIndex = scene ? scene.panels.findIndex((p) => p.bubble) : -1;
-      if (vnIndex >= 0) {
-        return setState({
-          ...transientUiClearPatch(),
-          binBookletDone: done,
-          binFirstTryClean: nextFirstTryClean,
-          screen: "story",
-          chapterId: "chapter-8",
-          sceneId: "arithmetic",
-          panelIndex: vnIndex,
-          started: true,
-          replayNonce: state.replayNonce + 1,
-          notebook: null
-        }, true);
-      }
-      // Fallback (should not happen): open the practice menu.
+      // bits-range dialogue instead of opening the practice menu (later booklet
+      // visits land on the menu — see openBinaryBooklet).
+      if (!state.bitsRangeSeen && goToBitsRange({ binBookletDone: done, binFirstTryClean: nextFirstTryClean })) return;
       setState({ binBookletDone: done, binFirstTryClean: nextFirstTryClean, notebook: { variant: "binary", mode: "menu" } });
       return;
     }
