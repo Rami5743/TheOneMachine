@@ -483,6 +483,8 @@
     componentMonologue: null,
     busesEquipmentSeen: [],
     busesNoteList: false,
+    // The 2.5 arithmetic worktable note (halfAdder → fullAdder → Add4 → Add16).
+    arithNoteList: false,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1083,6 +1085,7 @@
       infoDialog: null,
       componentMonologue: null,
       busesNoteList: false,
+      arithNoteList: false,
       panelAnswer: null,
       wordsBytesDialog: null
     };
@@ -1206,7 +1209,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3165,7 +3168,8 @@
       ${renderBitDialog()}
       ${renderInfoDialog()}
       ${renderComponentMonologue()}
-      ${renderBusesNoteList()}`;
+      ${renderBusesNoteList()}
+      ${renderArithNoteList()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -8697,6 +8701,49 @@
     }
   ];
 
+  // The chapter 2.5 arithmetic worktable note (panel119). Four adder cards handed
+  // over by von Neumann, done in order: halfAdder is available first, and each
+  // later card waits for its predecessor. The build workspaces / engine / checks
+  // are the next piece of work; for now the note only shows the list and its
+  // sequential unlocking — clicking the available card shows "המשך יבוא...", and a
+  // locked one explains what must be built first.
+  const ARITH_TASKS = [
+    { id: "halfAdder", label: "halfAdder", requires: null },
+    { id: "fullAdder", label: "fullAdder", requires: "halfAdder" },
+    { id: "Add4", label: "Add4", requires: "fullAdder" },
+    { id: "Add16", label: "Add16", requires: "Add4" }
+  ];
+
+  function arithTaskDefById(id) {
+    return ARITH_TASKS.find((task) => task.id === id) || null;
+  }
+
+  function arithTaskUnlocked(id) {
+    const def = arithTaskDefById(id);
+    if (!def) return false;
+    return def.requires === null || taskCompleted(def.requires);
+  }
+
+  function arithTaskLockedMessage(id) {
+    const req = arithTaskDefById(id)?.requires;
+    const reqLabel = req ? (arithTaskDefById(req)?.label || req) : "";
+    return reqLabel ? `קודם צריך לבנות את ${reqLabel}` : "";
+  }
+
+  function openArithNote() {
+    return setState({ arithNoteList: true });
+  }
+
+  function handleArithNoteTask(id) {
+    const task = arithTaskDefById(id);
+    if (!task) return;
+    if (!arithTaskUnlocked(task.id)) {
+      return setState({ infoDialog: arithTaskLockedMessage(task.id) });
+    }
+    // The adder build workspaces are not implemented yet.
+    return setState({ infoDialog: "המשך יבוא..." });
+  }
+
   // The next-tasks worktable (post-monologue) shows the multi-bit task list; the
   // original worktable keeps the bus-task list. Keyed off which panel we're on,
   // so replaying the chapter naturally shows the original note.
@@ -8739,6 +8786,34 @@
           <div class="note-task-actions">
             <button class="btn" data-action="buses-note-close">סגור</button>
             ${noteClearProgressButton(onNextTasksWorktable() ? "multibit" : "buses")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
+  function renderArithNoteList() {
+    if (!state.arithNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${ARITH_TASKS.map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !arithTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="arith-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="arith-note-close">סגור</button>
+            ${noteClearProgressButton("arith")}
           </div>
         </section>
         ${renderNoteClearDialog()}
@@ -9298,6 +9373,7 @@
     if (kind === "routing") return ROUTING_TASK_DEFS.map((t) => t.id);
     if (kind === "buses") return BUS_TASK_DEFS.map((t) => t.id);
     if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
+    if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
     return [];
   }
 
@@ -10889,6 +10965,8 @@
     if (action === "buses-note-close") return setState({ busesNoteList: false });
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
+    if (action === "arith-note-close") return setState({ arithNoteList: false });
+    if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
@@ -10985,7 +11063,7 @@
     if (action === "words-bytes-close") return setState({ wordsBytesDialog: null }, false);
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);
-    if (action === "arith-tasks-note") return setState({ infoDialog: "המשך יבוא..." });
+    if (action === "arith-tasks-note") return openArithNote();
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
