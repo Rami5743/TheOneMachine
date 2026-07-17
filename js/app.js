@@ -493,6 +493,13 @@
     // BIN_STAGES). Persists across booklet exits so re-entry lands on the first
     // unfinished task, and once all are done the booklet opens on its menu.
     binBookletDone: [],
+    // Booklet-mastery bookkeeping for the calculation achievements:
+    //   binFirstTryClean — stages solved cleanly on their very first exercise
+    //     (no fails, no hint) → "מחשב מדויק" / "מחשב יסודי ומדויק".
+    //   binMenuResolved — stages re-solved from the booklet menu after all were
+    //     already done → "מחשב יסודי" / "מחשב יסודי מאוד".
+    binFirstTryClean: [],
+    binMenuResolved: [],
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -2002,6 +2009,26 @@
     if (!isStepByStepPace() || taskCompleted("DMux")) unlockExplanation("gate-DMux");
   }
 
+  // Achievements that can be derived from persistent progress state are granted
+  // here (run every render, like syncExplanationUnlocks), so they also unlock
+  // retroactively for a player who is already past the relevant point. The
+  // one-shot achievements (burning a Nand, saving/loading a card, a clean solve)
+  // are granted at their event site instead.
+  function syncAchievements() {
+    // Progress milestones.
+    if (completedTaskIds().length >= 1) unlockAchievement("card-creator");
+    if (allNoteTasksCompletedIn()) unlockAchievement("boolean-engineer");
+    if (allRoutingTasksCompletedIn()) unlockAchievement("routing-engineer");
+    if (BIN_STAGES.every((s) => binDone().includes(s))) unlockAchievement("calculator");
+
+    // Calculation mastery, derived from the booklet's bookkeeping arrays.
+    const menuResolved = Array.isArray(state.binMenuResolved) ? state.binMenuResolved : [];
+    if (menuResolved.length >= 1) unlockAchievement("thorough-calc");
+    if (BIN_STAGES.every((s) => menuResolved.includes(s))) unlockAchievement("very-thorough-calc");
+    const firstTryClean = Array.isArray(state.binFirstTryClean) ? state.binFirstTryClean : [];
+    if (BIN_STAGES.every((s) => firstTryClean.includes(s))) unlockAchievement("thorough-precise-calc");
+  }
+
   function explanationReplayActive(id = null) {
     return Boolean(state.explanationReplay && (!id || state.explanationReplay.id === id));
   }
@@ -2463,11 +2490,160 @@
   function achievementUnlocked(id) {
     return Array.isArray(state.achievementsUnlocked) && state.achievementsUnlocked.includes(id);
   }
-  // Earn an achievement (for use once the list and its triggers exist).
+  // Earn an achievement, arming the unlock flourish (played on the next render).
+  let achievementUnlockAnimationPending = null;
   function unlockAchievement(id) {
     if (!ACHIEVEMENTS.some((a) => a.id === id) || achievementUnlocked(id)) return;
     state.achievementsUnlocked = [...(Array.isArray(state.achievementsUnlocked) ? state.achievementsUnlocked : []), id];
+    achievementUnlockAnimationPending = id;
     saveState();
+  }
+
+  // The "new achievement" flourish, a sibling of the explanation-unlock one: the
+  // earned achievement's own trophy blooms at the centre of the screen and is
+  // drawn into the topbar's השיגים button. The flying icon lives on <body> so the
+  // next render does not wipe it mid-animation.
+  function playAchievementUnlockAnimation(achievementId) {
+    const target = document.querySelector('.topbar [data-action="achievements"]');
+    if (!target || typeof target.animate !== "function") return;
+    const tr = target.getBoundingClientRect();
+    const startX = window.innerWidth / 2;
+    const startY = window.innerHeight / 2;
+    const dx = (tr.left + tr.width / 2) - startX;
+    const dy = (tr.top + tr.height / 2) - startY;
+    const fly = document.createElement("div");
+    fly.className = "achv-unlock-fly";
+    fly.style.left = `${startX}px`;
+    fly.style.top = `${startY}px`;
+    fly.innerHTML = renderAchievementIcon(achievementId);
+    document.body.appendChild(fly);
+    const anim = fly.animate([
+      { transform: "translate(-50%,-50%) scale(0.4) rotate(-12deg)", opacity: 0, offset: 0 },
+      { transform: "translate(-50%,-50%) scale(1.15) rotate(0deg)", opacity: 1, offset: 0.24 },
+      { transform: "translate(-50%,-50%) scale(1) rotate(0deg)", opacity: 1, offset: 0.52 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.16)`, opacity: 0.12, offset: 1 }
+    ], { duration: 900, easing: "cubic-bezier(.4,0,.25,1)" });
+    anim.onfinish = () => fly.remove();
+    anim.oncancel = () => fly.remove();
+    target.animate([
+      { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
+    ], { duration: 340, delay: 640, easing: "ease-out" });
+  }
+
+  // A colourful, detailed trophy graphic, unique per achievement. Every icon
+  // shares the same cup/handles/base silhouette but gets its own gradient colour
+  // scheme and a distinct emblem drawn on the cup, so each achievement reads at a
+  // glance. Gradient ids are suffixed with the achievement id to stay unique when
+  // several render on the same page.
+  function achievementTrophy(id, opts) {
+    const g = `achv-g-${id}`;
+    const rim = opts.rim || "#b98a1e";
+    const handle = opts.handle || rim;
+    const base = opts.base || rim;
+    const defs = `
+      <defs>
+        <linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="${opts.top}"/>
+          <stop offset="1" stop-color="${opts.bot}"/>
+        </linearGradient>
+      </defs>`;
+    return `<svg class="achv-trophy" viewBox="0 0 80 80" role="img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${defs}
+      <path d="M23 17 C9 17 8 35 26 37" fill="none" stroke="${handle}" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M57 17 C71 17 72 35 54 37" fill="none" stroke="${handle}" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M36 49 H44 V58 H36 Z" fill="${base}"/>
+      <path d="M27 58 H53 L56 66 H24 Z" fill="${base}"/>
+      <rect x="21" y="66" width="38" height="6.5" rx="2.4" fill="${base}"/>
+      <path d="M22 14 H58 V26 C58 42 50 50 40 50 C30 50 22 42 22 26 Z" fill="url(#${g})" stroke="${rim}" stroke-width="2"/>
+      <path d="M24 15.5 H56 V18 H24 Z" fill="${rim}" opacity="0.85"/>
+      <path d="M26 20 C26 34 31 41 39 44" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.28"/>
+      ${opts.emblem || ""}
+      ${opts.extra || ""}
+    </svg>`;
+  }
+
+  function achvStar(cx, cy, s, fill) {
+    return `<g transform="translate(${cx},${cy}) scale(${s})"><path d="M0,-6 L1.76,-1.85 L5.7,-1.85 L2.35,0.7 L3.53,4.85 L0,2.4 L-3.53,4.85 L-2.35,0.7 L-5.7,-1.85 L-1.76,-1.85 Z" fill="${fill}"/></g>`;
+  }
+
+  function renderAchievementIcon(id) {
+    switch (id) {
+      case "card-creator": // gold cup, a fresh card being made
+        return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
+          `<rect x="33" y="20" width="14" height="18" rx="2" fill="#fffdf3" stroke="#b9781a" stroke-width="1.6"/>
+           <rect x="35.5" y="23" width="9" height="2.2" rx="1.1" fill="#c98a12"/>
+           <rect x="35.5" y="27" width="9" height="2.2" rx="1.1" fill="#e6b64e"/>
+           <rect x="35.5" y="31" width="6" height="2.2" rx="1.1" fill="#e6b64e"/>` });
+      case "boolean-engineer": // blue cup, an AND gate
+        return achievementTrophy(id, { top: "#7db4f2", bot: "#1c4e80", rim: "#153f6b", base: "#1c4e80", handle: "#2f6ba8", emblem:
+          `<path d="M33 20 H40 A9 9 0 0 1 40 38 H33 Z" fill="#fffdf3" stroke="#153f6b" stroke-width="1.6"/>
+           <line x1="28" y1="25" x2="33" y2="25" stroke="#fffdf3" stroke-width="2.4" stroke-linecap="round"/>
+           <line x1="28" y1="33" x2="33" y2="33" stroke="#fffdf3" stroke-width="2.4" stroke-linecap="round"/>
+           <line x1="49" y1="29" x2="54" y2="29" stroke="#fffdf3" stroke-width="2.4" stroke-linecap="round"/>` });
+      case "routing-engineer": // green cup, a multiplexer
+        return achievementTrophy(id, { top: "#79d69a", bot: "#158043", rim: "#0f5e30", base: "#158043", handle: "#2a9c5c", emblem:
+          `<path d="M32 19 L47 24 V34 L32 39 Z" fill="#fffdf3" stroke="#0f5e30" stroke-width="1.6"/>
+           <line x1="27" y1="24" x2="32" y2="24" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>
+           <line x1="27" y1="29" x2="32" y2="29" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>
+           <line x1="27" y1="34" x2="32" y2="34" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>
+           <line x1="47" y1="29" x2="52" y2="29" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>` });
+      case "calculator": // purple cup, a calculator
+        return achievementTrophy(id, { top: "#c79cf0", bot: "#5b2a86", rim: "#45206a", base: "#5b2a86", handle: "#7d43ad", emblem:
+          `<rect x="31" y="19" width="18" height="20" rx="2.4" fill="#fffdf3" stroke="#45206a" stroke-width="1.6"/>
+           <rect x="33.5" y="21.5" width="13" height="5" rx="1" fill="#c9a3e6"/>
+           <g fill="#5b2a86"><circle cx="35.5" cy="30" r="1.4"/><circle cx="40" cy="30" r="1.4"/><circle cx="44.5" cy="30" r="1.4"/><circle cx="35.5" cy="35" r="1.4"/><circle cx="40" cy="35" r="1.4"/><circle cx="44.5" cy="35" r="1.4"/></g>` });
+      case "equipment-destroyer": // burnt cup, cracked, with a flame
+        return achievementTrophy(id, { top: "#c8492a", bot: "#5f1808", rim: "#3a1206", base: "#4a1608", handle: "#7a2410",
+          emblem: `<path d="M40 19 C44 23 44 28 41 31 C43 31 45.5 29 45.5 26 C49 30 48 37 40 38 C32 37 32 30 35.5 27 C35.5 29.5 38 30.5 39 29.5 C36.5 26 38 22 40 19 Z" fill="#ffb038"/><path d="M40 24 C42 27 41.5 30 40 32 C38.5 30 38 27 40 24 Z" fill="#ff6a1e"/>`,
+          extra: `<path d="M41 14 L37 25 L43 31 L38 44" fill="none" stroke="#2a0d04" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.75"/>` });
+      case "precise-calc": // teal cup, a bullseye target
+        return achievementTrophy(id, { top: "#5fd3cf", bot: "#0e6b6b", rim: "#0a5252", base: "#0e6b6b", handle: "#1c9490", emblem:
+          `<circle cx="40" cy="28" r="9.5" fill="#fffdf3" stroke="#0a5252" stroke-width="1.6"/>
+           <circle cx="40" cy="28" r="6" fill="none" stroke="#1c9490" stroke-width="1.8"/>
+           <circle cx="40" cy="28" r="2.4" fill="#e23b3b"/>` });
+      case "thorough-calc": // bronze cup, binary "101"
+        return achievementTrophy(id, { top: "#e0a066", bot: "#7a4a1e", rim: "#5e3815", base: "#7a4a1e", handle: "#a06a30",
+          emblem: `<text x="40" y="34" font-size="17" font-weight="900" text-anchor="middle" fill="#fffdf3" font-family="'Courier New',monospace">101</text>` });
+      case "very-thorough-calc": // silver cup, three stars
+        return achievementTrophy(id, { top: "#eef2f7", bot: "#93a1b2", rim: "#6f7d8c", base: "#8593a3", handle: "#aab6c4",
+          emblem: `${achvStar(31, 30, 0.8, "#ffd351")}${achvStar(40, 26, 1.15, "#ffd351")}${achvStar(49, 30, 0.8, "#ffd351")}` });
+      case "thorough-precise-calc": // platinum cup, a rainbow diamond (the ultimate)
+        return achievementTrophy(id, { top: "#f4f7fb", bot: "#b3bfcc", rim: "#8794a3", base: "#9aa6b5", handle: "#c2ccd8",
+          emblem: `<defs><linearGradient id="achv-gem-${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5f6d"/><stop offset="0.4" stop-color="#ffc371"/><stop offset="0.7" stop-color="#3ad1c8"/><stop offset="1" stop-color="#6a8cff"/></linearGradient></defs>
+           <path d="M33 22 H47 L51 27 L40 40 L29 27 Z" fill="url(#achv-gem-${id})" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round"/>
+           <path d="M33 22 L36.5 27 H29 Z M47 22 L43.5 27 H51 Z M36.5 27 H43.5 L40 40 Z" fill="#ffffff" opacity="0.22"/>`,
+          extra: `${achvStar(52, 20, 0.5, "#fff2a8")}${achvStar(27, 24, 0.4, "#fff2a8")}` });
+      case "card-inventor": // indigo cup, a lightbulb (invention)
+        return achievementTrophy(id, { top: "#9aa0f0", bot: "#312e8c", rim: "#26236e", base: "#312e8c", handle: "#4a46b5", emblem:
+          `<circle cx="40" cy="26" r="7.5" fill="#fff6c9" stroke="#26236e" stroke-width="1.6"/>
+           <rect x="37" y="33" width="6" height="4.5" rx="1" fill="#c7c3f0" stroke="#26236e" stroke-width="1"/>
+           <line x1="40" y1="36" x2="40" y2="26" stroke="#e0a51c" stroke-width="1.4"/>
+           <g stroke="#ffd351" stroke-width="1.6" stroke-linecap="round"><line x1="40" y1="14" x2="40" y2="17"/><line x1="30" y1="18" x2="32" y2="20"/><line x1="50" y1="18" x2="48" y2="20"/></g>` });
+      case "card-saver": // steel cup, a floppy disk saving
+        return achievementTrophy(id, { top: "#8fb3d9", bot: "#1e3a5f", rim: "#152a47", base: "#1e3a5f", handle: "#33587f", emblem:
+          `<path d="M32 19 H46 L49 22 V38 H32 Z" fill="#fffdf3" stroke="#152a47" stroke-width="1.6"/>
+           <rect x="35" y="19" width="8" height="6" fill="#33587f"/>
+           <rect x="40" y="20" width="2.5" height="4" fill="#fffdf3"/>
+           <rect x="35" y="30" width="11" height="7" rx="1" fill="#33587f"/>
+           <path d="M40 40 V44 M36.5 40.5 L40 44 L43.5 40.5" fill="none" stroke="#8fb3d9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` });
+      case "card-necromancer": // spectral cup, a rising ghost
+        return achievementTrophy(id, { top: "#a884e0", bot: "#3d2470", rim: "#2c1a52", base: "#3d2470", handle: "#5b3a9e",
+          emblem: `<path d="M32 39 V28 A8 8 0 0 1 48 28 V39 L44.5 35.5 L41 39 L37.5 35.5 Z" fill="#f3f0ff" stroke="#2c1a52" stroke-width="1.4"/>
+           <circle cx="37" cy="28" r="1.7" fill="#3d2470"/><circle cx="43" cy="28" r="1.7" fill="#3d2470"/>`,
+          extra: `<g stroke="#8fffc9" stroke-width="1.6" stroke-linecap="round" opacity="0.85"><line x1="29" y1="30" x2="26" y2="27"/><line x1="51" y1="30" x2="54" y2="27"/></g>` });
+      case "useful-inventor": // amber cup, a card with a gear
+        return achievementTrophy(id, { top: "#f5c065", bot: "#a8560a", rim: "#834209", base: "#a8560a", handle: "#c9791e", emblem:
+          `<rect x="31" y="21" width="13" height="17" rx="2" fill="#fffdf3" stroke="#834209" stroke-width="1.6"/>
+           <line x1="34" y1="26" x2="41" y2="26" stroke="#c9791e" stroke-width="1.8" stroke-linecap="round"/>
+           <line x1="34" y1="30" x2="41" y2="30" stroke="#e6b64e" stroke-width="1.8" stroke-linecap="round"/>
+           <g transform="translate(46,23)"><circle r="4.6" fill="#ffcf6b" stroke="#834209" stroke-width="1.2"/><g stroke="#834209" stroke-width="1.6" stroke-linecap="round"><line x1="0" y1="-6.4" x2="0" y2="-4.4"/><line x1="0" y1="6.4" x2="0" y2="4.4"/><line x1="-6.4" y1="0" x2="-4.4" y2="0"/><line x1="6.4" y1="0" x2="4.4" y2="0"/><line x1="-4.5" y1="-4.5" x2="-3.1" y2="-3.1"/><line x1="4.5" y1="4.5" x2="3.1" y2="3.1"/><line x1="4.5" y1="-4.5" x2="3.1" y2="-3.1"/><line x1="-4.5" y1="4.5" x2="-3.1" y2="3.1"/></g><circle r="1.7" fill="#834209"/></g>` });
+      case "precise-engineer": // crimson cup, a card with a check
+        return achievementTrophy(id, { top: "#e56a8a", bot: "#7a1230", rim: "#5e0d25", base: "#7a1230", handle: "#a11c40", emblem:
+          `<rect x="31" y="20" width="18" height="18" rx="2.4" fill="#fffdf3" stroke="#5e0d25" stroke-width="1.6"/>
+           <path d="M35 29 L39 33 L46 24" fill="none" stroke="#1a9e4b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>` });
+      default:
+        return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
+          `<circle cx="40" cy="28" r="8" fill="#fffdf3" stroke="#b9781a" stroke-width="1.6"/>` });
+    }
   }
 
   // The achievements page: two columns (progress / special), each showing an
@@ -2477,8 +2653,11 @@
     const seeAll = !isStepByStepPace();
     const card = (a, locked) => `
       <div class="achv-item${locked ? " achv-locked" : ""}">
-        <div class="achv-title">${esc(a.title)}</div>
-        ${a.description ? `<div class="achv-desc">${esc(a.description)}</div>` : ""}
+        <div class="achv-icon">${renderAchievementIcon(a.id)}</div>
+        <div class="achv-text">
+          <div class="achv-title">${esc(a.title)}</div>
+          ${a.description ? `<div class="achv-desc">${esc(a.description)}</div>` : ""}
+        </div>
       </div>`;
     const column = (cat, title) => {
       const list = ACHIEVEMENTS.filter((a) => a.category === cat);
@@ -6987,12 +7166,18 @@
 
   function render() {
     syncExplanationUnlocks();
-    // Play the unlock flourish after this render paints (so the target button
-    // exists and is laid out). The flying icon lives on <body>, so the next
-    // render does not wipe it mid-animation.
+    syncAchievements();
+    // Play the unlock flourishes after this render paints (so the target buttons
+    // exist and are laid out). The flying icons live on <body>, so the next
+    // render does not wipe them mid-animation.
     if (explanationUnlockAnimationPending) {
       explanationUnlockAnimationPending = false;
       requestAnimationFrame(playExplanationUnlockAnimation);
+    }
+    if (achievementUnlockAnimationPending) {
+      const achId = achievementUnlockAnimationPending;
+      achievementUnlockAnimationPending = null;
+      requestAnimationFrame(() => playAchievementUnlockAnimation(achId));
     }
     if (state.hintSlides) return renderHintSlides();
     if (state.screen === "menu") return renderMenu();

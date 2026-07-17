@@ -354,14 +354,43 @@ button { font: inherit; }
 .achv-count { text-align: center; color: #f3d27a; font-weight: 700; }
 .achv-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 .achv-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
   padding: 0.6em 0.9em;
   border: 1px solid rgba(243, 210, 122, 0.3);
   border-radius: 10px;
   background: rgba(249, 244, 232, 0.06);
 }
+.achv-icon {
+  flex: 0 0 auto;
+  width: clamp(58px, 9vw, 76px);
+  height: clamp(58px, 9vw, 76px);
+}
+.achv-trophy {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+}
+.achv-text { flex: 1 1 auto; min-width: 0; }
 .achv-title { font-weight: 800; color: #f4ead2; }
 .achv-desc { color: #cfc4ac; font-size: 0.92em; margin-top: 3px; line-height: 1.4; }
-.achv-locked { opacity: 0.42; filter: grayscale(0.6); }
+.achv-locked { opacity: 0.5; }
+.achv-locked .achv-trophy { filter: grayscale(0.85) brightness(0.85) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)); }
+
+/* The "new achievement unlocked" flourish: the earned trophy flies from the
+   centre of the screen into the topbar's השיגים button. */
+.achv-unlock-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: clamp(84px, 13vw, 150px);
+  height: clamp(84px, 13vw, 150px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  will-change: transform, opacity;
+}
+.achv-unlock-fly svg { width: 100%; height: 100%; }
 
 /* The "new explanation unlocked" flourish: an icon that flies from the centre
    of the screen into the topbar's הסברים button. */

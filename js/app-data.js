@@ -324,9 +324,27 @@
 
   // Player achievements, shown on the "השיגים" page. Each entry:
   //   { id, title, description, category: "progress" | "special" }
-  // The list is intentionally empty for now (to be filled in later); the page
-  // renders the two category columns and their counts from whatever is here.
-  const ACHIEVEMENTS = [];
+  // The page renders two category columns ("progress" / "special") with their
+  // counts. Order within a category is the display order. Each id maps to a
+  // unique colourful trophy icon (see renderAchievementIcon in app.js).
+  const ACHIEVEMENTS = [
+    // Progress: milestones along the main storyline.
+    { id: "card-creator", title: "יוצר כרטיסים", description: "יצרת את הכרטיס הראשון שלך.", category: "progress" },
+    { id: "boolean-engineer", title: "מהנדס בוליאני", description: "השלמת את כל הכרטיסים של פרק 2.2.", category: "progress" },
+    { id: "routing-engineer", title: "מהנדס נתובים", description: "השלמת את כל הכרטיסים של פרק 2.3.", category: "progress" },
+    { id: "calculator", title: "מחשב", description: "השלמת את משימות החשבון שבחוברת.", category: "progress" },
+    // Special: side accomplishments and mastery.
+    { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
+    { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
+    { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
+    { id: "very-thorough-calc", title: "מחשב יסודי מאוד", description: "חזרת ופתרת בהצלחה את כל משימות החישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
+    { id: "thorough-precise-calc", title: "מחשב יסודי ומדויק", description: "פתרת את כל משימות החישוב של פרק 2.5 בניסיון הראשון.", category: "special" },
+    { id: "card-inventor", title: "ממציא כרטיסים", description: "יצרת כרטיס חדש בפעם הראשונה.", category: "special" },
+    { id: "card-saver", title: "שומר כרטיסים", description: "שמרת כרטיס לדיסק הקשיח.", category: "special" },
+    { id: "card-necromancer", title: "מעלה מן האוב", description: "טענת כרטיס מהדיסק הקשיח.", category: "special" },
+    { id: "useful-inventor", title: "ממציא שימושי", description: "השתמשת בכרטיס מ\"הכרטיסים שלי\" כדי להשלים בהצלחה משימת יצירת כרטיס.", category: "special" },
+    { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" }
+  ];
 
   const EXPLANATION_ITEMS = [
     { id: "nand-intro", title: "הצגת ה־Nand" },
