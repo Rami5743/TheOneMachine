@@ -3350,8 +3350,14 @@ object.panel-image.is-pending {
   text-align: center;
   font-size: 1.05rem;
 }
-.bin-solution-caption p { margin: 0; }
+.bin-solution-caption p { margin: 0 0 4px; }
 .bin-solution-caption strong { color: #1c2c5a; }
+.bin-methods {
+  margin: 4px 0;
+  padding-inline-start: 26px;
+  text-align: start;
+}
+.bin-methods li { margin: 2px 0; }
 
 /* The dec→bin decomposition chain (V = 32 + 11 = ...), emphasised. */
 .bin-chain {

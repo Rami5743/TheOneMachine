@@ -5568,8 +5568,9 @@
   const BIN_BOOKLET_SEED = 1943;
   // Frozen teaching values (the rest come from the seeded generator, keyed by
   // index, so exercise N is always the same). bin2dec[0] = 22 = 10110₂.
-  const BIN2DEC_HARDCODED = [22, 45, 27, 53, 38];
-  const DEC2BIN_HARDCODED = [11, 26, 43, 52, 37];
+  // All values stay above 40 (and ≤ 63, i.e. six-bit) in both directions.
+  const BIN2DEC_HARDCODED = [45, 53, 43, 58, 51];
+  const DEC2BIN_HARDCODED = [43, 52, 58, 45, 49];
   // The booklet uses the same squared-paper grid as the arithmetic notebook:
   // the task is pre-printed on one row, every other cell is free scribble
   // space, and only the answer cells (right of the "=") are checked.
@@ -5595,7 +5596,7 @@
     if (index < hard.length) return hard[index];
     const salt = stage === "dec2bin" ? 777 : 0;
     const rng = mulberry32((BIN_BOOKLET_SEED + Math.imul(index + salt, 2654435761)) >>> 0);
-    return 8 + Math.floor(rng() * 56); // 8..63 → 4–6 bit numbers
+    return 41 + Math.floor(rng() * 23); // 41..63 → above 40, six-bit
   }
 
   function openBinaryBooklet() {
@@ -5643,7 +5644,9 @@
     if (nb.stage === "bin2dec") {
       const bin = toBinaryString(nb.value);
       binLen = bin.length;
-      const w = BIN2DEC_ANS_W;
+      // Exactly as many answer cells as the decimal answer has digits — no
+      // guard cells to accidentally fill, and only those get tinted/graded.
+      const w = String(nb.value).length;
       const total = bin.length + 1 /*₂*/ + 1 /*=*/ + w;
       let c = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
       binStart = c;
@@ -5678,11 +5681,10 @@
   // digit count has to be right — the point of the dec→bin task).
   function binSolved(nb) {
     const { row, answerCols, expected } = binLayout(nb);
-    for (let i = 0; i < answerCols.length; i++) {
-      const want = i < expected.length ? expected[i] : "";
-      if ((nb.cells?.[`${row},${answerCols[i]}`] || "") !== want) return false;
-    }
-    return true;
+    // Read the answer cells left→right, ignoring invisible characters (spaces):
+    // a whitespace-only cell counts as empty. Only the answer cells are graded.
+    const got = answerCols.map((c) => String(nb.cells?.[`${row},${c}`] || "").trim()).join("");
+    return got === expected;
   }
   function binClean(nb) {
     return (nb.failCount || 0) === 0 && !nb.hintUsed;
@@ -6017,7 +6019,9 @@
 
     const steps = [];
     steps.push({
-      text: "יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי: (1) להתחיל מהספרה המשמעותית ביותר; (2) להתחיל מספרת האחדות. השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה. כאן נדגים את הדרך הראשונה.",
+      html: '<p>יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי:</p>'
+        + '<ol class="bin-methods"><li>להתחיל מהספרה המשמעותית ביותר.</li><li>להתחיל מהספרה הכי פחות משמעותית (ספרת האחדות).</li></ol>'
+        + '<p>השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה.</p>',
       cells: {}, highlight: []
     });
     steps.push({
@@ -6135,8 +6139,9 @@
       const chainHtml = step.chain
         ? `<div class="bin-chain" dir="ltr">${esc(step.chain.head)}${step.chain.tail ? `<strong>${esc(step.chain.tail)}</strong>` : ""}</div>`
         : "";
+      const capBody = step.html ? step.html : binParagraphsHtml(step.text);
       footer = `
-        <div class="bin-solution-caption">${binParagraphsHtml(step.text)}${chainHtml}</div>
+        <div class="bin-solution-caption">${capBody}${chainHtml}</div>
         <div class="notebook-actions">
           ${prev}
           <button class="btn btn-primary" data-action="${nextAction}" type="button">${esc(nextLabel)}</button>
