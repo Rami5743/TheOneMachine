@@ -28,6 +28,13 @@ hands-on chip-building and arithmetic tasks.
 - Commit AND push after each logical step; end commit messages with the Co-Authored-By / Claude-Session trailer the harness gives you.
 - Use the GitHub MCP tools (`mcp__github__*`) for any GitHub operations.
 
+### Routine for preparing to push to main (שגרת הכנה לדחיפה לראשי)
+We do NOT push to main casually — but when I explicitly ask to push to main / release, prepare the build first:
+1. **Flip the default pace to step-by-step.** `const DEFAULT_PACE` in `js/app.js` (~line 442) is deliberately kept at `"all"` (see-everything) during development for free testing. Set it to `"step"` right before the push — this one constant is the flip point, and step-by-step is the real default for players.
+2. **Guard unfinished paths with "המשך יבוא".** Make sure every not-yet-implemented path a player can reach shows a `"המשך יבוא..."` notice (an info/task dialog) instead of dead-ending or breaking — so the released build never strands the player.
+3. Bump `?v=` versions (as always) and commit/push.
+4. **After the push, when resuming development, flip `DEFAULT_PACE` back to `"all"`** so testing is fast again.
+
 ## Files
 
 - `index.html` — script/style tags with `?v=` cache versions (bump on change).
