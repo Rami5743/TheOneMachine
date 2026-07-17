@@ -525,16 +525,14 @@
     myCardsIntroSeen: false,
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
-    // True while the "נקה התקדמות" warning dialog is open in the booklet.
-    binClearConfirm: false,
     // Which task note's "נקה התקדמות" warning is open ("boolean" | "routing" |
     // "buses" | "multibit"), or null when none.
     noteClearConfirm: null,
     // Transient input state for a story panel that gates advancement behind a
     // numeric answer: { value, feedback }.
     panelAnswer: null,
-    // True while the "מילים ובתים" enrichment reading dialog is open.
-    wordsBytesDialog: false,
+    // The "מילים ובתים" reading dialog: null when closed, else { page }.
+    wordsBytesDialog: null,
     maxChapterReached: 0,
     // Furthest story-panel index reached, keyed by scene id. Drives the
     // step-by-step skip gate: skip is disabled until the target panel has been
@@ -1082,7 +1080,7 @@
       componentMonologue: null,
       busesNoteList: false,
       panelAnswer: null,
-      wordsBytesDialog: false
+      wordsBytesDialog: null
     };
   }
 
@@ -1204,7 +1202,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -2306,7 +2304,7 @@
     // screen (the explanations menu) rather than replaying a story scene.
     if (id === "words-bytes") {
       if (!explanationUnlocked("words-bytes")) return;
-      return setState({ wordsBytesDialog: true }, false);
+      return setState({ wordsBytesDialog: { page: 0 } }, false);
     }
   }
 
@@ -2477,20 +2475,43 @@
   // The "מילים ובתים" enrichment reading, shown in a scrollable dialog over
   // whichever screen opened it (the explanations menu, or the story via the red
   // link on the last bits-range slide).
+  function wordsBytesParagraphs() {
+    return typeof WORDS_BYTES_PARAGRAPHS !== "undefined" ? WORDS_BYTES_PARAGRAPHS : [];
+  }
+  // The reading is paged one paragraph at a time; ← advances, → goes back (RTL),
+  // matching the story/booklet navigation.
   function renderWordsBytesDialog() {
     if (!state.wordsBytesDialog) return "";
-    const paras = (typeof WORDS_BYTES_PARAGRAPHS !== "undefined" ? WORDS_BYTES_PARAGRAPHS : [])
-      .map((p) => `<p>${esc(p)}</p>`).join("");
+    const paras = wordsBytesParagraphs();
+    const total = Math.max(1, paras.length);
+    const page = Math.min(Math.max(0, Number(state.wordsBytesDialog.page) || 0), total - 1);
+    const isFirst = page === 0;
+    const isLast = page >= total - 1;
+    const prev = navButton("words-bytes-prev", "arrow-right", "הקודם", { disabled: isFirst });
+    const next = isLast
+      ? `<button class="btn btn-primary" data-action="words-bytes-close" type="button">סיום</button>`
+      : navButton("words-bytes-next", "arrow-left", "המשך", { primary: true });
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card words-bytes-card" role="dialog" aria-modal="false" aria-label="מילים ובתים">
           <h2 class="words-bytes-title">מילים ובתים</h2>
-          <div class="words-bytes-body">${paras}</div>
-          <div class="pace-dialog-actions">
-            <button class="btn btn-primary" data-action="words-bytes-close" type="button">סגור</button>
+          <div class="words-bytes-body"><p>${esc(paras[page] || "")}</p></div>
+          <div class="words-bytes-nav">
+            <button class="btn" data-action="words-bytes-close" type="button">סגור</button>
+            <span class="words-bytes-count">${page + 1} מתוך ${total}</span>
+            <div class="words-bytes-arrows">${prev}${next}</div>
           </div>
         </section>
       </div>`;
+  }
+
+  function wordsBytesStep(delta) {
+    if (!state.wordsBytesDialog) return;
+    const total = Math.max(1, wordsBytesParagraphs().length);
+    const page = Math.min(Math.max(0, Number(state.wordsBytesDialog.page) || 0), total - 1);
+    const nextPage = page + delta;
+    if (nextPage < 0 || nextPage >= total) return;
+    setState({ wordsBytesDialog: { page: nextPage } }, false);
   }
 
   // The routing cards' requirements dialog (Mux/DMux): the card's description
@@ -6652,12 +6673,6 @@
     setState({ notebook: { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
   }
 
-  function binResetEntry() {
-    const nb = state.notebook;
-    if (!nb || nb.mode === "menu") return;
-    const layout = binLayout(nb);
-    setState({ notebook: { ...nb, cells: {}, active: `${layout.row},${layout.answerCols[0]}`, dialog: null } });
-  }
 
   // Dev shortcut (Ctrl+Shift+9): fill the answer cells correctly and check.
   function binSecretSolve() {
@@ -7251,51 +7266,9 @@
         <div class="notebook-footer">
           <div class="notebook-actions">
             <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
-            ${binClearProgressButton()}
           </div>
         </div>
-        ${renderBinClearDialog()}
       </main>`;
-  }
-
-  // Whether the booklet holds any completed-task progress worth clearing.
-  function binHasProgress() {
-    return binDone().length > 0;
-  }
-
-  // "נקה התקדמות": shown when opening a booklet that already has progress. It
-  // wipes every completed task (and the current scribbles), unlike the per-
-  // exercise ↻ reset which only clears the current grid.
-  function binClearProgressButton() {
-    if (!binHasProgress()) return "";
-    return `<button class="btn notebook-clear-progress-btn" data-action="binbk-clear-open" type="button">נקה התקדמות</button>`;
-  }
-
-  function renderBinClearDialog() {
-    if (!state.binClearConfirm) return "";
-    return `
-      <div class="pace-dialog-overlay" role="presentation">
-        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
-          <p>לנקות את כל ההתקדמות בחוברת?</p>
-          <p class="my-card-delete-warn">הפעולה תמחק את כל מה שכתבת ואת כל המשימות שכבר השלמת בחוברת, ותתחיל אותה מחדש.</p>
-          <div class="pace-dialog-actions">
-            <button class="btn btn-primary" data-action="binbk-clear-confirm" type="button">נקה</button>
-            <button class="btn" data-action="binbk-clear-cancel" type="button">ביטול</button>
-          </div>
-        </section>
-      </div>`;
-  }
-
-  // Wipe the booklet's progress and restart it from a fresh first exercise.
-  function binClearProgress() {
-    const ex = freshBinExercise(BIN_STAGES[0], 0, 0);
-    setState({
-      binBookletDone: [],
-      binFirstTryClean: [],
-      binMenuResolved: [],
-      binClearConfirm: false,
-      notebook: ex
-    });
   }
 
   function renderBinaryNotebook() {
@@ -7374,8 +7347,6 @@
           <button class="btn btn-primary" data-action="binbk-check" type="button">בדיקה</button>
           ${hintButton}
           <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
-          ${binClearProgressButton()}
-          <button class="btn notebook-reset-btn" data-action="binbk-reset" type="button" aria-label="נקה">↻</button>
         </div>`;
     }
 
@@ -7386,7 +7357,6 @@
         <div class="notebook-page bin-notebook-page">${rows.join("")}</div>
         <div class="notebook-footer">${footer}</div>
         ${inGrid ? "" : renderBinaryDialog(nb)}
-        ${renderBinClearDialog()}
       </main>`;
   }
 
@@ -10965,7 +10935,6 @@
     if (action === "binary-booklet") return openBinaryBooklet();
     if (action === "binbk-cell") return binInGridSolution(state.notebook) ? binWalkAdvance() : binSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "binbk-check") return checkBinaryNotebook();
-    if (action === "binbk-reset") return binResetEntry();
     if (action === "binbk-back") return binBackToWorkshop(false);
     if (action === "binbk-retry") return binRetry();
     if (action === "binbk-hints-open") return binOpenHints();
@@ -10978,9 +10947,6 @@
     if (action === "binbk-addintro-ok") return binAddIntroOk();
     if (action === "binbk-menu-select") return binMenuSelect(button.dataset.stage);
     if (action === "binbk-menu-review") return binMenuReviewDecimal();
-    if (action === "binbk-clear-open") return setState({ binClearConfirm: true }, false);
-    if (action === "binbk-clear-cancel") return setState({ binClearConfirm: false }, false);
-    if (action === "binbk-clear-confirm") return binClearProgress();
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();
@@ -11003,8 +10969,10 @@
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "panel-answer-check") return checkPanelAnswer();
-    if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: true }, false); }
-    if (action === "words-bytes-close") return setState({ wordsBytesDialog: false }, false);
+    if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: { page: 0 } }, false); }
+    if (action === "words-bytes-close") return setState({ wordsBytesDialog: null }, false);
+    if (action === "words-bytes-prev") return wordsBytesStep(-1);
+    if (action === "words-bytes-next") return wordsBytesStep(1);
     if (action === "arith-tasks-note") return setState({ infoDialog: "המשך יבוא..." });
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
@@ -11132,6 +11100,22 @@
   window.addEventListener("blur", cancelActiveDragNow);
 
   document.addEventListener("keydown", (event) => {
+    // The paged "מילים ובתים" reading: ← / space / Enter advance (Enter closes on
+    // the last page), → goes back, Esc closes. Captured before everything else.
+    if (state.wordsBytesDialog) {
+      const total = Math.max(1, wordsBytesParagraphs().length);
+      const page = Math.min(Math.max(0, Number(state.wordsBytesDialog.page) || 0), total - 1);
+      if (event.key === "Escape") { event.preventDefault(); return setState({ wordsBytesDialog: null }, false); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return wordsBytesStep(-1); }
+      if (event.key === "ArrowLeft" || event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        if (page >= total - 1) return setState({ wordsBytesDialog: null }, false);
+        return wordsBytesStep(1);
+      }
+      event.preventDefault();
+      return;
+    }
+
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {
       const actionElement = event.target.closest("[data-action]");
       if ((event.key === "Enter" || event.key === " ") && actionElement?.dataset.action === "explanations-return-to-menu") {
