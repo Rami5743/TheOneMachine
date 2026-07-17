@@ -6142,7 +6142,7 @@
     // below it instead of re-writing it.
     let cr = row + 1;
     steps.push({
-      text: firstTime ? "אפשר לכתוב את זה גם בטור." : "נמיר את המספר בטור.",
+      text: firstTime ? "אפשר לכתוב את זה גם בטור." : "שיטה ראשונה",
       cells: { ...colCum }, highlight: [], underline: []
     });
     const allSubCells = [];
@@ -6234,6 +6234,38 @@
         m /= 2; putN(m2, nr, m); nr += 1;
       }
       steps.push({ text: "וממשיכים עד שהמספר נגמר. מקבלים שוב את אותה התשובה.", cells: { ...m2 }, highlight: allAnsCells });
+    } else {
+      // Compact second method for later presentations: find the units digit
+      // from the parity, subtract it if needed, halve, and repeat — two
+      // explicit digit cycles, then continue with the remainder.
+      const numUnits = startCol + decStr.length - 1;
+      const putN = (cells, gr, n) => {
+        const s = String(n); const out = [];
+        for (let i = 0; i < s.length; i++) { const c = numUnits - s.length + 1 + i; cells[`${gr},${c}`] = s[i]; out.push(`${gr},${c}`); }
+        return out;
+      };
+      const m2 = {};
+      let nr = row + 1;
+      let bj = 0;
+      const allAnsCells = [];
+      const writeBit = (val) => { const c = layout.ansStart + (bin.length - 1 - bj); m2[`${row},${c}`] = String(val); bj += 1; allAnsCells.push(`${row},${c}`); return `${row},${c}`; };
+
+      steps.push({ text: "שיטה שניה", cells: {}, highlight: [] });
+
+      let m = V;
+      for (let cyc = 0; cyc < 2 && m > 0; cyc++) {
+        const bc = writeBit(m % 2);
+        steps.push({ text: cyc === 0 ? "מוצאים את ספרת האחדות." : "מוצאים את הספרה הבאה.", cells: { ...m2 }, highlight: [bc] });
+        if (m % 2 === 1) { m -= 1; const rc = putN(m2, nr, m); nr += 1; steps.push({ text: "מפחיתים.", cells: { ...m2 }, highlight: rc }); }
+        m /= 2; const dc = putN(m2, nr, m); nr += 1; steps.push({ text: "מחלקים ב-2.", cells: { ...m2 }, highlight: dc });
+      }
+      while (m > 0) {
+        writeBit(m % 2);
+        if (m % 2 === 1) { m -= 1; putN(m2, nr, m); nr += 1; }
+        if (m === 0) break;
+        m /= 2; putN(m2, nr, m); nr += 1;
+      }
+      steps.push({ text: "וממשיכים הלאה.", cells: { ...m2 }, highlight: allAnsCells });
     }
 
     return steps;
