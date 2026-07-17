@@ -336,7 +336,13 @@
     { id: "gate-And", title: "And" },
     { id: "gate-Or", title: "Or" },
     { id: "gate-Mux", title: "Mux" },
-    { id: "gate-DMux", title: "DMux" }
+    { id: "gate-DMux", title: "DMux" },
+    // The חשבון buttons: each opens a sample exercise's solution. They unlock
+    // once that exercise's solution has been seen.
+    { id: "arith-dec-add", title: "חיבור עשרוני" },
+    { id: "arith-bin2dec", title: "המרה מכתיב בינרי לכתיב עשרוני" },
+    { id: "arith-dec2bin", title: "המרה מכתיב עשרוני לכתיב בינרי" },
+    { id: "arith-binadd", title: "חיבור בינרי" }
   ];
 
   const BIT_EXPLANATION_STEPS = [

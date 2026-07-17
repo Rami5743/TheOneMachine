@@ -2219,6 +2219,25 @@
     }, false);
   }
 
+  // A חשבון explanation opens a sample exercise's solution and returns to the
+  // explanations menu when done (flagged fromExplanations).
+  function openArithExplanationSolution(arith) {
+    if (arith === "dec-add") {
+      const nb = freshNotebook(0);
+      nb.dialog = "solution";
+      nb.solutionStep = 0;
+      nb.fromExplanations = true;
+      setState({ screen: "notebook", notebook: nb }, false);
+      return;
+    }
+    if (!["bin2dec", "dec2bin", "binadd"].includes(arith)) return;
+    const ex = freshBinExercise(arith, 0, 0);
+    ex.dialog = "walkthrough";
+    ex.walkStep = 0;
+    ex.fromExplanations = true;
+    setState({ screen: "notebook", notebook: ex }, false);
+  }
+
   function previousExplanationPanel() {
     if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
     if (explanationReplayActive("nand-intro")) {
@@ -2272,7 +2291,16 @@
       inGame: ["why-route", { gates: ["Mux", "DMux"], mode: "routing-info" }],
       enrichment: []
     },
-    { title: "חשבון", inGame: [], enrichment: [] }
+    {
+      title: "חשבון",
+      inGame: [
+        { arith: "dec-add", label: "חיבור עשרוני" },
+        { arith: "bin2dec", label: "המרה מכתיב בינרי לכתיב עשרוני" },
+        { arith: "dec2bin", label: "המרה מכתיב עשרוני לכתיב בינרי" },
+        { arith: "binadd", label: "חיבור בינרי" }
+      ],
+      enrichment: []
+    }
   ];
 
   function explanationItemHtml(spec) {
@@ -2282,6 +2310,13 @@
       return explanationUnlocked(spec)
         ? `<button class="btn btn-primary expl-item" data-action="explanation-open" data-explanation-id="${esc(spec)}" type="button">${esc(item.title)}</button>`
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
+    }
+    if (spec && spec.arith) {
+      // An arithmetic exercise solution; active once its solution has been seen.
+      const id = `arith-${spec.arith}`;
+      return explanationUnlocked(id)
+        ? `<button class="btn btn-primary expl-item" data-action="expl-arith-solution" data-arith="${esc(spec.arith)}" type="button">${esc(spec.label)}</button>`
+        : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
       // An optional (unlinked) label followed by a button per gate. The basic
@@ -5420,6 +5455,11 @@
       setState({ notebook: { variant: "binary", mode: "menu" } });
       return;
     }
+    // A sample opened from the explanations menu returns there.
+    if (state.notebook?.fromExplanations) {
+      setState({ screen: "explanations", notebook: null }, false);
+      return;
+    }
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -5434,9 +5474,10 @@
   function notebookNextExercise() {
     const nb = state.notebook;
     const next = freshNotebook((nb?.exerciseIndex || 0) + 1);
-    // Keep the booklet-review flag across exercises, so a mistake never reverts
-    // the review to the library's own back/continue behaviour.
+    // Keep the booklet-review / from-explanations flags across exercises, so a
+    // mistake never reverts to the library's own back/continue behaviour.
     if (nb?.reviewFromBooklet) next.reviewFromBooklet = true;
+    if (nb?.fromExplanations) next.fromExplanations = true;
     setState({ notebook: next });
   }
 
@@ -5490,6 +5531,8 @@
   // exercise, or the story when the exercise was solved with no mistakes).
   function notebookOpenSolution() {
     const nb = state.notebook;
+    // Seeing the decimal-addition solution unlocks its חשבון menu button.
+    unlockExplanation("arith-dec-add");
     setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, mistake: null } });
   }
 
@@ -6606,6 +6649,8 @@
 
   function binOpenWalkthrough() {
     const nb = state.notebook;
+    // Seeing a conversion/addition solution unlocks its חשבון menu button.
+    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) unlockExplanation(`arith-${nb.stage}`);
     // Opening the walkthrough from a failed attempt counts as using help.
     const hintUsed = nb.dialog === "wrong" ? true : nb.hintUsed;
     setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed, walkStep: 0 } });
@@ -6635,6 +6680,8 @@
   function binWalkthroughFinish() {
     const nb = state.notebook;
     const clean = binClean(nb);
+    // A sample opened from the explanations menu returns there when done.
+    if (nb.fromExplanations) { setState({ screen: "explanations", notebook: null }, false); return; }
     // Practising a task from the menu (once everything is done): a single pass,
     // then straight back to the menu regardless of help/mistakes.
     if (nb.fromMenu) { openBinMenu(); return; }
@@ -10240,6 +10287,7 @@
     if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
     if (action === "expl-routing-info") return setState({ explRoutingInfo: { taskId: button.dataset.taskId } }, false);
     if (action === "expl-routing-info-close") return setState({ explRoutingInfo: null }, false);
+    if (action === "expl-arith-solution") return openArithExplanationSolution(button.dataset.arith);
     if (action === "explanations-return-to-menu") return returnToExplanationsMenuFromReplay();
     if (action === "explanation-prev") return previousExplanationPanel();
     if (action === "explanation-next") return nextExplanationPanel();
