@@ -3323,10 +3323,13 @@ object.panel-image.is-pending {
   inset: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start; /* right, in RTL */
+  justify-content: flex-start; /* top */
   gap: clamp(6px, 1.6vh, 16px);
+  padding: clamp(14px, 3.2vh, 36px) clamp(20px, 3.4vw, 46px);
+  box-sizing: border-box;
   direction: rtl;
+  text-align: right;
 }
 /* The task choices read as bold handwriting on the page, not buttons — no box,
    just clickable text. */
