@@ -5591,12 +5591,17 @@
     return out;
   }
 
+  function popcount(n) { let c = 0; let v = n >>> 0; while (v) { c += v & 1; v >>>= 1; } return c; }
+
   function nthBinValue(stage, index) {
     const hard = stage === "bin2dec" ? BIN2DEC_HARDCODED : DEC2BIN_HARDCODED;
     if (index < hard.length) return hard[index];
     const salt = stage === "dec2bin" ? 777 : 0;
     const rng = mulberry32((BIN_BOOKLET_SEED + Math.imul(index + salt, 2654435761)) >>> 0);
-    return 41 + Math.floor(rng() * 23); // 41..63 → above 40, six-bit
+    // 41..63 (above 40, six-bit) with at least three 1-bits.
+    let v = 41; let guard = 0;
+    do { v = 41 + Math.floor(rng() * 23); guard += 1; } while (popcount(v) < 3 && guard < 60);
+    return v;
   }
 
   function openBinaryBooklet() {
@@ -5978,20 +5983,26 @@
     return steps;
   }
 
-  // The dec→bin solution (method 1: powers of two), drawn into the grid: a
-  // column of the powers of 2 appears on the side; the largest that fits is
-  // highlighted; the number is decomposed into a growing "V = 32 + 11 = ..."
-  // chain shown as an emphasised line under the equation (kept out of the grid
-  // cells because it can get long); finally the binary answer is written in.
+  // The dec→bin solution (method 1: powers of two), drawn entirely into the
+  // grid: a column of the powers of 2 appears on the side; the largest that
+  // fits is highlighted; the number is decomposed step by step into a chain of
+  // equalities written one below the other (each new right-hand side
+  // highlighted) so the series is seen building up; finally the binary answer
+  // is written in. The first decomposition and the next two are spelled out
+  // explicitly; only past that do we collapse the rest with "ממשיכים...".
   function binDec2binSolutionSteps(nb) {
     const layout = binLayout(nb);
     const row = layout.row;
     const V = nb.value;
     const bin = toBinaryString(V);
+    const decStr = String(V);
+    const total = decStr.length + 1 + DEC2BIN_ANS_W + 1;
+    const startCol = Math.max(0, Math.floor((BIN_NB_COLS - total) / 2));
+    const eqCol = startCol + decStr.length; // column of the equation's "="
+
     // Powers of two up to and including the first one past V.
     const powers = [];
     for (let p = 1; ; p *= 2) { powers.push(p); if (p > V) break; }
-    // Powers column on the left (right-aligned, units at col 2), top→bottom.
     const pUnitsCol = 2;
     const baseCells = {};
     const powerCells = {};
@@ -6003,6 +6014,7 @@
       for (let j = 0; j < s.length; j++) { const c = startC + j; baseCells[`${r},${c}`] = s[j]; list.push(`${r},${c}`); }
       powerCells[powers[i]] = list;
     }
+
     // Greedy decomposition into powers of two → the chain segments.
     const rhsList = [];
     const usedPowers = [];
@@ -6015,7 +6027,27 @@
     }
     const dedup = rhsList.filter((s, i) => i === 0 || s !== rhsList[i - 1]);
     const topPower = chosen[0];
-    const fullChain = { head: `${V} = ${dedup.join(" = ")}`, tail: "" };
+
+    // Which segments get their own row: the first decomposition, then up to two
+    // explicit "same again" steps; anything past that collapses to the final.
+    const shown = [];
+    for (let i = 0; i < dedup.length && i < 3; i++) shown.push({ seg: i, mode: i === 0 ? "write" : "same" });
+    if (dedup.length > 3) shown.push({ seg: dedup.length - 1, mode: "continue" });
+
+    // Place a chain equation string on a grid row; return its cells and the
+    // cells of the right-hand side (after the "=").
+    function placeChain(gridRow, sCol, str) {
+      const cells = {};
+      const rhs = [];
+      let eqSeen = false;
+      for (let j = 0; j < str.length; j++) {
+        const c = sCol + j;
+        cells[`${gridRow},${c}`] = str[j];
+        if (eqSeen) rhs.push(`${gridRow},${c}`);
+        if (str[j] === "=") eqSeen = true;
+      }
+      return { cells, rhs };
+    }
 
     const steps = [];
     steps.push({
@@ -6032,22 +6064,30 @@
       text: `החזקה הגדולה ביותר של 2 שנכנסת לתוך @[${V}] היא @[${topPower}].`,
       cells: { ...baseCells }, highlight: powerCells[topPower] || []
     });
-    for (let i = 0; i < dedup.length; i++) {
+    const cum = { ...baseCells };
+    let gridRow = row + 1;
+    for (let d = 0; d < shown.length; d++) {
+      const { seg, mode } = shown[d];
+      const rhs = dedup[seg].replace(/ /g, "");
+      const str = d === 0 ? `${decStr}=${rhs}` : `=${rhs}`;
+      const sCol = d === 0 ? startCol : eqCol;
+      const placed = placeChain(gridRow, sCol, str);
+      Object.assign(cum, placed.cells);
       let text;
-      if (i === 0) text = `אנו יכולים לכתוב את @[${V}] כך:`;
-      else if (i === dedup.length - 1) text = "ממשיכים כך עד שהמספר נגמר.";
-      else { const prevRem = dedup[i - 1].split(" + ").pop(); text = `כעת חוזרים על אותו התהליך עם @[${prevRem}].`; }
-      const head = `${V} = ` + dedup.slice(0, i).map((s) => s + " = ").join("");
-      steps.push({ text, cells: { ...baseCells }, highlight: [], chain: { head, tail: dedup[i] } });
+      if (mode === "write") text = `אנו יכולים לכתוב את @[${V}] כך:`;
+      else if (mode === "continue") text = "ממשיכים כך עד שהמספר נגמר.";
+      else { const prevRem = dedup[seg - 1].split(" + ").pop(); text = `עושים את אותו הדבר עם @[${prevRem}].`; }
+      steps.push({ text, cells: { ...cum }, highlight: placed.rhs });
+      gridRow += 1;
     }
     steps.push({
       text: "כעת רואים אילו ספרות הן @[1] — אלה שהחזקה המתאימה שלהן מופיעה בפירוק — ואילו @[0] (אלה שלא מופיעות).",
-      cells: { ...baseCells }, highlight: usedPowers.flatMap((p) => powerCells[p] || []), chain: fullChain
+      cells: { ...cum }, highlight: usedPowers.flatMap((p) => powerCells[p] || [])
     });
     const ansCells = [];
-    const withAns = { ...baseCells };
+    const withAns = { ...cum };
     for (let i = 0; i < bin.length; i++) { const c = layout.ansStart + i; withAns[`${row},${c}`] = bin[i]; ansCells.push(`${row},${c}`); }
-    steps.push({ text: "נקבל את הפתרון.", cells: withAns, highlight: ansCells, chain: fullChain });
+    steps.push({ text: "נקבל את הפתרון.", cells: withAns, highlight: ansCells });
     return steps;
   }
 
@@ -6073,6 +6113,16 @@
     const steps = binSolutionSteps(nb);
     const next = Math.min(Math.max(0, (nb.walkStep || 0) + delta), steps.length - 1);
     setState({ notebook: { ...nb, walkStep: next } });
+  }
+
+  // A plain click anywhere during the solution advances it, exactly like the
+  // "המשך" button (and finishes on the last step).
+  function binWalkAdvance() {
+    const nb = state.notebook;
+    if (!nb) return;
+    const steps = binSolutionSteps(nb);
+    if ((nb.walkStep || 0) >= steps.length - 1) binWalkthroughFinish();
+    else binWalkStep(1);
   }
 
   // The walkthrough always ends by moving on: a clean solve advances to the
@@ -6136,12 +6186,9 @@
       const prev = stepIndex > 0 ? '<button class="btn" data-action="binbk-walk-prev" type="button">הקודם</button>' : "";
       const nextLabel = isLast ? (binClean(nb) ? "המשך" : "תרגיל נוסף") : "המשך";
       const nextAction = isLast ? "binbk-walk-finish" : "binbk-walk-next";
-      const chainHtml = step.chain
-        ? `<div class="bin-chain" dir="ltr">${esc(step.chain.head)}${step.chain.tail ? `<strong>${esc(step.chain.tail)}</strong>` : ""}</div>`
-        : "";
       const capBody = step.html ? step.html : binParagraphsHtml(step.text);
       footer = `
-        <div class="bin-solution-caption">${capBody}${chainHtml}</div>
+        <div class="bin-solution-caption">${capBody}</div>
         <div class="notebook-actions">
           ${prev}
           <button class="btn btn-primary" data-action="${nextAction}" type="button">${esc(nextLabel)}</button>
@@ -6167,7 +6214,7 @@
       ${topbar()}
       <main class="screen notebook-screen">
         <div class="bin-prompt">${esc(binTaskPrompt(nb))}</div>
-        <div class="notebook-page">${rows.join("")}</div>
+        <div class="notebook-page bin-notebook-page">${rows.join("")}</div>
         <div class="notebook-footer">${footer}</div>
         ${inGrid ? "" : renderBinaryDialog(nb)}
       </main>`;
@@ -9452,6 +9499,13 @@
 
     const button = event.target.closest("[data-action]");
     if (!button) {
+      // During the booklet solution a plain click anywhere advances it, like
+      // the "המשך" button (but not clicks inside the movable window itself).
+      if (state.screen === "notebook" && binInGridSolution(state.notebook) && !event.target.closest(".nb-window")) {
+        event.preventDefault();
+        return binWalkAdvance();
+      }
+
       if (state.hintSlides && event.target.closest(".image-shell")) {
         event.preventDefault();
         return nextHintSlide();
