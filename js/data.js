@@ -764,9 +764,12 @@ const SCENES = {
         "image": "assets/panels/panel107_chapter_2_5_workshop.svg",
         "year": "1943",
         "read": "",
-        "comment": "Click-zones live in panel107_chapter_2_5_workshop.svg (editable in Inkscape). Object rects link to reference articles; the exercise booklet is an 'action' rect (binary-booklet) whose destination is not built yet. The position below is a fallback for the booklet button before the SVG posts.",
+        "comment": "Click-zones live in panel107_chapter_2_5_workshop.svg (editable in Inkscape). Object rects link to reference articles; the action rects (binary-booklet, the bus/splitter crates and the NAND) get their precise geometry from the SVG — the percentages below are fallbacks before the SVG posts. The bus/splitter/NAND zones are reused from the 2.4 worktable (same image); the table zone is injected by warehouse-hotspots.js.",
         "hotspots": [
-          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 }
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
       }
     ]

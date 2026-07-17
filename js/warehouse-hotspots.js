@@ -236,7 +236,10 @@
   const FREE_WORKSPACE = {
     "chapter-5": { chapterId: "chapter-5", sceneId: "simple-gates", panelIndex: 4 },
     "chapter-6": { chapterId: "chapter-6", sceneId: "complex-gates", panelIndex: 5 },
-    "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 }
+    "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 },
+    // The 2.5 binary workshop table opens a free workbench in chapter 2.5, so
+    // every card unlocked through the earlier chapters is available.
+    "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 }
   };
 
   function openFreeWorkspace(kind = "chapter-5") {
@@ -320,7 +323,7 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we
@@ -329,7 +332,13 @@
     const sig = kind + "|" + JSON.stringify(items) + "|" + (wantsTable ? JSON.stringify(table) : "none");
 
     ensureStyle();
-    if (shell.querySelector(".warehouse-object-hotspot") && shell.dataset.warehouseSig === sig) return;
+    // The "already rendered" guard must recognise EITHER kind of injected
+    // hotspot. On a table-only panel (the 2.5 workshop posts a table but its
+    // object rects arrive a beat later) there is no object hotspot to find, so
+    // keying the guard on the object hotspot alone would let every mutation tick
+    // rebuild the table, and each rebuild re-triggers the observer — a runaway
+    // loop. Matching the table hotspot too lets the guard settle.
+    if (shell.querySelector(".warehouse-object-hotspot,.warehouse-table-hotspot") && shell.dataset.warehouseSig === sig) return;
     removeHotspots();
     shell.dataset.warehouseSig = sig;
 

@@ -1141,7 +1141,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8") && workspace.unlocked
     );
 
     return {
@@ -1559,9 +1559,11 @@
       .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
     // In the multi-bit routing build (chapter 2.5) EVERY earlier card is offered,
     // even if the learner skipped ahead and never built it — otherwise the task
-    // (which needs MUX16/DMUX) would be impossible. Elsewhere only completed
-    // cards appear, preserving the build progression.
-    if (isMultibitTaskWorkspace()) {
+    // (which needs MUX16/DMUX) would be impossible. The 2.5 free-build table (the
+    // workshop worktable) follows the same rule: every card that was, or should
+    // have been, developed in an earlier chapter is available. Elsewhere only
+    // completed cards appear, preserving the build progression.
+    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
       return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds];
     }
     const routingCompleted = routingIds.filter(taskCompleted);

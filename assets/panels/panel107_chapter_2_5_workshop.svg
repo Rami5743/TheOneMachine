@@ -44,6 +44,27 @@
      class="hotspot hotspot-action" pointer-events="none"
      style="opacity:0;fill:#ff2fb0" x="845" y="800" width="165" height="125" />
 
+  <!-- Warehouse action zones copied from panel99 (same worktable image): the
+       bus/splitter crates open their explanation monologues, the NAND opens the
+       "want to hear it again?" flow, and the work-table zone opens the free
+       workbench. The panel99 note zone is intentionally omitted here. -->
+  <rect id="hotspot-action-buses-crate-right"
+     data-hotspot="action" data-action="buses-crate-right" data-aria-label="האגף הימני של הארגז החדש"
+     class="hotspot hotspot-action" pointer-events="none"
+     style="opacity:0;fill:#ffb000" x="843.02472" y="318.3826" width="100" height="138.49005" />
+  <rect id="hotspot-action-buses-crate-left"
+     data-hotspot="action" data-action="buses-crate-left" data-aria-label="האגף השמאלי של הארגז החדש"
+     class="hotspot hotspot-action" pointer-events="none"
+     style="opacity:0;fill:#ffb000" x="710.46582" y="318.3826" width="131.67651" height="126.1714" />
+  <rect id="hotspot-action-return-to-nand-dialog"
+     data-hotspot="action" data-action="return-to-nand-dialog" data-aria-label="הקש על NAND"
+     class="hotspot hotspot-action" pointer-events="none"
+     style="opacity:0;fill:#ff2fb0" x="592.67651" y="621.95593" width="229.32349" height="224.04407" />
+  <rect id="hotspot-table"
+     data-hotspot="table" data-label="שולחן עבודה"
+     class="hotspot hotspot-table" pointer-events="none"
+     style="opacity:0;fill:#37d67a" x="174.91672" y="565.95111" width="1021.6518" height="428.17142" />
+
   <script type="text/javascript"><![CDATA[
 (function () {
   var PANEL = "panel107_chapter_2_5_workshop";
@@ -79,6 +100,8 @@
       if (!g) continue;
       if (kind === "object") {
         out.objects.push({ id: r.getAttribute("data-id") || r.id || "", label: r.getAttribute("data-label") || "", url: r.getAttribute("data-url") || "", x: g.x, y: g.y, w: g.w, h: g.h });
+      } else if (kind === "table") {
+        out.table = { label: r.getAttribute("data-label") || "שולחן עבודה", x: g.x, y: g.y, w: g.w, h: g.h };
       } else if (kind === "action") {
         var a = r.getAttribute("data-action");
         if (a) { out.actions[a] = { x: g.x, y: g.y, w: g.w, h: g.h }; }
