@@ -1868,10 +1868,46 @@
     return Array.isArray(state.explanationsUnlocked) && state.explanationsUnlocked.includes(id);
   }
 
+  // Set when an explanation is unlocked for the first time; the next render
+  // plays a short "icon flies into the הסברים button" animation.
+  let explanationUnlockAnimationPending = false;
+
   function unlockExplanation(id) {
     if (!explanationItem(id) || explanationUnlocked(id)) return;
     state.explanationsUnlocked = [...(Array.isArray(state.explanationsUnlocked) ? state.explanationsUnlocked : []), id];
+    explanationUnlockAnimationPending = true;
     saveState();
+  }
+
+  // A quick, deliberately noticeable flourish: an explanation icon appears at the
+  // centre of the screen and is drawn into the topbar's הסברים button, so the
+  // learner notices a new explanation has become available.
+  function playExplanationUnlockAnimation() {
+    const target = document.querySelector('.topbar [data-action="explanations"]');
+    if (!target || typeof target.animate !== "function") return;
+    const tr = target.getBoundingClientRect();
+    const startX = window.innerWidth / 2;
+    const startY = window.innerHeight / 2;
+    const dx = (tr.left + tr.width / 2) - startX;
+    const dy = (tr.top + tr.height / 2) - startY;
+    const fly = document.createElement("div");
+    fly.className = "expl-unlock-fly";
+    fly.style.left = `${startX}px`;
+    fly.style.top = `${startY}px`;
+    fly.innerHTML = navIcon("grad-cap");
+    document.body.appendChild(fly);
+    const anim = fly.animate([
+      { transform: "translate(-50%,-50%) scale(0.5)", opacity: 0, offset: 0 },
+      { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.22 },
+      { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: 0.42 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0.15, offset: 1 }
+    ], { duration: 780, easing: "cubic-bezier(.4,0,.25,1)" });
+    anim.onfinish = () => fly.remove();
+    anim.oncancel = () => fly.remove();
+    // A little pop on the button as the icon lands.
+    target.animate([
+      { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
+    ], { duration: 320, delay: 560, easing: "ease-out" });
   }
 
   function nandIntroScene() {
@@ -2213,8 +2249,9 @@
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
-      // A plain (unlinked) label followed by the three gate buttons — not wired up yet.
-      const gates = spec.gates.map((g) => `<button class="btn expl-gate-btn" type="button">${esc(g)}</button>`).join("");
+      // A plain (unlinked) label followed by a button per gate; each opens that
+      // gate's solution walkthrough and returns to this menu when done.
+      const gates = spec.gates.map((g) => `<button class="btn expl-gate-btn" data-action="expl-gate-solution" data-task-id="${esc(g)}" type="button">${esc(g)}</button>`).join("");
       return `<div class="expl-gate-line"><span class="expl-gate-label">${esc(spec.gatesLabel)}:</span><span class="expl-gate-buttons">${gates}</span></div>`;
     }
     return "";
@@ -6761,6 +6798,13 @@
 
   function render() {
     syncExplanationUnlocks();
+    // Play the unlock flourish after this render paints (so the target button
+    // exists and is laid out). The flying icon lives on <body>, so the next
+    // render does not wipe it mid-animation.
+    if (explanationUnlockAnimationPending) {
+      explanationUnlockAnimationPending = false;
+      requestAnimationFrame(playExplanationUnlockAnimation);
+    }
     if (state.hintSlides) return renderHintSlides();
     if (state.screen === "menu") return renderMenu();
     if (state.screen === "explanations") return renderExplanationsMenu();
@@ -7858,7 +7902,7 @@
       // Show the full, correct truth table during the MUX walkthrough so the
       // highlighted rows are meaningful.
       muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : null,
-      solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0 },
+      solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0, returnToExplanations: Boolean(options.returnToExplanations) },
       workspace
     }, false);
   }
@@ -8046,6 +8090,20 @@
 
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
+    // A gate solution opened from the explanations menu just goes back there,
+    // without touching task progress or the story flow.
+    if (state.solutionDialog?.returnToExplanations) {
+      return setState({
+        screen: "explanations",
+        solutionDialog: null,
+        taskDialog: null,
+        notTest: null,
+        hintDialog: null,
+        muxTable: null,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, false);
+    }
     const shouldComplete = Boolean(state.solutionDialog?.completeOnClose);
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
@@ -10101,6 +10159,7 @@
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
+    if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
     if (action === "explanations-return-to-menu") return returnToExplanationsMenuFromReplay();
     if (action === "explanation-prev") return previousExplanationPanel();
     if (action === "explanation-next") return nextExplanationPanel();

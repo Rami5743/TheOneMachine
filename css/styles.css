@@ -305,6 +305,20 @@ button { font: inherit; }
 .expl-gate-buttons { display: flex; gap: 8px; }
 .expl-gate-btn { padding: 0.3em 0.9em; min-width: 0; }
 
+/* The "new explanation unlocked" flourish: an icon that flies from the centre
+   of the screen into the topbar's הסברים button. */
+.expl-unlock-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: clamp(52px, 8vw, 92px);
+  height: clamp(52px, 8vw, 92px);
+  color: #f3d27a;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  will-change: transform, opacity;
+}
+.expl-unlock-fly svg { width: 100%; height: 100%; }
+
 .about-card h1 {
   margin: 0;
   font-size: clamp(1.7rem, 3.5vw, 2.6rem);
