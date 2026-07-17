@@ -3137,7 +3137,6 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
-              ${panel.bubble ? `<div class="story-bubble">${esc(panel.bubble)}</div>` : ""}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button">${esc(panel.cornerLink.text)}</button>` : ""}
             </div>
           </div>

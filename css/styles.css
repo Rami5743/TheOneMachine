@@ -379,35 +379,6 @@ button { font: inherit; }
 .achv-locked { opacity: 0.5; }
 .achv-locked .achv-trophy { filter: grayscale(0.85) brightness(0.85) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)); }
 
-/* An overlaid speech bubble for scripted story slides whose text is not baked
-   into the panel art. It sits over the top of the image; clicks pass through so
-   a plain click still advances non-question slides. */
-.story-bubble {
-  position: absolute;
-  top: 4.5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(92%, 990px);
-  min-height: 44%;
-  max-height: 74%;
-  overflow-y: auto;
-  z-index: 6;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  direction: rtl;
-  text-align: right;
-  /* Opaque so it fully covers any speech bubble baked into the reused art. */
-  background: #fdfaf0;
-  color: #241a0e;
-  border: 2px solid #6b5836;
-  border-radius: 16px;
-  padding: clamp(0.7rem, 1.8vw, 1.2rem) clamp(0.9rem, 2.2vw, 1.5rem);
-  font-size: clamp(0.95rem, 1.8vw, 1.3rem);
-  line-height: 1.55;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-}
-
 /* A red "teaser" link in the top corner of a story slide (e.g. "John didn't
    tell you the whole truth — click here"). */
 .story-corner-link {

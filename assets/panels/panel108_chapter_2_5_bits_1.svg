@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs id="defs1" />
+  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel106_chapter_2_5_workshop_vn.jpg" xlink:href="panel106_chapter_2_5_workshop_vn.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble" d="M 228,45 H 1220 A 28 28 0 0 1 1248,73 V 469 A 28 28 0 0 1 1220,497 H 620 L 560,575 L 500,497 H 228 A 28 28 0 0 1 200,469 V 73 A 28 28 0 0 1 228,45 Z" fill="#ffffff" stroke="#000000" stroke-width="4.2" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext" font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="40px" font-weight="400" fill="#000000" stroke="none" xml:space="preserve"><tspan x="724" y="105" id="tline1">מצוין, אני רואה שהבנת את הפרינציפ. עכשיו צריך ללמד</tspan><tspan x="724" y="163" id="tline2">את זה את המחשב שלנו. אנחנו יכולים לייצג מספרים</tspan><tspan x="724" y="221" id="tline3">באמצעות רצף של ביטים. אם אנחנו רוצים לבנות כרטיס</tspan><tspan x="724" y="279" id="tline4">שיבצע פעולה עם מספרים, אנחנו נכניס לתוכו בסים שייצגו</tspan><tspan x="724" y="337" id="tline5">מספרים. בס ברוחב 4 יכול לייצג מספר 4 ספרתי בשיטה</tspan><tspan x="724" y="395" id="tline6">הבינרית. אני לא בטוח שזה מספיק לנו. מה המספר הכי</tspan><tspan x="724" y="453" id="tline7">גדול שאפשר לייצג כך?</tspan></text>
+  </g>
+</svg>
