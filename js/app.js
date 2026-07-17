@@ -5286,7 +5286,11 @@
 
   function notebookNextExercise() {
     const nb = state.notebook;
-    setState({ notebook: freshNotebook((nb?.exerciseIndex || 0) + 1) });
+    const next = freshNotebook((nb?.exerciseIndex || 0) + 1);
+    // Keep the booklet-review flag across exercises, so a mistake never reverts
+    // the review to the library's own back/continue behaviour.
+    if (nb?.reviewFromBooklet) next.reviewFromBooklet = true;
+    setState({ notebook: next });
   }
 
   function notebookRetry() {
