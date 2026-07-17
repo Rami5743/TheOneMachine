@@ -262,6 +262,15 @@
     state.bitDialog = null;
     state.started = true;
     state.replayNonce = (Number(state.replayNonce) || 0) + 1;
+    // The 2.5 workshop table is a free playground with everything the learner
+    // could have built by now — including the "create new card" tool, enabled
+    // here regardless of whether it was unlocked in this playthrough. cardIntroDone
+    // is set too so enabling it does not re-arm the one-time scripted card intro.
+    if (kind === "binary-workshop") {
+      state.createCardUnlocked = true;
+      state.cardIntroDone = true;
+      state.cardIntroPending = false;
+    }
     state.workspace = {
       selectedTerminal: null,
       // A single invisible fixed component prevents the app's normalizer from

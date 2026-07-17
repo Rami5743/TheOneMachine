@@ -3325,26 +3325,33 @@ object.panel-image.is-pending {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 2.2vh, 22px);
+  gap: clamp(6px, 1.6vh, 16px);
   direction: rtl;
 }
+/* The task choices read as bold handwriting on the page, not buttons — no box,
+   just clickable text. */
 .bin-menu-item {
-  min-width: min(78%, 30rem);
-  padding: 0.7em 1.2em;
-  font-size: clamp(1rem, 2.3vw, 1.4rem);
-  font-weight: 700;
-  color: #2c2113;
-  background: rgba(249, 244, 232, 0.94);
-  border: 2px solid #6b4f2a;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  padding: 0.15em 0.4em;
+  font-size: clamp(1.05rem, 2.5vw, 1.55rem);
+  font-weight: 800;
+  color: #23303f;
+  background: none;
+  border: 0;
   cursor: pointer;
+  font-family: inherit;
 }
 .bin-menu-item:hover,
 .bin-menu-item:focus-visible {
-  background: #fff8ec;
-  border-color: #3f2d19;
   outline: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+/* A horizontal rule under the three binary tasks, above the decimal-review one. */
+.bin-menu-rule {
+  width: min(70%, 26rem);
+  height: 0;
+  border-top: 2px solid #1c2c5a;
+  margin: clamp(4px, 1vh, 12px) 0;
 }
 
 .bin-prompt {
@@ -3387,7 +3394,8 @@ object.panel-image.is-pending {
   max-width: min(92vw, 640px);
   color: #2a2416;
   text-align: center;
-  font-size: 1.05rem;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  line-height: 1.5;
 }
 .bin-solution-caption p { margin: 0 0 4px; }
 .bin-solution-caption strong { color: #1c2c5a; }

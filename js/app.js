@@ -5267,6 +5267,12 @@
   // A clean solve continues the plot: von Neumann's binary lesson, which sits
   // just after the library slides in the arithmetic scene.
   function notebookContinue() {
+    // The decimal-addition review opened from the booklet returns to the booklet
+    // menu; the library's own notebook continues the plot.
+    if (state.notebook?.reviewFromBooklet) {
+      setState({ notebook: { variant: "binary", mode: "menu" } });
+      return;
+    }
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -5348,6 +5354,8 @@
   }
 
   function notebookBackToLibrary() {
+    // From the booklet's decimal-review, "back" goes to the workshop/warehouse.
+    if (state.notebook?.reviewFromBooklet) return binBackToWorkshop(false);
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -5435,7 +5443,7 @@
         <div class="notebook-actions">
           <button class="btn btn-primary" data-action="notebook-check" type="button">בדיקה</button>
           ${hintButton}
-          <button class="btn" data-action="notebook-back-to-library" type="button">חזרה לספרייה</button>
+          <button class="btn" data-action="notebook-back-to-library" type="button">${nb.reviewFromBooklet ? "חזרה למחסן" : "חזרה לספרייה"}</button>
           <button class="btn notebook-reset-btn" data-action="notebook-reset" type="button" aria-label="נקה הכל">↻</button>
         </div>`;
     app.innerHTML = `
@@ -5467,7 +5475,7 @@
     } else if (dialog === "wrong") {
       title = "בדיקה";
       if (notebookHintsMode()) {
-        body = "<p>התשובה עדיין לא נכונה.</p>";
+        body = (nb.failCount || 0) <= 1 ? "<p>הפתרון שגוי.</p>" : "<p>הפתרון עדיין שגוי.</p>";
         actions = '<button class="btn btn-primary" data-action="notebook-retry" type="button">נסה שוב</button>';
       } else {
         const name = NB_COLUMN_NAMES[nb.mistake || 0] || "אחדות";
@@ -5710,13 +5718,17 @@
       const aBits = toBinaryString(a); const bBits = toBinaryString(b); const sumBits = toBinaryString(a + b);
       const opLen = Math.max(aBits.length, bBits.length);
       const maxLen = Math.max(opLen, sumBits.length);
-      const totalCols = maxLen + 2; // room for "+" and a gap on the left
+      const totalCols = maxLen + 3; // room for "+" and a gap on the left, "₂" on the right
       const startCol = Math.max(0, Math.floor((BIN_NB_COLS - totalCols) / 2));
       const unitsCol = startCol + 2 + maxLen - 1;
       const place = (bits, r) => { const s = String(bits); for (let i = 0; i < s.length; i++) fixed[`${r},${unitsCol - (s.length - 1) + i}`] = s[i]; };
       place(aBits, op1Row);
       place(bBits, op2Row);
       fixed[`${op2Row},${unitsCol - opLen}`] = "+"; // left of the wider operand's top bit
+      // A "₂" subscript marks every number as binary (both operands and the sum).
+      fixed[`${op1Row},${unitsCol + 1}`] = "₂";
+      fixed[`${op2Row},${unitsCol + 1}`] = "₂";
+      fixed[`${ansRow},${unitsCol + 1}`] = "₂";
       for (let i = 0; i < sumBits.length; i++) answerCols.push(unitsCol - (sumBits.length - 1) + i);
       ansStart = answerCols[0];
       const lineCols = [];
@@ -5934,7 +5946,14 @@
   // digit answer can be typed in a run (left→right). Backspace steps back.
   function handleBinaryNotebookKey(event) {
     const nb = state.notebook;
-    if (!nb || nb.mode === "menu" || nb.dialog === "walkthrough" || nb.dialog === "addintro") return;
+    // In the solution walkthrough the arrow keys step through it, like the story:
+    // → goes back, ← / space advances (and finishes on the last step).
+    if (nb && nb.dialog === "walkthrough") {
+      if (event.key === "ArrowRight") { event.preventDefault(); binWalkStep(-1); return; }
+      if (event.key === "ArrowLeft" || event.key === " ") { event.preventDefault(); binWalkAdvance(); return; }
+      return;
+    }
+    if (!nb || nb.mode === "menu" || nb.dialog === "addintro") return;
     if (event.key === "Escape") {
       if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
       return;
@@ -6479,12 +6498,9 @@
     const done = binDone().includes(nb.stage) ? binDone() : [...binDone(), nb.stage];
     const next = binFirstUnfinished(done);
     if (!next) {
-      setState({
-        ...transientUiClearPatch(),
-        binBookletDone: done,
-        screen: "story", chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7,
-        notebook: null
-      }, true);
+      // All tasks done: stay in the booklet and open its task menu (leaving to
+      // the warehouse only happens on "חזרה למחסן").
+      setState({ binBookletDone: done, notebook: { variant: "binary", mode: "menu" } });
       return;
     }
     const ex = freshBinExercise(next, 0, next === "dec2bin" ? (nb.dec2binExplainCount || 0) : 0);
@@ -6501,6 +6517,13 @@
     const ex = freshBinExercise(stage, 0, 0);
     ex.fromMenu = true;
     setState({ notebook: ex });
+  }
+  // The fourth menu choice: the library's decimal column-addition notebook, but
+  // exiting to the warehouse and returning to this menu when done.
+  function binMenuReviewDecimal() {
+    const nb = freshNotebook(0);
+    nb.reviewFromBooklet = true;
+    setState({ notebook: nb });
   }
   function binAddIntroOk() {
     const nb = state.notebook;
@@ -6524,13 +6547,19 @@
     }
     const list = BIN_MENU_TITLES.map((t) =>
       `<button class="bin-menu-item" data-action="binbk-menu-select" data-stage="${t.stage}" type="button">${esc(t.label)}</button>`).join("");
+    // A fourth choice below a rule: revisit the library's decimal column addition.
+    const review = '<button class="bin-menu-item" data-action="binbk-menu-review" type="button">חזרה על חיבור מספרים עשרוניים</button>';
     app.innerHTML = `
       ${topbar()}
       <main class="screen notebook-screen">
         <div class="bin-prompt">בחר תרגול</div>
         <div class="notebook-page bin-notebook-page bin-menu-page">
           ${rows.join("")}
-          <div class="bin-menu">${list}</div>
+          <div class="bin-menu">
+            ${list}
+            <div class="bin-menu-rule" aria-hidden="true"></div>
+            ${review}
+          </div>
         </div>
         <div class="notebook-footer">
           <div class="notebook-actions">
@@ -6591,7 +6620,9 @@
     if (inGrid) {
       const step = steps[stepIndex];
       const isLast = stepIndex >= steps.length - 1;
-      const prev = stepIndex > 0 ? '<button class="btn" data-action="binbk-walk-prev" type="button">הקודם</button>' : "";
+      // Arrow nav like the main story: ← advances (and finishes on the last
+      // step), → goes back; the keyboard arrows do the same (see the key handler).
+      const prev = stepIndex > 0 ? navButton("binbk-walk-prev", "arrow-right", "הקודם") : "";
       const nextLabel = isLast ? (binClean(nb) ? "המשך" : "תרגיל נוסף") : "המשך";
       const nextAction = isLast ? "binbk-walk-finish" : "binbk-walk-next";
       const capBody = step.html ? step.html : binParagraphsHtml(step.text);
@@ -6599,7 +6630,7 @@
         <div class="bin-solution-caption">${capBody}</div>
         <div class="notebook-actions">
           ${prev}
-          <button class="btn btn-primary" data-action="${nextAction}" type="button">${esc(nextLabel)}</button>
+          ${navButton(nextAction, "arrow-left", nextLabel, { primary: true })}
         </div>`;
     } else {
       const unlocked = binUnlockedHints(nb);
@@ -6646,7 +6677,7 @@
       actions = '<button class="btn btn-primary" data-action="binbk-walk-open" type="button">הצגת הסבר</button>';
     } else if (dialog === "wrong") {
       title = "בדיקה";
-      body = "<p>התשובה עדיין לא נכונה.</p>";
+      body = (nb.failCount || 0) <= 1 ? "<p>הפתרון שגוי.</p>" : "<p>הפתרון עדיין שגוי.</p>";
       actions = '<button class="btn btn-primary" data-action="binbk-retry" type="button">נסה שוב</button>'
         + (binSolutionAvailable(nb) ? '<button class="btn" data-action="binbk-walk-open" type="button">רוצה לראות את הפתרון</button>' : "");
     }
@@ -10083,6 +10114,7 @@
     if (action === "binbk-walk-finish") return binWalkthroughFinish();
     if (action === "binbk-addintro-ok") return binAddIntroOk();
     if (action === "binbk-menu-select") return binMenuSelect(button.dataset.stage);
+    if (action === "binbk-menu-review") return binMenuReviewDecimal();
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();
