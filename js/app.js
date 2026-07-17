@@ -59,6 +59,7 @@
   function taskDefById(taskId) {
     return TASK_DEFS.find((task) => task.id === taskId)
       || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
+      || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || null;
   }
 
@@ -326,6 +327,32 @@
       control: true,
       pins: muxPins,
       bounds: baseMux ? { ...baseMux.bounds } : { left: 64, right: 84, top: 62, bottom: 62 }
+    };
+  }
+
+  // ---- Chapter 2.5 arithmetic cards (halfAdder / fullAdder) ----------------
+  // Build frames with N input pins on the left and TWO output pins (sum on top,
+  // carry on bottom) on the right — hand-built like the DMux card because the
+  // generic TASK_DEFS loop only emits a single output pin. Registered here, at
+  // the top of the file, so the taskCard-<id> component defs exist before the
+  // initial state load (which strips components of unknown type).
+  for (const arithTask of (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : [])) {
+    if (!Number.isInteger(arithTask.inputs)) continue;
+    const cardPins = {};
+    taskInputYs(arithTask.inputs).forEach((y, index) => {
+      cardPins[`inputExt${index + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${arithTask.label} ${index + 1} חיצונית` };
+      cardPins[`inputInt${index + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${arithTask.label} ${index + 1} פנימית` };
+    });
+    cardPins.outputInt1 = { x: 260, y: -100, direction: "in", label: "יציאת sum פנימית" };
+    cardPins.outputExt1 = { x: 340, y: -100, direction: "out", label: "יציאת sum חיצונית" };
+    cardPins.outputInt2 = { x: 260, y: 100, direction: "in", label: "יציאת carry פנימית" };
+    cardPins.outputExt2 = { x: 340, y: 100, direction: "out", label: "יציאת carry חיצונית" };
+    WORKSPACE_COMPONENT_DEFS[taskCardComponentType(arithTask.id)] = {
+      label: `מסגרת ${arithTask.label}`,
+      fixed: true,
+      taskId: arithTask.id,
+      pins: cardPins,
+      bounds: { left: 340, right: 340, top: 190, bottom: 190 }
     };
   }
 
@@ -1604,6 +1631,10 @@
     const busIds = BUS_TASK_DEFS
       .map((task) => task.id)
       .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
+    // Arith cards that have a placeable gate (halfAdder, reused inside fullAdder).
+    const arithIds = ARITH_TASKS
+      .map((task) => task.id)
+      .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
     // In the multi-bit routing build (chapter 2.5) EVERY earlier card is offered,
     // even if the learner skipped ahead and never built it — otherwise the task
     // (which needs MUX16/DMUX) would be impossible. The 2.5 free-build table (the
@@ -1611,11 +1642,12 @@
     // have been, developed in an earlier chapter is available. Elsewhere only
     // completed cards appear, preserving the build progression.
     if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds];
+      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithIds];
     }
     const routingCompleted = routingIds.filter(taskCompleted);
     const busCompleted = busIds.filter(taskCompleted);
-    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted];
+    const arithCompleted = arithIds.filter(taskCompleted);
+    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted, ...arithCompleted];
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -7986,6 +8018,7 @@
     const taskId = state.workspace?.taskId;
     if (taskId === "Mux") return { columns: MUX_TABLE_COLUMNS, count: 8, empty: createEmptyMuxTable };
     if (taskId === "DMux") return { columns: DMUX_TABLE_COLUMNS, count: 4, empty: createEmptyDmuxTable };
+    if (isArithTask(taskId)) return { columns: arithScratchColumns(taskId), count: arithScratchRowCount(taskId), empty: () => arithEmptyScratchTable(taskId) };
     return null;
   }
 
@@ -8517,6 +8550,21 @@
         ? [...completedTaskIds(), taskId]
         : completedTaskIds();
 
+      // Arith cards with no solution walkthrough yet: complete and return to the
+      // 2.5 worktable with the note reopened (so the next card unlocks).
+      if (isArithTask(taskId)) {
+        return setState({
+          ...arithWorktableReturnTarget(),
+          taskDialog: null,
+          notTest: null,
+          muxTable: null,
+          completedTasks,
+          arithNoteList: true,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       return setState({
         ...secondWorkspaceExitTarget(),
         taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) },
@@ -8529,6 +8577,14 @@
     }
 
     setState({ notTest: null }, false);
+  }
+
+  // Return to the 2.5 arithmetic worktable (panel119) an arith build was opened
+  // from, so completing / leaving a card lands back on the note.
+  function arithWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-8");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    return storyTarget(returnChapter, returnPanelIndex);
   }
 
   function showTaskSolution(taskId, options = {}) {
@@ -8701,21 +8757,21 @@
     }
   ];
 
-  // The chapter 2.5 arithmetic worktable note (panel119). Four adder cards handed
-  // over by von Neumann, done in order: halfAdder is available first, and each
-  // later card waits for its predecessor. The build workspaces / engine / checks
-  // are the next piece of work; for now the note only shows the list and its
-  // sequential unlocking — clicking the available card shows "המשך יבוא...", and a
-  // locked one explains what must be built first.
-  const ARITH_TASKS = [
-    { id: "halfAdder", label: "halfAdder", requires: null },
-    { id: "fullAdder", label: "fullAdder", requires: "halfAdder" },
-    { id: "Add4", label: "Add4", requires: "fullAdder" },
-    { id: "Add16", label: "Add16", requires: "Add4" }
-  ];
-
+  // ARITH_TASKS (the chapter 2.5 worktable cards) live in js/app-data.js so they
+  // are registered as component defs at the top of this file — before the initial
+  // state load, which would otherwise strip an unknown taskCard-<id> component.
   function arithTaskDefById(id) {
     return ARITH_TASKS.find((task) => task.id === id) || null;
+  }
+
+  function isArithTask(id) {
+    return ARITH_TASKS.some((task) => task.id === id);
+  }
+
+  // Which arith cards have a real build workspace so far. The rest stay a
+  // "המשך יבוא..." placeholder in the note.
+  function arithTaskImplemented(id) {
+    return ["halfAdder", "fullAdder"].includes(id);
   }
 
   function arithTaskUnlocked(id) {
@@ -8730,8 +8786,80 @@
     return reqLabel ? `קודם צריך לבנות את ${reqLabel}` : "";
   }
 
+  // The editable scratch truth table shown alongside the arith card requirements:
+  // one input column per input, then sum + carry. 2^inputs rows.
+  function arithScratchColumns(taskId) {
+    const def = arithTaskDefById(taskId);
+    const n = def?.inputs || 2;
+    const cols = [];
+    for (let i = 1; i <= n; i += 1) cols.push(`in${i}`);
+    cols.push("sum", "carry");
+    return cols;
+  }
+
+  function arithScratchRowCount(taskId) {
+    const def = arithTaskDefById(taskId);
+    return 1 << (def?.inputs || 2);
+  }
+
+  function arithEmptyScratchTable(taskId) {
+    const cols = arithScratchColumns(taskId);
+    return Array.from({ length: arithScratchRowCount(taskId) }, () => {
+      const row = {};
+      cols.forEach((c) => { row[c] = null; });
+      return row;
+    });
+  }
+
   function openArithNote() {
     return setState({ arithNoteList: true });
+  }
+
+  // Open the build workspace for an arith card (halfAdder / fullAdder). Modeled on
+  // openTaskWorkspace (single-bit truth-table task, two output lamps) but returns
+  // to the 2.5 worktable with the arith note reopened, like the bus tasks.
+  function openArithTaskWorkspace(taskId) {
+    const task = taskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-8");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "source-1", type: "source", x: 80, y: 288 },
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
+        ...taskLampComponents(task.id)
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      arithNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: arithEmptyScratchTable(task.id),
+      workspace
+    }, false);
   }
 
   function handleArithNoteTask(id) {
@@ -8740,8 +8868,16 @@
     if (!arithTaskUnlocked(task.id)) {
       return setState({ infoDialog: arithTaskLockedMessage(task.id) });
     }
-    // The adder build workspaces are not implemented yet.
-    return setState({ infoDialog: "המשך יבוא..." });
+    if (!arithTaskImplemented(task.id)) {
+      // Add4 / Add16 build workspaces are not implemented yet.
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    // A completed card reopens its solution walkthrough (like the other tasks);
+    // an unbuilt one opens the build workspace.
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openArithTaskWorkspace(task.id);
   }
 
   // The next-tasks worktable (post-monologue) shows the multi-bit task list; the
@@ -8877,6 +9013,22 @@
         muxTable: null,
         completedTasks,
         busesNoteList: true,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // Arith cards (2.5): back to the worktable with the note reopened.
+    if (isArithTask(taskId)) {
+      return setState({
+        ...arithWorktableReturnTarget(),
+        taskDialog: null,
+        solutionDialog: null,
+        notTest: null,
+        hintDialog: null,
+        muxTable: null,
+        completedTasks,
+        arithNoteList: true,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);

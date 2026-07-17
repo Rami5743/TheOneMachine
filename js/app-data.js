@@ -216,6 +216,50 @@
     { id: "MUX16", label: "Mux16", op: "Mux", width: 16, inputs: 2, requires: "MUX4", control: true, description: "ה-Mux16 הוא כרטיס עם 3 כניסות: אחת מהכניסות היא כניסת בקרה (מלמעלה) ושתי האחרות הן בס ברוחב 16. ויציאה אחת שהיא בס ברוחב 16. אם כניסת הבקרה היא 0 אז היציאה זהה לכניסה הראשונה. אם כניסת הבקרה היא 1 אז היציאה זהה לכניסה השנייה." }
   ];
 
+  // Chapter 2.5 arithmetic worktable cards (panel119 note). Done in order:
+  // halfAdder is available first, and each later card waits for its predecessor.
+  // halfAdder/fullAdder are single-bit truth-table tasks with TWO outputs
+  // (sum/carry), built like DMux; Add4/Add16 (multi-bit, no truth table) are not
+  // implemented yet and stay a "המשך יבוא..." placeholder in the note.
+  const ARITH_TASKS = [
+    {
+      id: "halfAdder",
+      label: "halfAdder",
+      requires: null,
+      inputs: 2,
+      outputs: 2,
+      description: "ה-halfAdder הוא כרטיס עם 2 כניסות ו-2 יציאות (אחת נקראת sum ואחת carry): הכרטיס צריך לחבר את שתי הכניסות (כשחושבים עליהן כמו מספרים בין 0 ל-1) ולהוציא את התוצאה. ספרת האחדות של הסכום צריכה לצאת ב-sum ואת ספרת ה-2 צריך להוציא ב-carry. אם התוצאה היא חד-ספרתית אז ה-carry הוא 0.",
+      // outputs are [sum, carry]; sum = Xor(in1,in2), carry = And(in1,in2).
+      rows: [
+        { inputs: [false, false], outputs: [false, false] },
+        { inputs: [false, true], outputs: [true, false] },
+        { inputs: [true, false], outputs: [true, false] },
+        { inputs: [true, true], outputs: [false, true] }
+      ]
+    },
+    {
+      id: "fullAdder",
+      label: "fullAdder",
+      requires: "halfAdder",
+      inputs: 3,
+      outputs: 2,
+      description: "ה-fullAdder הוא כרטיס עם 3 כניסות ו-2 יציאות (אחת נקראת sum ואחת carry): הכרטיס צריך לחבר את שלוש הכניסות (כשחושבים עליהן כמו מספרים בין 0 ל-1) ולהוציא את התוצאה. ספרת האחדות של הסכום צריכה לצאת ב-sum ואת ספרת ה-2 צריך להוציא ב-carry. אם התוצאה היא חד-ספרתית אז ה-carry הוא 0. שים לב, סכום של 3 מספרים חד-ספרתיים לא יכול להיות יותר מדו-ספרתי. תנסה להבין למה.",
+      // outputs are [sum, carry]; sum = in1^in2^in3, carry = majority(in1,in2,in3).
+      rows: [
+        { inputs: [false, false, false], outputs: [false, false] },
+        { inputs: [false, false, true], outputs: [true, false] },
+        { inputs: [false, true, false], outputs: [true, false] },
+        { inputs: [false, true, true], outputs: [false, true] },
+        { inputs: [true, false, false], outputs: [true, false] },
+        { inputs: [true, false, true], outputs: [false, true] },
+        { inputs: [true, true, false], outputs: [false, true] },
+        { inputs: [true, true, true], outputs: [true, true] }
+      ]
+    },
+    { id: "Add4", label: "Add4", requires: "fullAdder" },
+    { id: "Add16", label: "Add16", requires: "Add4" }
+  ];
+
   const TASK_HINTS = {
     Not: [
       { kind: "text", title: "רמז 1", text: "נסה להשתמש ב־Nand." },

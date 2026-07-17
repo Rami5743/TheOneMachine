@@ -174,7 +174,7 @@ function createTaskModeView({
   function muxScratchCell(row, column, value) {
     const shown = value === 0 ? "0" : value === 1 ? "1" : "";
     const cls = value === null || value === undefined ? "mux-cell-empty" : "";
-    const isDivider = column === "out" || column === "out1";
+    const isDivider = column === "out" || column === "out1" || column === "sum";
     return `<td class="${isDivider ? "truth-output-cell" : ""}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
   }
 
@@ -234,6 +234,55 @@ function createTaskModeView({
             <th class="truth-output-cell">יציאה 1</th>
             <th>כניסה</th>
             <th>בקרה</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // The editable scratch table for an arith card (halfAdder/fullAdder): one column
+  // per input, then sum + carry. 2^inputs rows. LTR DOM == visual left-to-right,
+  // read right-to-left as כניסה 1, כניסה 2 …, ┃ (divider) sum, carry.
+  function renderArithScratchTable(task) {
+    const state = getState();
+    const inputs = task.inputs;
+    const count = 1 << inputs;
+    const cols = [];
+    for (let i = 1; i <= inputs; i += 1) cols.push(`in${i}`);
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === count
+      ? state.muxTable
+      : Array.from({ length: count }, () => {
+        const row = {};
+        cols.forEach((c) => { row[c] = null; });
+        row.sum = null; row.carry = null;
+        return row;
+      });
+    const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+    const solutionRows = solutionHighlightConfig().truthRows;
+    // DOM order (left→right): carry, sum, in{N}…in1 — so read right-to-left the
+    // inputs come first (in1 on the right), then the divider, then sum, carry.
+    const inputCells = (row, index) => cols
+      .map((c) => ({ c }))
+      .reverse()
+      .map(({ c }) => muxScratchCell(index, c, row[c]))
+      .join("");
+    const rows = table.map((row, index) => `
+      <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionRows.has(index) ? "truth-row-solution-highlight" : ""}">
+        ${muxScratchCell(index, "carry", row.carry)}
+        ${muxScratchCell(index, "sum", row.sum)}
+        ${inputCells(row, index)}
+      </tr>`).join("");
+    const inputHeaders = cols
+      .map((_, i) => `<th>כניסה ${i + 1}</th>`)
+      .reverse()
+      .join("");
+    return `
+      <table class="workspace-task-hint-table mux-scratch-table">
+        <thead>
+          <tr>
+            <th>carry</th>
+            <th class="truth-output-cell">sum</th>
+            ${inputHeaders}
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -337,6 +386,18 @@ function createTaskModeView({
           </section>`;
       }
       return renderRequirementsPanel(task, renderDmuxScratchTable());
+    }
+    // Arith cards (halfAdder / fullAdder): a two-output editable scratch table,
+    // like the DMux. Any other two-output truth-table task lands here too.
+    if (task.outputs === 2 && Array.isArray(task.rows)) {
+      if (state.solutionDialog) {
+        if (state.solutionTableHidden) return "";
+        return `
+          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
+            ${renderArithScratchTable(task)}
+          </section>`;
+      }
+      return renderRequirementsPanel(task, renderArithScratchTable(task));
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;
