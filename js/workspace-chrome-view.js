@@ -61,6 +61,10 @@ function createWorkspaceChromeView({
   function renderWorkspaceReturnButton() {
     const state = getState();
     if (state.screen !== "workspace") return "";
+    // A gate solution opened from the explanations menu returns there instead.
+    if (state.solutionDialog?.returnToExplanations) {
+      return `<button class="btn" data-action="solution-ok" type="button">חזרה לתפריט ההסברים</button>`;
+    }
     return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
   }
 

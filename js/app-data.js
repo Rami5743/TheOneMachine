@@ -327,7 +327,8 @@
     { id: "nand-function", title: "איך Nand פועל" },
     { id: "build-nand", title: "איך עושים Nand" },
     { id: "bit-info", title: "מה זה ביט" },
-    { id: "truth-table-cards", title: "הכנת כרטיסים מטבלת אמת" }
+    { id: "truth-table-cards", title: "הכנת כרטיסים מטבלת אמת" },
+    { id: "why-route", title: "למה לנתב" }
   ];
 
   const BIT_EXPLANATION_STEPS = [

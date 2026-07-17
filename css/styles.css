@@ -274,10 +274,11 @@ button { font: inherit; }
 .explanations-card { width: min(96vw, 920px); }
 .explanations-table {
   display: grid;
-  grid-template-columns: max-content 1fr 1fr;
-  gap: clamp(10px, 2vh, 22px) clamp(14px, 2.6vw, 30px);
+  grid-template-columns: max-content max-content max-content;
+  /* A generous vertical gap between rows; a tighter horizontal one. */
+  gap: clamp(22px, 4.2vh, 48px) clamp(18px, 3vw, 42px);
   align-items: start;
-  width: 100%;
+  justify-content: center;
   direction: rtl;
   text-align: right;
 }
@@ -290,17 +291,20 @@ button { font: inherit; }
   padding-bottom: 6px;
 }
 .expl-section-title {
-  align-self: center;
+  align-self: start;
   font-weight: 800;
   font-size: clamp(1rem, 2vw, 1.3rem);
   color: #f4ead2;
   white-space: nowrap;
   padding-inline-start: clamp(6px, 1.5vw, 18px);
 }
-.expl-cell { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-.expl-item { width: 100%; }
+/* Each cell packs its items to the top-right; buttons are only as wide as
+   their text (never stretched). */
+.expl-cell { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.expl-item { width: auto; min-width: 0; }
 .expl-empty { display: block; min-height: 1px; }
-.expl-gate-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* The gate label sits on the same line as its buttons. */
+.expl-gate-line { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; white-space: nowrap; }
 .expl-gate-label { font-weight: 700; color: #f4ead2; }
 .expl-gate-buttons { display: flex; gap: 8px; }
 .expl-gate-btn { padding: 0.3em 0.9em; min-width: 0; }

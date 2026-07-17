@@ -1982,6 +1982,11 @@
     ) {
       unlockExplanation("truth-table-cards");
     }
+
+    const reachedChapter6 = currentIndex > chapterIndexById("chapter-5") || state.chapterId === "chapter-6";
+    if (reachedChapter6 || state.explanationReplay?.id === "why-route") {
+      unlockExplanation("why-route");
+    }
   }
 
   function explanationReplayActive(id = null) {
@@ -2180,6 +2185,23 @@
         }
       }, false);
     }
+
+    if (id === "why-route") {
+      if (!explanationUnlocked("why-route")) return;
+      const chapter = chapterById("chapter-6");
+      const scene = sceneByChapter(chapter);
+      const idx = panelIndexByImage(scene, "panel89_chapter_2_3_routing_concept.svg");
+      return setState({
+        ...transientUiClearPatch(),
+        screen: "story",
+        chapterId: chapter.id,
+        sceneId: scene.id,
+        panelIndex: idx >= 0 ? idx : 1,
+        started: true,
+        replayNonce: state.replayNonce + 1,
+        explanationReplay: { id: "why-route" }
+      }, true);
+    }
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -2192,6 +2214,7 @@
   }
 
   function previousExplanationPanel() {
+    if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex <= nandIntroStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
@@ -2207,6 +2230,8 @@
   }
 
   function nextExplanationPanel() {
+    // Single-panel replays (e.g. "why-route") just return to the menu.
+    if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex >= nandIntroEndIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
@@ -2236,7 +2261,11 @@
       inGame: ["bit-info", { gatesLabel: "שלושת השערים הבסיסיים", gates: ["Not", "And", "Or"] }, "truth-table-cards"],
       enrichment: []
     },
-    { title: "ניתוב", inGame: [], enrichment: [] },
+    {
+      title: "ניתוב",
+      inGame: ["why-route", { gates: ["Mux", "DMux"] }],
+      enrichment: []
+    },
     { title: "חשבון", inGame: [], enrichment: [] }
   ];
 
@@ -2249,10 +2278,11 @@
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
-      // A plain (unlinked) label followed by a button per gate; each opens that
-      // gate's solution walkthrough and returns to this menu when done.
+      // An optional (unlinked) label followed by a button per gate; each opens
+      // that gate's solution walkthrough and returns to this menu when done.
       const gates = spec.gates.map((g) => `<button class="btn expl-gate-btn" data-action="expl-gate-solution" data-task-id="${esc(g)}" type="button">${esc(g)}</button>`).join("");
-      return `<div class="expl-gate-line"><span class="expl-gate-label">${esc(spec.gatesLabel)}:</span><span class="expl-gate-buttons">${gates}</span></div>`;
+      const label = spec.gatesLabel ? `<span class="expl-gate-label">${esc(spec.gatesLabel)}:</span>` : "";
+      return `<div class="expl-gate-line">${label}<span class="expl-gate-buttons">${gates}</span></div>`;
     }
     return "";
   }
@@ -2610,7 +2640,7 @@
           </div>
         </section>
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
-        ${explanationReplayActive("nand-intro") ? renderNandIntroExplanationControls() : `
+        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
