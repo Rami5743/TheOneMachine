@@ -5570,7 +5570,7 @@
   // index, so exercise N is always the same). bin2dec[0] = 22 = 10110₂.
   // All values stay above 40 (and ≤ 63, i.e. six-bit) in both directions.
   const BIN2DEC_HARDCODED = [45, 53, 43, 58, 51];
-  const DEC2BIN_HARDCODED = [43, 52, 58, 45, 49];
+  const DEC2BIN_HARDCODED = [57, 51, 58, 45, 49];
   // The booklet uses the same squared-paper grid as the arithmetic notebook:
   // the task is pre-printed on one row, every other cell is free scribble
   // space, and only the answer cells (right of the "=") are checked.
