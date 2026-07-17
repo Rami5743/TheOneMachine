@@ -485,6 +485,10 @@
     // bubble is shown, the next click anywhere in the workbench opens the card page
     // with its explainer, and dismissing the explainer ("הבנתי") continues the plot
     // (the von Neumann beat). It persists so a page reload mid-sequence keeps it.
+    // Which binary-booklet tasks the learner has solved cleanly (a subset of
+    // BIN_STAGES). Persists across booklet exits so re-entry lands on the first
+    // unfinished task, and once all are done the booklet opens on its menu.
+    binBookletDone: [],
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -5573,6 +5577,32 @@
   // All values stay above 40 (and ≤ 63, i.e. six-bit) in both directions.
   const BIN2DEC_HARDCODED = [45, 53, 43, 58, 51];
   const DEC2BIN_HARDCODED = [57, 51, 58, 45, 49];
+  // The three booklet tasks, in order. A task is "done" once solved cleanly.
+  const BIN_STAGES = ["bin2dec", "dec2bin", "binadd"];
+  // Binary column-addition pairs, frozen for the first five (the rest seeded by
+  // index). The first teaches every carry case in one sum: a column with no
+  // carry, a column whose bits sum to 2 (write 0, carry 1), one that sums to 3
+  // (write 1, carry 1) and a final carry that opens a new leftmost bit —
+  // 27 + 14 = 41 (@[011011 + 001110 = 101001]).
+  const BINADD_HARDCODED = [
+    { a: 27, b: 14 }, // 41 = 101001
+    { a: 22, b: 21 }, // 43 = 101011
+    { a: 45, b: 19 }, // 64 = 1000000 (a full carry chain)
+    { a: 30, b: 12 }, // 42 = 101010
+    { a: 25, b: 38 }  // 63 = 111111 (no carries)
+  ];
+  function nthBinAddPair(index) {
+    if (index < BINADD_HARDCODED.length) return { ...BINADD_HARDCODED[index] };
+    // Two 5-bit-ish operands (12..47) whose sum needs at least one carry.
+    const rng = mulberry32((BIN_BOOKLET_SEED + Math.imul(index + 313, 2654435761)) >>> 0);
+    let a = 0; let b = 0; let guard = 0;
+    do {
+      a = 12 + Math.floor(rng() * 36);
+      b = 12 + Math.floor(rng() * 36);
+      guard += 1;
+    } while (((a & b) === 0) && guard < 60); // (a & b) !== 0 guarantees a carry
+    return { a, b };
+  }
   // The booklet uses the same squared-paper grid as the arithmetic notebook:
   // the task is pre-printed on one row, every other cell is free scribble
   // space, and only the answer cells (right of the "=") are checked.
@@ -5607,22 +5637,42 @@
     return v;
   }
 
+  function binDone() {
+    return Array.isArray(state.binBookletDone) ? state.binBookletDone : [];
+  }
+  function binFirstUnfinished(done = binDone()) {
+    return BIN_STAGES.find((s) => !done.includes(s)) || null;
+  }
+
+  // Opening the booklet: while any task is unfinished, land on the start of the
+  // first unfinished one (a FRESH exercise — in-task progress is not resumed).
+  // Once all three are done, open the read-only menu of the three tasks.
   function openBinaryBooklet() {
-    const existing = state.notebook && state.notebook.variant === "binary" ? state.notebook : null;
-    setState({ screen: "notebook", notebook: existing || freshBinExercise("bin2dec", 0, 0) });
+    const done = binDone();
+    if (!binFirstUnfinished(done)) {
+      setState({ screen: "notebook", notebook: { variant: "binary", mode: "menu" } });
+      return;
+    }
+    const stage = binFirstUnfinished(done);
+    const ex = freshBinExercise(stage, 0, 0);
+    if (stage === "binadd") ex.dialog = "addintro";
+    setState({ screen: "notebook", notebook: ex });
   }
 
   function freshBinExercise(stage, index, dec2binExplainCount) {
+    const pair = stage === "binadd" ? nthBinAddPair(index) : null;
     const base = {
       variant: "binary",
       stage,
       exerciseIndex: index,
-      value: nthBinValue(stage, index),
+      value: stage === "binadd" ? (pair.a + pair.b) : nthBinValue(stage, index),
+      addA: pair ? pair.a : null,
+      addB: pair ? pair.b : null,
       cells: {},
       active: null,
       failCount: 0,
       hintUsed: false,
-      dialog: null, // null | "correct" | "wrong" | "hints" | "walkthrough"
+      dialog: null, // null | "correct" | "wrong" | "hints" | "walkthrough" | "addintro"
       hintIndex: 0,
       hintsSeen: 0,
       winPos: null,
@@ -5635,7 +5685,9 @@
   }
 
   function binExpectedAnswer(nb) {
-    return nb.stage === "bin2dec" ? String(nb.value) : toBinaryString(nb.value);
+    if (nb.stage === "bin2dec") return String(nb.value);
+    if (nb.stage === "binadd") return toBinaryString((nb.addA || 0) + (nb.addB || 0));
+    return toBinaryString(nb.value);
   }
 
   // The pre-printed equation and the answer cells, on one row of the grid. The
@@ -5649,6 +5701,29 @@
     let binStart = null;
     let binLen = 0;
     let ansStart = null;
+    if (nb.stage === "binadd") {
+      // Column addition, mirroring the library: a carry row, the two operands
+      // (pre-printed), the addition line, and the answer row below it. Only the
+      // answer bits are graded; the carry cells above are free scribble space.
+      const carryRow = 2; const op1Row = 3; const op2Row = 4; const ansRow = 5;
+      const a = nb.addA || 0; const b = nb.addB || 0;
+      const aBits = toBinaryString(a); const bBits = toBinaryString(b); const sumBits = toBinaryString(a + b);
+      const opLen = Math.max(aBits.length, bBits.length);
+      const maxLen = Math.max(opLen, sumBits.length);
+      const totalCols = maxLen + 2; // room for "+" and a gap on the left
+      const startCol = Math.max(0, Math.floor((BIN_NB_COLS - totalCols) / 2));
+      const unitsCol = startCol + 2 + maxLen - 1;
+      const place = (bits, r) => { const s = String(bits); for (let i = 0; i < s.length; i++) fixed[`${r},${unitsCol - (s.length - 1) + i}`] = s[i]; };
+      place(aBits, op1Row);
+      place(bBits, op2Row);
+      fixed[`${op2Row},${unitsCol - opLen}`] = "+"; // left of the wider operand's top bit
+      for (let i = 0; i < sumBits.length; i++) answerCols.push(unitsCol - (sumBits.length - 1) + i);
+      ansStart = answerCols[0];
+      const lineCols = [];
+      for (let c = answerCols[0]; c <= unitsCol; c++) lineCols.push(c);
+      return { fixed, row: ansRow, answerCols, expected, binStart: null, binLen: 0, ansStart,
+        addRows: { carry: carryRow, op1: op1Row, op2: op2Row, answer: ansRow }, unitsCol, guardCol: answerCols[0] - 1, lineCols };
+    }
     if (nb.stage === "bin2dec") {
       const bin = toBinaryString(nb.value);
       binLen = bin.length;
@@ -5688,18 +5763,45 @@
   // expected answer, and any answer cell past the answer must be empty (so the
   // digit count has to be right — the point of the dec→bin task).
   function binSolved(nb) {
-    const { row, answerCols, expected } = binLayout(nb);
+    const layout = binLayout(nb);
+    const { row, answerCols, expected } = layout;
     // Read the answer cells left→right, ignoring invisible characters (spaces):
     // a whitespace-only cell counts as empty. Only the answer cells are graded.
     const got = answerCols.map((c) => String(nb.cells?.[`${row},${c}`] || "").trim()).join("");
-    return got === expected;
+    if (got !== expected) return false;
+    // Addition also guards against a stray leading bit to the left of the answer.
+    if (layout.guardCol != null && String(nb.cells?.[`${row},${layout.guardCol}`] || "").trim() !== "") return false;
+    return true;
   }
   function binClean(nb) {
     return (nb.failCount || 0) === 0 && !nb.hintUsed;
   }
 
+  // Per-column breakdown of a binary addition (0 = units, low→high): the two
+  // bits, the incoming carry, the sum (0..3), the bit written and the carry out.
+  function binAddColumns(nb) {
+    const a = nb.addA || 0; const b = nb.addB || 0;
+    const n = toBinaryString(a + b).length;
+    const cols = [];
+    let carry = 0;
+    for (let i = 0; i < n; i++) {
+      const d1 = (a >> i) & 1; const d2 = (b >> i) & 1;
+      const sum = d1 + d2 + carry;
+      cols.push({ i, d1, d2, carryIn: carry, sum, digit: sum % 2, carryOut: sum >= 2 ? 1 : 0 });
+      carry = sum >= 2 ? 1 : 0;
+    }
+    return cols;
+  }
+
   // ---- hints -------------------------------------------------------------
   function binHintList(nb) {
+    if (nb.stage === "binadd") {
+      return [
+        { title: "רמז 1", text: "מתחילים מהעמודה הימנית ביותר (עמודת האחדות) ומחברים את שני הביטים שבה, בדיוק כמו בחיבור בטור רגיל." },
+        { title: "רמז 2", text: "בבינרי יש רק שתי ספרות, לכן נושאים כבר כשמגיעים ל-2. אם סכום העמודה הוא 2 (1 ועוד 1) כותבים 0 ונושאים 1 לעמודה הבאה; אם הסכום הוא 3 כותבים 1 ונושאים 1." },
+        { title: "רמז 3", text: "ממשיכים עמודה־עמודה שמאלה, ובכל עמודה מוסיפים לסכום גם את הביט שנשאתם מהעמודה הקודמת." }
+      ];
+    }
     if (nb.stage === "bin2dec") {
       const powers = binaryPowers(nb.value);
       return [{
@@ -5813,6 +5915,7 @@
   }
 
   function binTaskPrompt(nb) {
+    if (nb.stage === "binadd") return "חבר את שני המספרים הבינריים:";
     return nb.stage === "bin2dec"
       ? "מהו הערך העשרוני של המספר הבינארי הבא?"
       : "כתוב את המספר הבא בכתיב בינארי:";
@@ -5831,7 +5934,7 @@
   // digit answer can be typed in a run (left→right). Backspace steps back.
   function handleBinaryNotebookKey(event) {
     const nb = state.notebook;
-    if (!nb || nb.dialog === "walkthrough") return;
+    if (!nb || nb.mode === "menu" || nb.dialog === "walkthrough" || nb.dialog === "addintro") return;
     if (event.key === "Escape") {
       if (nb.active) { setState({ notebook: { ...nb, active: null } }, false); event.preventDefault(); }
       return;
@@ -5865,7 +5968,10 @@
     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
       const cells = { ...nb.cells };
       cells[active] = event.key;
-      const nc = Math.min(BIN_NB_COLS - 1, c + 1); // auto-advance left→right
+      // The conversion answers are typed as one left→right run, so the cursor
+      // auto-advances. Column addition is written per-column (carries above,
+      // digits below), so there the cursor stays put and the learner clicks.
+      const nc = nb.stage === "binadd" ? c : Math.min(BIN_NB_COLS - 1, c + 1);
       setState({ notebook: { ...nb, cells, active: `${r},${nc}`, dialog: clearWrong } }, false);
       event.preventDefault();
     }
@@ -5873,14 +5979,14 @@
 
   function checkBinaryNotebook() {
     const nb = state.notebook;
-    if (!nb || nb.dialog === "walkthrough") return;
+    if (!nb || nb.mode === "menu" || nb.dialog === "walkthrough" || nb.dialog === "addintro") return;
     if (binSolved(nb)) { setState({ notebook: { ...nb, active: null, dialog: "correct" } }); return; }
     setState({ notebook: { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" } });
   }
 
   function binResetEntry() {
     const nb = state.notebook;
-    if (!nb) return;
+    if (!nb || nb.mode === "menu") return;
     const layout = binLayout(nb);
     setState({ notebook: { ...nb, cells: {}, active: `${layout.row},${layout.answerCols[0]}`, dialog: null } });
   }
@@ -5888,7 +5994,7 @@
   // Dev shortcut (Ctrl+Shift+9): fill the answer cells correctly and check.
   function binSecretSolve() {
     const nb = state.notebook;
-    if (!nb) return;
+    if (!nb || nb.mode === "menu" || nb.dialog === "addintro") return;
     const { row, answerCols, expected } = binLayout(nb);
     const cells = { ...nb.cells };
     for (let i = 0; i < expected.length; i++) cells[`${row},${answerCols[i]}`] = expected[i];
@@ -6273,7 +6379,53 @@
     return steps;
   }
 
+  // The addition solution, played inside the grid: column by column, right→left,
+  // writing each answer bit and carrying 1 above the next column when the
+  // column's bits sum to 2 or more.
+  function binBinaddSolutionSteps(nb) {
+    const layout = binLayout(nb);
+    const { addRows, unitsCol, answerCols, row, fixed } = layout;
+    const cols = binAddColumns(nb);
+    const n = cols.length;
+    const cum = {};
+    const steps = [];
+    const opKey = (rr, i) => `${rr},${unitsCol - i}`;
+    const carryKey = (i) => `${addRows.carry},${unitsCol - i}`;
+    const ansKey = (i) => `${row},${unitsCol - i}`;
+
+    steps.push({ text: "נחבר עמודה־עמודה, מימין לשמאל — בדיוק כמו בחיבור עשרוני, רק שנושאים כשמגיעים ל-2.", cells: {}, highlight: [] });
+
+    for (let i = 0; i < n; i++) {
+      const col = cols[i];
+      const hl = [];
+      if (fixed[opKey(addRows.op1, i)] != null) hl.push(opKey(addRows.op1, i));
+      if (fixed[opKey(addRows.op2, i)] != null) hl.push(opKey(addRows.op2, i));
+      if (col.carryIn > 0) hl.push(carryKey(i));
+      cum[ansKey(i)] = String(col.digit);
+      if (col.carryOut > 0 && i < n - 1) cum[carryKey(i + 1)] = "1";
+
+      let msg;
+      if (i === 0) msg = `בעמודה הימנית ביותר מחברים @[${col.d1} + ${col.d2} = ${col.sum}].`;
+      else if (col.carryIn > 0) msg = `בעמודה הבאה: @[${col.d1} + ${col.d2}], ועוד @[${col.carryIn}] שנשאנו — סך הכל @[${col.sum}].`;
+      else msg = `בעמודה הבאה: @[${col.d1} + ${col.d2} = ${col.sum}].`;
+      if (col.sum >= 2) {
+        msg += (i < n - 1)
+          ? ` מכיוון שהסכום הוא @[2] או יותר, כותבים @[${col.digit}] ונושאים @[1] לעמודה הבאה.`
+          : ` כותבים @[${col.digit}], וה-@[1] שנשאנו הוא הביט השמאלי ביותר של התשובה.`;
+      } else {
+        msg += ` כותבים @[${col.digit}].`;
+      }
+
+      const stepHl = [...hl, ansKey(i)];
+      if (col.carryOut > 0 && i < n - 1) stepHl.push(carryKey(i + 1));
+      steps.push({ text: msg, cells: { ...cum }, highlight: stepHl });
+    }
+    steps.push({ text: "וקיבלנו את הסכום בכתיב בינרי.", cells: { ...cum }, highlight: answerCols.map((c) => `${row},${c}`) });
+    return steps;
+  }
+
   function binSolutionSteps(nb) {
+    if (nb.stage === "binadd") return binBinaddSolutionSteps(nb);
     return nb.stage === "bin2dec" ? binBin2decSolutionSteps(nb) : binDec2binSolutionSteps(nb);
   }
 
@@ -6312,21 +6464,87 @@
   // exercise of the same kind.
   function binWalkthroughFinish() {
     const nb = state.notebook;
-    if (binClean(nb)) {
-      if (nb.stage === "bin2dec") {
-        setState({ notebook: freshBinExercise("dec2bin", 0, nb.dec2binExplainCount || 0) });
-      } else {
-        binBackToWorkshop(true);
-      }
+    const clean = binClean(nb);
+    // Practising a task from the menu (once everything is done): a single pass,
+    // then straight back to the menu regardless of help/mistakes.
+    if (nb.fromMenu) { openBinMenu(); return; }
+    if (!clean) {
+      const nextCount = nb.stage === "dec2bin" ? (nb.dec2binExplainCount || 0) + 1 : (nb.dec2binExplainCount || 0);
+      setState({ notebook: freshBinExercise(nb.stage, (nb.exerciseIndex || 0) + 1, nextCount) });
       return;
     }
-    const nextCount = nb.stage === "dec2bin" ? (nb.dec2binExplainCount || 0) + 1 : (nb.dec2binExplainCount || 0);
-    setState({ notebook: freshBinExercise(nb.stage, (nb.exerciseIndex || 0) + 1, nextCount) });
+    // A clean solve completes the task: record it and move to the next unfinished
+    // one — or leave the booklet once all three are done (the next visit shows
+    // the menu).
+    const done = binDone().includes(nb.stage) ? binDone() : [...binDone(), nb.stage];
+    const next = binFirstUnfinished(done);
+    if (!next) {
+      setState({
+        ...transientUiClearPatch(),
+        binBookletDone: done,
+        screen: "story", chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7,
+        notebook: null
+      }, true);
+      return;
+    }
+    const ex = freshBinExercise(next, 0, next === "dec2bin" ? (nb.dec2binExplainCount || 0) : 0);
+    if (next === "binadd") ex.dialog = "addintro";
+    setState({ binBookletDone: done, notebook: ex });
+  }
+
+  // The read-only menu of the three tasks, shown once all are done.
+  function openBinMenu() {
+    setState({ notebook: { variant: "binary", mode: "menu" } });
+  }
+  function binMenuSelect(stage) {
+    if (!BIN_STAGES.includes(stage)) return;
+    const ex = freshBinExercise(stage, 0, 0);
+    ex.fromMenu = true;
+    setState({ notebook: ex });
+  }
+  function binAddIntroOk() {
+    const nb = state.notebook;
+    if (!nb) return;
+    setState({ notebook: { ...nb, dialog: null } });
+  }
+
+  // The task menu shown once all three booklet tasks are done: a notebook-
+  // looking page (the squared grid, read-only) with the three tasks as choices.
+  const BIN_MENU_TITLES = [
+    { stage: "bin2dec", label: "המרה מכתיב בינרי לכתיב עשרוני" },
+    { stage: "dec2bin", label: "המרה מכתיב עשרוני לכתיב בינרי" },
+    { stage: "binadd", label: "חיבור בינרי" }
+  ];
+  function renderBinaryMenu(nb) {
+    const rows = [];
+    for (let r = 0; r < BIN_NB_ROWS; r++) {
+      let cells = "";
+      for (let c = 0; c < BIN_NB_COLS; c++) cells += '<div class="notebook-cell"></div>';
+      rows.push(`<div class="notebook-row">${cells}</div>`);
+    }
+    const list = BIN_MENU_TITLES.map((t) =>
+      `<button class="bin-menu-item" data-action="binbk-menu-select" data-stage="${t.stage}" type="button">${esc(t.label)}</button>`).join("");
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen notebook-screen">
+        <div class="bin-prompt">בחר תרגול</div>
+        <div class="notebook-page bin-notebook-page bin-menu-page">
+          ${rows.join("")}
+          <div class="bin-menu">${list}</div>
+        </div>
+        <div class="notebook-footer">
+          <div class="notebook-actions">
+            <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
+          </div>
+        </div>
+      </main>`;
   }
 
   function renderBinaryNotebook() {
     const nb = state.notebook || {};
-    const { fixed, row, answerCols } = binLayout(nb);
+    if (nb.mode === "menu") return renderBinaryMenu(nb);
+    const layout = binLayout(nb);
+    const { fixed, row, answerCols } = layout;
     const answerSet = new Set(answerCols.map((c) => `${row},${c}`));
 
     // While the bin→dec solution plays, the grid shows the walkthrough's own
@@ -6335,6 +6553,11 @@
     let displayCells = nb.cells || {};
     let highlightSet = new Set();
     let underlineSet = new Set();
+    // The addition line sits under the second operand (drawn always, not just in
+    // the walkthrough), like the library's column-addition line.
+    if (nb.stage === "binadd" && layout.lineCols) {
+      layout.lineCols.forEach((c) => underlineSet.add(`${layout.addRows.op2},${c}`));
+    }
     let steps = null;
     let stepIndex = 0;
     if (inGrid) {
@@ -6342,7 +6565,7 @@
       stepIndex = Math.min(Math.max(0, nb.walkStep || 0), steps.length - 1);
       displayCells = steps[stepIndex].cells;
       highlightSet = new Set(steps[stepIndex].highlight);
-      underlineSet = new Set(steps[stepIndex].underline || []);
+      (steps[stepIndex].underline || []).forEach((k) => underlineSet.add(k));
     }
 
     const rows = [];
@@ -6410,6 +6633,10 @@
     if (!dialog) return "";
     if (dialog === "hints") return renderBinaryHints(nb);
     if (dialog === "walkthrough") return renderBinaryWalkthrough(nb);
+    if (dialog === "addintro") {
+      const body = binParagraphsHtml("אפשר לעשות חשבון עם מספרים הכתובים בשיטה הבינרית בדיוק כמו שעושים חשבון עם מספרים הכתובים בשיטה העשרונית. זה אפילו יותר פשוט כי יש פחות ספרות. בוא תנסה.");
+      return notebookWindow(nb, "חיבור בינרי", body, '<button class="btn btn-primary" data-action="binbk-addintro-ok" type="button">בוא נתחיל</button>');
+    }
     let title = "";
     let body = "";
     let actions = "";
@@ -9854,6 +10081,8 @@
     if (action === "binbk-walk-next") return binWalkStep(1);
     if (action === "binbk-walk-prev") return binWalkStep(-1);
     if (action === "binbk-walk-finish") return binWalkthroughFinish();
+    if (action === "binbk-addintro-ok") return binAddIntroOk();
+    if (action === "binbk-menu-select") return binMenuSelect(button.dataset.stage);
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();

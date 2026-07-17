@@ -3315,6 +3315,38 @@ object.panel-image.is-pending {
    the available screen. */
 .bin-notebook-page { --nb-cell: clamp(24px, 3.7vw, 50px); max-width: 96vw; }
 
+/* The all-tasks-done menu: the squared page with the three task titles laid
+   over it as choices (the page underneath is read-only). */
+.bin-menu-page { position: relative; }
+.bin-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2.2vh, 22px);
+  direction: rtl;
+}
+.bin-menu-item {
+  min-width: min(78%, 30rem);
+  padding: 0.7em 1.2em;
+  font-size: clamp(1rem, 2.3vw, 1.4rem);
+  font-weight: 700;
+  color: #2c2113;
+  background: rgba(249, 244, 232, 0.94);
+  border: 2px solid #6b4f2a;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+.bin-menu-item:hover,
+.bin-menu-item:focus-visible {
+  background: #fff8ec;
+  border-color: #3f2d19;
+  outline: none;
+}
+
 .bin-prompt {
   direction: rtl;
   text-align: center;
