@@ -11005,6 +11005,7 @@
     if (action === "panel-answer-check") return checkPanelAnswer();
     if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: true }, false); }
     if (action === "words-bytes-close") return setState({ wordsBytesDialog: false }, false);
+    if (action === "arith-tasks-note") return setState({ infoDialog: "המשך יבוא..." });
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
