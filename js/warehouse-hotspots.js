@@ -77,6 +77,10 @@
     // free-build), driven entirely by the object rects the panel SVG posts.
     if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
     if (stem === "panel107_chapter_2_5_workshop") return "binary-workshop";
+    // The 2.5 arithmetic worktable (post-handover) is the same room: it carries
+    // the free-build table and the reference-link objects too, alongside its
+    // tasks note.
+    if (stem === "panel119_chapter_2_5_worktable") return "binary-workshop";
     return null;
   }
 

@@ -101,6 +101,98 @@
      y="434.4"
      width="115.84"
      height="130.32" />
+  <!-- Reference-link object zones + the free-build worktable zone, mirrored from
+       panel107 (same room). Positions are copied from there as a starting point;
+       tune each in Inkscape to the new image. -->
+  <rect
+     id="hotspot-object-bulbs"
+     data-hotspot="object"
+     data-id="bulbs"
+     data-label="נורות חשמליות"
+     data-url="https://he.wikipedia.org/wiki/נורה_חשמלית"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="1104.9938"
+     y="842.69751"
+     width="319"
+     height="206" />
+  <rect
+     id="hotspot-object-triodes"
+     data-hotspot="object"
+     data-id="triodes"
+     data-label="טריודות"
+     data-url="https://he.wikipedia.org/wiki/טריודה"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="78"
+     y="763"
+     width="188"
+     height="195" />
+  <rect
+     id="hotspot-object-diode"
+     data-hotspot="object"
+     data-id="diode"
+     data-label="דיודה"
+     data-url="https://he.wikipedia.org/wiki/דיודה"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="22"
+     y="838"
+     width="116"
+     height="141" />
+  <rect
+     id="hotspot-object-cable"
+     data-hotspot="object"
+     data-id="cable"
+     data-label="כבל חשמלי"
+     data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.963637"
+     x="1100.3625"
+     y="582.71039"
+     width="163.36252"
+     height="159.83238" />
+  <rect
+     id="hotspot-object-source"
+     data-hotspot="object"
+     data-id="source"
+     data-label="מקור מתח"
+     data-url="https://he.wikipedia.org/wiki/מקור_מתח"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="1290"
+     y="218"
+     width="130"
+     height="217" />
+  <rect
+     id="hotspot-object-voltmeter"
+     data-hotspot="object"
+     data-id="voltmeter"
+     data-label="מד מתח"
+     data-url="https://he.wikipedia.org/wiki/וולטמטר"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.976603"
+     x="266"
+     y="823.2099"
+     width="320.67651"
+     height="220.96289" />
+  <rect
+     id="hotspot-table"
+     data-hotspot="table"
+     data-label="שולחן עבודה"
+     class="hotspot hotspot-table"
+     pointer-events="none"
+     style="opacity:0;fill:#37d67a;stroke-width:0.973241"
+     x="174.91672"
+     y="582.71039"
+     width="1007.1271"
+     height="411.41217" />
   <script
      type="text/javascript"
      id="script1"><![CDATA[
