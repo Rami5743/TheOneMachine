@@ -356,6 +356,22 @@
     };
   }
 
+  // Once halfAdder is built it joins the toolbar as a placeable gate (reused
+  // inside fullAdder), drawn as a labelled box with two inputs and two outputs
+  // (sum on top, carry on bottom).
+  WORKSPACE_COMPONENT_DEFS["gate-halfAdder"] = {
+    label: "halfAdder",
+    taskId: "halfAdder",
+    gate: true,
+    pins: {
+      in1: { x: -62, y: -23, direction: "in", label: "כניסת halfAdder 1" },
+      in2: { x: -62, y: 23, direction: "in", label: "כניסת halfAdder 2" },
+      out1: { x: 66, y: -23, direction: "out", label: "יציאת sum" },
+      out2: { x: 66, y: 23, direction: "out", label: "יציאת carry" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
   // walkthrough draws it (out = (data1 & ~c) OR16 (data2 & c)), and it is the
   // card the upcoming "create new card" tool is meant to let the learner build.

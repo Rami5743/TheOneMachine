@@ -57,6 +57,29 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return componentSvgImage(filename, -66, -52, 154, 104);
   }
 
+  // The arith cards (halfAdder / fullAdder) have no schematic symbol, so their
+  // placeable gate is drawn as a labelled chip (like a saved card): a rounded
+  // body with input stubs on the left and two output stubs (sum/carry) on the
+  // right. Pin geometry matches the gate-<id> def in app.js.
+  const ARITH_GATE_IDS = ["halfAdder", "fullAdder"];
+  function arithGateMarkup(task, options = {}) {
+    if (!task) return "";
+    const inYs = task.inputs === 3 ? [-27, 0, 27] : [-23, 23];
+    const outYs = [-23, 23];
+    const bodyW = 92;
+    const bodyH = 84;
+    const inX = -62;
+    const outX = 66;
+    let s = `<rect class="usercard-body" x="${-bodyW / 2}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
+    s += `<rect class="usercard-chip" x="${-bodyW / 2 + 18}" y="${-bodyH / 2 + 14}" width="${bodyW - 36}" height="${bodyH - 28}" rx="6" />`;
+    inYs.forEach((y) => { s += `<line class="usercard-pin" x1="${-bodyW / 2}" y1="${y}" x2="${inX}" y2="${y}" />`; });
+    outYs.forEach((y) => { s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${y}" x2="${outX}" y2="${y}" />`; });
+    if (!options.toolbar) {
+      s += `<text class="usercard-name" x="0" y="${bodyH / 2 + 26}" text-anchor="middle">${esc(task.label)}</text>`;
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
   // monologue); their workbench behaviour is not wired up yet.
   function busMarkup() {
@@ -157,7 +180,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
       if (bus) return busGateMarkup(bus, options);
-      return gateMarkup(taskDefById(type.slice(5)));
+      const gateTask = taskDefById(type.slice(5));
+      if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
+      return gateMarkup(gateTask);
     }
     return "";
   }

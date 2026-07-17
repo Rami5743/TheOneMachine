@@ -29,6 +29,15 @@ function taskOutput(taskId, inputs) {
 // (DMUX inputs are [data, control]; outputs are [out1, out2].)
 function taskOutputs(taskId, inputs) {
   if (taskId === "DMux") return [Boolean(inputs[0] && !inputs[1]), Boolean(inputs[0] && inputs[1])];
+  // halfAdder/fullAdder: outputs are [sum, carry].
+  if (taskId === "halfAdder") {
+    const a = Boolean(inputs[0]), b = Boolean(inputs[1]);
+    return [a !== b, a && b];
+  }
+  if (taskId === "fullAdder") {
+    const a = Boolean(inputs[0]), b = Boolean(inputs[1]), c = Boolean(inputs[2]);
+    return [(a !== b) !== c, (a && b) || (a && c) || (b && c)];
+  }
   return [taskOutput(taskId, inputs)];
 }
 
