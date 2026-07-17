@@ -332,9 +332,15 @@
     { id: "card-creator", title: "יוצר כרטיסים", description: "יצרת את הכרטיס הראשון שלך.", category: "progress" },
     { id: "boolean-engineer", title: "מהנדס בוליאני", description: "השלמת את כל הכרטיסים של פרק 2.2.", category: "progress" },
     { id: "routing-engineer", title: "מהנדס נתובים", description: "השלמת את כל הכרטיסים של פרק 2.3.", category: "progress" },
+    { id: "bus-engineer", title: "מהנדס באסים", description: "השלמת את כל המשימות של פרק 2.4.", category: "progress" },
     { id: "calculator", title: "מחשב", description: "השלמת את משימות החשבון שבחוברת.", category: "progress" },
     // Special: side accomplishments and mastery.
     { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
+    { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
+    { id: "precise-boolean-engineer", title: "מהנדס בוליאני מדויק", description: "השלמת את כל הכרטיסים של פרק 2.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+    { id: "precise-routing-engineer", title: "מהנדס נתובים מדויק", description: "השלמת את כל הכרטיסים של פרק 2.3 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+    { id: "precise-bus-engineer", title: "מהנדס באסים מדויק", description: "השלמת את כל המשימות של פרק 2.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+    { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
     { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
     { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
     { id: "very-thorough-calc", title: "מחשב יסודי מאוד", description: "חזרת ופתרת בהצלחה את כל משימות החישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
@@ -342,8 +348,7 @@
     { id: "card-inventor", title: "ממציא כרטיסים", description: "יצרת כרטיס חדש בפעם הראשונה.", category: "special" },
     { id: "card-saver", title: "שומר כרטיסים", description: "שמרת כרטיס לדיסק הקשיח.", category: "special" },
     { id: "card-necromancer", title: "מעלה מן האוב", description: "טענת כרטיס מהדיסק הקשיח.", category: "special" },
-    { id: "useful-inventor", title: "ממציא שימושי", description: "השתמשת בכרטיס מ\"הכרטיסים שלי\" כדי להשלים בהצלחה משימת יצירת כרטיס.", category: "special" },
-    { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" }
+    { id: "useful-inventor", title: "ממציא שימושי", description: "השתמשת בכרטיס מ\"הכרטיסים שלי\" כדי להשלים בהצלחה משימת יצירת כרטיס.", category: "special" }
   ];
 
   const EXPLANATION_ITEMS = [

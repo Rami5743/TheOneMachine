@@ -502,7 +502,14 @@
     binMenuResolved: [],
     // Cards (build tasks) whose test has failed at least once — a later success
     // then no longer counts toward the "מהנדס מדויק" first-try achievement.
+    // Cleared for a note's tasks when that note's progress is cleared, so a
+    // fresh clean rebuild can earn the "מדויק" chapter achievements again.
     tasksFailedOnce: [],
+    // Every task ever completed (never cleared), and the ever-completed tasks
+    // that were later cleared from a task note — together they drive "מהנדס
+    // יסודי" (re-doing an already-done task after clearing its note).
+    tasksEverCompleted: [],
+    tasksClearedAfterCompletion: [],
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -520,6 +527,9 @@
     cardDeleteConfirm: null,
     // True while the "נקה התקדמות" warning dialog is open in the booklet.
     binClearConfirm: false,
+    // Which task note's "נקה התקדמות" warning is open ("boolean" | "routing" |
+    // "buses" | "multibit"), or null when none.
+    noteClearConfirm: null,
     maxChapterReached: 0,
     // Furthest story-panel index reached, keyed by scene id. Drives the
     // step-by-step skip gate: skip is disabled until the target panel has been
@@ -1187,7 +1197,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, workspace };
   }
 
   function stateForStorage() {
@@ -2020,11 +2030,40 @@
   // one-shot achievements (burning a Nand, saving/loading a card, a clean solve)
   // are granted at their event site instead.
   function syncAchievements() {
+    // Keep the "ever completed" ledger current (it is never cleared, so it
+    // outlives a task-note progress reset).
+    const completedNow = completedTaskIds();
+    const ever = Array.isArray(state.tasksEverCompleted) ? state.tasksEverCompleted : [];
+    const missingFromEver = completedNow.filter((id) => !ever.includes(id));
+    if (missingFromEver.length) {
+      state.tasksEverCompleted = [...ever, ...missingFromEver];
+      saveState();
+    }
+
+    // Chapter task-id groups (2.2 boolean, 2.3 routing, 2.4 buses across both notes).
+    const boolIds = TASK_DEFS.map((t) => t.id);
+    const routeIds = ROUTING_TASK_DEFS.map((t) => t.id);
+    const busIds = [...BUS_TASK_DEFS.map((t) => t.id), ...MULTIBIT_TASKS.map((t) => t.id)];
+
     // Progress milestones.
-    if (completedTaskIds().length >= 1) unlockAchievement("card-creator");
+    if (completedNow.length >= 1) unlockAchievement("card-creator");
     if (allNoteTasksCompletedIn()) unlockAchievement("boolean-engineer");
     if (allRoutingTasksCompletedIn()) unlockAchievement("routing-engineer");
+    if (busIds.every((id) => taskCompleted(id))) unlockAchievement("bus-engineer");
     if (BIN_STAGES.every((s) => binDone().includes(s))) unlockAchievement("calculator");
+
+    // "מדויק" chapter achievements: every card of the chapter built with no failed
+    // test (hints only unlock after a failure, so "no failures" == "no hints").
+    const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
+    const chapterClean = (ids) => ids.length > 0 && ids.every((id) => taskCompleted(id) && !failed.has(id));
+    if (chapterClean(boolIds)) unlockAchievement("precise-boolean-engineer");
+    if (chapterClean(routeIds)) unlockAchievement("precise-routing-engineer");
+    if (chapterClean(busIds)) unlockAchievement("precise-bus-engineer");
+
+    // "מהנדס יסודי": a task that was completed, cleared from its note, and then
+    // completed again.
+    const clearedAfter = Array.isArray(state.tasksClearedAfterCompletion) ? state.tasksClearedAfterCompletion : [];
+    if (clearedAfter.some((id) => taskCompleted(id))) unlockAchievement("thorough-engineer");
 
     // Calculation mastery, derived from the booklet's bookkeeping arrays.
     const menuResolved = Array.isArray(state.binMenuResolved) ? state.binMenuResolved : [];
@@ -2645,6 +2684,32 @@
         return achievementTrophy(id, { top: "#e56a8a", bot: "#7a1230", rim: "#5e0d25", base: "#7a1230", handle: "#a11c40", emblem:
           `<rect x="31" y="20" width="18" height="18" rx="2.4" fill="#fffdf3" stroke="#5e0d25" stroke-width="1.6"/>
            <path d="M35 29 L39 33 L46 24" fill="none" stroke="#1a9e4b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>` });
+      case "bus-engineer": // deep cyan cup, a ribbon/bus cable
+        return achievementTrophy(id, { top: "#57c6d6", bot: "#0d5a6b", rim: "#093f4b", base: "#0d5a6b", handle: "#1a8497", emblem:
+          `<rect x="29" y="20" width="22" height="18" rx="2.4" fill="#fffdf3" stroke="#093f4b" stroke-width="1.4"/>
+           <g stroke="#1a8497" stroke-width="2.4" stroke-linecap="round"><line x1="33" y1="20.5" x2="33" y2="37.5"/><line x1="37.5" y1="20.5" x2="37.5" y2="37.5"/><line x1="42.5" y1="20.5" x2="42.5" y2="37.5"/><line x1="47" y1="20.5" x2="47" y2="37.5"/></g>` });
+      case "precise-boolean-engineer": // royal-blue cup, AND gate on a bullseye
+        return achievementTrophy(id, { top: "#8fb8f5", bot: "#173d78", rim: "#f3d27a", base: "#173d78", handle: "#2f63b0", emblem:
+          `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <path d="M35 21 H40 A7 7 0 0 1 40 35 H35 Z" fill="#fffdf3" stroke="#123163" stroke-width="1.4"/>
+           <line x1="31" y1="25" x2="35" y2="25" stroke="#fffdf3" stroke-width="2"/><line x1="31" y1="31" x2="35" y2="31" stroke="#fffdf3" stroke-width="2"/><line x1="47" y1="28" x2="51" y2="28" stroke="#fffdf3" stroke-width="2"/>` });
+      case "precise-routing-engineer": // emerald cup, mux on a bullseye
+        return achievementTrophy(id, { top: "#6fd6a0", bot: "#0d6b40", rim: "#f3d27a", base: "#0d6b40", handle: "#1f9660", emblem:
+          `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <path d="M35 22 L46 26 V32 L35 36 Z" fill="#fffdf3" stroke="#094d2c" stroke-width="1.4"/>
+           <line x1="30" y1="26" x2="35" y2="26" stroke="#fffdf3" stroke-width="1.9"/><line x1="30" y1="32" x2="35" y2="32" stroke="#fffdf3" stroke-width="1.9"/><line x1="46" y1="29" x2="51" y2="29" stroke="#fffdf3" stroke-width="1.9"/>` });
+      case "precise-bus-engineer": // teal cup, bus cable on a bullseye
+        return achievementTrophy(id, { top: "#5fc8cf", bot: "#0c5560", rim: "#f3d27a", base: "#0c5560", handle: "#188390", emblem:
+          `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <g stroke="#fffdf3" stroke-width="2.4" stroke-linecap="round"><line x1="35" y1="22.5" x2="35" y2="33.5"/><line x1="40" y1="22.5" x2="40" y2="33.5"/><line x1="45" y1="22.5" x2="45" y2="33.5"/></g>` });
+      case "thorough-engineer": // slate cup, a redo arrow around a gear
+        return achievementTrophy(id, { top: "#b7c2cf", bot: "#485563", rim: "#33414f", base: "#485563", handle: "#6a7787", emblem:
+          `<g transform="translate(40,28)"><circle r="4.4" fill="#ffcf6b" stroke="#33414f" stroke-width="1.2"/><g stroke="#33414f" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="-6.2" x2="0" y2="-4.2"/><line x1="0" y1="6.2" x2="0" y2="4.2"/><line x1="-6.2" y1="0" x2="-4.2" y2="0"/><line x1="6.2" y1="0" x2="4.2" y2="0"/></g><circle r="1.6" fill="#33414f"/></g>
+           <path d="M31 20 A11 11 0 1 1 30 33" fill="none" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>
+           <path d="M31 15.5 L31.5 20.5 L26.5 20 Z" fill="#fffdf3"/>` });
       default:
         return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
           `<circle cx="40" cy="28" r="8" fill="#fffdf3" stroke="#b9781a" stroke-width="1.6"/>` });
@@ -4727,8 +4792,10 @@
           ${message}
           <div class="note-task-actions">
             <button class="btn" data-action="note-task-close">סגור</button>
+            ${noteClearProgressButton(routingNoteDialogActive() ? "routing" : "boolean")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -8552,8 +8619,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="buses-note-close">סגור</button>
+            ${noteClearProgressButton(onNextTasksWorktable() ? "multibit" : "buses")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -9101,6 +9170,71 @@
     withWorkspace((workspace) => {
       workspace.taskIntroSeen = true;
     });
+  }
+
+  // The task ids that belong to each task note. Chapter 2.4's tasks live in two
+  // notes (buses + multibit), so it has two kinds.
+  function noteTaskIdsForKind(kind) {
+    if (kind === "boolean") return TASK_DEFS.map((t) => t.id);
+    if (kind === "routing") return ROUTING_TASK_DEFS.map((t) => t.id);
+    if (kind === "buses") return BUS_TASK_DEFS.map((t) => t.id);
+    if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
+    return [];
+  }
+
+  function noteHasProgress(kind) {
+    return noteTaskIdsForKind(kind).some((id) => taskCompleted(id));
+  }
+
+  // "נקה התקדמות" for a task note: shown when the note already holds completed
+  // tasks. Clearing wipes those tasks (and their first-try/hint bookkeeping) so
+  // the chapter can be rebuilt from scratch.
+  function noteClearProgressButton(kind) {
+    if (!noteHasProgress(kind)) return "";
+    return `<button class="btn notebook-clear-progress-btn" data-action="note-clear-open" data-note-kind="${kind}" type="button">נקה התקדמות</button>`;
+  }
+
+  function renderNoteClearDialog() {
+    if (!state.noteClearConfirm) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
+          <p>לנקות את ההתקדמות בפתק המשימות הזה?</p>
+          <p class="my-card-delete-warn">הפעולה תמחק את כל המשימות שכבר השלמת בפתק הזה, ותצטרך לבנות אותן מחדש.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="note-clear-confirm" type="button">נקה</button>
+            <button class="btn" data-action="note-clear-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function clearNoteProgress() {
+    const kind = state.noteClearConfirm;
+    const ids = noteTaskIdsForKind(kind);
+    if (!ids.length) return setState({ noteClearConfirm: null }, false);
+    const idSet = new Set(ids);
+    const completed = completedTaskIds();
+    const clearedNow = ids.filter((id) => completed.includes(id));
+    // Remember every ever-completed task, and which cleared tasks had been done,
+    // so re-doing one later earns "מהנדס יסודי".
+    const ever = Array.isArray(state.tasksEverCompleted) ? state.tasksEverCompleted : [];
+    const everUnion = [...new Set([...ever, ...completed])];
+    const clearedAfter = Array.isArray(state.tasksClearedAfterCompletion) ? state.tasksClearedAfterCompletion : [];
+    const clearedAfterUnion = [...new Set([...clearedAfter, ...clearedNow])];
+    // Reset the first-try / hint bookkeeping for this note's tasks so a clean
+    // rebuild can earn the "מדויק" chapter achievement.
+    const failed = Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : [];
+    const newHintState = { ...hintState() };
+    ids.forEach((id) => { delete newHintState[id]; });
+    setState({
+      completedTasks: completed.filter((id) => !idSet.has(id)),
+      tasksFailedOnce: failed.filter((id) => !idSet.has(id)),
+      tasksEverCompleted: everUnion,
+      tasksClearedAfterCompletion: clearedAfterUnion,
+      hintState: newHintState,
+      noteClearConfirm: null
+    }, false);
   }
 
   function openNoteTaskDialog() {
@@ -10555,7 +10689,7 @@
     }
 
     const action = button.dataset.action;
-    if (state.taskDialog && !isGlobalNavigationAction(action) && !["note-task", "note-task-close"].includes(action)) {
+    if (state.taskDialog && !isGlobalNavigationAction(action) && !["note-task", "note-task-close", "note-clear-open", "note-clear-confirm", "note-clear-cancel"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -10714,6 +10848,9 @@
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();
     if (action === "note-task") return handleNoteTask(Number(button.dataset.taskIndex));
+    if (action === "note-clear-open") return setState({ noteClearConfirm: button.dataset.noteKind || null }, false);
+    if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
+    if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
