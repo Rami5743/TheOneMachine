@@ -533,6 +533,8 @@
     // Transient input state for a story panel that gates advancement behind a
     // numeric answer: { value, feedback }.
     panelAnswer: null,
+    // True while the "מילים ובתים" enrichment reading dialog is open.
+    wordsBytesDialog: false,
     maxChapterReached: 0,
     // Furthest story-panel index reached, keyed by scene id. Drives the
     // step-by-step skip gate: skip is disabled until the target panel has been
@@ -1079,7 +1081,8 @@
       infoDialog: null,
       componentMonologue: null,
       busesNoteList: false,
-      panelAnswer: null
+      panelAnswer: null,
+      wordsBytesDialog: false
     };
   }
 
@@ -1201,7 +1204,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: false, workspace };
   }
 
   function stateForStorage() {
@@ -2026,6 +2029,14 @@
     // The routing cards' menu buttons unlock once their task is solved.
     if (!isStepByStepPace() || taskCompleted("Mux")) unlockExplanation("gate-Mux");
     if (!isStepByStepPace() || taskCompleted("DMux")) unlockExplanation("gate-DMux");
+
+    // A story panel may declare an explanation it unlocks just by being reached
+    // (e.g. the bits-range "64,000" slide unlocks "מילים ובתים", whether the red
+    // link is clicked or ignored).
+    if (state.screen === "story") {
+      const cp = currentPanel();
+      if (cp && cp.unlocksExplanation) unlockExplanation(cp.unlocksExplanation);
+    }
   }
 
   // Achievements that can be derived from persistent progress state are granted
@@ -2290,6 +2301,13 @@
         explanationReplay: { id: "why-route" }
       }, true);
     }
+
+    // A pure-text enrichment reading: opens a scrollable dialog over the current
+    // screen (the explanations menu) rather than replaying a story scene.
+    if (id === "words-bytes") {
+      if (!explanationUnlocked("words-bytes")) return;
+      return setState({ wordsBytesDialog: true }, false);
+    }
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -2382,6 +2400,18 @@
         { arith: "binadd", label: "חיבור בינרי" }
       ],
       enrichment: []
+    },
+    // Memory: reserved for later (empty for now).
+    {
+      title: "זיכרון",
+      inGame: [],
+      enrichment: []
+    },
+    // Processor: currently holds the "מילים ובתים" enrichment reading.
+    {
+      title: "מעבד",
+      inGame: [],
+      enrichment: ["words-bytes"]
     }
   ];
 
@@ -2440,7 +2470,27 @@
           </div>
         </section>
         ${renderExplRoutingInfoDialog()}
+        ${renderWordsBytesDialog()}
       </main>`;
+  }
+
+  // The "מילים ובתים" enrichment reading, shown in a scrollable dialog over
+  // whichever screen opened it (the explanations menu, or the story via the red
+  // link on the last bits-range slide).
+  function renderWordsBytesDialog() {
+    if (!state.wordsBytesDialog) return "";
+    const paras = (typeof WORDS_BYTES_PARAGRAPHS !== "undefined" ? WORDS_BYTES_PARAGRAPHS : [])
+      .map((p) => `<p>${esc(p)}</p>`).join("");
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card words-bytes-card" role="dialog" aria-modal="false" aria-label="מילים ובתים">
+          <h2 class="words-bytes-title">מילים ובתים</h2>
+          <div class="words-bytes-body">${paras}</div>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="words-bytes-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   // The routing cards' requirements dialog (Mux/DMux): the card's description
@@ -3067,10 +3117,12 @@
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
               ${panel.bubble ? `<div class="story-bubble">${esc(panel.bubble)}</div>` : ""}
+              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button">${esc(panel.cornerLink.text)}</button>` : ""}
             </div>
           </div>
         </section>
         ${panel.question ? renderPanelQuestion(panel) : ""}
+        ${renderWordsBytesDialog()}
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
         ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
@@ -10951,6 +11003,8 @@
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "panel-answer-check") return checkPanelAnswer();
+    if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: true }, false); }
+    if (action === "words-bytes-close") return setState({ wordsBytesDialog: false }, false);
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);

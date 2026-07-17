@@ -408,6 +408,51 @@ button { font: inherit; }
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
 
+/* A red "teaser" link in the top corner of a story slide (e.g. "John didn't
+   tell you the whole truth — click here"). */
+.story-corner-link {
+  position: absolute;
+  top: 2.5%;
+  right: 3%;
+  z-index: 7;
+  max-width: 42%;
+  direction: rtl;
+  text-align: right;
+  background: rgba(28, 8, 6, 0.82);
+  color: #ff6a5a;
+  border: 1px solid rgba(255, 106, 90, 0.7);
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+  font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+.story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+
+/* The "מילים ובתים" reading dialog: a taller, scrollable card. The compound
+   selector overrides .pace-dialog-card's display:grid so the flex body scrolls. */
+.pace-dialog-card.words-bytes-card {
+  width: min(94vw, 760px);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.words-bytes-title { margin: 0 0 0.7rem; text-align: center; flex: 0 0 auto; }
+.words-bytes-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+  padding-left: 0.3rem;
+}
+.words-bytes-body p { margin: 0 0 0.85rem; }
+.words-bytes-card .pace-dialog-actions { flex: 0 0 auto; margin-top: 0.9rem; }
+
 /* The numeric-answer box under a gating story slide. */
 .panel-question {
   display: flex;
