@@ -269,6 +269,42 @@ button { font: inherit; }
   text-align: right;
 }
 
+/* The explanations menu, laid out as a borderless table: a topic label per
+   row and two columns (in-game / enrichment explanations). */
+.explanations-card { width: min(96vw, 920px); }
+.explanations-table {
+  display: grid;
+  grid-template-columns: max-content 1fr 1fr;
+  gap: clamp(10px, 2vh, 22px) clamp(14px, 2.6vw, 30px);
+  align-items: start;
+  width: 100%;
+  direction: rtl;
+  text-align: right;
+}
+.expl-col-head {
+  font-weight: 800;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #f3d27a;
+  text-align: center;
+  border-bottom: 1px solid rgba(243, 210, 122, 0.35);
+  padding-bottom: 6px;
+}
+.expl-section-title {
+  align-self: center;
+  font-weight: 800;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #f4ead2;
+  white-space: nowrap;
+  padding-inline-start: clamp(6px, 1.5vw, 18px);
+}
+.expl-cell { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.expl-item { width: 100%; }
+.expl-empty { display: block; min-height: 1px; }
+.expl-gate-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.expl-gate-label { font-weight: 700; color: #f4ead2; }
+.expl-gate-buttons { display: flex; gap: 8px; }
+.expl-gate-btn { padding: 0.3em 0.9em; min-width: 0; }
+
 .about-card h1 {
   margin: 0;
   font-size: clamp(1.7rem, 3.5vw, 2.6rem);

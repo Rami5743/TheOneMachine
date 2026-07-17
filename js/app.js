@@ -2185,20 +2185,58 @@
     }
   }
 
+  // The explanations menu is laid out as a table: one row per topic, and two
+  // columns — the in-game explanations and the enrichment ones. Existing
+  // explanations keep their handlers; they only move into the right cell. Items
+  // that are not yet built (the three basic gates) render as inert buttons.
+  const EXPLANATION_SECTIONS = [
+    {
+      title: "Nand",
+      inGame: ["nand-intro", "nand-function"],
+      enrichment: ["build-nand"]
+    },
+    {
+      title: "שערים פשוטים",
+      inGame: ["bit-info", { gatesLabel: "שלושת השערים הבסיסיים", gates: ["Not", "And", "Or"] }, "truth-table-cards"],
+      enrichment: []
+    },
+    { title: "ניתוב", inGame: [], enrichment: [] },
+    { title: "חשבון", inGame: [], enrichment: [] }
+  ];
+
+  function explanationItemHtml(spec) {
+    if (typeof spec === "string") {
+      const item = explanationItem(spec);
+      if (!item) return "";
+      return explanationUnlocked(spec)
+        ? `<button class="btn btn-primary expl-item" data-action="explanation-open" data-explanation-id="${esc(spec)}" type="button">${esc(item.title)}</button>`
+        : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
+    }
+    if (spec && Array.isArray(spec.gates)) {
+      // A plain (unlinked) label followed by the three gate buttons — not wired up yet.
+      const gates = spec.gates.map((g) => `<button class="btn expl-gate-btn" type="button">${esc(g)}</button>`).join("");
+      return `<div class="expl-gate-line"><span class="expl-gate-label">${esc(spec.gatesLabel)}:</span><span class="expl-gate-buttons">${gates}</span></div>`;
+    }
+    return "";
+  }
+
   function renderExplanationsMenu() {
     syncExplanationUnlocks();
+    const cell = (list) => (list.map(explanationItemHtml).join("") || '<span class="expl-empty" aria-hidden="true"></span>');
+    const rows = EXPLANATION_SECTIONS.map((sec) => `
+      <div class="expl-section-title">${esc(sec.title)}</div>
+      <div class="expl-cell">${cell(sec.inGame)}</div>
+      <div class="expl-cell">${cell(sec.enrichment)}</div>`).join("");
     app.innerHTML = `
       ${topbar()}
       <main class="screen menu-screen explanations-screen">
-        <section class="menu-card">
+        <section class="menu-card explanations-card">
           <h1>הסברים</h1>
-          <div class="menu-buttons explanations-list">
-            ${EXPLANATION_ITEMS.map((item) => {
-              const enabled = explanationUnlocked(item.id);
-              return enabled
-                ? `<button class="btn btn-primary" data-action="explanation-open" data-explanation-id="${esc(item.id)}" type="button">${esc(item.title)}</button>`
-                : `<button class="btn" type="button" disabled aria-disabled="true">${esc(item.title)}</button>`;
-            }).join("")}
+          <div class="explanations-table">
+            <div class="expl-corner" aria-hidden="true"></div>
+            <div class="expl-col-head">הסברים במשחק</div>
+            <div class="expl-col-head">הסברי העשרה</div>
+            ${rows}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
             <button class="btn" data-action="explanations-return" type="button" style="background:#5b4328;color:#fff8ec;border-color:#3f2d19;min-width:12rem;">חזרה למשחק</button>
