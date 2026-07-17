@@ -132,6 +132,26 @@ function createTaskModeView({
       </g>`;
   }
 
+  // The arith cards (halfAdder / fullAdder): N numbered inputs on the left and
+  // two labelled outputs (sum on top, carry on bottom) on the right. Matches the
+  // taskCard-<id> pins (card at 500,288; outputs at ±100; inputs at taskInputYs).
+  function renderArithTaskShell(task) {
+    const cy = 288;
+    const inputs = taskInputYs(task.inputs).map((y, i) => `
+        <line class="workspace-task-shell-pin" x1="160" y1="${cy + y}" x2="240" y2="${cy + y}" />
+        <text class="workspace-task-shell-pin-label" x="252" y="${cy + y + 6}" text-anchor="start">${i + 1}</text>`).join("");
+    return `
+      <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
+        <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(task.label)}</text>
+        ${inputs}
+        <line class="workspace-task-shell-pin" x1="760" y1="${cy - 100}" x2="840" y2="${cy - 100}" />
+        <line class="workspace-task-shell-pin" x1="760" y1="${cy + 100}" x2="840" y2="${cy + 100}" />
+        <text class="workspace-task-shell-pin-label" x="748" y="${cy - 100 + 6}" text-anchor="end">sum</text>
+        <text class="workspace-task-shell-pin-label" x="748" y="${cy + 100 + 6}" text-anchor="end">carry</text>
+      </g>`;
+  }
+
   function renderWorkspaceTaskShell() {
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
@@ -144,6 +164,7 @@ function createTaskModeView({
     if (!task) return "";
     if (task.id === "Mux") return renderMuxTaskShell(task);
     if (task.id === "DMux") return renderDmuxTaskShell(task);
+    if (task.outputs === 2 && Array.isArray(task.rows)) return renderArithTaskShell(task);
     const inputLines = taskInputYs(task.inputs).map((y) => `
         <line class="workspace-task-shell-pin" x1="160" y1="${288 + y}" x2="240" y2="${288 + y}" />`).join("");
     return `
