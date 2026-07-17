@@ -365,6 +365,21 @@
       { kind: "text", title: "רמז 7", text: "ה-sum הוא XOR." },
       { kind: "text", title: "רמז 8", text: "ה-carry הוא And." }
     ],
+    fullAdder: [
+      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-halfAdder." },
+      { kind: "text", title: "רמז 2", text: "בשביל לחבר שלושה מספרים אפשר לחבר קודם את השניים הראשונים ואז לחבר את השלישי לתוצאה." },
+      { kind: "text", title: "רמז 3", text: "אתה יכול לחבר את השניים הראשונים עם halfAdder. שים לב, התוצאה היא דו-ספרתית." },
+      { kind: "interactive", title: "רמז 4", action: "fulladder-ha1", confirmBeforeApply: true, applyLabel: "כן", text: "אניח בשבילך את ה-halfAdder הראשון ואחבר אליו את שתי הכניסות הראשונות. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "text", title: "רמז 5", text: "כדי לחבר את השלישי לתוצאה אתה יכול לחבר אותו לספרת האחדות." },
+      { kind: "interactive", title: "רמז 6", action: "fulladder-ha2", confirmBeforeApply: true, applyLabel: "כן", text: "אניח את ה-halfAdder השני ואחבר אליו את ספרת האחדות של הסכום הקודם ואת הכניסה השלישית. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "text", title: "רמז 7", text: "עכשיו אתה יודע כבר את ספרת האחדות של הסכום של כל השלושה." },
+      { kind: "interactive", title: "רמז 8", action: "fulladder-sum", confirmBeforeApply: true, applyLabel: "כן", text: "אחבר את היציאה sum של ה-halfAdder השני ליציאת ה-sum של הכרטיס. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "text", title: "רמז 9", text: "עכשיו יש שני דברים שתורמים לספרת ה-2. תנסה לאתר אותם." },
+      { kind: "interactive", title: "רמז 10", action: "fulladder-carries", confirmBeforeApply: true, applyLabel: "כן", text: "שני התורמים לספרת ה-2 הם היציאה carry של ה-halfAdder הראשון והיציאה carry של ה-halfAdder השני. אחזיר את המעגל למצב שבו רואים אותם. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "text", title: "רמז 11", text: "מה לדעתך צריך לעשות להם?" },
+      { kind: "interactive", title: "רמז 12", action: "fulladder-ha3", confirmBeforeApply: true, applyLabel: "כן", text: "אוסיף halfAdder שמחבר את שתי היציאות carry, וה-sum שלו יהיה ספרת ה-2 של התוצאה. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "text", title: "רמז 13", text: "שים לב, קיבלנו 2 ספרות, אבל התוצאה צריכה להיות ספרת ה-2 של הסכום של שלושת המספרים, ולכן היא צריכה להיות חד-ספרתית — אחרת הסכום המקורי היה תלת-ספרתי. הספרה הנוספת (ספרת ה-4) תמיד 0, ולכן מתעלמים ממנה." }
+    ],
     Mux4way16: [
       { kind: "text", title: "רמז 1", text: "תתחיל מלפצל את בס הבקרה לשני הביטים שלו." },
       { kind: "text", title: "רמז 2", text: "הביט הראשון של כניסת הבקרה בוחר מאיזה זוג כניסות תבחר הכניסה אותה צריך \"לחבר\" ליציאה." },

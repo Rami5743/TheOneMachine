@@ -3486,6 +3486,49 @@
         }
       }
     ],
+    fullAdder: [
+      {
+        text: "ראשית אנחנו מחברים 2 מהכניסות בעזרת halfAdder. התוצאה היא מספר דו-ספרתי. אנחנו מחברים את ספרת האחדות שלו עם הכניסה השלישית בעזרת halfAdder נוסף.",
+        highlight: {
+          components: ["ha-1", "ha-2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "ha-1.in1"),
+            wireKey("task-card-1.inputInt2", "ha-1.in2"),
+            wireKey("ha-1.out1", "ha-2.in1"),
+            wireKey("task-card-1.inputInt3", "ha-2.in2")
+          ]
+        }
+      },
+      {
+        text: "ספרת האחדות של התוצאה היא ספרת האחדות שיוצאת מה-halfAdder השני, ואותה אנחנו מוציאים מיציאת ה-sum של הכרטיס.",
+        highlight: {
+          components: ["ha-2"],
+          truthCols: ["sum"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [wireKey("ha-2.out1", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "כדי לקבל את ספרת ה-2 צריך לסכם את שתי ספרות ה-2 שקיבלנו — ה-carry של ה-halfAdder הראשון וה-carry של ה-halfAdder השני — בעזרת halfAdder שלישי.",
+        highlight: {
+          components: ["ha-1", "ha-2", "ha-3"],
+          terminals: ["ha-1.out2", "ha-2.out2"],
+          wires: [
+            wireKey("ha-1.out2", "ha-3.in1"),
+            wireKey("ha-2.out2", "ha-3.in2")
+          ]
+        }
+      },
+      {
+        text: "נשים לב שבאופן עקרוני הסכום הזה יכול היה להיות דו-ספרתי. ספרת ה-2 שלו היא למעשה ספרת ה-4 של הסכום שאנחנו מחשבים, ולכן היא חייבת להיות 0 (הסכום הכי גדול הוא 1+1+1=3=11 בבינרית, שהוא דו-ספרתי). לכן אנחנו מתעלמים מהספרה הזאת, וה-sum של ה-halfAdder השלישי הוא ספרת ה-2 של התוצאה.",
+        highlight: {
+          components: ["ha-3"],
+          truthCols: ["carry"],
+          terminals: ["ha-3.out2", "task-card-1.outputInt2"],
+          wires: [wireKey("ha-3.out1", "task-card-1.outputInt2")]
+        }
+      }
+    ],
     Not4: [
       {
         text: "מפצלים את בס הכניסה ל-4 כבלים נפרדים בעזרת מפצל.",
@@ -8879,6 +8922,26 @@
     });
   }
 
+  // The fullAdder build hints construct the 3-halfAdder circuit one stage at a
+  // time. Each stage is the cumulative circuit up to that point: HA1 adds the
+  // first two inputs; HA2 adds the third to that sum; the sum output is wired;
+  // then HA3 adds the two carries and its sum becomes the card's carry. HA3's
+  // own carry is always 0, so it is left unconnected.
+  const FA_HA1 = { id: "ha-1", type: "gate-halfAdder", x: 330, y: 190 };
+  const FA_HA2 = { id: "ha-2", type: "gate-halfAdder", x: 520, y: 300 };
+  const FA_HA3 = { id: "ha-3", type: "gate-halfAdder", x: 520, y: 470 };
+  const FA_W_HA1 = [["task-card-1.inputInt1", "ha-1.in1"], ["task-card-1.inputInt2", "ha-1.in2"]];
+  const FA_W_HA2 = [...FA_W_HA1, ["ha-1.out1", "ha-2.in1"], ["task-card-1.inputInt3", "ha-2.in2"]];
+  const FA_W_SUM = [...FA_W_HA2, ["ha-2.out1", "task-card-1.outputInt1"]];
+  const FA_W_HA3 = [...FA_W_SUM, ["ha-1.out2", "ha-3.in1"], ["ha-2.out2", "ha-3.in2"], ["ha-3.out1", "task-card-1.outputInt2"]];
+  const FULLADDER_HINT_STAGES = {
+    "fulladder-ha1": { components: [FA_HA1], wires: FA_W_HA1 },
+    "fulladder-ha2": { components: [FA_HA1, FA_HA2], wires: FA_W_HA2 },
+    "fulladder-sum": { components: [FA_HA1, FA_HA2], wires: FA_W_SUM },
+    "fulladder-carries": { components: [FA_HA1, FA_HA2], wires: FA_W_SUM },
+    "fulladder-ha3": { components: [FA_HA1, FA_HA2, FA_HA3], wires: FA_W_HA3 }
+  };
+
   function openArithNote() {
     return setState({ arithNoteList: true });
   }
@@ -9193,7 +9256,7 @@
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
     const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
-    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
+    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId) || isArithTask(taskId)) {
       // The rebuilt solution workspace must keep the worktable return target.
       nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
       if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
@@ -9284,6 +9347,30 @@
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
+    }
+
+    // fullAdder build hints: progressively construct the 3-halfAdder circuit.
+    // Each stage rebuilds the workspace to a fixed cumulative state, so they must
+    // be applied in order (each warns first, as it overwrites the learner's work).
+    if (taskId === "fullAdder" && FULLADDER_HINT_STAGES[hint.action]) {
+      const faWorkspace = normalizeWorkspace(clonePlain(state.workspace));
+      const source = componentById(faWorkspace, "source-1") || { id: "source-1", type: "source", x: 80, y: 288 };
+      const card = componentById(faWorkspace, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("fullAdder"), x: 500, y: 288 };
+      const stage = FULLADDER_HINT_STAGES[hint.action];
+      faWorkspace.components = [clonePlain(source), clonePlain(card), ...taskLampComponents("fullAdder"), ...stage.components];
+      faWorkspace.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
+      faWorkspace.nextId = 6;
+      faWorkspace.selectedTerminal = null;
+      faWorkspace.accident = null;
+      faWorkspace.focusedComponentId = null;
+      faWorkspace.unlocked = true;
+      faWorkspace.taskIntroSeen = true;
+      const faPatch = {
+        workspace: normalizeWorkspace(faWorkspace),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) faPatch.hintState = hintStateOverride;
+      return setState(faPatch, false);
     }
 
     // Dmux4way interactive hint: scaffold the control-bus splitter and the first

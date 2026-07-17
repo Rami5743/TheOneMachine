@@ -469,6 +469,29 @@ function createSolutionWorkspaces({
     return normalizeWorkspace(workspace);
   }
 
+  // fullAdder (chapter 2.5): three halfAdders. HA1 adds the first two inputs;
+  // HA2 adds the third to HA1's sum (its sum is the card's sum); HA3 adds the two
+  // carries (its sum is the card's carry, its own carry is always 0).
+  function fullAdderSolutionFrom() {
+    const workspace = standardTaskWorkspace("fullAdder");
+    workspace.components.push(
+      { id: "ha-1", type: "gate-halfAdder", x: 330, y: 190 },
+      { id: "ha-2", type: "gate-halfAdder", x: 520, y: 300 },
+      { id: "ha-3", type: "gate-halfAdder", x: 520, y: 470 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "ha-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "ha-1.in2"),
+      normalizeWire("ha-1.out1", "ha-2.in1"),
+      normalizeWire("task-card-1.inputInt3", "ha-2.in2"),
+      normalizeWire("ha-2.out1", "task-card-1.outputInt1"),
+      normalizeWire("ha-1.out2", "ha-3.in1"),
+      normalizeWire("ha-2.out2", "ha-3.in2"),
+      normalizeWire("ha-3.out1", "task-card-1.outputInt2")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
   // Not4 (chapter 2.4): split the input bus into 4 wires, NOT each, merge back.
   // Built directly (not via standardTaskWorkspace) because bus tasks have no
   // TASK_DEFS entry and use a bus card with a pre-placed single source.
@@ -927,6 +950,7 @@ function createSolutionWorkspaces({
 
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
+    if (taskId === "fullAdder") return fullAdderSolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
