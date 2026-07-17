@@ -379,6 +379,13 @@ button { font: inherit; }
 .achv-locked { opacity: 0.5; }
 .achv-locked .achv-trophy { filter: grayscale(0.85) brightness(0.85) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)); }
 
+/* "נקה התקדמות" — a mildly destructive action, tinted amber to set it apart. */
+.notebook-clear-progress-btn {
+  border-color: rgba(214, 156, 60, 0.6);
+  color: #e7b357;
+}
+.notebook-clear-progress-btn:hover { background: rgba(214, 156, 60, 0.14); }
+
 /* The "new achievement unlocked" flourish: the earned trophy flies from the
    centre of the screen into the topbar's השיגים button. */
 .achv-unlock-fly {

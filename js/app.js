@@ -518,6 +518,8 @@
     myCardsIntroSeen: false,
     // The card currently pending a delete confirmation on the "My cards" page.
     cardDeleteConfirm: null,
+    // True while the "נקה התקדמות" warning dialog is open in the booklet.
+    binClearConfirm: false,
     maxChapterReached: 0,
     // Furthest story-panel index reached, keyed by scene id. Drives the
     // step-by-step skip gate: skip is disabled until the target panel has been
@@ -1185,7 +1187,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, workspace };
   }
 
   function stateForStorage() {
@@ -7045,9 +7047,51 @@
         <div class="notebook-footer">
           <div class="notebook-actions">
             <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
+            ${binClearProgressButton()}
           </div>
         </div>
+        ${renderBinClearDialog()}
       </main>`;
+  }
+
+  // Whether the booklet holds any completed-task progress worth clearing.
+  function binHasProgress() {
+    return binDone().length > 0;
+  }
+
+  // "נקה התקדמות": shown when opening a booklet that already has progress. It
+  // wipes every completed task (and the current scribbles), unlike the per-
+  // exercise ↻ reset which only clears the current grid.
+  function binClearProgressButton() {
+    if (!binHasProgress()) return "";
+    return `<button class="btn notebook-clear-progress-btn" data-action="binbk-clear-open" type="button">נקה התקדמות</button>`;
+  }
+
+  function renderBinClearDialog() {
+    if (!state.binClearConfirm) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
+          <p>לנקות את כל ההתקדמות בחוברת?</p>
+          <p class="my-card-delete-warn">הפעולה תמחק את כל מה שכתבת ואת כל המשימות שכבר השלמת בחוברת, ותתחיל אותה מחדש.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="binbk-clear-confirm" type="button">נקה</button>
+            <button class="btn" data-action="binbk-clear-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // Wipe the booklet's progress and restart it from a fresh first exercise.
+  function binClearProgress() {
+    const ex = freshBinExercise(BIN_STAGES[0], 0, 0);
+    setState({
+      binBookletDone: [],
+      binFirstTryClean: [],
+      binMenuResolved: [],
+      binClearConfirm: false,
+      notebook: ex
+    });
   }
 
   function renderBinaryNotebook() {
@@ -7126,6 +7170,7 @@
           <button class="btn btn-primary" data-action="binbk-check" type="button">בדיקה</button>
           ${hintButton}
           <button class="btn" data-action="binbk-back" type="button">חזרה למחסן</button>
+          ${binClearProgressButton()}
           <button class="btn notebook-reset-btn" data-action="binbk-reset" type="button" aria-label="נקה">↻</button>
         </div>`;
     }
@@ -7137,6 +7182,7 @@
         <div class="notebook-page bin-notebook-page">${rows.join("")}</div>
         <div class="notebook-footer">${footer}</div>
         ${inGrid ? "" : renderBinaryDialog(nb)}
+        ${renderBinClearDialog()}
       </main>`;
   }
 
@@ -10647,6 +10693,9 @@
     if (action === "binbk-addintro-ok") return binAddIntroOk();
     if (action === "binbk-menu-select") return binMenuSelect(button.dataset.stage);
     if (action === "binbk-menu-review") return binMenuReviewDecimal();
+    if (action === "binbk-clear-open") return setState({ binClearConfirm: true }, false);
+    if (action === "binbk-clear-cancel") return setState({ binClearConfirm: false }, false);
+    if (action === "binbk-clear-confirm") return binClearProgress();
     if (action === "notebook-cell") return notebookSelectCell(Number(button.dataset.r), Number(button.dataset.c));
     if (action === "notebook-check") return checkNotebook();
     if (action === "notebook-reset") return resetNotebook();
