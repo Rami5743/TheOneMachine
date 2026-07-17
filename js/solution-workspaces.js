@@ -475,9 +475,9 @@ function createSolutionWorkspaces({
   function fullAdderSolutionFrom() {
     const workspace = standardTaskWorkspace("fullAdder");
     workspace.components.push(
-      { id: "ha-1", type: "gate-halfAdder", x: 330, y: 190 },
-      { id: "ha-2", type: "gate-halfAdder", x: 520, y: 300 },
-      { id: "ha-3", type: "gate-halfAdder", x: 520, y: 470 }
+      { id: "ha-1", type: "gate-halfAdder", x: 330, y: 200 },
+      { id: "ha-2", type: "gate-halfAdder", x: 500, y: 320 },
+      { id: "ha-3", type: "gate-halfAdder", x: 690, y: 240 }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt1", "ha-1.in1"),

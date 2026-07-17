@@ -132,14 +132,15 @@ function createTaskModeView({
       </g>`;
   }
 
-  // The arith cards (halfAdder / fullAdder): N numbered inputs on the left and
-  // two labelled outputs (sum on top, carry on bottom) on the right. Matches the
-  // taskCard-<id> pins (card at 500,288; outputs at ±100; inputs at taskInputYs).
+  // The arith cards (halfAdder / fullAdder): N numbered inputs on the left and two
+  // outputs on the right — carry on top, sum on the bottom. Pin labels sit OUTSIDE
+  // the frame (numbers to the left of the inputs, sum/carry to the right of the
+  // outputs), the usual convention. Matches the taskCard-<id> pins.
   function renderArithTaskShell(task) {
     const cy = 288;
     const inputs = taskInputYs(task.inputs).map((y, i) => `
         <line class="workspace-task-shell-pin" x1="160" y1="${cy + y}" x2="240" y2="${cy + y}" />
-        <text class="workspace-task-shell-pin-label" x="252" y="${cy + y + 6}" text-anchor="start">${i + 1}</text>`).join("");
+        <text class="workspace-task-shell-pin-label" x="148" y="${cy + y + 6}" text-anchor="end">${i + 1}</text>`).join("");
     return `
       <g class="workspace-task-shell workspace-task-shell-mux" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
@@ -147,8 +148,8 @@ function createTaskModeView({
         ${inputs}
         <line class="workspace-task-shell-pin" x1="760" y1="${cy - 100}" x2="840" y2="${cy - 100}" />
         <line class="workspace-task-shell-pin" x1="760" y1="${cy + 100}" x2="840" y2="${cy + 100}" />
-        <text class="workspace-task-shell-pin-label" x="748" y="${cy - 100 + 6}" text-anchor="end">sum</text>
-        <text class="workspace-task-shell-pin-label" x="748" y="${cy + 100 + 6}" text-anchor="end">carry</text>
+        <text class="workspace-task-shell-pin-label" x="852" y="${cy - 100 + 6}" text-anchor="start">carry</text>
+        <text class="workspace-task-shell-pin-label" x="852" y="${cy + 100 + 6}" text-anchor="start">sum</text>
       </g>`;
   }
 

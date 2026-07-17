@@ -377,7 +377,7 @@
       { kind: "text", title: "רמז 9", text: "עכשיו יש שני דברים שתורמים לספרת ה-2. תנסה לאתר אותם." },
       { kind: "interactive", title: "רמז 10", action: "fulladder-carries", confirmBeforeApply: true, applyLabel: "כן", text: "שני התורמים לספרת ה-2 הם היציאה carry של ה-halfAdder הראשון והיציאה carry של ה-halfAdder השני. אחזיר את המעגל למצב שבו רואים אותם. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
       { kind: "text", title: "רמז 11", text: "מה לדעתך צריך לעשות להם?" },
-      { kind: "interactive", title: "רמז 12", action: "fulladder-ha3", confirmBeforeApply: true, applyLabel: "כן", text: "אוסיף halfAdder שמחבר את שתי היציאות carry, וה-sum שלו יהיה ספרת ה-2 של התוצאה. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+      { kind: "interactive", title: "רמז 12", action: "fulladder-ha3", confirmBeforeApply: true, applyLabel: "כן", text: "אניח halfAdder שמחבר את שתי היציאות carry. ה-sum שלו הוא ספרת ה-2 של התוצאה — נותר לך רק לחבר אותו ליציאת ה-carry של הכרטיס. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
       { kind: "text", title: "רמז 13", text: "שים לב, קיבלנו 2 ספרות, אבל התוצאה צריכה להיות ספרת ה-2 של הסכום של שלושת המספרים, ולכן היא צריכה להיות חד-ספרתית — אחרת הסכום המקורי היה תלת-ספרתי. הספרה הנוספת (ספרת ה-4) תמיד 0, ולכן מתעלמים ממנה." }
     ],
     Mux4way16: [

@@ -246,13 +246,22 @@
     "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 }
   };
 
+  // The chapter 2.5 arithmetic worktable (panel119, index 19) — the post-von
+  // Neumann worktable that carries the tasks note.
+  const ARITH_WORKTABLE_INDEX = 19;
+
   function openFreeWorkspace(kind = "chapter-5") {
     const state = readState();
     const target = FREE_WORKSPACE[kind] || FREE_WORKSPACE["chapter-5"];
     // Return to the worktable the learner actually opened the table from — the
     // original OR the next-tasks worktable (chapter 2.4 has both) — not a fixed
     // panel index. The table hotspot is only shown while on a worktable panel.
-    const returnPanel = Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex;
+    // Exception: the 2.5 workshop table, once von Neumann's entrance has played
+    // (bitsRangeSeen), returns to the arithmetic worktable that carries the tasks
+    // note (panel119) rather than the pre-entrance workshop slide.
+    const returnPanel = (kind === "binary-workshop" && state.bitsRangeSeen)
+      ? ARITH_WORKTABLE_INDEX
+      : (Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex);
     state.screen = "workspace";
     state.chapterId = target.chapterId;
     state.sceneId = target.sceneId;

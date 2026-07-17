@@ -1209,6 +1209,20 @@ button { font: inherit; }
   fill: #2c2113;
 }
 
+/* The "+" mark inside the halfAdder / fullAdder placeable gate. */
+.arith-gate-plus {
+  stroke: #2c2113;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+/* The s / c letters next to the adder gate's output pins. */
+.arith-gate-pin-letter {
+  font-size: 20px;
+  font-weight: 800;
+  fill: #2c2113;
+}
+
 .card-pin-width-box {
   transform: translate(-50%, -50%);
 }

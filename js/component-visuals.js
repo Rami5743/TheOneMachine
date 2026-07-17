@@ -58,22 +58,31 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   }
 
   // The arith cards (halfAdder / fullAdder) have no schematic symbol, so their
-  // placeable gate is drawn as a labelled chip (like a saved card): a rounded
-  // body with input stubs on the left and two output stubs (sum/carry) on the
-  // right. Pin geometry matches the gate-<id> def in app.js.
+  // placeable gate is drawn as a "+" box: a rounded body with a plus sign in the
+  // middle (halfAdder's plus is missing its lower leg — "half" a plus), input
+  // stubs on the left and two output stubs on the right — carry (c) on top, sum
+  // (s) on the bottom. Pin geometry matches the gate-<id> def in app.js.
   const ARITH_GATE_IDS = ["halfAdder", "fullAdder"];
   function arithGateMarkup(task, options = {}) {
     if (!task) return "";
     const inYs = task.inputs === 3 ? [-27, 0, 27] : [-23, 23];
-    const outYs = [-23, 23];
     const bodyW = 92;
     const bodyH = 84;
     const inX = -62;
     const outX = 66;
+    const carryY = -23;
+    const sumY = 23;
+    const arm = 17;
+    const half = task.id === "halfAdder";
     let s = `<rect class="usercard-body" x="${-bodyW / 2}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
-    s += `<rect class="usercard-chip" x="${-bodyW / 2 + 18}" y="${-bodyH / 2 + 14}" width="${bodyW - 36}" height="${bodyH - 28}" rx="6" />`;
+    // The "+" mark (halfAdder omits the lower leg).
+    s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
+    s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${half ? 0 : arm}" />`;
     inYs.forEach((y) => { s += `<line class="usercard-pin" x1="${-bodyW / 2}" y1="${y}" x2="${inX}" y2="${y}" />`; });
-    outYs.forEach((y) => { s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${y}" x2="${outX}" y2="${y}" />`; });
+    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${carryY}" x2="${outX}" y2="${carryY}" />`;
+    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${sumY}" x2="${outX}" y2="${sumY}" />`;
+    s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${carryY + 5}" text-anchor="end">c</text>`;
+    s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${sumY + 5}" text-anchor="end">s</text>`;
     if (!options.toolbar) {
       s += `<text class="usercard-name" x="0" y="${bodyH / 2 + 26}" text-anchor="middle">${esc(task.label)}</text>`;
     }

@@ -343,10 +343,11 @@
       cardPins[`inputExt${index + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${arithTask.label} ${index + 1} חיצונית` };
       cardPins[`inputInt${index + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${arithTask.label} ${index + 1} פנימית` };
     });
-    cardPins.outputInt1 = { x: 260, y: -100, direction: "in", label: "יציאת sum פנימית" };
-    cardPins.outputExt1 = { x: 340, y: -100, direction: "out", label: "יציאת sum חיצונית" };
-    cardPins.outputInt2 = { x: 260, y: 100, direction: "in", label: "יציאת carry פנימית" };
-    cardPins.outputExt2 = { x: 340, y: 100, direction: "out", label: "יציאת carry חיצונית" };
+    // carry (output 2) on top, sum (output 1) on the bottom.
+    cardPins.outputInt2 = { x: 260, y: -100, direction: "in", label: "יציאת carry פנימית" };
+    cardPins.outputExt2 = { x: 340, y: -100, direction: "out", label: "יציאת carry חיצונית" };
+    cardPins.outputInt1 = { x: 260, y: 100, direction: "in", label: "יציאת sum פנימית" };
+    cardPins.outputExt1 = { x: 340, y: 100, direction: "out", label: "יציאת sum חיצונית" };
     WORKSPACE_COMPONENT_DEFS[taskCardComponentType(arithTask.id)] = {
       label: `מסגרת ${arithTask.label}`,
       fixed: true,
@@ -356,9 +357,9 @@
     };
   }
 
-  // Once halfAdder is built it joins the toolbar as a placeable gate (reused
-  // inside fullAdder), drawn as a labelled box with two inputs and two outputs
-  // (sum on top, carry on bottom).
+  // Once built, the adder cards join the toolbar as placeable gates (halfAdder is
+  // reused inside fullAdder), drawn as a "+" box with two outputs: carry on top
+  // (out2), sum on the bottom (out1).
   WORKSPACE_COMPONENT_DEFS["gate-halfAdder"] = {
     label: "halfAdder",
     taskId: "halfAdder",
@@ -366,8 +367,21 @@
     pins: {
       in1: { x: -62, y: -23, direction: "in", label: "כניסת halfAdder 1" },
       in2: { x: -62, y: 23, direction: "in", label: "כניסת halfAdder 2" },
-      out1: { x: 66, y: -23, direction: "out", label: "יציאת sum" },
-      out2: { x: 66, y: 23, direction: "out", label: "יציאת carry" }
+      out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
+      out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+  WORKSPACE_COMPONENT_DEFS["gate-fullAdder"] = {
+    label: "fullAdder",
+    taskId: "fullAdder",
+    gate: true,
+    pins: {
+      in1: { x: -62, y: -27, direction: "in", label: "כניסת fullAdder 1" },
+      in2: { x: -62, y: 0, direction: "in", label: "כניסת fullAdder 2" },
+      in3: { x: -62, y: 27, direction: "in", label: "כניסת fullAdder 3" },
+      out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
+      out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
@@ -6459,6 +6473,27 @@
   // The plot continues (once) with the bits-range dialogue after the booklet is
   // finished. Navigate there and mark it seen so later booklet visits go to the
   // practice menu instead. `extra` carries any state to persist alongside.
+  // The panel index of von Neumann's bits-range entrance (panel108) in the
+  // arithmetic scene, and whether the learner is currently parked on a story
+  // slide BEFORE it (e.g. after navigating back or returning via the chapters
+  // menu). Used to resume the plot when the booklet is already finished.
+  function bitsRangeEntranceIndex() {
+    const scene = SCENES["arithmetic"];
+    return scene ? scene.panels.findIndex((p) => p.image && p.image.includes("panel108_chapter_2_5_bits_1")) : -1;
+  }
+  function onSlideBeforeBitsRange() {
+    const vn = bitsRangeEntranceIndex();
+    return vn >= 0
+      && state.screen === "story"
+      && state.chapterId === "chapter-8"
+      && state.sceneId === "arithmetic"
+      && Number.isInteger(state.panelIndex)
+      && state.panelIndex < vn;
+  }
+  // Set when the finished booklet is opened from a pre-entrance slide, so leaving
+  // it resumes von Neumann's entrance (issue: booklet done but parked earlier).
+  let bookletBeforeEntrance = false;
+
   function goToBitsRange(extra = {}) {
     const scene = SCENES["arithmetic"];
     const vnIndex = scene ? scene.panels.findIndex((p) => p.image && p.image.includes("panel108_chapter_2_5_bits_1")) : -1;
@@ -6482,11 +6517,15 @@
     const done = binDone();
     if (!binFirstUnfinished(done)) {
       // All tasks done: play the bits-range dialogue the first time, otherwise
-      // open the practice menu.
+      // open the practice menu. If the learner opened the finished booklet from a
+      // slide BEFORE von Neumann's entrance, remember it so leaving the booklet
+      // resumes his entrance (rather than dropping back before it).
       if (!state.bitsRangeSeen && goToBitsRange()) return;
+      bookletBeforeEntrance = onSlideBeforeBitsRange();
       setState({ screen: "notebook", notebook: { variant: "binary", mode: "menu" } });
       return;
     }
+    bookletBeforeEntrance = false;
     const stage = binFirstUnfinished(done);
     const ex = freshBinExercise(stage, 0, 0);
     if (stage === "binadd") ex.dialog = "addintro";
@@ -6852,6 +6891,14 @@
   // (like the arithmetic notebook); finishing the whole booklet clears it so a
   // later visit starts fresh.
   function binBackToWorkshop(clearNotebook) {
+    // If the finished booklet was opened from a slide before von Neumann's
+    // entrance, leaving it resumes his entrance instead of returning to the
+    // pre-entrance workshop slide.
+    if (bookletBeforeEntrance && !binFirstUnfinished()) {
+      bookletBeforeEntrance = false;
+      if (goToBitsRange()) return;
+    }
+    bookletBeforeEntrance = false;
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -8008,6 +8055,14 @@
   function taskLampComponents(taskId) {
     const count = taskDefById(taskId)?.outputs || 1;
     if (count > 1) {
+      // Arith cards put sum (lamp-1) at the bottom and carry (lamp-2) on top;
+      // the DMux keeps output 1 on top.
+      if (isArithTask(taskId)) {
+        return [
+          { id: "lamp-1", type: "lamp", x: 940, y: 358 },
+          { id: "lamp-2", type: "lamp", x: 940, y: 158 }
+        ];
+      }
       return [
         { id: "lamp-1", type: "lamp", x: 940, y: 158 },
         { id: "lamp-2", type: "lamp", x: 940, y: 358 }
@@ -8927,20 +8982,27 @@
   // first two inputs; HA2 adds the third to that sum; the sum output is wired;
   // then HA3 adds the two carries and its sum becomes the card's carry. HA3's
   // own carry is always 0, so it is left unconnected.
-  const FA_HA1 = { id: "ha-1", type: "gate-halfAdder", x: 330, y: 190 };
-  const FA_HA2 = { id: "ha-2", type: "gate-halfAdder", x: 520, y: 300 };
-  const FA_HA3 = { id: "ha-3", type: "gate-halfAdder", x: 520, y: 470 };
+  const FA_HA1 = { id: "ha-1", type: "gate-halfAdder", x: 330, y: 200 };
+  const FA_HA2 = { id: "ha-2", type: "gate-halfAdder", x: 500, y: 320 };
+  // HA3 sits to the right of HA2 and high enough to stay inside the frame.
+  const FA_HA3 = { id: "ha-3", type: "gate-halfAdder", x: 690, y: 240 };
   const FA_W_HA1 = [["task-card-1.inputInt1", "ha-1.in1"], ["task-card-1.inputInt2", "ha-1.in2"]];
   const FA_W_HA2 = [...FA_W_HA1, ["ha-1.out1", "ha-2.in1"], ["task-card-1.inputInt3", "ha-2.in2"]];
   const FA_W_SUM = [...FA_W_HA2, ["ha-2.out1", "task-card-1.outputInt1"]];
-  const FA_W_HA3 = [...FA_W_SUM, ["ha-1.out2", "ha-3.in1"], ["ha-2.out2", "ha-3.in2"], ["ha-3.out1", "task-card-1.outputInt2"]];
+  // The two carries feed HA3; wired so the cables do not cross (carry1 from the
+  // higher HA1 to the top input, carry2 from HA2 to the bottom input).
+  const FA_W_CARRIES = [...FA_W_SUM, ["ha-1.out2", "ha-3.in1"], ["ha-2.out2", "ha-3.in2"]];
+  // The full circuit also routes HA3's sum to the card's carry output; the HINT
+  // deliberately stops one wire short of that (leaving it for the learner).
+  const FA_W_FULL = [...FA_W_CARRIES, ["ha-3.out1", "task-card-1.outputInt2"]];
   const FULLADDER_HINT_STAGES = {
     "fulladder-ha1": { components: [FA_HA1], wires: FA_W_HA1 },
     "fulladder-ha2": { components: [FA_HA1, FA_HA2], wires: FA_W_HA2 },
     "fulladder-sum": { components: [FA_HA1, FA_HA2], wires: FA_W_SUM },
     "fulladder-carries": { components: [FA_HA1, FA_HA2], wires: FA_W_SUM },
-    "fulladder-ha3": { components: [FA_HA1, FA_HA2, FA_HA3], wires: FA_W_HA3 }
+    "fulladder-ha3": { components: [FA_HA1, FA_HA2, FA_HA3], wires: FA_W_CARRIES }
   };
+  // (FA_W_FULL is used by the fullAdder solution circuit in solution-workspaces.js.)
 
   function openArithNote() {
     return setState({ arithNoteList: true });
