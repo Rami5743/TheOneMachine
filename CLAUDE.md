@@ -27,13 +27,15 @@ hands-on chip-building and arithmetic tasks.
 - **Do NOT** open a pull request unless I explicitly ask.
 - Commit AND push after each logical step; end commit messages with the Co-Authored-By / Claude-Session trailer the harness gives you.
 - Use the GitHub MCP tools (`mcp__github__*`) for any GitHub operations.
+- **Side branch**: a second dev branch (`claude/splitter-interface-improvement-e4zl3u`) carries parallel side-task work. During normal development you MAY update FROM it when useful (merge/pull its progress into the main dev branch), but NEVER push to it without an explicit instruction. Pushing to the side branch happens only as part of the prepare-for-main routine below.
 
 ### Routine for preparing to push to main (שגרת הכנה לדחיפה לראשי)
 We do NOT push to main casually — but when I explicitly ask to push to main / release, prepare the build first:
 1. **Flip the default pace to step-by-step.** `const DEFAULT_PACE` in `js/app.js` (~line 442) is deliberately kept at `"all"` (see-everything) during development for free testing. Set it to `"step"` right before the push — this one constant is the flip point, and step-by-step is the real default for players.
 2. **Guard unfinished paths with "המשך יבוא".** Make sure every not-yet-implemented path a player can reach shows a `"המשך יבוא..."` notice (an info/task dialog) instead of dead-ending or breaking — so the released build never strands the player.
 3. Bump `?v=` versions (as always) and commit/push.
-4. **After the push, when resuming development, flip `DEFAULT_PACE` back to `"all"`** so testing is fast again.
+4. **Sync the two dev branches.** Bring the side branch (`claude/splitter-interface-improvement-e4zl3u`, parallel side tasks) and the main dev branch to the SAME state — merge in any progress from the side branch, then push BOTH to the same commit — so the release reflects work from both. This is the ONLY time to push to the side branch without an explicit instruction.
+5. **After the push, when resuming development, flip `DEFAULT_PACE` back to `"all"`** so testing is fast again.
 
 ## Files
 
