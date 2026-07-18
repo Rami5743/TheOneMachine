@@ -1341,6 +1341,25 @@ button { font: inherit; }
 .splitter-mirror-handle:focus-visible .splitter-mirror-bg { fill: #3a3a3a; }
 .splitter-mirror-glyph { stroke: #ffe37a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
+/* The leg-count grab handle under a focused splitter: drag it up/down to change
+   how many pins the splitter splits to. */
+.splitter-resize-handle { cursor: ns-resize; pointer-events: visiblePainted; touch-action: none; }
+.splitter-resize-bg { fill: #252525; stroke: #ffe37a; stroke-width: 2; }
+.splitter-resize-handle:hover .splitter-resize-bg,
+.splitter-resize-handle:focus-visible .splitter-resize-bg { fill: #3a3a3a; }
+.splitter-resize-glyph { stroke: #ffe37a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.splitter-resize-count {
+  fill: #ffe37a;
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* A small on-board number box. Originally the splitter's output-count editor
+   (now replaced by the drag handle above); still used by the card-creation
+   pin-width picker (.card-pin-width-box). */
 .splitter-count-box {
   position: absolute;
   transform: translateX(-50%);

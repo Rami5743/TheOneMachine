@@ -907,6 +907,10 @@
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
   const charredNandMarkup = (...args) => __componentVisuals.charredNandMarkup(...args);
 
+  // The splitter's leg-count drag handle (SVG markup + drag→count mapping) lives
+  // in js/splitter-resize.js; app.js owns the shared drag state below.
+  const __splitterResize = createSplitterResize({ SPLITTER_OUTPUT_SPACING, esc });
+
   // Board content markup (wires, terminals, placed components) lives in
   // js/board-render.js. Its builders take the workspace explicitly; the wrappers
   // below pass state.workspace so existing call sites stay unchanged.
@@ -5138,6 +5142,7 @@
             <polyline points="4,-4 10,0 4,4" />
           </g>
         </g>
+        ${__splitterResize.resizeHandleMarkup(id, cx, cy, halfH, splitterOutputCount(component))}
       </g>`;
   }
 
@@ -5151,22 +5156,6 @@
         const w = pinId === "single" ? c.width * splitterOutputCount(c) : c.width;
         return `<text class="splitter-width-label" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
-  }
-
-  // The "number of outputs" editor, shown under a splitter whenever it is
-  // focused (the same trigger as the mirror handle).
-  function renderSplitterCountBox() {
-    if (state.screen !== "workspace") return "";
-    const component = splitterById(state.workspace.focusedComponentId);
-    if (!component) return "";
-    const left = component.x;
-    const top = component.y + splitterHalfHeight(component) + 14;
-    return `
-      <div class="splitter-count-box" style="left:${left}px; top:${top}px;">
-        <label>יציאות
-          <input type="number" min="2" max="16" step="1" value="${component.outputs}" data-splitter-count="${esc(component.id)}" aria-label="מספר יציאות" />
-        </label>
-      </div>`;
   }
 
   function renderWorkspace() {
@@ -5206,7 +5195,6 @@
                   ${renderSplitterControls()}
                 </g>
               </svg>
-              ${renderSplitterCountBox()}
               ${renderNotTaskHint()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
@@ -10693,6 +10681,55 @@
     });
   }
 
+  // ---- Splitter leg-count drag handle --------------------------------------
+  // Dragging the handle under a focused splitter (see renderSplitterControls +
+  // js/splitter-resize.js) grows/shrinks its leg count live. The mapping from a
+  // vertical drag distance to a leg count lives in the splitter-resize module;
+  // committing a new count reuses setSplitterOutputs (which clears the fixed
+  // width and any wiring, exactly like the old number box did).
+  function startSplitterResize(id, event) {
+    if (state.screen !== "workspace") return;
+    const component = splitterById(id);
+    if (!component) return;
+    const point = boardPointFromEvent(event);
+    if (!point) return;
+    dragState = {
+      kind: "splitter-resize",
+      componentId: id,
+      pointerId: event.pointerId,
+      startY: point.y,
+      startOutputs: splitterOutputCount(component),
+      moved: false
+    };
+    event.target.setPointerCapture?.(event.pointerId);
+  }
+
+  function updateSplitterResize(event) {
+    if (!dragState || dragState.kind !== "splitter-resize" || event.pointerId !== dragState.pointerId) return;
+    const point = boardPointFromEvent(event);
+    if (!point) return;
+    const dy = point.y - dragState.startY;
+    if (Math.abs(dy) > 4) dragState.moved = true;
+    const n = __splitterResize.outputsForDrag(dragState.startOutputs, dy);
+    const current = splitterById(dragState.componentId);
+    // setSplitterOutputs re-renders (and no-ops when the count is unchanged);
+    // document-level pointer listeners keep firing across the re-render even
+    // though the captured handle element is replaced.
+    if (current && current.outputs !== n) setSplitterOutputs(dragState.componentId, n);
+  }
+
+  function finishSplitterResize(event) {
+    if (!dragState || dragState.kind !== "splitter-resize" || event.pointerId !== dragState.pointerId) return;
+    const finished = dragState;
+    dragState = null;
+    // Swallow the click that a drag would otherwise fire (it would toggle the
+    // splitter's focus off). A plain tap on the handle (no move) is left alone.
+    if (finished.moved) {
+      suppressNextClick = true;
+      window.setTimeout(() => { suppressNextClick = false; }, 0);
+    }
+  }
+
   function handleWorkspaceTerminal(ref) {
     const workspace = normalizeWorkspace(state.workspace);
     if (!terminalExists(workspace, ref)) return;
@@ -11117,13 +11154,6 @@
   document.addEventListener("input", handleSettingEvent);
   document.addEventListener("change", handleSettingEvent);
 
-  // Splitter: the output-count box shows whenever the splitter is focused (same
-  // as the mirror handle). Committing a new value updates the splitter.
-  document.addEventListener("change", (event) => {
-    const box = event.target.closest("[data-splitter-count]");
-    if (box) setSplitterOutputs(box.dataset.splitterCount, box.value);
-  });
-
   // Card-creation: the input/output count boxes re-draw the frame's pins and
   // resize the width arrays. (The pin-width box commits live on input and closes
   // only on focusout — see below — so a spinner click doesn't dismiss it.)
@@ -11273,19 +11303,6 @@
     const nb = state.notebook;
     if (nb && Number.isFinite(left) && Number.isFinite(top)) {
       setState({ notebook: { ...nb, winPos: { left, top } } }, false);
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    const box = event.target.closest("[data-splitter-count]");
-    if (!box) return;
-    if (event.key === "Enter") {
-      event.preventDefault();
-      setSplitterOutputs(box.dataset.splitterCount, box.value);
-      box.blur();
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      clearWorkspaceFocus();
     }
   });
 
@@ -11612,6 +11629,12 @@
       return startToolbarDrag(toolboxComponent.dataset.componentType, event);
     }
 
+    const splitterResizeHandle = event.target.closest("[data-action='splitter-resize']");
+    if (splitterResizeHandle) {
+      event.preventDefault();
+      return startSplitterResize(splitterResizeHandle.dataset.componentId, event);
+    }
+
     const component = event.target.closest("[data-action='workspace-component']");
     if (component) {
       event.preventDefault();
@@ -11620,9 +11643,9 @@
 
     // A pointerdown anywhere else while a splitter is focused (empty board, a
     // control button, ...) clears the focus — except on the splitter's own
-    // controls (the mirror handle and the output-count box).
+    // controls (the mirror handle and the leg-count drag handle).
     if (state.screen === "workspace" && state.workspace.focusedComponentId) {
-      if (event.target.closest("[data-action='splitter-mirror']") || event.target.closest("[data-splitter-count]")) return;
+      if (event.target.closest("[data-action='splitter-mirror']") || event.target.closest("[data-action='splitter-resize']")) return;
       clearWorkspaceFocus();
     }
   });
@@ -11633,6 +11656,7 @@
     if (dragState.kind === "wire") return updateCableDrag(event);
     if (dragState.kind === "component") return updateComponentDrag(event);
     if (dragState.kind === "new-component") return updateToolbarDrag(event);
+    if (dragState.kind === "splitter-resize") return updateSplitterResize(event);
   });
 
   window.addEventListener("pointerup", (event) => {
@@ -11641,6 +11665,7 @@
     if (dragState.kind === "wire") return finishCableDrag(event);
     if (dragState.kind === "component") return finishComponentDrag(event);
     if (dragState.kind === "new-component") return finishToolbarDrag(event);
+    if (dragState.kind === "splitter-resize") return finishSplitterResize(event);
   }, true);
 
   window.addEventListener("pointercancel", cancelActiveDrag, true);
