@@ -505,13 +505,13 @@ function createSolutionWorkspaces({
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Add4"), x: 640, y: 288 },
-      { id: "split-a", type: "splitter", x: 455, y: 175, mirrored: false, outputs: 4, width: 1 },
-      { id: "split-b", type: "splitter", x: 455, y: 405, mirrored: false, outputs: 4, width: 1 },
-      { id: "fa0", type: "gate-fullAdder", x: 640, y: 150 },
-      { id: "fa1", type: "gate-fullAdder", x: 640, y: 250 },
-      { id: "fa2", type: "gate-fullAdder", x: 640, y: 350 },
-      { id: "fa3", type: "gate-fullAdder", x: 640, y: 450 },
-      { id: "merge", type: "splitter", x: 850, y: 300, mirrored: true, outputs: 4, width: 1 }
+      { id: "split-a", type: "splitter", x: 470, y: 235, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 470, y: 345, mirrored: false, outputs: 4, width: 1 },
+      { id: "fa0", type: "gate-fullAdder", x: 665, y: 150 },
+      { id: "fa1", type: "gate-fullAdder", x: 665, y: 250 },
+      { id: "fa2", type: "gate-fullAdder", x: 665, y: 350 },
+      { id: "fa3", type: "gate-fullAdder", x: 665, y: 450 },
+      { id: "merge", type: "splitter", x: 865, y: 300, mirrored: true, outputs: 4, width: 1 }
     ];
     // fa3=units (LSB=leg3, bottom), fa0=leading (MSB=leg0, top); the carry threads
     // upward fa3->fa2->fa1->fa0, and fa0's carry is the leading fifth digit.
