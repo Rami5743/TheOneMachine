@@ -591,7 +591,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "all";
+  const DEFAULT_PACE = "step";
 
   const defaultState = {
     screen: "menu",
@@ -9423,7 +9423,8 @@
       return setState({ infoDialog: arithTaskLockedMessage(task.id) });
     }
     if (!arithTaskImplemented(task.id)) {
-      // Add4 / Add16 build workspaces are not implemented yet.
+      // Guard for any future arith card without a build workspace yet (all four
+      // current ones — halfAdder / fullAdder / Add4 / Add16 — are implemented).
       return setState({ infoDialog: "המשך יבוא..." });
     }
     // A completed card reopens its solution walkthrough (like the other tasks);
@@ -11822,7 +11823,16 @@
     if (action === "buses-note-close") return setState({ busesNoteList: false });
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
-    if (action === "arith-note-close") return setState({ arithNoteList: false });
+    if (action === "arith-note-close") {
+      // The arith note is the LAST task list in the game. Once every card in it
+      // is built, closing the note lands the player at the end of the current
+      // content, so show a "המשך יבוא" notice — every time it is closed while
+      // complete (e.g. also when revisiting from the chapters menu).
+      const allArithDone = ARITH_TASKS.every((t) => taskCompleted(t.id));
+      return setState(allArithDone
+        ? { arithNoteList: false, infoDialog: "המשך יבוא..." }
+        : { arithNoteList: false });
+    }
     if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
