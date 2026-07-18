@@ -9133,6 +9133,41 @@
     "fulladder-carries": { components: [FA_HA1, FA_HA2], wires: FA_W_SUM },
     "fulladder-ha3": { components: [FA_HA1, FA_HA2, FA_HA3], wires: FA_W_CARRIES }
   };
+
+  // The Add4 build hints progressively construct the ripple adder, matching the
+  // solution layout (units fa3 at the bottom, next digit fa2 above it, the two
+  // input splitters at the centre and the merge on the right). Each stage
+  // rebuilds the workspace to a fixed cumulative state, so they must be applied
+  // in order and each warns first (it overwrites the learner's work). The hints
+  // stop after the second digit — fa1/fa0 are left for the learner to continue.
+  const A4_SPLIT_A = { id: "split-a", type: "splitter", x: 470, y: 235, mirrored: false, outputs: 4, width: 1 };
+  const A4_SPLIT_B = { id: "split-b", type: "splitter", x: 470, y: 345, mirrored: false, outputs: 4, width: 1 };
+  const A4_FA_UNITS = { id: "fa3", type: "gate-fullAdder", x: 665, y: 450 };
+  const A4_FA_TENS = { id: "fa2", type: "gate-fullAdder", x: 665, y: 350 };
+  const A4_MERGE = { id: "merge", type: "splitter", x: 865, y: 300, mirrored: true, outputs: 4, width: 1 };
+  // Split both numbers and add the units digits (leg3) with the incoming carry.
+  const A4_W_UNITS = [
+    ["task-card-1.inputInt1", "split-a.single"],
+    ["task-card-1.inputInt2", "split-b.single"],
+    ["split-a.leg3", "fa3.in1"],
+    ["split-b.leg3", "fa3.in2"],
+    ["task-card-1.inputInt3", "fa3.in3"]
+  ];
+  // Route the units sum out (through the merge, into the units bit of the sum bus).
+  const A4_W_UNITS_OUT = [...A4_W_UNITS, ["fa3.out1", "merge.leg3"], ["merge.single", "task-card-1.outputInt2"]];
+  // Add the next digit (leg2), threading the units carry, and route its sum out.
+  const A4_W_NEXT = [
+    ...A4_W_UNITS_OUT,
+    ["split-a.leg2", "fa2.in1"],
+    ["split-b.leg2", "fa2.in2"],
+    ["fa3.out2", "fa2.in3"],
+    ["fa2.out1", "merge.leg2"]
+  ];
+  const ADD4_HINT_STAGES = {
+    "add4-units": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS], wires: A4_W_UNITS },
+    "add4-units-out": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_MERGE], wires: A4_W_UNITS_OUT },
+    "add4-next-digit": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_FA_TENS, A4_MERGE], wires: A4_W_NEXT }
+  };
   // (FA_W_FULL is used by the fullAdder solution circuit in solution-workspaces.js.)
 
   function openArithNote() {
@@ -9577,6 +9612,30 @@
       };
       if (hintStateOverride) faPatch.hintState = hintStateOverride;
       return setState(faPatch, false);
+    }
+
+    // Add4 build hints: progressively construct the ripple adder (units column,
+    // route it out, next digit). Bus adder card, so no output lamps — just the
+    // pre-placed source and card plus the stage's splitters/adders/merge.
+    if (taskId === "Add4" && ADD4_HINT_STAGES[hint.action]) {
+      const a4 = normalizeWorkspace(clonePlain(state.workspace));
+      const source = componentById(a4, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const card = componentById(a4, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("Add4"), x: 640, y: 288 };
+      const stage = ADD4_HINT_STAGES[hint.action];
+      a4.components = [clonePlain(source), clonePlain(card), ...stage.components];
+      a4.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
+      a4.nextId = 2;
+      a4.selectedTerminal = null;
+      a4.accident = null;
+      a4.focusedComponentId = null;
+      a4.unlocked = true;
+      a4.taskIntroSeen = true;
+      const a4Patch = {
+        workspace: normalizeWorkspace(a4),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) a4Patch.hintState = hintStateOverride;
+      return setState(a4Patch, false);
     }
 
     // Dmux4way interactive hint: scaffold the control-bus splitter and the first
