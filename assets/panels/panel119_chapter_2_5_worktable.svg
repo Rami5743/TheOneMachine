@@ -24,10 +24,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.89502762"
-     inkscape:cx="724"
-     inkscape:cy="543"
-     inkscape:current-layer="svg1" />
+     inkscape:zoom="2.4560522"
+     inkscape:cx="1187.4748"
+     inkscape:cy="683.41381"
+     inkscape:current-layer="svg1"
+     inkscape:window-width="1440"
+     inkscape:window-height="2497"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
   <image
      id="raster-base"
      x="0"
@@ -37,6 +42,17 @@
      preserveAspectRatio="none"
      href="panel119_chapter_2_5_worktable.jpg"
      xlink:href="panel119_chapter_2_5_worktable.jpg" />
+  <rect
+     id="hotspot-table"
+     data-hotspot="table"
+     data-label="שולחן עבודה"
+     class="hotspot hotspot-table"
+     pointer-events="none"
+     style="opacity:0;fill:#37d67a;stroke-width:0.973241"
+     x="174.91672"
+     y="582.71039"
+     width="1007.1271"
+     height="411.41217" />
   <!-- Editable click-zones (invisible). Move / resize each rect in Inkscape;
        the panel's script posts their live geometry to the app, which then
        positions app.js's own hotspot buttons (matched by data-action). These
@@ -48,11 +64,11 @@
      data-aria-label="פתק המשימות"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0;fill:#ff2fb0"
-     x="260.64"
-     y="705.9"
-     width="217.2"
-     height="162.9" />
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.686135"
+     x="421.26071"
+     y="771.06"
+     width="127.81728"
+     height="130.32001" />
   <rect
      id="hotspot-action-binary-booklet"
      data-hotspot="action"
@@ -61,9 +77,9 @@
      class="hotspot hotspot-action"
      pointer-events="none"
      style="opacity:0;fill:#ff2fb0"
-     x="845.632"
-     y="800.382"
-     width="165.072"
+     x="853.63202"
+     y="804.38202"
+     width="165.07201"
      height="124.89" />
   <rect
      id="hotspot-action-return-to-nand-dialog"
@@ -72,11 +88,11 @@
      data-aria-label="הקש על Nand"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0;fill:#ff2fb0"
-     x="564.72"
-     y="640.74"
-     width="260.64"
-     height="260.64" />
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.95343"
+     x="594.71997"
+     y="635.26471"
+     width="250.91205"
+     height="246.11533" />
   <rect
      id="hotspot-action-buses-crate-right"
      data-hotspot="action"
@@ -84,11 +100,11 @@
      data-aria-label="האגף הימני של הארגז החדש"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0;fill:#ffb000"
-     x="680.56"
-     y="434.4"
-     width="115.84"
-     height="130.32" />
+     style="opacity:0;fill:#ffb000;stroke-width:1.11838"
+     x="722.49213"
+     y="331.60986"
+     width="144.88939"
+     height="130.32001" />
   <rect
      id="hotspot-action-buses-crate-left"
      data-hotspot="action"
@@ -97,10 +113,10 @@
      class="hotspot hotspot-action"
      pointer-events="none"
      style="opacity:0;fill:#ffb000"
-     x="796.4"
-     y="434.4"
+     x="853.38153"
+     y="331.60986"
      width="115.84"
-     height="130.32" />
+     height="130.32001" />
   <!-- Reference-link object zones + the free-build worktable zone, mirrored from
        panel107 (same room). Positions are copied from there as a starting point;
        tune each in Inkscape to the new image. -->
@@ -151,11 +167,11 @@
      data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0;fill:#22a7ff;stroke-width:0.963637"
-     x="1100.3625"
-     y="582.71039"
-     width="163.36252"
-     height="159.83238" />
+     style="opacity:0;fill:#22a7ff;stroke-width:0.933697"
+     x="1106.3625"
+     y="573.75293"
+     width="147.36246"
+     height="166.34691" />
   <rect
      id="hotspot-object-source"
      data-hotspot="object"
@@ -182,17 +198,6 @@
      y="823.2099"
      width="320.67651"
      height="220.96289" />
-  <rect
-     id="hotspot-table"
-     data-hotspot="table"
-     data-label="שולחן עבודה"
-     class="hotspot hotspot-table"
-     pointer-events="none"
-     style="opacity:0;fill:#37d67a;stroke-width:0.973241"
-     x="174.91672"
-     y="582.71039"
-     width="1007.1271"
-     height="411.41217" />
   <script
      type="text/javascript"
      id="script1"><![CDATA[
