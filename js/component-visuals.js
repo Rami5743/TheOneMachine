@@ -83,9 +83,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${sumY}" x2="${outX}" y2="${sumY}" />`;
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${carryY + 5}" text-anchor="end">c</text>`;
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${sumY + 5}" text-anchor="end">s</text>`;
-    if (!options.toolbar) {
-      s += `<text class="usercard-name" x="0" y="${bodyH / 2 + 26}" text-anchor="middle">${esc(task.label)}</text>`;
-    }
+    // No name caption under the placed adder gates: the "+" mark and the c/s pin
+    // letters already identify them, and the label only crowded the workbench.
     return `<g class="usercard">${s}</g>`;
   }
 

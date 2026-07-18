@@ -3275,8 +3275,11 @@
   // lost), and graded by checkPanelAnswer.
   function renderPanelQuestion(panel) {
     const answer = state.panelAnswer && typeof state.panelAnswer === "object" ? state.panelAnswer : {};
+    // The feedback sits INSIDE the input row (to its side), not below it — the
+    // story controls sit right under this row, and a feedback line below used to
+    // land on top of the nav buttons.
     const feedback = answer.feedback
-      ? `<div class="panel-question-feedback">${esc(answer.feedback)}</div>`
+      ? `<span class="panel-question-feedback">${esc(answer.feedback)}</span>`
       : "";
     return `
       <section class="panel-question">
@@ -3284,8 +3287,8 @@
           <input class="panel-question-input" type="number" inputmode="numeric" step="1"
                  value="${esc(answer.value != null ? String(answer.value) : "")}" aria-label="התשובה שלך" />
           <button class="btn btn-primary" data-action="panel-answer-check" type="button">בדיקה</button>
+          ${feedback}
         </div>
-        ${feedback}
       </section>`;
   }
 

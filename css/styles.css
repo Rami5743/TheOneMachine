@@ -456,6 +456,7 @@ button { font: inherit; }
   color: #d6533b;
   font-weight: 700;
   font-size: 1.05rem;
+  white-space: nowrap;
 }
 
 /* "נקה התקדמות" — a mildly destructive action, tinted amber to set it apart. */
