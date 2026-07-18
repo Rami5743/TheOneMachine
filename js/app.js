@@ -1708,9 +1708,17 @@
     if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
       return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithIds];
     }
+    const arithCompleted = arithIds.filter(taskCompleted);
+    // Building an arith card (halfAdder / fullAdder) on the 2.5 worktable: every
+    // card from an EARLIER stage is offered even if the learner skipped it (so
+    // clearing this note's progress does not strip the palette down to the basic
+    // gates), plus the arith cards actually built in this stage — a cleared arith
+    // card drops out because it is no longer completed.
+    if (isArithTask(state.workspace?.taskId)) {
+      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
+    }
     const routingCompleted = routingIds.filter(taskCompleted);
     const busCompleted = busIds.filter(taskCompleted);
-    const arithCompleted = arithIds.filter(taskCompleted);
     return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted, ...arithCompleted];
   }
 
