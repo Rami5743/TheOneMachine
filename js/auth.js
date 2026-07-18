@@ -57,7 +57,7 @@
       var score = (Number(s.maxChapterReached) || 0) * 1e6;
       var mp = s.maxPanelReached && typeof s.maxPanelReached === "object" ? s.maxPanelReached : {};
       score += Object.keys(mp).reduce(function (a, k) { return a + (Number(mp[k]) || 0); }, 0) * 1e3;
-      if (Array.isArray(s.unlockedAchievements)) score += s.unlockedAchievements.length;
+      if (Array.isArray(s.achievementsUnlocked)) score += s.achievementsUnlocked.length;
       return score;
     } catch (e) { return 0; }
   }
@@ -66,14 +66,25 @@
     try { return localStorage.getItem(KEY); } catch (e) { return null; }
   }
 
-  // Overwrite the local save with the cloud one and reload so the running app
-  // re-reads it through its normal loadState(). Returns true if it reloaded.
+  // Adopt the cloud save into the running app. Preferred path: hand it to the
+  // app via APP.applyCloudState, which swaps state in place and re-renders — NO
+  // page reload. We must never compare cloud and local as strings to decide
+  // whether to reload: the cloud copy is stored as Postgres jsonb, which does
+  // not preserve key order, so the strings essentially never match even when
+  // the state is identical — that mismatch is what caused an endless reload
+  // loop. The fallback (older/again-loaded app without the bridge) reloads at
+  // most once per tab, guarded via sessionStorage.
   function adoptCloud(cloudObj) {
-    var cloudStr = JSON.stringify(cloudObj);
-    if (cloudStr === localStateString()) return false;
-    try { localStorage.setItem(KEY, cloudStr); } catch (e) { return false; }
-    location.reload();
-    return true;
+    if (typeof APP !== "undefined" && APP && typeof APP.applyCloudState === "function") {
+      APP.applyCloudState(cloudObj);
+      return;
+    }
+    try {
+      if (sessionStorage.getItem("tom_auth_adopted") === "1") return; // already did it this tab
+      sessionStorage.setItem("tom_auth_adopted", "1");
+      localStorage.setItem(KEY, JSON.stringify(cloudObj));
+      location.reload();
+    } catch (e) { /* ignore */ }
   }
 
   // ---- cloud read / write ---------------------------------------------------
@@ -91,7 +102,11 @@
     if (res.error) console.warn("[auth] cloud write failed:", res.error.message);
   }
 
-  // Bring local and cloud into agreement once per sign-in.
+  // Bring local and cloud into agreement once per sign-in. The decision is by
+  // progress SCORE, never by string equality (see adoptCloud): adopt the cloud
+  // copy only when it is strictly further along; on a tie or when local is
+  // ahead, keep local and sync it up. This guarantees the process settles and
+  // never ping-pongs.
   async function reconcile(uid) {
     if (reconciledUid === uid) return;
     reconciledUid = uid;
@@ -104,15 +119,12 @@
       if (localStr) await pushCloud(uid, JSON.parse(localStr));
       return;
     }
-    var cloudStr = JSON.stringify(cloud);
-    if (!localStr || cloudStr === localStr) {   // nothing local, or already equal
-      if (!localStr) adoptCloud(cloud);
-      return;
-    }
-    if (progressScore(localStr) > progressScore(cloudStr)) {
-      await pushCloud(uid, JSON.parse(localStr)); // local is further along -> keep it
-    } else {
-      adoptCloud(cloud);                          // cloud is further (or last-write-wins)
+    var localScore = localStr ? progressScore(localStr) : -1;
+    var cloudScore = progressScore(JSON.stringify(cloud));
+    if (cloudScore > localScore) {
+      adoptCloud(cloud);                          // cloud is further along -> take it
+    } else if (localStr) {
+      await pushCloud(uid, JSON.parse(localStr)); // local ahead or equal -> keep + sync up
     }
   }
 

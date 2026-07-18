@@ -2861,6 +2861,25 @@
         requestAnimationFrame(() => playAchievementUnlockAnimation(id));
       }
     };
+    // A bridge for the cloud module (js/auth.js): swap the running game state to
+    // the one pulled from the signed-in user's cloud copy, in place and WITHOUT
+    // a page reload (a reload here used to loop). Returns true on success.
+    APP.applyCloudState = (stateObj) => {
+      if (!stateObj || typeof stateObj !== "object") return false;
+      let normalized;
+      try {
+        normalized = normalizeLoadedState({ ...defaultState, ...stateObj, soundOn: false });
+      } catch (e) {
+        return false;
+      }
+      state = normalized;
+      // Being signed in is itself the "מחובר" achievement — keep it even when the
+      // adopted cloud copy predates it.
+      if (APP.auth && APP.auth.user && !achievementUnlocked("connected")) unlockAchievement("connected");
+      saveState();
+      render();
+      return true;
+    };
   }
 
   // A colourful, detailed trophy graphic, unique per achievement. Every icon
