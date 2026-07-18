@@ -88,30 +88,34 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // The placeable Add4 gate (the building block of Add16): a labelled box with
-  // two width-4 number inputs and a single-bit carry-in on the left, and a
-  // width-4 sum (out1) and single-bit carry-out (out2) on the right. Bus pins are
-  // drawn as bus bars; the single-bit carry pins as plain cables. Matches the
-  // gate-Add4 pin offsets in app.js.
-  function add4GateMarkup(options = {}) {
-    const bodyW = 108;
-    const bodyH = 136;
+  // The placeable Add4 gate (the building block of Add16): the SAME "+" box as
+  // the fullAdder, but its number pins are width-4 BUSES — so they are drawn as
+  // bus bars (thick + dashed stripe) with the width "4" labelled, while the
+  // single-bit carry pins stay plain thin cables. This is the Add4-vs-fullAdder
+  // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
+  function add4GateMarkup() {
+    const bodyW = 100;
+    const bodyH = 120;
     const edge = bodyW / 2;
     const inX = -62;
     const outX = 66;
-    const bus = (x1, x2, y) => splitterBusBar(x1, x2, y, 11);
+    const arm = 17;
+    // A width-4 bus pin: a bus bar with its width labelled above it.
+    const busPin = (x1, x2, y) => `${splitterBusBar(Math.min(x1, x2), Math.max(x1, x2), y, 11)}<text class="splitter-width-label" x="${(x1 + x2) / 2}" y="${y - 13}" text-anchor="middle">4</text>`;
     const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // The full "+" mark, like the fullAdder.
+    s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
+    s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
     // Inputs (left): two 4-bit number buses + the single-bit carry-in below them.
-    s += bus(inX, -edge, -40);
-    s += bus(inX, -edge, 0);
+    s += busPin(inX, -edge, -40);
+    s += busPin(inX, -edge, 0);
     s += cable(inX, -edge, 40);
-    // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit) below.
+    // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit bus) below.
     s += cable(edge, outX, -30);
-    s += bus(edge, outX, 30);
+    s += busPin(edge, outX, 30);
     s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${-30 + 5}" text-anchor="end">c</text>`;
     s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${30 + 5}" text-anchor="end">s</text>`;
-    s += `<text class="usercard-name" x="0" y="6" text-anchor="middle">Add4</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
