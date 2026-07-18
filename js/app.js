@@ -338,6 +338,7 @@
   // initial state load (which strips components of unknown type).
   for (const arithTask of (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : [])) {
     if (!Number.isInteger(arithTask.inputs)) continue;
+    if (arithTask.busWidth) continue; // bus adder cards (Add4/Add16) are hand-written below
     const cardPins = {};
     taskInputYs(arithTask.inputs).forEach((y, index) => {
       cardPins[`inputExt${index + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${arithTask.label} ${index + 1} חיצונית` };
@@ -384,6 +385,32 @@
       out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // The 2.5 Add4 build frame: two width-4 bus inputs (the two numbers), a
+  // single-bit carry-in on top, a single-bit carry-out (the leading digit) and a
+  // width-4 bus sum. Checked with the multi-bit harness; the engine passes each
+  // pin through by width.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Add4"] = {
+    label: "מסגרת Add4",
+    fixed: true,
+    taskId: "Add4",
+    busWidth: 4,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 4, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 4, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 4, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 4, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -130, y: -250, direction: "in", width: 1, label: "כניסת הנשיאה חיצונית" },
+      inputInt3: { x: -130, y: -180, direction: "out", width: 1, label: "כניסת הנשיאה פנימית" },
+      outputInt1: { x: 260, y: -90, direction: "in", width: 1, label: "יציאת הנשיאה האחרונה פנימית" },
+      outputExt1: { x: 340, y: -90, direction: "out", width: 1, label: "יציאת הנשיאה האחרונה חיצונית" },
+      outputInt2: { x: 260, y: 90, direction: "in", width: 4, label: "יציאת הסכום פנימית" },
+      outputExt2: { x: 340, y: 90, direction: "out", width: 4, label: "יציאת הסכום חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
   };
 
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
@@ -1011,7 +1038,12 @@
   // built inside a frame like the bus tasks, but with a different I/O shape, so
   // they get their own shell and check harness.
   function multibitTaskDefById(id) {
-    return MULTIBIT_TASKS.find((task) => task.id === id) || null;
+    // Includes the arith BUS cards (Add4/Add16): they are checked with the same
+    // multi-bit harness and drawn with the same bus shell. Their note/return flow
+    // still goes through the arith path (guarded by isArithTask where it matters).
+    return MULTIBIT_TASKS.find((task) => task.id === id)
+      || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || null;
   }
   function isMultibitTaskWorkspace() {
     return state.screen === "workspace" && Boolean(multibitTaskDefById(state.workspace?.taskId));
@@ -8530,7 +8562,23 @@
       ].map((a) => a.map(Boolean));
       return [0, 1, 2, 3].map((control) => ({ datas: P, control }));
     }
+    if (taskId === "Add4") {
+      // (a, b, carry-in) cases exercising 0, carry ripple, and full overflow.
+      return [
+        { a: 0, b: 0, cin: 0 },
+        { a: 5, b: 3, cin: 0 },
+        { a: 7, b: 8, cin: 0 },
+        { a: 9, b: 6, cin: 1 },
+        { a: 12, b: 3, cin: 1 },
+        { a: 15, b: 15, cin: 1 }
+      ];
+    }
     return [];
+  }
+
+  // A 4-bit bus as [MSB, …, LSB] booleans (leg0 = MSB, leg3 = LSB = units digit).
+  function add4Bits(n) {
+    return [(n >> 3) & 1, (n >> 2) & 1, (n >> 1) & 1, n & 1].map(Boolean);
   }
 
   // The input drives and expected output bits for one case, keyed by external
@@ -8557,6 +8605,20 @@
           { ref: "inputExt5", bits: controlBits }
         ],
         outputs: [{ ref: "outputExt", expected: testCase.datas[testCase.control] }]
+      };
+    }
+    if (taskId === "Add4") {
+      const total = testCase.a + testCase.b + testCase.cin; // 0..31
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add4Bits(testCase.a) },
+          { ref: "inputExt2", bits: add4Bits(testCase.b) },
+          { ref: "inputExt3", bits: [Boolean(testCase.cin)] }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: [Boolean((total >> 4) & 1)] }, // carry-out (leading digit)
+          { ref: "outputExt2", expected: add4Bits(total & 15) }         // the 4 sum digits
+        ]
       };
     }
     return { inputs: [], outputs: [] };
@@ -8921,7 +8983,13 @@
   // Which arith cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function arithTaskImplemented(id) {
-    return ["halfAdder", "fullAdder"].includes(id);
+    return ["halfAdder", "fullAdder", "Add4"].includes(id);
+  }
+
+  // Add4/Add16 are BUS adder cards (multi-bit, no truth table), checked with the
+  // multi-bit harness like the routing cards.
+  function isArithBusTask(id) {
+    return Boolean(arithTaskDefById(id)?.busWidth);
   }
 
   function arithTaskUnlocked(id) {
@@ -9017,13 +9085,21 @@
     const chapter = chapterById("chapter-8");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const bus = isArithBusTask(task.id);
     const workspace = {
       ...createDefaultWorkspace(),
-      components: [
-        { id: "source-1", type: "source", x: 80, y: 288 },
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
-        ...taskLampComponents(task.id)
-      ],
+      components: bus
+        ? [
+          // Bus adder card (Add4): no output lamps — the multi-bit check harness
+          // wires its own splitter/lamp fan-out.
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: 288 },
+          { id: "source-1", type: "source", x: 65, y: 288 }
+        ]
+        : [
+          { id: "source-1", type: "source", x: 80, y: 288 },
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
+          ...taskLampComponents(task.id)
+        ],
       wires: [],
       nextId: 2,
       unlocked: true,
@@ -9050,7 +9126,7 @@
       taskDialog: null,
       arithNoteList: false,
       requirementsPanelHidden: false,
-      muxTable: arithEmptyScratchTable(task.id),
+      muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
     }, false);
   }
@@ -9172,7 +9248,7 @@
 
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
     // with the note reopened (so the next task unlocks).
-    if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
+    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       // Finishing the LAST multi-bit task (Mux4way16) rolls into the closing von
@@ -9296,7 +9372,7 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
-    if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) {
+    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       if (taskId === "Mux4way16") {
