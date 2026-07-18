@@ -1559,6 +1559,15 @@
     if (name === "account") {
       return `<svg ${common}><circle cx="12" cy="8" r="3.6" /><path d="M5.5 19.5 A6.5 6.5 0 0 1 18.5 19.5" /></svg>`;
     }
+    // Google — the multicolour "G" (used on the account button, matching the chip).
+    if (name === "google") {
+      return `<svg class="nav-icon" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.1-3.8 6.5-9.4 6.5-16z"/>
+        <path fill="#FBBC05" d="M10.4 28.3a14.5 14.5 0 0 1 0-8.6l-7.9-6.1a24 24 0 0 0 0 20.8l7.9-6.1z"/>
+        <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.7-3.7-13.6-9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/>
+      </svg>`;
+    }
     return "";
   }
 
@@ -1599,9 +1608,9 @@
     if (user) {
       const name = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || "";
       const label = name ? `התנתק (${name})` : "התנתק";
-      return labeledButton("auth-signout", "account", label);
+      return labeledButton("auth-signout", "google", label);
     }
-    return labeledButton("auth-signin", "account", "התחבר עם Google");
+    return labeledButton("auth-signin", "google", "התחבר עם Google");
   }
 
   function topbar() {
@@ -2866,15 +2875,19 @@
     // a page reload (a reload here used to loop). Returns true on success.
     APP.applyCloudState = (stateObj) => {
       if (!stateObj || typeof stateObj !== "object") return false;
+      // Achievements are monotonic: never un-earn one by adopting a cloud copy
+      // that happens to predate it. Union whatever is already earned locally.
+      const priorAchievements = Array.isArray(state.achievementsUnlocked) ? state.achievementsUnlocked : [];
       let normalized;
       try {
         normalized = normalizeLoadedState({ ...defaultState, ...stateObj, soundOn: false });
       } catch (e) {
         return false;
       }
+      const cloudAchievements = Array.isArray(normalized.achievementsUnlocked) ? normalized.achievementsUnlocked : [];
+      normalized.achievementsUnlocked = Array.from(new Set([...priorAchievements, ...cloudAchievements]));
       state = normalized;
-      // Being signed in is itself the "מחובר" achievement — keep it even when the
-      // adopted cloud copy predates it.
+      // Being signed in is itself the "מחובר" achievement.
       if (APP.auth && APP.auth.user && !achievementUnlocked("connected")) unlockAchievement("connected");
       saveState();
       render();

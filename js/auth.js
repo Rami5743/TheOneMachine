@@ -137,7 +137,71 @@
     }, 1500);
   }
 
-  // ---- account actions (the UI lives in the app's main menu) ----------------
+  // ---- floating account chip (bottom-start corner, on every screen) ---------
+  // The app's main menu also has an account button (via the APP.auth bridge);
+  // this chip is kept in addition, matching the original look.
+  var chip = null;
+  function googleGlyph() {
+    return '<svg class="auth-g" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">' +
+      '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>' +
+      '<path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.1-3.8 6.5-9.4 6.5-16z"/>' +
+      '<path fill="#FBBC05" d="M10.4 28.3a14.5 14.5 0 0 1 0-8.6l-7.9-6.1a24 24 0 0 0 0 20.8l7.9-6.1z"/>' +
+      '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.7-3.7-13.6-9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/>' +
+      '</svg>';
+  }
+  function ensureChip() {
+    if (chip) return chip;
+    var style = document.createElement("style");
+    style.textContent =
+      ".auth-chip{position:fixed;inset-inline-start:12px;bottom:12px;z-index:2000;direction:rtl;font-family:inherit}" +
+      ".auth-chip button{display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:1px solid rgba(255,255,255,.25);" +
+      "background:rgba(20,20,20,.92);color:#fff;font:inherit;font-weight:700;font-size:.85rem;padding:8px 12px;border-radius:999px;" +
+      "box-shadow:0 6px 18px rgba(0,0,0,.4)}" +
+      ".auth-chip button:hover{background:rgba(40,40,40,.96)}" +
+      ".auth-chip .auth-user{display:inline-flex;align-items:center;gap:8px;background:rgba(20,20,20,.92);color:#fff;" +
+      "border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:999px;font-size:.8rem;box-shadow:0 6px 18px rgba(0,0,0,.4)}" +
+      ".auth-chip .auth-avatar{width:22px;height:22px;border-radius:50%;object-fit:cover}" +
+      ".auth-chip .auth-name{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}" +
+      ".auth-chip .auth-signout{cursor:pointer;background:none;border:none;color:#ffd7d7;font:inherit;font-size:.75rem;" +
+      "text-decoration:underline;padding:0 2px;box-shadow:none}";
+    document.head.appendChild(style);
+    chip = document.createElement("div");
+    chip.className = "auth-chip";
+    document.body.appendChild(chip);
+    return chip;
+  }
+  function esc(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function renderChip() {
+    var el = ensureChip();
+    if (currentUser) {
+      var m = currentUser.user_metadata || {};
+      var name = m.full_name || m.name || currentUser.email || "מחובר";
+      var avatar = m.avatar_url || m.picture || "";
+      el.innerHTML =
+        '<span class="auth-user">' +
+        (avatar ? '<img class="auth-avatar" src="' + esc(avatar) + '" alt="" referrerpolicy="no-referrer">' : "") +
+        '<span class="auth-name">' + esc(name) + "</span>" +
+        '<button class="auth-signout" data-auth-action="signout" type="button">התנתק</button>' +
+        "</span>";
+    } else {
+      el.innerHTML =
+        '<button data-auth-action="signin" type="button" aria-label="התחבר עם חשבון Google">' +
+        googleGlyph() + "<span>התחבר עם Google</span></button>";
+    }
+  }
+  document.addEventListener("click", function (event) {
+    var t = event.target.closest ? event.target.closest("[data-auth-action]") : null;
+    if (!t) return;
+    event.preventDefault();
+    if (t.getAttribute("data-auth-action") === "signin") signIn();
+    else if (t.getAttribute("data-auth-action") === "signout") signOut();
+  });
+
+  // ---- account actions (also driven from the app's main menu button) --------
   async function signIn() {
     if (!sb) return;
     var redirect = String(cfg.REDIRECT_TO || "").trim() || location.href.split("#")[0];
@@ -167,6 +231,7 @@
   // and earn the "מחובר" achievement.
   function announceAuth() {
     publishBridge();
+    renderChip();
     try {
       window.dispatchEvent(new CustomEvent("tom:authchanged", { detail: { user: currentUser } }));
     } catch (e) { /* very old browsers: ignore */ }
@@ -211,6 +276,7 @@
       return;
     }
     publishBridge(); // menu may now show the account button (starts logged-out)
+    renderChip();    // show the floating chip (starts logged-out)
     sb.auth.onAuthStateChange(function (event, session) {
       currentUser = (session && session.user) || null;
       if (!currentUser) reconciledUid = null;
