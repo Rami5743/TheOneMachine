@@ -55,8 +55,8 @@ function createWorkbenchModel({
     };
   }
 
-  // The NAND-presentation workbench is the only workbench variant that lets the
-  // learner short two outputs together and burn the NAND (the teaching moment).
+  // The Nand-presentation workbench is the only workbench variant that lets the
+  // learner short two outputs together and burn the Nand (the teaching moment).
   // The task-card build and the free "empty table" both forbid it, so no output
   // (voltage source included) can ever be wired into another output there.
   function isNandPresentationWorkspace(workspace) {

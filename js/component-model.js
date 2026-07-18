@@ -2,7 +2,7 @@
 // app.js. These are the pure structural queries every other workbench module
 // builds on: what a component type is, how a terminal reference splits into a
 // component id and a pin id, which component/pin a reference points at, whether
-// a terminal exists, its direction, and whether it is a NAND output.
+// a terminal exists, its direction, and whether it is a Nand output.
 //
 // Loaded BEFORE app.js. It touches neither the DOM nor app state. Its only
 // dependency is the component-definition table, INJECTED via

@@ -29,6 +29,15 @@ function taskOutput(taskId, inputs) {
 // (DMUX inputs are [data, control]; outputs are [out1, out2].)
 function taskOutputs(taskId, inputs) {
   if (taskId === "DMux") return [Boolean(inputs[0] && !inputs[1]), Boolean(inputs[0] && inputs[1])];
+  // halfAdder/fullAdder: outputs are [sum, carry].
+  if (taskId === "halfAdder") {
+    const a = Boolean(inputs[0]), b = Boolean(inputs[1]);
+    return [a !== b, a && b];
+  }
+  if (taskId === "fullAdder") {
+    const a = Boolean(inputs[0]), b = Boolean(inputs[1]), c = Boolean(inputs[2]);
+    return [(a !== b) !== c, (a && b) || (a && c) || (b && c)];
+  }
   return [taskOutput(taskId, inputs)];
 }
 
@@ -41,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -296,6 +305,26 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               }
             }
             if (setBits(outputs, `${component.id}.out`, outVec)) changed = true;
+            continue;
+          }
+          // A placeable bus-adder gate (gate-Add4): add the two width-N number
+          // buses plus the single carry-in bit. Buses are little-endian (bit 0 =
+          // units), matching add4Bits / the splitter chunks feeding it.
+          const arith = typeof arithBusGateSpec === "function" ? arithBusGateSpec(type) : null;
+          if (arith) {
+            const w = arith.width;
+            const toNum = (ref) => {
+              const vec = inputBits(workspace, ref, outputs);
+              let n = 0;
+              for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i);
+              return n;
+            };
+            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`)
+              + (inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0);
+            const sumVec = [];
+            for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
+            if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;
+            if (setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
             continue;
           }
           const task = taskDefById(type.slice(5));

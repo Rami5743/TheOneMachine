@@ -95,6 +95,14 @@ button { font: inherit; }
   flex-wrap: wrap;
 }
 
+/* The account / save-load-progress group sits under the main menu buttons,
+   set off by a faint divider. */
+.menu-account-buttons {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
 .screen {
   min-height: 0;
   min-width: 0;
@@ -268,6 +276,241 @@ button { font: inherit; }
   direction: rtl;
   text-align: right;
 }
+
+/* The explanations menu, laid out as a borderless table: a topic label per
+   row and two columns (in-game / enrichment explanations). */
+.explanations-card { width: min(96vw, 920px); }
+.explanations-table {
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
+  /* A generous vertical gap between rows; a tighter horizontal one. */
+  gap: clamp(22px, 4.2vh, 48px) clamp(18px, 3vw, 42px);
+  align-items: start;
+  justify-content: center;
+  direction: rtl;
+  text-align: right;
+}
+.expl-col-head {
+  font-weight: 800;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #f3d27a;
+  text-align: center;
+  border-bottom: 1px solid rgba(243, 210, 122, 0.35);
+  padding-bottom: 6px;
+}
+.expl-section-title {
+  align-self: start;
+  font-weight: 800;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  color: #f4ead2;
+  white-space: nowrap;
+  padding-inline-start: clamp(6px, 1.5vw, 18px);
+}
+/* Each cell packs its items to the top-right; buttons are only as wide as
+   their text (never stretched). */
+.expl-cell { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.expl-item { width: auto; min-width: 0; }
+.expl-empty { display: block; min-height: 1px; }
+/* The gate label sits on the same line as its buttons. */
+.expl-gate-line { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; white-space: nowrap; }
+.expl-gate-label { font-weight: 700; color: #f4ead2; }
+.expl-gate-buttons { display: flex; gap: 8px; }
+.expl-gate-btn { padding: 0.3em 0.9em; min-width: 0; }
+
+/* The routing card (Mux/DMux) requirements dialog: description + truth table. */
+.expl-routing-card { max-width: min(94vw, 620px); max-height: 90vh; overflow-y: auto; text-align: right; direction: rtl; }
+.expl-routing-title { margin: 0 0 0.4rem; font-size: clamp(1.3rem, 3vw, 1.9rem); }
+.expl-routing-desc { margin: 0 0 1rem; line-height: 1.55; }
+.expl-truth-table {
+  margin: 0 auto 0.4rem;
+  border-collapse: collapse;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+.expl-truth-table th,
+.expl-truth-table td {
+  border: 1px solid rgba(120, 120, 120, 0.6);
+  padding: 0.35em 0.8em;
+  text-align: center;
+  min-width: 2.6em;
+}
+.expl-truth-table th { font-weight: 700; background: rgba(243, 210, 122, 0.12); }
+/* Thick rule between the output columns (left) and the input columns (right). */
+.expl-truth-table th.expl-tt-sep,
+.expl-truth-table td.expl-tt-sep { border-left: 3px solid #f3d27a; }
+
+/* The achievements page: two columns (progress / special). */
+.achievements-card { width: min(96vw, 920px); }
+/* The achievements list can be taller than the screen; let this page scroll
+   (the .screen default is overflow:hidden, and the menu grid centres the card,
+   which would otherwise clip the overflow with no way to reach it). Top-align
+   so a tall list is scrollable from its start. */
+.achievements-screen {
+  overflow-y: auto;
+  align-items: start;
+}
+.achievements-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 3vw, 44px);
+  width: 100%;
+  direction: rtl;
+  text-align: right;
+  align-items: start;
+}
+.achv-column { display: flex; flex-direction: column; gap: 10px; }
+.achv-col-title {
+  margin: 0;
+  font-size: clamp(1.1rem, 2.3vw, 1.55rem);
+  color: #f4ead2;
+  text-align: center;
+  border-bottom: 1px solid rgba(243, 210, 122, 0.35);
+  padding-bottom: 6px;
+}
+.achv-count { text-align: center; color: #f3d27a; font-weight: 700; }
+.achv-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.achv-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.6em 0.9em;
+  border: 1px solid rgba(243, 210, 122, 0.3);
+  border-radius: 10px;
+  background: rgba(249, 244, 232, 0.06);
+}
+.achv-icon {
+  flex: 0 0 auto;
+  width: clamp(58px, 9vw, 76px);
+  height: clamp(58px, 9vw, 76px);
+}
+.achv-trophy {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+}
+.achv-text { flex: 1 1 auto; min-width: 0; }
+.achv-title { font-weight: 800; color: #f4ead2; }
+.achv-desc { color: #cfc4ac; font-size: 0.92em; margin-top: 3px; line-height: 1.4; }
+.achv-locked { opacity: 0.5; }
+.achv-locked .achv-trophy { filter: grayscale(0.85) brightness(0.85) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)); }
+
+/* A red "teaser" link in the top corner of a story slide (e.g. "John didn't
+   tell you the whole truth — click here"). */
+.story-corner-link {
+  position: absolute;
+  top: 1.5%;
+  right: 3%;
+  z-index: 7;
+  max-width: 72%;
+  /* Keep the teaser on a single line so it stays in the thin strip above the
+     panel's speech bubble instead of growing down over it. */
+  white-space: nowrap;
+  direction: rtl;
+  text-align: right;
+  background: rgba(28, 8, 6, 0.82);
+  color: #ff6a5a;
+  border: 1px solid rgba(255, 106, 90, 0.7);
+  border-radius: 10px;
+  padding: 0.4rem 0.65rem;
+  font-size: clamp(0.62rem, 1.15vw, 0.86rem);
+  font-weight: 700;
+  line-height: 1.3;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+.story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+
+/* The "מילים ובתים" reading dialog: a taller, scrollable card. The compound
+   selector overrides .pace-dialog-card's display:grid so the flex body scrolls. */
+.pace-dialog-card.words-bytes-card {
+  width: min(94vw, 760px);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.words-bytes-title { margin: 0 0 0.7rem; text-align: center; flex: 0 0 auto; }
+.words-bytes-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+  padding-left: 0.3rem;
+}
+.words-bytes-body p { margin: 0 0 0.85rem; }
+.words-bytes-nav {
+  flex: 0 0 auto;
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.words-bytes-count { color: #cfc4ac; font-size: 0.92rem; }
+.words-bytes-arrows { display: flex; gap: 0.5rem; }
+
+/* The numeric-answer box under a gating story slide. */
+.panel-question {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.6rem auto 0;
+}
+.panel-question-row { display: flex; align-items: center; gap: 0.6rem; }
+.panel-question-input {
+  width: 7.5rem;
+  padding: 0.5rem 0.7rem;
+  font-size: 1.15rem;
+  text-align: center;
+  border: 2px solid #6b5836;
+  border-radius: 10px;
+  background: #fffdf6;
+  color: #241a0e;
+}
+.panel-question-feedback {
+  color: #d6533b;
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+/* "נקה התקדמות" — a mildly destructive action, tinted amber to set it apart. */
+.notebook-clear-progress-btn {
+  border-color: rgba(214, 156, 60, 0.6);
+  color: #e7b357;
+}
+.notebook-clear-progress-btn:hover { background: rgba(214, 156, 60, 0.14); }
+
+/* The "new achievement unlocked" flourish: the earned trophy flies from the
+   centre of the screen into the topbar's השיגים button. */
+.achv-unlock-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: clamp(84px, 13vw, 150px);
+  height: clamp(84px, 13vw, 150px);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  will-change: transform, opacity;
+}
+.achv-unlock-fly svg { width: 100%; height: 100%; }
+
+/* The "new explanation unlocked" flourish: an icon that flies from the centre
+   of the screen into the topbar's הסברים button. */
+.expl-unlock-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  width: clamp(52px, 8vw, 92px);
+  height: clamp(52px, 8vw, 92px);
+  color: #f3d27a;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  will-change: transform, opacity;
+}
+.expl-unlock-fly svg { width: 100%; height: 100%; }
 
 .about-card h1 {
   margin: 0;
@@ -756,6 +999,9 @@ button { font: inherit; }
 
 .toolbox-list {
   display: grid;
+  /* Tools still share the column height (few tools grow, many tools scroll),
+     but a max cap keeps a handful of tools from stretching absurdly tall. */
+  grid-auto-rows: minmax(86px, 132px);
   gap: 8px;
   overflow: auto;
   padding: 2px;
@@ -808,7 +1054,7 @@ button { font: inherit; }
   border-color: var(--primary);
 }
 
-/* A comic speech bubble (matching the NAND monologue in ch. 2.1), pointing left
+/* A comic speech bubble (matching the Nand monologue in ch. 2.1), pointing left
    at the "create new card" tool. The whole bubble is clickable. */
 .create-card-bubble {
   position: absolute;
@@ -983,6 +1229,20 @@ button { font: inherit; }
   fill: #2c2113;
 }
 
+/* The "+" mark inside the halfAdder / fullAdder placeable gate. */
+.arith-gate-plus {
+  stroke: #2c2113;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+/* The s / c letters next to the adder gate's output pins. */
+.arith-gate-pin-letter {
+  font-size: 20px;
+  font-weight: 800;
+  fill: #2c2113;
+}
+
 .card-pin-width-box {
   transform: translate(-50%, -50%);
 }
@@ -1101,6 +1361,25 @@ button { font: inherit; }
 .splitter-mirror-handle:focus-visible .splitter-mirror-bg { fill: #3a3a3a; }
 .splitter-mirror-glyph { stroke: #ffe37a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
+/* The leg-count grab handle under a focused splitter: drag it up/down to change
+   how many pins the splitter splits to. */
+.splitter-resize-handle { cursor: ns-resize; pointer-events: visiblePainted; touch-action: none; }
+.splitter-resize-bg { fill: #252525; stroke: #ffe37a; stroke-width: 2; }
+.splitter-resize-handle:hover .splitter-resize-bg,
+.splitter-resize-handle:focus-visible .splitter-resize-bg { fill: #3a3a3a; }
+.splitter-resize-glyph { stroke: #ffe37a; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.splitter-resize-count {
+  fill: #ffe37a;
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* A small on-board number box. Originally the splitter's output-count editor
+   (now replaced by the drag handle above); still used by the card-creation
+   pin-width picker (.card-pin-width-box). */
 .splitter-count-box {
   position: absolute;
   transform: translateX(-50%);
@@ -1818,6 +2097,8 @@ button { font: inherit; }
 .note-task-actions {
   display: flex;
   justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
 }
 
 
@@ -2834,6 +3115,17 @@ button { font: inherit; }
   box-shadow: inset 0 0 0 2px #111;
 }
 
+/* A highlighted output column in the arith solution walkthrough (sum / carry). */
+.mux-scratch-table td.truth-col-solution-highlight,
+.mux-scratch-table td.truth-col-solution-highlight .mux-truth-cell {
+  background: #ffe08a !important;
+  color: #111;
+  font-weight: 900;
+}
+.mux-scratch-table td.truth-col-solution-highlight {
+  box-shadow: inset 0 0 0 2px #111;
+}
+
 .hint-slides-overlay {
   position: fixed;
   inset: calc(var(--app-pad) + var(--topbar-h) + var(--gap)) 0 0 0;
@@ -3202,4 +3494,319 @@ object.panel-image.is-pending {
 @media (prefers-reduced-motion: reduce) {
   .panel-spinner-icon { animation-duration: 2.4s; }
   object.panel-image { transition: none; }
+}
+
+/* --- Arithmetic notebook (chapter 2.5) ---------------------------------- */
+.notebook-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+  /* The surround matches the rest of the game (the dark app background); only
+     the notebook page itself is warm paper. */
+  background: transparent;
+}
+
+.notebook-page {
+  --nb-cell: clamp(24px, 4.4vw, 44px);
+  background: #fbf5e2;
+  border: 1px solid #cbb888;
+  border-radius: 6px;
+  box-shadow: 0 12px 34px rgba(60, 44, 18, 0.28);
+  padding: 6px;
+  direction: ltr;
+  overflow: auto;
+  max-width: 100%;
+}
+
+.notebook-row {
+  display: flex;
+}
+
+.notebook-cell {
+  width: var(--nb-cell);
+  height: var(--nb-cell);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid #e3d4ab;
+  border-bottom: 1px solid #e3d4ab;
+  background: transparent;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--nb-cell) * 0.6);
+  line-height: 1;
+  color: #2a2a44;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notebook-row .notebook-cell:first-child { border-left: 1px solid #e3d4ab; }
+.notebook-row:first-child .notebook-cell { border-top: 1px solid #e3d4ab; }
+
+.notebook-cell:hover { background: rgba(120, 90, 30, 0.06); }
+
+.notebook-cell-fixed {
+  color: #1c2c5a;
+  font-weight: 700;
+  cursor: default;
+}
+.notebook-cell-fixed:hover { background: transparent; }
+
+.notebook-cell-active {
+  background: rgba(60, 110, 220, 0.14);
+  box-shadow: inset 0 0 0 2px #3a6edc;
+}
+
+/* The first wrong digit, flagged on later exercises until the next click. */
+.notebook-cell-mistake {
+  background: rgba(210, 70, 60, 0.28);
+  box-shadow: inset 0 0 0 2px #c0392b;
+  animation: notebook-mistake-pulse 1s ease-in-out infinite;
+}
+
+@keyframes notebook-mistake-pulse {
+  0%, 100% { background: rgba(210, 70, 60, 0.30); }
+  50% { background: rgba(210, 70, 60, 0.12); }
+}
+
+.notebook-cell-underline {
+  border-bottom: 3px solid #1c2c5a;
+}
+
+.notebook-cell-answer { color: #123; }
+
+.notebook-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.notebook-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.notebook-reset-btn {
+  font-size: 1.25rem;
+  line-height: 1;
+  min-width: 44px;
+}
+
+/* ---- Binary-conversion booklet ---- */
+/* A larger grid than the arithmetic notebook — more cells, bigger, to fill
+   the available screen. */
+.bin-notebook-page { --nb-cell: clamp(24px, 3.7vw, 50px); max-width: 96vw; }
+
+/* The all-tasks-done menu: the squared page with the three task titles laid
+   over it as choices (the page underneath is read-only). */
+.bin-menu-page { position: relative; }
+.bin-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* right, in RTL */
+  justify-content: flex-start; /* top */
+  gap: clamp(6px, 1.6vh, 16px);
+  padding: clamp(14px, 3.2vh, 36px) clamp(20px, 3.4vw, 46px);
+  box-sizing: border-box;
+  direction: rtl;
+  text-align: right;
+}
+/* The task choices read as bold handwriting on the page, not buttons — no box,
+   just clickable text. */
+.bin-menu-item {
+  padding: 0.15em 0.4em;
+  font-size: clamp(1.05rem, 2.5vw, 1.55rem);
+  font-weight: 800;
+  color: #23303f;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.bin-menu-item:hover,
+.bin-menu-item:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+/* A horizontal rule under the three binary tasks, above the decimal-review one. */
+.bin-menu-rule {
+  width: min(70%, 26rem);
+  height: 0;
+  border-top: 2px solid #1c2c5a;
+  margin: clamp(4px, 1vh, 12px) 0;
+}
+
+.bin-prompt {
+  direction: rtl;
+  text-align: center;
+  color: #f4ead2;
+  font-size: clamp(1rem, 2.4vw, 1.35rem);
+  font-weight: 700;
+  max-width: 90vw;
+}
+
+/* The answer cells (right of the "=") are tinted so the learner sees where
+   to write the graded answer; every other cell is free scribble space. */
+.bin-answer-cell {
+  background: rgba(60, 110, 220, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(60, 110, 220, 0.35);
+}
+.bin-answer-cell.notebook-cell-active {
+  background: rgba(60, 110, 220, 0.18);
+}
+
+/* The subtraction line in the column form (a rule under the subtrahend). */
+.bin-hline { border-bottom: 2px solid #1c2c5a; }
+
+/* A cell emphasised by the solution walkthrough. */
+.bin-hl {
+  background: rgba(240, 190, 70, 0.6) !important;
+  box-shadow: inset 0 0 0 2px #d99a1f;
+  font-weight: 800;
+  color: #5a3d05;
+}
+
+/* The solution walkthrough's step caption, shown under the grid. */
+.bin-solution-caption {
+  direction: rtl;
+  background: #fbf5e2;
+  border: 1px solid #cbb888;
+  border-radius: 8px;
+  padding: 8px 16px;
+  max-width: min(92vw, 640px);
+  color: #2a2416;
+  text-align: center;
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+  line-height: 1.5;
+}
+.bin-solution-caption p { margin: 0 0 4px; }
+.bin-solution-caption strong { color: #1c2c5a; }
+.bin-methods {
+  margin: 4px 0;
+  padding-inline-start: 26px;
+  text-align: start;
+}
+.bin-methods li { margin: 2px 0; }
+
+/* The dec→bin decomposition chain (V = 32 + 11 = ...), emphasised. */
+.bin-chain {
+  margin-top: 8px;
+  font-family: "Courier New", monospace;
+  font-size: 1.15rem;
+  color: #2a2416;
+  word-break: break-word;
+}
+.bin-chain strong { color: #b3560b; }
+
+.bin-walkthrough {
+  direction: rtl;
+  max-height: 46vh;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+.bin-walkthrough p { margin: 0 0 10px; white-space: pre-line; }
+.bin-walkthrough strong { color: #1c2c5a; }
+/* Math runs kept left-to-right inside the RTL walkthrough text. */
+.bin-ltr { unicode-bidi: isolate; direction: ltr; }
+
+.notebook-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(30, 22, 8, 0.45);
+}
+
+.notebook-dialog {
+  direction: rtl;
+  max-width: 460px;
+  width: min(92vw, 460px);
+  background: #fbf5e2;
+  color: #23201a;
+  border: 1px solid #cbb888;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(30, 22, 8, 0.4);
+  padding: 22px 22px 18px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.notebook-dialog p { margin: 0 0 12px; }
+.notebook-dialog p:last-of-type { margin-bottom: 16px; }
+
+.notebook-dialog-note {
+  font-size: 0.9rem;
+  color: #6a5c3d;
+}
+
+.notebook-dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Movable hint / explanation / solution window — positioned away from the
+   exercise and draggable by its header. */
+.nb-window {
+  position: fixed;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  z-index: 210;
+  width: min(560px, calc(100vw - 32px));
+  max-height: 40dvh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.6);
+  direction: rtl;
+  overflow: hidden;
+}
+
+.nb-window-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: move;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--line);
+}
+
+.nb-window-title { font-weight: 800; }
+.nb-window-grip { opacity: 0.55; letter-spacing: 2px; }
+
+.nb-window-body {
+  padding: 14px;
+  overflow: auto;
+}
+
+.nb-window-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 14px 14px;
 }

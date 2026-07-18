@@ -1,5 +1,5 @@
-// nand-monologue-view.js — the NAND "inner monologue" speech bubble shown on the
-// workbench in chapter 2.1, plus the NAND truth table it reveals on one of its
+// nand-monologue-view.js — the Nand "inner monologue" speech bubble shown on the
+// workbench in chapter 2.1, plus the Nand truth table it reveals on one of its
 // steps, extracted from app.js. renderWorkspaceNandMonologue returns the speech
 // layer for the current step (or "" when inactive); renderNandTruthTable is its
 // internal static table. State is read via injected getState().
@@ -10,7 +10,7 @@
 function createNandMonologueView({ getState, esc, workspaceNandMonologueActive, NAND_MONOLOGUE_TEXTS }) {
   function renderNandTruthTable() {
     return `
-      <section class="nand-truth-table" aria-label="טבלת אמת של NAND">
+      <section class="nand-truth-table" aria-label="טבלת אמת של Nand">
         <table>
           <thead>
             <tr>

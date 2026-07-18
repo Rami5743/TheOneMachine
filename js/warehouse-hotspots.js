@@ -73,6 +73,14 @@
     if (stem === "panel93_chapter_2_3_worktable") return "chapter-6";
     if (stem === "panel99_chapter_2_4_worktable") return "chapter-7";
     if (stem === "panel99g_chapter_2_4_worktable_next") return "chapter-7";
+    // The 2.5 library / binary workshop: reference links only (no worktable /
+    // free-build), driven entirely by the object rects the panel SVG posts.
+    if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
+    if (stem === "panel107_chapter_2_5_workshop") return "binary-workshop";
+    // The 2.5 arithmetic worktable (post-handover) is the same room: it carries
+    // the free-build table and the reference-link objects too, alongside its
+    // tasks note.
+    if (stem === "panel119_chapter_2_5_worktable") return "binary-workshop";
     return null;
   }
 
@@ -222,7 +230,11 @@
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = item.label;
-    link.addEventListener("click", () => window.setTimeout(hidePopover, 0));
+    link.addEventListener("click", () => {
+      // Following a reference link from a non-game object earns "סקרן".
+      try { if (typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("curious"); } catch {}
+      window.setTimeout(hidePopover, 0);
+    });
     pop.append(link);
     shell.append(pop);
   }
@@ -232,8 +244,15 @@
   const FREE_WORKSPACE = {
     "chapter-5": { chapterId: "chapter-5", sceneId: "simple-gates", panelIndex: 4 },
     "chapter-6": { chapterId: "chapter-6", sceneId: "complex-gates", panelIndex: 5 },
-    "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 }
+    "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 },
+    // The 2.5 binary workshop table opens a free workbench in chapter 2.5, so
+    // every card unlocked through the earlier chapters is available.
+    "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 }
   };
+
+  // The chapter 2.5 arithmetic worktable (panel119, index 19) — the post-von
+  // Neumann worktable that carries the tasks note.
+  const ARITH_WORKTABLE_INDEX = 19;
 
   function openFreeWorkspace(kind = "chapter-5") {
     const state = readState();
@@ -241,7 +260,12 @@
     // Return to the worktable the learner actually opened the table from — the
     // original OR the next-tasks worktable (chapter 2.4 has both) — not a fixed
     // panel index. The table hotspot is only shown while on a worktable panel.
-    const returnPanel = Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex;
+    // Exception: the 2.5 workshop table, once von Neumann's entrance has played
+    // (bitsRangeSeen), returns to the arithmetic worktable that carries the tasks
+    // note (panel119) rather than the pre-entrance workshop slide.
+    const returnPanel = (kind === "binary-workshop" && state.bitsRangeSeen)
+      ? ARITH_WORKTABLE_INDEX
+      : (Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex);
     state.screen = "workspace";
     state.chapterId = target.chapterId;
     state.sceneId = target.sceneId;
@@ -255,10 +279,19 @@
     state.bitDialog = null;
     state.started = true;
     state.replayNonce = (Number(state.replayNonce) || 0) + 1;
+    // The 2.5 workshop table is a free playground with everything the learner
+    // could have built by now — including the "create new card" tool, enabled
+    // here regardless of whether it was unlocked in this playthrough. cardIntroDone
+    // is set too so enabling it does not re-arm the one-time scripted card intro.
+    if (kind === "binary-workshop") {
+      state.createCardUnlocked = true;
+      state.cardIntroDone = true;
+      state.cardIntroPending = false;
+    }
     state.workspace = {
       selectedTerminal: null,
       // A single invisible fixed component prevents the app's normalizer from
-      // restoring the default source+NAND+lamp set. It is not rendered on the
+      // restoring the default source+Nand+lamp set. It is not rendered on the
       // board, so the workbench opens visually empty.
       components: [{ id: "free-anchor-1", type: "notCard", x: 500, y: 288 }],
       wires: [],
@@ -309,9 +342,14 @@
       return;
     }
 
-    const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : FALLBACK_ITEMS;
+    // The warehouse fallback item set (bulbs/triodes/…) belongs only to the
+    // worktable panels; the library / binary workshop show nothing until their
+    // own SVG posts.
+    const isWorktable = kind === "chapter-4" || kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7";
+    const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
+    const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we
@@ -320,7 +358,13 @@
     const sig = kind + "|" + JSON.stringify(items) + "|" + (wantsTable ? JSON.stringify(table) : "none");
 
     ensureStyle();
-    if (shell.querySelector(".warehouse-object-hotspot") && shell.dataset.warehouseSig === sig) return;
+    // The "already rendered" guard must recognise EITHER kind of injected
+    // hotspot. On a table-only panel (the 2.5 workshop posts a table but its
+    // object rects arrive a beat later) there is no object hotspot to find, so
+    // keying the guard on the object hotspot alone would let every mutation tick
+    // rebuild the table, and each rebuild re-triggers the observer — a runaway
+    // loop. Matching the table hotspot too lets the guard settle.
+    if (shell.querySelector(".warehouse-object-hotspot,.warehouse-table-hotspot") && shell.dataset.warehouseSig === sig) return;
     removeHotspots();
     shell.dataset.warehouseSig = sig;
 
