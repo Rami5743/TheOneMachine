@@ -1314,6 +1314,9 @@
   function saveState() {
     try {
       localStorage.setItem(APP.storageKey, JSON.stringify(stateForStorage()));
+      // Let the optional cloud-sync module (js/auth.js) know a save happened, so
+      // it can push to the signed-in user's cloud copy. No-op when auth is off.
+      window.dispatchEvent(new Event("tom:statesaved"));
     } catch {}
   }
 
