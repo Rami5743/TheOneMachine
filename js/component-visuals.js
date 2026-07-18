@@ -94,12 +94,17 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // single-bit carry pins stay plain thin cables. This is the Add4-vs-fullAdder
   // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
   function add4GateMarkup() {
-    const bodyW = 100;
-    // Tall enough to contain the three left pins (y ±40) AND the width labels
-    // that sit ~22px above each bus bar — the top input's "4" would otherwise
-    // poke out above the box.
-    const bodyH = 156;
-    const edge = bodyW / 2;
+    // Box edge at ±44 (like AND4's symbol edge) so the pins sit ENTIRELY outside
+    // the box: the pin terminals are at x ±62/66, the box edge at ±44, so each
+    // stub is a full-length AND4-style pin that never pokes into the box.
+    const edge = 44;
+    const bodyW = edge * 2;
+    // The three left pins are spaced ±52 (not ±40) so each bus pin's "4" label,
+    // which sits ~22px above the bar, clears the pin above it.
+    const inYs = [-52, 0, 52];
+    const outYs = [-34, 34];
+    // Tall enough to contain the top pin AND its width label above it.
+    const bodyH = 176;
     const inX = -62;
     const outX = 66;
     const arm = 17;
@@ -113,15 +118,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
     // Inputs (left): two 4-bit number buses + the single-bit carry-in below them.
-    // The bus stubs match AND4's extents (-62..-44); the carry stays a thin cable.
-    s += busPin(inX, -44, -40);
-    s += busPin(inX, -44, 0);
-    s += cable(inX, -46, 40);
+    s += busPin(inX, -edge, inYs[0]);
+    s += busPin(inX, -edge, inYs[1]);
+    s += cable(inX, -edge, inYs[2]);
     // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit bus) below.
-    s += cable(46, outX, -30);
-    s += busPin(44, outX, 30);
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${-30 + 5}" text-anchor="end">c</text>`;
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${30 + 5}" text-anchor="end">s</text>`;
+    s += cable(edge, outX, outYs[0]);
+    s += busPin(edge, outX, outYs[1]);
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -200,7 +204,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The width number is omitted in the toolbar icon (too small to read, and
     // the tool already has a text label beneath it).
     const label = showLabel
-      ? `<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${18 * K}px">${width}</text>`
+      ? `<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${13 * K}px">${width}</text>`
       : "";
     return `
       <rect class="splitter-bar" x="${b.x1}" y="${b.y - half}" width="${b.x2 - b.x1}" height="${11 * K}" />
