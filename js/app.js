@@ -415,6 +415,49 @@
     bounds: { left: 340, right: 340, top: 280, bottom: 190 }
   };
 
+  // The 2.5 Add16 build frame: two width-16 bus inputs (the two numbers) on the
+  // left and a single width-16 bus sum on the right. No carry pins — Add16 takes
+  // no carry-in and discards the final carry (the 17th digit). Checked with the
+  // multi-bit harness.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Add16"] = {
+    label: "מסגרת Add16",
+    fixed: true,
+    taskId: "Add16",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת הסכום פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת הסכום חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+  };
+
+  // Once Add4 is built it joins the toolbar as a placeable gate — the building
+  // block of Add16. A bus adder gate: two width-4 number inputs and a single-bit
+  // carry-in on the left; a width-4 sum (out1) and a single-bit carry-out (out2)
+  // on the right. The engine adds the two 4-bit buses plus the carry-in bit (see
+  // the arith-bus-gate case in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-Add4"] = {
+    label: "Add4",
+    taskId: "Add4",
+    gate: true,
+    busAdder: true,
+    busWidth: 4,
+    pins: {
+      in1: { x: -62, y: -40, direction: "in", width: 4, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 40, direction: "in", width: 1, label: "כניסת הנשיאה" },
+      out2: { x: 66, y: -30, direction: "out", width: 1, label: "יציאת הנשיאה" },
+      out1: { x: 66, y: 30, direction: "out", width: 4, label: "יציאת הסכום" }
+    },
+    bounds: { left: 64, right: 84, top: 74, bottom: 74 }
+  };
+
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
   // walkthrough draws it (out = (data1 & ~c) OR16 (data2 & c)), and it is the
   // card the upcoming "create new card" tool is meant to let the learner build.
@@ -880,7 +923,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -3670,6 +3713,71 @@
             wireKey("merge.single", "task-card-1.outputInt2"),
             wireKey("fa3.out2", "task-card-1.outputInt1")
           ]
+        }
+      }
+    ],
+    Add16: [
+      {
+        text: "בדיוק כמו בחיבור ארוך — רק שהפעם כל \"ספרה\" היא בעצם קבוצה של 4 ביטים. מפצלים כל אחד משני המספרים לארבע קבוצות של 4 ביטים בעזרת מפצל. קבוצת האחדות (4 הביטים התחתונים) למטה, הקבוצה המשמעותית ביותר למעלה.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מתחילים מקבוצת האחדות (למטה): מחברים את שתי קבוצות ה-4 התחתונות בעזרת Add4 — הכרטיס שכבר בנינו שיודע לחבר שני מספרים בני 4 ספרות. אין כאן נשיאה נכנסת (Add16 לא מקבל נשיאה), אז את כניסת הנשיאה של ה-Add4 הזה משאירים לא מחוברת (0).",
+        highlight: {
+          components: ["ad0"],
+          terminals: ["split-a.leg0", "split-b.leg0"],
+          wires: [
+            wireKey("split-a.leg0", "ad0.in1"),
+            wireKey("split-b.leg0", "ad0.in2")
+          ]
+        }
+      },
+      {
+        text: "יציאת הסכום (4 ביטים) של ה-Add4 הזה היא קבוצת האחדות של התוצאה — מחזירים אותה לקבוצה התחתונה של בס הסכום. יציאת הנשיאה שלו היא הנשיאה שעוברת הלאה לקבוצה הבאה (כלפי מעלה).",
+        highlight: {
+          components: ["ad0", "merge"],
+          terminals: ["ad0.out1", "ad0.out2"],
+          wires: [
+            wireKey("ad0.out1", "merge.leg0"),
+            wireKey("ad0.out2", "ad1.in3")
+          ]
+        }
+      },
+      {
+        text: "הקבוצה הבאה: Add4 שמחבר את שתי הקבוצות הבאות יחד עם הנשיאה שקיבלנו מקבוצת האחדות (דרך כניסת הנשיאה שלו). הסכום שלו הוא הקבוצה הבאה של התוצאה, והנשיאה שלו ממשיכה כלפי מעלה.",
+        highlight: {
+          components: ["ad1", "merge"],
+          terminals: ["split-a.leg1", "split-b.leg1", "ad1.out1", "ad1.out2"],
+          wires: [
+            wireKey("split-a.leg1", "ad1.in1"), wireKey("split-b.leg1", "ad1.in2"),
+            wireKey("ad1.out1", "merge.leg1"), wireKey("ad1.out2", "ad2.in3")
+          ]
+        }
+      },
+      {
+        text: "ממשיכים כך קבוצה-קבוצה כלפי מעלה עד הקבוצה המשמעותית ביותר. שרשרת של ארבעה Add4 מכסה את כל 16 הביטים. הנשיאה האחרונה — היוצאת מה-Add4 העליון — היא הספרה ה-17, ואותה פשוט מתעלמים ממנה (משאירים אותה לא מחוברת).",
+        highlight: {
+          components: ["ad2", "ad3"],
+          terminals: ["ad3.out2"],
+          wires: [
+            wireKey("split-a.leg2", "ad2.in1"), wireKey("split-b.leg2", "ad2.in2"), wireKey("ad2.out1", "merge.leg2"),
+            wireKey("split-a.leg3", "ad3.in1"), wireKey("split-b.leg3", "ad3.in2"), wireKey("ad2.out2", "ad3.in3"), wireKey("ad3.out1", "merge.leg3")
+          ]
+        }
+      },
+      {
+        text: "מאחדים בחזרה את ארבע קבוצות הסכום (4 ביטים כל אחת) לבס אחד ברוחב 16 בעזרת מאחד — זו התוצאה הסופית, ואותה מוציאים מיציאת הכרטיס.",
+        highlight: {
+          components: ["merge"],
+          terminals: ["merge.single", "task-card-1.outputInt1"],
+          wires: [wireKey("merge.single", "task-card-1.outputInt1")]
         }
       }
     ],
@@ -8655,6 +8763,18 @@
         { a: 15, b: 15, cin: 1 }
       ];
     }
+    if (taskId === "Add16") {
+      // (a, b) pairs exercising 0, a plain sum, a carry rippling between the
+      // 4-bit chunks, and full 16-bit overflow (the discarded 17th digit).
+      return [
+        { a: 0, b: 0 },
+        { a: 1234, b: 5678 },
+        { a: 4095, b: 1 },       // 0x0FFF + 1 -> carry from the units chunk
+        { a: 40000, b: 25535 },  // = 65535, all ones
+        { a: 65535, b: 1 },      // overflow -> 0 (drop the leading carry)
+        { a: 65535, b: 65535 }   // = 131070, keep only the low 16 bits
+      ];
+    }
     return [];
   }
 
@@ -8664,6 +8784,12 @@
   // so the units adder wires to leg0 at the bottom with no crossing.
   function add4Bits(n) {
     return [n & 1, (n >> 1) & 1, (n >> 2) & 1, (n >> 3) & 1].map(Boolean);
+  }
+
+  // A 16-bit bus as [LSB, …, MSB] booleans (little-endian, same convention as
+  // add4Bits): bit 0 is the units digit, bit 15 the most significant.
+  function add16Bits(n) {
+    return Array.from({ length: 16 }, (_, i) => Boolean((n >> i) & 1));
   }
 
   // The input drives and expected output bits for one case, keyed by external
@@ -8703,6 +8829,18 @@
         outputs: [
           { ref: "outputExt1", expected: [Boolean((total >> 4) & 1)] }, // carry-out (leading digit)
           { ref: "outputExt2", expected: add4Bits(total & 15) }         // the 4 sum digits
+        ]
+      };
+    }
+    if (taskId === "Add16") {
+      const total = (testCase.a + testCase.b) & 0xffff; // drop the 17th digit (final carry)
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(total) }
         ]
       };
     }
@@ -9068,7 +9206,7 @@
   // Which arith cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function arithTaskImplemented(id) {
-    return ["halfAdder", "fullAdder", "Add4"].includes(id);
+    return ["halfAdder", "fullAdder", "Add4", "Add16"].includes(id);
   }
 
   // Add4/Add16 are BUS adder cards (multi-bit, no truth table), checked with the
@@ -9192,6 +9330,39 @@
     "add4-next-digit": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_FA_NEXT, A4_MERGE], wires: A4_W_NEXT }
   };
   // (FA_W_FULL is used by the fullAdder solution circuit in solution-workspaces.js.)
+
+  // The Add16 build hints progressively construct the 16-bit adder from Add4
+  // chunks: split each number into four 4-bit chunks (width-4 splitters), add the
+  // units chunk (no carry-in), route it out, then add the next chunk threading
+  // the carry. Same shape as the Add4 hints, one level up.
+  const A16_SPLIT_A = { id: "split-a", type: "splitter", x: 430, y: 185, mirrored: false, outputs: 4, width: 4 };
+  const A16_SPLIT_B = { id: "split-b", type: "splitter", x: 430, y: 415, mirrored: false, outputs: 4, width: 4 };
+  const A16_AD_UNITS = { id: "ad0", type: "gate-Add4", x: 645, y: 470 };
+  const A16_AD_NEXT = { id: "ad1", type: "gate-Add4", x: 645, y: 300 };
+  const A16_MERGE = { id: "merge", type: "splitter", x: 855, y: 330, mirrored: true, outputs: 4, width: 4 };
+  // Split both numbers and add the units chunks (leg0, the bottom chunk). Add16
+  // has no carry-in, so the units Add4's in3 is left unconnected (0).
+  const A16_W_UNITS = [
+    ["task-card-1.inputInt1", "split-a.single"],
+    ["task-card-1.inputInt2", "split-b.single"],
+    ["split-a.leg0", "ad0.in1"],
+    ["split-b.leg0", "ad0.in2"]
+  ];
+  // Route the units chunk sum out (through the merge, into the low 4 bits).
+  const A16_W_UNITS_OUT = [...A16_W_UNITS, ["ad0.out1", "merge.leg0"], ["merge.single", "task-card-1.outputInt1"]];
+  // Add the next chunk (leg1), threading the units carry, and route its sum out.
+  const A16_W_NEXT = [
+    ...A16_W_UNITS_OUT,
+    ["split-a.leg1", "ad1.in1"],
+    ["split-b.leg1", "ad1.in2"],
+    ["ad0.out2", "ad1.in3"],
+    ["ad1.out1", "merge.leg1"]
+  ];
+  const ADD16_HINT_STAGES = {
+    "add16-units": { components: [A16_SPLIT_A, A16_SPLIT_B, A16_AD_UNITS], wires: A16_W_UNITS },
+    "add16-units-out": { components: [A16_SPLIT_A, A16_SPLIT_B, A16_AD_UNITS, A16_MERGE], wires: A16_W_UNITS_OUT },
+    "add16-next-chunk": { components: [A16_SPLIT_A, A16_SPLIT_B, A16_AD_UNITS, A16_AD_NEXT, A16_MERGE], wires: A16_W_NEXT }
+  };
 
   function openArithNote() {
     return setState({ arithNoteList: true });
@@ -9659,6 +9830,29 @@
       };
       if (hintStateOverride) a4Patch.hintState = hintStateOverride;
       return setState(a4Patch, false);
+    }
+
+    // Add16 build hints: progressively construct the 16-bit adder from Add4
+    // chunks (units chunk, route it out, next chunk). Same scaffold shape as Add4.
+    if (taskId === "Add16" && ADD16_HINT_STAGES[hint.action]) {
+      const a16 = normalizeWorkspace(clonePlain(state.workspace));
+      const source = componentById(a16, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const card = componentById(a16, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 288 };
+      const stage = ADD16_HINT_STAGES[hint.action];
+      a16.components = [clonePlain(source), clonePlain(card), ...stage.components];
+      a16.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
+      a16.nextId = 2;
+      a16.selectedTerminal = null;
+      a16.accident = null;
+      a16.focusedComponentId = null;
+      a16.unlocked = true;
+      a16.taskIntroSeen = true;
+      const a16Patch = {
+        workspace: normalizeWorkspace(a16),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) a16Patch.hintState = hintStateOverride;
+      return setState(a16Patch, false);
     }
 
     // Dmux4way interactive hint: scaffold the control-bus splitter and the first
@@ -10732,6 +10926,14 @@
     // `control`: the last input is a single shared control bit (the MUX select),
     // not another per-bit bus.
     return { op: def.op, inputs: def.inputs || 1, width: def.busWidth, label: def.label, control: Boolean(def.control) };
+  }
+
+  // A placeable bus-adder gate (gate-Add4): two width-N number buses plus a
+  // single-bit carry-in, adding to a width-N sum (out1) and a carry-out (out2).
+  function arithBusGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.busAdder) return null;
+    return { width: def.busWidth };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are

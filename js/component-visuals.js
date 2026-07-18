@@ -88,6 +88,33 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The placeable Add4 gate (the building block of Add16): a labelled box with
+  // two width-4 number inputs and a single-bit carry-in on the left, and a
+  // width-4 sum (out1) and single-bit carry-out (out2) on the right. Bus pins are
+  // drawn as bus bars; the single-bit carry pins as plain cables. Matches the
+  // gate-Add4 pin offsets in app.js.
+  function add4GateMarkup(options = {}) {
+    const bodyW = 108;
+    const bodyH = 136;
+    const edge = bodyW / 2;
+    const inX = -62;
+    const outX = 66;
+    const bus = (x1, x2, y) => splitterBusBar(x1, x2, y, 11);
+    const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // Inputs (left): two 4-bit number buses + the single-bit carry-in below them.
+    s += bus(inX, -edge, -40);
+    s += bus(inX, -edge, 0);
+    s += cable(inX, -edge, 40);
+    // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit) below.
+    s += cable(edge, outX, -30);
+    s += bus(edge, outX, 30);
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${-30 + 5}" text-anchor="end">c</text>`;
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${30 + 5}" text-anchor="end">s</text>`;
+    s += `<text class="usercard-name" x="0" y="6" text-anchor="middle">Add4</text>`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
   // monologue); their workbench behaviour is not wired up yet.
   function busMarkup() {
@@ -189,6 +216,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
       if (bus) return busGateMarkup(bus, options);
       const gateTask = taskDefById(type.slice(5));
+      if (gateTask && gateTask.id === "Add4") return add4GateMarkup(options);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

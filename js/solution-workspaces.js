@@ -555,6 +555,65 @@ function createSolutionWorkspaces({
     });
   }
 
+  // Add16 (chapter 2.5): a 16-bit adder built from four Add4 cards. Split each
+  // 16-bit number into four 4-bit chunks (a width-4 splitter), add the chunks
+  // column by column with a chain of four Add4 gates threading the carry, merge
+  // the four 4-bit sum chunks back into the 16-bit output, and discard the last
+  // carry (the 17th digit). Units chunk at the bottom (leg0), MSB chunk at the
+  // top (leg3); the first Add4 has no carry-in (its in3 is left unconnected = 0).
+  function add16SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 390 },
+      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 390 },
+      { id: "split-a", type: "splitter", x: 430, y: 210, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 560, mirrored: false, outputs: 4, width: 4 },
+      { id: "ad3", type: "gate-Add4", x: 640, y: 150 },
+      { id: "ad2", type: "gate-Add4", x: 640, y: 310 },
+      { id: "ad1", type: "gate-Add4", x: 640, y: 470 },
+      { id: "ad0", type: "gate-Add4", x: 640, y: 630 },
+      { id: "merge", type: "splitter", x: 850, y: 390, mirrored: true, outputs: 4, width: 4 }
+    ];
+    // ad0=units chunk (leg0, bottom), ad3=leading chunk (leg3, top); the carry
+    // threads upward ad0->ad1->ad2->ad3, and ad3's carry (the 17th digit) is
+    // dropped. ad0 has no carry-in (Add16 takes none).
+    const cols = [
+      { ad: "ad0", leg: "leg0", carryIn: null },
+      { ad: "ad1", leg: "leg1", carryIn: "ad0.out2" },
+      { ad: "ad2", leg: "leg2", carryIn: "ad1.out2" },
+      { ad: "ad3", leg: "leg3", carryIn: "ad2.out2" }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt1")
+    ];
+    cols.forEach(({ ad, leg, carryIn }) => {
+      wires.push(normalizeWire(`split-a.${leg}`, `${ad}.in1`));
+      wires.push(normalizeWire(`split-b.${leg}`, `${ad}.in2`));
+      if (carryIn) wires.push(normalizeWire(carryIn, `${ad}.in3`));
+      wires.push(normalizeWire(`${ad}.out1`, `merge.${leg}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: "Add16",
+      taskIntroSeen: true
+    });
+  }
+
   // Not4 (chapter 2.4): split the input bus into 4 wires, NOT each, merge back.
   // Built directly (not via standardTaskWorkspace) because bus tasks have no
   // TASK_DEFS entry and use a bus card with a pre-placed single source.
@@ -1015,6 +1074,7 @@ function createSolutionWorkspaces({
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
     if (taskId === "Add4") return add4SolutionFrom();
+    if (taskId === "Add16") return add16SolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
