@@ -383,20 +383,23 @@ button { font: inherit; }
    tell you the whole truth — click here"). */
 .story-corner-link {
   position: absolute;
-  top: 2.5%;
+  top: 1.5%;
   right: 3%;
   z-index: 7;
-  max-width: 42%;
+  max-width: 72%;
+  /* Keep the teaser on a single line so it stays in the thin strip above the
+     panel's speech bubble instead of growing down over it. */
+  white-space: nowrap;
   direction: rtl;
   text-align: right;
   background: rgba(28, 8, 6, 0.82);
   color: #ff6a5a;
   border: 1px solid rgba(255, 106, 90, 0.7);
   border-radius: 10px;
-  padding: 0.45rem 0.7rem;
-  font-size: clamp(0.8rem, 1.5vw, 1.05rem);
+  padding: 0.4rem 0.65rem;
+  font-size: clamp(0.62rem, 1.15vw, 0.86rem);
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
   cursor: pointer;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
