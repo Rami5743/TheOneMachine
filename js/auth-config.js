@@ -17,8 +17,8 @@
 //   to return to the current page (correct for GitHub Pages). Set it only if
 //   you want a fixed landing URL.
 const AUTH_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
+  SUPABASE_URL: "https://oemhzqjfamqbinikmvfd.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_7E6eouDDGg_A_Rb8M7dHaw_OnujzjuQ",
   REDIRECT_TO: ""
 };
 
