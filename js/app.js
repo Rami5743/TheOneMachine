@@ -455,7 +455,10 @@
       out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
       out1: { x: 66, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 92, bottom: 92 }
+    // The gate renders at 0.6 scale, so its real visual half-height is ~53px, not
+    // 92. Keep the vertical bounds close to that (56) so four stacked Add4 gates
+    // fit inside the board without the bottom/top gate being clamped off-edge.
+    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
   };
 
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
@@ -1112,7 +1115,7 @@
     // Add16 stacks four (tall) Add4 gates, so it gets a much taller frame.
     const tall = def.id === "Add16";
     const frameW = 600;
-    const frameH = tall ? 600 : 420;
+    const frameH = tall ? 540 : 420;
     const frameLeft = cx - 300;
     const frameTop = cy - frameH / 2;
     // A horizontal stub from the external tip (x1) all the way to the internal
@@ -9422,11 +9425,11 @@
   // chunks: split each number into four 4-bit chunks (width-4 splitters), add the
   // units chunk (no carry-in), route it out, then add the next chunk threading
   // the carry. Same shape as the Add4 hints, one level up.
-  const A16_SPLIT_A = { id: "split-a", type: "splitter", x: 430, y: 250, mirrored: false, outputs: 4, width: 4 };
-  const A16_SPLIT_B = { id: "split-b", type: "splitter", x: 430, y: 470, mirrored: false, outputs: 4, width: 4 };
-  const A16_AD_UNITS = { id: "ad0", type: "gate-Add4", x: 640, y: 600 };
-  const A16_AD_NEXT = { id: "ad1", type: "gate-Add4", x: 640, y: 440 };
-  const A16_MERGE = { id: "merge", type: "splitter", x: 850, y: 360, mirrored: true, outputs: 4, width: 4 };
+  const A16_SPLIT_A = { id: "split-a", type: "splitter", x: 430, y: 180, mirrored: false, outputs: 4, width: 4 };
+  const A16_SPLIT_B = { id: "split-b", type: "splitter", x: 430, y: 400, mirrored: false, outputs: 4, width: 4 };
+  const A16_AD_UNITS = { id: "ad0", type: "gate-Add4", x: 640, y: 500 };
+  const A16_AD_NEXT = { id: "ad1", type: "gate-Add4", x: 640, y: 360 };
+  const A16_MERGE = { id: "merge", type: "splitter", x: 850, y: 290, mirrored: true, outputs: 4, width: 4 };
   // Split both numbers and add the units chunks (leg0, the bottom chunk). Add16
   // has no carry-in, so the units Add4's in3 is left unconnected (0).
   const A16_W_UNITS = [
@@ -9472,8 +9475,8 @@
           // Bus adder card (Add4/Add16): no output lamps — the multi-bit check
           // harness wires its own splitter/lamp fan-out. Add16 sits lower so its
           // taller frame (four stacked Add4 gates) fits on the board.
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 360 : 288 },
-          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 360 : 288 }
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 290 : 288 },
+          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 290 : 288 }
         ]
         : [
           { id: "source-1", type: "source", x: 80, y: 288 },
