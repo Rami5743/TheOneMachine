@@ -461,6 +461,26 @@
     bounds: { left: 64, right: 84, top: 56, bottom: 56 }
   };
 
+  // gate-Add16: the placeable card the learner earns by completing Add16. Same
+  // shape and drawing as gate-Add4 (a "+" box with emphasized bus pins), only the
+  // two number buses + the sum bus are width 16 instead of 4 (the carry pins stay
+  // single-bit). Joins the palette once Add16 is completed, like the other gates.
+  WORKSPACE_COMPONENT_DEFS["gate-Add16"] = {
+    label: "Add16",
+    taskId: "Add16",
+    gate: true,
+    busAdder: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -52, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
+      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
+      out1: { x: 66, y: 34, direction: "out", width: 16, label: "יציאת הסכום" }
+    },
+    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
+  };
+
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
   // walkthrough draws it (out = (data1 & ~c) OR16 (data2 & c)), and it is the
   // card the upcoming "create new card" tool is meant to let the learner build.
