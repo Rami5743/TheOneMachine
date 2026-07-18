@@ -33,6 +33,15 @@
   var TABLE = "progress";
   var SUPABASE_CDN = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 
+  // Where to fetch supabase-js from. Tried in order; the first that loads wins,
+  // so a network that blocks one CDN can still fall through to another. Both
+  // serve the UMD build (sets window.supabase) and are pinned to the v2 major
+  // (which supports the new sb_publishable_ keys).
+  var SUPABASE_CDNS = [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"
+  ];
+
   var sb = null;            // the Supabase client
   var currentUser = null;   // the signed-in user (or null)
   var reconciledUid = null; // uid we've already reconciled this page load
@@ -200,19 +209,28 @@
   window.addEventListener("tom:statesaved", schedulePush);
 
   // ---- boot -----------------------------------------------------------------
-  function loadSupabaseLib() {
+  function loadOneScript(src) {
     return new Promise(function (resolve, reject) {
-      if (window.supabase && window.supabase.createClient) return resolve(window.supabase);
       var s = document.createElement("script");
-      s.src = SUPABASE_CDN;
+      s.src = src;
       s.async = true;
       s.onload = function () {
         if (window.supabase && window.supabase.createClient) resolve(window.supabase);
-        else reject(new Error("supabase-js loaded but createClient missing"));
+        else reject(new Error("loaded but createClient missing"));
       };
-      s.onerror = function () { reject(new Error("failed to load supabase-js")); };
+      s.onerror = function () { reject(new Error("network error")); };
       document.head.appendChild(s);
     });
+  }
+
+  async function loadSupabaseLib() {
+    if (window.supabase && window.supabase.createClient) return window.supabase;
+    var lastErr = null;
+    for (var i = 0; i < SUPABASE_CDNS.length; i++) {
+      try { return await loadOneScript(SUPABASE_CDNS[i]); }
+      catch (e) { lastErr = e; }
+    }
+    throw new Error("failed to load supabase-js" + (lastErr ? " (" + lastErr.message + ")" : ""));
   }
 
   async function boot() {
