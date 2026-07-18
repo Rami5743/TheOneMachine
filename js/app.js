@@ -1864,6 +1864,13 @@
     return ROUTING_TASK_DEFS.every((task) => completed.has(task.id));
   }
 
+  // Every card in the arith note (the LAST task list in the game) completed.
+  function allArithTasksCompletedIn(taskIds = completedTaskIds()) {
+    const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
+    const arith = typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : [];
+    return arith.length > 0 && arith.every((task) => completed.has(task.id));
+  }
+
   // Entry point of chapter 2.4 (the "buses" story scene).
   function chapter24StartTarget() {
     return storyTarget(chapterById("chapter-7"), 0);
@@ -8976,15 +8983,18 @@
         : completedTaskIds();
 
       // Arith cards with no solution walkthrough yet: complete and return to the
-      // 2.5 worktable with the note reopened (so the next card unlocks).
+      // 2.5 worktable. All done -> "המשך יבוא" immediately; otherwise reopen the
+      // note so the next card unlocks.
       if (isArithTask(taskId)) {
+        const allArithDone = allArithTasksCompletedIn(completedTasks);
         return setState({
           ...arithWorktableReturnTarget(),
           taskDialog: null,
           notTest: null,
           muxTable: null,
           completedTasks,
-          arithNoteList: true,
+          arithNoteList: !allArithDone,
+          infoDialog: allArithDone ? "המשך יבוא..." : null,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -9574,8 +9584,11 @@
       }, true);
     }
 
-    // Arith cards (2.5): back to the worktable with the note reopened.
+    // Arith cards (2.5): back to the worktable. If this completion finished the
+    // WHOLE note, show the "המשך יבוא" notice immediately (end of current
+    // content); otherwise reopen the note so the next card unlocks.
     if (isArithTask(taskId)) {
+      const allArithDone = allArithTasksCompletedIn(completedTasks);
       return setState({
         ...arithWorktableReturnTarget(),
         taskDialog: null,
@@ -9584,7 +9597,8 @@
         hintDialog: null,
         muxTable: null,
         completedTasks,
-        arithNoteList: true,
+        arithNoteList: !allArithDone,
+        infoDialog: allArithDone ? "המשך יבוא..." : null,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -9670,9 +9684,10 @@
       return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
     // Arith cards (2.5): back to the arithmetic worktable with its note, not the
-    // 2.2 gates worktable.
+    // 2.2 gates worktable. All done -> show the "המשך יבוא" notice.
     if (isArithTask(taskId)) {
-      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
+      const allArithDone = allArithTasksCompletedIn(completedTasks);
+      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: !allArithDone, infoDialog: allArithDone ? "המשך יבוא..." : null }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -11825,11 +11840,11 @@
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
     if (action === "arith-note-close") {
-      // The arith note is the LAST task list in the game. Once every card in it
-      // is built, closing the note lands the player at the end of the current
-      // content, so show a "המשך יבוא" notice — every time it is closed while
-      // complete (e.g. also when revisiting from the chapters menu).
-      const allArithDone = ARITH_TASKS.every((t) => taskCompleted(t.id));
+      // The arith note is the LAST task list in the game. Closing it while every
+      // card is already built shows the "המשך יבוא" notice — this is the "come
+      // back to this state from elsewhere" trigger (finishing the last task shows
+      // the same notice immediately; see finishSolutionDialog).
+      const allArithDone = allArithTasksCompletedIn();
       return setState(allArithDone
         ? { arithNoteList: false, infoDialog: "המשך יבוא..." }
         : { arithNoteList: false });
