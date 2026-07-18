@@ -647,6 +647,11 @@
     // BIN_STAGES). Persists across booklet exits so re-entry lands on the first
     // unfinished task, and once all are done the booklet opens on its menu.
     binBookletDone: [],
+    // Whether the library's decimal column-addition exercise (the Stone-Millis
+    // book) has been solved. Today it is a mandatory step before the binary
+    // booklet, but the "מחשב" achievement checks it explicitly so it keeps
+    // requiring the library task even if the flow ever changes.
+    libraryArithDone: false,
     // Booklet-mastery bookkeeping for the calculation achievements:
     //   binFirstTryClean — stages solved cleanly on their very first exercise
     //     (no fails, no hint) → "מחשב מדויק" / "מחשב יסודי ומדויק".
@@ -2285,7 +2290,8 @@
     if (allNoteTasksCompletedIn()) unlockAchievement("boolean-engineer");
     if (allRoutingTasksCompletedIn()) unlockAchievement("routing-engineer");
     if (busIds.every((id) => taskCompleted(id))) unlockAchievement("bus-engineer");
-    if (BIN_STAGES.every((s) => binDone().includes(s))) unlockAchievement("calculator");
+    // "מחשב" needs BOTH the library arithmetic task and every booklet stage.
+    if (state.libraryArithDone && BIN_STAGES.every((s) => binDone().includes(s))) unlockAchievement("calculator");
 
     // Chapter 2.5 build-task group (the worktable note: halfAdder → Add16).
     const arithIds = (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : []).map((t) => t.id);
@@ -6242,7 +6248,11 @@
     const nb = state.notebook;
     if (!nb || !nb.exercise) return;
     if (notebookSolved(nb)) {
-      setState({ notebook: { ...nb, active: null, dialog: "correct" } });
+      const patch = { notebook: { ...nb, active: null, dialog: "correct" } };
+      // Mark the library arithmetic task as done — but not when this notebook is
+      // an explanation replay or a review reached back from the booklet.
+      if (!nb.fromExplanations && !nb.reviewFromBooklet) patch.libraryArithDone = true;
+      setState(patch);
       return;
     }
     const patch = { ...nb, active: null, failCount: (nb.failCount || 0) + 1, dialog: "wrong" };
