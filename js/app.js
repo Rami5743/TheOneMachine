@@ -1352,8 +1352,12 @@
     state = { ...state, ...patch };
     // Remember the last in-game screen (story / workspace / nandBuildHelp) so
     // "continue" from the main menu returns to exactly where the learner was,
-    // including a workbench in mid-build. Menu/overlay screens don't overwrite it.
-    if (IN_GAME_SCREENS.includes(state.screen)) state.resumeScreen = state.screen;
+    // including a workbench in mid-build. Menu/overlay screens don't overwrite
+    // it, and NEITHER does the card-creation page: it is a transient card-build
+    // session (reachable from the main menu / "My cards"), not a story position,
+    // and its workspace is thrown away on exit — so resuming to it would drop the
+    // learner onto a blank Nand workbench instead of where they actually were.
+    if (IN_GAME_SCREENS.includes(state.screen) && !state.cardCreation) state.resumeScreen = state.screen;
     // Track the furthest chapter reached (drives step-by-step chapter locking).
     // Every chapter change flows through setState, so replaying an earlier
     // chapter never lowers this — completed chapters stay unlocked.
