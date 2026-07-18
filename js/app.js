@@ -9340,11 +9340,11 @@
   // chunks: split each number into four 4-bit chunks (width-4 splitters), add the
   // units chunk (no carry-in), route it out, then add the next chunk threading
   // the carry. Same shape as the Add4 hints, one level up.
-  const A16_SPLIT_A = { id: "split-a", type: "splitter", x: 430, y: 180, mirrored: false, outputs: 4, width: 4 };
-  const A16_SPLIT_B = { id: "split-b", type: "splitter", x: 430, y: 400, mirrored: false, outputs: 4, width: 4 };
-  const A16_AD_UNITS = { id: "ad0", type: "gate-Add4", x: 640, y: 500 };
-  const A16_AD_NEXT = { id: "ad1", type: "gate-Add4", x: 640, y: 360 };
-  const A16_MERGE = { id: "merge", type: "splitter", x: 850, y: 290, mirrored: true, outputs: 4, width: 4 };
+  const A16_SPLIT_A = { id: "split-a", type: "splitter", x: 430, y: 200, mirrored: false, outputs: 4, width: 4 };
+  const A16_SPLIT_B = { id: "split-b", type: "splitter", x: 430, y: 420, mirrored: false, outputs: 4, width: 4 };
+  const A16_AD_UNITS = { id: "ad0", type: "gate-Add4", x: 640, y: 520 };
+  const A16_AD_NEXT = { id: "ad1", type: "gate-Add4", x: 640, y: 380 };
+  const A16_MERGE = { id: "merge", type: "splitter", x: 850, y: 310, mirrored: true, outputs: 4, width: 4 };
   // Split both numbers and add the units chunks (leg0, the bottom chunk). Add16
   // has no carry-in, so the units Add4's in3 is left unconnected (0).
   const A16_W_UNITS = [
@@ -9390,8 +9390,8 @@
           // Bus adder card (Add4/Add16): no output lamps — the multi-bit check
           // harness wires its own splitter/lamp fan-out. Add16 sits lower so its
           // taller frame (four stacked Add4 gates) fits on the board.
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 290 : 288 },
-          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 290 : 288 }
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 310 : 288 },
+          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 310 : 288 }
         ]
         : [
           { id: "source-1", type: "source", x: 80, y: 288 },
