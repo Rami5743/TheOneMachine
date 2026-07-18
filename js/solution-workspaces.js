@@ -563,15 +563,17 @@ function createSolutionWorkspaces({
   // top (leg3); the first Add4 has no carry-in (its in3 is left unconnected = 0).
   function add16SolutionFrom() {
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 390 },
-      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 390 },
-      { id: "split-a", type: "splitter", x: 430, y: 210, mirrored: false, outputs: 4, width: 4 },
-      { id: "split-b", type: "splitter", x: 430, y: 560, mirrored: false, outputs: 4, width: 4 },
-      { id: "ad3", type: "gate-Add4", x: 640, y: 150 },
-      { id: "ad2", type: "gate-Add4", x: 640, y: 310 },
-      { id: "ad1", type: "gate-Add4", x: 640, y: 470 },
-      { id: "ad0", type: "gate-Add4", x: 640, y: 630 },
-      { id: "merge", type: "splitter", x: 850, y: 390, mirrored: true, outputs: 4, width: 4 }
+      { id: "source-1", type: "source", x: 65, y: 360 },
+      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 360 },
+      { id: "split-a", type: "splitter", x: 430, y: 250, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 470, mirrored: false, outputs: 4, width: 4 },
+      // Four Add4 chunks evenly stacked (160px apart), units (ad0) at the bottom
+      // and the leading chunk (ad3) at the top — inside the tall Add16 frame.
+      { id: "ad3", type: "gate-Add4", x: 640, y: 120 },
+      { id: "ad2", type: "gate-Add4", x: 640, y: 280 },
+      { id: "ad1", type: "gate-Add4", x: 640, y: 440 },
+      { id: "ad0", type: "gate-Add4", x: 640, y: 600 },
+      { id: "merge", type: "splitter", x: 850, y: 360, mirrored: true, outputs: 4, width: 4 }
     ];
     // ad0=units chunk (leg0, bottom), ad3=leading chunk (leg3, top); the carry
     // threads upward ad0->ad1->ad2->ad3, and ad3's carry (the 17th digit) is
