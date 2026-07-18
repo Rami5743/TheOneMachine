@@ -3590,57 +3590,57 @@
         }
       },
       {
-        text: "מתחילים מעמודת האחדות (הספרה הימנית). מחברים את שתי ספרות האחדות יחד עם ספרת הנשיאה שנכנסת לכרטיס, בעזרת fullAdder — בדיוק שלוש הספרות שהוא יודע לחבר.",
+        text: "מתחילים מעמודת האחדות (למטה). מחברים את שתי ספרות האחדות יחד עם ספרת הנשיאה שנכנסת לכרטיס, בעזרת fullAdder — בדיוק שלוש הספרות שהוא יודע לחבר.",
         highlight: {
-          components: ["fa3"],
-          terminals: ["task-card-1.inputInt3", "split-a.leg3", "split-b.leg3"],
+          components: ["fa0"],
+          terminals: ["task-card-1.inputInt3", "split-a.leg0", "split-b.leg0"],
           wires: [
-            wireKey("split-a.leg3", "fa3.in1"),
-            wireKey("split-b.leg3", "fa3.in2"),
-            wireKey("task-card-1.inputInt3", "fa3.in3")
+            wireKey("split-a.leg0", "fa0.in1"),
+            wireKey("split-b.leg0", "fa0.in2"),
+            wireKey("task-card-1.inputInt3", "fa0.in3")
           ]
         }
       },
       {
         text: "התוצאה של החיבור הזה היא ספרה אחת ועוד נשיאה. הספרה שיצאה היא ספרת האחדות של התוצאה הסופית — אותה מחזירים לספרת האחדות (התחתונה) של בס הסכום. את הנשיאה מעבירים הלאה לעמודה הבאה, זו שמעל.",
         highlight: {
-          components: ["fa3", "merge"],
-          terminals: ["fa3.out1", "fa3.out2"],
+          components: ["fa0", "merge"],
+          terminals: ["fa0.out1", "fa0.out2"],
           wires: [
-            wireKey("fa3.out1", "merge.leg3"),
-            wireKey("fa3.out2", "fa2.in3")
+            wireKey("fa0.out1", "merge.leg0"),
+            wireKey("fa0.out2", "fa1.in3")
           ]
         }
       },
       {
         text: "עכשיו העמודה השנייה, זו שמעל האחדות: מחברים את שתי הספרות השנייות של המספרים יחד עם הנשיאה שקיבלנו מעמודת האחדות, שוב בעזרת fullAdder. הספרה שיוצאת ממנו היא הספרה השנייה של התוצאה (מחזירים אותה לבס הסכום), והנשיאה שלו ממשיכה לעמודה שמעליה.",
         highlight: {
-          components: ["fa2", "merge"],
-          terminals: ["split-a.leg2", "split-b.leg2", "fa2.out1", "fa2.out2"],
+          components: ["fa1", "merge"],
+          terminals: ["split-a.leg1", "split-b.leg1", "fa1.out1", "fa1.out2"],
           wires: [
-            wireKey("split-a.leg2", "fa2.in1"), wireKey("split-b.leg2", "fa2.in2"),
-            wireKey("fa2.out1", "merge.leg2"), wireKey("fa2.out2", "fa1.in3")
+            wireKey("split-a.leg1", "fa1.in1"), wireKey("split-b.leg1", "fa1.in2"),
+            wireKey("fa1.out1", "merge.leg1"), wireKey("fa1.out2", "fa2.in3")
           ]
         }
       },
       {
         text: "ממשיכים באותו אופן, עמודה-עמודה כלפי מעלה, עד הספרה השמאלית ביותר — כל fullAdder מקבל את שתי הספרות שלו ואת הנשיאה מהעמודה שמתחתיו, ומעביר את הנשיאה שלו כלפי מעלה. כך שרשרת של ארבעה fullAdder-ים מכסה את כל ארבע הספרות.",
         highlight: {
-          components: ["fa1", "fa0"],
+          components: ["fa2", "fa3"],
           wires: [
-            wireKey("split-a.leg1", "fa1.in1"), wireKey("split-b.leg1", "fa1.in2"), wireKey("fa1.out1", "merge.leg1"),
-            wireKey("split-a.leg0", "fa0.in1"), wireKey("split-b.leg0", "fa0.in2"), wireKey("fa1.out2", "fa0.in3"), wireKey("fa0.out1", "merge.leg0")
+            wireKey("split-a.leg2", "fa2.in1"), wireKey("split-b.leg2", "fa2.in2"), wireKey("fa2.out1", "merge.leg2"),
+            wireKey("split-a.leg3", "fa3.in1"), wireKey("split-b.leg3", "fa3.in2"), wireKey("fa2.out2", "fa3.in3"), wireKey("fa3.out1", "merge.leg3")
           ]
         }
       },
       {
         text: "מאחדים בחזרה את ארבע הספרות שיצאו מהמחברים לבס אחד — אלה ארבע הספרות הימניות של התוצאה. הנשיאה האחרונה, זו שיוצאת מהמחבר של הספרה השמאלית ביותר (העליון), היא הספרה החמישית והשמאלית ביותר של התוצאה — ואותה מוציאים מהיציאה הבודדת של הכרטיס.",
         highlight: {
-          components: ["merge", "fa0"],
-          terminals: ["merge.single", "fa0.out2", "task-card-1.outputInt1", "task-card-1.outputInt2"],
+          components: ["merge", "fa3"],
+          terminals: ["merge.single", "fa3.out2", "task-card-1.outputInt1", "task-card-1.outputInt2"],
           wires: [
             wireKey("merge.single", "task-card-1.outputInt2"),
-            wireKey("fa0.out2", "task-card-1.outputInt1")
+            wireKey("fa3.out2", "task-card-1.outputInt1")
           ]
         }
       }
@@ -8646,9 +8646,12 @@
     return [];
   }
 
-  // A 4-bit bus as [MSB, …, LSB] booleans (leg0 = MSB, leg3 = LSB = units digit).
+  // A 4-bit bus as [LSB, …, MSB] booleans (leg0 = LSB = units digit, leg3 = MSB).
+  // Little-endian to match BOTH the splitter's terminal geometry (leg0 is the
+  // bottom leg) and the requirements text ("the bottom bit is the units digit"),
+  // so the units adder wires to leg0 at the bottom with no crossing.
   function add4Bits(n) {
-    return [(n >> 3) & 1, (n >> 2) & 1, (n >> 1) & 1, n & 1].map(Boolean);
+    return [n & 1, (n >> 1) & 1, (n >> 2) & 1, (n >> 3) & 1].map(Boolean);
   }
 
   // The input drives and expected output bits for one case, keyed by external
@@ -9147,33 +9150,34 @@
   // rebuilds the workspace to a fixed cumulative state, so they must be applied
   // in order and each warns first (it overwrites the learner's work). The hints
   // stop after the second digit — fa1/fa0 are left for the learner to continue.
-  const A4_SPLIT_A = { id: "split-a", type: "splitter", x: 455, y: 205, mirrored: false, outputs: 4, width: 1 };
-  const A4_SPLIT_B = { id: "split-b", type: "splitter", x: 455, y: 395, mirrored: false, outputs: 4, width: 1 };
-  const A4_FA_UNITS = { id: "fa3", type: "gate-fullAdder", x: 675, y: 450 };
-  const A4_FA_TENS = { id: "fa2", type: "gate-fullAdder", x: 675, y: 350 };
-  const A4_MERGE = { id: "merge", type: "splitter", x: 870, y: 300, mirrored: true, outputs: 4, width: 1 };
-  // Split both numbers and add the units digits (leg3) with the incoming carry.
+  const A4_SPLIT_A = { id: "split-a", type: "splitter", x: 451, y: 173, mirrored: false, outputs: 4, width: 1 };
+  const A4_SPLIT_B = { id: "split-b", type: "splitter", x: 451, y: 310, mirrored: false, outputs: 4, width: 1 };
+  const A4_FA_UNITS = { id: "fa0", type: "gate-fullAdder", x: 582, y: 406 };
+  const A4_FA_NEXT = { id: "fa1", type: "gate-fullAdder", x: 602, y: 323 };
+  const A4_MERGE = { id: "merge", type: "splitter", x: 796, y: 328, mirrored: true, outputs: 4, width: 1 };
+  // Split both numbers and add the units digits (leg0, the bottom leg) with the
+  // incoming carry.
   const A4_W_UNITS = [
     ["task-card-1.inputInt1", "split-a.single"],
     ["task-card-1.inputInt2", "split-b.single"],
-    ["split-a.leg3", "fa3.in1"],
-    ["split-b.leg3", "fa3.in2"],
-    ["task-card-1.inputInt3", "fa3.in3"]
+    ["split-a.leg0", "fa0.in1"],
+    ["split-b.leg0", "fa0.in2"],
+    ["task-card-1.inputInt3", "fa0.in3"]
   ];
   // Route the units sum out (through the merge, into the units bit of the sum bus).
-  const A4_W_UNITS_OUT = [...A4_W_UNITS, ["fa3.out1", "merge.leg3"], ["merge.single", "task-card-1.outputInt2"]];
-  // Add the next digit (leg2), threading the units carry, and route its sum out.
+  const A4_W_UNITS_OUT = [...A4_W_UNITS, ["fa0.out1", "merge.leg0"], ["merge.single", "task-card-1.outputInt2"]];
+  // Add the next digit (leg1), threading the units carry, and route its sum out.
   const A4_W_NEXT = [
     ...A4_W_UNITS_OUT,
-    ["split-a.leg2", "fa2.in1"],
-    ["split-b.leg2", "fa2.in2"],
-    ["fa3.out2", "fa2.in3"],
-    ["fa2.out1", "merge.leg2"]
+    ["split-a.leg1", "fa1.in1"],
+    ["split-b.leg1", "fa1.in2"],
+    ["fa0.out2", "fa1.in3"],
+    ["fa1.out1", "merge.leg1"]
   ];
   const ADD4_HINT_STAGES = {
     "add4-units": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS], wires: A4_W_UNITS },
     "add4-units-out": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_MERGE], wires: A4_W_UNITS_OUT },
-    "add4-next-digit": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_FA_TENS, A4_MERGE], wires: A4_W_NEXT }
+    "add4-next-digit": { components: [A4_SPLIT_A, A4_SPLIT_B, A4_FA_UNITS, A4_FA_NEXT, A4_MERGE], wires: A4_W_NEXT }
   };
   // (FA_W_FULL is used by the fullAdder solution circuit in solution-workspaces.js.)
 

@@ -497,35 +497,36 @@ function createSolutionWorkspaces({
   // Add4 (chapter 2.5): a 4-bit ripple-carry adder. Split both number buses into
   // their 4 bits, add them column by column with a chain of four fullAdders
   // threading the carry, merge the four sum bits back into the sum bus, and take
-  // the last carry as the leading digit. A bus that represents a number has its
-  // units bit at the BOTTOM and its most significant bit at the TOP, so the units
-  // fullAdder (fa3, near the bottom carry-in) sits at the bottom and the leading
-  // fullAdder (fa0) at the top; the carry threads upward, units -> MSB.
+  // the last carry as the leading digit. The splitter's bottom leg is leg0 (the
+  // units bit, LSB) and the top leg is leg3 (the MSB), so the units fullAdder
+  // (fa0) sits at the bottom by the incoming carry and the carry threads UP
+  // fa0->fa1->fa2->fa3; fa3's carry is the leading digit. Layout supplied by the
+  // author (units at the bottom, a slight rightward lean up the significance).
   function add4SolutionFrom() {
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Add4"), x: 640, y: 288 },
-      { id: "split-a", type: "splitter", x: 455, y: 205, mirrored: false, outputs: 4, width: 1 },
-      { id: "split-b", type: "splitter", x: 455, y: 395, mirrored: false, outputs: 4, width: 1 },
-      { id: "fa0", type: "gate-fullAdder", x: 675, y: 150 },
-      { id: "fa1", type: "gate-fullAdder", x: 675, y: 250 },
-      { id: "fa2", type: "gate-fullAdder", x: 675, y: 350 },
-      { id: "fa3", type: "gate-fullAdder", x: 675, y: 450 },
-      { id: "merge", type: "splitter", x: 870, y: 300, mirrored: true, outputs: 4, width: 1 }
+      { id: "split-a", type: "splitter", x: 451, y: 173, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 451, y: 310, mirrored: false, outputs: 4, width: 1 },
+      { id: "fa0", type: "gate-fullAdder", x: 582, y: 406 },
+      { id: "fa1", type: "gate-fullAdder", x: 602, y: 323 },
+      { id: "fa2", type: "gate-fullAdder", x: 610, y: 245 },
+      { id: "fa3", type: "gate-fullAdder", x: 635, y: 170 },
+      { id: "merge", type: "splitter", x: 796, y: 328, mirrored: true, outputs: 4, width: 1 }
     ];
-    // fa3=units (LSB=leg3, bottom), fa0=leading (MSB=leg0, top); the carry threads
-    // upward fa3->fa2->fa1->fa0, and fa0's carry is the leading fifth digit.
+    // fa0=units (LSB=leg0, bottom), fa3=leading (MSB=leg3, top); the carry threads
+    // upward fa0->fa1->fa2->fa3, and fa3's carry is the leading fifth digit.
     const cols = [
-      { fa: "fa3", leg: "leg3", carryIn: "task-card-1.inputInt3" },
-      { fa: "fa2", leg: "leg2", carryIn: "fa3.out2" },
-      { fa: "fa1", leg: "leg1", carryIn: "fa2.out2" },
-      { fa: "fa0", leg: "leg0", carryIn: "fa1.out2" }
+      { fa: "fa0", leg: "leg0", carryIn: "task-card-1.inputInt3" },
+      { fa: "fa1", leg: "leg1", carryIn: "fa0.out2" },
+      { fa: "fa2", leg: "leg2", carryIn: "fa1.out2" },
+      { fa: "fa3", leg: "leg3", carryIn: "fa2.out2" }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt1", "split-a.single"),
       normalizeWire("task-card-1.inputInt2", "split-b.single"),
       normalizeWire("merge.single", "task-card-1.outputInt2"),
-      normalizeWire("fa0.out2", "task-card-1.outputInt1")
+      normalizeWire("fa3.out2", "task-card-1.outputInt1")
     ];
     cols.forEach(({ fa, leg, carryIn }) => {
       wires.push(normalizeWire(`split-a.${leg}`, `${fa}.in1`));
