@@ -95,6 +95,14 @@ button { font: inherit; }
   flex-wrap: wrap;
 }
 
+/* The account / save-load-progress group sits under the main menu buttons,
+   set off by a faint divider. */
+.menu-account-buttons {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
 .screen {
   min-height: 0;
   min-width: 0;

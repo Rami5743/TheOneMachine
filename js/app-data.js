@@ -454,7 +454,10 @@
     { id: "thorough-precise-calc", title: "מחשב יסודי ומדויק", description: "פתרת את כל משימות החישוב של פרק 2.5 בניסיון הראשון.", category: "special" },
     { id: "card-inventor", title: "ממציא כרטיסים", description: "יצרת כרטיס חדש בפעם הראשונה.", category: "special" },
     { id: "card-saver", title: "שומר כרטיסים", description: "שמרת כרטיס לדיסק הקשיח.", category: "special" },
-    { id: "card-necromancer", title: "מעלה מן האוב", description: "טענת כרטיס מהדיסק הקשיח.", category: "special" },
+    { id: "card-necromancer", title: "טוען כרטיסים", description: "טענת כרטיס מהדיסק הקשיח.", category: "special" },
+    { id: "connected", title: "מחובר", description: "התחברת עם חשבון Google.", category: "special" },
+    { id: "progress-saver", title: "שומר", description: "שמרת את ההתקדמות שלך למחשב.", category: "special" },
+    { id: "progress-necromancer", title: "מעלה מן האוב", description: "טענת התקדמות שמורה מהמחשב.", category: "special" },
     { id: "useful-inventor", title: "ממציא שימושי", description: "השתמשת בכרטיס מ\"הכרטיסים שלי\" כדי להשלים בהצלחה משימת יצירת כרטיס.", category: "special" },
     { id: "scholar", title: "למדן", description: "חזרת לאחד ההסברים מתפריט ההסברים.", category: "special" },
     { id: "curious", title: "סקרן", description: "הקלקת על קישור מאחד העצמים שלא משתתפים במשחק.", category: "special" }
