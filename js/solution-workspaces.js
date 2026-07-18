@@ -563,18 +563,19 @@ function createSolutionWorkspaces({
   // top (leg3); the first Add4 has no carry-in (its in3 is left unconnected = 0).
   function add16SolutionFrom() {
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 290 },
-      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 290 },
-      { id: "split-a", type: "splitter", x: 430, y: 180, mirrored: false, outputs: 4, width: 4 },
-      { id: "split-b", type: "splitter", x: 430, y: 400, mirrored: false, outputs: 4, width: 4 },
+      { id: "source-1", type: "source", x: 65, y: 310 },
+      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 310 },
+      { id: "split-a", type: "splitter", x: 430, y: 200, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 420, mirrored: false, outputs: 4, width: 4 },
       // Four Add4 chunks evenly stacked (140px apart), units (ad0) at the bottom
       // and the leading chunk (ad3) at the top — inside the tall Add16 frame. The
-      // whole stack (80–500) fits the board so no gate is clamped off-edge.
-      { id: "ad3", type: "gate-Add4", x: 640, y: 80 },
-      { id: "ad2", type: "gate-Add4", x: 640, y: 220 },
-      { id: "ad1", type: "gate-Add4", x: 640, y: 360 },
-      { id: "ad0", type: "gate-Add4", x: 640, y: 500 },
-      { id: "merge", type: "splitter", x: 850, y: 290, mirrored: true, outputs: 4, width: 4 }
+      // whole stack (100–520) fits the board so no gate is clamped off-edge, and
+      // the frame sits low enough that its title clears the top of the board.
+      { id: "ad3", type: "gate-Add4", x: 640, y: 100 },
+      { id: "ad2", type: "gate-Add4", x: 640, y: 240 },
+      { id: "ad1", type: "gate-Add4", x: 640, y: 380 },
+      { id: "ad0", type: "gate-Add4", x: 640, y: 520 },
+      { id: "merge", type: "splitter", x: 850, y: 310, mirrored: true, outputs: 4, width: 4 }
     ];
     // ad0=units chunk (leg0, bottom), ad3=leading chunk (leg3, top); the carry
     // threads upward ad0->ad1->ad2->ad3, and ad3's carry (the 17th digit) is
