@@ -2045,11 +2045,6 @@
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
 
-    // The two library slides (the exterior and the notebook slide) keep the
-    // learner in the library sequence — no skipping past either of them.
-    if (panelImageName(currentPanel()) === "panel100_chapter_2_5_library.svg") return true;
-    if (panelHotspots(currentPanel()).some((h) => h.action === "stone-millis-book")) return true;
-
     const chapter = currentChapter();
     // A skip that leads nowhere (worktable notes, the closing wordless slide) is
     // hidden in every mode.
@@ -10503,6 +10498,28 @@
     setState(patch, true);
   }
 
+  // Chapter 2.5 (arithmetic) uses a milestone-based "דלג": each narrative section
+  // skips forward to the start of the next interactive milestone. Combined with
+  // the usual step-mode gate (skipTargetReached), the shortcut only lights up
+  // once the learner has NATURALLY reached that milestone; in see-everything mode
+  // it is available from the start. Milestones (by the panel a section leads to):
+  //   library slides (panel100–101)     → panel102 (first slide after the library task)
+  //   binary teaching (panel102–106)    → panel107 (where the booklet tasks appear)
+  //   booklet…handover (panel107–118)   → panel119 (where the note tasks appear)
+  function arithSkipTarget() {
+    if (currentChapter()?.id !== "chapter-8") return null;
+    const scene = currentScene();
+    if (!scene) return null;
+    const afterLibrary = panelIndexByImage(scene, "panel102_chapter_2_5_library_vn.svg");
+    const booklet = panelIndexByImage(scene, "panel107_chapter_2_5_workshop.svg");
+    const noteTasks = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
+    const p = state.panelIndex;
+    if (afterLibrary >= 0 && p < afterLibrary) return afterLibrary;
+    if (booklet >= 0 && p < booklet) return booklet;
+    if (noteTasks >= 0 && p < noteTasks) return noteTasks;
+    return null;
+  }
+
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
   // worktable — but once PAST that worktable (i.e. inside the von Neumann
   // monologue) it becomes the next-tasks worktable that closes the monologue,
@@ -10511,6 +10528,9 @@
   function skipTargetPanelIndex() {
     const scene = currentScene();
     if (!scene) return 0;
+    // Chapter 2.5: milestone-based skip target (see arithSkipTarget).
+    const arithTarget = arithSkipTarget();
+    if (arithTarget != null) return arithTarget;
     // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
