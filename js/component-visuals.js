@@ -100,20 +100,23 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const inX = -62;
     const outX = 66;
     const arm = 17;
-    // A width-4 bus pin: a bus bar with its width labelled above it.
-    const busPin = (x1, x2, y) => `${splitterBusBar(Math.min(x1, x2), Math.max(x1, x2), y, 11)}<text class="splitter-width-label" x="${(x1 + x2) / 2}" y="${y - 13}" text-anchor="middle">4</text>`;
+    // A width-4 bus pin drawn EXACTLY like AND4's bus pins (busGateBar): same bar
+    // thickness, stripe and width label — busGateBar pre-multiplies by 1/0.6 so
+    // that after the gate's 0.6 render scale the pin comes out at full bus size.
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, 4, true);
     const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
     // The full "+" mark, like the fullAdder.
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
     // Inputs (left): two 4-bit number buses + the single-bit carry-in below them.
-    s += busPin(inX, -edge, -40);
-    s += busPin(inX, -edge, 0);
-    s += cable(inX, -edge, 40);
+    // The bus stubs match AND4's extents (-62..-44); the carry stays a thin cable.
+    s += busPin(inX, -44, -40);
+    s += busPin(inX, -44, 0);
+    s += cable(inX, -46, 40);
     // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit bus) below.
-    s += cable(edge, outX, -30);
-    s += busPin(edge, outX, 30);
+    s += cable(46, outX, -30);
+    s += busPin(44, outX, 30);
     s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${-30 + 5}" text-anchor="end">c</text>`;
     s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${30 + 5}" text-anchor="end">s</text>`;
     return `<g class="usercard">${s}</g>`;
