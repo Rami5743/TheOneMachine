@@ -280,6 +280,14 @@ button { font: inherit; }
 /* The explanations menu, laid out as a borderless table: a topic label per
    row and two columns (in-game / enrichment explanations). */
 .explanations-card { width: min(96vw, 920px); }
+/* The explanations table can be taller than the screen; let this page scroll
+   (the .screen default is overflow:hidden and the menu grid centres the card,
+   which would otherwise clip a tall list with no way to reach it). Top-align so
+   it scrolls from the start — same pattern as the achievements page. */
+.explanations-screen {
+  overflow-y: auto;
+  align-items: start;
+}
 .explanations-table {
   display: grid;
   grid-template-columns: max-content max-content max-content;
