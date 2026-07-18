@@ -88,30 +88,44 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // The placeable Add4 gate (the building block of Add16): a labelled box with
-  // two width-4 number inputs and a single-bit carry-in on the left, and a
-  // width-4 sum (out1) and single-bit carry-out (out2) on the right. Bus pins are
-  // drawn as bus bars; the single-bit carry pins as plain cables. Matches the
-  // gate-Add4 pin offsets in app.js.
-  function add4GateMarkup(options = {}) {
-    const bodyW = 108;
-    const bodyH = 136;
-    const edge = bodyW / 2;
+  // The placeable Add4 gate (the building block of Add16): the SAME "+" box as
+  // the fullAdder, but its number pins are width-4 BUSES — so they are drawn as
+  // bus bars (thick + dashed stripe) with the width "4" labelled, while the
+  // single-bit carry pins stay plain thin cables. This is the Add4-vs-fullAdder
+  // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
+  function add4GateMarkup() {
+    // Box edge at ±44 (like AND4's symbol edge) so the pins sit ENTIRELY outside
+    // the box: the pin terminals are at x ±62/66, the box edge at ±44, so each
+    // stub is a full-length AND4-style pin that never pokes into the box.
+    const edge = 44;
+    const bodyW = edge * 2;
+    // The three left pins are spaced ±52 (not ±40) so each bus pin's "4" label,
+    // which sits ~22px above the bar, clears the pin above it.
+    const inYs = [-52, 0, 52];
+    const outYs = [-34, 34];
+    // Tall enough to contain the top pin AND its width label above it.
+    const bodyH = 176;
     const inX = -62;
     const outX = 66;
-    const bus = (x1, x2, y) => splitterBusBar(x1, x2, y, 11);
+    const arm = 17;
+    // A width-4 bus pin drawn EXACTLY like AND4's bus pins (busGateBar): same bar
+    // thickness, stripe and width label — busGateBar pre-multiplies by 1/0.6 so
+    // that after the gate's 0.6 render scale the pin comes out at full bus size.
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, 4, true);
     const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // The full "+" mark, like the fullAdder.
+    s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
+    s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
     // Inputs (left): two 4-bit number buses + the single-bit carry-in below them.
-    s += bus(inX, -edge, -40);
-    s += bus(inX, -edge, 0);
-    s += cable(inX, -edge, 40);
-    // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit) below.
-    s += cable(edge, outX, -30);
-    s += bus(edge, outX, 30);
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${-30 + 5}" text-anchor="end">c</text>`;
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${30 + 5}" text-anchor="end">s</text>`;
-    s += `<text class="usercard-name" x="0" y="6" text-anchor="middle">Add4</text>`;
+    s += busPin(inX, -edge, inYs[0]);
+    s += busPin(inX, -edge, inYs[1]);
+    s += cable(inX, -edge, inYs[2]);
+    // Outputs (right): carry-out (c, single bit) on top, sum (s, 4-bit bus) below.
+    s += cable(edge, outX, outYs[0]);
+    s += busPin(edge, outX, outYs[1]);
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
+    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -190,7 +204,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The width number is omitted in the toolbar icon (too small to read, and
     // the tool already has a text label beneath it).
     const label = showLabel
-      ? `<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${18 * K}px">${width}</text>`
+      ? `<text class="splitter-width-label" x="${(b.x1 + b.x2) / 2}" y="${b.y - 13 * K}" text-anchor="middle" style="font-size:${13 * K}px">${width}</text>`
       : "";
     return `
       <rect class="splitter-bar" x="${b.x1}" y="${b.y - half}" width="${b.x2 - b.x1}" height="${11 * K}" />

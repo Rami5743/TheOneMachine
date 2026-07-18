@@ -449,13 +449,13 @@
     busAdder: true,
     busWidth: 4,
     pins: {
-      in1: { x: -62, y: -40, direction: "in", width: 4, label: "כניסת המספר הראשון" },
+      in1: { x: -62, y: -52, direction: "in", width: 4, label: "כניסת המספר הראשון" },
       in2: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 40, direction: "in", width: 1, label: "כניסת הנשיאה" },
-      out2: { x: 66, y: -30, direction: "out", width: 1, label: "יציאת הנשיאה" },
-      out1: { x: 66, y: 30, direction: "out", width: 4, label: "יציאת הסכום" }
+      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
+      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
+      out1: { x: 66, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 74, bottom: 74 }
+    bounds: { left: 64, right: 84, top: 92, bottom: 92 }
   };
 
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
