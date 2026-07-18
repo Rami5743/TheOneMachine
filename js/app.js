@@ -1575,6 +1575,19 @@
     if (name === "trophy") {
       return `<svg ${common}><path d="M7 4 H17 V9 A5 5 0 0 1 7 9 Z" /><path d="M7 5.5 H4.2 V7 A3.2 3.2 0 0 0 7.5 10.1" /><path d="M17 5.5 H19.8 V7 A3.2 3.2 0 0 1 16.5 10.1" /><path d="M12 14 V16.5" /><path d="M9 20 H15 L14.3 16.8 H9.7 Z" /></svg>`;
     }
+    // Account — a person head + shoulders (login / logout).
+    if (name === "account") {
+      return `<svg ${common}><circle cx="12" cy="8" r="3.6" /><path d="M5.5 19.5 A6.5 6.5 0 0 1 18.5 19.5" /></svg>`;
+    }
+    // Google — the multicolour "G" (used on the account button, matching the chip).
+    if (name === "google") {
+      return `<svg class="nav-icon" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.1-3.8 6.5-9.4 6.5-16z"/>
+        <path fill="#FBBC05" d="M10.4 28.3a14.5 14.5 0 0 1 0-8.6l-7.9-6.1a24 24 0 0 0 0 20.8l7.9-6.1z"/>
+        <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.7-3.7-13.6-9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/>
+      </svg>`;
+    }
     return "";
   }
 
@@ -1599,6 +1612,25 @@
   }
   function myCardsButton() {
     return labeledButton("my-cards", "cards", "הכרטיסים שלי", { attrs: myCardsEnabled() ? "" : "disabled" });
+  }
+
+  // The Google account button, shown in the main menu ONLY when cloud sign-in is
+  // available (js/auth.js loaded its config + library and published APP.auth).
+  // With auth disabled/offline it returns "" and the menu simply omits it —
+  // saving/loading progress to a FILE stays available regardless.
+  function authBridge() {
+    return (typeof APP !== "undefined" && APP && APP.auth) ? APP.auth : null;
+  }
+  function accountMenuButton() {
+    const auth = authBridge();
+    if (!auth) return "";
+    const user = auth.user || null;
+    if (user) {
+      const name = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || "";
+      const label = name ? `התנתק (${name})` : "התנתק";
+      return labeledButton("auth-signout", "google", label);
+    }
+    return labeledButton("auth-signin", "google", "התחבר עם Google");
   }
 
   function topbar() {
@@ -2768,6 +2800,12 @@
             ${labeledButton("settings", "gear", "הגדרות")}
             ${labeledButton("reset-progress", "trash", "אפס התקדמות")}
           </div>
+          <div class="menu-buttons menu-account-buttons">
+            ${accountMenuButton()}
+            ${labeledButton("save-progress-file", "download", "שמור התקדמות למחשב")}
+            ${labeledButton("load-progress-file", "upload", "טען התקדמות מהמחשב")}
+          </div>
+          <input type="file" data-progress-file-input accept="application/json,.json" hidden />
         </section>
       </main>
       ${renderDialog()}`;
@@ -2851,6 +2889,29 @@
         achievementUnlockAnimationPending = null;
         requestAnimationFrame(() => playAchievementUnlockAnimation(id));
       }
+    };
+    // A bridge for the cloud module (js/auth.js): swap the running game state to
+    // the one pulled from the signed-in user's cloud copy, in place and WITHOUT
+    // a page reload (a reload here used to loop). Returns true on success.
+    APP.applyCloudState = (stateObj) => {
+      if (!stateObj || typeof stateObj !== "object") return false;
+      // Achievements are monotonic: never un-earn one by adopting a cloud copy
+      // that happens to predate it. Union whatever is already earned locally.
+      const priorAchievements = Array.isArray(state.achievementsUnlocked) ? state.achievementsUnlocked : [];
+      let normalized;
+      try {
+        normalized = normalizeLoadedState({ ...defaultState, ...stateObj, soundOn: false });
+      } catch (e) {
+        return false;
+      }
+      const cloudAchievements = Array.isArray(normalized.achievementsUnlocked) ? normalized.achievementsUnlocked : [];
+      normalized.achievementsUnlocked = Array.from(new Set([...priorAchievements, ...cloudAchievements]));
+      state = normalized;
+      // Being signed in is itself the "מחובר" achievement.
+      if (APP.auth && APP.auth.user && !achievementUnlocked("connected")) unlockAchievement("connected");
+      saveState();
+      render();
+      return true;
     };
   }
 
@@ -3002,6 +3063,21 @@
           `<g transform="translate(40,28)"><circle r="4.4" fill="#ffcf6b" stroke="#33414f" stroke-width="1.2"/><g stroke="#33414f" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="-6.2" x2="0" y2="-4.2"/><line x1="0" y1="6.2" x2="0" y2="4.2"/><line x1="-6.2" y1="0" x2="-4.2" y2="0"/><line x1="6.2" y1="0" x2="4.2" y2="0"/></g><circle r="1.6" fill="#33414f"/></g>
            <path d="M31 20 A11 11 0 1 1 30 33" fill="none" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>
            <path d="M31 15.5 L31.5 20.5 L26.5 20 Z" fill="#fffdf3"/>` });
+      case "connected": // sky-blue cup, a cloud with a check (signed in to the cloud)
+        return achievementTrophy(id, { top: "#6fc0f5", bot: "#125f97", rim: "#0d4a76", base: "#125f97", handle: "#2f89cc", emblem:
+          `<path d="M33 34 A5 5 0 0 1 34 24 A6.2 6.2 0 0 1 46.5 25 A4.6 4.6 0 0 1 46 34 Z" fill="#fffdf3" stroke="#0d4a76" stroke-width="1.4"/>
+           <path d="M35 29 L38.5 32.5 L45 25.5" fill="none" stroke="#1a9e4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` });
+      case "progress-saver": // green cup, a down-arrow into a hard drive (save to computer)
+        return achievementTrophy(id, { top: "#7ad98f", bot: "#17843f", rim: "#0f5e2c", base: "#17843f", handle: "#29a55c", emblem:
+          `<path d="M40 18 V27 M35.5 22.5 L40 27.5 L44.5 22.5" fill="none" stroke="#fffdf3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+           <rect x="30" y="30" width="20" height="8" rx="1.8" fill="#fffdf3" stroke="#0f5e2c" stroke-width="1.4"/>
+           <circle cx="46" cy="34" r="1.3" fill="#17843f"/>` });
+      case "progress-necromancer": // spectral teal cup, an up-arrow rising out of a drive (raise saved progress)
+        return achievementTrophy(id, { top: "#66d6c0", bot: "#0d6b5e", rim: "#0a5147", base: "#0d6b5e", handle: "#18948a",
+          emblem: `<rect x="30" y="31" width="20" height="8" rx="1.8" fill="#fffdf3" stroke="#0a5147" stroke-width="1.4"/>
+           <circle cx="46" cy="35" r="1.3" fill="#0d6b5e"/>
+           <path d="M40 29 V19 M35.5 23.5 L40 18.5 L44.5 23.5" fill="none" stroke="#fffdf3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+          extra: `<g stroke="#a8ffe6" stroke-width="1.5" stroke-linecap="round" opacity="0.85"><line x1="30" y1="24" x2="27" y2="21"/><line x1="50" y1="24" x2="53" y2="21"/></g>` });
       default:
         return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
           `<circle cx="40" cy="28" r="8" fill="#fffdf3" stroke="#b9781a" stroke-width="1.6"/>` });
@@ -5882,12 +5958,53 @@
       };
     });
     imported.forEach(registerSavedCard);
-    // Loading a card from the hard disk earns "מעלה מן האוב".
+    // Loading a card from the hard disk earns "טוען כרטיסים".
     unlockAchievement("card-necromancer");
     setState({
       savedCards: [...(state.savedCards || []), ...imported],
       nextSavedCardId: nextId
     }, false);
+    return null;
+  }
+
+  // ---- Whole-progress save / load to a file --------------------------------
+  // Download the entire saved game state as a .json file (so a learner can keep
+  // a backup or move it to another computer without signing in). Earns "שומר".
+  function saveProgressToFile() {
+    const payload = { format: "theonemachine-progress", version: 1, state: stateForStorage() };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "the-one-machine-progress.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    if (!achievementUnlocked("progress-saver")) {
+      unlockAchievement("progress-saver");
+      setState({}, false); // re-render so the unlock flourish plays
+    }
+  }
+
+  // Replace the whole game state with a file made by saveProgressToFile. Returns
+  // an error message or null. Lands back on the main menu with the loaded
+  // progress in place, and earns "מעלה מן האוב".
+  function loadProgressFromFile(data) {
+    if (!data || data.format !== "theonemachine-progress" || typeof data.state !== "object" || !data.state) {
+      return "הקובץ אינו קובץ התקדמות תקין.";
+    }
+    let normalized;
+    try {
+      normalized = normalizeLoadedState({ ...defaultState, ...data.state, soundOn: false });
+    } catch (e) {
+      return "לא הצלחתי לטעון את קובץ ההתקדמות.";
+    }
+    state = { ...normalized, screen: "menu" };
+    unlockAchievement("progress-necromancer");
+    saveState();
+    render();
     return null;
   }
 
@@ -11560,6 +11677,33 @@
     reader.readAsText(file);
   });
 
+  // The optional cloud module (js/auth.js) fires "tom:authchanged" when the
+  // signed-in user changes. Signing in earns "מחובר"; while the main menu is
+  // open, re-render so the account button flips between "התחבר"/"התנתק".
+  window.addEventListener("tom:authchanged", (event) => {
+    const user = event.detail && event.detail.user;
+    if (user && typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("connected");
+    if (state.screen === "menu") render();
+  });
+
+  // Load a whole-progress file picked from the main menu.
+  document.addEventListener("change", (event) => {
+    const fileInput = event.target.closest("[data-progress-file-input]");
+    if (!fileInput) return;
+    const file = fileInput.files && fileInput.files[0];
+    fileInput.value = ""; // allow re-picking the same file
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data = null;
+      try { data = JSON.parse(String(reader.result)); } catch { data = null; }
+      const err = data ? loadProgressFromFile(data) : "לא הצלחתי לקרוא את הקובץ.";
+      if (err) setState({ infoDialog: err });
+    };
+    reader.onerror = () => setState({ infoDialog: "לא הצלחתי לקרוא את הקובץ." });
+    reader.readAsText(file);
+  });
+
   document.addEventListener("change", (event) => {
     if (!state.cardCreation) return;
     const box = event.target.closest("[data-card-io]");
@@ -11959,6 +12103,10 @@
     }
     if (action === "my-cards-new") return enterCardCreation({ returnScreen: "myCards" });
     if (action === "my-cards-load") { app.querySelector("[data-card-file-input]")?.click(); return; }
+    if (action === "auth-signin") { authBridge()?.signIn?.(); return; }
+    if (action === "auth-signout") { authBridge()?.signOut?.(); return; }
+    if (action === "save-progress-file") return saveProgressToFile();
+    if (action === "load-progress-file") { app.querySelector("[data-progress-file-input]")?.click(); return; }
     if (action === "my-card-edit") return enterCardCreationForEdit(button.dataset.cardType);
     if (action === "my-card-save-file") return downloadCardFile(button.dataset.cardType);
     if (action === "my-card-delete") return setState({ cardDeleteConfirm: button.dataset.cardType }, false);

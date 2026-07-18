@@ -95,6 +95,14 @@ button { font: inherit; }
   flex-wrap: wrap;
 }
 
+/* The account / save-load-progress group sits under the main menu buttons,
+   set off by a faint divider. */
+.menu-account-buttons {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
 .screen {
   min-height: 0;
   min-width: 0;
@@ -333,6 +341,14 @@ button { font: inherit; }
 
 /* The achievements page: two columns (progress / special). */
 .achievements-card { width: min(96vw, 920px); }
+/* The achievements list can be taller than the screen; let this page scroll
+   (the .screen default is overflow:hidden, and the menu grid centres the card,
+   which would otherwise clip the overflow with no way to reach it). Top-align
+   so a tall list is scrollable from its start. */
+.achievements-screen {
+  overflow-y: auto;
+  align-items: start;
+}
 .achievements-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;

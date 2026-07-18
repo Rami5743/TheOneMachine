@@ -46,7 +46,6 @@
   var currentUser = null;   // the signed-in user (or null)
   var reconciledUid = null; // uid we've already reconciled this page load
   var pushTimer = null;
-  var chip = null;
 
   // ---- progress comparison (used to avoid overwriting better progress) ------
   // A coarse "how far along" score. Higher wins. Primary signal is the furthest
@@ -58,7 +57,7 @@
       var score = (Number(s.maxChapterReached) || 0) * 1e6;
       var mp = s.maxPanelReached && typeof s.maxPanelReached === "object" ? s.maxPanelReached : {};
       score += Object.keys(mp).reduce(function (a, k) { return a + (Number(mp[k]) || 0); }, 0) * 1e3;
-      if (Array.isArray(s.unlockedAchievements)) score += s.unlockedAchievements.length;
+      if (Array.isArray(s.achievementsUnlocked)) score += s.achievementsUnlocked.length;
       return score;
     } catch (e) { return 0; }
   }
@@ -67,14 +66,25 @@
     try { return localStorage.getItem(KEY); } catch (e) { return null; }
   }
 
-  // Overwrite the local save with the cloud one and reload so the running app
-  // re-reads it through its normal loadState(). Returns true if it reloaded.
+  // Adopt the cloud save into the running app. Preferred path: hand it to the
+  // app via APP.applyCloudState, which swaps state in place and re-renders — NO
+  // page reload. We must never compare cloud and local as strings to decide
+  // whether to reload: the cloud copy is stored as Postgres jsonb, which does
+  // not preserve key order, so the strings essentially never match even when
+  // the state is identical — that mismatch is what caused an endless reload
+  // loop. The fallback (older/again-loaded app without the bridge) reloads at
+  // most once per tab, guarded via sessionStorage.
   function adoptCloud(cloudObj) {
-    var cloudStr = JSON.stringify(cloudObj);
-    if (cloudStr === localStateString()) return false;
-    try { localStorage.setItem(KEY, cloudStr); } catch (e) { return false; }
-    location.reload();
-    return true;
+    if (typeof APP !== "undefined" && APP && typeof APP.applyCloudState === "function") {
+      APP.applyCloudState(cloudObj);
+      return;
+    }
+    try {
+      if (sessionStorage.getItem("tom_auth_adopted") === "1") return; // already did it this tab
+      sessionStorage.setItem("tom_auth_adopted", "1");
+      localStorage.setItem(KEY, JSON.stringify(cloudObj));
+      location.reload();
+    } catch (e) { /* ignore */ }
   }
 
   // ---- cloud read / write ---------------------------------------------------
@@ -92,7 +102,11 @@
     if (res.error) console.warn("[auth] cloud write failed:", res.error.message);
   }
 
-  // Bring local and cloud into agreement once per sign-in.
+  // Bring local and cloud into agreement once per sign-in. The decision is by
+  // progress SCORE, never by string equality (see adoptCloud): adopt the cloud
+  // copy only when it is strictly further along; on a tie or when local is
+  // ahead, keep local and sync it up. This guarantees the process settles and
+  // never ping-pongs.
   async function reconcile(uid) {
     if (reconciledUid === uid) return;
     reconciledUid = uid;
@@ -105,15 +119,12 @@
       if (localStr) await pushCloud(uid, JSON.parse(localStr));
       return;
     }
-    var cloudStr = JSON.stringify(cloud);
-    if (!localStr || cloudStr === localStr) {   // nothing local, or already equal
-      if (!localStr) adoptCloud(cloud);
-      return;
-    }
-    if (progressScore(localStr) > progressScore(cloudStr)) {
-      await pushCloud(uid, JSON.parse(localStr)); // local is further along -> keep it
-    } else {
-      adoptCloud(cloud);                          // cloud is further (or last-write-wins)
+    var localScore = localStr ? progressScore(localStr) : -1;
+    var cloudScore = progressScore(JSON.stringify(cloud));
+    if (cloudScore > localScore) {
+      adoptCloud(cloud);                          // cloud is further along -> take it
+    } else if (localStr) {
+      await pushCloud(uid, JSON.parse(localStr)); // local ahead or equal -> keep + sync up
     }
   }
 
@@ -126,7 +137,10 @@
     }, 1500);
   }
 
-  // ---- account chip UI ------------------------------------------------------
+  // ---- floating account chip (bottom-start corner, on every screen) ---------
+  // The app's main menu also has an account button (via the APP.auth bridge);
+  // this chip is kept in addition, matching the original look.
+  var chip = null;
   function googleGlyph() {
     return '<svg class="auth-g" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">' +
       '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.4 5.4 2.5 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>' +
@@ -135,7 +149,6 @@
       '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.7-3.7-13.6-9l-7.9 6.1C6.4 42.6 14.6 48 24 48z"/>' +
       '</svg>';
   }
-
   function ensureChip() {
     if (chip) return chip;
     var style = document.createElement("style");
@@ -157,13 +170,11 @@
     document.body.appendChild(chip);
     return chip;
   }
-
   function esc(v) {
     return String(v == null ? "" : v)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
-
   function renderChip() {
     var el = ensureChip();
     if (currentUser) {
@@ -182,14 +193,24 @@
         googleGlyph() + "<span>התחבר עם Google</span></button>";
     }
   }
+  document.addEventListener("click", function (event) {
+    var t = event.target.closest ? event.target.closest("[data-auth-action]") : null;
+    if (!t) return;
+    event.preventDefault();
+    if (t.getAttribute("data-auth-action") === "signin") signIn();
+    else if (t.getAttribute("data-auth-action") === "signout") signOut();
+  });
 
+  // ---- account actions (also driven from the app's main menu button) --------
   async function signIn() {
+    if (!sb) return;
     var redirect = String(cfg.REDIRECT_TO || "").trim() || location.href.split("#")[0];
     var res = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: redirect } });
     if (res.error) console.warn("[auth] sign-in failed:", res.error.message);
   }
 
   async function signOut() {
+    if (!sb) return;
     // Push once more before leaving, so the last moves aren't lost.
     if (currentUser) {
       var localStr = localStateString();
@@ -198,13 +219,23 @@
     await sb.auth.signOut();
   }
 
-  document.addEventListener("click", function (event) {
-    var t = event.target.closest ? event.target.closest("[data-auth-action]") : null;
-    if (!t) return;
-    event.preventDefault();
-    if (t.getAttribute("data-auth-action") === "signin") signIn();
-    else if (t.getAttribute("data-auth-action") === "signout") signOut();
-  });
+  // Publish the bridge the app's menu reads (APP is the global from data.js).
+  // `available` tells the menu it may show the account button; `user` is the
+  // signed-in user (or null); signIn/signOut are the actions.
+  function publishBridge() {
+    if (typeof APP === "undefined" || !APP) return;
+    APP.auth = { available: true, user: currentUser, signIn: signIn, signOut: signOut };
+  }
+
+  // Tell the app the signed-in user changed, so it can refresh the menu button
+  // and earn the "מחובר" achievement.
+  function announceAuth() {
+    publishBridge();
+    renderChip();
+    try {
+      window.dispatchEvent(new CustomEvent("tom:authchanged", { detail: { user: currentUser } }));
+    } catch (e) { /* very old browsers: ignore */ }
+  }
 
   window.addEventListener("tom:statesaved", schedulePush);
 
@@ -240,15 +271,16 @@
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
       });
     } catch (e) {
-      // Offline / blocked / file:// -> quietly stay local-only.
+      // Offline / blocked / file:// -> quietly stay local-only (no account button).
       console.warn("[auth] disabled:", e.message);
       return;
     }
-    renderChip();
+    publishBridge(); // menu may now show the account button (starts logged-out)
+    renderChip();    // show the floating chip (starts logged-out)
     sb.auth.onAuthStateChange(function (event, session) {
       currentUser = (session && session.user) || null;
       if (!currentUser) reconciledUid = null;
-      renderChip();
+      announceAuth();
       if (currentUser) reconcile(currentUser.id);
     });
   }
