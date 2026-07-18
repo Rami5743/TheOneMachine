@@ -454,9 +454,11 @@ function createSolutionWorkspaces({
   // And(in1,in2) on the bottom output.
   function halfAdderSolutionFrom() {
     const workspace = standardTaskWorkspace("halfAdder");
+    // And (carry) on top, Xor (sum) on the bottom — matching the card's carry-top
+    // / sum-bottom outputs, so the two wires don't cross.
     workspace.components.push(
-      { id: "xor-1", type: "gate-Xor", x: 330, y: 200 },
-      { id: "and-1", type: "gate-And", x: 330, y: 380 }
+      { id: "and-1", type: "gate-And", x: 330, y: 200 },
+      { id: "xor-1", type: "gate-Xor", x: 330, y: 380 }
     );
     workspace.wires = [
       normalizeWire("task-card-1.inputInt1", "xor-1.in1"),

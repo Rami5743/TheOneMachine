@@ -9382,6 +9382,11 @@
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
       return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
+    // Arith cards (2.5): back to the arithmetic worktable with its note, not the
+    // 2.2 gates worktable.
+    if (isArithTask(taskId)) {
+      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
+    }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
 
