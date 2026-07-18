@@ -387,10 +387,10 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
-  // The 2.5 Add4 build frame: two width-4 bus inputs (the two numbers), a
-  // single-bit carry-in on top, a single-bit carry-out (the leading digit) and a
-  // width-4 bus sum. Checked with the multi-bit harness; the engine passes each
-  // pin through by width.
+  // The 2.5 Add4 build frame: two width-4 bus inputs (the two numbers) and a
+  // single-bit carry-in, all three stacked on the left; a single-bit carry-out
+  // (the leading digit) and a width-4 bus sum on the right. Checked with the
+  // multi-bit harness; the engine passes each pin through by width.
   WORKSPACE_COMPONENT_DEFS["taskCard-Add4"] = {
     label: "מסגרת Add4",
     fixed: true,
@@ -399,12 +399,14 @@
     busTask: true,
     routingMultibit: true,
     pins: {
-      inputExt1: { x: -340, y: -90, direction: "in", width: 4, label: "כניסת המספר הראשון חיצונית" },
-      inputInt1: { x: -260, y: -90, direction: "out", width: 4, label: "כניסת המספר הראשון פנימית" },
-      inputExt2: { x: -340, y: 90, direction: "in", width: 4, label: "כניסת המספר השני חיצונית" },
-      inputInt2: { x: -260, y: 90, direction: "out", width: 4, label: "כניסת המספר השני פנימית" },
-      inputExt3: { x: -130, y: -250, direction: "in", width: 1, label: "כניסת הנשיאה חיצונית" },
-      inputInt3: { x: -130, y: -180, direction: "out", width: 1, label: "כניסת הנשיאה פנימית" },
+      // All three inputs on the LEFT, top-to-bottom: the two 4-bit number buses,
+      // then the single carry-in below them (a regular input, not a control pin).
+      inputExt1: { x: -340, y: -140, direction: "in", width: 4, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -140, direction: "out", width: 4, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 4, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 4, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 140, direction: "in", width: 1, label: "כניסת הנשיאה חיצונית" },
+      inputInt3: { x: -260, y: 140, direction: "out", width: 1, label: "כניסת הנשיאה פנימית" },
       outputInt1: { x: 260, y: -90, direction: "in", width: 1, label: "יציאת הנשיאה האחרונה פנימית" },
       outputExt1: { x: 340, y: -90, direction: "out", width: 1, label: "יציאת הנשיאה האחרונה חיצונית" },
       outputInt2: { x: 260, y: 90, direction: "in", width: 4, label: "יציאת הסכום פנימית" },
@@ -3572,6 +3574,67 @@
           truthCols: ["carry"],
           terminals: ["ha-3.out2", "task-card-1.outputInt2"],
           wires: [wireKey("ha-3.out1", "task-card-1.outputInt2")]
+        }
+      }
+    ],
+    Add4: [
+      {
+        text: "כמו בחיבור ארוך בעמודות — קודם מפצלים כל אחד משני המספרים ל-4 הספרות שלו בעזרת מפצל, כדי לעבוד על כל עמודה (ספרה) בנפרד.",
+        highlight: {
+          components: ["split-a", "split-b"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "split-a.single", "split-b.single"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "split-a.single"),
+            wireKey("task-card-1.inputInt2", "split-b.single")
+          ]
+        }
+      },
+      {
+        text: "מתחילים מעמודת האחדות (הספרה הימנית). מחברים את שתי ספרות האחדות יחד עם ספרת הנשיאה שנכנסת לכרטיס, בעזרת fullAdder — בדיוק שלוש הספרות שהוא יודע לחבר.",
+        highlight: {
+          components: ["fa3"],
+          terminals: ["task-card-1.inputInt3", "split-a.leg3", "split-b.leg3"],
+          wires: [
+            wireKey("split-a.leg3", "fa3.in1"),
+            wireKey("split-b.leg3", "fa3.in2"),
+            wireKey("task-card-1.inputInt3", "fa3.in3")
+          ]
+        }
+      },
+      {
+        text: "ה-sum של ה-fullAdder הזה הוא ספרת האחדות של התוצאה — אותה מחזירים לספרת האחדות של בס הסכום. ה-carry שלו הוא הנשיאה שעוברת הלאה לעמודה הבאה.",
+        highlight: {
+          components: ["fa3", "merge"],
+          terminals: ["fa3.out1", "fa3.out2"],
+          wires: [
+            wireKey("fa3.out1", "merge.leg3"),
+            wireKey("fa3.out2", "fa2.in3")
+          ]
+        }
+      },
+      {
+        text: "ממשיכים ספרה-ספרה: לכל עמודה fullAdder שמקבל את שתי הספרות המתאימות ואת הנשיאה מהעמודה הקודמת, ומעביר את הנשיאה שלו הלאה. כך שרשרת של ארבעה fullAdder-ים מכסה את כל ארבע הספרות.",
+        highlight: {
+          components: ["fa2", "fa1", "fa0"],
+          wires: [
+            wireKey("split-a.leg2", "fa2.in1"), wireKey("split-b.leg2", "fa2.in2"),
+            wireKey("split-a.leg1", "fa1.in1"), wireKey("split-b.leg1", "fa1.in2"), wireKey("fa2.out2", "fa1.in3"),
+            wireKey("split-a.leg0", "fa0.in1"), wireKey("split-b.leg0", "fa0.in2"), wireKey("fa1.out2", "fa0.in3")
+          ]
+        }
+      },
+      {
+        text: "מאחדים בחזרה את ארבע ספרות ה-sum לבס סכום אחד בעזרת מאחד. הנשיאה האחרונה — ה-carry של ה-fullAdder של הספרה השמאלית — היא הספרה החמישית, ואותה מוציאים מיציאת הנשיאה של הכרטיס.",
+        highlight: {
+          components: ["merge", "fa0"],
+          terminals: ["merge.single", "fa0.out2", "task-card-1.outputInt1", "task-card-1.outputInt2"],
+          wires: [
+            wireKey("fa2.out1", "merge.leg2"),
+            wireKey("fa1.out1", "merge.leg1"),
+            wireKey("fa0.out1", "merge.leg0"),
+            wireKey("merge.single", "task-card-1.outputInt2"),
+            wireKey("fa0.out2", "task-card-1.outputInt1")
+          ]
         }
       }
     ],
@@ -8828,7 +8891,7 @@
       notTest: null,
       // Show the full, correct truth table during the MUX walkthrough so the
       // highlighted rows are meaningful.
-      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : isArithTask(taskId) ? arithTableWithInputs(taskId, true) : null,
+      muxTable: taskId === "Mux" ? muxTableWithInputs(true) : taskId === "DMux" ? dmuxTableWithInputs(true) : (isArithTask(taskId) && !isArithBusTask(taskId)) ? arithTableWithInputs(taskId, true) : null,
       solutionDialog: { taskId, completeOnClose: options.completeOnClose !== false, step: 0, returnToExplanations: Boolean(options.returnToExplanations) },
       workspace
     }, false);

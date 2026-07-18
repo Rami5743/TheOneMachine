@@ -494,6 +494,66 @@ function createSolutionWorkspaces({
     return normalizeWorkspace(workspace);
   }
 
+  // Add4 (chapter 2.5): a 4-bit ripple-carry adder. Split both number buses into
+  // their 4 bits, add them column by column with a chain of four fullAdders
+  // threading the carry, merge the four sum bits back into the sum bus, and take
+  // the last carry as the leading digit. A bus that represents a number has its
+  // units bit at the BOTTOM and its most significant bit at the TOP, so the units
+  // fullAdder (fa3, near the bottom carry-in) sits at the bottom and the leading
+  // fullAdder (fa0) at the top; the carry threads upward, units -> MSB.
+  function add4SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Add4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 455, y: 175, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 455, y: 405, mirrored: false, outputs: 4, width: 1 },
+      { id: "fa0", type: "gate-fullAdder", x: 640, y: 150 },
+      { id: "fa1", type: "gate-fullAdder", x: 640, y: 250 },
+      { id: "fa2", type: "gate-fullAdder", x: 640, y: 350 },
+      { id: "fa3", type: "gate-fullAdder", x: 640, y: 450 },
+      { id: "merge", type: "splitter", x: 850, y: 300, mirrored: true, outputs: 4, width: 1 }
+    ];
+    // fa3=units (LSB=leg3, bottom), fa0=leading (MSB=leg0, top); the carry threads
+    // upward fa3->fa2->fa1->fa0, and fa0's carry is the leading fifth digit.
+    const cols = [
+      { fa: "fa3", leg: "leg3", carryIn: "task-card-1.inputInt3" },
+      { fa: "fa2", leg: "leg2", carryIn: "fa3.out2" },
+      { fa: "fa1", leg: "leg1", carryIn: "fa2.out2" },
+      { fa: "fa0", leg: "leg0", carryIn: "fa1.out2" }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt2"),
+      normalizeWire("fa0.out2", "task-card-1.outputInt1")
+    ];
+    cols.forEach(({ fa, leg, carryIn }) => {
+      wires.push(normalizeWire(`split-a.${leg}`, `${fa}.in1`));
+      wires.push(normalizeWire(`split-b.${leg}`, `${fa}.in2`));
+      wires.push(normalizeWire(carryIn, `${fa}.in3`));
+      wires.push(normalizeWire(`${fa}.out1`, `merge.${leg}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: "Add4",
+      taskIntroSeen: true
+    });
+  }
+
   // Not4 (chapter 2.4): split the input bus into 4 wires, NOT each, merge back.
   // Built directly (not via standardTaskWorkspace) because bus tasks have no
   // TASK_DEFS entry and use a bus card with a pre-placed single source.
@@ -953,6 +1013,7 @@ function createSolutionWorkspaces({
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
+    if (taskId === "Add4") return add4SolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
