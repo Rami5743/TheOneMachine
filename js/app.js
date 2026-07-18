@@ -3354,7 +3354,13 @@
   function componentGraphHasPath(workspace, wires, fromRef, toRef) {
     const cardNode = (info) => {
       const comp = componentById(workspace, info.componentId);
-      const isCard = comp && (comp.type === "notCard" || String(comp.type || "").startsWith("taskCard-"));
+      // A card frame passes each internal input straight to the workspace and
+      // takes each internal output back from it, so its input and output sides
+      // must be SEPARATE graph nodes — otherwise a path "some output -> card
+      // output pin -> card input pin -> some gate" is invented, and the cycle
+      // check wrongly rejects an unrelated wire. The card-creation frame
+      // ("cardFrame") needs this exactly like a task card / notCard does.
+      const isCard = comp && (comp.type === "notCard" || comp.type === "cardFrame" || String(comp.type || "").startsWith("taskCard-"));
       if (!isCard) return info.componentId;
       const outputSide = /^output(Int|Ext)/.test(info.pinId);
       return `${info.componentId}$${outputSide ? "out" : "in"}`;
