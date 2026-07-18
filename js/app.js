@@ -1815,16 +1815,17 @@
     const arithIds = ARITH_TASKS
       .map((task) => task.id)
       .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    // In the multi-bit routing build (chapter 2.5) EVERY earlier card is offered,
-    // even if the learner skipped ahead and never built it — otherwise the task
-    // (which needs MUX16/DMUX) would be impossible. The 2.5 free-build table (the
-    // workshop worktable) follows the same rule: every card that was, or should
-    // have been, developed in an earlier chapter is available. Elsewhere only
-    // completed cards appear, preserving the build progression.
-    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithIds];
-    }
     const arithCompleted = arithIds.filter(taskCompleted);
+    // In the multi-bit routing build (chapter 2.5) EVERY earlier-chapter card is
+    // offered even if the learner skipped ahead and never built it — otherwise
+    // the task (which needs MUX16/DMUX) would be impossible. The 2.5 free-build
+    // table (the workshop worktable) follows the same rule for earlier chapters.
+    // The arith cards, though, belong to THIS chapter (2.5): they respect
+    // completion so that clearing the arith note drops the cards it built out of
+    // the palette until they are rebuilt (a locked card can't be reached anyway).
+    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
+      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
+    }
     // Building an arith card (halfAdder / fullAdder) on the 2.5 worktable: every
     // card from an EARLIER stage is offered even if the learner skipped it (so
     // clearing this note's progress does not strip the palette down to the basic
