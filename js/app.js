@@ -455,7 +455,7 @@
       out2: { x: 66, y: -30, direction: "out", width: 1, label: "יציאת הנשיאה" },
       out1: { x: 66, y: 30, direction: "out", width: 4, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 74, bottom: 74 }
+    bounds: { left: 64, right: 84, top: 84, bottom: 84 }
   };
 
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"

@@ -95,7 +95,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
   function add4GateMarkup() {
     const bodyW = 100;
-    const bodyH = 120;
+    // Tall enough to contain the three left pins (y ±40) AND the width labels
+    // that sit ~22px above each bus bar — the top input's "4" would otherwise
+    // poke out above the box.
+    const bodyH = 156;
     const edge = bodyW / 2;
     const inX = -62;
     const outX = 66;
