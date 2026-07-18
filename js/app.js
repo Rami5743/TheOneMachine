@@ -1461,7 +1461,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements", "chapters"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -2688,6 +2688,10 @@
 
   function renderExplanationsMenu() {
     syncExplanationUnlocks();
+    // "חזרה למשחק" when the menu was opened from within the game; otherwise it
+    // returns to the main menu, so label it accordingly.
+    const explBackLabel = IN_GAME_SCREENS.includes(state.explanationsReturnTo && state.explanationsReturnTo.screen)
+      ? "חזרה למשחק" : "חזרה לתפריט הראשי";
     const cell = (list) => (list.map(explanationItemHtml).join("") || '<span class="expl-empty" aria-hidden="true"></span>');
     const rows = EXPLANATION_SECTIONS.map((sec) => `
       <div class="expl-section-title">${esc(sec.title)}</div>
@@ -2697,6 +2701,7 @@
       ${topbar()}
       <main class="screen menu-screen explanations-screen">
         <section class="menu-card explanations-card">
+          <div class="page-return-top"><button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button></div>
           <h1>הסברים</h1>
           <div class="explanations-table">
             <div class="expl-corner" aria-hidden="true"></div>
@@ -2705,7 +2710,7 @@
             ${rows}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
-            <button class="btn" data-action="explanations-return" type="button" style="background:#5b4328;color:#fff8ec;border-color:#3f2d19;min-width:12rem;">חזרה למשחק</button>
+            <button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button>
           </div>
         </section>
         ${renderExplRoutingInfoDialog()}
@@ -3222,6 +3227,7 @@
     app.innerHTML = `
       ${topbar()}
       <main class="screen chapters-screen">
+        <div class="page-return-top">${pageBackButton()}</div>
         <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
       </main>`;
   }
@@ -11824,7 +11830,7 @@
     }
 
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
-    if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
+    if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
