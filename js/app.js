@@ -10507,6 +10507,12 @@
       return nextWorktableIndex;
     }
     if (worktableIndex >= 0) return worktableIndex;
+    // 2.5 (chapter-8): the arithmetic worktable (the tasks-note slide) is the
+    // skip target, so skipping the post-booklet dialogue lands on the tasks —
+    // and stays correct even if more slides are added after it later, rather
+    // than sliding to whatever becomes the last panel.
+    const arithWorktableIndex = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
+    if (arithWorktableIndex >= 0 && state.panelIndex < arithWorktableIndex) return arithWorktableIndex;
     return lastIndex;
   }
 
