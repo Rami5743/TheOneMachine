@@ -852,6 +852,45 @@
         add(dialogs.returnToNandPrompt?.title, ["אתה כבר מכיר", "את כבר מכירה"]);
       });
 
+    // ---- Achievement titles (js/achievements-data.js ACHIEVEMENTS) ----
+    // The titles are gendered agent-nouns (מהנדס → מהנדסת …); descriptions use
+    // 2nd-person past verbs that are spelled the same for both genders, so only
+    // the titles need a feminine form. Keyed by id so each title gets only its
+    // own substitutions.
+    if (typeof ACHIEVEMENTS !== "undefined" && Array.isArray(ACHIEVEMENTS)) {
+      const ENG = ["מהנדס", "מהנדסת"], PRECISE = ["מדויק", "מדויקת"], THOROUGH = ["יסודי", "יסודית"],
+        CALC = ["מחשב", "מחשבת"], BOOL = ["בוליאני", "בוליאנית"], INVENT = ["ממציא", "ממציאה"], SAVE = ["שומר", "שומרת"];
+      const femTitle = {
+        "card-creator": [["יוצר", "יוצרת"]],
+        "boolean-engineer": [ENG, BOOL],
+        "routing-engineer": [ENG],
+        "bus-engineer": [ENG],
+        "calculator": [CALC],
+        "arith-engineer": [ENG],
+        "equipment-destroyer": [["משחית", "משחיתת"]],
+        "precise-engineer": [ENG, PRECISE],
+        "precise-boolean-engineer": [ENG, BOOL, PRECISE],
+        "precise-routing-engineer": [ENG, PRECISE],
+        "precise-bus-engineer": [ENG, PRECISE],
+        "precise-arith-engineer": [ENG, PRECISE],
+        "thorough-engineer": [ENG, THOROUGH],
+        "precise-calc": [CALC, PRECISE],
+        "thorough-calc": [CALC, THOROUGH],
+        "very-thorough-calc": [CALC, THOROUGH],
+        "thorough-precise-calc": [CALC, THOROUGH, PRECISE],
+        "card-inventor": [INVENT],
+        "card-saver": [SAVE],
+        "card-necromancer": [["טוען", "טוענת"]],
+        "connected": [["מחובר", "מחוברת"]],
+        "progress-saver": [SAVE],
+        "useful-inventor": [INVENT, ["שימושי", "שימושית"]],
+        "scholar": [["למדן", "למדנית"]],
+        "curious": [["סקרן", "סקרנית"]]
+        // progress-necromancer ("מעלה מן האוב") reads the same for both genders.
+      };
+      ACHIEVEMENTS.forEach((a) => { if (femTitle[a.id]) add(a.title, ...femTitle[a.id]); });
+    }
+
     __feminineTextMap = m;
     return m;
   }
@@ -2947,8 +2986,8 @@
       <div class="achv-item${locked ? " achv-locked" : ""}">
         <div class="achv-icon">${renderAchievementIcon(a.id)}</div>
         <div class="achv-text">
-          <div class="achv-title">${esc(a.title)}</div>
-          ${a.description ? `<div class="achv-desc">${esc(a.description)}</div>` : ""}
+          <div class="achv-title">${esc(adaptGender(a.title))}</div>
+          ${a.description ? `<div class="achv-desc">${esc(adaptGender(a.description))}</div>` : ""}
         </div>
       </div>`;
     const column = (cat, title) => {
