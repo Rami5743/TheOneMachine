@@ -224,6 +224,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
+    if (type === "converter-in" || type === "converter-out") {
+      return `<g class="converter">${converterMarkup(type === "converter-out" ? "out" : "in", options)}</g>`;
+    }
     if (type === "bus") return busMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";

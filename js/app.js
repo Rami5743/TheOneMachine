@@ -481,6 +481,24 @@
     bounds: { left: 64, right: 84, top: 56, bottom: 56 }
   };
 
+  // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
+  // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
+  // accept ANY bus; the actual width is read from the connection at eval/render.
+  //  converter-in  (bin→dec): reads a bus, DISPLAYS its decimal value (a sink).
+  //  converter-out (dec→bin): stores a decimal `value`, EMITS its bits (a source).
+  WORKSPACE_COMPONENT_DEFS["converter-in"] = {
+    label: "ממיר לעשרוני",
+    converter: true, converterDir: "in",
+    pins: { in: { x: -146, y: 0, direction: "in", label: "כניסת הבס" } },
+    bounds: { left: 150, right: 106, top: 46, bottom: 46 }
+  };
+  WORKSPACE_COMPONENT_DEFS["converter-out"] = {
+    label: "ממיר לבינרי",
+    converter: true, converterDir: "out",
+    pins: { out: { x: 146, y: 0, direction: "out", label: "יציאת הבס" } },
+    bounds: { left: 106, right: 150, top: 46, bottom: 46 }
+  };
+
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
   // walkthrough draws it (out = (data1 & ~c) OR16 (data2 & c)), and it is the
   // card the upcoming "create new card" tool is meant to let the learner build.
@@ -1074,7 +1092,7 @@
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
       .map((card) => ({ type: card.type, label: card.name }));
-  } });
+  }, convertersAvailable: () => isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8") });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
