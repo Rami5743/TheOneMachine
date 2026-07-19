@@ -618,6 +618,10 @@
     // Achievements the player has earned (a subset of ACHIEVEMENTS ids).
     achievementsUnlocked: [],
     explanationsUnlocked: [],
+    // Explanations whose "new explanation" flourish has already been played, so
+    // it fires exactly once — at the END of the explanation (or when an optional
+    // one is declined), decoupled from when the item was unlocked.
+    explanationsAnnounced: [],
     explanationsReturnTo: null,
     explanationReplay: null,
     settings: { language: "he", gender: "", age: "", pace: DEFAULT_PACE },
@@ -1786,7 +1790,7 @@
 
   function openPostTasksXorHintSlides(startIndex = 0, returnPanelIndex = state.panelIndex) {
     preloadHintSlides(XOR_HINT_SLIDES);
-    unlockExplanation("truth-table-cards");
+    unlockExplanation("truth-table-cards", { silent: true });
     setState({
       hintSlides: {
         taskId: "Xor",
@@ -2188,8 +2192,20 @@
   }
 
   // Arm the "new explanation" flourish for the next render (used to play it at
-  // the end of an explanation, decoupled from when the item was unlocked).
-  function announceExplanationUnlock() {
+  // the END of an explanation, decoupled from when the item was unlocked). With
+  // an id it fires at most once ever (tracked in explanationsAnnounced) — so a
+  // "closed the reading" hook and a "declined the teaser" hook can't double it.
+  function announceExplanationUnlock(id) {
+    if (id) {
+      // Only announce an explanation that is actually unlocked (experienced), and
+      // only once — so an end-hook can be called unconditionally at a natural
+      // finish point without risking a flourish for something never seen.
+      if (!explanationUnlocked(id)) return;
+      const announced = Array.isArray(state.explanationsAnnounced) ? state.explanationsAnnounced : [];
+      if (announced.includes(id)) return;
+      state.explanationsAnnounced = [...announced, id];
+      saveState();
+    }
     explanationUnlockAnimationPending = true;
   }
 
@@ -2282,7 +2298,8 @@
       state.explanationReplay?.id === "nand-intro" ||
       state.explanationReplay?.id === "nand-function"
     ) {
-      unlockExplanation("nand-intro");
+      // Silent; announced when the Nand intro ends and the workbench opens.
+      unlockExplanation("nand-intro", { silent: true });
     }
 
     if (
@@ -2319,7 +2336,8 @@
       bitInfoButtonVisible() ||
       state.explanationReplay?.id === "bit-info"
     ) {
-      unlockExplanation("bit-info");
+      // Silent; announced when the bit dialog is closed.
+      unlockExplanation("bit-info", { silent: true });
     }
 
     if (
@@ -2328,12 +2346,17 @@
       state.hintSlides?.taskId === "Xor" ||
       state.explanationReplay?.id === "truth-table-cards"
     ) {
-      unlockExplanation("truth-table-cards");
+      // Silent; announced when the Xor hint slides are finished.
+      unlockExplanation("truth-table-cards", { silent: true });
     }
 
     const reachedChapter6 = currentIndex > chapterIndexById("chapter-5") || state.chapterId === "chapter-6";
     if (reachedChapter6 || state.explanationReplay?.id === "why-route") {
-      unlockExplanation("why-route");
+      // Silent here (this also unlocks it retroactively for a player already past
+      // chapter 2.3). Its flourish is announced when the learner advances past the
+      // routing-concept panel — panel89 declares unlocksExplanation:"why-route",
+      // handled by the generic "leaving panel" hook in nextPanel.
+      unlockExplanation("why-route", { silent: true });
     }
 
     // The routing cards' menu buttons unlock once their task is solved.
@@ -2342,10 +2365,12 @@
 
     // A story panel may declare an explanation it unlocks just by being reached
     // (e.g. the bits-range "64,000" slide unlocks "מילים ובתים", whether the red
-    // link is clicked or ignored).
+    // link is clicked or ignored). Unlocked silently — its flourish is announced
+    // when the reading is closed, or when the learner advances past the panel
+    // without opening it (declined) — see advanceStoryPanel.
     if (state.screen === "story") {
       const cp = currentPanel();
-      if (cp && cp.unlocksExplanation) unlockExplanation(cp.unlocksExplanation);
+      if (cp && cp.unlocksExplanation) unlockExplanation(cp.unlocksExplanation, { silent: true });
     }
   }
 
@@ -2826,6 +2851,13 @@
           </div>
         </section>
       </div>`;
+  }
+
+  // Closing the "מילים ובתים" reading is the end of that enrichment explanation →
+  // announce its flourish now (a no-op if it was somehow already announced).
+  function closeWordsBytes() {
+    announceExplanationUnlock("words-bytes");
+    setState({ wordsBytesDialog: null }, false);
   }
 
   function wordsBytesStep(delta) {
@@ -6387,6 +6419,10 @@
   // A clean solve continues the plot: von Neumann's binary lesson, which sits
   // just after the library slides in the arithmetic scene.
   function notebookContinue() {
+    // Leaving the notebook is the end of the decimal-addition solution → announce
+    // its explanation unlock now (a no-op if the solution was never opened, or if
+    // it was already announced on an earlier pass).
+    announceExplanationUnlock("arith-dec-add");
     // The decimal-addition review opened from the booklet returns to the booklet
     // menu; the library's own notebook continues the plot.
     if (state.notebook?.reviewFromBooklet) {
@@ -6470,7 +6506,7 @@
   function notebookOpenSolution() {
     const nb = state.notebook;
     // Seeing the decimal-addition solution unlocks its חשבון menu button.
-    unlockExplanation("arith-dec-add");
+    unlockExplanation("arith-dec-add", { silent: true });
     setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, mistake: null } });
   }
 
@@ -7640,7 +7676,7 @@
   function binOpenWalkthrough() {
     const nb = state.notebook;
     // Seeing a conversion/addition solution unlocks its חשבון menu button.
-    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) unlockExplanation(`arith-${nb.stage}`);
+    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) unlockExplanation(`arith-${nb.stage}`, { silent: true });
     // Opening the walkthrough from a failed attempt counts as using help.
     const hintUsed = nb.dialog === "wrong" ? true : nb.hintUsed;
     setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed, walkStep: 0 } });
@@ -7670,6 +7706,9 @@
   function binWalkthroughFinish() {
     const nb = state.notebook;
     const clean = binClean(nb);
+    // Finishing the walkthrough is the end of that stage's solution explanation →
+    // announce its unlock now (no-op on a replay / if it was never opened).
+    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) announceExplanationUnlock(`arith-${nb.stage}`);
     // A sample opened from the explanations menu returns there when done — it is a
     // demonstration, so it earns no calculation achievement.
     if (nb.fromExplanations) { setState({ screen: "explanations", notebook: null }, false); return; }
@@ -8018,6 +8057,10 @@
       workspace.buildHelpButtonVisible = false;
     }
 
+    // The Nand intro story just ended (the workbench is opening) → announce the
+    // "הצגת ה־Nand" explanation now, at the end of that intro.
+    if (state.chapterId === "chapter-4") announceExplanationUnlock("nand-intro");
+
     setState({
       screen: "workspace",
       started: true,
@@ -8030,6 +8073,15 @@
     if (state.screen === "workspace") {
       if (workspaceNandMonologueActive()) return advanceNandMonologue();
       return;
+    }
+
+    // Leaving a story panel that offered an enrichment explanation (via a red
+    // corner link) is the moment its flourish fires if the learner ignored it —
+    // the "declined" case. If they opened and read it, it was already announced
+    // when they closed the reading, so this is a no-op then.
+    if (state.screen === "story") {
+      const leaving = currentPanel();
+      if (leaving && leaving.unlocksExplanation) announceExplanationUnlock(leaving.unlocksExplanation);
     }
 
     const scene = currentScene();
@@ -8331,7 +8383,7 @@
       workspace.helpPromptSeen = false;
       workspace.buildHelpButtonVisible = false;
       // The Nand monologue just ended → announce the "איך Nand פועל" explanation.
-      announceExplanationUnlock();
+      announceExplanationUnlock("nand-function");
       return setState({ workspace }, false);
     }
 
@@ -8353,7 +8405,7 @@
     workspace.selectedTerminal = null;
     // Leaving the build-help teaser (declined "לא כרגע", or after closing the
     // build-help screen) → announce the "איך עושים Nand" explanation now.
-    announceExplanationUnlock();
+    announceExplanationUnlock("build-nand");
     setState({
       ...firstWorkspaceExitTarget(),
       replayNonce: state.replayNonce + 1,
@@ -9171,7 +9223,7 @@
     // Seeing a basic gate's solution unlocks its button in the explanations menu
     // (and plays the unlock flourish the first time). The routing cards unlock on
     // completion instead (see syncExplanationUnlocks).
-    if (["Not", "And", "Or"].includes(taskId)) unlockExplanation(`gate-${taskId}`);
+    if (["Not", "And", "Or"].includes(taskId)) unlockExplanation(`gate-${taskId}`, { silent: true });
     const routing = isRoutingTask(taskId);
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
@@ -9221,6 +9273,8 @@
     if (explanationReplayActive("bit-info")) {
       return returnToExplanationsMenuFromReplay();
     }
+    // The bit explanation was just read to the end → announce it now.
+    announceExplanationUnlock("bit-info");
     const returnToNote = Boolean(state.bitDialog.returnToNote);
     if (returnToNote) {
       return setState({ bitDialog: null, taskDialog: { message: "" } }, false);
@@ -9683,6 +9737,10 @@
         replayNonce: state.replayNonce + 1
       }, false);
     }
+    // A basic-gate solution (Not/And/Or) was just closed → announce its
+    // explanation at the end of reading it.
+    if (["Not", "And", "Or"].includes(taskId)) announceExplanationUnlock(`gate-${taskId}`);
+
     const shouldComplete = Boolean(state.solutionDialog?.completeOnClose);
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
@@ -10279,6 +10337,9 @@
       hintSlides: null,
       ...(unlockXorHelp ? { xorTableHelpUnlocked: true } : {})
     };
+    // Finishing the Xor hint slides is the end of the truth-table-cards
+    // explanation → announce its unlock now (not when the slides opened).
+    if (unlockXorHelp) announceExplanationUnlock("truth-table-cards");
 
     if (returnTo?.mode === "continue-story") {
       setState(patch, false);
@@ -10726,6 +10787,7 @@
       hintState: {},
       completedTasks: [],
       explanationsUnlocked: [],
+      explanationsAnnounced: [],
       explanationsReturnTo: null,
       explanationReplay: null,
       workspace: createDefaultWorkspace()
@@ -12112,8 +12174,8 @@
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "panel-answer-check") return checkPanelAnswer();
-    if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: { page: 0 } }, false); }
-    if (action === "words-bytes-close") return setState({ wordsBytesDialog: null }, false);
+    if (action === "open-words-bytes") { unlockExplanation("words-bytes", { silent: true }); return setState({ wordsBytesDialog: { page: 0 } }, false); }
+    if (action === "words-bytes-close") return closeWordsBytes();
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);
     if (action === "arith-tasks-note") return openArithNote();
@@ -12261,11 +12323,11 @@
     if (state.wordsBytesDialog) {
       const total = Math.max(1, wordsBytesParagraphs().length);
       const page = Math.min(Math.max(0, Number(state.wordsBytesDialog.page) || 0), total - 1);
-      if (event.key === "Escape") { event.preventDefault(); return setState({ wordsBytesDialog: null }, false); }
+      if (event.key === "Escape") { event.preventDefault(); return closeWordsBytes(); }
       if (event.key === "ArrowRight") { event.preventDefault(); return wordsBytesStep(-1); }
       if (event.key === "ArrowLeft" || event.key === " " || event.key === "Enter") {
         event.preventDefault();
-        if (page >= total - 1) return setState({ wordsBytesDialog: null }, false);
+        if (page >= total - 1) return closeWordsBytes();
         return wordsBytesStep(1);
       }
       event.preventDefault();
