@@ -5226,8 +5226,18 @@
   }
 
   function renderNandBuildHelpScreen() {
-    const backAction = explanationReplayActive("build-nand") ? "explanations-return-to-menu" : "back-to-workspace";
-    const backLabel = explanationReplayActive("build-nand") ? "חזרה לתפריט ההסברים" : "חזרה לשולחן העבודה";
+    // Reached from: the explanations-menu replay → back to that menu; the
+    // end-of-monologue "כן" (session 1) → "חזרה למשחק", leaving the workbench;
+    // otherwise (e.g. the session-2 build-help button) → back to the workbench.
+    let backAction = "back-to-workspace";
+    let backLabel = "חזרה לשולחן העבודה";
+    if (explanationReplayActive("build-nand")) {
+      backAction = "explanations-return-to-menu";
+      backLabel = "חזרה לתפריט ההסברים";
+    } else if (buildTeaserAtMonologueEnd()) {
+      backAction = "build-help-back-to-game";
+      backLabel = "חזרה למשחק";
+    }
     app.innerHTML = `
       ${topbar()}
       <main class="screen nand-build-help-screen">
@@ -7860,7 +7870,7 @@
       if (workspaceAccidentActive()) {
         requestAnimationFrame(() => app.querySelector("[data-action='workspace-accident-ok']")?.focus());
       } else if (workspaceBuildHelpPromptActive()) {
-        requestAnimationFrame(() => app.querySelector("[data-action='build-help-yes']")?.focus());
+        requestAnimationFrame(() => app.querySelector("[data-action='build-help-later']")?.focus());
       } else if (workspaceUnderstoodPromptActive()) {
         requestAnimationFrame(() => app.querySelector("[data-action='understood-yes']")?.focus());
       }
@@ -7915,6 +7925,13 @@
       workspace.understoodButtonVisible = true;
       workspace.nandOutputObserved = { zero: true, one: true };
       workspace.nandMonologueStep = null;
+    } else {
+      // Session 1: the "how Nand is built" enrichment teaser now appears at the
+      // END of the Nand monologue (see advanceNandMonologue), a moment before
+      // leaving the workbench — not on open. So start with it already dismissed
+      // and with no persistent build-help button during the observe phase.
+      workspace.helpPromptSeen = true;
+      workspace.buildHelpButtonVisible = false;
     }
 
     setState({
@@ -8056,6 +8073,8 @@
   }
 
   function dismissBuildHelpPrompt() {
+    // At the end-of-monologue teaser (session 1), "לא כרגע" leaves the workbench.
+    if (buildTeaserAtMonologueEnd()) return exitWorkbenchAfterBuildTeaser();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.helpPromptSeen = true;
     workspace.buildHelpButtonVisible = true;
@@ -8212,15 +8231,44 @@
     workspace.workspaceCompleted = true;
     workspace.returnToWorkspaceAfterMonologue = false;
 
-    const target = workspace.workspaceSession === 2
-      ? secondWorkspaceExitTarget()
-      : firstWorkspaceExitTarget();
+    // Session 1: offer the "how Nand is built" enrichment as the last beat —
+    // show the build-help teaser now, right before leaving the workbench,
+    // instead of exiting immediately. helpPromptSeen=false makes the teaser
+    // active; workspaceCompleted=true marks this as the end-of-monologue teaser
+    // (so "לא כרגע" / "חזרה למשחק" leave the workbench rather than dismiss).
+    if (workspace.workspaceSession !== 2) {
+      workspace.helpPromptSeen = false;
+      workspace.buildHelpButtonVisible = false;
+      return setState({ workspace }, false);
+    }
 
+    const target = secondWorkspaceExitTarget();
     setState({
       ...target,
       replayNonce: state.replayNonce + 1,
       workspace
     }, true);
+  }
+
+  // Leave the session-1 Nand workbench after the end-of-monologue enrichment
+  // teaser (its "לא כרגע", or "חזרה למשחק" from the build-help screen), continuing
+  // the chapter-4 story where the monologue would have exited.
+  function exitWorkbenchAfterBuildTeaser() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.helpPromptSeen = true;
+    workspace.buildHelpButtonVisible = false;
+    workspace.selectedTerminal = null;
+    setState({
+      ...firstWorkspaceExitTarget(),
+      replayNonce: state.replayNonce + 1,
+      workspace
+    }, true);
+  }
+
+  // True while the end-of-monologue enrichment teaser (or its build-help screen)
+  // is showing on the session-1 Nand workbench.
+  function buildTeaserAtMonologueEnd() {
+    return Boolean(state.workspace?.workspaceCompleted) && state.workspace?.workspaceSession !== 2;
   }
 
   const TASK_TEST_FRAME = { x1: 200, y1: 100, x2: 800, y2: 476 };
@@ -12023,6 +12071,7 @@
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
+    if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
     if (action === "understood-play-more") return dismissUnderstoodPrompt();
     if (action === "understood-yes" || action === "understood-no") return startNandMonologue();
     if (action === "understood-open") return openUnderstoodPrompt();

@@ -1769,6 +1769,22 @@ button { font: inherit; }
   line-height: 1.45;
 }
 
+/* "העשרה" title on the build-help teaser, marking it as a bonus/enrichment. */
+.build-help-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  font-weight: 800;
+  color: #f3d27a;
+}
+.build-help-icon {
+  flex: 0 0 auto;
+  color: #f3d27a;
+}
+
 .workspace-build-help-actions {
   display: flex;
   justify-content: center;
