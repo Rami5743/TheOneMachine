@@ -2177,11 +2177,20 @@
   // plays a short "icon flies into the הסברים button" animation.
   let explanationUnlockAnimationPending = false;
 
-  function unlockExplanation(id) {
+  function unlockExplanation(id, options) {
     if (!explanationItem(id) || explanationUnlocked(id)) return;
     state.explanationsUnlocked = [...(Array.isArray(state.explanationsUnlocked) ? state.explanationsUnlocked : []), id];
-    explanationUnlockAnimationPending = true;
+    // The unlock flourish normally plays right away, but some explanations are
+    // unlocked "silently" and announced later (at the END of the explanation /
+    // at the moment an optional one is declined) via announceExplanationUnlock.
+    if (!options || !options.silent) explanationUnlockAnimationPending = true;
     saveState();
+  }
+
+  // Arm the "new explanation" flourish for the next render (used to play it at
+  // the end of an explanation, decoupled from when the item was unlocked).
+  function announceExplanationUnlock() {
+    explanationUnlockAnimationPending = true;
   }
 
   // A quick, deliberately noticeable flourish: an explanation icon appears at the
@@ -2213,6 +2222,37 @@
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
     ], { duration: 320, delay: 560, easing: "ease-out" });
+  }
+
+  // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
+  // "הבנת?" button that appears in the controls, so the learner sees where it
+  // went. `fromRect` is the dismissed card's bounding rect (captured before the
+  // re-render removed it).
+  function playUnderstoodSuckAnimation(fromRect) {
+    const target = app.querySelector('[data-action="understood-open"]');
+    if (!target || !fromRect || typeof target.animate !== "function") return;
+    const tr = target.getBoundingClientRect();
+    const startX = fromRect.left + fromRect.width / 2;
+    const startY = fromRect.top + fromRect.height / 2;
+    const dx = (tr.left + tr.width / 2) - startX;
+    const dy = (tr.top + tr.height / 2) - startY;
+    const fly = document.createElement("div");
+    fly.className = "understood-suck-fly";
+    fly.textContent = "הבנת?";
+    fly.style.left = `${startX}px`;
+    fly.style.top = `${startY}px`;
+    document.body.appendChild(fly);
+    const anim = fly.animate([
+      { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0 },
+      { transform: "translate(-50%,-50%) scale(0.9)", opacity: 1, offset: 0.15 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.1)`, opacity: 0.1, offset: 1 }
+    ], { duration: 460, easing: "cubic-bezier(.55,0,.9,.85)" });
+    anim.onfinish = () => fly.remove();
+    anim.oncancel = () => fly.remove();
+    // A little pop on the button as the card lands.
+    target.animate([
+      { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
+    ], { duration: 300, delay: 320, easing: "ease-out" });
   }
 
   function nandIntroScene() {
@@ -2255,7 +2295,8 @@
       )) ||
       state.explanationReplay?.id === "nand-function"
     ) {
-      unlockExplanation("nand-function");
+      // Unlocked silently; its flourish plays at the END of the Nand monologue.
+      unlockExplanation("nand-function", { silent: true });
     }
 
     if (
@@ -2267,7 +2308,9 @@
       )) ||
       state.explanationReplay?.id === "build-nand"
     ) {
-      unlockExplanation("build-nand");
+      // Unlocked silently; its flourish plays when the teaser is declined
+      // ("לא כרגע") or after the build-help screen is closed ("כן").
+      unlockExplanation("build-nand", { silent: true });
     }
 
     if (
@@ -3299,7 +3342,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
-              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button">${esc(panel.cornerLink.text)}</button>` : ""}
+              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
         </section>
@@ -8139,12 +8182,19 @@
   }
 
   function dismissUnderstoodPrompt() {
+    // Capture the card's position BEFORE it is removed, to animate it being
+    // "sucked" into the "הבנת?" button that now appears.
+    const card = app.querySelector(".workspace-understood-card");
+    const fromRect = card ? card.getBoundingClientRect() : null;
     const workspace = normalizeWorkspace(state.workspace);
     workspace.understoodPromptShown = false;
     workspace.understoodButtonVisible = true;
     workspace.selectedTerminal = null;
-    unlockExplanation("nand-function");
+    // Unlocked silently — the "new explanation" flourish plays at the END of the
+    // Nand monologue, not here.
+    unlockExplanation("nand-function", { silent: true });
     setState({ workspace }, false);
+    if (fromRect) requestAnimationFrame(() => playUnderstoodSuckAnimation(fromRect));
   }
 
   function openUnderstoodPrompt() {
@@ -8280,6 +8330,8 @@
     if (workspace.workspaceSession !== 2) {
       workspace.helpPromptSeen = false;
       workspace.buildHelpButtonVisible = false;
+      // The Nand monologue just ended → announce the "איך Nand פועל" explanation.
+      announceExplanationUnlock();
       return setState({ workspace }, false);
     }
 
@@ -8299,6 +8351,9 @@
     workspace.helpPromptSeen = true;
     workspace.buildHelpButtonVisible = false;
     workspace.selectedTerminal = null;
+    // Leaving the build-help teaser (declined "לא כרגע", or after closing the
+    // build-help screen) → announce the "איך עושים Nand" explanation now.
+    announceExplanationUnlock();
     setState({
       ...firstWorkspaceExitTarget(),
       replayNonce: state.replayNonce + 1,

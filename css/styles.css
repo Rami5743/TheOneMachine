@@ -421,6 +421,9 @@ button { font: inherit; }
   right: 3%;
   z-index: 7;
   max-width: 72%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   /* Keep the teaser on a single line so it stays in the thin strip above the
      panel's speech bubble instead of growing down over it. */
   white-space: nowrap;
@@ -438,6 +441,9 @@ button { font: inherit; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
 .story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+/* The enrichment sparkle (same mark as the "העשרה" teaser), gold so it reads as
+   a bonus regardless of the link's red text. */
+.corner-link-icon { color: #f3d27a; flex: 0 0 auto; }
 
 /* The "מילים ובתים" reading dialog: a taller, scrollable card. The compound
    selector overrides .pace-dialog-card's display:grid so the flex body scrolls. */
@@ -529,6 +535,26 @@ button { font: inherit; }
   will-change: transform, opacity;
 }
 .expl-unlock-fly svg { width: 100%; height: 100%; }
+
+/* "אני רוצה עוד לשחק עם זה": the "הבנת?" dialog shrinks into the "הבנת?" button. */
+.understood-suck-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 800;
+  font-size: 1.4rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
 
 .about-card h1 {
   margin: 0;
