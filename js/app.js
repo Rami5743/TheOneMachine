@@ -591,7 +591,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "step";
+  const DEFAULT_PACE = "all";
 
   const defaultState = {
     screen: "menu",
@@ -1461,7 +1461,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements", "chapters"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -1815,16 +1815,17 @@
     const arithIds = ARITH_TASKS
       .map((task) => task.id)
       .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    // In the multi-bit routing build (chapter 2.5) EVERY earlier card is offered,
-    // even if the learner skipped ahead and never built it — otherwise the task
-    // (which needs MUX16/DMUX) would be impossible. The 2.5 free-build table (the
-    // workshop worktable) follows the same rule: every card that was, or should
-    // have been, developed in an earlier chapter is available. Elsewhere only
-    // completed cards appear, preserving the build progression.
-    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithIds];
-    }
     const arithCompleted = arithIds.filter(taskCompleted);
+    // In the multi-bit routing build (chapter 2.5) EVERY earlier-chapter card is
+    // offered even if the learner skipped ahead and never built it — otherwise
+    // the task (which needs MUX16/DMUX) would be impossible. The 2.5 free-build
+    // table (the workshop worktable) follows the same rule for earlier chapters.
+    // The arith cards, though, belong to THIS chapter (2.5): they respect
+    // completion so that clearing the arith note drops the cards it built out of
+    // the palette until they are rebuilt (a locked card can't be reached anyway).
+    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
+      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
+    }
     // Building an arith card (halfAdder / fullAdder) on the 2.5 worktable: every
     // card from an EARLIER stage is offered even if the learner skipped it (so
     // clearing this note's progress does not strip the palette down to the basic
@@ -1861,6 +1862,13 @@
   function allRoutingTasksCompletedIn(taskIds = completedTaskIds()) {
     const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
     return ROUTING_TASK_DEFS.every((task) => completed.has(task.id));
+  }
+
+  // Every card in the arith note (the LAST task list in the game) completed.
+  function allArithTasksCompletedIn(taskIds = completedTaskIds()) {
+    const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
+    const arith = typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : [];
+    return arith.length > 0 && arith.every((task) => completed.has(task.id));
   }
 
   // Entry point of chapter 2.4 (the "buses" story scene).
@@ -2036,11 +2044,6 @@
   function isSkipDisabled() {
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
-
-    // The two library slides (the exterior and the notebook slide) keep the
-    // learner in the library sequence — no skipping past either of them.
-    if (panelImageName(currentPanel()) === "panel100_chapter_2_5_library.svg") return true;
-    if (panelHotspots(currentPanel()).some((h) => h.action === "stone-millis-book")) return true;
 
     const chapter = currentChapter();
     // A skip that leads nowhere (worktable notes, the closing wordless slide) is
@@ -2680,6 +2683,10 @@
 
   function renderExplanationsMenu() {
     syncExplanationUnlocks();
+    // "חזרה למשחק" when the menu was opened from within the game; otherwise it
+    // returns to the main menu, so label it accordingly.
+    const explBackLabel = IN_GAME_SCREENS.includes(state.explanationsReturnTo && state.explanationsReturnTo.screen)
+      ? "חזרה למשחק" : "חזרה לתפריט הראשי";
     const cell = (list) => (list.map(explanationItemHtml).join("") || '<span class="expl-empty" aria-hidden="true"></span>');
     const rows = EXPLANATION_SECTIONS.map((sec) => `
       <div class="expl-section-title">${esc(sec.title)}</div>
@@ -2689,6 +2696,7 @@
       ${topbar()}
       <main class="screen menu-screen explanations-screen">
         <section class="menu-card explanations-card">
+          <div class="page-return-top"><button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button></div>
           <h1>הסברים</h1>
           <div class="explanations-table">
             <div class="expl-corner" aria-hidden="true"></div>
@@ -2697,7 +2705,7 @@
             ${rows}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
-            <button class="btn" data-action="explanations-return" type="button" style="background:#5b4328;color:#fff8ec;border-color:#3f2d19;min-width:12rem;">חזרה למשחק</button>
+            <button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button>
           </div>
         </section>
         ${renderExplRoutingInfoDialog()}
@@ -3214,6 +3222,7 @@
     app.innerHTML = `
       ${topbar()}
       <main class="screen chapters-screen">
+        <div class="page-return-top">${pageBackButton()}</div>
         <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
       </main>`;
   }
@@ -8975,15 +8984,18 @@
         : completedTaskIds();
 
       // Arith cards with no solution walkthrough yet: complete and return to the
-      // 2.5 worktable with the note reopened (so the next card unlocks).
+      // 2.5 worktable. All done -> "המשך יבוא" immediately; otherwise reopen the
+      // note so the next card unlocks.
       if (isArithTask(taskId)) {
+        const allArithDone = allArithTasksCompletedIn(completedTasks);
         return setState({
           ...arithWorktableReturnTarget(),
           taskDialog: null,
           notTest: null,
           muxTable: null,
           completedTasks,
-          arithNoteList: true,
+          arithNoteList: !allArithDone,
+          infoDialog: allArithDone ? "המשך יבוא..." : null,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -9573,8 +9585,11 @@
       }, true);
     }
 
-    // Arith cards (2.5): back to the worktable with the note reopened.
+    // Arith cards (2.5): back to the worktable. If this completion finished the
+    // WHOLE note, show the "המשך יבוא" notice immediately (end of current
+    // content); otherwise reopen the note so the next card unlocks.
     if (isArithTask(taskId)) {
+      const allArithDone = allArithTasksCompletedIn(completedTasks);
       return setState({
         ...arithWorktableReturnTarget(),
         taskDialog: null,
@@ -9583,7 +9598,8 @@
         hintDialog: null,
         muxTable: null,
         completedTasks,
-        arithNoteList: true,
+        arithNoteList: !allArithDone,
+        infoDialog: allArithDone ? "המשך יבוא..." : null,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -9669,9 +9685,10 @@
       return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
     // Arith cards (2.5): back to the arithmetic worktable with its note, not the
-    // 2.2 gates worktable.
+    // 2.2 gates worktable. All done -> show the "המשך יבוא" notice.
     if (isArithTask(taskId)) {
-      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
+      const allArithDone = allArithTasksCompletedIn(completedTasks);
+      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: !allArithDone, infoDialog: allArithDone ? "המשך יבוא..." : null }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -10481,6 +10498,28 @@
     setState(patch, true);
   }
 
+  // Chapter 2.5 (arithmetic) uses a milestone-based "דלג": each narrative section
+  // skips forward to the start of the next interactive milestone. Combined with
+  // the usual step-mode gate (skipTargetReached), the shortcut only lights up
+  // once the learner has NATURALLY reached that milestone; in see-everything mode
+  // it is available from the start. Milestones (by the panel a section leads to):
+  //   library slides (panel100–101)     → panel102 (first slide after the library task)
+  //   binary teaching (panel102–106)    → panel107 (where the booklet tasks appear)
+  //   booklet…handover (panel107–118)   → panel119 (where the note tasks appear)
+  function arithSkipTarget() {
+    if (currentChapter()?.id !== "chapter-8") return null;
+    const scene = currentScene();
+    if (!scene) return null;
+    const afterLibrary = panelIndexByImage(scene, "panel102_chapter_2_5_library_vn.svg");
+    const booklet = panelIndexByImage(scene, "panel107_chapter_2_5_workshop.svg");
+    const noteTasks = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
+    const p = state.panelIndex;
+    if (afterLibrary >= 0 && p < afterLibrary) return afterLibrary;
+    if (booklet >= 0 && p < booklet) return booklet;
+    if (noteTasks >= 0 && p < noteTasks) return noteTasks;
+    return null;
+  }
+
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
   // worktable — but once PAST that worktable (i.e. inside the von Neumann
   // monologue) it becomes the next-tasks worktable that closes the monologue,
@@ -10489,6 +10528,9 @@
   function skipTargetPanelIndex() {
     const scene = currentScene();
     if (!scene) return 0;
+    // Chapter 2.5: milestone-based skip target (see arithSkipTarget).
+    const arithTarget = arithSkipTarget();
+    if (arithTarget != null) return arithTarget;
     // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
@@ -10507,12 +10549,6 @@
       return nextWorktableIndex;
     }
     if (worktableIndex >= 0) return worktableIndex;
-    // 2.5 (chapter-8): the arithmetic worktable (the tasks-note slide) is the
-    // skip target, so skipping the post-booklet dialogue lands on the tasks —
-    // and stays correct even if more slides are added after it later, rather
-    // than sliding to whatever becomes the last panel.
-    const arithWorktableIndex = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
-    if (arithWorktableIndex >= 0 && state.panelIndex < arithWorktableIndex) return arithWorktableIndex;
     return lastIndex;
   }
 
@@ -11814,7 +11850,7 @@
     }
 
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
-    if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
+    if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
@@ -11830,11 +11866,11 @@
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
     if (action === "arith-note-close") {
-      // The arith note is the LAST task list in the game. Once every card in it
-      // is built, closing the note lands the player at the end of the current
-      // content, so show a "המשך יבוא" notice — every time it is closed while
-      // complete (e.g. also when revisiting from the chapters menu).
-      const allArithDone = ARITH_TASKS.every((t) => taskCompleted(t.id));
+      // The arith note is the LAST task list in the game. Closing it while every
+      // card is already built shows the "המשך יבוא" notice — this is the "come
+      // back to this state from elsewhere" trigger (finishing the last task shows
+      // the same notice immediately; see finishSolutionDialog).
+      const allArithDone = allArithTasksCompletedIn();
       return setState(allArithDone
         ? { arithNoteList: false, infoDialog: "המשך יבוא..." }
         : { arithNoteList: false });
