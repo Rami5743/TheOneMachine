@@ -52,6 +52,11 @@ function createWorkspaceState({
       // The fixed bus width per output (null = not yet determined by wiring).
       base.width = Number.isInteger(component.width) && component.width >= 1 ? component.width : null;
     }
+    // A dec→bin converter carries the decimal value it emits (persisted so a
+    // player's set number survives reloads).
+    if (type === "converter-out") {
+      base.value = Math.max(0, Math.floor(Number(component.value) || 0));
+    }
     return base;
   }
 

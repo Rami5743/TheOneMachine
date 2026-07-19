@@ -81,9 +81,23 @@ function createBoardRender({
     }).join("");
   }
 
+  // The digit string shown on a placed converter: the decimal value padded to
+  // the number of digits the connected bus width allows (dynamic; ~6 unconnected).
+  function converterDigits(component, evaluation) {
+    const info = (evaluation.converters && evaluation.converters.get(component.id)) || { value: 0, width: null };
+    const w = Number.isInteger(info.width) ? Math.min(info.width, 40) : null;
+    const digitCount = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 6);
+    const raw = String(Math.max(0, Math.floor(info.value || 0)));
+    return raw.length >= digitCount ? raw : raw.padStart(digitCount, "0");
+  }
+
   function renderComponent(component, evaluation, workspace) {
     if (componentDef(component.type)?.fixed) return "";
     const lampOn = component.type === "lamp" ? evaluation.lamps.get(component.id) : false;
+    const isConverter = component.type === "converter-in" || component.type === "converter-out";
+    const converterOpts = isConverter
+      ? { digits: converterDigits(component, evaluation), interactive: component.type === "converter-out", componentId: component.id }
+      : {};
     const smoking = workspace.accident?.type === "nand-overvoltage" && workspace.accident.nandId === component.id;
     const burnedClass = smoking && component.type === "nand" ? " component-nand-burned" : "";
     const fixedClass = isFixedWorkspaceComponent(component) ? " component-fixed" : "";
@@ -92,7 +106,7 @@ function createBoardRender({
     const scaleTransform = scale === 1 ? "" : ` scale(${scale})`;
     return `
       <g class="workspace-component component-${esc(component.type)}${burnedClass}${fixedClass}${solutionHighlightClass}" data-action="workspace-component" data-component-id="${esc(component.id)}" transform="translate(${component.x} ${component.y})${scaleTransform}">
-        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width })}
+        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width, ...converterOpts })}
         ${smoking ? charredNandMarkup() : ""}
         ${smoking ? smokeMarkup() : ""}
       </g>`;

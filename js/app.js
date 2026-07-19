@@ -1023,7 +1023,7 @@
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
   function workspaceHasBusElements(workspace = state.workspace) {
-    return (workspace?.components || []).some((c) => c.type === "splitter" || busGateSpec(c.type) || String(c.type).startsWith("usercardFrame-"));
+    return (workspace?.components || []).some((c) => c.type === "splitter" || c.type === "converter-in" || c.type === "converter-out" || busGateSpec(c.type) || String(c.type).startsWith("usercardFrame-"));
   }
   // A placed saved card is simulated by expanding it into its internal circuit
   // first (flattenWorkspaceForEval), then evaluating that. The bus-aware engine
@@ -10970,6 +10970,63 @@
     });
   }
 
+  // ---- dec→bin converter digit editing --------------------------------------
+  // The connected bus width (dynamic) and the resulting decimal digit count.
+  function converterConnectedWidth(componentId, workspace = state.workspace) {
+    if (!workspace) return null;
+    const ev = workspaceEvaluation(workspace);
+    const info = ev.converters && ev.converters.get(componentId);
+    return info && Number.isInteger(info.width) ? Math.min(info.width, 40) : null;
+  }
+  function converterDigitCount(width) {
+    return Math.min(12, width ? String(Math.pow(2, width) - 1).length : 6);
+  }
+  // The digit string as shown (value padded to the digit count; longer if the
+  // value itself is longer). Kept identical to board-render's converterDigits.
+  function converterDisplayString(componentId, workspace = state.workspace) {
+    const comp = componentById(workspace, componentId);
+    const value = Math.max(0, Math.floor(Number(comp?.value) || 0));
+    const dc = converterDigitCount(converterConnectedWidth(componentId, workspace));
+    const raw = String(value);
+    return raw.length >= dc ? raw : raw.padStart(dc, "0");
+  }
+
+  // Single click on a digit: bump it +1 (mod 10). If the result exceeds what the
+  // connected bus can hold, show a message and leave the value unchanged.
+  function incrementConverterDigit(componentId, digitIndex) {
+    const workspace = state.workspace;
+    const comp = componentById(workspace, componentId);
+    if (!comp || comp.type !== "converter-out") return;
+    const w = converterConnectedWidth(componentId, workspace);
+    const ds = converterDisplayString(componentId, workspace).split("");
+    const idx = Number(digitIndex);
+    if (!(idx >= 0 && idx < ds.length)) return;
+    ds[idx] = String((Number(ds[idx]) + 1) % 10);
+    const nv = parseInt(ds.join(""), 10) || 0;
+    if (w != null && nv > Math.pow(2, w) - 1) {
+      return setState({ infoDialog: "המספר גדול מדי לרוחב הבס." });
+    }
+    withWorkspace((ws) => { const c = componentById(ws, componentId); if (c) c.value = nv; });
+  }
+
+  // Double click on a converter: type the number directly. Rejects a value that
+  // is too big for the connected bus.
+  function editConverterValue(componentId) {
+    const workspace = state.workspace;
+    const comp = componentById(workspace, componentId);
+    if (!comp || comp.type !== "converter-out") return;
+    const w = converterConnectedWidth(componentId, workspace);
+    const current = Math.max(0, Math.floor(Number(comp.value) || 0));
+    const raw = window.prompt("הקלד מספר עשרוני:", String(current));
+    if (raw == null) return;
+    const nv = Math.max(0, Math.floor(Number(String(raw).trim())));
+    if (!Number.isFinite(nv)) return setState({ infoDialog: "צריך להקליד מספר." });
+    if (w != null && nv > Math.pow(2, w) - 1) {
+      return setState({ infoDialog: "המספר גדול מדי לרוחב הבס." });
+    }
+    withWorkspace((ws) => { const c = componentById(ws, componentId); if (c) c.value = nv; });
+  }
+
   function deleteWorkspaceComponent(id) {
     withWorkspace((workspace) => {
       const component = componentById(workspace, id);
@@ -11253,6 +11310,10 @@
   function pinWidth(workspace, ref) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
+    // Converter pins have NO intrinsic width: they adopt whatever bus they are
+    // wired to (null → wireWidthLegal accepts any bus, and connectedWidth reads
+    // the real width from the other end).
+    if (info.component.type === "converter-in" || info.component.type === "converter-out") return null;
     if (info.component.type !== "splitter") {
       // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
       // card); otherwise a bus card's pins are buses of the card's width.
@@ -11416,7 +11477,29 @@
       return setState({ workspace }, false);
     }
 
+    // A dec→bin converter may hold a value too big for a narrow bus. While
+    // unconnected any value looks fine, but wiring it to a bus that can't hold
+    // the value is refused with a message (the value stays, the wire is not made).
+    if (converterConnectionTooNarrow(workspace, workspace.selectedTerminal, ref)) {
+      workspace.selectedTerminal = null;
+      return setState({ workspace, infoDialog: "המספר גדול מדי לרוחב הבס." });
+    }
+
     toggleWire(workspace.selectedTerminal, ref);
+  }
+
+  // True when wiring a/b would connect a dec→bin converter whose stored decimal
+  // value exceeds what the bus on the OTHER end can represent.
+  function converterConnectionTooNarrow(workspace, a, b) {
+    for (const [self, other] of [[a, b], [b, a]]) {
+      const info = pinDefFor(workspace, self);
+      if (!info || info.component.type !== "converter-out") continue;
+      const w = pinWidth(workspace, other);
+      if (!Number.isInteger(w) || w < 1) continue;
+      const value = Math.max(0, Math.floor(Number(info.component.value) || 0));
+      if (value > Math.pow(2, w) - 1) return true;
+    }
+    return false;
   }
 
   function boardPointFromEvent(event) {
@@ -12003,6 +12086,11 @@
     }
   });
 
+  // A converter digit distinguishes single-click (increment mod 10) from
+  // double-click (type a value): a lone click is deferred briefly, and a second
+  // click on a digit within the window cancels it and opens the text box.
+  let pendingConverterDigit = null;
+
   document.addEventListener("click", (event) => {
     if (suppressNextClick) {
       suppressNextClick = false;
@@ -12069,6 +12157,24 @@
     }
 
     const action = button.dataset.action;
+
+    if (action === "converter-digit") {
+      event.preventDefault();
+      const componentId = button.dataset.componentId;
+      const digitIndex = button.dataset.digitIndex;
+      if (pendingConverterDigit) {
+        clearTimeout(pendingConverterDigit.timer);
+        pendingConverterDigit = null;
+        return editConverterValue(componentId);
+      }
+      const timer = setTimeout(() => {
+        pendingConverterDigit = null;
+        incrementConverterDigit(componentId, digitIndex);
+      }, 230);
+      pendingConverterDigit = { timer };
+      return;
+    }
+
     if (state.taskDialog && !isGlobalNavigationAction(action) && !["note-task", "note-task-close", "note-clear-open", "note-clear-confirm", "note-clear-cancel"].includes(action)) {
       event.preventDefault();
       return;
