@@ -829,10 +829,22 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "Von Neumann in the doorway, handing over the tasks and leaving for Bohr.",
+        "comment": "Von Neumann in the doorway, handing over the tasks.",
         "image": "assets/panels/panel118_chapter_2_5_doorway.svg",
         "year": "1943",
-        "read": "טוב, הנה המשימות שלך. אני צריך לחזור לנילס. יש לו רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים שעליהם אנחנו שומעים מרחוק."
+        "read": "טוב, הנה המשימות שלך."
+      },
+      {
+        "comment": "Von Neumann leaves the binary→decimal converter devices for checking work.",
+        "image": "assets/panels/panel118b_chapter_2_5_converters.svg",
+        "year": "1943",
+        "read": "אני משאיר לך כאן מכשירים שממירים בסים עם מספרים בינריים למספרים עשרוניים. תוכל להשתמש בהם בשביל לבדוק מה אתה עושה."
+      },
+      {
+        "comment": "Von Neumann's farewell before leaving for Bohr (moved out of the doorway slide).",
+        "image": "assets/panels/panel118c_chapter_2_5_farewell.svg",
+        "year": "1943",
+        "read": "אני צריך לחזור לנילס. יש לו רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים שעליהם אנחנו שומעים מרחוק."
       },
       {
         "comment": "The empty arithmetic worktable. Click-zones mirror panel107, plus a (not-yet-implemented) tasks-note zone. These are fallback percentages until a hotspot-carrying SVG is authored.",
