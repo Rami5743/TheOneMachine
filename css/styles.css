@@ -283,6 +283,11 @@ button { font: inherit; }
 /* A "return to game / main menu" button placed at the TOP of a page (chapters,
    explanations) so it is visible on entry without scrolling past a long list. */
 .page-return-top { display: flex; justify-content: center; margin-bottom: 1.1rem; }
+/* Keep the chapters return button tight against the chapters card: without this
+   wrapper the button and the card are two separate items in the place-items:
+   center grid, which spreads them far apart. */
+.chapters-layout { display: flex; flex-direction: column; align-items: center; }
+.chapters-layout .page-return-top { margin-bottom: 0.75rem; }
 .return-to-game-btn { background: #5b4328; color: #fff8ec; border-color: #3f2d19; min-width: 12rem; }
 .return-to-game-btn:hover { background: #6d5233; }
 /* The explanations table can be taller than the screen; let this page scroll

@@ -3222,8 +3222,10 @@
     app.innerHTML = `
       ${topbar()}
       <main class="screen chapters-screen">
-        <div class="page-return-top">${pageBackButton()}</div>
-        <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
+        <div class="chapters-layout">
+          <div class="page-return-top">${pageBackButton()}</div>
+          <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
+        </div>
       </main>`;
   }
 
