@@ -260,5 +260,35 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       </g>`;
   }
 
-  return { componentSvgFilenameForType, componentMarkup, smokeMarkup, charredNandMarkup };
+  // The binary↔decimal converter schematic. A 5:2 box with 6 decimal digit
+  // windows and one bus stub — on the LEFT for bin→dec ("in": reads a bus, shows
+  // its decimal value) or on the RIGHT for dec→bin ("out": set the digits, emits
+  // a bus). Centred on the origin; returns inner markup (wrap in <svg> for a
+  // dialog, or a board <g transform> for a placed component). `digits` is the
+  // 6-char display string; `active` marks the digit index being edited (dec→bin).
+  function converterMarkup(dir, options = {}) {
+    const digits = String(options.digits != null ? options.digits : "000000").padStart(6, "0").slice(-6);
+    const W = 200, H = 80, edge = W / 2;
+    const n = 6, dw = 24, gap = 4, dtot = n * dw + (n - 1) * gap, dx0 = -dtot / 2, dy = -14, dh = 28;
+    const ext = 46, half = 5.5;
+    const clickable = dir === "out" && options.interactive;
+    let s = `<rect x="${-edge}" y="${-H / 2}" width="${W}" height="${H}" rx="8" fill="#efe7d2" stroke="#2b2b2b" stroke-width="3" />`;
+    for (let i = 0; i < n; i++) {
+      const dxi = dx0 + i * (dw + gap);
+      // Digits read right-to-left as a number: index 0 is the most significant.
+      const ch = digits[i];
+      const on = clickable ? ` data-converter-digit="${i}"` : "";
+      const cursor = clickable ? ' style="cursor:pointer"' : "";
+      s += `<rect x="${dxi}" y="${dy}" width="${dw}" height="${dh}" rx="2" fill="#20241c" stroke="#000" stroke-width="1.2"${on}${cursor} />`;
+      s += `<text x="${dxi + dw / 2}" y="${dy + dh / 2 + 7}" text-anchor="middle" font-family="'Courier New',monospace" font-size="20" font-weight="900" fill="#8fe36a"${on}${cursor}>${ch}</text>`;
+    }
+    // The bus stub (thick dashed bar), left for "in", right for "out".
+    const bx1 = dir === "in" ? -edge - ext : edge;
+    const bx2 = dir === "in" ? -edge : edge + ext;
+    s += `<rect x="${bx1}" y="${-half}" width="${bx2 - bx1}" height="${half * 2}" fill="#111" />
+      <line x1="${bx1 + 3}" y1="0" x2="${bx2 - 3}" y2="0" stroke="#e9e2cf" stroke-width="2.4" stroke-dasharray="6 3" />`;
+    return s;
+  }
+
+  return { componentSvgFilenameForType, componentMarkup, converterMarkup, smokeMarkup, charredNandMarkup };
 }

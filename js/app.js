@@ -637,7 +637,9 @@
     // Routing-card requirements dialog (Mux/DMux) opened from the explanations menu.
     explRoutingInfo: null,
     componentMonologue: null,
+    converterInfo: null,
     busesEquipmentSeen: [],
+    arithConvertersSeen: [],
     busesNoteList: false,
     // The 2.5 arithmetic worktable note (halfAdder → fullAdder → Add4 → Add16).
     arithNoteList: false,
@@ -1020,6 +1022,7 @@
   const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
+  const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
   const charredNandMarkup = (...args) => __componentVisuals.charredNandMarkup(...args);
 
@@ -1295,6 +1298,7 @@
       paceDialog: false,
       infoDialog: null,
       componentMonologue: null,
+      converterInfo: null,
       busesNoteList: false,
       arithNoteList: false,
       panelAnswer: null,
@@ -1420,7 +1424,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3289,6 +3293,28 @@
       </div>`;
   }
 
+  // The binary↔decimal converter self-introduction (items on the 2.5 worktable).
+  // Shows the device's line + its schematic (how it looks on the workbench).
+  function renderConverterInfoDialog() {
+    if (!state.converterInfo) return "";
+    const dir = state.converterInfo.dir === "out" ? "out" : "in";
+    const text = dir === "in"
+      ? "אני ממיר מבינרי לעשרוני. חבר אותי לבס, אני אציג לך את הכתוב העשרוני של המספר שמקודד בבס. בשולחן העבודה אני נראה כך:"
+      : "אני ממיר מעשרוני לבינרי. התאם את הספרות שעליי למספר שאתה רוצה, ואני אוציא בס עם הביטים שמתאימים למספר. בשולחן העבודה אני נראה כך:";
+    return `
+      <div class="bit-overlay" role="presentation">
+        <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="ממיר">
+          <div class="component-monologue-body">
+            <p>${esc(adaptGender(text))}</p>
+            <svg class="converter-schematic" viewBox="-150 -62 300 124" width="300" height="124" xmlns="http://www.w3.org/2000/svg">${converterMarkup(dir)}</svg>
+          </div>
+          <div class="bit-actions">
+            <button class="btn btn-primary" data-action="converter-info-ok" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderPaceDialog() {
     if (!state.paceDialog) return "";
     return `
@@ -3398,6 +3424,7 @@
       ${renderBitDialog()}
       ${renderInfoDialog()}
       ${renderComponentMonologue()}
+      ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
       ${renderArithNoteList()}`;
 
@@ -9296,6 +9323,25 @@
     setState({ componentMonologue: null }, false);
   }
 
+  // The two binary↔decimal converters on the 2.5 worktable. Clicking one shows
+  // its self-introduction and marks it examined; both must be examined before the
+  // tasks note opens (mirrors the 2.4 bus/splitter equipment gate).
+  function openConverterInfo(dir) {
+    const d = dir === "out" ? "out" : "in";
+    const seen = Array.isArray(state.arithConvertersSeen) ? state.arithConvertersSeen : [];
+    const nextSeen = seen.includes(d) ? seen : [...seen, d];
+    setState({ converterInfo: { dir: d }, arithConvertersSeen: nextSeen }, false);
+  }
+
+  function closeConverterInfo() {
+    setState({ converterInfo: null }, false);
+  }
+
+  function arithConvertersChecked() {
+    const seen = Array.isArray(state.arithConvertersSeen) ? state.arithConvertersSeen : [];
+    return seen.includes("in") && seen.includes("out");
+  }
+
   function newEquipmentChecked() {
     const seen = Array.isArray(state.busesEquipmentSeen) ? state.busesEquipmentSeen : [];
     return seen.includes("bus") && seen.includes("splitter");
@@ -9567,6 +9613,11 @@
   };
 
   function openArithNote() {
+    // Examine both converters before the tasks note opens (mirrors the 2.4
+    // bus/splitter equipment gate, which is unconditional).
+    if (!arithConvertersChecked()) {
+      return setState({ infoDialog: "קודם כל תבדוק את כל הציוד החדש." });
+    }
     return setState({ arithNoteList: true });
   }
 
@@ -12086,6 +12137,9 @@
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
     if (action === "component-monologue-ok") return closeComponentMonologue();
+    if (action === "arith-converter-in") return openConverterInfo("in");
+    if (action === "arith-converter-out") return openConverterInfo("out");
+    if (action === "converter-info-ok") return closeConverterInfo();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     // Opening any explanation from the הסברים menu earns "למדן".
