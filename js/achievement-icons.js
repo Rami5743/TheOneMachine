@@ -107,11 +107,13 @@ function renderAchievementIcon(id) {
            <rect x="40" y="20" width="2.5" height="4" fill="#fffdf3"/>
            <rect x="35" y="30" width="11" height="7" rx="1" fill="#33587f"/>
            <path d="M40 40 V44 M36.5 40.5 L40 44 L43.5 40.5" fill="none" stroke="#8fb3d9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` });
-    case "card-necromancer": // spectral cup, a rising ghost
-      return achievementTrophy(id, { top: "#a884e0", bot: "#3d2470", rim: "#2c1a52", base: "#3d2470", handle: "#5b3a9e",
-        emblem: `<path d="M32 39 V28 A8 8 0 0 1 48 28 V39 L44.5 35.5 L41 39 L37.5 35.5 Z" fill="#f3f0ff" stroke="#2c1a52" stroke-width="1.4"/>
-           <circle cx="37" cy="28" r="1.7" fill="#3d2470"/><circle cx="43" cy="28" r="1.7" fill="#3d2470"/>`,
-        extra: `<g stroke="#8fffc9" stroke-width="1.6" stroke-linecap="round" opacity="0.85"><line x1="29" y1="30" x2="26" y2="27"/><line x1="51" y1="30" x2="54" y2="27"/></g>` });
+    case "card-necromancer": // steel cup, a floppy disk with a rising arrow (load — the mirror of card-saver)
+      return achievementTrophy(id, { top: "#8fb3d9", bot: "#1e3a5f", rim: "#152a47", base: "#1e3a5f", handle: "#33587f", emblem:
+        `<path d="M32 23 H46 L49 26 V41 H32 Z" fill="#fffdf3" stroke="#152a47" stroke-width="1.6"/>
+           <rect x="35" y="35" width="8" height="6" fill="#33587f"/>
+           <rect x="40" y="36" width="2.5" height="4" fill="#fffdf3"/>
+           <rect x="35" y="24" width="11" height="7" rx="1" fill="#33587f"/>
+           <path d="M40 21 V15 M36.5 18 L40 15 L43.5 18" fill="none" stroke="#8fb3d9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` });
     case "useful-inventor": // amber cup, a card with a gear
       return achievementTrophy(id, { top: "#f5c065", bot: "#a8560a", rim: "#834209", base: "#a8560a", handle: "#c9791e", emblem:
         `<rect x="31" y="21" width="13" height="17" rx="2" fill="#fffdf3" stroke="#834209" stroke-width="1.6"/>
@@ -169,17 +171,15 @@ function renderAchievementIcon(id) {
       return achievementTrophy(id, { top: "#6fc0f5", bot: "#125f97", rim: "#0d4a76", base: "#125f97", handle: "#2f89cc", emblem:
         `<path d="M33 34 A5 5 0 0 1 34 24 A6.2 6.2 0 0 1 46.5 25 A4.6 4.6 0 0 1 46 34 Z" fill="#fffdf3" stroke="#0d4a76" stroke-width="1.4"/>
            <path d="M35 29 L38.5 32.5 L45 25.5" fill="none" stroke="#1a9e4b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` });
-    case "progress-saver": // green cup, a down-arrow into a hard drive (save to computer)
+    case "progress-saver": // green cup, a shield (your progress kept safe)
       return achievementTrophy(id, { top: "#7ad98f", bot: "#17843f", rim: "#0f5e2c", base: "#17843f", handle: "#29a55c", emblem:
-        `<path d="M40 18 V27 M35.5 22.5 L40 27.5 L44.5 22.5" fill="none" stroke="#fffdf3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-           <rect x="30" y="30" width="20" height="8" rx="1.8" fill="#fffdf3" stroke="#0f5e2c" stroke-width="1.4"/>
-           <circle cx="46" cy="34" r="1.3" fill="#17843f"/>` });
-    case "progress-necromancer": // spectral teal cup, an up-arrow rising out of a drive (raise saved progress)
-      return achievementTrophy(id, { top: "#66d6c0", bot: "#0d6b5e", rim: "#0a5147", base: "#0d6b5e", handle: "#18948a",
-        emblem: `<rect x="30" y="31" width="20" height="8" rx="1.8" fill="#fffdf3" stroke="#0a5147" stroke-width="1.4"/>
-           <circle cx="46" cy="35" r="1.3" fill="#0d6b5e"/>
-           <path d="M40 29 V19 M35.5 23.5 L40 18.5 L44.5 23.5" fill="none" stroke="#fffdf3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
-        extra: `<g stroke="#a8ffe6" stroke-width="1.5" stroke-linecap="round" opacity="0.85"><line x1="30" y1="24" x2="27" y2="21"/><line x1="50" y1="24" x2="53" y2="21"/></g>` });
+        `<path d="M40 18 L49 21 V29 C49 35.5 45 39.5 40 41.5 C35 39.5 31 35.5 31 29 V21 Z" fill="#fffdf3" stroke="#0f5e2c" stroke-width="1.6"/>
+           <path d="M35.5 29 L39 32.5 L45 24.5" fill="none" stroke="#17843f" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>` });
+    case "progress-necromancer": // spectral cup, a rising ghost (raise saved progress from the dead)
+      return achievementTrophy(id, { top: "#a884e0", bot: "#3d2470", rim: "#2c1a52", base: "#3d2470", handle: "#5b3a9e",
+        emblem: `<path d="M32 39 V28 A8 8 0 0 1 48 28 V39 L44.5 35.5 L41 39 L37.5 35.5 Z" fill="#f3f0ff" stroke="#2c1a52" stroke-width="1.4"/>
+           <circle cx="37" cy="28" r="1.7" fill="#3d2470"/><circle cx="43" cy="28" r="1.7" fill="#3d2470"/>`,
+        extra: `<g stroke="#8fffc9" stroke-width="1.6" stroke-linecap="round" opacity="0.85"><line x1="29" y1="30" x2="26" y2="27"/><line x1="51" y1="30" x2="54" y2="27"/></g>` });
     default:
       return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
         `<circle cx="40" cy="28" r="8" fill="#fffdf3" stroke="#b9781a" stroke-width="1.6"/>` });
