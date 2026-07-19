@@ -852,6 +852,45 @@
         add(dialogs.returnToNandPrompt?.title, ["אתה כבר מכיר", "את כבר מכירה"]);
       });
 
+    // ---- Achievement titles (js/achievements-data.js ACHIEVEMENTS) ----
+    // The titles are gendered agent-nouns (מהנדס → מהנדסת …); descriptions use
+    // 2nd-person past verbs that are spelled the same for both genders, so only
+    // the titles need a feminine form. Keyed by id so each title gets only its
+    // own substitutions.
+    if (typeof ACHIEVEMENTS !== "undefined" && Array.isArray(ACHIEVEMENTS)) {
+      const ENG = ["מהנדס", "מהנדסת"], PRECISE = ["מדויק", "מדויקת"], THOROUGH = ["יסודי", "יסודית"],
+        CALC = ["מחשב", "מחשבת"], BOOL = ["בוליאני", "בוליאנית"], INVENT = ["ממציא", "ממציאה"], SAVE = ["שומר", "שומרת"];
+      const femTitle = {
+        "card-creator": [["יוצר", "יוצרת"]],
+        "boolean-engineer": [ENG, BOOL],
+        "routing-engineer": [ENG],
+        "bus-engineer": [ENG],
+        "calculator": [CALC],
+        "arith-engineer": [ENG],
+        "equipment-destroyer": [["משחית", "משחיתת"]],
+        "precise-engineer": [ENG, PRECISE],
+        "precise-boolean-engineer": [ENG, BOOL, PRECISE],
+        "precise-routing-engineer": [ENG, PRECISE],
+        "precise-bus-engineer": [ENG, PRECISE],
+        "precise-arith-engineer": [ENG, PRECISE],
+        "thorough-engineer": [ENG, THOROUGH],
+        "precise-calc": [CALC, PRECISE],
+        "thorough-calc": [CALC, THOROUGH],
+        "very-thorough-calc": [CALC, THOROUGH],
+        "thorough-precise-calc": [CALC, THOROUGH, PRECISE],
+        "card-inventor": [INVENT],
+        "card-saver": [SAVE],
+        "card-necromancer": [["טוען", "טוענת"]],
+        "connected": [["מחובר", "מחוברת"]],
+        "progress-saver": [SAVE],
+        "useful-inventor": [INVENT, ["שימושי", "שימושית"]],
+        "scholar": [["למדן", "למדנית"]],
+        "curious": [["סקרן", "סקרנית"]]
+        // progress-necromancer ("מעלה מן האוב") reads the same for both genders.
+      };
+      ACHIEVEMENTS.forEach((a) => { if (femTitle[a.id]) add(a.title, ...femTitle[a.id]); });
+    }
+
     __feminineTextMap = m;
     return m;
   }
@@ -1461,7 +1500,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements", "chapters"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -2044,11 +2083,6 @@
   function isSkipDisabled() {
     if (state.screen === "workspace") return workspaceSkipDisabled();
     if (state.screen !== "story") return true;
-
-    // The two library slides (the exterior and the notebook slide) keep the
-    // learner in the library sequence — no skipping past either of them.
-    if (panelImageName(currentPanel()) === "panel100_chapter_2_5_library.svg") return true;
-    if (panelHotspots(currentPanel()).some((h) => h.action === "stone-millis-book")) return true;
 
     const chapter = currentChapter();
     // A skip that leads nowhere (worktable notes, the closing wordless slide) is
@@ -2688,6 +2722,10 @@
 
   function renderExplanationsMenu() {
     syncExplanationUnlocks();
+    // "חזרה למשחק" when the menu was opened from within the game; otherwise it
+    // returns to the main menu, so label it accordingly.
+    const explBackLabel = IN_GAME_SCREENS.includes(state.explanationsReturnTo && state.explanationsReturnTo.screen)
+      ? "חזרה למשחק" : "חזרה לתפריט הראשי";
     const cell = (list) => (list.map(explanationItemHtml).join("") || '<span class="expl-empty" aria-hidden="true"></span>');
     const rows = EXPLANATION_SECTIONS.map((sec) => `
       <div class="expl-section-title">${esc(sec.title)}</div>
@@ -2697,6 +2735,7 @@
       ${topbar()}
       <main class="screen menu-screen explanations-screen">
         <section class="menu-card explanations-card">
+          <div class="page-return-top"><button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button></div>
           <h1>הסברים</h1>
           <div class="explanations-table">
             <div class="expl-corner" aria-hidden="true"></div>
@@ -2705,7 +2744,7 @@
             ${rows}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
-            <button class="btn" data-action="explanations-return" type="button" style="background:#5b4328;color:#fff8ec;border-color:#3f2d19;min-width:12rem;">חזרה למשחק</button>
+            <button class="btn return-to-game-btn" data-action="explanations-return" type="button">${explBackLabel}</button>
           </div>
         </section>
         ${renderExplRoutingInfoDialog()}
@@ -2947,8 +2986,8 @@
       <div class="achv-item${locked ? " achv-locked" : ""}">
         <div class="achv-icon">${renderAchievementIcon(a.id)}</div>
         <div class="achv-text">
-          <div class="achv-title">${esc(a.title)}</div>
-          ${a.description ? `<div class="achv-desc">${esc(a.description)}</div>` : ""}
+          <div class="achv-title">${esc(adaptGender(a.title))}</div>
+          ${a.description ? `<div class="achv-desc">${esc(adaptGender(a.description))}</div>` : ""}
         </div>
       </div>`;
     const column = (cat, title) => {
@@ -3222,7 +3261,10 @@
     app.innerHTML = `
       ${topbar()}
       <main class="screen chapters-screen">
-        <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
+        <div class="chapters-layout">
+          <div class="page-return-top">${pageBackButton()}</div>
+          <section class="chapters-card parts-card">${partSections}${fallbackSection}</section>
+        </div>
       </main>`;
   }
 
@@ -10497,6 +10539,28 @@
     setState(patch, true);
   }
 
+  // Chapter 2.5 (arithmetic) uses a milestone-based "דלג": each narrative section
+  // skips forward to the start of the next interactive milestone. Combined with
+  // the usual step-mode gate (skipTargetReached), the shortcut only lights up
+  // once the learner has NATURALLY reached that milestone; in see-everything mode
+  // it is available from the start. Milestones (by the panel a section leads to):
+  //   library slides (panel100–101)     → panel102 (first slide after the library task)
+  //   binary teaching (panel102–106)    → panel107 (where the booklet tasks appear)
+  //   booklet…handover (panel107–118)   → panel119 (where the note tasks appear)
+  function arithSkipTarget() {
+    if (currentChapter()?.id !== "chapter-8") return null;
+    const scene = currentScene();
+    if (!scene) return null;
+    const afterLibrary = panelIndexByImage(scene, "panel102_chapter_2_5_library_vn.svg");
+    const booklet = panelIndexByImage(scene, "panel107_chapter_2_5_workshop.svg");
+    const noteTasks = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
+    const p = state.panelIndex;
+    if (afterLibrary >= 0 && p < afterLibrary) return afterLibrary;
+    if (booklet >= 0 && p < booklet) return booklet;
+    if (noteTasks >= 0 && p < noteTasks) return noteTasks;
+    return null;
+  }
+
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
   // worktable — but once PAST that worktable (i.e. inside the von Neumann
   // monologue) it becomes the next-tasks worktable that closes the monologue,
@@ -10505,6 +10569,9 @@
   function skipTargetPanelIndex() {
     const scene = currentScene();
     if (!scene) return 0;
+    // Chapter 2.5: milestone-based skip target (see arithSkipTarget).
+    const arithTarget = arithSkipTarget();
+    if (arithTarget != null) return arithTarget;
     // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
@@ -11824,7 +11891,7 @@
     }
 
     if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
-    if (action === "chapters") return setState({ ...transientUiClearPatch(), screen: "chapters" });
+    if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });

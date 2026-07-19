@@ -4,6 +4,7 @@ When a question comes up during a task, do not stop and wait for an answer. Inst
 1. Open with a short, precise statement of how you understood the task.
 2. If there are several interpretations, pick the most reasonable one, state it explicitly, and carry out the task under it.
 3. Always collect all questions in one clear, separated block at the top of your response, under the heading "Questions", so I can spot them immediately.
+4. **A question must never block work you can already do.** Even when you do ask, in the SAME turn finish and commit every part of the task that must be done regardless of how the question is answered — that part is not conditional on my answer, so do it now. When one interpretation is clearly the likelier, you may also speculatively start it (after the guaranteed part is committed) and drop it only if my answer turns out different. Ask *in parallel with* doing, never *instead of* it.
 
 After each logical step check, commit and push your work and then continue to the next one, without waiting for my response.
 
