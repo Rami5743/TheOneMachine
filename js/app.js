@@ -9109,17 +9109,33 @@
     // downward with enough vertical room that their legs never overlap — wide
     // 16-bit buses run very tall, so running off-screen is fine.
     const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(baseWorkspace.taskId)] || { pins: {} };
+    // Arithmetic adder cards (Add4/Add16 …): their multi-bit buses carry NUMBERS,
+    // so the check drives each numeric input from a dec→bin converter (showing the
+    // addend) and reads each numeric output into a bin→dec converter (showing the
+    // result) INSTEAD of a source/lamp fan-out. The carry bit and any other single
+    // bit still use the plain source/lamp path.
+    const useConverters = isArithBusTask(baseWorkspace.taskId);
+    const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
     const controlIdx = spec.inputs.findIndex((input) => {
       const p = frameDef.pins[input.ref];
       return p && p.y < -150;
     });
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
+    let convInY = 120;  // stacked y for numeric-input converters
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
       if (!Number.isInteger(w)) return;
       if (w === 1) {
         if (input.bits[0]) workspace.wires.push(normalizeWire("source-1.out", ref));
+        return;
+      }
+      if (useConverters) {
+        // A dec→bin converter set to the addend value, feeding the card input.
+        const convId = `mb-in-conv-${idx}`;
+        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits) });
+        workspace.wires.push(normalizeWire(`${convId}.out`, ref));
+        convInY += 160;
         return;
       }
       const splitId = `mb-in-split-${idx}`;
@@ -9139,12 +9155,24 @@
       workspace.wires.push(normalizeWire(`${splitId}.single`, ref));
     });
 
-    // Outputs down the right side.
+    // Outputs down the right side. `outChecks` records how each output is
+    // verified: a bin→dec converter's decimal value (numeric arith buses) or a
+    // group of lamps (single bits and non-arith buses).
     const lampGroups = [];
+    const outChecks = [];
     spec.outputs.forEach((output, idx) => {
       const ref = `task-card-1.${output.ref}`;
       const w = pinWidth(workspace, ref);
       const cy = 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
+      if (useConverters && Number.isInteger(w) && w > 1) {
+        // A bin→dec converter displaying the numeric result of this output bus.
+        const convId = `mb-out-conv-${idx}`;
+        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy });
+        workspace.wires.push(normalizeWire(ref, `${convId}.in`));
+        lampGroups.push([]);
+        outChecks.push({ kind: "converter", converterId: convId, expected: bitsToDecimal(output.expected) });
+        return;
+      }
       const groupLamps = [];
       if (!Number.isInteger(w) || w === 1) {
         const lampId = `mb-out-${idx}-lamp-0`;
@@ -9166,8 +9194,9 @@
         }
       }
       lampGroups.push(groupLamps);
+      outChecks.push({ kind: "lamp", lamps: groupLamps, expected: output.expected });
     });
-    return { workspace, lampGroups };
+    return { workspace, lampGroups, outChecks };
   }
 
   function runMultibitTestCase(baseWorkspace, caseIndex) {
@@ -9177,13 +9206,20 @@
     if (caseIndex >= cases.length) return showNotTestResult("success", baseWorkspace, def.id);
 
     const spec = multibitCaseSpec(def.id, cases[caseIndex]);
-    const { workspace, lampGroups } = multibitTestHarnessWorkspace(baseWorkspace, spec);
+    const { workspace, outChecks } = multibitTestHarnessWorkspace(baseWorkspace, spec);
     setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
 
     notTestTimer = window.setTimeout(() => {
       const evaluation = evaluateWorkspaceBits(workspace);
-      const ok = spec.outputs.every((output, idx) =>
-        output.expected.every((bit, i) => Boolean(evaluation.lamps.get(lampGroups[idx][i])) === Boolean(bit)));
+      // A numeric output passes when its bin→dec converter shows the expected
+      // decimal; a lamp output passes bit-for-bit.
+      const ok = outChecks.every((chk) => {
+        if (chk.kind === "converter") {
+          const info = evaluation.converters && evaluation.converters.get(chk.converterId);
+          return Boolean(info) && Number(info.value) === Number(chk.expected);
+        }
+        return chk.expected.every((bit, i) => Boolean(evaluation.lamps.get(chk.lamps[i])) === Boolean(bit));
+      });
       if (!ok) return showNotTestResult("failure", workspace, def.id);
       // Re-harness the NEXT case from the pristine learner circuit (see the bus
       // check note), so harnesses don't pile up.
