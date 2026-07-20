@@ -1090,8 +1090,16 @@
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
+    const here = chapterIndexById(state.chapterId);
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
+      // A card built in a LATER chapter (reached by jumping ahead) is hidden;
+      // this-or-earlier-chapter cards stay available. Cards with no recorded
+      // chapter (older saves) are always shown.
+      .filter((card) => {
+        const ci = typeof card.chapter === "string" ? chapterIndexById(card.chapter) : -1;
+        return !(Number.isInteger(ci) && ci >= 0 && Number.isInteger(here) && here >= 0 && ci > here);
+      })
       .map((card) => ({ type: card.type, label: card.name }));
   }, splitterAvailable: () => {
     // The splitter (and its mirrored "merger") is introduced in chapter 2.4
@@ -1877,40 +1885,35 @@
     return chapterIndexById(state.chapterId) > chapterIndexById(simpleGatesChapter().id);
   }
 
+  // Which built-in gate cards the palette offers, keyed off the CURRENT chapter
+  // rather than the raw unlock state:
+  //   • every card belonging to an EARLIER chapter is offered (whether or not it
+  //     was actually built — you may have skipped ahead), so an earlier card is
+  //     always reusable;
+  //   • cards belonging to the CURRENT chapter appear only once actually built
+  //     (a card cleared from its note drops back out);
+  //   • cards belonging to a LATER chapter never appear (even if you jumped ahead
+  //     and built them).
+  // Each task group is tagged with the chapter it is introduced in.
+  const GATE_TOOL_GROUPS = [
+    { chapter: "chapter-5", ids: () => TASK_DEFS.map((t) => t.id) },
+    { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
+    { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+  ];
   function toolbarGateToolIds() {
-    if (!isPastSimpleGatesChapter()) return completedTaskIds();
-    // In chapter 2.3+: all the 2.2 gates, plus routing cards (MUX/DMUX) and 2.4
-    // bus cards that have a placeable gate (Not4 …).
-    const routingIds = ROUTING_TASK_DEFS.map((task) => task.id);
-    const busIds = BUS_TASK_DEFS
-      .map((task) => task.id)
-      .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    // Arith cards that have a placeable gate (halfAdder, reused inside fullAdder).
-    const arithIds = ARITH_TASKS
-      .map((task) => task.id)
-      .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    const arithCompleted = arithIds.filter(taskCompleted);
-    // In the multi-bit routing build (chapter 2.5) EVERY earlier-chapter card is
-    // offered even if the learner skipped ahead and never built it — otherwise
-    // the task (which needs MUX16/DMUX) would be impossible. The 2.5 free-build
-    // table (the workshop worktable) follows the same rule for earlier chapters.
-    // The arith cards, though, belong to THIS chapter (2.5): they respect
-    // completion so that clearing the arith note drops the cards it built out of
-    // the palette until they are rebuilt (a locked card can't be reached anyway).
-    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
+    if (isNandPresentationWorkspace()) return [];
+    const here = chapterIndexById(state.chapterId);
+    if (!Number.isInteger(here) || here < 0) return completedTaskIds();
+    const out = [];
+    for (const group of GATE_TOOL_GROUPS) {
+      const gi = chapterIndexById(group.chapter);
+      if (!Number.isInteger(gi) || gi < 0) continue;
+      if (gi < here) out.push(...group.ids());                         // earlier chapters: every card
+      else if (gi === here) out.push(...group.ids().filter(taskCompleted)); // this chapter: only what is built
+      // later chapters: nothing
     }
-    // Building an arith card (halfAdder / fullAdder) on the 2.5 worktable: every
-    // card from an EARLIER stage is offered even if the learner skipped it (so
-    // clearing this note's progress does not strip the palette down to the basic
-    // gates), plus the arith cards actually built in this stage — a cleared arith
-    // card drops out because it is no longer completed.
-    if (isArithTask(state.workspace?.taskId)) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
-    }
-    const routingCompleted = routingIds.filter(taskCompleted);
-    const busCompleted = busIds.filter(taskCompleted);
-    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted, ...arithCompleted];
+    return out;
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -5825,11 +5828,17 @@
     const outputs = [];
     for (let i = 0; i < nOut; i += 1) outputs.push(Math.round(Number((cc.outputWidths || [])[i]) || 1));
     const id = state.nextSavedCardId || ((state.savedCards || []).length + 1);
+    // The chapter the card was built in — editing keeps the original; a new card
+    // takes the current chapter. Drives whether it shows in the palette after
+    // jumping between chapters (see savedCardTools).
+    const editingCard = cc.editingType ? (state.savedCards || []).find((c) => c.type === cc.editingType) : null;
+    const chapter = editingCard && typeof editingCard.chapter === "string" ? editingCard.chapter : state.chapterId;
     return {
       // Editing keeps the card's existing type so every placed instance and
       // dependent card keeps pointing at it.
       type: cc.editingType || `${SAVED_CARD_PREFIX}${id}`,
       name: String(cc.name || "").trim(),
+      chapter,
       inputs,
       outputs,
       logic: {
