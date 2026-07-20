@@ -250,9 +250,20 @@
     "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 }
   };
 
-  // The chapter 2.5 arithmetic worktable (panel119, index 19) — the post-von
-  // Neumann worktable that carries the tasks note.
-  const ARITH_WORKTABLE_INDEX = 19;
+  // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
+  // worktable that carries the tasks note. Resolved live from the panel's image
+  // (via the APP bridge) so it never goes stale when slides are inserted; the
+  // constant is only a last-resort fallback.
+  const ARITH_WORKTABLE_INDEX_FALLBACK = 21;
+  function arithWorktableIndex() {
+    try {
+      if (typeof APP !== "undefined" && APP.panelIndexByImage) {
+        const i = APP.panelIndexByImage("arithmetic", "panel119_chapter_2_5_worktable.svg");
+        if (Number.isInteger(i) && i >= 0) return i;
+      }
+    } catch (e) {}
+    return ARITH_WORKTABLE_INDEX_FALLBACK;
+  }
 
   function openFreeWorkspace(kind = "chapter-5") {
     const state = readState();
@@ -264,7 +275,7 @@
     // (bitsRangeSeen), returns to the arithmetic worktable that carries the tasks
     // note (panel119) rather than the pre-entrance workshop slide.
     const returnPanel = (kind === "binary-workshop" && state.bitsRangeSeen)
-      ? ARITH_WORKTABLE_INDEX
+      ? arithWorktableIndex()
       : (Number.isInteger(state.panelIndex) ? state.panelIndex : target.panelIndex);
     state.screen = "workspace";
     state.chapterId = target.chapterId;

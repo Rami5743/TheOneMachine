@@ -3045,6 +3045,14 @@
         requestAnimationFrame(() => playAchievementUnlockAnimation(id));
       }
     };
+    // A bridge for warehouse-hotspots.js so it can resolve a panel's live index by
+    // image name instead of hardcoding one that breaks when slides are inserted.
+    APP.panelIndexByImage = (sceneId, filename) => {
+      try {
+        const scene = typeof SCENES !== "undefined" ? SCENES[sceneId] : null;
+        return scene ? panelIndexByImage(scene, filename) : -1;
+      } catch { return -1; }
+    };
     // A bridge for the cloud module (js/auth.js): swap the running game state to
     // the one pulled from the signed-in user's cloud copy, in place and WITHOUT
     // a page reload (a reload here used to loop). Returns true on success.
