@@ -656,6 +656,7 @@
     explRoutingInfo: null,
     componentMonologue: null,
     converterInfo: null,
+    converterValueEdit: null,
     busesEquipmentSeen: [],
     arithConvertersSeen: [],
     busesNoteList: false,
@@ -1317,6 +1318,7 @@
       infoDialog: null,
       componentMonologue: null,
       converterInfo: null,
+      converterValueEdit: null,
       busesNoteList: false,
       arithNoteList: false,
       panelAnswer: null,
@@ -1442,7 +1444,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3336,6 +3338,32 @@
           </div>
           <div class="bit-actions">
             <button class="btn btn-primary" data-action="converter-info-ok" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // The dec→bin converter's "type a number" dialog (opened by double-clicking it),
+  // styled to match the game instead of a raw browser prompt.
+  function renderConverterValueDialog() {
+    if (!state.converterValueEdit) return "";
+    const edit = state.converterValueEdit;
+    const comp = componentById(state.workspace, edit.componentId);
+    const w = comp ? converterFixedWidth(comp) : null;
+    const range = Number.isInteger(w) ? `0–${Math.pow(2, w) - 1}` : null;
+    return `
+      <div class="bit-overlay" role="presentation">
+        <section class="bit-card converter-value-card" role="dialog" aria-modal="true" aria-label="הזנת מספר">
+          <div class="converter-value-body">
+            <p>${esc("איזה מספר עשרוני להתאים על הגלגלים?")}</p>
+            <input class="converter-value-input" type="text" inputmode="numeric" autocomplete="off"
+              value="${esc(String(edit.value == null ? "" : edit.value))}" aria-label="מספר עשרוני" />
+            ${range ? `<p class="converter-value-hint">${esc(`טווח הבס המחובר: ${range}`)}</p>` : ""}
+            ${edit.error ? `<p class="converter-value-error">${esc(edit.error)}</p>` : ""}
+          </div>
+          <div class="bit-actions">
+            <button class="btn btn-primary" data-action="converter-value-ok" type="button">אישור</button>
+            <button class="btn" data-action="converter-value-cancel" type="button">ביטול</button>
           </div>
         </section>
       </div>`;
@@ -5561,6 +5589,7 @@
       ${renderWorkspaceAccidentModal()}
       ${renderNotTestResultDialog()}
       ${renderHintDialog()}
+      ${renderConverterValueDialog()}
       ${renderInfoDialog()}`;
     if (prevToolboxScroll) {
       const list = app.querySelector(".toolbox-list");
@@ -11074,19 +11103,38 @@
   // Double click on a converter: type the number directly. Rejects a value that
   // is too big for the connected bus.
   function editConverterValue(componentId) {
-    const workspace = state.workspace;
-    const comp = componentById(workspace, componentId);
+    const comp = componentById(state.workspace, componentId);
     if (!comp || comp.type !== "converter-out") return;
-    const w = converterFixedWidth(comp);
     const current = Math.max(0, Math.floor(Number(comp.value) || 0));
-    const raw = window.prompt("הקלד מספר עשרוני:", String(current));
-    if (raw == null) return;
-    const nv = Math.max(0, Math.floor(Number(String(raw).trim())));
-    if (!Number.isFinite(nv)) return setState({ infoDialog: "צריך להקליד מספר." });
-    if (w != null && nv > Math.pow(2, w) - 1) {
-      return setState({ infoDialog: "המספר גדול מדי לרוחב הבס." });
+    // Open the in-game number pad (styled to match the game) rather than a raw
+    // browser prompt.
+    setState({ converterValueEdit: { componentId, value: String(current), error: null } }, false);
+  }
+
+  function closeConverterValueEdit() {
+    setState({ converterValueEdit: null }, false);
+  }
+
+  // Commit the number typed into the converter's edit dialog: reject non-numbers
+  // and values too big for the connected bus, else set the value and close.
+  function commitConverterValue() {
+    const edit = state.converterValueEdit;
+    if (!edit) return;
+    const comp = componentById(state.workspace, edit.componentId);
+    if (!comp || comp.type !== "converter-out") return setState({ converterValueEdit: null }, false);
+    const box = app.querySelector(".converter-value-input");
+    const raw = box ? box.value : edit.value;
+    const trimmed = String(raw == null ? "" : raw).trim();
+    if (!/^\d+$/.test(trimmed)) {
+      return setState({ converterValueEdit: { ...edit, value: trimmed, error: "צריך להקליד מספר שלם." } }, false);
     }
-    withWorkspace((ws) => { const c = componentById(ws, componentId); if (c) c.value = nv; });
+    const nv = Math.max(0, Math.floor(Number(trimmed)));
+    const w = converterFixedWidth(comp);
+    if (w != null && nv > Math.pow(2, w) - 1) {
+      return setState({ converterValueEdit: { ...edit, value: trimmed, error: "המספר גדול מדי לרוחב הבס." } }, false);
+    }
+    withWorkspace((ws) => { const c = componentById(ws, edit.componentId); if (c) c.value = nv; });
+    setState({ converterValueEdit: null }, false);
   }
 
   function deleteWorkspaceComponent(id) {
@@ -12122,6 +12170,23 @@
     saveState();
   });
 
+  // Keep the converter number box's typed value in state (no re-render, so focus
+  // and caret are preserved), and clear any stale error as the learner retypes.
+  document.addEventListener("input", (event) => {
+    if (!state.converterValueEdit) return;
+    const box = event.target.closest && event.target.closest(".converter-value-input");
+    if (!box) return;
+    state.converterValueEdit = { ...state.converterValueEdit, value: box.value, error: null };
+    saveState();
+  });
+
+  // Enter commits the converter number, Escape cancels.
+  document.addEventListener("keydown", (event) => {
+    if (!state.converterValueEdit) return;
+    if (event.key === "Enter") { event.preventDefault(); commitConverterValue(); }
+    else if (event.key === "Escape") { event.preventDefault(); closeConverterValueEdit(); }
+  });
+
   // Close the pin-width box only when its focus leaves (a click elsewhere), then
   // re-render so the pin shows its new width. The width was committed live on
   // input, so nothing is lost.
@@ -12287,6 +12352,11 @@
       return;
     }
 
+    if (state.converterValueEdit && !isGlobalNavigationAction(action) && !["converter-value-ok", "converter-value-cancel"].includes(action)) {
+      event.preventDefault();
+      return;
+    }
+
     if (state.hintDialog && !isGlobalNavigationAction(action) && !["hint-close", "hint-select", "hint-apply", "hint-solution", "show-task-solution"].includes(action)) {
       event.preventDefault();
       return;
@@ -12366,6 +12436,8 @@
     if (action === "arith-converter-in") return openConverterInfo("in");
     if (action === "arith-converter-out") return openConverterInfo("out");
     if (action === "converter-info-ok") return closeConverterInfo();
+    if (action === "converter-value-ok") return commitConverterValue();
+    if (action === "converter-value-cancel") return closeConverterValueEdit();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     // Opening any explanation from the הסברים menu earns "למדן".

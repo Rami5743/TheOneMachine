@@ -304,13 +304,30 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const screenW = Math.max(1, n) * g.glyphW + (Math.max(1, n) - 1) * g.gap + g.padX * 2;
     return screenW / 2 + g.margin;
   }
-  // The binary↔decimal converter schematic. A cream casing with a dark digit
-  // screen and one bus stub — on the LEFT for bin→dec ("in": reads a bus, shows
-  // its decimal value) or on the RIGHT for dec→bin ("out": set the digits, emits
-  // a bus). Centred on the origin; returns inner markup (wrap in <svg> for a
-  // dialog, or a board <g transform> for a placed component). `digits` is the
-  // display string. Each digit is a tall, neutral-grey 7-segment glyph that fills
-  // almost the whole screen height. Placed dec→bin converters are interactive.
+  // One mechanical counter (odometer) wheel filling a cell (top-left x0,y0; size
+  // W×H). The set digit sits centred in a plain serif face, with its neighbours
+  // peeking above/below to suggest a wheel you rotate. The housing strips that
+  // clip those neighbours are drawn once by the caller (across the whole row).
+  function counterWheelGlyph(ch, x0, y0, W, H) {
+    const cx = x0 + W / 2, cy = y0 + H / 2;
+    const nv = /[0-9]/.test(ch) ? Number(ch) : 0;
+    const up = (nv + 1) % 10, dn = (nv + 9) % 10;
+    const fs = Math.round(H * 0.42), step = Math.round(H * 0.36);
+    const face = "#efe9d8", edge = "#b3a47e", ink = "#2b2620";
+    const dig = (v, yy, op) => `<text x="${cx}" y="${yy}" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="${fs}" fill="${ink}"${op < 1 ? ` opacity="${op}"` : ""}>${v}</text>`;
+    return (
+      `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" rx="3" fill="${face}" stroke="${edge}" stroke-width="1" />` +
+      dig(up, cy - step, 0.32) + dig(dn, cy + step, 0.32) + dig(nv, cy, 1)
+    );
+  }
+
+  // The binary↔decimal converter schematic. A cream casing with one bus stub — on
+  // the LEFT for bin→dec ("in") or the RIGHT for dec→bin ("out"). Centred on the
+  // origin; returns inner markup (wrap in <svg> for a dialog, or a board
+  // <g transform> for a placed component). The bin→dec reader shows its value on a
+  // neutral-grey 7-segment screen; the dec→bin setter shows editable mechanical
+  // counter wheels (plain digits) you click to rotate. Placed dec→bin converters
+  // are interactive.
   function converterMarkup(dir, options = {}) {
     const digits = String(options.digits != null ? options.digits : "00000");
     const n = Math.max(1, digits.length);
@@ -322,16 +339,35 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const ext = g.ext, half = g.half;
     const clickable = dir === "out" && options.interactive;
     const cid = options.componentId ? esc(options.componentId) : "";
-    // Cream casing + inset dark screen.
+    // Cream casing.
     let s = `<rect x="${-edge}" y="${-H / 2}" width="${W}" height="${H}" rx="8" fill="#efe7d2" stroke="#2b2b2b" stroke-width="3" />`;
-    s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#141416" stroke="#000" stroke-width="1.5" />`;
-    for (let i = 0; i < n; i++) {
-      const x0 = dx0 + i * (glyphW + gap);
-      s += sevenSegGlyph(digits[i], x0, -glyphH / 2, glyphW, glyphH, t);
+    if (dir === "out") {
+      // Recessed housing that the wheels turn inside.
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#c9bd9a" stroke="#8a7c58" stroke-width="1.5" />`;
+      const wheelTop = -glyphH / 2;
+      for (let i = 0; i < n; i++) {
+        const x0 = dx0 + i * (glyphW + gap);
+        s += counterWheelGlyph(digits[i], x0, wheelTop, glyphW, glyphH);
+      }
+      // Housing lips (same colour as the recess) clip the neighbour digits top and
+      // bottom, leaving a window that reads like an odometer slot.
+      const lip = screenH * 0.27;
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${lip}" fill="#c9bd9a" />`;
+      s += `<rect x="${-screenW / 2}" y="${screenH / 2 - lip}" width="${screenW}" height="${lip}" fill="#c9bd9a" />`;
+      s += `<line x1="${-screenW / 2}" y1="${-screenH / 2 + lip}" x2="${screenW / 2}" y2="${-screenH / 2 + lip}" stroke="#00000026" stroke-width="1" />`;
+      s += `<line x1="${-screenW / 2}" y1="${screenH / 2 - lip}" x2="${screenW / 2}" y2="${screenH / 2 - lip}" stroke="#ffffff30" stroke-width="1" />`;
       if (clickable) {
-        // A transparent hit-area over the whole cell so a click anywhere on the
-        // digit bumps it (single click) or opens the text box (double click).
-        s += `<rect x="${x0 - gap / 2}" y="${-screenH / 2}" width="${glyphW + gap}" height="${screenH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
+        for (let i = 0; i < n; i++) {
+          const x0 = dx0 + i * (glyphW + gap);
+          s += `<rect x="${x0 - gap / 2}" y="${-screenH / 2}" width="${glyphW + gap}" height="${screenH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
+        }
+      }
+    } else {
+      // bin→dec reader: neutral-grey 7-segment digits on a dark screen.
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#141416" stroke="#000" stroke-width="1.5" />`;
+      for (let i = 0; i < n; i++) {
+        const x0 = dx0 + i * (glyphW + gap);
+        s += sevenSegGlyph(digits[i], x0, -glyphH / 2, glyphW, glyphH, t);
       }
     }
     // The bus stub (thick dashed bar), left for "in", right for "out".
