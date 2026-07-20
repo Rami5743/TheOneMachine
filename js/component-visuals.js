@@ -263,30 +263,65 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       </g>`;
   }
 
-  // The binary↔decimal converter schematic. A 5:2 box with 6 decimal digit
-  // windows and one bus stub — on the LEFT for bin→dec ("in": reads a bus, shows
+  // Which of the seven segments (a top, b top-right, c bottom-right, d bottom,
+  // e bottom-left, f top-left, g middle) light up for each decimal digit. A
+  // primitive 7-segment display: "8" uses all seven lamps, "0" uses six (no g).
+  const SEVEN_SEG = {
+    "0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc",
+    "5": "afgcd", "6": "afgedc", "7": "abc", "8": "abcdefg", "9": "abcdfg"
+  };
+
+  // One 7-segment glyph filling a tall cell (top-left x0,y0; size W×H). Lit lamps
+  // use a neutral grey; unlit lamps stay a barely-there ghost so the figure-8
+  // grid reads. Returns the seven <rect> segments.
+  function sevenSegGlyph(ch, x0, y0, W, H, t) {
+    const on = SEVEN_SEG[String(ch)] || "";
+    const lit = "#cfcfd2", dim = "#26262b";
+    const col = (k) => (on.indexOf(k) >= 0 ? lit : dim);
+    const midY = y0 + H / 2;
+    const hx = x0 + t * 0.7, hw = W - t * 1.4;      // horizontal segment span
+    const vh = H / 2 - t * 1.3;                       // vertical segment length
+    const hseg = (yy, k) => `<rect x="${hx}" y="${yy - t / 2}" width="${hw}" height="${t}" rx="${t / 2}" fill="${col(k)}" />`;
+    const vseg = (xx, yy, k) => `<rect x="${xx - t / 2}" y="${yy}" width="${t}" height="${vh}" rx="${t / 2}" fill="${col(k)}" />`;
+    return (
+      hseg(y0, "a") +                                 // a: top
+      hseg(midY, "g") +                               // g: middle
+      hseg(y0 + H, "d") +                             // d: bottom
+      vseg(x0, y0 + t * 0.7, "f") +                   // f: upper-left
+      vseg(x0 + W, y0 + t * 0.7, "b") +               // b: upper-right
+      vseg(x0, midY + t * 0.6, "e") +                 // e: lower-left
+      vseg(x0 + W, midY + t * 0.6, "c")               // c: lower-right
+    );
+  }
+
+  // The binary↔decimal converter schematic. A cream casing with a dark digit
+  // screen and one bus stub — on the LEFT for bin→dec ("in": reads a bus, shows
   // its decimal value) or on the RIGHT for dec→bin ("out": set the digits, emits
   // a bus). Centred on the origin; returns inner markup (wrap in <svg> for a
   // dialog, or a board <g transform> for a placed component). `digits` is the
-  // 6-char display string; `active` marks the digit index being edited (dec→bin).
+  // display string. Each digit is a tall, neutral-grey 7-segment glyph that fills
+  // almost the whole screen height. Placed dec→bin converters are interactive.
   function converterMarkup(dir, options = {}) {
     const digits = String(options.digits != null ? options.digits : "000000");
     const n = Math.max(1, digits.length);
-    const dw = 24, gap = 4, pad = 22, dh = 28, dy = -14;
-    const dtot = n * dw + (n - 1) * gap;
-    const W = dtot + pad * 2, H = 80, edge = W / 2, dx0 = -dtot / 2;
+    const glyphW = 26, glyphH = 64, t = 5, gap = 9, padX = 12, screenPadY = 4, margin = 8;
+    const dtot = n * glyphW + (n - 1) * gap;
+    const screenW = dtot + padX * 2, screenH = glyphH + screenPadY * 2;
+    const W = screenW + margin * 2, H = 80, edge = W / 2, dx0 = -dtot / 2;
     const ext = 46, half = 5.5;
-    // Placed dec→bin converters are interactive (click a digit to change it).
     const clickable = dir === "out" && options.interactive;
     const cid = options.componentId ? esc(options.componentId) : "";
+    // Cream casing + inset dark screen.
     let s = `<rect x="${-edge}" y="${-H / 2}" width="${W}" height="${H}" rx="8" fill="#efe7d2" stroke="#2b2b2b" stroke-width="3" />`;
+    s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#141416" stroke="#000" stroke-width="1.5" />`;
     for (let i = 0; i < n; i++) {
-      const dxi = dx0 + i * (dw + gap);
-      const ch = digits[i];
-      const on = clickable ? ` data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}"` : "";
-      const cursor = clickable ? ' style="cursor:pointer"' : "";
-      s += `<rect x="${dxi}" y="${dy}" width="${dw}" height="${dh}" rx="2" fill="#20241c" stroke="#000" stroke-width="1.2"${on}${cursor} />`;
-      s += `<text x="${dxi + dw / 2}" y="${dy + dh / 2 + 7}" text-anchor="middle" font-family="'Courier New',monospace" font-size="20" font-weight="900" fill="#8fe36a"${on}${cursor}>${ch}</text>`;
+      const x0 = dx0 + i * (glyphW + gap);
+      s += sevenSegGlyph(digits[i], x0, -glyphH / 2, glyphW, glyphH, t);
+      if (clickable) {
+        // A transparent hit-area over the whole cell so a click anywhere on the
+        // digit bumps it (single click) or opens the text box (double click).
+        s += `<rect x="${x0 - gap / 2}" y="${-screenH / 2}" width="${glyphW + gap}" height="${screenH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
+      }
     }
     // The bus stub (thick dashed bar), left for "in", right for "out".
     const bx1 = dir === "in" ? -edge - ext : edge;

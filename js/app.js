@@ -3324,7 +3324,7 @@
         <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="ממיר">
           <div class="component-monologue-body">
             <p>${esc(adaptGender(text))}</p>
-            <svg class="converter-schematic" viewBox="-150 -62 300 124" width="300" height="124" xmlns="http://www.w3.org/2000/svg">${converterMarkup(dir)}</svg>
+            <svg class="converter-schematic" viewBox="-178 -56 356 112" width="356" height="112" xmlns="http://www.w3.org/2000/svg">${converterMarkup(dir)}</svg>
           </div>
           <div class="bit-actions">
             <button class="btn btn-primary" data-action="converter-info-ok" type="button">הבנתי</button>
