@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
    width="1448"
    height="1086"
@@ -7,12 +15,18 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    sodipodi:docname="panel119_chapter_2_5_worktable.svg"
-   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata21">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
   <defs
      id="defs1" />
   <sodipodi:namedview
@@ -24,31 +38,33 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.63971743"
-     inkscape:cx="678.42454"
-     inkscape:cy="521.32393"
+     inkscape:zoom="2.0270262"
+     inkscape:cx="-8.4031168"
+     inkscape:cy="479.11779"
      inkscape:current-layer="svg1"
      inkscape:window-width="1920"
-     inkscape:window-height="1017"
-     inkscape:window-x="1432"
-     inkscape:window-y="879"
-     inkscape:window-maximized="1" />
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     showgrid="false" />
   <image
+     sodipodi:absref="C:\Users\Rami\Weizmann Institute Dropbox\AvrahamRami Aizenbud\Extracurricular\nand2tetris4kids\New folder\../Working_version/assets/panels/panel119_chapter_2_5_worktable.jpg"
+     xlink:href="../Working_version/assets/panels/panel119_chapter_2_5_worktable.jpg"
      id="raster-base"
      x="0"
      y="0"
      width="1448"
      height="1086"
      preserveAspectRatio="none"
-     href="panel119_chapter_2_5_worktable.jpg"
-     xlink:href="panel119_chapter_2_5_worktable.jpg" />
+     href="panel119_chapter_2_5_worktable.jpg" />
   <rect
      id="hotspot-table"
      data-hotspot="table"
      data-label="שולחן עבודה"
      class="hotspot hotspot-table"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#37d67a;stroke-width:0.973241"
+     style="opacity:0;fill:#37d67a;stroke-width:0.973241"
      x="174.91672"
      y="582.71039"
      width="1007.1271"
@@ -64,7 +80,7 @@
      data-aria-label="פתק המשימות"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.225071;fill:#ff2fb0;stroke-width:0.686135"
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.686135"
      x="336.84845"
      y="716.44012"
      width="120.00134"
@@ -76,7 +92,7 @@
      data-aria-label="חוברת התרגילים"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#ff2fb0"
+     style="opacity:0;fill:#ff2fb0"
      x="853.63202"
      y="804.38202"
      width="165.07201"
@@ -88,7 +104,7 @@
      data-aria-label="הקש על Nand"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#ff2fb0;stroke-width:0.95343"
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.95343"
      x="594.71997"
      y="635.26471"
      width="250.91205"
@@ -100,7 +116,7 @@
      data-aria-label="האגף הימני של הארגז החדש"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#ffb000;stroke-width:1.11838"
+     style="opacity:0;fill:#ffb000;stroke-width:1.11838"
      x="722.49213"
      y="331.60986"
      width="144.88939"
@@ -112,7 +128,7 @@
      data-aria-label="האגף השמאלי של הארגז החדש"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#ffb000"
+     style="opacity:0;fill:#ffb000"
      x="853.38153"
      y="331.60986"
      width="115.84"
@@ -124,11 +140,11 @@
      data-aria-label="הממיר העליון (בינרי לעשרוני)"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#2fd8ff"
-     x="21.72"
-     y="488.7"
-     width="144.8"
-     height="76.02" />
+     style="opacity:0;fill:#2fd8ff;stroke-width:0.77860308"
+     x="16.786663"
+     y="486.23334"
+     width="137.89334"
+     height="48.393318" />
   <rect
      id="hotspot-action-arith-converter-out"
      data-hotspot="action"
@@ -136,11 +152,11 @@
      data-aria-label="הממיר התחתון (עשרוני לבינרי)"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#2fd8ff"
-     x="0"
-     y="570.15"
-     width="217.2"
-     height="119.46" />
+     style="opacity:0;fill:#2fd8ff;stroke-width:0.46361962"
+     x="18.786663"
+     y="530.62665"
+     width="154.54663"
+     height="36.086632" />
   <!-- Reference-link object zones + the free-build worktable zone, mirrored from
        panel107 (same room). Positions are copied from there as a starting point;
        tune each in Inkscape to the new image. -->
@@ -152,7 +168,7 @@
      data-url="https://he.wikipedia.org/wiki/נורה_חשמלית"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff"
+     style="opacity:0;fill:#22a7ff"
      x="1104.9938"
      y="842.69751"
      width="319"
@@ -165,7 +181,7 @@
      data-url="https://he.wikipedia.org/wiki/טריודה"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff"
+     style="opacity:0;fill:#22a7ff"
      x="78"
      y="763"
      width="188"
@@ -178,7 +194,7 @@
      data-url="https://he.wikipedia.org/wiki/דיודה"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff"
+     style="opacity:0;fill:#22a7ff"
      x="22"
      y="838"
      width="116"
@@ -191,7 +207,7 @@
      data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff;stroke-width:0.933697"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.933697"
      x="1106.3625"
      y="573.75293"
      width="147.36246"
@@ -204,7 +220,7 @@
      data-url="https://he.wikipedia.org/wiki/מקור_מתח"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff"
+     style="opacity:0;fill:#22a7ff"
      x="1290"
      y="218"
      width="130"
@@ -217,7 +233,7 @@
      data-url="https://he.wikipedia.org/wiki/וולטמטר"
      class="hotspot hotspot-object"
      pointer-events="none"
-     style="opacity:0.22507123;fill:#22a7ff;stroke-width:0.976603"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.976603"
      x="266"
      y="823.2099"
      width="320.67651"
