@@ -1093,6 +1093,13 @@
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
       .map((card) => ({ type: card.type, label: card.name }));
+  }, splitterAvailable: () => {
+    // The splitter (and its mirrored "merger") is introduced in chapter 2.4
+    // (buses); from then on it stays in the palette for EVERY build, later
+    // chapters included — even single-bit ones.
+    const here = chapterIndexById(state.chapterId);
+    const buses = chapterIndexById("chapter-7");
+    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
   }, convertersAvailable: () => isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8") });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
