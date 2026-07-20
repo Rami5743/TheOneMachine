@@ -347,9 +347,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             if (setBits(outputs, `${component.id}.out`, outVec)) changed = true;
             continue;
           }
-          // A placeable bus-adder gate (gate-Add4): add the two width-N number
-          // buses plus the single carry-in bit. Buses are little-endian (bit 0 =
-          // units), matching add4Bits / the splitter chunks feeding it.
+          // A placeable bus-adder gate: add the two width-N number buses. Add4
+          // also adds a single-bit carry-in (in3) and emits a carry-out (out2) to
+          // chain blocks; Add16 has no carry pins — it adds mod 2^N and drops the
+          // final carry. Buses are little-endian (bit 0 = units), matching
+          // add4Bits / the splitter chunks feeding it.
           const arith = typeof arithBusGateSpec === "function" ? arithBusGateSpec(type) : null;
           if (arith) {
             const w = arith.width;
@@ -359,12 +361,12 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i);
               return n;
             };
-            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`)
-              + (inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0);
+            const carryIn = arith.carry && inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
+            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
             const sumVec = [];
             for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
             if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;
-            if (setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
+            if (arith.carry && setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
             continue;
           }
           const task = taskDefById(type.slice(5));

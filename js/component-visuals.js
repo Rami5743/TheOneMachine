@@ -93,21 +93,25 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // bus bars (thick + dashed stripe) with the width "4" labelled, while the
   // single-bit carry pins stay plain thin cables. This is the Add4-vs-fullAdder
   // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
-  // The bus-adder gate (Add4 / Add16): identical layout for both, only the bus
-  // width label differs (4 vs 16). Two number buses + a single-bit carry-in on
-  // the left; a single-bit carry-out and a bus sum on the right.
-  function addNGateMarkup(width) {
+  // The bus-adder gate. Add4 (carry=true): two number buses + a single-bit
+  // carry-in on the left; a single-bit carry-out (c) and a bus sum (s) on the
+  // right — the pins that chain the blocks. Add16 (carry=false): no carry at all,
+  // just two symmetric number buses on the left and one bus sum on the right, so
+  // it is drawn shorter on the y-axis. Only the bus width label differs (4 vs 16).
+  function addNGateMarkup(width, carry = true) {
     // Box edge at ±44 (like AND4's symbol edge) so the pins sit ENTIRELY outside
     // the box: the pin terminals are at x ±62/66, the box edge at ±44, so each
     // stub is a full-length AND4-style pin that never pokes into the box.
     const edge = 44;
     const bodyW = edge * 2;
-    // The three left pins are spaced ±52 (not ±40) so each bus pin's width label,
-    // which sits ~22px above the bar, clears the pin above it.
-    const inYs = [-52, 0, 52];
-    const outYs = [-34, 34];
+    // Pins are spaced far enough apart that each bus pin's width label, which sits
+    // ~22px above the bar, clears the pin above it. The carry variant stacks three
+    // inputs (±52); the carry-less Add16 has two symmetric inputs (±26) and one
+    // centred output, so its box is shorter.
+    const inYs = carry ? [-52, 0, 52] : [-26, 26];
+    const outYs = carry ? [-34, 34] : [0];
     // Tall enough to contain the top pin AND its width label above it.
-    const bodyH = 176;
+    const bodyH = carry ? 176 : 116;
     const inX = -62;
     const outX = 66;
     const arm = 17;
@@ -120,15 +124,22 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The full "+" mark, like the fullAdder.
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
-    // Inputs (left): two number buses + the single-bit carry-in below them.
-    s += busPin(inX, -edge, inYs[0]);
-    s += busPin(inX, -edge, inYs[1]);
-    s += cable(inX, -edge, inYs[2]);
-    // Outputs (right): carry-out (c, single bit) on top, sum (s, bus) below.
-    s += cable(edge, outX, outYs[0]);
-    s += busPin(edge, outX, outYs[1]);
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
+    if (carry) {
+      // Inputs (left): two number buses + the single-bit carry-in below them.
+      s += busPin(inX, -edge, inYs[0]);
+      s += busPin(inX, -edge, inYs[1]);
+      s += cable(inX, -edge, inYs[2]);
+      // Outputs (right): carry-out (c, single bit) on top, sum (s, bus) below.
+      s += cable(edge, outX, outYs[0]);
+      s += busPin(edge, outX, outYs[1]);
+      s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
+      s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
+    } else {
+      // Add16: two number buses in, one bus sum out — no carry pins, no letters.
+      s += busPin(inX, -edge, inYs[0]);
+      s += busPin(inX, -edge, inYs[1]);
+      s += busPin(edge, outX, outYs[0]);
+    }
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -236,8 +247,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
       if (bus) return busGateMarkup(bus, options);
       const gateTask = taskDefById(type.slice(5));
-      if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4);
-      if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16);
+      if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
+      if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
