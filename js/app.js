@@ -12632,6 +12632,11 @@
       return startSplitterResize(splitterResizeHandle.dataset.componentId, event);
     }
 
+    // Pressing a converter's counter wheel edits that digit (handled by the click
+    // handler); it must NOT start dragging the whole converter or flash its name
+    // ghost. Let the event fall through to the click without capturing it here.
+    if (event.target.closest("[data-action='converter-digit']")) return;
+
     const component = event.target.closest("[data-action='workspace-component']");
     if (component) {
       event.preventDefault();
