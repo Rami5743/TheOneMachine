@@ -82,10 +82,13 @@ function createBoardRender({
   }
 
   // The digit string shown on a placed converter: the decimal value padded to
-  // the number of digits the connected bus width allows (dynamic; ~6 unconnected).
+  // the number of digits its (fixed) bus width allows (~6 while unconnected). The
+  // count keys off component.width — the same source the bus-pin position uses —
+  // so the casing and the pin always line up. The value comes from the live
+  // evaluation (the read decimal for bin→dec; the set value for dec→bin).
   function converterDigits(component, evaluation) {
-    const info = (evaluation.converters && evaluation.converters.get(component.id)) || { value: 0, width: null };
-    const w = Number.isInteger(info.width) ? Math.min(info.width, 40) : null;
+    const info = (evaluation.converters && evaluation.converters.get(component.id)) || { value: 0 };
+    const w = Number.isInteger(component.width) && component.width >= 1 ? Math.min(component.width, 40) : null;
     const digitCount = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 6);
     const raw = String(Math.max(0, Math.floor(info.value || 0)));
     return raw.length >= digitCount ? raw : raw.padStart(digitCount, "0");

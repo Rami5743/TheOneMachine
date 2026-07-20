@@ -294,6 +294,16 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     );
   }
 
+  // Shared converter geometry so the placed pin (see converterPinX) lands exactly
+  // on the visible bus-stub tip, whatever the digit count.
+  const CONV_GEO = { glyphW: 26, glyphH: 64, t: 5, gap: 9, padX: 12, screenPadY: 4, margin: 8, ext: 46, H: 80, half: 5.5 };
+  // Half the casing width for an n-digit converter (its left/right edge from the
+  // centre).
+  function converterBodyEdge(n) {
+    const g = CONV_GEO;
+    const screenW = Math.max(1, n) * g.glyphW + (Math.max(1, n) - 1) * g.gap + g.padX * 2;
+    return screenW / 2 + g.margin;
+  }
   // The binary↔decimal converter schematic. A cream casing with a dark digit
   // screen and one bus stub — on the LEFT for bin→dec ("in": reads a bus, shows
   // its decimal value) or on the RIGHT for dec→bin ("out": set the digits, emits
@@ -304,11 +314,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function converterMarkup(dir, options = {}) {
     const digits = String(options.digits != null ? options.digits : "000000");
     const n = Math.max(1, digits.length);
-    const glyphW = 26, glyphH = 64, t = 5, gap = 9, padX = 12, screenPadY = 4, margin = 8;
+    const g = CONV_GEO;
+    const glyphW = g.glyphW, glyphH = g.glyphH, t = g.t, gap = g.gap, padX = g.padX, screenPadY = g.screenPadY;
     const dtot = n * glyphW + (n - 1) * gap;
     const screenW = dtot + padX * 2, screenH = glyphH + screenPadY * 2;
-    const W = screenW + margin * 2, H = 80, edge = W / 2, dx0 = -dtot / 2;
-    const ext = 46, half = 5.5;
+    const edge = converterBodyEdge(n), W = edge * 2, H = g.H, dx0 = -dtot / 2;
+    const ext = g.ext, half = g.half;
     const clickable = dir === "out" && options.interactive;
     const cid = options.componentId ? esc(options.componentId) : "";
     // Cream casing + inset dark screen.

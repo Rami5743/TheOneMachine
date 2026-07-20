@@ -9133,7 +9133,7 @@
       if (useConverters) {
         // A dec→bin converter set to the addend value, feeding the card input.
         const convId = `mb-in-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits) });
+        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits), width: w });
         workspace.wires.push(normalizeWire(`${convId}.out`, ref));
         convInY += 160;
         return;
@@ -9167,7 +9167,7 @@
       if (useConverters && Number.isInteger(w) && w > 1) {
         // A bin→dec converter displaying the numeric result of this output bus.
         const convId = `mb-out-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy });
+        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy, width: w });
         workspace.wires.push(normalizeWire(ref, `${convId}.in`));
         lampGroups.push([]);
         outChecks.push({ kind: "converter", converterId: convId, expected: bitsToDecimal(output.expected) });
@@ -10954,9 +10954,20 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  // A converter that is wired to nothing loses its fixed width, so it is free to
+  // adopt a different bus width next time it is connected.
+  function syncConverterWidths(workspace) {
+    for (const component of workspace.components) {
+      if (component.type !== "converter-in" && component.type !== "converter-out") continue;
+      const wired = workspace.wires.some((wire) => wire.a.startsWith(`${component.id}.`) || wire.b.startsWith(`${component.id}.`));
+      if (!wired && component.width != null) component.width = null;
+    }
+  }
+
   function withWorkspace(mutator) {
     const workspace = normalizeWorkspace(state.workspace);
     mutator(workspace);
+    syncConverterWidths(workspace);
     workspace.selectedTerminal = terminalExists(workspace, workspace.selectedTerminal) ? workspace.selectedTerminal : null;
     workspace.unlocked = true;
     workspace.accident = detectWorkspaceAccident(workspace);
@@ -11007,22 +11018,17 @@
   }
 
   // ---- dec→bin converter digit editing --------------------------------------
-  // The connected bus width (dynamic) and the resulting decimal digit count.
-  function converterConnectedWidth(componentId, workspace = state.workspace) {
-    if (!workspace) return null;
-    const ev = workspaceEvaluation(workspace);
-    const info = ev.converters && ev.converters.get(componentId);
-    return info && Number.isInteger(info.width) ? Math.min(info.width, 40) : null;
-  }
-  function converterDigitCount(width) {
-    return Math.min(12, width ? String(Math.pow(2, width) - 1).length : 6);
+  // A converter's fixed bus width (null while undetermined) — the same source
+  // the display and the pin use, so digit indices always line up.
+  function converterFixedWidth(comp) {
+    return Number.isInteger(comp?.width) && comp.width >= 1 ? comp.width : null;
   }
   // The digit string as shown (value padded to the digit count; longer if the
-  // value itself is longer). Kept identical to board-render's converterDigits.
+  // value itself is longer). Identical to board-render's converterDigits.
   function converterDisplayString(componentId, workspace = state.workspace) {
     const comp = componentById(workspace, componentId);
     const value = Math.max(0, Math.floor(Number(comp?.value) || 0));
-    const dc = converterDigitCount(converterConnectedWidth(componentId, workspace));
+    const dc = comp ? converterDisplayDigits(comp) : 6;
     const raw = String(value);
     return raw.length >= dc ? raw : raw.padStart(dc, "0");
   }
@@ -11033,7 +11039,7 @@
     const workspace = state.workspace;
     const comp = componentById(workspace, componentId);
     if (!comp || comp.type !== "converter-out") return;
-    const w = converterConnectedWidth(componentId, workspace);
+    const w = converterFixedWidth(comp);
     const ds = converterDisplayString(componentId, workspace).split("");
     const idx = Number(digitIndex);
     if (!(idx >= 0 && idx < ds.length)) return;
@@ -11051,7 +11057,7 @@
     const workspace = state.workspace;
     const comp = componentById(workspace, componentId);
     if (!comp || comp.type !== "converter-out") return;
-    const w = converterConnectedWidth(componentId, workspace);
+    const w = converterFixedWidth(comp);
     const current = Math.max(0, Math.floor(Number(comp.value) || 0));
     const raw = window.prompt("הקלד מספר עשרוני:", String(current));
     if (raw == null) return;
@@ -11145,9 +11151,39 @@
     return pins;
   }
 
+  // How many digits a converter shows: enough for its (fixed) bus width, but
+  // never fewer than the value it already holds. Drives both the rendered body
+  // width and the bus-pin position, so they always line up.
+  function converterDisplayDigits(component) {
+    const w = Number.isInteger(component?.width) && component.width >= 1 ? Math.min(component.width, 40) : null;
+    const base = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 6);
+    const value = Math.max(0, Math.floor(Number(component?.value) || 0));
+    return Math.max(base, String(value).length);
+  }
+
+  // Where a converter's bus pin sits: the tip of the drawn stub, whose distance
+  // from centre grows with the digit count. Geometry MIRRORS js/component-visuals.js
+  // converterMarkup — kept in sync so the pin lands exactly on the visible stub
+  // tip. (Inlined here, as a hoisted function, because pin resolution runs during
+  // the initial loadState — before the component-visuals wrappers initialise.)
+  function converterPinOffsetX(n) {
+    const glyphW = 26, gap = 9, padX = 12, margin = 8, ext = 46;
+    const k = Math.max(1, n);
+    const screenW = k * glyphW + (k - 1) * gap + padX * 2;
+    return screenW / 2 + margin + ext;
+  }
+  // Converter pins are dynamic: the single bus pin sits at the tip of the stub,
+  // which moves as the digit count (hence casing width) changes.
+  function converterPins(component) {
+    const px = converterPinOffsetX(converterDisplayDigits(component));
+    if (component.type === "converter-out") return { out: { x: px, y: 0, direction: "out", label: "יציאת הבס" } };
+    return { in: { x: -px, y: 0, direction: "in", label: "כניסת הבס" } };
+  }
+
   function componentPins(component) {
     if (component?.type === "splitter") return splitterPins(component);
     if (component?.type === "cardFrame") return cardFramePins();
+    if (component?.type === "converter-in" || component?.type === "converter-out") return converterPins(component);
     return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
   }
 
@@ -11346,10 +11382,13 @@
   function pinWidth(workspace, ref) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
-    // Converter pins have NO intrinsic width: they adopt whatever bus they are
-    // wired to (null → wireWidthLegal accepts any bus, and connectedWidth reads
-    // the real width from the other end).
-    if (info.component.type === "converter-in" || info.component.type === "converter-out") return null;
+    // A converter's width is undetermined (null) until it is wired to a bus of
+    // known width, which fixes it (applyWireWidthDefinition). While null,
+    // wireWidthLegal accepts ANY bus; once fixed, the converter itself can define
+    // the width of a still-undetermined bus (e.g. dec→bin driving a bin→dec).
+    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
+      return Number.isInteger(info.component.width) && info.component.width >= 1 ? info.component.width : null;
+    }
     if (info.component.type !== "splitter") {
       // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
       // card); otherwise a bus card's pins are buses of the card's width.
@@ -11394,9 +11433,16 @@
     const defined = wa !== null ? wa : wb;
     const undefRef = wa === null ? a : b;
     const info = pinDefFor(workspace, undefRef);
-    if (!info || info.component.type !== "splitter") return;
+    if (!info) return;
     const component = componentById(workspace, info.component.id);
     if (!component) return;
+    // A converter adopts the connected bus width directly; a splitter's single
+    // pin spreads the width across its legs.
+    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
+      component.width = defined;
+      return;
+    }
+    if (info.component.type !== "splitter") return;
     component.width = info.pinId === "single"
       ? Math.round(defined / splitterOutputCount(component))
       : defined;
