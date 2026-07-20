@@ -6899,6 +6899,10 @@
   // Set when the finished booklet is opened from a pre-entrance slide, so leaving
   // it resumes von Neumann's entrance (issue: booklet done but parked earlier).
   let bookletBeforeEntrance = false;
+  // The arithmetic story slide the booklet was opened FROM, so leaving it returns
+  // there (e.g. re-opening the finished booklet from the worktable returns to the
+  // worktable — note still on the table — instead of the pre-note workshop slide).
+  let bookletEntryPanelIndex = null;
 
   function goToBitsRange(extra = {}) {
     const scene = SCENES["arithmetic"];
@@ -6920,6 +6924,11 @@
   }
 
   function openBinaryBooklet() {
+    // Remember which arithmetic slide the booklet was opened from, so leaving it
+    // returns there (see binBackToWorkshop).
+    bookletEntryPanelIndex = (state.screen === "story" && state.chapterId === "chapter-8"
+      && state.sceneId === "arithmetic" && Number.isInteger(state.panelIndex))
+      ? state.panelIndex : null;
     const done = binDone();
     if (!binFirstUnfinished(done)) {
       // All tasks done: play the bits-range dialogue the first time, otherwise
@@ -7305,12 +7314,15 @@
       if (goToBitsRange()) return;
     }
     bookletBeforeEntrance = false;
+    // Return to the slide the booklet was opened from (e.g. the worktable, note
+    // still on the table); fall back to the workshop slide if that is unknown.
+    const returnPanel = Number.isInteger(bookletEntryPanelIndex) ? bookletEntryPanelIndex : 7;
     setState({
       ...transientUiClearPatch(),
       screen: "story",
       chapterId: "chapter-8",
       sceneId: "arithmetic",
-      panelIndex: 7,
+      panelIndex: returnPanel,
       ...(clearNotebook ? { notebook: null } : {})
     }, true);
   }
