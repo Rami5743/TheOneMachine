@@ -461,10 +461,12 @@
     bounds: { left: 64, right: 84, top: 56, bottom: 56 }
   };
 
-  // gate-Add16: the placeable card the learner earns by completing Add16. Same
-  // shape and drawing as gate-Add4 (a "+" box with emphasized bus pins), only the
-  // two number buses + the sum bus are width 16 instead of 4 (the carry pins stay
-  // single-bit). Joins the palette once Add16 is completed, like the other gates.
+  // gate-Add16: the placeable card the learner earns by completing Add16. A "+"
+  // box with emphasized bus pins, like gate-Add4 — but Add16 takes NO carry-in
+  // and discards the final carry (the 17th digit), so it has no carry pins at
+  // all: just two width-16 number buses on the left and a single width-16 sum bus
+  // on the right (unlike Add4, whose single-bit carry pins chain the blocks).
+  // With only two symmetric inputs and one output it is shorter on the y-axis.
   WORKSPACE_COMPONENT_DEFS["gate-Add16"] = {
     label: "Add16",
     taskId: "Add16",
@@ -472,13 +474,11 @@
     busAdder: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -52, direction: "in", width: 16, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
-      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
-      out1: { x: 66, y: 34, direction: "out", width: 16, label: "יציאת הסכום" }
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
+    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
   };
 
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
@@ -11393,7 +11393,10 @@
   function arithBusGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.busAdder) return null;
-    return { width: def.busWidth };
+    // Add4 chains its blocks through a single-bit carry-in (in3) / carry-out
+    // (out2); Add16 has neither (it adds mod 2^16 and drops the final carry).
+    const carry = Boolean(def.pins && def.pins.in3);
+    return { width: def.busWidth, carry };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
