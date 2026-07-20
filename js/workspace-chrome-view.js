@@ -37,11 +37,15 @@ function createWorkspaceChromeView({
     if (!workspaceBuildHelpPromptActive()) return "";
 
     return `
-      <div class="workspace-build-help-prompt" role="dialog" aria-modal="false" aria-label="הסבר על בניית Nand">
+      <div class="workspace-build-help-prompt" role="dialog" aria-modal="false" aria-label="העשרה: הסבר על בניית Nand">
+        <h2 class="build-help-title">
+          <svg class="build-help-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+          העשרה
+        </h2>
         <p>רוצה לדעת איך בונים Nand (ומה זה לעזאזל טריודה, נגד ומקור מתח)?</p>
         <div class="workspace-build-help-actions">
-          <button class="btn btn-primary" data-action="build-help-yes">כן</button>
-          <button class="btn" data-action="build-help-later">לא כרגע</button>
+          <button class="btn btn-primary" data-action="build-help-later">לא כרגע</button>
+          <button class="btn" data-action="build-help-yes">כן</button>
         </div>
       </div>`;
   }

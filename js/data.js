@@ -525,7 +525,8 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel89_chapter_2_3_routing_concept.svg",
-        "read": "פון נוימן: אנחנו רוצים שהמחשב שלנו יוכל לעשות פעולות שונות. לכן אנחנו רוצים להיות מסוגלים להגיד לו לבחור בין אפשרויות. בשביל זה נבנה שני כרטיסים מיוחדים. בסופו של דבר מדובר בכרטיסים שעושים חישוב רגיל, כמו אלה שכבר בנית. אפשר אפילו לכתוב להם טבלת אמת, אבל הם יאפשרו לנו לבחור בין תוצאות חישוב שונות, או להפעיל כרטיסים שונים, כאילו יש שם איש קטן שמחבר כבלים שונים לפי מה שאומרים לו."
+        "read": "פון נוימן: אנחנו רוצים שהמחשב שלנו יוכל לעשות פעולות שונות. לכן אנחנו רוצים להיות מסוגלים להגיד לו לבחור בין אפשרויות. בשביל זה נבנה שני כרטיסים מיוחדים. בסופו של דבר מדובר בכרטיסים שעושים חישוב רגיל, כמו אלה שכבר בנית. אפשר אפילו לכתוב להם טבלת אמת, אבל הם יאפשרו לנו לבחור בין תוצאות חישוב שונות, או להפעיל כרטיסים שונים, כאילו יש שם איש קטן שמחבר כבלים שונים לפי מה שאומרים לו.",
+        "unlocksExplanation": "why-route"
       },
       {
         "image": "assets/panels/panel90_chapter_2_3_note_placed.svg",
@@ -829,10 +830,22 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "Von Neumann in the doorway, handing over the tasks and leaving for Bohr.",
+        "comment": "Von Neumann in the doorway, handing over the tasks.",
         "image": "assets/panels/panel118_chapter_2_5_doorway.svg",
         "year": "1943",
-        "read": "טוב, הנה המשימות שלך. אני צריך לחזור לנילס. יש לו רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים שעליהם אנחנו שומעים מרחוק."
+        "read": "טוב, הנה המשימות שלך."
+      },
+      {
+        "comment": "Von Neumann leaves the binary→decimal converter devices for checking work.",
+        "image": "assets/panels/panel118b_chapter_2_5_converters.svg",
+        "year": "1943",
+        "read": "אני משאיר לך כאן מכשירים שממירים בסים עם מספרים בינריים למספרים עשרוניים. תוכל להשתמש בהם בשביל לבדוק מה אתה עושה."
+      },
+      {
+        "comment": "Von Neumann's farewell before leaving for Bohr (moved out of the doorway slide).",
+        "image": "assets/panels/panel118c_chapter_2_5_farewell.svg",
+        "year": "1943",
+        "read": "אני צריך לחזור לנילס. יש לו רעיון הזוי לחלוק עם הקומוניסטים את הפרויקט שלנו. אני צריך להוריד אותו מזה, ומהר. אומנם עכשיו יש לנו אויב משותף, אבל סטלין לא הרבה פחות גרוע מהיטלר, וזה יהיה אסון לתת לו נשק כזה, גם אם זה יקדם אותנו קצת בפרויקט. מצד שני קשה לשפוט את נילס, הוא היה בדנמרק כשהנאצים נכנסו ושמע מקרוב על הזוועות של הנאצים שעליהם אנחנו שומעים מרחוק."
       },
       {
         "comment": "The empty arithmetic worktable. Click-zones mirror panel107, plus a (not-yet-implemented) tasks-note zone. These are fallback percentages until a hotspot-carrying SVG is authored.",
@@ -841,6 +854,8 @@ const SCENES = {
         "read": "",
         "hotspots": [
           { "ariaLabel": "פתק המשימות", "action": "arith-tasks-note", "left": 18, "top": 65, "width": 15, "height": 15 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
           { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
           { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },

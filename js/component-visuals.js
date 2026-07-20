@@ -93,21 +93,25 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // bus bars (thick + dashed stripe) with the width "4" labelled, while the
   // single-bit carry pins stay plain thin cables. This is the Add4-vs-fullAdder
   // distinction, exactly like AND4 vs AND. Matches the gate-Add4 pin offsets.
-  // The bus-adder gate (Add4 / Add16): identical layout for both, only the bus
-  // width label differs (4 vs 16). Two number buses + a single-bit carry-in on
-  // the left; a single-bit carry-out and a bus sum on the right.
-  function addNGateMarkup(width) {
+  // The bus-adder gate. Add4 (carry=true): two number buses + a single-bit
+  // carry-in on the left; a single-bit carry-out (c) and a bus sum (s) on the
+  // right — the pins that chain the blocks. Add16 (carry=false): no carry at all,
+  // just two symmetric number buses on the left and one bus sum on the right, so
+  // it is drawn shorter on the y-axis. Only the bus width label differs (4 vs 16).
+  function addNGateMarkup(width, carry = true) {
     // Box edge at ±44 (like AND4's symbol edge) so the pins sit ENTIRELY outside
     // the box: the pin terminals are at x ±62/66, the box edge at ±44, so each
     // stub is a full-length AND4-style pin that never pokes into the box.
     const edge = 44;
     const bodyW = edge * 2;
-    // The three left pins are spaced ±52 (not ±40) so each bus pin's width label,
-    // which sits ~22px above the bar, clears the pin above it.
-    const inYs = [-52, 0, 52];
-    const outYs = [-34, 34];
+    // Pins are spaced far enough apart that each bus pin's width label, which sits
+    // ~22px above the bar, clears the pin above it. The carry variant stacks three
+    // inputs (±52); the carry-less Add16 has two symmetric inputs (±26) and one
+    // centred output, so its box is shorter.
+    const inYs = carry ? [-52, 0, 52] : [-26, 26];
+    const outYs = carry ? [-34, 34] : [0];
     // Tall enough to contain the top pin AND its width label above it.
-    const bodyH = 176;
+    const bodyH = carry ? 176 : 116;
     const inX = -62;
     const outX = 66;
     const arm = 17;
@@ -120,15 +124,22 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The full "+" mark, like the fullAdder.
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${arm}" />`;
-    // Inputs (left): two number buses + the single-bit carry-in below them.
-    s += busPin(inX, -edge, inYs[0]);
-    s += busPin(inX, -edge, inYs[1]);
-    s += cable(inX, -edge, inYs[2]);
-    // Outputs (right): carry-out (c, single bit) on top, sum (s, bus) below.
-    s += cable(edge, outX, outYs[0]);
-    s += busPin(edge, outX, outYs[1]);
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
-    s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
+    if (carry) {
+      // Inputs (left): two number buses + the single-bit carry-in below them.
+      s += busPin(inX, -edge, inYs[0]);
+      s += busPin(inX, -edge, inYs[1]);
+      s += cable(inX, -edge, inYs[2]);
+      // Outputs (right): carry-out (c, single bit) on top, sum (s, bus) below.
+      s += cable(edge, outX, outYs[0]);
+      s += busPin(edge, outX, outYs[1]);
+      s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[0] + 5}" text-anchor="end">c</text>`;
+      s += `<text class="arith-gate-pin-letter" x="${edge - 9}" y="${outYs[1] + 5}" text-anchor="end">s</text>`;
+    } else {
+      // Add16: two number buses in, one bus sum out — no carry pins, no letters.
+      s += busPin(inX, -edge, inYs[0]);
+      s += busPin(inX, -edge, inYs[1]);
+      s += busPin(edge, outX, outYs[0]);
+    }
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -224,6 +235,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
+    if (type === "converter-in" || type === "converter-out") {
+      return `<g class="converter">${converterMarkup(type === "converter-out" ? "out" : "in", options)}</g>`;
+    }
     if (type === "bus") return busMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
@@ -233,8 +247,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
       if (bus) return busGateMarkup(bus, options);
       const gateTask = taskDefById(type.slice(5));
-      if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4);
-      if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16);
+      if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
+      if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
@@ -260,5 +274,120 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       </g>`;
   }
 
-  return { componentSvgFilenameForType, componentMarkup, smokeMarkup, charredNandMarkup };
+  // Which of the seven segments (a top, b top-right, c bottom-right, d bottom,
+  // e bottom-left, f top-left, g middle) light up for each decimal digit. A
+  // primitive 7-segment display: "8" uses all seven lamps, "0" uses six (no g).
+  const SEVEN_SEG = {
+    "0": "abcdef", "1": "bc", "2": "abged", "3": "abgcd", "4": "fgbc",
+    "5": "afgcd", "6": "afgedc", "7": "abc", "8": "abcdefg", "9": "abcdfg"
+  };
+
+  // One 7-segment glyph filling a tall cell (top-left x0,y0; size W×H). Lit lamps
+  // use a neutral grey; unlit lamps stay a barely-there ghost so the figure-8
+  // grid reads. Returns the seven <rect> segments.
+  function sevenSegGlyph(ch, x0, y0, W, H, t) {
+    const on = SEVEN_SEG[String(ch)] || "";
+    const lit = "#cfcfd2", dim = "#26262b";
+    const col = (k) => (on.indexOf(k) >= 0 ? lit : dim);
+    const midY = y0 + H / 2;
+    const hx = x0 + t * 0.7, hw = W - t * 1.4;      // horizontal segment span
+    const vh = H / 2 - t * 1.3;                       // vertical segment length
+    const hseg = (yy, k) => `<rect x="${hx}" y="${yy - t / 2}" width="${hw}" height="${t}" rx="${t / 2}" fill="${col(k)}" />`;
+    const vseg = (xx, yy, k) => `<rect x="${xx - t / 2}" y="${yy}" width="${t}" height="${vh}" rx="${t / 2}" fill="${col(k)}" />`;
+    return (
+      hseg(y0, "a") +                                 // a: top
+      hseg(midY, "g") +                               // g: middle
+      hseg(y0 + H, "d") +                             // d: bottom
+      vseg(x0, y0 + t * 0.7, "f") +                   // f: upper-left
+      vseg(x0 + W, y0 + t * 0.7, "b") +               // b: upper-right
+      vseg(x0, midY + t * 0.6, "e") +                 // e: lower-left
+      vseg(x0 + W, midY + t * 0.6, "c")               // c: lower-right
+    );
+  }
+
+  // Shared converter geometry so the placed pin (see converterPinX) lands exactly
+  // on the visible bus-stub tip, whatever the digit count.
+  const CONV_GEO = { glyphW: 26, glyphH: 64, t: 5, gap: 9, padX: 12, screenPadY: 4, margin: 8, ext: 46, H: 80, half: 5.5 };
+  // Half the casing width for an n-digit converter (its left/right edge from the
+  // centre).
+  function converterBodyEdge(n) {
+    const g = CONV_GEO;
+    const screenW = Math.max(1, n) * g.glyphW + (Math.max(1, n) - 1) * g.gap + g.padX * 2;
+    return screenW / 2 + g.margin;
+  }
+  // One mechanical counter (odometer) wheel filling a cell (top-left x0,y0; size
+  // W×H). The set digit sits centred in a plain serif face, with its neighbours
+  // peeking above/below to suggest a wheel you rotate. The housing strips that
+  // clip those neighbours are drawn once by the caller (across the whole row).
+  function counterWheelGlyph(ch, x0, y0, W, H) {
+    const cx = x0 + W / 2, cy = y0 + H / 2;
+    const nv = /[0-9]/.test(ch) ? Number(ch) : 0;
+    const up = (nv + 1) % 10, dn = (nv + 9) % 10;
+    const fs = Math.round(H * 0.42), step = Math.round(H * 0.36);
+    const face = "#efe9d8", edge = "#b3a47e", ink = "#2b2620";
+    const dig = (v, yy, op) => `<text x="${cx}" y="${yy}" text-anchor="middle" dominant-baseline="central" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="${fs}" fill="${ink}"${op < 1 ? ` opacity="${op}"` : ""}>${v}</text>`;
+    return (
+      `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" rx="3" fill="${face}" stroke="${edge}" stroke-width="1" />` +
+      dig(up, cy - step, 0.32) + dig(dn, cy + step, 0.32) + dig(nv, cy, 1)
+    );
+  }
+
+  // The binary↔decimal converter schematic. A cream casing with one bus stub — on
+  // the LEFT for bin→dec ("in") or the RIGHT for dec→bin ("out"). Centred on the
+  // origin; returns inner markup (wrap in <svg> for a dialog, or a board
+  // <g transform> for a placed component). The bin→dec reader shows its value on a
+  // neutral-grey 7-segment screen; the dec→bin setter shows editable mechanical
+  // counter wheels (plain digits) you click to rotate. Placed dec→bin converters
+  // are interactive.
+  function converterMarkup(dir, options = {}) {
+    const digits = String(options.digits != null ? options.digits : "00000");
+    const n = Math.max(1, digits.length);
+    const g = CONV_GEO;
+    const glyphW = g.glyphW, glyphH = g.glyphH, t = g.t, gap = g.gap, padX = g.padX, screenPadY = g.screenPadY;
+    const dtot = n * glyphW + (n - 1) * gap;
+    const screenW = dtot + padX * 2, screenH = glyphH + screenPadY * 2;
+    const edge = converterBodyEdge(n), W = edge * 2, H = g.H, dx0 = -dtot / 2;
+    const ext = g.ext, half = g.half;
+    const clickable = dir === "out" && options.interactive;
+    const cid = options.componentId ? esc(options.componentId) : "";
+    // Cream casing.
+    let s = `<rect x="${-edge}" y="${-H / 2}" width="${W}" height="${H}" rx="8" fill="#efe7d2" stroke="#2b2b2b" stroke-width="3" />`;
+    if (dir === "out") {
+      // Recessed housing that the wheels turn inside.
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#c9bd9a" stroke="#8a7c58" stroke-width="1.5" />`;
+      const wheelTop = -glyphH / 2;
+      for (let i = 0; i < n; i++) {
+        const x0 = dx0 + i * (glyphW + gap);
+        s += counterWheelGlyph(digits[i], x0, wheelTop, glyphW, glyphH);
+      }
+      // Housing lips (same colour as the recess) clip the neighbour digits top and
+      // bottom, leaving a window that reads like an odometer slot.
+      const lip = screenH * 0.27;
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${lip}" fill="#c9bd9a" />`;
+      s += `<rect x="${-screenW / 2}" y="${screenH / 2 - lip}" width="${screenW}" height="${lip}" fill="#c9bd9a" />`;
+      s += `<line x1="${-screenW / 2}" y1="${-screenH / 2 + lip}" x2="${screenW / 2}" y2="${-screenH / 2 + lip}" stroke="#00000026" stroke-width="1" />`;
+      s += `<line x1="${-screenW / 2}" y1="${screenH / 2 - lip}" x2="${screenW / 2}" y2="${screenH / 2 - lip}" stroke="#ffffff30" stroke-width="1" />`;
+      if (clickable) {
+        for (let i = 0; i < n; i++) {
+          const x0 = dx0 + i * (glyphW + gap);
+          s += `<rect x="${x0 - gap / 2}" y="${-screenH / 2}" width="${glyphW + gap}" height="${screenH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
+        }
+      }
+    } else {
+      // bin→dec reader: neutral-grey 7-segment digits on a dark screen.
+      s += `<rect x="${-screenW / 2}" y="${-screenH / 2}" width="${screenW}" height="${screenH}" rx="4" fill="#141416" stroke="#000" stroke-width="1.5" />`;
+      for (let i = 0; i < n; i++) {
+        const x0 = dx0 + i * (glyphW + gap);
+        s += sevenSegGlyph(digits[i], x0, -glyphH / 2, glyphW, glyphH, t);
+      }
+    }
+    // The bus stub (thick dashed bar), left for "in", right for "out".
+    const bx1 = dir === "in" ? -edge - ext : edge;
+    const bx2 = dir === "in" ? -edge : edge + ext;
+    s += `<rect x="${bx1}" y="${-half}" width="${bx2 - bx1}" height="${half * 2}" fill="#111" />
+      <line x1="${bx1 + 3}" y1="0" x2="${bx2 - 3}" y2="0" stroke="#e9e2cf" stroke-width="2.4" stroke-dasharray="6 3" />`;
+    return s;
+  }
+
+  return { componentSvgFilenameForType, componentMarkup, converterMarkup, smokeMarkup, charredNandMarkup };
 }

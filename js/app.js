@@ -461,10 +461,12 @@
     bounds: { left: 64, right: 84, top: 56, bottom: 56 }
   };
 
-  // gate-Add16: the placeable card the learner earns by completing Add16. Same
-  // shape and drawing as gate-Add4 (a "+" box with emphasized bus pins), only the
-  // two number buses + the sum bus are width 16 instead of 4 (the carry pins stay
-  // single-bit). Joins the palette once Add16 is completed, like the other gates.
+  // gate-Add16: the placeable card the learner earns by completing Add16. A "+"
+  // box with emphasized bus pins, like gate-Add4 — but Add16 takes NO carry-in
+  // and discards the final carry (the 17th digit), so it has no carry pins at
+  // all: just two width-16 number buses on the left and a single width-16 sum bus
+  // on the right (unlike Add4, whose single-bit carry pins chain the blocks).
+  // With only two symmetric inputs and one output it is shorter on the y-axis.
   WORKSPACE_COMPONENT_DEFS["gate-Add16"] = {
     label: "Add16",
     taskId: "Add16",
@@ -472,13 +474,29 @@
     busAdder: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -52, direction: "in", width: 16, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
-      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
-      out1: { x: 66, y: 34, direction: "out", width: 16, label: "יציאת הסכום" }
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
+    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+  };
+
+  // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
+  // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
+  // accept ANY bus; the actual width is read from the connection at eval/render.
+  //  converter-in  (bin→dec): reads a bus, DISPLAYS its decimal value (a sink).
+  //  converter-out (dec→bin): stores a decimal `value`, EMITS its bits (a source).
+  WORKSPACE_COMPONENT_DEFS["converter-in"] = {
+    label: "ממיר לעשרוני",
+    converter: true, converterDir: "in",
+    pins: { in: { x: -146, y: 0, direction: "in", label: "כניסת הבס" } },
+    bounds: { left: 150, right: 106, top: 46, bottom: 46 }
+  };
+  WORKSPACE_COMPONENT_DEFS["converter-out"] = {
+    label: "ממיר לבינרי",
+    converter: true, converterDir: "out",
+    pins: { out: { x: 146, y: 0, direction: "out", label: "יציאת הבס" } },
+    bounds: { left: 106, right: 150, top: 46, bottom: 46 }
   };
 
   // OR16 is NOT one of the chapter 2.4 tasks, but the MUX16 "original-MUX"
@@ -618,6 +636,10 @@
     // Achievements the player has earned (a subset of ACHIEVEMENTS ids).
     achievementsUnlocked: [],
     explanationsUnlocked: [],
+    // Explanations whose "new explanation" flourish has already been played, so
+    // it fires exactly once — at the END of the explanation (or when an optional
+    // one is declined), decoupled from when the item was unlocked.
+    explanationsAnnounced: [],
     explanationsReturnTo: null,
     explanationReplay: null,
     settings: { language: "he", gender: "", age: "", pace: DEFAULT_PACE },
@@ -633,7 +655,10 @@
     // Routing-card requirements dialog (Mux/DMux) opened from the explanations menu.
     explRoutingInfo: null,
     componentMonologue: null,
+    converterInfo: null,
+    converterValueEdit: null,
     busesEquipmentSeen: [],
+    arithConvertersSeen: [],
     busesNoteList: false,
     // The 2.5 arithmetic worktable note (halfAdder → fullAdder → Add4 → Add16).
     arithNoteList: false,
@@ -999,7 +1024,7 @@
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
   function workspaceHasBusElements(workspace = state.workspace) {
-    return (workspace?.components || []).some((c) => c.type === "splitter" || busGateSpec(c.type) || String(c.type).startsWith("usercardFrame-"));
+    return (workspace?.components || []).some((c) => c.type === "splitter" || c.type === "converter-in" || c.type === "converter-out" || busGateSpec(c.type) || String(c.type).startsWith("usercardFrame-"));
   }
   // A placed saved card is simulated by expanding it into its internal circuit
   // first (flattenWorkspaceForEval), then evaluating that. The bus-aware engine
@@ -1016,6 +1041,7 @@
   const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
+  const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
   const charredNandMarkup = (...args) => __componentVisuals.charredNandMarkup(...args);
 
@@ -1064,10 +1090,25 @@
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
+    const here = chapterIndexById(state.chapterId);
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
+      // A card built in a LATER chapter (reached by jumping ahead) is hidden;
+      // this-or-earlier-chapter cards stay available. Cards with no recorded
+      // chapter (older saves) are always shown.
+      .filter((card) => {
+        const ci = typeof card.chapter === "string" ? chapterIndexById(card.chapter) : -1;
+        return !(Number.isInteger(ci) && ci >= 0 && Number.isInteger(here) && here >= 0 && ci > here);
+      })
       .map((card) => ({ type: card.type, label: card.name }));
-  } });
+  }, splitterAvailable: () => {
+    // The splitter (and its mirrored "merger") is introduced in chapter 2.4
+    // (buses); from then on it stays in the palette for EVERY build, later
+    // chapters included — even single-bit ones.
+    const here = chapterIndexById(state.chapterId);
+    const buses = chapterIndexById("chapter-7");
+    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
+  }, convertersAvailable: () => isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8") });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -1291,6 +1332,8 @@
       paceDialog: false,
       infoDialog: null,
       componentMonologue: null,
+      converterInfo: null,
+      converterValueEdit: null,
       busesNoteList: false,
       arithNoteList: false,
       panelAnswer: null,
@@ -1416,7 +1459,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -1786,7 +1829,7 @@
 
   function openPostTasksXorHintSlides(startIndex = 0, returnPanelIndex = state.panelIndex) {
     preloadHintSlides(XOR_HINT_SLIDES);
-    unlockExplanation("truth-table-cards");
+    unlockExplanation("truth-table-cards", { silent: true });
     setState({
       hintSlides: {
         taskId: "Xor",
@@ -1842,40 +1885,35 @@
     return chapterIndexById(state.chapterId) > chapterIndexById(simpleGatesChapter().id);
   }
 
+  // Which built-in gate cards the palette offers, keyed off the CURRENT chapter
+  // rather than the raw unlock state:
+  //   • every card belonging to an EARLIER chapter is offered (whether or not it
+  //     was actually built — you may have skipped ahead), so an earlier card is
+  //     always reusable;
+  //   • cards belonging to the CURRENT chapter appear only once actually built
+  //     (a card cleared from its note drops back out);
+  //   • cards belonging to a LATER chapter never appear (even if you jumped ahead
+  //     and built them).
+  // Each task group is tagged with the chapter it is introduced in.
+  const GATE_TOOL_GROUPS = [
+    { chapter: "chapter-5", ids: () => TASK_DEFS.map((t) => t.id) },
+    { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
+    { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+  ];
   function toolbarGateToolIds() {
-    if (!isPastSimpleGatesChapter()) return completedTaskIds();
-    // In chapter 2.3+: all the 2.2 gates, plus routing cards (MUX/DMUX) and 2.4
-    // bus cards that have a placeable gate (Not4 …).
-    const routingIds = ROUTING_TASK_DEFS.map((task) => task.id);
-    const busIds = BUS_TASK_DEFS
-      .map((task) => task.id)
-      .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    // Arith cards that have a placeable gate (halfAdder, reused inside fullAdder).
-    const arithIds = ARITH_TASKS
-      .map((task) => task.id)
-      .filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]);
-    const arithCompleted = arithIds.filter(taskCompleted);
-    // In the multi-bit routing build (chapter 2.5) EVERY earlier-chapter card is
-    // offered even if the learner skipped ahead and never built it — otherwise
-    // the task (which needs MUX16/DMUX) would be impossible. The 2.5 free-build
-    // table (the workshop worktable) follows the same rule for earlier chapters.
-    // The arith cards, though, belong to THIS chapter (2.5): they respect
-    // completion so that clearing the arith note drops the cards it built out of
-    // the palette until they are rebuilt (a locked card can't be reached anyway).
-    if (isMultibitTaskWorkspace() || (isFreeBuildWorkspace() && state.chapterId === "chapter-8")) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
+    if (isNandPresentationWorkspace()) return [];
+    const here = chapterIndexById(state.chapterId);
+    if (!Number.isInteger(here) || here < 0) return completedTaskIds();
+    const out = [];
+    for (const group of GATE_TOOL_GROUPS) {
+      const gi = chapterIndexById(group.chapter);
+      if (!Number.isInteger(gi) || gi < 0) continue;
+      if (gi < here) out.push(...group.ids());                         // earlier chapters: every card
+      else if (gi === here) out.push(...group.ids().filter(taskCompleted)); // this chapter: only what is built
+      // later chapters: nothing
     }
-    // Building an arith card (halfAdder / fullAdder) on the 2.5 worktable: every
-    // card from an EARLIER stage is offered even if the learner skipped it (so
-    // clearing this note's progress does not strip the palette down to the basic
-    // gates), plus the arith cards actually built in this stage — a cleared arith
-    // card drops out because it is no longer completed.
-    if (isArithTask(state.workspace?.taskId)) {
-      return [...TASK_DEFS.map((task) => task.id), ...routingIds, ...busIds, ...arithCompleted];
-    }
-    const routingCompleted = routingIds.filter(taskCompleted);
-    const busCompleted = busIds.filter(taskCompleted);
-    return [...TASK_DEFS.map((task) => task.id), ...routingCompleted, ...busCompleted, ...arithCompleted];
+    return out;
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -2177,11 +2215,32 @@
   // plays a short "icon flies into the הסברים button" animation.
   let explanationUnlockAnimationPending = false;
 
-  function unlockExplanation(id) {
+  function unlockExplanation(id, options) {
     if (!explanationItem(id) || explanationUnlocked(id)) return;
     state.explanationsUnlocked = [...(Array.isArray(state.explanationsUnlocked) ? state.explanationsUnlocked : []), id];
-    explanationUnlockAnimationPending = true;
+    // The unlock flourish normally plays right away, but some explanations are
+    // unlocked "silently" and announced later (at the END of the explanation /
+    // at the moment an optional one is declined) via announceExplanationUnlock.
+    if (!options || !options.silent) explanationUnlockAnimationPending = true;
     saveState();
+  }
+
+  // Arm the "new explanation" flourish for the next render (used to play it at
+  // the END of an explanation, decoupled from when the item was unlocked). With
+  // an id it fires at most once ever (tracked in explanationsAnnounced) — so a
+  // "closed the reading" hook and a "declined the teaser" hook can't double it.
+  function announceExplanationUnlock(id) {
+    if (id) {
+      // Only announce an explanation that is actually unlocked (experienced), and
+      // only once — so an end-hook can be called unconditionally at a natural
+      // finish point without risking a flourish for something never seen.
+      if (!explanationUnlocked(id)) return;
+      const announced = Array.isArray(state.explanationsAnnounced) ? state.explanationsAnnounced : [];
+      if (announced.includes(id)) return;
+      state.explanationsAnnounced = [...announced, id];
+      saveState();
+    }
+    explanationUnlockAnimationPending = true;
   }
 
   // A quick, deliberately noticeable flourish: an explanation icon appears at the
@@ -2215,6 +2274,37 @@
     ], { duration: 320, delay: 560, easing: "ease-out" });
   }
 
+  // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
+  // "הבנת?" button that appears in the controls, so the learner sees where it
+  // went. `fromRect` is the dismissed card's bounding rect (captured before the
+  // re-render removed it).
+  function playUnderstoodSuckAnimation(fromRect) {
+    const target = app.querySelector('[data-action="understood-open"]');
+    if (!target || !fromRect || typeof target.animate !== "function") return;
+    const tr = target.getBoundingClientRect();
+    const startX = fromRect.left + fromRect.width / 2;
+    const startY = fromRect.top + fromRect.height / 2;
+    const dx = (tr.left + tr.width / 2) - startX;
+    const dy = (tr.top + tr.height / 2) - startY;
+    const fly = document.createElement("div");
+    fly.className = "understood-suck-fly";
+    fly.textContent = "הבנת?";
+    fly.style.left = `${startX}px`;
+    fly.style.top = `${startY}px`;
+    document.body.appendChild(fly);
+    const anim = fly.animate([
+      { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0 },
+      { transform: "translate(-50%,-50%) scale(0.9)", opacity: 1, offset: 0.15 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.1)`, opacity: 0.1, offset: 1 }
+    ], { duration: 460, easing: "cubic-bezier(.55,0,.9,.85)" });
+    anim.onfinish = () => fly.remove();
+    anim.oncancel = () => fly.remove();
+    // A little pop on the button as the card lands.
+    target.animate([
+      { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
+    ], { duration: 300, delay: 320, easing: "ease-out" });
+  }
+
   function nandIntroScene() {
     return SCENES["nand-workshop-1943"];
   }
@@ -2242,7 +2332,8 @@
       state.explanationReplay?.id === "nand-intro" ||
       state.explanationReplay?.id === "nand-function"
     ) {
-      unlockExplanation("nand-intro");
+      // Silent; announced when the Nand intro ends and the workbench opens.
+      unlockExplanation("nand-intro", { silent: true });
     }
 
     if (
@@ -2255,7 +2346,8 @@
       )) ||
       state.explanationReplay?.id === "nand-function"
     ) {
-      unlockExplanation("nand-function");
+      // Unlocked silently; its flourish plays at the END of the Nand monologue.
+      unlockExplanation("nand-function", { silent: true });
     }
 
     if (
@@ -2267,7 +2359,9 @@
       )) ||
       state.explanationReplay?.id === "build-nand"
     ) {
-      unlockExplanation("build-nand");
+      // Unlocked silently; its flourish plays when the teaser is declined
+      // ("לא כרגע") or after the build-help screen is closed ("כן").
+      unlockExplanation("build-nand", { silent: true });
     }
 
     if (
@@ -2276,7 +2370,8 @@
       bitInfoButtonVisible() ||
       state.explanationReplay?.id === "bit-info"
     ) {
-      unlockExplanation("bit-info");
+      // Silent; announced when the bit dialog is closed.
+      unlockExplanation("bit-info", { silent: true });
     }
 
     if (
@@ -2285,12 +2380,17 @@
       state.hintSlides?.taskId === "Xor" ||
       state.explanationReplay?.id === "truth-table-cards"
     ) {
-      unlockExplanation("truth-table-cards");
+      // Silent; announced when the Xor hint slides are finished.
+      unlockExplanation("truth-table-cards", { silent: true });
     }
 
     const reachedChapter6 = currentIndex > chapterIndexById("chapter-5") || state.chapterId === "chapter-6";
     if (reachedChapter6 || state.explanationReplay?.id === "why-route") {
-      unlockExplanation("why-route");
+      // Silent here (this also unlocks it retroactively for a player already past
+      // chapter 2.3). Its flourish is announced when the learner advances past the
+      // routing-concept panel — panel89 declares unlocksExplanation:"why-route",
+      // handled by the generic "leaving panel" hook in nextPanel.
+      unlockExplanation("why-route", { silent: true });
     }
 
     // The routing cards' menu buttons unlock once their task is solved.
@@ -2299,10 +2399,12 @@
 
     // A story panel may declare an explanation it unlocks just by being reached
     // (e.g. the bits-range "64,000" slide unlocks "מילים ובתים", whether the red
-    // link is clicked or ignored).
+    // link is clicked or ignored). Unlocked silently — its flourish is announced
+    // when the reading is closed, or when the learner advances past the panel
+    // without opening it (declined) — see advanceStoryPanel.
     if (state.screen === "story") {
       const cp = currentPanel();
-      if (cp && cp.unlocksExplanation) unlockExplanation(cp.unlocksExplanation);
+      if (cp && cp.unlocksExplanation) unlockExplanation(cp.unlocksExplanation, { silent: true });
     }
   }
 
@@ -2785,6 +2887,13 @@
       </div>`;
   }
 
+  // Closing the "מילים ובתים" reading is the end of that enrichment explanation →
+  // announce its flourish now (a no-op if it was somehow already announced).
+  function closeWordsBytes() {
+    announceExplanationUnlock("words-bytes");
+    setState({ wordsBytesDialog: null }, false);
+  }
+
   function wordsBytesStep(delta) {
     if (!state.wordsBytesDialog) return;
     const total = Math.max(1, wordsBytesParagraphs().length);
@@ -2947,6 +3056,14 @@
         achievementUnlockAnimationPending = null;
         requestAnimationFrame(() => playAchievementUnlockAnimation(id));
       }
+    };
+    // A bridge for warehouse-hotspots.js so it can resolve a panel's live index by
+    // image name instead of hardcoding one that breaks when slides are inserted.
+    APP.panelIndexByImage = (sceneId, filename) => {
+      try {
+        const scene = typeof SCENES !== "undefined" ? SCENES[sceneId] : null;
+        return scene ? panelIndexByImage(scene, filename) : -1;
+      } catch { return -1; }
     };
     // A bridge for the cloud module (js/auth.js): swap the running game state to
     // the one pulled from the signed-in user's cloud copy, in place and WITHOUT
@@ -3214,6 +3331,54 @@
       </div>`;
   }
 
+  // The binary↔decimal converter self-introduction (items on the 2.5 worktable).
+  // Shows the device's line + its schematic (how it looks on the workbench).
+  function renderConverterInfoDialog() {
+    if (!state.converterInfo) return "";
+    const dir = state.converterInfo.dir === "out" ? "out" : "in";
+    const text = dir === "in"
+      ? "אני ממיר מבינרי לעשרוני. חבר אותי לבס, אני אציג לך את הכתוב העשרוני של המספר שמקודד בבס. בשולחן העבודה אני נראה כך:"
+      : "אני ממיר מעשרוני לבינרי. התאם את הספרות שעליי למספר שאתה רוצה, ואני אוציא בס עם הביטים שמתאימים למספר. בשולחן העבודה אני נראה כך:";
+    return `
+      <div class="bit-overlay" role="presentation">
+        <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="ממיר">
+          <div class="component-monologue-body">
+            <p>${esc(adaptGender(text))}</p>
+            <svg class="converter-schematic" viewBox="-178 -56 356 112" width="356" height="112" xmlns="http://www.w3.org/2000/svg">${converterMarkup(dir)}</svg>
+          </div>
+          <div class="bit-actions">
+            <button class="btn btn-primary" data-action="converter-info-ok" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // The dec→bin converter's "type a number" dialog (opened by double-clicking it),
+  // styled to match the game instead of a raw browser prompt.
+  function renderConverterValueDialog() {
+    if (!state.converterValueEdit) return "";
+    const edit = state.converterValueEdit;
+    const comp = componentById(state.workspace, edit.componentId);
+    const w = comp ? converterFixedWidth(comp) : null;
+    const range = Number.isInteger(w) ? `0–${Math.pow(2, w) - 1}` : null;
+    return `
+      <div class="bit-overlay" role="presentation">
+        <section class="bit-card converter-value-card" role="dialog" aria-modal="true" aria-label="הזנת מספר">
+          <div class="converter-value-body">
+            <p>${esc("איזה מספר עשרוני להתאים על הגלגלים?")}</p>
+            <input class="converter-value-input" type="text" inputmode="numeric" autocomplete="off"
+              value="${esc(String(edit.value == null ? "" : edit.value))}" aria-label="מספר עשרוני" />
+            ${range ? `<p class="converter-value-hint">${esc(`טווח הבס המחובר: ${range}`)}</p>` : ""}
+            ${edit.error ? `<p class="converter-value-error">${esc(edit.error)}</p>` : ""}
+          </div>
+          <div class="bit-actions">
+            <button class="btn btn-primary" data-action="converter-value-ok" type="button">אישור</button>
+            <button class="btn" data-action="converter-value-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderPaceDialog() {
     if (!state.paceDialog) return "";
     return `
@@ -3299,7 +3464,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
-              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button">${esc(panel.cornerLink.text)}</button>` : ""}
+              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
         </section>
@@ -3323,6 +3488,7 @@
       ${renderBitDialog()}
       ${renderInfoDialog()}
       ${renderComponentMonologue()}
+      ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
       ${renderArithNoteList()}`;
 
@@ -5267,8 +5433,18 @@
   }
 
   function renderNandBuildHelpScreen() {
-    const backAction = explanationReplayActive("build-nand") ? "explanations-return-to-menu" : "back-to-workspace";
-    const backLabel = explanationReplayActive("build-nand") ? "חזרה לתפריט ההסברים" : "חזרה לשולחן העבודה";
+    // Reached from: the explanations-menu replay → back to that menu; the
+    // end-of-monologue "כן" (session 1) → "חזרה למשחק", leaving the workbench;
+    // otherwise (e.g. the session-2 build-help button) → back to the workbench.
+    let backAction = "back-to-workspace";
+    let backLabel = "חזרה לשולחן העבודה";
+    if (explanationReplayActive("build-nand")) {
+      backAction = "explanations-return-to-menu";
+      backLabel = "חזרה לתפריט ההסברים";
+    } else if (buildTeaserAtMonologueEnd()) {
+      backAction = "build-help-back-to-game";
+      backLabel = "חזרה למשחק";
+    }
     app.innerHTML = `
       ${topbar()}
       <main class="screen nand-build-help-screen">
@@ -5423,6 +5599,7 @@
       ${renderWorkspaceAccidentModal()}
       ${renderNotTestResultDialog()}
       ${renderHintDialog()}
+      ${renderConverterValueDialog()}
       ${renderInfoDialog()}`;
     if (prevToolboxScroll) {
       const list = app.querySelector(".toolbox-list");
@@ -5651,11 +5828,17 @@
     const outputs = [];
     for (let i = 0; i < nOut; i += 1) outputs.push(Math.round(Number((cc.outputWidths || [])[i]) || 1));
     const id = state.nextSavedCardId || ((state.savedCards || []).length + 1);
+    // The chapter the card was built in — editing keeps the original; a new card
+    // takes the current chapter. Drives whether it shows in the palette after
+    // jumping between chapters (see savedCardTools).
+    const editingCard = cc.editingType ? (state.savedCards || []).find((c) => c.type === cc.editingType) : null;
+    const chapter = editingCard && typeof editingCard.chapter === "string" ? editingCard.chapter : state.chapterId;
     return {
       // Editing keeps the card's existing type so every placed instance and
       // dependent card keeps pointing at it.
       type: cc.editingType || `${SAVED_CARD_PREFIX}${id}`,
       name: String(cc.name || "").trim(),
+      chapter,
       inputs,
       outputs,
       logic: {
@@ -6334,6 +6517,10 @@
   // A clean solve continues the plot: von Neumann's binary lesson, which sits
   // just after the library slides in the arithmetic scene.
   function notebookContinue() {
+    // Leaving the notebook is the end of the decimal-addition solution → announce
+    // its explanation unlock now (a no-op if the solution was never opened, or if
+    // it was already announced on an earlier pass).
+    announceExplanationUnlock("arith-dec-add");
     // The decimal-addition review opened from the booklet returns to the booklet
     // menu; the library's own notebook continues the plot.
     if (state.notebook?.reviewFromBooklet) {
@@ -6417,7 +6604,7 @@
   function notebookOpenSolution() {
     const nb = state.notebook;
     // Seeing the decimal-addition solution unlocks its חשבון menu button.
-    unlockExplanation("arith-dec-add");
+    unlockExplanation("arith-dec-add", { silent: true });
     setState({ notebook: { ...nb, dialog: "solution", solutionStep: 0, mistake: null } });
   }
 
@@ -6757,6 +6944,10 @@
   // Set when the finished booklet is opened from a pre-entrance slide, so leaving
   // it resumes von Neumann's entrance (issue: booklet done but parked earlier).
   let bookletBeforeEntrance = false;
+  // The arithmetic story slide the booklet was opened FROM, so leaving it returns
+  // there (e.g. re-opening the finished booklet from the worktable returns to the
+  // worktable — note still on the table — instead of the pre-note workshop slide).
+  let bookletEntryPanelIndex = null;
 
   function goToBitsRange(extra = {}) {
     const scene = SCENES["arithmetic"];
@@ -6778,6 +6969,11 @@
   }
 
   function openBinaryBooklet() {
+    // Remember which arithmetic slide the booklet was opened from, so leaving it
+    // returns there (see binBackToWorkshop).
+    bookletEntryPanelIndex = (state.screen === "story" && state.chapterId === "chapter-8"
+      && state.sceneId === "arithmetic" && Number.isInteger(state.panelIndex))
+      ? state.panelIndex : null;
     const done = binDone();
     if (!binFirstUnfinished(done)) {
       // All tasks done: play the bits-range dialogue the first time, otherwise
@@ -7163,12 +7359,15 @@
       if (goToBitsRange()) return;
     }
     bookletBeforeEntrance = false;
+    // Return to the slide the booklet was opened from (e.g. the worktable, note
+    // still on the table); fall back to the workshop slide if that is unknown.
+    const returnPanel = Number.isInteger(bookletEntryPanelIndex) ? bookletEntryPanelIndex : 7;
     setState({
       ...transientUiClearPatch(),
       screen: "story",
       chapterId: "chapter-8",
       sceneId: "arithmetic",
-      panelIndex: 7,
+      panelIndex: returnPanel,
       ...(clearNotebook ? { notebook: null } : {})
     }, true);
   }
@@ -7587,7 +7786,7 @@
   function binOpenWalkthrough() {
     const nb = state.notebook;
     // Seeing a conversion/addition solution unlocks its חשבון menu button.
-    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) unlockExplanation(`arith-${nb.stage}`);
+    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) unlockExplanation(`arith-${nb.stage}`, { silent: true });
     // Opening the walkthrough from a failed attempt counts as using help.
     const hintUsed = nb.dialog === "wrong" ? true : nb.hintUsed;
     setState({ notebook: { ...nb, dialog: "walkthrough", hintUsed, walkStep: 0 } });
@@ -7617,6 +7816,9 @@
   function binWalkthroughFinish() {
     const nb = state.notebook;
     const clean = binClean(nb);
+    // Finishing the walkthrough is the end of that stage's solution explanation →
+    // announce its unlock now (no-op on a replay / if it was never opened).
+    if (["bin2dec", "dec2bin", "binadd"].includes(nb.stage)) announceExplanationUnlock(`arith-${nb.stage}`);
     // A sample opened from the explanations menu returns there when done — it is a
     // demonstration, so it earns no calculation achievement.
     if (nb.fromExplanations) { setState({ screen: "explanations", notebook: null }, false); return; }
@@ -7901,7 +8103,7 @@
       if (workspaceAccidentActive()) {
         requestAnimationFrame(() => app.querySelector("[data-action='workspace-accident-ok']")?.focus());
       } else if (workspaceBuildHelpPromptActive()) {
-        requestAnimationFrame(() => app.querySelector("[data-action='build-help-yes']")?.focus());
+        requestAnimationFrame(() => app.querySelector("[data-action='build-help-later']")?.focus());
       } else if (workspaceUnderstoodPromptActive()) {
         requestAnimationFrame(() => app.querySelector("[data-action='understood-yes']")?.focus());
       }
@@ -7956,7 +8158,18 @@
       workspace.understoodButtonVisible = true;
       workspace.nandOutputObserved = { zero: true, one: true };
       workspace.nandMonologueStep = null;
+    } else {
+      // Session 1: the "how Nand is built" enrichment teaser now appears at the
+      // END of the Nand monologue (see advanceNandMonologue), a moment before
+      // leaving the workbench — not on open. So start with it already dismissed
+      // and with no persistent build-help button during the observe phase.
+      workspace.helpPromptSeen = true;
+      workspace.buildHelpButtonVisible = false;
     }
+
+    // The Nand intro story just ended (the workbench is opening) → announce the
+    // "הצגת ה־Nand" explanation now, at the end of that intro.
+    if (state.chapterId === "chapter-4") announceExplanationUnlock("nand-intro");
 
     setState({
       screen: "workspace",
@@ -7970,6 +8183,15 @@
     if (state.screen === "workspace") {
       if (workspaceNandMonologueActive()) return advanceNandMonologue();
       return;
+    }
+
+    // Leaving a story panel that offered an enrichment explanation (via a red
+    // corner link) is the moment its flourish fires if the learner ignored it —
+    // the "declined" case. If they opened and read it, it was already announced
+    // when they closed the reading, so this is a no-op then.
+    if (state.screen === "story") {
+      const leaving = currentPanel();
+      if (leaving && leaving.unlocksExplanation) announceExplanationUnlock(leaving.unlocksExplanation);
     }
 
     const scene = currentScene();
@@ -8097,6 +8319,8 @@
   }
 
   function dismissBuildHelpPrompt() {
+    // At the end-of-monologue teaser (session 1), "לא כרגע" leaves the workbench.
+    if (buildTeaserAtMonologueEnd()) return exitWorkbenchAfterBuildTeaser();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.helpPromptSeen = true;
     workspace.buildHelpButtonVisible = true;
@@ -8120,12 +8344,19 @@
   }
 
   function dismissUnderstoodPrompt() {
+    // Capture the card's position BEFORE it is removed, to animate it being
+    // "sucked" into the "הבנת?" button that now appears.
+    const card = app.querySelector(".workspace-understood-card");
+    const fromRect = card ? card.getBoundingClientRect() : null;
     const workspace = normalizeWorkspace(state.workspace);
     workspace.understoodPromptShown = false;
     workspace.understoodButtonVisible = true;
     workspace.selectedTerminal = null;
-    unlockExplanation("nand-function");
+    // Unlocked silently — the "new explanation" flourish plays at the END of the
+    // Nand monologue, not here.
+    unlockExplanation("nand-function", { silent: true });
     setState({ workspace }, false);
+    if (fromRect) requestAnimationFrame(() => playUnderstoodSuckAnimation(fromRect));
   }
 
   function openUnderstoodPrompt() {
@@ -8253,15 +8484,49 @@
     workspace.workspaceCompleted = true;
     workspace.returnToWorkspaceAfterMonologue = false;
 
-    const target = workspace.workspaceSession === 2
-      ? secondWorkspaceExitTarget()
-      : firstWorkspaceExitTarget();
+    // Session 1: offer the "how Nand is built" enrichment as the last beat —
+    // show the build-help teaser now, right before leaving the workbench,
+    // instead of exiting immediately. helpPromptSeen=false makes the teaser
+    // active; workspaceCompleted=true marks this as the end-of-monologue teaser
+    // (so "לא כרגע" / "חזרה למשחק" leave the workbench rather than dismiss).
+    if (workspace.workspaceSession !== 2) {
+      workspace.helpPromptSeen = false;
+      workspace.buildHelpButtonVisible = false;
+      // The Nand monologue just ended → announce the "איך Nand פועל" explanation.
+      announceExplanationUnlock("nand-function");
+      return setState({ workspace }, false);
+    }
 
+    const target = secondWorkspaceExitTarget();
     setState({
       ...target,
       replayNonce: state.replayNonce + 1,
       workspace
     }, true);
+  }
+
+  // Leave the session-1 Nand workbench after the end-of-monologue enrichment
+  // teaser (its "לא כרגע", or "חזרה למשחק" from the build-help screen), continuing
+  // the chapter-4 story where the monologue would have exited.
+  function exitWorkbenchAfterBuildTeaser() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.helpPromptSeen = true;
+    workspace.buildHelpButtonVisible = false;
+    workspace.selectedTerminal = null;
+    // Leaving the build-help teaser (declined "לא כרגע", or after closing the
+    // build-help screen) → announce the "איך עושים Nand" explanation now.
+    announceExplanationUnlock("build-nand");
+    setState({
+      ...firstWorkspaceExitTarget(),
+      replayNonce: state.replayNonce + 1,
+      workspace
+    }, true);
+  }
+
+  // True while the end-of-monologue enrichment teaser (or its build-help screen)
+  // is showing on the session-1 Nand workbench.
+  function buildTeaserAtMonologueEnd() {
+    return Boolean(state.workspace?.workspaceCompleted) && state.workspace?.workspaceSession !== 2;
   }
 
   const TASK_TEST_FRAME = { x1: 200, y1: 100, x2: 800, y2: 476 };
@@ -8909,17 +9174,33 @@
     // downward with enough vertical room that their legs never overlap — wide
     // 16-bit buses run very tall, so running off-screen is fine.
     const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(baseWorkspace.taskId)] || { pins: {} };
+    // Arithmetic adder cards (Add4/Add16 …): their multi-bit buses carry NUMBERS,
+    // so the check drives each numeric input from a dec→bin converter (showing the
+    // addend) and reads each numeric output into a bin→dec converter (showing the
+    // result) INSTEAD of a source/lamp fan-out. The carry bit and any other single
+    // bit still use the plain source/lamp path.
+    const useConverters = isArithBusTask(baseWorkspace.taskId);
+    const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
     const controlIdx = spec.inputs.findIndex((input) => {
       const p = frameDef.pins[input.ref];
       return p && p.y < -150;
     });
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
+    let convInY = 120;  // stacked y for numeric-input converters
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
       if (!Number.isInteger(w)) return;
       if (w === 1) {
         if (input.bits[0]) workspace.wires.push(normalizeWire("source-1.out", ref));
+        return;
+      }
+      if (useConverters) {
+        // A dec→bin converter set to the addend value, feeding the card input.
+        const convId = `mb-in-conv-${idx}`;
+        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits), width: w });
+        workspace.wires.push(normalizeWire(`${convId}.out`, ref));
+        convInY += 160;
         return;
       }
       const splitId = `mb-in-split-${idx}`;
@@ -8939,12 +9220,24 @@
       workspace.wires.push(normalizeWire(`${splitId}.single`, ref));
     });
 
-    // Outputs down the right side.
+    // Outputs down the right side. `outChecks` records how each output is
+    // verified: a bin→dec converter's decimal value (numeric arith buses) or a
+    // group of lamps (single bits and non-arith buses).
     const lampGroups = [];
+    const outChecks = [];
     spec.outputs.forEach((output, idx) => {
       const ref = `task-card-1.${output.ref}`;
       const w = pinWidth(workspace, ref);
       const cy = 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
+      if (useConverters && Number.isInteger(w) && w > 1) {
+        // A bin→dec converter displaying the numeric result of this output bus.
+        const convId = `mb-out-conv-${idx}`;
+        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy, width: w });
+        workspace.wires.push(normalizeWire(ref, `${convId}.in`));
+        lampGroups.push([]);
+        outChecks.push({ kind: "converter", converterId: convId, expected: bitsToDecimal(output.expected) });
+        return;
+      }
       const groupLamps = [];
       if (!Number.isInteger(w) || w === 1) {
         const lampId = `mb-out-${idx}-lamp-0`;
@@ -8966,8 +9259,9 @@
         }
       }
       lampGroups.push(groupLamps);
+      outChecks.push({ kind: "lamp", lamps: groupLamps, expected: output.expected });
     });
-    return { workspace, lampGroups };
+    return { workspace, lampGroups, outChecks };
   }
 
   function runMultibitTestCase(baseWorkspace, caseIndex) {
@@ -8977,13 +9271,20 @@
     if (caseIndex >= cases.length) return showNotTestResult("success", baseWorkspace, def.id);
 
     const spec = multibitCaseSpec(def.id, cases[caseIndex]);
-    const { workspace, lampGroups } = multibitTestHarnessWorkspace(baseWorkspace, spec);
+    const { workspace, outChecks } = multibitTestHarnessWorkspace(baseWorkspace, spec);
     setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
 
     notTestTimer = window.setTimeout(() => {
       const evaluation = evaluateWorkspaceBits(workspace);
-      const ok = spec.outputs.every((output, idx) =>
-        output.expected.every((bit, i) => Boolean(evaluation.lamps.get(lampGroups[idx][i])) === Boolean(bit)));
+      // A numeric output passes when its bin→dec converter shows the expected
+      // decimal; a lamp output passes bit-for-bit.
+      const ok = outChecks.every((chk) => {
+        if (chk.kind === "converter") {
+          const info = evaluation.converters && evaluation.converters.get(chk.converterId);
+          return Boolean(info) && Number(info.value) === Number(chk.expected);
+        }
+        return chk.expected.every((bit, i) => Boolean(evaluation.lamps.get(chk.lamps[i])) === Boolean(bit));
+      });
       if (!ok) return showNotTestResult("failure", workspace, def.id);
       // Re-harness the NEXT case from the pristine learner circuit (see the bus
       // check note), so harnesses don't pile up.
@@ -9068,7 +9369,7 @@
     // Seeing a basic gate's solution unlocks its button in the explanations menu
     // (and plays the unlock flourish the first time). The routing cards unlock on
     // completion instead (see syncExplanationUnlocks).
-    if (["Not", "And", "Or"].includes(taskId)) unlockExplanation(`gate-${taskId}`);
+    if (["Not", "And", "Or"].includes(taskId)) unlockExplanation(`gate-${taskId}`, { silent: true });
     const routing = isRoutingTask(taskId);
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
@@ -9118,6 +9419,8 @@
     if (explanationReplayActive("bit-info")) {
       return returnToExplanationsMenuFromReplay();
     }
+    // The bit explanation was just read to the end → announce it now.
+    announceExplanationUnlock("bit-info");
     const returnToNote = Boolean(state.bitDialog.returnToNote);
     if (returnToNote) {
       return setState({ bitDialog: null, taskDialog: { message: "" } }, false);
@@ -9137,6 +9440,25 @@
 
   function closeComponentMonologue() {
     setState({ componentMonologue: null }, false);
+  }
+
+  // The two binary↔decimal converters on the 2.5 worktable. Clicking one shows
+  // its self-introduction and marks it examined; both must be examined before the
+  // tasks note opens (mirrors the 2.4 bus/splitter equipment gate).
+  function openConverterInfo(dir) {
+    const d = dir === "out" ? "out" : "in";
+    const seen = Array.isArray(state.arithConvertersSeen) ? state.arithConvertersSeen : [];
+    const nextSeen = seen.includes(d) ? seen : [...seen, d];
+    setState({ converterInfo: { dir: d }, arithConvertersSeen: nextSeen }, false);
+  }
+
+  function closeConverterInfo() {
+    setState({ converterInfo: null }, false);
+  }
+
+  function arithConvertersChecked() {
+    const seen = Array.isArray(state.arithConvertersSeen) ? state.arithConvertersSeen : [];
+    return seen.includes("in") && seen.includes("out");
   }
 
   function newEquipmentChecked() {
@@ -9410,6 +9732,11 @@
   };
 
   function openArithNote() {
+    // Examine both converters before the tasks note opens (mirrors the 2.4
+    // bus/splitter equipment gate, which is unconditional).
+    if (!arithConvertersChecked()) {
+      return setState({ infoDialog: "קודם כל תבדוק את כל הציוד החדש." });
+    }
     return setState({ arithNoteList: true });
   }
 
@@ -9580,6 +9907,10 @@
         replayNonce: state.replayNonce + 1
       }, false);
     }
+    // A basic-gate solution (Not/And/Or) was just closed → announce its
+    // explanation at the end of reading it.
+    if (["Not", "And", "Or"].includes(taskId)) announceExplanationUnlock(`gate-${taskId}`);
+
     const shouldComplete = Boolean(state.solutionDialog?.completeOnClose);
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
@@ -10176,6 +10507,9 @@
       hintSlides: null,
       ...(unlockXorHelp ? { xorTableHelpUnlocked: true } : {})
     };
+    // Finishing the Xor hint slides is the end of the truth-table-cards
+    // explanation → announce its unlock now (not when the slides opened).
+    if (unlockXorHelp) announceExplanationUnlock("truth-table-cards");
 
     if (returnTo?.mode === "continue-story") {
       setState(patch, false);
@@ -10623,6 +10957,7 @@
       hintState: {},
       completedTasks: [],
       explanationsUnlocked: [],
+      explanationsAnnounced: [],
       explanationsReturnTo: null,
       explanationReplay: null,
       workspace: createDefaultWorkspace()
@@ -10684,9 +11019,20 @@
     window.open(url, "_blank", "noopener,noreferrer");
   }
 
+  // A converter that is wired to nothing loses its fixed width, so it is free to
+  // adopt a different bus width next time it is connected.
+  function syncConverterWidths(workspace) {
+    for (const component of workspace.components) {
+      if (component.type !== "converter-in" && component.type !== "converter-out") continue;
+      const wired = workspace.wires.some((wire) => wire.a.startsWith(`${component.id}.`) || wire.b.startsWith(`${component.id}.`));
+      if (!wired && component.width != null) component.width = null;
+    }
+  }
+
   function withWorkspace(mutator) {
     const workspace = normalizeWorkspace(state.workspace);
     mutator(workspace);
+    syncConverterWidths(workspace);
     workspace.selectedTerminal = terminalExists(workspace, workspace.selectedTerminal) ? workspace.selectedTerminal : null;
     workspace.unlocked = true;
     workspace.accident = detectWorkspaceAccident(workspace);
@@ -10734,6 +11080,77 @@
       component.x = pos.x;
       component.y = pos.y;
     });
+  }
+
+  // ---- dec→bin converter digit editing --------------------------------------
+  // A converter's fixed bus width (null while undetermined) — the same source
+  // the display and the pin use, so digit indices always line up.
+  function converterFixedWidth(comp) {
+    return Number.isInteger(comp?.width) && comp.width >= 1 ? comp.width : null;
+  }
+  // The digit string as shown (value padded to the digit count; longer if the
+  // value itself is longer). Identical to board-render's converterDigits.
+  function converterDisplayString(componentId, workspace = state.workspace) {
+    const comp = componentById(workspace, componentId);
+    const value = Math.max(0, Math.floor(Number(comp?.value) || 0));
+    const dc = comp ? converterDisplayDigits(comp) : 5;
+    const raw = String(value);
+    return raw.length >= dc ? raw : raw.padStart(dc, "0");
+  }
+
+  // Single click on a digit: bump it +1 (mod 10). If the result exceeds what the
+  // connected bus can hold, show a message and leave the value unchanged.
+  function incrementConverterDigit(componentId, digitIndex) {
+    const workspace = state.workspace;
+    const comp = componentById(workspace, componentId);
+    if (!comp || comp.type !== "converter-out") return;
+    const w = converterFixedWidth(comp);
+    const ds = converterDisplayString(componentId, workspace).split("");
+    const idx = Number(digitIndex);
+    if (!(idx >= 0 && idx < ds.length)) return;
+    ds[idx] = String((Number(ds[idx]) + 1) % 10);
+    const nv = parseInt(ds.join(""), 10) || 0;
+    if (w != null && nv > Math.pow(2, w) - 1) {
+      return setState({ infoDialog: "המספר גדול מדי לרוחב הבס." });
+    }
+    withWorkspace((ws) => { const c = componentById(ws, componentId); if (c) c.value = nv; });
+  }
+
+  // Double click on a converter: type the number directly. Rejects a value that
+  // is too big for the connected bus.
+  function editConverterValue(componentId) {
+    const comp = componentById(state.workspace, componentId);
+    if (!comp || comp.type !== "converter-out") return;
+    const current = Math.max(0, Math.floor(Number(comp.value) || 0));
+    // Open the in-game number pad (styled to match the game) rather than a raw
+    // browser prompt.
+    setState({ converterValueEdit: { componentId, value: String(current), error: null } }, false);
+  }
+
+  function closeConverterValueEdit() {
+    setState({ converterValueEdit: null }, false);
+  }
+
+  // Commit the number typed into the converter's edit dialog: reject non-numbers
+  // and values too big for the connected bus, else set the value and close.
+  function commitConverterValue() {
+    const edit = state.converterValueEdit;
+    if (!edit) return;
+    const comp = componentById(state.workspace, edit.componentId);
+    if (!comp || comp.type !== "converter-out") return setState({ converterValueEdit: null }, false);
+    const box = app.querySelector(".converter-value-input");
+    const raw = box ? box.value : edit.value;
+    const trimmed = String(raw == null ? "" : raw).trim();
+    if (!/^\d+$/.test(trimmed)) {
+      return setState({ converterValueEdit: { ...edit, value: trimmed, error: "צריך להקליד מספר שלם." } }, false);
+    }
+    const nv = Math.max(0, Math.floor(Number(trimmed)));
+    const w = converterFixedWidth(comp);
+    if (w != null && nv > Math.pow(2, w) - 1) {
+      return setState({ converterValueEdit: { ...edit, value: trimmed, error: "המספר גדול מדי לרוחב הבס." } }, false);
+    }
+    withWorkspace((ws) => { const c = componentById(ws, edit.componentId); if (c) c.value = nv; });
+    setState({ converterValueEdit: null }, false);
   }
 
   function deleteWorkspaceComponent(id) {
@@ -10818,9 +11235,39 @@
     return pins;
   }
 
+  // How many digits a converter shows: enough for its (fixed) bus width, but
+  // never fewer than the value it already holds. Drives both the rendered body
+  // width and the bus-pin position, so they always line up.
+  function converterDisplayDigits(component) {
+    const w = Number.isInteger(component?.width) && component.width >= 1 ? Math.min(component.width, 40) : null;
+    const base = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 5);
+    const value = Math.max(0, Math.floor(Number(component?.value) || 0));
+    return Math.max(base, String(value).length);
+  }
+
+  // Where a converter's bus pin sits: the tip of the drawn stub, whose distance
+  // from centre grows with the digit count. Geometry MIRRORS js/component-visuals.js
+  // converterMarkup — kept in sync so the pin lands exactly on the visible stub
+  // tip. (Inlined here, as a hoisted function, because pin resolution runs during
+  // the initial loadState — before the component-visuals wrappers initialise.)
+  function converterPinOffsetX(n) {
+    const glyphW = 26, gap = 9, padX = 12, margin = 8, ext = 46;
+    const k = Math.max(1, n);
+    const screenW = k * glyphW + (k - 1) * gap + padX * 2;
+    return screenW / 2 + margin + ext;
+  }
+  // Converter pins are dynamic: the single bus pin sits at the tip of the stub,
+  // which moves as the digit count (hence casing width) changes.
+  function converterPins(component) {
+    const px = converterPinOffsetX(converterDisplayDigits(component));
+    if (component.type === "converter-out") return { out: { x: px, y: 0, direction: "out", label: "יציאת הבס" } };
+    return { in: { x: -px, y: 0, direction: "in", label: "כניסת הבס" } };
+  }
+
   function componentPins(component) {
     if (component?.type === "splitter") return splitterPins(component);
     if (component?.type === "cardFrame") return cardFramePins();
+    if (component?.type === "converter-in" || component?.type === "converter-out") return converterPins(component);
     return WORKSPACE_COMPONENT_DEFS[component?.type]?.pins || {};
   }
 
@@ -11010,7 +11457,10 @@
   function arithBusGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.busAdder) return null;
-    return { width: def.busWidth };
+    // Add4 chains its blocks through a single-bit carry-in (in3) / carry-out
+    // (out2); Add16 has neither (it adds mod 2^16 and drops the final carry).
+    const carry = Boolean(def.pins && def.pins.in3);
+    return { width: def.busWidth, carry };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
@@ -11019,6 +11469,13 @@
   function pinWidth(workspace, ref) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
+    // A converter's width is undetermined (null) until it is wired to a bus of
+    // known width, which fixes it (applyWireWidthDefinition). While null,
+    // wireWidthLegal accepts ANY bus; once fixed, the converter itself can define
+    // the width of a still-undetermined bus (e.g. dec→bin driving a bin→dec).
+    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
+      return Number.isInteger(info.component.width) && info.component.width >= 1 ? info.component.width : null;
+    }
     if (info.component.type !== "splitter") {
       // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
       // card); otherwise a bus card's pins are buses of the card's width.
@@ -11063,9 +11520,16 @@
     const defined = wa !== null ? wa : wb;
     const undefRef = wa === null ? a : b;
     const info = pinDefFor(workspace, undefRef);
-    if (!info || info.component.type !== "splitter") return;
+    if (!info) return;
     const component = componentById(workspace, info.component.id);
     if (!component) return;
+    // A converter adopts the connected bus width directly; a splitter's single
+    // pin spreads the width across its legs.
+    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
+      component.width = defined;
+      return;
+    }
+    if (info.component.type !== "splitter") return;
     component.width = info.pinId === "single"
       ? Math.round(defined / splitterOutputCount(component))
       : defined;
@@ -11182,7 +11646,29 @@
       return setState({ workspace }, false);
     }
 
+    // A dec→bin converter may hold a value too big for a narrow bus. While
+    // unconnected any value looks fine, but wiring it to a bus that can't hold
+    // the value is refused with a message (the value stays, the wire is not made).
+    if (converterConnectionTooNarrow(workspace, workspace.selectedTerminal, ref)) {
+      workspace.selectedTerminal = null;
+      return setState({ workspace, infoDialog: "המספר גדול מדי לרוחב הבס." });
+    }
+
     toggleWire(workspace.selectedTerminal, ref);
+  }
+
+  // True when wiring a/b would connect a dec→bin converter whose stored decimal
+  // value exceeds what the bus on the OTHER end can represent.
+  function converterConnectionTooNarrow(workspace, a, b) {
+    for (const [self, other] of [[a, b], [b, a]]) {
+      const info = pinDefFor(workspace, self);
+      if (!info || info.component.type !== "converter-out") continue;
+      const w = pinWidth(workspace, other);
+      if (!Number.isInteger(w) || w < 1) continue;
+      const value = Math.max(0, Math.floor(Number(info.component.value) || 0));
+      if (value > Math.pow(2, w) - 1) return true;
+    }
+    return false;
   }
 
   function boardPointFromEvent(event) {
@@ -11703,6 +12189,23 @@
     saveState();
   });
 
+  // Keep the converter number box's typed value in state (no re-render, so focus
+  // and caret are preserved), and clear any stale error as the learner retypes.
+  document.addEventListener("input", (event) => {
+    if (!state.converterValueEdit) return;
+    const box = event.target.closest && event.target.closest(".converter-value-input");
+    if (!box) return;
+    state.converterValueEdit = { ...state.converterValueEdit, value: box.value, error: null };
+    saveState();
+  });
+
+  // Enter commits the converter number, Escape cancels.
+  document.addEventListener("keydown", (event) => {
+    if (!state.converterValueEdit) return;
+    if (event.key === "Enter") { event.preventDefault(); commitConverterValue(); }
+    else if (event.key === "Escape") { event.preventDefault(); closeConverterValueEdit(); }
+  });
+
   // Close the pin-width box only when its focus leaves (a click elsewhere), then
   // re-render so the pin shows its new width. The width was committed live on
   // input, so nothing is lost.
@@ -11768,6 +12271,11 @@
       setState({ notebook: { ...nb, winPos: { left, top } } }, false);
     }
   });
+
+  // A converter digit distinguishes single-click (increment mod 10) from
+  // double-click (type a value): a lone click is deferred briefly, and a second
+  // click on a digit within the window cancels it and opens the text box.
+  let pendingConverterDigit = null;
 
   document.addEventListener("click", (event) => {
     if (suppressNextClick) {
@@ -11835,12 +12343,35 @@
     }
 
     const action = button.dataset.action;
+
+    if (action === "converter-digit") {
+      event.preventDefault();
+      const componentId = button.dataset.componentId;
+      const digitIndex = button.dataset.digitIndex;
+      if (pendingConverterDigit) {
+        clearTimeout(pendingConverterDigit.timer);
+        pendingConverterDigit = null;
+        return editConverterValue(componentId);
+      }
+      const timer = setTimeout(() => {
+        pendingConverterDigit = null;
+        incrementConverterDigit(componentId, digitIndex);
+      }, 230);
+      pendingConverterDigit = { timer };
+      return;
+    }
+
     if (state.taskDialog && !isGlobalNavigationAction(action) && !["note-task", "note-task-close", "note-clear-open", "note-clear-confirm", "note-clear-cancel"].includes(action)) {
       event.preventDefault();
       return;
     }
 
     if (state.bitDialog && !isGlobalNavigationAction(action) && !["bit-dialog-next", "bit-dialog-ok"].includes(action)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (state.converterValueEdit && !isGlobalNavigationAction(action) && !["converter-value-ok", "converter-value-cancel"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -11921,6 +12452,11 @@
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
     if (action === "component-monologue-ok") return closeComponentMonologue();
+    if (action === "arith-converter-in") return openConverterInfo("in");
+    if (action === "arith-converter-out") return openConverterInfo("out");
+    if (action === "converter-info-ok") return closeConverterInfo();
+    if (action === "converter-value-ok") return commitConverterValue();
+    if (action === "converter-value-cancel") return closeConverterValueEdit();
     if (action === "explanations") return openExplanationsMenu();
     if (action === "explanations-return") return returnFromExplanationsMenu();
     // Opening any explanation from the הסברים menu earns "למדן".
@@ -12009,8 +12545,8 @@
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "panel-answer-check") return checkPanelAnswer();
-    if (action === "open-words-bytes") { unlockExplanation("words-bytes"); return setState({ wordsBytesDialog: { page: 0 } }, false); }
-    if (action === "words-bytes-close") return setState({ wordsBytesDialog: null }, false);
+    if (action === "open-words-bytes") { unlockExplanation("words-bytes", { silent: true }); return setState({ wordsBytesDialog: { page: 0 } }, false); }
+    if (action === "words-bytes-close") return closeWordsBytes();
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);
     if (action === "arith-tasks-note") return openArithNote();
@@ -12064,6 +12600,7 @@
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
+    if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
     if (action === "understood-play-more") return dismissUnderstoodPrompt();
     if (action === "understood-yes" || action === "understood-no") return startNandMonologue();
     if (action === "understood-open") return openUnderstoodPrompt();
@@ -12111,6 +12648,11 @@
       return startSplitterResize(splitterResizeHandle.dataset.componentId, event);
     }
 
+    // Pressing a converter's counter wheel edits that digit (handled by the click
+    // handler); it must NOT start dragging the whole converter or flash its name
+    // ghost. Let the event fall through to the click without capturing it here.
+    if (event.target.closest("[data-action='converter-digit']")) return;
+
     const component = event.target.closest("[data-action='workspace-component']");
     if (component) {
       event.preventDefault();
@@ -12157,11 +12699,11 @@
     if (state.wordsBytesDialog) {
       const total = Math.max(1, wordsBytesParagraphs().length);
       const page = Math.min(Math.max(0, Number(state.wordsBytesDialog.page) || 0), total - 1);
-      if (event.key === "Escape") { event.preventDefault(); return setState({ wordsBytesDialog: null }, false); }
+      if (event.key === "Escape") { event.preventDefault(); return closeWordsBytes(); }
       if (event.key === "ArrowRight") { event.preventDefault(); return wordsBytesStep(-1); }
       if (event.key === "ArrowLeft" || event.key === " " || event.key === "Enter") {
         event.preventDefault();
-        if (page >= total - 1) return setState({ wordsBytesDialog: null }, false);
+        if (page >= total - 1) return closeWordsBytes();
         return wordsBytesStep(1);
       }
       event.preventDefault();

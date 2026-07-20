@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable, savedCardTools }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -52,9 +52,11 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       ...cardTools,
       { type: "lamp", label: "מנורה" },
       { type: "source", label: "מקור מתח" },
-      // The splitter is available on the free "empty table" and in the chapter
-      // 2.4 bus-task builds (where it is needed to split the input bus).
-      ...((isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : [])
+      // The splitter is available in every build from chapter 2.4 on (once it is
+      // introduced), plus the free "empty table" and any bus/multibit task build.
+      ...((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : []),
+      // The binary↔decimal converters, on the 2.5 worktable (arith builds).
+      ...((typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
     ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.

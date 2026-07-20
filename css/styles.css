@@ -421,6 +421,9 @@ button { font: inherit; }
   right: 3%;
   z-index: 7;
   max-width: 72%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   /* Keep the teaser on a single line so it stays in the thin strip above the
      panel's speech bubble instead of growing down over it. */
   white-space: nowrap;
@@ -438,6 +441,9 @@ button { font: inherit; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
 .story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+/* The enrichment sparkle (same mark as the "העשרה" teaser), gold so it reads as
+   a bonus regardless of the link's red text. */
+.corner-link-icon { color: #f3d27a; flex: 0 0 auto; }
 
 /* The "מילים ובתים" reading dialog: a taller, scrollable card. The compound
    selector overrides .pace-dialog-card's display:grid so the flex body scrolls. */
@@ -529,6 +535,26 @@ button { font: inherit; }
   will-change: transform, opacity;
 }
 .expl-unlock-fly svg { width: 100%; height: 100%; }
+
+/* "אני רוצה עוד לשחק עם זה": the "הבנת?" dialog shrinks into the "הבנת?" button. */
+.understood-suck-fly {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  font-weight: 800;
+  font-size: 1.4rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  will-change: transform, opacity;
+}
 
 .about-card h1 {
   margin: 0;
@@ -1772,6 +1798,22 @@ button { font: inherit; }
   margin: 0;
   font-size: clamp(1.05rem, 2vw, 1.35rem);
   line-height: 1.45;
+}
+
+/* "העשרה" title on the build-help teaser, marking it as a bonus/enrichment. */
+.build-help-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  font-weight: 800;
+  color: #f3d27a;
+}
+.build-help-icon {
+  flex: 0 0 auto;
+  color: #f3d27a;
 }
 
 .workspace-build-help-actions {
@@ -3058,6 +3100,46 @@ button { font: inherit; }
 .bit-card a {
   cursor: pointer;
 }
+
+/* The dec→bin converter's number-entry dialog: a compact card matching the game,
+   shown instead of a browser prompt. The input echoes the cream serif look of the
+   converter's counter wheels. */
+.converter-value-card {
+  width: min(420px, calc(100vw - 44px));
+  height: auto;
+  max-height: min(420px, calc(100dvh - var(--topbar-h) - var(--controls-h) - 70px));
+  grid-template-rows: minmax(0, 1fr) auto;
+  text-align: center;
+}
+.converter-value-body {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  align-content: center;
+}
+.converter-value-body p { text-align: center; margin: 0; }
+.converter-value-input {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  color: #2b2620;
+  background: #efe9d8;
+  border: 2px solid #8a7c58;
+  border-radius: 8px;
+  padding: 8px 14px;
+  min-width: 180px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.converter-value-input:focus {
+  outline: none;
+  border-color: #c9a24a;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 0 3px rgba(201, 162, 74, 0.35);
+}
+.converter-value-hint { font-size: 0.9rem; opacity: 0.75; }
+.converter-value-error { color: #ff9b7a; font-weight: 700; font-size: 0.95rem; }
+.converter-value-card .bit-actions { gap: 12px; }
 
 /* Bus / splitter monologue: a single bubble whose schematic symbol appears
    inline (small) between the two sentences. The card grows to fit its content

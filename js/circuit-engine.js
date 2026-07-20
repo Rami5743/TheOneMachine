@@ -237,9 +237,35 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return true;
   }
 
+  // The FULL connected bit-vector driving an input ref, NOT truncated to the
+  // pin's own width — used by the dynamic-width converter, whose pin has no
+  // intrinsic width and must read every bit of whatever bus feeds it.
+  function rawInputBits(workspace, inputRef, outputs) {
+    let vec = [];
+    for (const wire of workspace.wires) {
+      const other = otherWireEnd(wire, inputRef);
+      if (!other) continue;
+      if (terminalDirection(workspace, other) !== "out") continue;
+      const src = outputs.get(other);
+      if (Array.isArray(src)) vec = orBits(vec, src);
+    }
+    return vec;
+  }
+
   function splitterCount(component) {
     if (typeof splitterOutputCount === "function") return splitterOutputCount(component);
     return Math.min(16, Math.max(2, Number(component?.outputs) || 4));
+  }
+
+  // The bus width connected to a pin (from the other end of its wire), or null.
+  function connectedWidth(workspace, ref) {
+    for (const wire of workspace.wires || []) {
+      const other = wire.a === ref ? wire.b : (wire.b === ref ? wire.a : null);
+      if (!other) continue;
+      const w = typeof pinWidth === "function" ? pinWidth(workspace, other) : null;
+      if (Number.isInteger(w)) return w;
+    }
+    return null;
   }
 
   function evaluateWorkspaceBits(workspace) {
@@ -284,6 +310,20 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           continue;
         }
 
+        if (type === "converter-out") {
+          // dec→bin source: emit the bits of the stored decimal `value`, at the
+          // width of whatever bus its output feeds (dynamic). If unconnected, use
+          // just enough bits for the value.
+          const value = Math.max(0, Math.floor(Number(component.value) || 0));
+          let w = connectedWidth(workspace, `${component.id}.out`);
+          if (!Number.isInteger(w) || w < 1) w = Math.max(1, value.toString(2).length);
+          const vec = [];
+          for (let i = 0; i < w; i += 1) vec.push(Boolean((value >> i) & 1));
+          if (setBits(outputs, `${component.id}.out`, vec)) changed = true;
+          continue;
+        }
+        if (type === "converter-in") continue; // a display sink — no output
+
         if (type.startsWith("gate-")) {
           // A placeable bus gate (gate-Not4 …): apply the op componentwise over
           // the whole input bus.
@@ -307,9 +347,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             if (setBits(outputs, `${component.id}.out`, outVec)) changed = true;
             continue;
           }
-          // A placeable bus-adder gate (gate-Add4): add the two width-N number
-          // buses plus the single carry-in bit. Buses are little-endian (bit 0 =
-          // units), matching add4Bits / the splitter chunks feeding it.
+          // A placeable bus-adder gate: add the two width-N number buses. Add4
+          // also adds a single-bit carry-in (in3) and emits a carry-out (out2) to
+          // chain blocks; Add16 has no carry pins — it adds mod 2^N and drops the
+          // final carry. Buses are little-endian (bit 0 = units), matching
+          // add4Bits / the splitter chunks feeding it.
           const arith = typeof arithBusGateSpec === "function" ? arithBusGateSpec(type) : null;
           if (arith) {
             const w = arith.width;
@@ -319,12 +361,12 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i);
               return n;
             };
-            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`)
-              + (inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0);
+            const carryIn = arith.carry && inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
+            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
             const sumVec = [];
             for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
             if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;
-            if (setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
+            if (arith.carry && setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
             continue;
           }
           const task = taskDefById(type.slice(5));
@@ -371,13 +413,23 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     }
 
     const lamps = new Map();
+    const converters = new Map();
     for (const component of workspace.components) {
       if (component.type === "lamp") {
         lamps.set(component.id, Boolean(inputBits(workspace, `${component.id}.in`, outputs)[0]));
+      } else if (component.type === "converter-in") {
+        // bin→dec display: the decimal value of the bus feeding it (little-endian,
+        // bit 0 = units), and the connected width (for the digit count).
+        const vec = rawInputBits(workspace, `${component.id}.in`, outputs);
+        let n = 0;
+        for (let i = 0; i < vec.length; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i);
+        converters.set(component.id, { value: n, width: connectedWidth(workspace, `${component.id}.in`) });
+      } else if (component.type === "converter-out") {
+        converters.set(component.id, { value: Math.max(0, Math.floor(Number(component.value) || 0)), width: connectedWidth(workspace, `${component.id}.out`) });
       }
     }
 
-    return { outputs, lamps };
+    return { outputs, lamps, converters };
   }
 
   return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits };

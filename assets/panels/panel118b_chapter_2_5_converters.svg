@@ -6,7 +6,7 @@
    viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
-   sodipodi:docname="panel118_chapter_2_5_doorway.svg"
+   sodipodi:docname="panel118b_chapter_2_5_converters.svg"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1"
-     inkscape:cx="392"
-     inkscape:cy="118.5"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="723.55583"
+     inkscape:cy="543"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="1432"
@@ -40,18 +40,18 @@
      width="1448"
      height="1086"
      preserveAspectRatio="none"
-     href="panel118_chapter_2_5_doorway.jpg"
-     xlink:href="panel118_chapter_2_5_doorway.jpg" />
+     href="panel118b_chapter_2_5_converters.jpg"
+     xlink:href="panel118b_chapter_2_5_converters.jpg" />
   <g
      id="text-bubble-layer"
      inkscape:groupmode="layer"
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 468.82548,130.53129 h 345.86363 c 5.39162,0 9.76225,2.92682 9.76225,6.53722 v 47.09291 c 0,3.61041 -4.37063,6.53722 -9.76225,6.53722 H 468.82548 c -5.39156,0 -9.76228,-2.92682 -9.76228,-6.53722 v -16.75369 l -70.3404,-4.52679 70.3404,-10.52319 v -15.28923 c 0,-3.61041 4.37072,-6.53723 9.76228,-6.53723 z"
+       d="m 565.1909,64.294104 h 757.1049 c 11.8025,0 21.3698,8.041366 21.3698,17.960891 V 211.64182 c 0,9.91953 -9.5673,17.9609 -21.3698,17.9609 H 565.1909 c -11.80227,0 -21.3699,-8.04137 -21.3699,-17.9609 l -1.33252,-44.99505 -143.81571,-5.70022 142.4832,-22.84962 2.66503,-55.841935 c 0.47287,-9.908248 9.56763,-17.960891 21.3699,-17.960891 z"
        fill="#ffffff"
        stroke="#000000"
-       stroke-width="3.44993"
+       stroke-width="2.93871"
        stroke-linejoin="round"
        stroke-linecap="round"
        sodipodi:nodetypes="ssssssscccss" />
@@ -67,11 +67,18 @@
        stroke="none"
        xml:space="preserve"
        style="stroke-width:0.907271"
-       x="-304"
-       y="110"><tspan
-         x="641.19293"
-         y="169.94368"
+       y="40"><tspan
+         x="945.19293"
+         y="99.94368"
          id="tline1"
-         style="stroke-width:0.907271">טוב, הנה המשימות שלך.</tspan></text>
+         style="stroke-width:0.907271">אני משאיר לך כאן מכשירים שממירים בסים עם מספרים</tspan><tspan
+         x="945.19293"
+         y="152.5654"
+         id="tline2"
+         style="stroke-width:0.907271">בינריים למספרים עשרוניים. תוכל להשתמש בהם בשביל</tspan><tspan
+         x="945.19293"
+         y="205.18713"
+         id="tline3"
+         style="stroke-width:0.907271">לבדוק את מה שאתה עושה.</tspan></text>
   </g>
 </svg>
