@@ -312,7 +312,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // display string. Each digit is a tall, neutral-grey 7-segment glyph that fills
   // almost the whole screen height. Placed dec→bin converters are interactive.
   function converterMarkup(dir, options = {}) {
-    const digits = String(options.digits != null ? options.digits : "000000");
+    const digits = String(options.digits != null ? options.digits : "00000");
     const n = Math.max(1, digits.length);
     const g = CONV_GEO;
     const glyphW = g.glyphW, glyphH = g.glyphH, t = g.t, gap = g.gap, padX = g.padX, screenPadY = g.screenPadY;

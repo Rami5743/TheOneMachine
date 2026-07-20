@@ -89,7 +89,7 @@ function createBoardRender({
   function converterDigits(component, evaluation) {
     const info = (evaluation.converters && evaluation.converters.get(component.id)) || { value: 0 };
     const w = Number.isInteger(component.width) && component.width >= 1 ? Math.min(component.width, 40) : null;
-    const digitCount = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 6);
+    const digitCount = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 5);
     const raw = String(Math.max(0, Math.floor(info.value || 0)));
     return raw.length >= digitCount ? raw : raw.padStart(digitCount, "0");
   }

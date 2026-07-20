@@ -11028,7 +11028,7 @@
   function converterDisplayString(componentId, workspace = state.workspace) {
     const comp = componentById(workspace, componentId);
     const value = Math.max(0, Math.floor(Number(comp?.value) || 0));
-    const dc = comp ? converterDisplayDigits(comp) : 6;
+    const dc = comp ? converterDisplayDigits(comp) : 5;
     const raw = String(value);
     return raw.length >= dc ? raw : raw.padStart(dc, "0");
   }
@@ -11156,7 +11156,7 @@
   // width and the bus-pin position, so they always line up.
   function converterDisplayDigits(component) {
     const w = Number.isInteger(component?.width) && component.width >= 1 ? Math.min(component.width, 40) : null;
-    const base = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 6);
+    const base = Math.min(12, w ? String(Math.pow(2, w) - 1).length : 5);
     const value = Math.max(0, Math.floor(Number(component?.value) || 0));
     return Math.max(base, String(value).length);
   }

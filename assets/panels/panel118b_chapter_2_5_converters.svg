@@ -1,24 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel118b_chapter_2_5_converters.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg">
-  <defs id="defs1" />
-  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none"
-     href="panel118b_chapter_2_5_converters.jpg" xlink:href="panel118b_chapter_2_5_converters.jpg" />
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="723.55583"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <defs
+     id="defs1" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel118b_chapter_2_5_converters.jpg"
+     xlink:href="panel118b_chapter_2_5_converters.jpg" />
   <g
      id="text-bubble-layer"
      inkscape:groupmode="layer"
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 543.21677,24.531504 h 800.52203 c 12.4792,0 22.5953,10.481415 22.5953,23.410894 V 216.59000 c 0,12.92948 -10.1161,23.4109 -22.5953,23.4109 H 543.21677 c -12.47908,0 -22.59538,-10.48142 -22.59538,-23.4109 V 203.09988 L 412.23521,166.14354 520.62139,174.5712 V 47.942398 c 0,-12.929479 10.1163,-23.410894 22.59538,-23.410894 z"
+       d="m 565.1909,64.294104 h 757.1049 c 11.8025,0 21.3698,8.041366 21.3698,17.960891 V 211.64182 c 0,9.91953 -9.5673,17.9609 -21.3698,17.9609 H 565.1909 c -11.80227,0 -21.3699,-8.04137 -21.3699,-17.9609 l -1.33252,-44.99505 -143.81571,-5.70022 142.4832,-22.84962 2.66503,-55.841935 c 0.47287,-9.908248 9.56763,-17.960891 21.3699,-17.960891 z"
        fill="#ffffff"
        stroke="#000000"
-       stroke-width="3.44993"
+       stroke-width="2.93871"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
     <text
        id="bubble-text"
        text-anchor="middle"
@@ -30,6 +66,19 @@
        fill="#000000"
        stroke="none"
        xml:space="preserve"
-       style="stroke-width:0.907271"><tspan x="945.19293" y="59.94368" id="tline1" style="stroke-width:0.907271">אני משאיר לך כאן מכשירים שממירים בסים עם מספרים</tspan><tspan x="945.19293" y="112.56541" id="tline2" style="stroke-width:0.907271">בינריים למספרים עשרוניים. תוכל להשתמש בהם בשביל</tspan><tspan x="945.19293" y="165.18714" id="tline3" style="stroke-width:0.907271">לבדוק מה אתה עושה.</tspan></text>
+       style="stroke-width:0.907271"
+       y="40"><tspan
+         x="945.19293"
+         y="99.94368"
+         id="tline1"
+         style="stroke-width:0.907271">אני משאיר לך כאן מכשירים שממירים בסים עם מספרים</tspan><tspan
+         x="945.19293"
+         y="152.5654"
+         id="tline2"
+         style="stroke-width:0.907271">בינריים למספרים עשרוניים. תוכל להשתמש בהם בשביל</tspan><tspan
+         x="945.19293"
+         y="205.18713"
+         id="tline3"
+         style="stroke-width:0.907271">לבדוק את מה שאתה עושה.</tspan></text>
   </g>
 </svg>

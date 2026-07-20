@@ -22,9 +22,9 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.89502762"
-     inkscape:cx="1062.537"
-     inkscape:cy="275.4105"
+     inkscape:zoom="1"
+     inkscape:cx="392"
+     inkscape:cy="118.5"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="1432"
@@ -48,12 +48,13 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 543.21677,24.531504 h 800.52203 c 12.4792,0 22.5953,10.481415 22.5953,23.410894 V 216.59000 c 0,12.92948 -10.1161,23.4109 -22.5953,23.4109 H 543.21677 c -12.47908,0 -22.59538,-10.48142 -22.59538,-23.4109 V 203.09988 L 412.23521,166.14354 520.62139,174.5712 V 47.942398 c 0,-12.929479 10.1163,-23.410894 22.59538,-23.410894 z"
+       d="m 468.82548,130.53129 h 345.86363 c 5.39162,0 9.76225,2.92682 9.76225,6.53722 v 47.09291 c 0,3.61041 -4.37063,6.53722 -9.76225,6.53722 H 468.82548 c -5.39156,0 -9.76228,-2.92682 -9.76228,-6.53722 v -16.75369 l -70.3404,-4.52679 70.3404,-10.52319 v -15.28923 c 0,-3.61041 4.37072,-6.53723 9.76228,-6.53723 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
     <text
        id="bubble-text"
        text-anchor="middle"
@@ -65,6 +66,12 @@
        fill="#000000"
        stroke="none"
        xml:space="preserve"
-       style="stroke-width:0.907271"><tspan x="945.19293" y="59.94368" id="tline1" style="stroke-width:0.907271">טוב, הנה המשימות שלך.</tspan></text>
+       style="stroke-width:0.907271"
+       x="-304"
+       y="110"><tspan
+         x="641.19293"
+         y="169.94368"
+         id="tline1"
+         style="stroke-width:0.907271">טוב, הנה המשימות שלך.</tspan></text>
   </g>
 </svg>
