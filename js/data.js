@@ -62,6 +62,12 @@ const CHAPTERS = [
     "partId": "part-2",
     "title": "2.5 אריתמטיקה",
     "sceneId": "arithmetic"
+  },
+  {
+    "id": "chapter-9",
+    "partId": "part-2",
+    "title": "2.6 ALU",
+    "sceneId": "alu"
   }
 ];
 
@@ -861,6 +867,30 @@ const SCENES = {
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
           { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
+      }
+    ]
+  },
+  "alu": {
+    "id": "alu",
+    "type": "story",
+    "chapterId": "chapter-9",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "Chapter 2.6 (ALU) opening: von Neumann speech over the reused 2.5 farewell room. Speech is baked into each SVG; read is the TTS narration.",
+        "image": "assets/panels/panel120_chapter_2_6_alu_1.svg",
+        "year": "1943",
+        "read": "מצוין. עבודה טובה. עכשיו יש לנו מכונה שמחברת מספרים. אנחנו נצטרך עוד מכונות שעושות עוד חישובים. אנחנו רוצים לבנות מכונה אחת שתעשה את כל החישובים שנצטרך. היא תקבל את מספרים שאליהם אנחנו רוצים לעשות את החישוב ובס נוסף שיגיד לה איזה חישוב לעשות."
+      },
+      {
+        "image": "assets/panels/panel121_chapter_2_6_alu_2.svg",
+        "year": "1943",
+        "read": "תזכור, בפועל המכונה לא באמת בוחרת שום דבר. היא עושה את כל החישובים ובסוף רק אחד מהם יוצא. כמו שאתה זוכר יש לנו כרטיס שיכול \"לבחור\" בין אפשרויות. זה עדיין לא המחשב שאנחנו רוצים לעשות, כי המכונה הזאת תוכל לבצע רק חישובים פשוטים - של צעד אחד. וצריך \"להגיד\" לה לעשות כל חישוב בנפרד. היא יותר דומה למחשבון. אבל זה צעד חשוב בבניית המחשב. בסופו של דבר כל חישוב מורכב בנוי מהרבה צעדים פשוטים."
+      },
+      {
+        "image": "assets/panels/panel122_chapter_2_6_alu_3.svg",
+        "year": "1943",
+        "read": "נקרא לה ALU ראשי תיבות באנגלית של \"יחידה לוגית אריתמטית\". היא תוכל לעשות פעולות אריתמטיות כמו חיבור ופעולות לוגיות כמו AND."
       }
     ]
   }
