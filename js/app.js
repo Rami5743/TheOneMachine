@@ -1368,12 +1368,17 @@
       const ay = cy + pin.y;
       const w = pin.width || 1;
       if (pin.y < -150) {
-        // Control bus poking out the top, drawn down to its internal pin.
+        // Control poking out the top, drawn down to its internal pin. A wide
+        // control (2-bit MUX select) is a bus with a width label; a single-bit
+        // control (e.g. ALU0's op-select) is a plain cable, no label.
         const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
-        stubs += `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
-          <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
-          <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
-          <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`;
+        stubs += (w > 1)
+          ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
+             <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
+             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
+             <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
+          : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
+             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>`;
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
@@ -10353,14 +10358,18 @@
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     // ALU0/PreperNum frames have a control pin poking out the top, so they sit
-    // lower on the board (like the taller multibit cards); Inc's symmetric frame
-    // sits centred.
-    const cardY = (task.id === "ALU0" || task.id === "PreperNum") ? 360 : 288;
+    // lower on the board. Inc sits a little left with its source pre-placed INSIDE
+    // the frame (it builds a constant "1" bus there — matches the reference
+    // solution), so the "1"-bus splitters stay inside the frame too.
+    const isInc = task.id === "Inc";
+    const cardX = isInc ? 500 : 640;
+    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || isInc) ? 360 : 288;
+    const srcPos = isInc ? { x: 258, y: 404 } : { x: 65, y: 288 };
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
-        { id: "source-1", type: "source", x: 65, y: 288 }
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        { id: "source-1", type: "source", x: srcPos.x, y: srcPos.y }
       ],
       wires: [],
       nextId: 2,
@@ -10412,7 +10421,7 @@
 
   // The paged "what is an ALU" message shown right after ALU0 is built.
   const ALU0_COMPLETE_PAGES = [
-    "שים לב, בנית גרסה פשוטה של ALU (מחשבון). המכונה הזאת מקבלת 2 מספרים ובחירה של פעולה, ומבצעת את הפעולה שבחרת. למעשה, אין כאן שום בחירה, היא תמיד עושה אותו חישוב. פשוט הביט שמציין את הפעולה הוא חלק מהחישוב. סה\"כ מדובר בכרטיס עם 33 ביטים נכנסים ו-16 ביטים יוצאים. אפשר אפילו לכתוב לו טבלת אמת. אבל היא תהיה עצומה. אפשר גם לנסות לבנות אותו לפי השיטה הכללית לבניית כרטיס על פי טבלת אמת, אבל זה ידרוש מיליארדי NANDים. שזה בלתי אפשרי לחלוטין באמצע המאה העשרים, גם בתחילת מאה ה-21 זה מאוד יקר וכמובן מיותר.",
+    "שים לב, בנית גרסה פשוטה של ALU (מעין \"מחשבון\"). המכונה הזאת מקבלת 2 מספרים ובחירה של פעולה, ומבצעת את הפעולה שבחרת. למעשה, אין כאן שום בחירה, היא תמיד עושה אותו חישוב. פשוט הביט שמציין את הפעולה הוא חלק מהחישוב. סה\"כ מדובר בכרטיס עם 33 ביטים נכנסים ו-16 ביטים יוצאים. אפשר אפילו לכתוב לו טבלת אמת. אבל היא תהיה עצומה. אפשר גם לנסות לבנות אותו לפי השיטה הכללית לבניית כרטיס על פי טבלת אמת, אבל זה ידרוש מיליארדי NANDים. שזה בלתי אפשרי לחלוטין באמצע המאה העשרים, גם בתחילת מאה ה-21 זה מאוד יקר וכמובן מיותר.",
     "ה-ALU במחשב מודרני הרבה יותר מסובך. אבל העיקרון דומה. יש מספר כניסות \"רגילות\", מספר כניסות בקרה ומספר יציאות. כניסות הבקרה מגדירות איזו פעולה תתבצע על הכניסות הרגילות והתוצאה תופיע ביציאות. כרגיל ההפרדה בין הכניסות הרגילות וכניסות הבקרה היא מלאכותית, ונועדה לעזור לנו להבין מה ה-ALU עושה.",
     "ה-ALU נמצא בתוך המעבד של המחשב והוא זה שמבצע את הפעולות. המעבד \"מפעיל\" את ה-ALU: הוא נותן לו הוראות, מכניס לו את הקלט (מה שנכנס בכניסות הרגילות) ושומר את הפלט של ה-ALU (מה שיוצא מהיציאות) בכל מיני מקומות. כל זאת בהתאם להוראות שהמעבד מקבל, שהם למעשה התוכנה שהמעבד מריץ."
   ];
@@ -10562,10 +10571,10 @@
     }
 
     // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note. ALU0
-    // shows the "what is an ALU" message on FIRST completion (shouldComplete) —
-    // not when replaying its solution from the note.
+    // shows the "what is an ALU" message every time its solution is closed —
+    // both on first completion and when replaying it from the note.
     if (isAluTask(taskId)) {
-      const showAluIntro = taskId === "ALU0" && shouldComplete;
+      const showAluIntro = taskId === "ALU0";
       return setState({
         ...aluWorktableReturnTarget(),
         taskDialog: null,

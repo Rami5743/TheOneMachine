@@ -1101,11 +1101,13 @@ function createSolutionWorkspaces({
   // of size 4 — only the units leg of each is driven, from the source), then feed
   // the input and that "1" bus into Add16.
   function incSolutionFrom() {
-    // Layout mirrors the learner-supplied reference solution: the two merging
-    // splitters build the "1" bus to the left, feeding Add16 alongside the input.
+    // Layout mirrors the learner-supplied reference solution (my_inc.json): the
+    // source and the two merging splitters that build the "1" bus, plus Add16, all
+    // sit INSIDE the card frame. The frame is centred over that cluster so nothing
+    // pokes out its edges.
     const components = [
+      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 500, y: 360 },
       { id: "source-1", type: "source", x: 258, y: 404 },
-      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 720, y: 300 },
       { id: "one-split-lo", type: "splitter", x: 390, y: 402, mirrored: true, outputs: 4, width: 1 },
       { id: "one-split-hi", type: "splitter", x: 544, y: 402, mirrored: true, outputs: 4, width: 4 },
       { id: "add-1", type: "gate-Add16", x: 689, y: 307 }
@@ -1123,12 +1125,14 @@ function createSolutionWorkspaces({
   // ALU0: control=0 → AND, control=1 → ADD. Compute both on the two number buses
   // (AND16 and Add16 in parallel) and let MUX16 pick between them by the control.
   function alu0SolutionFrom() {
+    // The internal gates sit inside the (cx±300) shell frame: AND16 and Add16 on
+    // the left, MUX16 on the right, the card centred over them.
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
-      { id: "task-card-1", type: taskCardComponentType("ALU0"), x: 820, y: 360 },
-      { id: "and16", type: "gate-AND16", x: 450, y: 200 },
-      { id: "add16", type: "gate-Add16", x: 450, y: 470 },
-      { id: "mux", type: "gate-MUX16", x: 640, y: 340 }
+      { id: "task-card-1", type: taskCardComponentType("ALU0"), x: 640, y: 360 },
+      { id: "and16", type: "gate-AND16", x: 540, y: 240 },
+      { id: "add16", type: "gate-Add16", x: 540, y: 470 },
+      { id: "mux", type: "gate-MUX16", x: 760, y: 355 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt1", "and16.in1"),
@@ -1148,13 +1152,15 @@ function createSolutionWorkspaces({
   // (leg1/MSB); MUX16 #2 chooses between that result and its NOT (via Not16) by the
   // second bit (leg0/LSB).
   function preperNumSolutionFrom() {
+    // All internal parts sit inside the (cx±300) shell frame: the control splitter
+    // near the top control pin, the two MUX16 and the Not16 across the middle.
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
-      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 840, y: 360 },
-      { id: "ctrl-split", type: "splitter", x: 300, y: 120, mirrored: false, outputs: 2, width: 1 },
-      { id: "mux1", type: "gate-MUX16", x: 470, y: 300 },
-      { id: "not16", type: "gate-Not16", x: 470, y: 520 },
-      { id: "mux2", type: "gate-MUX16", x: 660, y: 400 }
+      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 640, y: 360 },
+      { id: "ctrl-split", type: "splitter", x: 505, y: 235, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux1", type: "gate-MUX16", x: 600, y: 340 },
+      { id: "not16", type: "gate-Not16", x: 600, y: 510 },
+      { id: "mux2", type: "gate-MUX16", x: 790, y: 390 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
