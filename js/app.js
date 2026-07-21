@@ -4090,11 +4090,11 @@
     ],
     Inc: [
       {
-        text: "כדי להוסיף 1 צריך קודם ליצור בס ברוחב 16 שמייצג את המספר 1. בונים אותו בעזרת שני מפצלים בגודל 4. המפצל הראשון מאגד 4 ביטים לבס ברוחב 4 — רק הביט התחתון (ספרת האחדות) מחובר למקור מתח, כך שהוא מייצג 0001.",
+        text: "כדי להוסיף 1 צריך קודם ליצור בס ברוחב 16 שמייצג את המספר 1. מוסיפים מקור מתח משלנו (מלבד מקור המתח החיצוני שמשמש לבדיקות), ובונים את הבס בעזרת שני מפצלים בגודל 4. המפצל הראשון מאגד 4 ביטים לבס ברוחב 4 — רק הביט התחתון (ספרת האחדות) מחובר למקור המתח, כך שהוא מייצג 0001.",
         highlight: {
-          components: ["source-1", "one-split-lo"],
+          components: ["one-source", "one-split-lo"],
           terminals: ["one-split-lo.single", "one-split-lo.leg0"],
-          wires: [wireKey("source-1.out", "one-split-lo.leg0")]
+          wires: [wireKey("one-source.out", "one-split-lo.leg0")]
         }
       },
       {
@@ -10124,20 +10124,23 @@
   };
 
   // The Inc "1"-bus interactive hint: build a width-16 bus that represents the
-  // number 1 using two merging splitters of size 4. The low splitter merges four
-  // single bits into a 4-bit bus with only its units leg (leg0) fed from the
-  // source (= 0001 = 1); the high splitter merges four 4-bit buses into a 16-bit
-  // bus with only its low chunk (leg0) connected (= …0000 0000 0000 0001 = 1).
-  // The resulting single (INC_ONE_HI.single) is the "1" bus, left for the learner
-  // to feed — with the card's input — into Add16.
-  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 390, y: 402, mirrored: true, outputs: 4, width: 1 };
-  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 544, y: 402, mirrored: true, outputs: 4, width: 4 };
+  // number 1 using its OWN source (inside the card) and two merging splitters of
+  // size 4. The low splitter merges four single bits into a 4-bit bus with only
+  // its units leg (leg0) fed from that source (= 0001 = 1); the high splitter
+  // merges four 4-bit buses into a 16-bit bus with only its low chunk (leg0)
+  // connected (= …0000 0000 0000 0001 = 1). The pre-placed source-1 stays outside
+  // for testing; this constant "1" belongs to the card's own logic, so it gets a
+  // dedicated internal source. The resulting single (one-split-hi.single) is the
+  // "1" bus, left for the learner to feed — with the card's input — into Add16.
+  const INC_ONE_SRC = { id: "one-source", type: "source", x: 400, y: 380 };
+  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 510, y: 380, mirrored: true, outputs: 4, width: 1 };
+  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 650, y: 380, mirrored: true, outputs: 4, width: 4 };
   const INC_W_ONE = [
-    ["source-1.out", "one-split-lo.leg0"],
+    ["one-source.out", "one-split-lo.leg0"],
     ["one-split-lo.single", "one-split-hi.leg0"]
   ];
   const INC_HINT_STAGES = {
-    "inc-build-one": { components: [INC_ONE_LO, INC_ONE_HI], wires: INC_W_ONE }
+    "inc-build-one": { components: [INC_ONE_SRC, INC_ONE_LO, INC_ONE_HI], wires: INC_W_ONE }
   };
 
   function openArithNote() {
@@ -10362,18 +10365,15 @@
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     // ALU0/PreperNum frames have a control pin poking out the top, so they sit
-    // lower on the board. Inc sits a little left with its source pre-placed INSIDE
-    // the frame (it builds a constant "1" bus there — matches the reference
-    // solution), so the "1"-bus splitters stay inside the frame too.
-    const isInc = task.id === "Inc";
-    const cardX = isInc ? 500 : 640;
-    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || isInc) ? 360 : 288;
-    const srcPos = isInc ? { x: 258, y: 404 } : { x: 65, y: 288 };
+    // lower on the board. The pre-placed source-1 is the TEST source (it drives
+    // inputs during a check) and stays OUTSIDE the frame; the learner adds their
+    // own source inside for a constant "1" bus (see the Inc solution/hint).
+    const cardY = (task.id === "ALU0" || task.id === "PreperNum") ? 360 : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
-        { id: "source-1", type: "source", x: srcPos.x, y: srcPos.y }
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
+        { id: "source-1", type: "source", x: 65, y: 288 }
       ],
       wires: [],
       nextId: 2,

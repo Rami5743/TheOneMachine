@@ -1101,19 +1101,22 @@ function createSolutionWorkspaces({
   // of size 4 — only the units leg of each is driven, from the source), then feed
   // the input and that "1" bus into Add16.
   function incSolutionFrom() {
-    // Layout mirrors the learner-supplied reference solution (my_inc.json): the
-    // source and the two merging splitters that build the "1" bus, plus Add16, all
-    // sit INSIDE the card frame. The frame is centred over that cluster so nothing
-    // pokes out its edges.
+    // The pre-placed source-1 is the TEST source and stays OUTSIDE the frame (it
+    // drives the input during a check). The constant "1" is part of the card's own
+    // logic, so the solution adds its OWN source INSIDE the frame, feeding the two
+    // size-4 merging splitters that build the "1" bus; that bus and the input go
+    // into Add16. The card sits at the standard position so the check's converters
+    // have room and the whole circuit stays inside the frame.
     const components = [
-      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 500, y: 360 },
-      { id: "source-1", type: "source", x: 258, y: 404 },
-      { id: "one-split-lo", type: "splitter", x: 390, y: 402, mirrored: true, outputs: 4, width: 1 },
-      { id: "one-split-hi", type: "splitter", x: 544, y: 402, mirrored: true, outputs: 4, width: 4 },
-      { id: "add-1", type: "gate-Add16", x: 689, y: 307 }
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 },
+      { id: "one-source", type: "source", x: 400, y: 400 },
+      { id: "one-split-lo", type: "splitter", x: 510, y: 400, mirrored: true, outputs: 4, width: 1 },
+      { id: "one-split-hi", type: "splitter", x: 650, y: 400, mirrored: true, outputs: 4, width: 4 },
+      { id: "add-1", type: "gate-Add16", x: 730, y: 220 }
     ];
     const wires = [
-      normalizeWire("source-1.out", "one-split-lo.leg0"),
+      normalizeWire("one-source.out", "one-split-lo.leg0"),
       normalizeWire("one-split-lo.single", "one-split-hi.leg0"),
       normalizeWire("task-card-1.inputInt1", "add-1.in1"),
       normalizeWire("one-split-hi.single", "add-1.in2"),
