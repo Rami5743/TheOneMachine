@@ -282,7 +282,15 @@
   // immediately; ALU1 needs both ALU0 and PreperNum; ALU2 needs ALU1; ALU3 needs
   // ALU2. None have a build workspace yet — they open a "המשך יבוא..." notice.
   const ALU_TASKS = [
-    { id: "Inc", label: "Inc", requires: [] },
+    {
+      id: "Inc",
+      label: "Inc",
+      requires: [],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 16,
+      requirements: "ה-Inc הוא כרטיס עם כניסה אחת ויציאה אחת. הכניסה והיציאה הן בסים ברוחב 16. הכרטיס צריך להוסיף 1 לכניסה ולהוציא את התוצאה."
+    },
     { id: "ALU0", label: "ALU0", requires: [] },
     { id: "PreperNum", label: "PreperNum", requires: [] },
     { id: "ALU1", label: "ALU1", requires: ["ALU0", "PreperNum"] },
@@ -431,6 +439,13 @@
       { kind: "text", title: "רמז 7", text: "עכשיו הקבוצה הבאה: חבר את שתי הקבוצות הבאות יחד עם הנשיאה מהקודם, שוב בעזרת Add4." },
       { kind: "interactive", title: "רמז 8", action: "add16-next-chunk", confirmBeforeApply: true, applyLabel: "כן", text: "אבצע את החיבור של הקבוצה הבאה: Add4 שמחבר את שתי הקבוצות הבאות עם הנשיאה מהקודם, ואוציא את הסכום שלו לקבוצה הבאה של בס הסכום. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
       { kind: "text", title: "רמז 9", text: "ממשיכים כך קבוצה-קבוצה עד הקבוצה העליונה. הנשיאה האחרונה — הספרה ה-17 — לא נכנסת לתוצאה, אז משאירים אותה לא מחוברת." }
+    ],
+    Inc: [
+      { kind: "text", title: "רמז 1", text: "אם אתה רוצה ליצור כבל שיש בו 1 אתה יכול פשוט לחבר אותו למקור מתח. אם אתה לא מחבר כניסה מסוימת לשום דבר, אז היא מקבלת 0 (כי היא לא מקבלת מתח)." },
+      { kind: "text", title: "רמז 2", text: "אתה יכול להשתמש ב-Add16." },
+      { kind: "text", title: "רמז 3", text: "אתה יודע איך כותבים את המספר 1 בשיטה הבינרית. הוא אומנם חד ספרתי אבל אתה יכול לכתוב אותו גם כ-16 ספרתי, פשוט תכתוב 0 בספרות שלא מופיעות." },
+      { kind: "text", title: "רמז 4", text: "אתה יכול להשתמש במפצל כדי לאגד כבלים לתוך בס." },
+      { kind: "interactive", title: "רמז 5", action: "inc-build-one", confirmBeforeApply: true, applyLabel: "כן", text: "אדגים בשבילך איך יוצרים בס ברוחב 16 שמייצג את המספר 1 — באמצעות 2 מפצלים בגודל 4: מפצל אחד מאגד 4 ביטים (רק הביט התחתון מחובר למקור מתח) לבס ברוחב 4, ומפצל שני מאגד 4 בסים כאלה (רק הקבוצה התחתונה מחוברת) לבס ברוחב 16. (שים לב: זה ימחק את מה שבנית עד עכשיו)." }
     ],
     Mux4way16: [
       { kind: "text", title: "רמז 1", text: "תתחיל מלפצל את בס הבקרה לשני הביטים שלו." },

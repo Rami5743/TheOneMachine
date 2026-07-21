@@ -60,6 +60,7 @@
     return TASK_DEFS.find((task) => task.id === taskId)
       || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
+      || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || null;
   }
 
@@ -477,6 +478,45 @@
       in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
       in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
+    },
+    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+  };
+
+  // ---- Chapter 2.6 ALU cards -----------------------------------------------
+  // The Inc build frame: a single width-16 bus input on the left and a single
+  // width-16 bus output on the right. The card must output (input + 1) mod 2^16.
+  // Checked with the multi-bit harness (numeric buses -> converters). Same shape
+  // as taskCard-Add16 but with one input.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Inc"] = {
+    label: "מסגרת Inc",
+    fixed: true,
+    taskId: "Inc",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר חיצונית" },
+      inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+  };
+
+  // gate-Inc: the placeable card earned by completing Inc. A "+1" box — one
+  // width-16 number bus in, one width-16 sum bus out (input + 1, mod 2^16). The
+  // engine treats it as an arith-bus gate with the `inc` flag (see
+  // arithBusGateSpec / the arith branch in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-Inc"] = {
+    label: "Inc",
+    taskId: "Inc",
+    gate: true,
+    busAdder: true,
+    incGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
     bounds: { left: 64, right: 84, top: 40, bottom: 40 }
   };
@@ -1202,6 +1242,7 @@
     // still goes through the arith path (guarded by isArithTask where it matters).
     return MULTIBIT_TASKS.find((task) => task.id === id)
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -1436,7 +1477,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
     );
 
     return {
@@ -1902,7 +1943,8 @@
     { chapter: "chapter-5", ids: () => TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -9092,6 +9134,18 @@
         { a: 65535, b: 65535 }   // = 131070, keep only the low 16 bits
       ];
     }
+    if (taskId === "Inc") {
+      // a -> a+1: 0, a plain value, a carry rippling across a nibble boundary,
+      // across all 16 bits, and the full overflow (65535 -> 0).
+      return [
+        { a: 0 },
+        { a: 41 },
+        { a: 255 },     // 0x00FF + 1 -> carry into the next nibble
+        { a: 4095 },    // 0x0FFF + 1 -> carry across chunks
+        { a: 30000 },
+        { a: 65535 }    // overflow -> 0 (drop the 17th digit)
+      ];
+    }
     return [];
   }
 
@@ -9161,6 +9215,17 @@
         ]
       };
     }
+    if (taskId === "Inc") {
+      const result = (testCase.a + 1) & 0xffff; // input + 1, drop the 17th digit
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
     return { inputs: [], outputs: [] };
   }
 
@@ -9175,8 +9240,6 @@
     workspace.selectedTerminal = null;
     workspace.accident = null;
     workspace.focusedComponentId = null;
-    workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
-    removeInvalidWires(workspace);
 
     // Inputs down the left side. The control bus (the input that pokes out the
     // top of the card) gets its merging splitter placed HIGH, level with the
@@ -9189,7 +9252,20 @@
     // addend) and reads each numeric output into a bin→dec converter (showing the
     // result) INSTEAD of a source/lamp fan-out. The carry bit and any other single
     // bit still use the plain source/lamp path.
-    const useConverters = isArithBusTask(baseWorkspace.taskId);
+    const useConverters = isArithBusTask(baseWorkspace.taskId) || isAluBusTask(baseWorkspace.taskId);
+
+    // The check drives inputs from the pre-placed source-1 (single-bit inputs
+    // directly, wide non-converter inputs via a merging splitter). Where it does,
+    // strip the learner's own wires to source-1 so the check controls it. But when
+    // the check drives NO input from source-1 — every input is a converter-fed
+    // numeric bus, as for Inc — source-1 belongs to the learner (they use it to
+    // build a constant "1" bus), so its wires must be KEPT.
+    const harnessUsesSource = !useConverters
+      || spec.inputs.some((input) => pinWidth(workspace, `task-card-1.${input.ref}`) === 1);
+    if (harnessUsesSource) {
+      workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
+    }
+    removeInvalidWires(workspace);
     const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
     const controlIdx = spec.inputs.findIndex((input) => {
       const p = frameDef.pins[input.ref];
@@ -9359,6 +9435,21 @@
           muxTable: null,
           completedTasks,
           arithNoteList: true,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // ALU cards (chapter 2.6) with no solution walkthrough (Inc): complete and
+      // return to the 2.6 worktable with the ALU note reopened.
+      if (isAluTask(taskId)) {
+        return setState({
+          ...aluWorktableReturnTarget(),
+          taskDialog: null,
+          notTest: null,
+          muxTable: null,
+          completedTasks,
+          aluNoteList: true,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -9752,6 +9843,23 @@
     "add16-next-chunk": { components: [A16_SPLIT_A, A16_SPLIT_B, A16_AD_UNITS, A16_AD_NEXT, A16_MERGE], wires: A16_W_NEXT }
   };
 
+  // The Inc "1"-bus interactive hint: build a width-16 bus that represents the
+  // number 1 using two merging splitters of size 4. The low splitter merges four
+  // single bits into a 4-bit bus with only its units leg (leg0) fed from the
+  // source (= 0001 = 1); the high splitter merges four 4-bit buses into a 16-bit
+  // bus with only its low chunk (leg0) connected (= …0000 0000 0000 0001 = 1).
+  // The resulting single (INC_ONE_HI.single) is the "1" bus, left for the learner
+  // to feed — with the card's input — into Add16.
+  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 250, y: 560, mirrored: true, outputs: 4, width: 1 };
+  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 460, y: 560, mirrored: true, outputs: 4, width: 4 };
+  const INC_W_ONE = [
+    ["source-1.out", "one-split-lo.leg0"],
+    ["one-split-lo.single", "one-split-hi.leg0"]
+  ];
+  const INC_HINT_STAGES = {
+    "inc-build-one": { components: [INC_ONE_LO, INC_ONE_HI], wires: INC_W_ONE }
+  };
+
   function openArithNote() {
     // Examine both converters before the tasks note opens (mirrors the 2.4
     // bus/splitter equipment gate, which is unconditional).
@@ -9941,8 +10049,73 @@
       : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
   }
 
+  // Which ALU cards have a real build workspace so far. The rest stay a
+  // "המשך יבוא..." placeholder in the note.
+  function aluTaskImplemented(id) {
+    return ["Inc"].includes(id);
+  }
+
+  // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
+  // the arith adder cards.
+  function isAluBusTask(id) {
+    return Boolean(aluTaskDefById(id)?.busWidth);
+  }
+
   function openAluNote() {
     return setState({ aluNoteList: true });
+  }
+
+  // The 2.6 ALU worktable (panel125) the learner returns to after a build.
+  function aluWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-9");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  // Open the build workspace for an ALU bus card (Inc …). Mirrors the arith bus
+  // branch of openArithTaskWorkspace but keeps the chapter-9 worktable as the
+  // return target so completion reopens the ALU note (not the 2.5 arith note).
+  function openAluTaskWorkspace(taskId) {
+    const task = aluTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-9");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: 288 },
+        { id: "source-1", type: "source", x: 65, y: 288 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      aluNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
   }
 
   function handleAluNoteTask(id) {
@@ -9951,8 +10124,15 @@
     if (!aluTaskUnlocked(task.id)) {
       return setState({ infoDialog: aluTaskLockedMessage(task.id) });
     }
-    // No ALU card has a build workspace yet — every unlocked one is a placeholder.
-    return setState({ infoDialog: "המשך יבוא..." });
+    if (!aluTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    // A completed card reopens its solution walkthrough if it has one; Inc has
+    // none ("figure it out yourself"), so a completed card just rebuilds.
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openAluTaskWorkspace(task.id);
   }
 
   function renderAluNoteList() {
@@ -10007,8 +10187,9 @@
       : completedTaskIds();
 
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
-    // with the note reopened (so the next task unlocks).
-    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    // with the note reopened (so the next task unlocks). ALU bus cards (Inc …)
+    // are also multibit tasks but route to their own worktable (handled below).
+    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       // Finishing the LAST multi-bit task (Mux4way16) rolls into the closing von
@@ -10075,6 +10256,22 @@
         muxTable: null,
         completedTasks,
         arithNoteList: true,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note.
+    if (isAluTask(taskId)) {
+      return setState({
+        ...aluWorktableReturnTarget(),
+        taskDialog: null,
+        solutionDialog: null,
+        notTest: null,
+        hintDialog: null,
+        muxTable: null,
+        completedTasks,
+        aluNoteList: true,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -10149,7 +10346,7 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
-    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       if (taskId === "Mux4way16") {
@@ -10165,6 +10362,10 @@
       const allArithDone = allArithTasksCompletedIn(completedTasks);
       if (allArithDone) return setState({ ...chapter26StartTarget(), ...base, arithNoteList: false }, true);
       return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
+    }
+    // ALU cards (2.6): back to the ALU worktable with its note.
+    if (isAluTask(taskId)) {
+      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: true }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -10340,6 +10541,29 @@
       };
       if (hintStateOverride) a16Patch.hintState = hintStateOverride;
       return setState(a16Patch, false);
+    }
+
+    // Inc interactive hint: build the width-16 "1" bus (two merging splitters of
+    // size 4), leaving the input + the 1-bus → Add16 wiring to the learner.
+    if (taskId === "Inc" && INC_HINT_STAGES[hint.action]) {
+      const incWs = normalizeWorkspace(clonePlain(state.workspace));
+      const source = componentById(incWs, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const card = componentById(incWs, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 };
+      const stage = INC_HINT_STAGES[hint.action];
+      incWs.components = [clonePlain(source), clonePlain(card), ...stage.components];
+      incWs.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
+      incWs.nextId = 2;
+      incWs.selectedTerminal = null;
+      incWs.accident = null;
+      incWs.focusedComponentId = null;
+      incWs.unlocked = true;
+      incWs.taskIntroSeen = true;
+      const incPatch = {
+        workspace: normalizeWorkspace(incWs),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) incPatch.hintState = hintStateOverride;
+      return setState(incPatch, false);
     }
 
     // Dmux4way interactive hint: scaffold the control-bus splitter and the first
@@ -11563,8 +11787,9 @@
     if (!def || !def.busAdder) return null;
     // Add4 chains its blocks through a single-bit carry-in (in3) / carry-out
     // (out2); Add16 has neither (it adds mod 2^16 and drops the final carry).
+    // gate-Inc is a single-input increment (input + 1) — flagged with `inc`.
     const carry = Boolean(def.pins && def.pins.in3);
-    return { width: def.busWidth, carry };
+    return { width: def.busWidth, carry, inc: Boolean(def.incGate) };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are

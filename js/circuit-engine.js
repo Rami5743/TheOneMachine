@@ -362,7 +362,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               return n;
             };
             const carryIn = arith.carry && inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
-            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
+            // Inc: a single input bus + 1 (no in2, no carry). Adders: in1 + in2 (+ carry-in).
+            const total = arith.inc
+              ? toNum(`${component.id}.in1`) + 1
+              : toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
             const sumVec = [];
             for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
             if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;

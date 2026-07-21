@@ -143,6 +143,24 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The Inc gate (chapter 2.6): a "+1" box with ONE bus input on the left and
+  // ONE bus output on the right (output = input + 1). Same box/pin styling as
+  // addNGateMarkup, but a single symmetric input/output and a "+1" label.
+  function incGateMarkup(width) {
+    const edge = 44;
+    const bodyW = edge * 2;
+    const bodyH = 88;
+    const inX = -62;
+    const outX = 66;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // A "+1" mark inside the box.
+    s += `<text class="arith-gate-pin-letter" x="0" y="9" text-anchor="middle">+1</text>`;
+    s += busPin(inX, -edge, 0);
+    s += busPin(edge, outX, 0);
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
   // monologue); their workbench behaviour is not wired up yet.
   function busMarkup() {
@@ -249,6 +267,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const gateTask = taskDefById(type.slice(5));
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
+      if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
