@@ -1074,11 +1074,109 @@ function createSolutionWorkspaces({
     });
   }
 
+  // A shared workspace wrapper for the 2.6 ALU solution circuits.
+  function aluSolutionWorkspace(taskId, components, wires) {
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId,
+      taskIntroSeen: true
+    });
+  }
+
+  // Inc: input + 1. Build a width-16 bus that represents 1 (two merging splitters
+  // of size 4 — only the units leg of each is driven, from the source), then feed
+  // the input and that "1" bus into Add16.
+  function incSolutionFrom() {
+    // Layout mirrors the learner-supplied reference solution: the two merging
+    // splitters build the "1" bus to the left, feeding Add16 alongside the input.
+    const components = [
+      { id: "source-1", type: "source", x: 258, y: 404 },
+      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 720, y: 300 },
+      { id: "one-split-lo", type: "splitter", x: 390, y: 402, mirrored: true, outputs: 4, width: 1 },
+      { id: "one-split-hi", type: "splitter", x: 544, y: 402, mirrored: true, outputs: 4, width: 4 },
+      { id: "add-1", type: "gate-Add16", x: 689, y: 307 }
+    ];
+    const wires = [
+      normalizeWire("source-1.out", "one-split-lo.leg0"),
+      normalizeWire("one-split-lo.single", "one-split-hi.leg0"),
+      normalizeWire("task-card-1.inputInt1", "add-1.in1"),
+      normalizeWire("one-split-hi.single", "add-1.in2"),
+      normalizeWire("add-1.out1", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("Inc", components, wires);
+  }
+
+  // ALU0: control=0 → AND, control=1 → ADD. Compute both on the two number buses
+  // (AND16 and Add16 in parallel) and let MUX16 pick between them by the control.
+  function alu0SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("ALU0"), x: 820, y: 360 },
+      { id: "and16", type: "gate-AND16", x: 450, y: 200 },
+      { id: "add16", type: "gate-Add16", x: 450, y: 470 },
+      { id: "mux", type: "gate-MUX16", x: 640, y: 340 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "and16.in1"),
+      normalizeWire("task-card-1.inputInt2", "and16.in2"),
+      normalizeWire("task-card-1.inputInt1", "add16.in1"),
+      normalizeWire("task-card-1.inputInt2", "add16.in2"),
+      normalizeWire("and16.out", "mux.in1"),
+      normalizeWire("add16.out1", "mux.in2"),
+      normalizeWire("task-card-1.inputInt3", "mux.in3"),
+      normalizeWire("mux.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU0", components, wires);
+  }
+
+  // PreperNum: two stages selected by the 2-bit control. Split the control; MUX16
+  // #1 chooses between the input and a zero-bus (unconnected in2) by the first bit
+  // (leg1/MSB); MUX16 #2 chooses between that result and its NOT (via Not16) by the
+  // second bit (leg0/LSB).
+  function preperNumSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 840, y: 360 },
+      { id: "ctrl-split", type: "splitter", x: 300, y: 120, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux1", type: "gate-MUX16", x: 470, y: 300 },
+      { id: "not16", type: "gate-Not16", x: 470, y: 520 },
+      { id: "mux2", type: "gate-MUX16", x: 660, y: 400 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "mux1.in1"),
+      normalizeWire("ctrl-split.leg1", "mux1.in3"),
+      normalizeWire("mux1.out", "not16.in1"),
+      normalizeWire("mux1.out", "mux2.in1"),
+      normalizeWire("not16.out", "mux2.in2"),
+      normalizeWire("ctrl-split.leg0", "mux2.in3"),
+      normalizeWire("mux2.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("PreperNum", components, wires);
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
     if (taskId === "Add4") return add4SolutionFrom();
     if (taskId === "Add16") return add16SolutionFrom();
+    if (taskId === "Inc") return incSolutionFrom();
+    if (taskId === "ALU0") return alu0SolutionFrom();
+    if (taskId === "PreperNum") return preperNumSolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();

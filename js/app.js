@@ -4083,6 +4083,115 @@
         }
       }
     ],
+    Inc: [
+      {
+        text: "כדי להוסיף 1 צריך קודם ליצור בס ברוחב 16 שמייצג את המספר 1. בונים אותו בעזרת שני מפצלים בגודל 4. המפצל הראשון מאגד 4 ביטים לבס ברוחב 4 — רק הביט התחתון (ספרת האחדות) מחובר למקור מתח, כך שהוא מייצג 0001.",
+        highlight: {
+          components: ["source-1", "one-split-lo"],
+          terminals: ["one-split-lo.single", "one-split-lo.leg0"],
+          wires: [wireKey("source-1.out", "one-split-lo.leg0")]
+        }
+      },
+      {
+        text: "המפצל השני מאגד 4 בסים ברוחב 4 לבס ברוחב 16 — רק הקבוצה התחתונה מחוברת (לפלט של המפצל הראשון), והשאר נשארות לא מחוברות (0). כך מתקבל בס ברוחב 16 שמייצג בדיוק את המספר 1.",
+        highlight: {
+          components: ["one-split-hi"],
+          terminals: ["one-split-hi.single", "one-split-hi.leg0"],
+          wires: [wireKey("one-split-lo.single", "one-split-hi.leg0")]
+        }
+      },
+      {
+        text: "עכשיו מחברים את הכניסה של הכרטיס ואת בס ה-1 לשתי הכניסות של Add16. הסכום — הכניסה ועוד 1 — הוא התוצאה, ואותה מוציאים מיציאת הכרטיס.",
+        highlight: {
+          components: ["add-1"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "add-1.in1"),
+            wireKey("one-split-hi.single", "add-1.in2"),
+            wireKey("add-1.out1", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU0: [
+      {
+        text: "הכרטיס צריך לבצע אחת משתי פעולות לפי הבקרה. הרעיון: מבצעים את שתי הפעולות במקביל, ואז \"בוחרים\" ביניהן. קודם — AND על שתי הכניסות בעזרת AND16.",
+        highlight: {
+          components: ["and16"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "and16.in1"),
+            wireKey("task-card-1.inputInt2", "and16.in2")
+          ]
+        }
+      },
+      {
+        text: "במקביל מחברים את אותן שתי הכניסות בעזרת Add16.",
+        highlight: {
+          components: ["add16"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "add16.in1"),
+            wireKey("task-card-1.inputInt2", "add16.in2")
+          ]
+        }
+      },
+      {
+        text: "עכשיו יש שתי תוצאות. בעזרת MUX16 בוחרים ביניהן לפי ביט הבקרה: כשהבקרה 0 יוצאת תוצאת ה-AND, וכשהיא 1 יוצאת תוצאת החיבור. היציאה של ה-MUX16 היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["mux"],
+          terminals: ["task-card-1.inputInt3", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("and16.out", "mux.in1"),
+            wireKey("add16.out1", "mux.in2"),
+            wireKey("task-card-1.inputInt3", "mux.in3"),
+            wireKey("mux.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    PreperNum: [
+      {
+        text: "כניסת הבקרה היא בס ברוחב 2. קודם מפצלים אותה לשני הביטים שלה — הביט הראשון (למעלה) והביט השני (למטה).",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt2", "ctrl-split.leg0", "ctrl-split.leg1"],
+          wires: [wireKey("task-card-1.inputInt2", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "שלב 1 — לאפס אם ביט הבקרה הראשון הוא 1: בעזרת MUX16 בוחרים בין הכניסה (כשהביט 0) לבין בס של אפסים (כשהביט 1). את בס האפסים לא צריך לבנות — כניסה לא מחוברת של ה-MUX16 היא ממילא 0. הבחירה נעשית לפי הביט הראשון (למעלה).",
+        highlight: {
+          components: ["mux1"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "mux1.in1"),
+            wireKey("ctrl-split.leg1", "mux1.in3")
+          ]
+        }
+      },
+      {
+        text: "שלב 2 — לבצע NOT אם ביט הבקרה השני הוא 1: קודם מכינים את ה-NOT של תוצאת שלב 1 בעזרת Not16.",
+        highlight: {
+          components: ["not16"],
+          terminals: [],
+          wires: [wireKey("mux1.out", "not16.in1")]
+        }
+      },
+      {
+        text: "ואז בעזרת MUX16 נוסף בוחרים בין תוצאת שלב 1 (כשהביט 0) לבין ה-NOT שלה (כשהביט 1), לפי ביט הבקרה השני (למטה). התוצאה יוצאת מהכרטיס.",
+        highlight: {
+          components: ["mux2"],
+          terminals: ["ctrl-split.leg0", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("mux1.out", "mux2.in1"),
+            wireKey("not16.out", "mux2.in2"),
+            wireKey("ctrl-split.leg0", "mux2.in3"),
+            wireKey("mux2.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
     Not4: [
       {
         text: "מפצלים את בס הכניסה ל-4 כבלים נפרדים בעזרת מפצל.",
@@ -9631,11 +9740,13 @@
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
     const arith = isArithTask(taskId);
-    const chapter = arith ? chapterById("chapter-8")
+    const alu = isAluTask(taskId);
+    const chapter = alu ? chapterById("chapter-9")
+      : arith ? chapterById("chapter-8")
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit || arith) {
+    if (routing || bus || multibit || arith || alu) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -9995,8 +10106,8 @@
   // bus with only its low chunk (leg0) connected (= …0000 0000 0000 0001 = 1).
   // The resulting single (INC_ONE_HI.single) is the "1" bus, left for the learner
   // to feed — with the card's input — into Add16.
-  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 250, y: 560, mirrored: true, outputs: 4, width: 1 };
-  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 460, y: 560, mirrored: true, outputs: 4, width: 4 };
+  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 390, y: 402, mirrored: true, outputs: 4, width: 1 };
+  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 544, y: 402, mirrored: true, outputs: 4, width: 4 };
   const INC_W_ONE = [
     ["source-1.out", "one-split-lo.leg0"],
     ["one-split-lo.single", "one-split-hi.leg0"]
@@ -10435,10 +10546,11 @@
       }, true);
     }
 
-    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note (ALU0
-    // first shows the "what is an ALU" message).
+    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note. ALU0
+    // shows the "what is an ALU" message on FIRST completion (shouldComplete) —
+    // not when replaying its solution from the note.
     if (isAluTask(taskId)) {
-      const showAluIntro = taskId === "ALU0";
+      const showAluIntro = taskId === "ALU0" && shouldComplete;
       return setState({
         ...aluWorktableReturnTarget(),
         taskDialog: null,
@@ -10558,7 +10670,7 @@
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
     const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
-    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId) || isArithTask(taskId)) {
+    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId) || isArithTask(taskId) || isAluTask(taskId)) {
       // The rebuilt solution workspace must keep the worktable return target.
       nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
       if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
