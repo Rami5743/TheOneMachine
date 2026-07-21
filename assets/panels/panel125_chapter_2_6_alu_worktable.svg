@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel125_chapter_2_6_alu_worktable.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata21">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs1" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel125_chapter_2_6_alu_worktable.jpg"
+     xlink:href="panel125_chapter_2_6_alu_worktable.jpg" />
+  <rect
+     id="hotspot-table"
+     data-hotspot="table"
+     data-label="שולחן עבודה"
+     class="hotspot hotspot-table"
+     pointer-events="none"
+     style="opacity:0;fill:#37d67a;stroke-width:0.973241"
+     x="174.91672"
+     y="582.71039"
+     width="1007.1271"
+     height="411.41217" />
+  <!-- Editable click-zones (invisible). Same zones as panel119; only the tasks
+       note opens a different list (the 2.6 ALU note, action alu-tasks-note). -->
+  <rect
+     id="hotspot-action-alu-tasks-note"
+     data-hotspot="action"
+     data-action="alu-tasks-note"
+     data-aria-label="פתק המשימות"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.686135"
+     x="336.84845"
+     y="716.44012"
+     width="120.00134"
+     height="95.929825" />
+  <rect
+     id="hotspot-action-binary-booklet"
+     data-hotspot="action"
+     data-action="binary-booklet"
+     data-aria-label="חוברת התרגילים"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ff2fb0"
+     x="853.63202"
+     y="804.38202"
+     width="165.07201"
+     height="124.89" />
+  <rect
+     id="hotspot-action-return-to-nand-dialog"
+     data-hotspot="action"
+     data-action="return-to-nand-dialog"
+     data-aria-label="הקש על Nand"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ff2fb0;stroke-width:0.95343"
+     x="594.71997"
+     y="635.26471"
+     width="250.91205"
+     height="246.11533" />
+  <rect
+     id="hotspot-action-buses-crate-right"
+     data-hotspot="action"
+     data-action="buses-crate-right"
+     data-aria-label="האגף הימני של הארגז החדש"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffb000;stroke-width:1.11838"
+     x="722.49213"
+     y="331.60986"
+     width="144.88939"
+     height="130.32001" />
+  <rect
+     id="hotspot-action-buses-crate-left"
+     data-hotspot="action"
+     data-action="buses-crate-left"
+     data-aria-label="האגף השמאלי של הארגז החדש"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffb000"
+     x="853.38153"
+     y="331.60986"
+     width="115.84"
+     height="130.32001" />
+  <rect
+     id="hotspot-action-arith-converter-in"
+     data-hotspot="action"
+     data-action="arith-converter-in"
+     data-aria-label="הממיר העליון (בינרי לעשרוני)"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#2fd8ff;stroke-width:0.77860308"
+     x="16.786663"
+     y="486.23334"
+     width="137.89334"
+     height="48.393318" />
+  <rect
+     id="hotspot-action-arith-converter-out"
+     data-hotspot="action"
+     data-action="arith-converter-out"
+     data-aria-label="הממיר התחתון (עשרוני לבינרי)"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#2fd8ff;stroke-width:0.46361962"
+     x="18.786663"
+     y="530.62665"
+     width="154.54663"
+     height="36.086632" />
+  <!-- Reference-link object zones + the free-build worktable zone (same as panel119). -->
+  <rect
+     id="hotspot-object-bulbs"
+     data-hotspot="object"
+     data-id="bulbs"
+     data-label="נורות חשמליות"
+     data-url="https://he.wikipedia.org/wiki/נורה_חשמלית"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="1104.9938"
+     y="842.69751"
+     width="319"
+     height="206" />
+  <rect
+     id="hotspot-object-triodes"
+     data-hotspot="object"
+     data-id="triodes"
+     data-label="טריודות"
+     data-url="https://he.wikipedia.org/wiki/טריודה"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="78"
+     y="763"
+     width="188"
+     height="195" />
+  <rect
+     id="hotspot-object-diode"
+     data-hotspot="object"
+     data-id="diode"
+     data-label="דיודה"
+     data-url="https://he.wikipedia.org/wiki/דיודה"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="22"
+     y="838"
+     width="116"
+     height="141" />
+  <rect
+     id="hotspot-object-cable"
+     data-hotspot="object"
+     data-id="cable"
+     data-label="כבל חשמלי"
+     data-url="https://he.wikipedia.org/wiki/כבל_חשמלי"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.933697"
+     x="1106.3625"
+     y="573.75293"
+     width="147.36246"
+     height="166.34691" />
+  <rect
+     id="hotspot-object-source"
+     data-hotspot="object"
+     data-id="source"
+     data-label="מקור מתח"
+     data-url="https://he.wikipedia.org/wiki/מקור_מתח"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff"
+     x="1290"
+     y="218"
+     width="130"
+     height="217" />
+  <rect
+     id="hotspot-object-voltmeter"
+     data-hotspot="object"
+     data-id="voltmeter"
+     data-label="מד מתח"
+     data-url="https://he.wikipedia.org/wiki/וולטמטר"
+     class="hotspot hotspot-object"
+     pointer-events="none"
+     style="opacity:0;fill:#22a7ff;stroke-width:0.976603"
+     x="266"
+     y="823.2099"
+     width="320.67651"
+     height="220.96289" />
+  <script
+     type="text/javascript"
+     id="script1"><![CDATA[
+(function () {
+  var PANEL = "panel125_chapter_2_6_alu_worktable";
+  function collect() {
+    var svg = document.querySelector("svg") || document.documentElement;
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var VW = vb && vb.width ? vb.width : 1448;
+    var VH = vb && vb.height ? vb.height : 1086;
+    var rootM = null;
+    try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+    function box(rect) {
+      var bb;
+      try { bb = rect.getBBox(); } catch (e) { return null; }
+      var m = null;
+      try { if (rootM) { m = rootM.inverse().multiply(rect.getScreenCTM()); } } catch (e) { m = null; }
+      if (!m) { return { x: bb.x, y: bb.y, w: bb.width, h: bb.height }; }
+      function map(x, y) { return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f }; }
+      var p = [map(bb.x, bb.y), map(bb.x + bb.width, bb.y), map(bb.x, bb.y + bb.height), map(bb.x + bb.width, bb.y + bb.height)];
+      var xs = [p[0].x, p[1].x, p[2].x, p[3].x], ys = [p[0].y, p[1].y, p[2].y, p[3].y];
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+    function pct(rect) {
+      var b = box(rect);
+      if (!b || !(b.w > 0) || !(b.h > 0)) return null;
+      return { x: b.x / VW * 100, y: b.y / VH * 100, w: b.w / VW * 100, h: b.h / VH * 100 };
+    }
+    var rects = document.querySelectorAll("[data-hotspot]");
+    var out = { panel: PANEL, objects: [], table: null, actions: {} };
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i], kind = r.getAttribute("data-hotspot"), g = pct(r);
+      if (!g) continue;
+      if (kind === "object") {
+        out.objects.push({ id: r.getAttribute("data-id") || r.id || "", label: r.getAttribute("data-label") || "", url: r.getAttribute("data-url") || "", x: g.x, y: g.y, w: g.w, h: g.h });
+      } else if (kind === "table") {
+        out.table = { label: r.getAttribute("data-label") || "שולחן עבודה", x: g.x, y: g.y, w: g.w, h: g.h };
+      } else if (kind === "action") {
+        var a = r.getAttribute("data-action");
+        if (a) { out.actions[a] = { x: g.x, y: g.y, w: g.w, h: g.h }; }
+      }
+    }
+    return out;
+  }
+  function send() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ __warehouseHotspots: true, payload: collect() }, "*");
+      }
+    } catch (e) {}
+  }
+  function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+  if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); }
+  else { boot(); }
+  window.addEventListener("load", send);
+})();
+]]></script>
+</svg>

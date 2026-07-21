@@ -81,6 +81,9 @@
     // the free-build table and the reference-link objects too, alongside its
     // tasks note.
     if (stem === "panel119_chapter_2_5_worktable") return "binary-workshop";
+    // The 2.6 ALU worktable — same room and click-zones as panel119, but its own
+    // kind so the free-build table returns to the ALU worktable (not the 2.5 one).
+    if (stem === "panel125_chapter_2_6_alu_worktable") return "alu-worktable";
     return null;
   }
 
@@ -247,7 +250,10 @@
     "chapter-7": { chapterId: "chapter-7", sceneId: "buses", panelIndex: 5 },
     // The 2.5 binary workshop table opens a free workbench in chapter 2.5, so
     // every card unlocked through the earlier chapters is available.
-    "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 }
+    "binary-workshop": { chapterId: "chapter-8", sceneId: "arithmetic", panelIndex: 7 },
+    // The 2.6 ALU worktable table opens a free workbench in chapter 2.6 (all cards
+    // built through 2.5 available). Return goes to the current panel (panel125).
+    "alu-worktable": { chapterId: "chapter-9", sceneId: "alu", panelIndex: 5 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
@@ -294,7 +300,7 @@
     // could have built by now — including the "create new card" tool, enabled
     // here regardless of whether it was unlocked in this playthrough. cardIntroDone
     // is set too so enabling it does not re-arm the one-time scripted card intro.
-    if (kind === "binary-workshop") {
+    if (kind === "binary-workshop" || kind === "alu-worktable") {
       state.createCardUnlocked = true;
       state.cardIntroDone = true;
       state.cardIntroPending = false;
@@ -360,7 +366,7 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we

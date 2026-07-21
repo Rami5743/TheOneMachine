@@ -891,6 +891,33 @@ const SCENES = {
         "image": "assets/panels/panel122_chapter_2_6_alu_3.svg",
         "year": "1943",
         "read": "נקרא לה ALU ראשי תיבות באנגלית של \"יחידה לוגית אריתמטית\". היא תוכל לעשות פעולות אריתמטיות כמו חיבור ופעולות לוגיות כמו AND."
+      },
+      {
+        "comment": "Von Neumann leans over the worktable placing the ALU tasks note. No speech bubble.",
+        "image": "assets/panels/panel123_chapter_2_6_alu_handover.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Von Neumann's farewell (reused 2.5 farewell room) as he hands over the ALU tasks and leaves.",
+        "image": "assets/panels/panel124_chapter_2_6_alu_farewell.svg",
+        "year": "1943",
+        "read": "הנה המשימות שלך. אני צריך לחזור לעבודה. סוף-סוף חזרו התוצאות של החישוב שביקשתי, ואני יכול להמשיך לעבוד על ניתוח של תנועת הגזים בפיצוץ. זה פיצוץ רגיל, אבל אנחנו צריכים לדעת לכוון אותו במדויק כדי לגרום ל.... טוב לא משנה...."
+      },
+      {
+        "comment": "The ALU worktable. Same room and click-zones as panel119, but the tasks note opens the 2.6 ALU list (alu-tasks-note).",
+        "image": "assets/panels/panel125_chapter_2_6_alu_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "alu-tasks-note", "left": 18, "top": 65, "width": 15, "height": 15 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
       }
     ]
   }

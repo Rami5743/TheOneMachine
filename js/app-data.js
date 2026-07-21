@@ -276,6 +276,20 @@
     }
   ];
 
+  // ALU_TASKS — the chapter 2.6 (ALU) worktable note. Six cards built toward the
+  // arithmetic-logic unit. `requires` is a LIST of prerequisites (all must be
+  // completed before the card unlocks): Inc / ALU0 / PreperNum are available
+  // immediately; ALU1 needs both ALU0 and PreperNum; ALU2 needs ALU1; ALU3 needs
+  // ALU2. None have a build workspace yet — they open a "המשך יבוא..." notice.
+  const ALU_TASKS = [
+    { id: "Inc", label: "Inc", requires: [] },
+    { id: "ALU0", label: "ALU0", requires: [] },
+    { id: "PreperNum", label: "PreperNum", requires: [] },
+    { id: "ALU1", label: "ALU1", requires: ["ALU0", "PreperNum"] },
+    { id: "ALU2", label: "ALU2", requires: ["ALU1"] },
+    { id: "ALU3", label: "ALU3", requires: ["ALU2"] }
+  ];
+
   const TASK_HINTS = {
     Not: [
       { kind: "text", title: "רמז 1", text: "נסה להשתמש ב־Nand." },

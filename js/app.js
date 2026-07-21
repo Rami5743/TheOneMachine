@@ -662,6 +662,8 @@
     busesNoteList: false,
     // The 2.5 arithmetic worktable note (halfAdder → fullAdder → Add4 → Add16).
     arithNoteList: false,
+    // The 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 → ALU3).
+    aluNoteList: false,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1336,6 +1338,7 @@
       converterValueEdit: null,
       busesNoteList: false,
       arithNoteList: false,
+      aluNoteList: false,
       panelAnswer: null,
       wordsBytesDialog: null
     };
@@ -1459,7 +1462,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -1951,6 +1954,12 @@
   // Entry point of chapter 2.4 (the "buses" story scene).
   function chapter24StartTarget() {
     return storyTarget(chapterById("chapter-7"), 0);
+  }
+
+  // Entry point of chapter 2.6 (the "alu" story scene) — reached after all the
+  // 2.5 arithmetic cards are built.
+  function chapter26StartTarget() {
+    return storyTarget(chapterById("chapter-9"), 0);
   }
 
   function taskUnlockRequirement(taskId) {
@@ -3490,7 +3499,8 @@
       ${renderComponentMonologue()}
       ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
-      ${renderArithNoteList()}`;
+      ${renderArithNoteList()}
+      ${renderAluNoteList()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -9326,18 +9336,29 @@
         : completedTaskIds();
 
       // Arith cards with no solution walkthrough yet: complete and return to the
-      // 2.5 worktable. All done -> "המשך יבוא" immediately; otherwise reopen the
-      // note so the next card unlocks.
+      // 2.5 worktable. All done -> roll into chapter 2.6 (the ALU opening);
+      // otherwise reopen the note so the next card unlocks.
       if (isArithTask(taskId)) {
         const allArithDone = allArithTasksCompletedIn(completedTasks);
+        if (allArithDone) {
+          return setState({
+            ...chapter26StartTarget(),
+            taskDialog: null,
+            notTest: null,
+            muxTable: null,
+            completedTasks,
+            arithNoteList: false,
+            workspace: createDefaultWorkspace(),
+            replayNonce: state.replayNonce + 1
+          }, true);
+        }
         return setState({
           ...arithWorktableReturnTarget(),
           taskDialog: null,
           notTest: null,
           muxTable: null,
           completedTasks,
-          arithNoteList: !allArithDone,
-          infoDialog: allArithDone ? "המשך יבוא..." : null,
+          arithNoteList: true,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -9891,6 +9912,75 @@
       </div>`;
   }
 
+  // ---- Chapter 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 →
+  // ALU3). Mirrors the arith note, but `requires` is a LIST (all prerequisites
+  // must be completed) and none of the cards have a build workspace yet, so a
+  // tapped-but-unlocked card just shows the "המשך יבוא..." notice.
+  function aluTaskDefById(id) {
+    return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).find((task) => task.id === id) || null;
+  }
+
+  function isAluTask(id) {
+    return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).some((task) => task.id === id);
+  }
+
+  function aluTaskUnlocked(id) {
+    const def = aluTaskDefById(id);
+    if (!def) return false;
+    const reqs = Array.isArray(def.requires) ? def.requires : (def.requires ? [def.requires] : []);
+    return reqs.every((req) => taskCompleted(req));
+  }
+
+  function aluTaskLockedMessage(id) {
+    const def = aluTaskDefById(id);
+    const reqs = def && Array.isArray(def.requires) ? def.requires : [];
+    const missing = reqs.filter((req) => !taskCompleted(req)).map((req) => aluTaskDefById(req)?.label || req);
+    if (!missing.length) return "";
+    return missing.length === 1
+      ? `קודם צריך לבנות את ${missing[0]}`
+      : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
+  }
+
+  function openAluNote() {
+    return setState({ aluNoteList: true });
+  }
+
+  function handleAluNoteTask(id) {
+    const task = aluTaskDefById(id);
+    if (!task) return;
+    if (!aluTaskUnlocked(task.id)) {
+      return setState({ infoDialog: aluTaskLockedMessage(task.id) });
+    }
+    // No ALU card has a build workspace yet — every unlocked one is a placeholder.
+    return setState({ infoDialog: "המשך יבוא..." });
+  }
+
+  function renderAluNoteList() {
+    if (!state.aluNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !aluTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="alu-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="alu-note-close">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
     // A gate solution opened from the explanations menu just goes back there,
@@ -9958,10 +10048,24 @@
     }
 
     // Arith cards (2.5): back to the worktable. If this completion finished the
-    // WHOLE note, show the "המשך יבוא" notice immediately (end of current
-    // content); otherwise reopen the note so the next card unlocks.
+    // WHOLE note, roll into chapter 2.6 (the ALU opening); otherwise reopen the
+    // note so the next card unlocks.
     if (isArithTask(taskId)) {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
+      if (allArithDone) {
+        return setState({
+          ...chapter26StartTarget(),
+          taskDialog: null,
+          solutionDialog: null,
+          notTest: null,
+          hintDialog: null,
+          muxTable: null,
+          completedTasks,
+          arithNoteList: false,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
       return setState({
         ...arithWorktableReturnTarget(),
         taskDialog: null,
@@ -9970,8 +10074,7 @@
         hintDialog: null,
         muxTable: null,
         completedTasks,
-        arithNoteList: !allArithDone,
-        infoDialog: allArithDone ? "המשך יבוא..." : null,
+        arithNoteList: true,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -10057,10 +10160,11 @@
       return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
     // Arith cards (2.5): back to the arithmetic worktable with its note, not the
-    // 2.2 gates worktable. All done -> show the "המשך יבוא" notice.
+    // 2.2 gates worktable. All done -> roll into chapter 2.6 (the ALU opening).
     if (isArithTask(taskId)) {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
-      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: !allArithDone, infoDialog: allArithDone ? "המשך יבוא..." : null }, true);
+      if (allArithDone) return setState({ ...chapter26StartTarget(), ...base, arithNoteList: false }, true);
+      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -12438,16 +12542,17 @@
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
     if (action === "arith-note-close") {
-      // The arith note is the LAST task list in the game. Closing it while every
-      // card is already built shows the "המשך יבוא" notice — this is the "come
-      // back to this state from elsewhere" trigger (finishing the last task shows
-      // the same notice immediately; see finishSolutionDialog).
+      // Closing the arith note while every card is already built rolls the story
+      // forward into chapter 2.6 (the ALU opening) — the same transition that
+      // finishing the last card triggers immediately (see finishSolutionDialog).
       const allArithDone = allArithTasksCompletedIn();
       return setState(allArithDone
-        ? { arithNoteList: false, infoDialog: "המשך יבוא..." }
+        ? { ...chapter26StartTarget(), arithNoteList: false }
         : { arithNoteList: false });
     }
     if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
+    if (action === "alu-note-close") return setState({ aluNoteList: false });
+    if (action === "alu-note-task") return handleAluNoteTask(button.dataset.taskId);
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
@@ -12550,6 +12655,7 @@
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);
     if (action === "arith-tasks-note") return openArithNote();
+    if (action === "alu-tasks-note") return openAluNote();
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
