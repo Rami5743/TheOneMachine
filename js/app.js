@@ -9522,8 +9522,17 @@
       const p = frameDef.pins[input.ref];
       return p && p.y < -150;
     });
+    // Geometry for placing the wide dec→bin input converters: each is set LEVEL
+    // with the card input pin it feeds (so its bus cable runs straight across,
+    // not bent — bent cables tangled), and far enough LEFT that the wide body
+    // clears the card frame. A converter that would land on the pre-placed source
+    // (lower-left) is pushed clear of it — below for a lower pin, above otherwise.
+    const cardComp = componentById(workspace, "task-card-1");
+    const cardY = cardComp ? cardComp.y : 288;
+    const sourceComp = componentById(workspace, "source-1");
+    const CONV_IN_X = 120;                         // left of the old 200: body clears the card
+    const CONV_HALF_H = 40, SRC_HALF_H = 50, CLEAR_GAP = 26;
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
-    let convInY = 120;  // stacked y for numeric-input converters
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
@@ -9533,11 +9542,17 @@
         return;
       }
       if (useConverters) {
-        // A dec→bin converter set to the addend value, feeding the card input.
+        // A dec→bin converter set to the addend value, feeding the card input,
+        // level with that input pin so the wire is straight.
+        const pin = frameDef.pins[input.ref];
+        let cy = cardY + (pin ? pin.y : 0);
+        if (sourceComp && Math.abs(cy - sourceComp.y) < CONV_HALF_H + SRC_HALF_H) {
+          const dir = pin && pin.y > 0 ? 1 : -1; // lower pin -> below the source, else above
+          cy = sourceComp.y + dir * (CONV_HALF_H + SRC_HALF_H + CLEAR_GAP);
+        }
         const convId = `mb-in-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits), width: w });
+        workspace.components.push({ id: convId, type: "converter-out", x: CONV_IN_X, y: cy, value: bitsToDecimal(input.bits), width: w });
         workspace.wires.push(normalizeWire(`${convId}.out`, ref));
-        convInY += 160;
         return;
       }
       const splitId = `mb-in-split-${idx}`;
