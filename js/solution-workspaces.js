@@ -1147,29 +1147,28 @@ function createSolutionWorkspaces({
     return aluSolutionWorkspace("ALU0", components, wires);
   }
 
-  // PreperNum: two stages selected by the 2-bit control. Split the control; MUX16
-  // #1 chooses between the input and a zero-bus (unconnected in2) by the first bit
-  // (leg1/MSB); MUX16 #2 chooses between that result and its NOT (via Not16) by the
-  // second bit (leg0/LSB).
+  // PreperNum: two stages selected by the 2-bit control (layout mirrors the
+  // learner-supplied prepnum.json). Split the control just below the control pin;
+  // MUX16 #1 chooses between the input and a zero-bus (unconnected in2) by the
+  // SECOND bit (leg0/LSB) — stage 1 zeroing; MUX16 #2 chooses between that result
+  // and its NOT (via Not16) by the FIRST bit (leg1/MSB) — stage 2 NOT.
   function preperNumSolutionFrom() {
-    // All internal parts sit inside the (cx±300) shell frame: the control splitter
-    // near the top control pin, the two MUX16 and the Not16 across the middle.
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
-      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 640, y: 360 },
-      { id: "ctrl-split", type: "splitter", x: 505, y: 235, mirrored: false, outputs: 2, width: 1 },
-      { id: "mux1", type: "gate-MUX16", x: 600, y: 340 },
-      { id: "not16", type: "gate-Not16", x: 600, y: 510 },
-      { id: "mux2", type: "gate-MUX16", x: 790, y: 390 }
+      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 620, y: 300 },
+      { id: "ctrl-split", type: "splitter", x: 500, y: 185, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux1", type: "gate-MUX16", x: 450, y: 340 },
+      { id: "not16", type: "gate-Not16", x: 610, y: 430 },
+      { id: "mux2", type: "gate-MUX16", x: 740, y: 320 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
       normalizeWire("task-card-1.inputInt1", "mux1.in1"),
-      normalizeWire("ctrl-split.leg1", "mux1.in3"),
+      normalizeWire("ctrl-split.leg0", "mux1.in3"),
       normalizeWire("mux1.out", "not16.in1"),
       normalizeWire("mux1.out", "mux2.in1"),
       normalizeWire("not16.out", "mux2.in2"),
-      normalizeWire("ctrl-split.leg0", "mux2.in3"),
+      normalizeWire("ctrl-split.leg1", "mux2.in3"),
       normalizeWire("mux2.out", "task-card-1.outputInt1")
     ];
     return aluSolutionWorkspace("PreperNum", components, wires);

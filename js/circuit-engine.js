@@ -385,11 +385,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             if (alu.op === "prepnum") {
               const x = inputBits(workspace, `${component.id}.in1`, outputs);
               const ctrl = inputBits(workspace, `${component.id}.in2`, outputs);
-              const firstBit = ctrl[1];  // MSB (top leg) — stage 1: zero the input
-              const secondBit = ctrl[0]; // LSB (bottom leg) — stage 2: NOT
+              const zeroBit = ctrl[0]; // LSB (bottom leg) = the "second" bit — stage 1: zero the input
+              const notBit = ctrl[1];  // MSB (top leg) = the "first" bit — stage 2: NOT
               for (let i = 0; i < w; i += 1) {
-                const stage1 = firstBit ? false : Boolean(x[i]);
-                outVec.push(secondBit ? !stage1 : stage1);
+                const stage1 = zeroBit ? false : Boolean(x[i]);
+                outVec.push(notBit ? !stage1 : stage1);
               }
             } else {
               // and-add (ALU0): in1, in2 number buses + single-bit control in3.

@@ -4120,7 +4120,11 @@
     ],
     ALU0: [
       {
-        text: "הכרטיס צריך לבצע אחת משתי פעולות לפי הבקרה. הרעיון: מבצעים את שתי הפעולות במקביל, ואז \"בוחרים\" ביניהן. קודם — AND על שתי הכניסות בעזרת AND16.",
+        text: "הכרטיס צריך לבצע אחת משתי פעולות לפי הבקרה. הרעיון: מבצעים את שתי הפעולות במקביל, ואז \"בוחרים\" ביניהן לפי ביט הבקרה.",
+        highlight: { components: [], terminals: [], wires: [] }
+      },
+      {
+        text: "קודם מבצעים את הפעולה הראשונה — AND על שתי הכניסות בעזרת AND16.",
         highlight: {
           components: ["and16"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"],
@@ -4165,18 +4169,18 @@
         }
       },
       {
-        text: "שלב 1 — לאפס אם ביט הבקרה הראשון הוא 1: בעזרת MUX16 בוחרים בין הכניסה (כשהביט 0) לבין בס של אפסים (כשהביט 1). את בס האפסים לא צריך לבנות — כניסה לא מחוברת של ה-MUX16 היא ממילא 0. הבחירה נעשית לפי הביט הראשון (למעלה).",
+        text: "שלב 1 — לאפס אם ביט הבקרה השני הוא 1: בעזרת MUX16 בוחרים בין הכניסה (כשהביט 0) לבין בס של אפסים (כשהביט 1). את בס האפסים לא צריך לבנות — כניסה לא מחוברת של ה-MUX16 היא ממילא 0. הבחירה נעשית לפי הביט השני (למטה).",
         highlight: {
           components: ["mux1"],
-          terminals: ["task-card-1.inputInt1", "ctrl-split.leg1"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg0"],
           wires: [
             wireKey("task-card-1.inputInt1", "mux1.in1"),
-            wireKey("ctrl-split.leg1", "mux1.in3")
+            wireKey("ctrl-split.leg0", "mux1.in3")
           ]
         }
       },
       {
-        text: "שלב 2 — לבצע NOT אם ביט הבקרה השני הוא 1: קודם מכינים את ה-NOT של תוצאת שלב 1 בעזרת Not16.",
+        text: "שלב 2 — לבצע NOT אם ביט הבקרה הראשון הוא 1: קודם מכינים את ה-NOT של תוצאת שלב 1 בעזרת Not16.",
         highlight: {
           components: ["not16"],
           terminals: [],
@@ -4184,14 +4188,14 @@
         }
       },
       {
-        text: "ואז בעזרת MUX16 נוסף בוחרים בין תוצאת שלב 1 (כשהביט 0) לבין ה-NOT שלה (כשהביט 1), לפי ביט הבקרה השני (למטה). התוצאה יוצאת מהכרטיס.",
+        text: "ואז בעזרת MUX16 נוסף בוחרים בין תוצאת שלב 1 (כשהביט 0) לבין ה-NOT שלה (כשהביט 1), לפי ביט הבקרה הראשון (למעלה). התוצאה יוצאת מהכרטיס.",
         highlight: {
           components: ["mux2"],
-          terminals: ["ctrl-split.leg0", "task-card-1.outputInt1"],
+          terminals: ["ctrl-split.leg1", "task-card-1.outputInt1"],
           wires: [
             wireKey("mux1.out", "mux2.in1"),
             wireKey("not16.out", "mux2.in2"),
-            wireKey("ctrl-split.leg0", "mux2.in3"),
+            wireKey("ctrl-split.leg1", "mux2.in3"),
             wireKey("mux2.out", "task-card-1.outputInt1")
           ]
         }
@@ -9467,10 +9471,10 @@
     }
     if (taskId === "PreperNum") {
       const c = testCase.control;
-      const firstBit = (c >> 1) & 1;  // MSB (top) — stage 1: zero the input
-      const secondBit = c & 1;        // LSB (bottom) — stage 2: NOT
-      const stage1 = firstBit ? 0 : (testCase.a & 0xffff);
-      const result = (secondBit ? ~stage1 : stage1) & 0xffff;
+      const zeroBit = c & 1;          // LSB (bottom) = the "second" bit — stage 1: zero
+      const notBit = (c >> 1) & 1;    // MSB (top) = the "first" bit — stage 2: NOT
+      const stage1 = zeroBit ? 0 : (testCase.a & 0xffff);
+      const result = (notBit ? ~stage1 : stage1) & 0xffff;
       return {
         inputs: [
           { ref: "inputExt1", bits: add16Bits(testCase.a) },
