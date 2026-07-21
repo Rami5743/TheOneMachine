@@ -565,6 +565,45 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // The PreperNum build frame: a width-16 number bus on the left, a width-2
+  // control bus on TOP, and a width-16 output on the right. Two-stage operation
+  // selected by the control (first bit zeroes the input, second bit NOTs it).
+  WORKSPACE_COMPONENT_DEFS["taskCard-PreperNum"] = {
+    label: "מסגרת PreperNum",
+    fixed: true,
+    taskId: "PreperNum",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר חיצונית" },
+      inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר פנימית" },
+      inputExt2: { x: -130, y: -250, direction: "in", width: 2, label: "כניסת הבקרה חיצונית" },
+      inputInt2: { x: -130, y: -180, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-PreperNum: the placeable card earned by completing PreperNum. One
+  // width-16 number bus in, a width-2 control on top, one width-16 bus out. The
+  // engine runs the two-stage op (see aluGateSpec op "prepnum").
+  WORKSPACE_COMPONENT_DEFS["gate-PreperNum"] = {
+    label: "PreperNum",
+    taskId: "PreperNum",
+    gate: true,
+    aluGate: true,
+    aluOp: "prepnum",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -9205,6 +9244,18 @@
         { a: 65535, b: 1, control: 1 }        // add overflow -> 0
       ];
     }
+    if (taskId === "PreperNum") {
+      // (a, control 0..3): the 2 control bits select the two stages. Cover all
+      // four combinations (nothing / NOT / zero / zero-then-NOT).
+      return [
+        { a: 0xABCD, control: 0 }, // nothing -> 0xABCD
+        { a: 0x1234, control: 1 }, // NOT only -> 0xEDCB
+        { a: 0xF0F0, control: 2 }, // zero -> 0
+        { a: 0x00FF, control: 3 }, // zero then NOT -> 0xFFFF
+        { a: 12345, control: 1 },  // NOT only
+        { a: 54321, control: 3 }   // zero then NOT -> 0xFFFF
+      ];
+    }
     return [];
   }
 
@@ -9294,6 +9345,23 @@
           { ref: "inputExt1", bits: add16Bits(testCase.a) },
           { ref: "inputExt2", bits: add16Bits(testCase.b) },
           { ref: "inputExt3", bits: [Boolean(testCase.control)] }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "PreperNum") {
+      const c = testCase.control;
+      const firstBit = (c >> 1) & 1;  // MSB (top) — stage 1: zero the input
+      const secondBit = c & 1;        // LSB (bottom) — stage 2: NOT
+      const stage1 = firstBit ? 0 : (testCase.a & 0xffff);
+      const result = (secondBit ? ~stage1 : stage1) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          // The 2-bit control bus, little-endian [LSB, MSB] = [second bit, first bit].
+          { ref: "inputExt2", bits: [c & 1, (c >> 1) & 1].map(Boolean) }
         ],
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) }
@@ -10129,7 +10197,7 @@
   // Which ALU cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function aluTaskImplemented(id) {
-    return ["Inc", "ALU0"].includes(id);
+    return ["Inc", "ALU0", "PreperNum"].includes(id);
   }
 
   // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
@@ -10158,9 +10226,10 @@
     const chapter = chapterById("chapter-9");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
-    // ALU0's frame has a control pin poking out the top, so it sits lower on the
-    // board (like the taller multibit cards); Inc's symmetric frame sits centred.
-    const cardY = task.id === "ALU0" ? 360 : 288;
+    // ALU0/PreperNum frames have a control pin poking out the top, so they sit
+    // lower on the board (like the taller multibit cards); Inc's symmetric frame
+    // sits centred.
+    const cardY = (task.id === "ALU0" || task.id === "PreperNum") ? 360 : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
@@ -10259,8 +10328,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="alu-note-close">סגור</button>
+            ${noteClearProgressButton("alu")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -10996,6 +11067,7 @@
     if (kind === "buses") return BUS_TASK_DEFS.map((t) => t.id);
     if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
     if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
+    if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     return [];
   }
 

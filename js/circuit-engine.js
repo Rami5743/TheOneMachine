@@ -372,24 +372,37 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             if (arith.carry && setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
             continue;
           }
-          // A placeable ALU gate (gate-ALU0 …): a single-bit control (in3) selects
-          // which operation runs on the two width-N number buses (in1, in2).
-          // ALU0: control=0 → bitwise AND; control=1 → add mod 2^N.
+          // A placeable ALU gate. Its control input selects which operation runs
+          // on the number bus(es). ALU0 (op "and-add"): a single-bit control (in3)
+          // — 0 → bitwise AND of in1,in2; 1 → add mod 2^N. PreperNum (op
+          // "prepnum"): a 2-bit control (in2) on one number bus (in1) — bit 1
+          // (MSB, the "first" bit) zeroes the input; bit 0 (LSB, the "second" bit)
+          // NOTs the stage-1 result.
           const alu = typeof aluGateSpec === "function" ? aluGateSpec(type) : null;
           if (alu) {
             const w = alu.width;
-            const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
-            const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
-            const control = inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
             const outVec = [];
-            if (control) {
-              // Addition (mod 2^w).
-              const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
-              const total = toNum(v1) + toNum(v2);
-              for (let i = 0; i < w; i += 1) outVec.push(Boolean((total >> i) & 1));
+            if (alu.op === "prepnum") {
+              const x = inputBits(workspace, `${component.id}.in1`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in2`, outputs);
+              const firstBit = ctrl[1];  // MSB (top leg) — stage 1: zero the input
+              const secondBit = ctrl[0]; // LSB (bottom leg) — stage 2: NOT
+              for (let i = 0; i < w; i += 1) {
+                const stage1 = firstBit ? false : Boolean(x[i]);
+                outVec.push(secondBit ? !stage1 : stage1);
+              }
             } else {
-              // Bitwise AND.
-              for (let i = 0; i < w; i += 1) outVec.push(Boolean(v1[i] && v2[i]));
+              // and-add (ALU0): in1, in2 number buses + single-bit control in3.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const control = inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
+              if (control) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(v1) + toNum(v2);
+                for (let i = 0; i < w; i += 1) outVec.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) outVec.push(Boolean(v1[i] && v2[i]));
+              }
             }
             if (setBits(outputs, `${component.id}.out1`, outVec)) changed = true;
             continue;

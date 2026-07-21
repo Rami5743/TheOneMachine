@@ -181,6 +181,25 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The PreperNum gate (chapter 2.6): a box labelled "Prep" with a width-16 bus
+  // on the left, a width-2 control bus poking out the TOP, and a width-16 output
+  // bus on the right.
+  function prepGateMarkup(width) {
+    const edge = 44;
+    const bodyW = edge * 2;
+    const bodyH = 76;
+    const inX = -62;
+    const outX = 66;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="5" text-anchor="middle" style="font-size:16px">Prep</text>`;
+    s += busPin(inX, -edge, 0);   // number bus in
+    s += busPin(edge, outX, 0);   // result bus out
+    // The width-2 control bus pokes out of the top edge toward its terminal.
+    s += `<line class="usercard-pin" x1="0" y1="${-bodyH / 2}" x2="0" y2="-46" />`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
   // monologue); their workbench behaviour is not wired up yet.
   function busMarkup() {
@@ -289,6 +308,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
       if (gateTask && gateTask.id === "ALU0") return aluGateMarkup(16);
+      if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
