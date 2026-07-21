@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -370,6 +370,28 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
             if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;
             if (arith.carry && setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
+            continue;
+          }
+          // A placeable ALU gate (gate-ALU0 …): a single-bit control (in3) selects
+          // which operation runs on the two width-N number buses (in1, in2).
+          // ALU0: control=0 → bitwise AND; control=1 → add mod 2^N.
+          const alu = typeof aluGateSpec === "function" ? aluGateSpec(type) : null;
+          if (alu) {
+            const w = alu.width;
+            const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+            const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+            const control = inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
+            const outVec = [];
+            if (control) {
+              // Addition (mod 2^w).
+              const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+              const total = toNum(v1) + toNum(v2);
+              for (let i = 0; i < w; i += 1) outVec.push(Boolean((total >> i) & 1));
+            } else {
+              // Bitwise AND.
+              for (let i = 0; i < w; i += 1) outVec.push(Boolean(v1[i] && v2[i]));
+            }
+            if (setBits(outputs, `${component.id}.out1`, outVec)) changed = true;
             continue;
           }
           const task = taskDefById(type.slice(5));

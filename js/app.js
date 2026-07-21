@@ -521,6 +521,50 @@
     bounds: { left: 64, right: 84, top: 40, bottom: 40 }
   };
 
+  // The ALU0 build frame: two width-16 number buses on the left, a single-bit
+  // control input on TOP (pokes out above the frame, like the MUX control), and a
+  // single width-16 output on the right. control=0 → bitwise AND of the two
+  // numbers; control=1 → their sum (mod 2^16). Checked with the multi-bit harness.
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU0"] = {
+    label: "מסגרת ALU0",
+    fixed: true,
+    taskId: "ALU0",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -130, y: -250, direction: "in", width: 1, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -130, y: -180, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-ALU0: the placeable card earned by completing ALU0. Two width-16 number
+  // buses in, a single-bit control on top, one width-16 bus out. The engine
+  // selects AND (control=0) or ADD (control=1) — see aluGateSpec / the ALU branch
+  // in circuit-engine.js.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU0"] = {
+    label: "ALU0",
+    taskId: "ALU0",
+    gate: true,
+    aluGate: true,
+    aluOp: "and-add",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -704,6 +748,8 @@
     arithNoteList: false,
     // The 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 → ALU3).
     aluNoteList: false,
+    // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
+    aluIntroDialog: null,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1057,7 +1103,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -1380,6 +1426,7 @@
       busesNoteList: false,
       arithNoteList: false,
       aluNoteList: false,
+      aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null
     };
@@ -1503,7 +1550,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3542,7 +3589,8 @@
       ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
       ${renderArithNoteList()}
-      ${renderAluNoteList()}`;
+      ${renderAluNoteList()}
+      ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -9146,6 +9194,17 @@
         { a: 65535 }    // overflow -> 0 (drop the 17th digit)
       ];
     }
+    if (taskId === "ALU0") {
+      // (a, b, control): control=0 -> a AND b (bitwise); control=1 -> a + b.
+      return [
+        { a: 0xFFFF, b: 0x1234, control: 0 }, // AND -> 0x1234
+        { a: 0x0F0F, b: 0x00FF, control: 0 }, // AND -> 0x000F
+        { a: 12, b: 10, control: 0 },         // AND -> 8
+        { a: 5, b: 3, control: 1 },           // add -> 8
+        { a: 1234, b: 5678, control: 1 },     // add -> 6912
+        { a: 65535, b: 1, control: 1 }        // add overflow -> 0
+      ];
+    }
     return [];
   }
 
@@ -9220,6 +9279,21 @@
       return {
         inputs: [
           { ref: "inputExt1", bits: add16Bits(testCase.a) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU0") {
+      const result = testCase.control
+        ? (testCase.a + testCase.b) & 0xffff  // add (drop the 17th digit)
+        : (testCase.a & testCase.b) & 0xffff; // bitwise AND
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: [Boolean(testCase.control)] }
         ],
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) }
@@ -9440,16 +9514,19 @@
         }, true);
       }
 
-      // ALU cards (chapter 2.6) with no solution walkthrough (Inc): complete and
-      // return to the 2.6 worktable with the ALU note reopened.
+      // ALU cards (chapter 2.6) with no solution walkthrough (Inc / ALU0):
+      // complete and return to the 2.6 worktable. ALU0 first shows the "what is
+      // an ALU" message; every other ALU card just reopens the note.
       if (isAluTask(taskId)) {
+        const showAluIntro = taskId === "ALU0";
         return setState({
           ...aluWorktableReturnTarget(),
           taskDialog: null,
           notTest: null,
           muxTable: null,
           completedTasks,
-          aluNoteList: true,
+          aluNoteList: !showAluIntro,
+          aluIntroDialog: showAluIntro ? { page: 0 } : null,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -10052,7 +10129,7 @@
   // Which ALU cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function aluTaskImplemented(id) {
-    return ["Inc"].includes(id);
+    return ["Inc", "ALU0"].includes(id);
   }
 
   // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
@@ -10081,10 +10158,13 @@
     const chapter = chapterById("chapter-9");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    // ALU0's frame has a control pin poking out the top, so it sits lower on the
+    // board (like the taller multibit cards); Inc's symmetric frame sits centred.
+    const cardY = task.id === "ALU0" ? 360 : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: 288 },
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
         { id: "source-1", type: "source", x: 65, y: 288 }
       ],
       wires: [],
@@ -10133,6 +10213,29 @@
       return showTaskSolution(task.id, { completeOnClose: false });
     }
     openAluTaskWorkspace(task.id);
+  }
+
+  // The paged "what is an ALU" message shown right after ALU0 is built.
+  const ALU0_COMPLETE_PAGES = [
+    "שים לב, בנית גרסה פשוטה של ALU (מחשבון). המכונה הזאת מקבלת 2 מספרים ובחירה של פעולה, ומבצעת את הפעולה שבחרת. למעשה, אין כאן שום בחירה, היא תמיד עושה אותו חישוב. פשוט הביט שמציין את הפעולה הוא חלק מהחישוב. סה\"כ מדובר בכרטיס עם 33 ביטים נכנסים ו-16 ביטים יוצאים. אפשר אפילו לכתוב לו טבלת אמת. אבל היא תהיה עצומה. אפשר גם לנסות לבנות אותו לפי השיטה הכללית לבניית כרטיס על פי טבלת אמת, אבל זה ידרוש מיליארדי NANDים. שזה בלתי אפשרי לחלוטין באמצע המאה העשרים, גם בתחילת מאה ה-21 זה מאוד יקר וכמובן מיותר.",
+    "ה-ALU במחשב מודרני הרבה יותר מסובך. אבל העיקרון דומה. יש מספר כניסות \"רגילות\", מספר כניסות בקרה ומספר יציאות. כניסות הבקרה מגדירות איזו פעולה תתבצע על הכניסות הרגילות והתוצאה תופיע ביציאות. כרגיל ההפרדה בין הכניסות הרגילות וכניסות הבקרה היא מלאכותית, ונועדה לעזור לנו להבין מה ה-ALU עושה.",
+    "ה-ALU נמצא בתוך המעבד של המחשב והוא זה שמבצע את הפעולות. המעבד \"מפעיל\" את ה-ALU: הוא נותן לו הוראות, מכניס לו את הקלט (מה שנכנס בכניסות הרגילות) ושומר את הפלט של ה-ALU (מה שיוצא מהיציאות) בכל מיני מקומות. כל זאת בהתאם להוראות שהמעבד מקבל, שהם למעשה התוכנה שהמעבד מריץ."
+  ];
+
+  function renderAluIntroDialog() {
+    if (!state.aluIntroDialog) return "";
+    const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), ALU0_COMPLETE_PAGES.length - 1);
+    const isLast = page >= ALU0_COMPLETE_PAGES.length - 1;
+    return `
+      <div class="dialog-overlay" role="presentation">
+        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="על ה-ALU">
+          <p class="dialog-paragraph">${esc(ALU0_COMPLETE_PAGES[page])}</p>
+          <div class="dialog-actions">
+            <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${ALU0_COMPLETE_PAGES.length}</span>
+            <button class="btn btn-primary" data-action="${isLast ? "alu-intro-close" : "alu-intro-next"}">${isLast ? "הבנתי" : "המשך"}</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderAluNoteList() {
@@ -10261,8 +10364,10 @@
       }, true);
     }
 
-    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note.
+    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note (ALU0
+    // first shows the "what is an ALU" message).
     if (isAluTask(taskId)) {
+      const showAluIntro = taskId === "ALU0";
       return setState({
         ...aluWorktableReturnTarget(),
         taskDialog: null,
@@ -10271,7 +10376,8 @@
         hintDialog: null,
         muxTable: null,
         completedTasks,
-        aluNoteList: true,
+        aluNoteList: !showAluIntro,
+        aluIntroDialog: showAluIntro ? { page: 0 } : null,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -10363,9 +10469,11 @@
       if (allArithDone) return setState({ ...chapter26StartTarget(), ...base, arithNoteList: false }, true);
       return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
     }
-    // ALU cards (2.6): back to the ALU worktable with its note.
+    // ALU cards (2.6): back to the ALU worktable with its note (ALU0 first shows
+    // the "what is an ALU" message).
     if (isAluTask(taskId)) {
-      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: true }, true);
+      const showAluIntro = taskId === "ALU0";
+      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0 } : null }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -11792,6 +11900,15 @@
     return { width: def.busWidth, carry, inc: Boolean(def.incGate) };
   }
 
+  // A placeable ALU gate (gate-ALU0): a single-bit control (in3) selects the
+  // operation on the two width-N number buses. Its behaviour lives in the ALU
+  // branch of circuit-engine.js (keyed on the width).
+  function aluGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.aluGate) return null;
+    return { width: def.busWidth, op: def.aluOp || "and-add" };
+  }
+
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
   // undefined (null) until a connection fixes its width; a leg pin is then that
   // width and the single pin is width * output-count.
@@ -12778,6 +12895,8 @@
     if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
     if (action === "alu-note-close") return setState({ aluNoteList: false });
     if (action === "alu-note-task") return handleAluNoteTask(button.dataset.taskId);
+    if (action === "alu-intro-next") return setState({ aluIntroDialog: { page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
+    if (action === "alu-intro-close") return setState({ aluIntroDialog: null, aluNoteList: true });
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
