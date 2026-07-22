@@ -10178,6 +10178,13 @@
     const cardY = cardComp ? cardComp.y : 288;
     const sourceComp = componentById(workspace, "source-1");
     const CONV_IN_X = 120;                         // left of the old 200: body clears the card
+    // The solution JSON may pin each check mechanism (a converter/splitter/lamp
+    // group) to an explicit position, keyed by the card pin it serves — see the
+    // editor's "check" mode. When present it overrides the auto-placement below;
+    // positions never affect the check result, only where things sit on screen.
+    const solHarness = (SOLUTION_DOCS[baseWorkspace.taskId] || {}).harness || {};
+    const inHarness = (bareRef) => (solHarness.inputs && solHarness.inputs[bareRef]) || null;
+    const outHarness = (bareRef) => (solHarness.outputs && solHarness.outputs[bareRef]) || null;
     const CONV_HALF_H = 40, SRC_HALF_H = 50, CLEAR_GAP = 26;
     // A converter pushed BELOW the source drops well clear of it — the lower
     // converter sits distinctly beneath the source, not tucked just under it.
@@ -10205,7 +10212,10 @@
           cy = sourceComp.y + (below ? 1 : -1) * (CONV_HALF_H + SRC_HALF_H + (below ? DOWN_GAP : CLEAR_GAP));
         }
         const convId = `mb-in-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-out", x: CONV_IN_X, y: cy, value: bitsToDecimal(input.bits), width: w });
+        const ov = inHarness(input.ref);
+        const convX = ov && Number.isFinite(ov.x) ? ov.x : CONV_IN_X;
+        const convY = ov && Number.isFinite(ov.y) ? ov.y : cy;
+        workspace.components.push({ id: convId, type: "converter-out", x: convX, y: convY, value: bitsToDecimal(input.bits), width: w });
         workspace.wires.push(normalizeWire(`${convId}.out`, ref));
         return;
       }
@@ -10219,7 +10229,10 @@
         sy = stackTop + halfH;          // splitter centre = top + half its height
         stackTop = sy + halfH + 40;     // next data splitter clears this one's legs
       }
-      workspace.components.push({ id: splitId, type: "splitter", x: 210, y: sy, mirrored: true, outputs: w, width: 1 });
+      const splOv = inHarness(input.ref);
+      const splX = splOv && Number.isFinite(splOv.x) ? splOv.x : 210;
+      const splY = splOv && Number.isFinite(splOv.y) ? splOv.y : sy;
+      workspace.components.push({ id: splitId, type: "splitter", x: splX, y: splY, mirrored: true, outputs: w, width: 1 });
       input.bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
@@ -10234,11 +10247,13 @@
     spec.outputs.forEach((output, idx) => {
       const ref = `task-card-1.${output.ref}`;
       const w = pinWidth(workspace, ref);
-      const cy = 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
+      const oOv = outHarness(output.ref);
+      const cy = oOv && Number.isFinite(oOv.y) ? oOv.y : 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
       if (useConverters && Number.isInteger(w) && w > 1) {
         // A bin→dec converter displaying the numeric result of this output bus.
         const convId = `mb-out-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy, width: w });
+        const convX = oOv && Number.isFinite(oOv.x) ? oOv.x : 1120;
+        workspace.components.push({ id: convId, type: "converter-in", x: convX, y: cy, width: w });
         workspace.wires.push(normalizeWire(ref, `${convId}.in`));
         lampGroups.push([]);
         outChecks.push({ kind: "converter", converterId: convId, expected: bitsToDecimal(output.expected) });
@@ -10247,14 +10262,16 @@
       const groupLamps = [];
       if (!Number.isInteger(w) || w === 1) {
         const lampId = `mb-out-${idx}-lamp-0`;
-        workspace.components.push({ id: lampId, type: "lamp", x: 1180, y: cy });
+        const lampX = oOv && Number.isFinite(oOv.x) ? oOv.x : 1180;
+        workspace.components.push({ id: lampId, type: "lamp", x: lampX, y: cy });
         workspace.wires.push(normalizeWire(ref, `${lampId}.in`));
         groupLamps.push(lampId);
       } else {
-        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: 1050, y: cy, mirrored: false, outputs: w, width: 1 };
+        const splX = oOv && Number.isFinite(oOv.x) ? oOv.x : 1050;
+        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: splX, y: cy, mirrored: false, outputs: w, width: 1 };
         workspace.components.push(outSplit);
         workspace.wires.push(normalizeWire(ref, `${outSplit.id}.single`));
-        const layout = busLampLayout(w, cy, 1180);
+        const layout = busLampLayout(w, cy, splX + 130);
         for (let i = 0; i < w; i += 1) {
           const lampId = `mb-out-${idx}-lamp-${i}`;
           const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };

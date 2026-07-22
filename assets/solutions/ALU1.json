@@ -84,6 +84,16 @@
       "y": 110
     }
   ],
+  "harness": {
+    "inputs": {
+      "inputExt1": { "x": 120, "y": 270 },
+      "inputExt2": { "x": 120, "y": 450 },
+      "inputExt3": { "x": 210, "y": 110 }
+    },
+    "outputs": {
+      "outputExt1": { "x": 1120, "y": 360 }
+    }
+  },
   "components": [
     {
       "id": "ctrl-split",
