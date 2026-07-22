@@ -1,0 +1,78 @@
+{
+  "task": "PreperNum",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-PreperNum",
+      "x": 620,
+      "y": 300
+    },
+    {
+      "id": "ctrl-split",
+      "type": "splitter",
+      "x": 500,
+      "y": 185,
+      "outputs": 2,
+      "width": 1,
+      "mirrored": false
+    },
+    {
+      "id": "mux1",
+      "type": "gate-MUX16",
+      "x": 450,
+      "y": 340
+    },
+    {
+      "id": "not16",
+      "type": "gate-Not16",
+      "x": 610,
+      "y": 430
+    },
+    {
+      "id": "mux2",
+      "type": "gate-MUX16",
+      "x": 740,
+      "y": 320
+    }
+  ],
+  "wires": [
+    {
+      "a": "ctrl-split.single",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "mux1.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "mux1.in3"
+    },
+    {
+      "a": "mux1.out",
+      "b": "not16.in1"
+    },
+    {
+      "a": "mux1.out",
+      "b": "mux2.in1"
+    },
+    {
+      "a": "mux2.in2",
+      "b": "not16.out"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "mux2.in3"
+    },
+    {
+      "a": "mux2.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ]
+}

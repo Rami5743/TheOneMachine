@@ -1,0 +1,142 @@
+{
+  "task": "Add16",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 310
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-Add16",
+      "x": 640,
+      "y": 310
+    },
+    {
+      "id": "split-a",
+      "type": "splitter",
+      "x": 430,
+      "y": 200,
+      "outputs": 4,
+      "width": 4,
+      "mirrored": false
+    },
+    {
+      "id": "split-b",
+      "type": "splitter",
+      "x": 430,
+      "y": 420,
+      "outputs": 4,
+      "width": 4,
+      "mirrored": false
+    },
+    {
+      "id": "ad3",
+      "type": "gate-Add4",
+      "x": 640,
+      "y": 100
+    },
+    {
+      "id": "ad2",
+      "type": "gate-Add4",
+      "x": 640,
+      "y": 240
+    },
+    {
+      "id": "ad1",
+      "type": "gate-Add4",
+      "x": 640,
+      "y": 380
+    },
+    {
+      "id": "ad0",
+      "type": "gate-Add4",
+      "x": 640,
+      "y": 520
+    },
+    {
+      "id": "merge",
+      "type": "splitter",
+      "x": 850,
+      "y": 310,
+      "outputs": 4,
+      "width": 4,
+      "mirrored": true
+    }
+  ],
+  "wires": [
+    {
+      "a": "split-a.single",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "split-b.single",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "merge.single",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "ad0.in1",
+      "b": "split-a.leg0"
+    },
+    {
+      "a": "ad0.in2",
+      "b": "split-b.leg0"
+    },
+    {
+      "a": "ad0.out1",
+      "b": "merge.leg0"
+    },
+    {
+      "a": "ad1.in1",
+      "b": "split-a.leg1"
+    },
+    {
+      "a": "ad1.in2",
+      "b": "split-b.leg1"
+    },
+    {
+      "a": "ad0.out2",
+      "b": "ad1.in3"
+    },
+    {
+      "a": "ad1.out1",
+      "b": "merge.leg1"
+    },
+    {
+      "a": "ad2.in1",
+      "b": "split-a.leg2"
+    },
+    {
+      "a": "ad2.in2",
+      "b": "split-b.leg2"
+    },
+    {
+      "a": "ad1.out2",
+      "b": "ad2.in3"
+    },
+    {
+      "a": "ad2.out1",
+      "b": "merge.leg2"
+    },
+    {
+      "a": "ad3.in1",
+      "b": "split-a.leg3"
+    },
+    {
+      "a": "ad3.in2",
+      "b": "split-b.leg3"
+    },
+    {
+      "a": "ad2.out2",
+      "b": "ad3.in3"
+    },
+    {
+      "a": "ad3.out1",
+      "b": "merge.leg3"
+    }
+  ]
+}

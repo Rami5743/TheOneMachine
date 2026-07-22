@@ -1,0 +1,81 @@
+{
+  "task": "Xor",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 80,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-Xor",
+      "x": 500,
+      "y": 288
+    },
+    {
+      "id": "lamp-1",
+      "type": "lamp",
+      "x": 910,
+      "y": 258
+    },
+    {
+      "id": "or-1",
+      "type": "gate-Or",
+      "x": 360,
+      "y": 218
+    },
+    {
+      "id": "and-raw",
+      "type": "gate-And",
+      "x": 360,
+      "y": 358
+    },
+    {
+      "id": "not-1",
+      "type": "gate-Not",
+      "x": 520,
+      "y": 358
+    },
+    {
+      "id": "and-final",
+      "type": "gate-And",
+      "x": 690,
+      "y": 288
+    }
+  ],
+  "wires": [
+    {
+      "a": "or-1.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "or-1.in2",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "and-raw.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "and-raw.in2",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "and-raw.out",
+      "b": "not-1.in1"
+    },
+    {
+      "a": "and-final.in1",
+      "b": "or-1.out"
+    },
+    {
+      "a": "and-final.in2",
+      "b": "not-1.out"
+    },
+    {
+      "a": "and-final.out",
+      "b": "task-card-1.outputInt"
+    }
+  ]
+}

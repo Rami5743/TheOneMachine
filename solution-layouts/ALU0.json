@@ -1,0 +1,69 @@
+{
+  "task": "ALU0",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-ALU0",
+      "x": 640,
+      "y": 360
+    },
+    {
+      "id": "and16",
+      "type": "gate-AND16",
+      "x": 540,
+      "y": 240
+    },
+    {
+      "id": "add16",
+      "type": "gate-Add16",
+      "x": 540,
+      "y": 470
+    },
+    {
+      "id": "mux",
+      "type": "gate-MUX16",
+      "x": 760,
+      "y": 355
+    }
+  ],
+  "wires": [
+    {
+      "a": "and16.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "and16.in2",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "add16.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "add16.in2",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "and16.out",
+      "b": "mux.in1"
+    },
+    {
+      "a": "add16.out1",
+      "b": "mux.in2"
+    },
+    {
+      "a": "mux.in3",
+      "b": "task-card-1.inputInt3"
+    },
+    {
+      "a": "mux.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ]
+}

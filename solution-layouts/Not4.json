@@ -1,0 +1,101 @@
+{
+  "task": "Not4",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-Not4",
+      "x": 640,
+      "y": 288
+    },
+    {
+      "id": "split-in",
+      "type": "splitter",
+      "x": 450,
+      "y": 288,
+      "outputs": 4,
+      "width": 1,
+      "mirrored": false
+    },
+    {
+      "id": "merge",
+      "type": "splitter",
+      "x": 830,
+      "y": 288,
+      "outputs": 4,
+      "width": 1,
+      "mirrored": true
+    },
+    {
+      "id": "not-0",
+      "type": "gate-Not",
+      "x": 640,
+      "y": 339
+    },
+    {
+      "id": "not-1",
+      "type": "gate-Not",
+      "x": 640,
+      "y": 305
+    },
+    {
+      "id": "not-2",
+      "type": "gate-Not",
+      "x": 640,
+      "y": 271
+    },
+    {
+      "id": "not-3",
+      "type": "gate-Not",
+      "x": 640,
+      "y": 237
+    }
+  ],
+  "wires": [
+    {
+      "a": "split-in.single",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "not-0.in1",
+      "b": "split-in.leg0"
+    },
+    {
+      "a": "merge.leg0",
+      "b": "not-0.out"
+    },
+    {
+      "a": "not-1.in1",
+      "b": "split-in.leg1"
+    },
+    {
+      "a": "merge.leg1",
+      "b": "not-1.out"
+    },
+    {
+      "a": "not-2.in1",
+      "b": "split-in.leg2"
+    },
+    {
+      "a": "merge.leg2",
+      "b": "not-2.out"
+    },
+    {
+      "a": "not-3.in1",
+      "b": "split-in.leg3"
+    },
+    {
+      "a": "merge.leg3",
+      "b": "not-3.out"
+    },
+    {
+      "a": "merge.single",
+      "b": "task-card-1.outputInt"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "task": "Or",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 80,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-Or",
+      "x": 500,
+      "y": 288
+    },
+    {
+      "id": "lamp-1",
+      "type": "lamp",
+      "x": 910,
+      "y": 258
+    },
+    {
+      "id": "not-1",
+      "type": "gate-Not",
+      "x": 340,
+      "y": 218
+    },
+    {
+      "id": "not-2",
+      "type": "gate-Not",
+      "x": 340,
+      "y": 358
+    },
+    {
+      "id": "and-1",
+      "type": "gate-And",
+      "x": 500,
+      "y": 288
+    },
+    {
+      "id": "not-3",
+      "type": "gate-Not",
+      "x": 650,
+      "y": 288
+    }
+  ],
+  "wires": [
+    {
+      "a": "not-1.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "not-2.in1",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "and-1.in1",
+      "b": "not-1.out"
+    },
+    {
+      "a": "and-1.in2",
+      "b": "not-2.out"
+    },
+    {
+      "a": "and-1.out",
+      "b": "not-3.in1"
+    },
+    {
+      "a": "not-3.out",
+      "b": "task-card-1.outputInt"
+    }
+  ]
+}

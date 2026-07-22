@@ -1,0 +1,57 @@
+{
+  "task": "AND3way",
+  "components": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 80,
+      "y": 288
+    },
+    {
+      "id": "task-card-1",
+      "type": "taskCard-AND3way",
+      "x": 500,
+      "y": 288
+    },
+    {
+      "id": "lamp-1",
+      "type": "lamp",
+      "x": 910,
+      "y": 258
+    },
+    {
+      "id": "and-1",
+      "type": "gate-And",
+      "x": 420,
+      "y": 230
+    },
+    {
+      "id": "and-2",
+      "type": "gate-And",
+      "x": 640,
+      "y": 288
+    }
+  ],
+  "wires": [
+    {
+      "a": "and-1.in1",
+      "b": "task-card-1.inputInt1"
+    },
+    {
+      "a": "and-1.in2",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "and-1.out",
+      "b": "and-2.in1"
+    },
+    {
+      "a": "and-2.in2",
+      "b": "task-card-1.inputInt3"
+    },
+    {
+      "a": "and-2.out",
+      "b": "task-card-1.outputInt"
+    }
+  ]
+}
