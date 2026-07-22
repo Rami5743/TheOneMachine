@@ -1497,8 +1497,11 @@
     // Add16 stacks four (tall) Add4 gates; ALU2/ALU3 have three number inputs
     // (and tall control splitters in their solutions), so they get a taller frame.
     const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3";
-    const frameW = 600;
-    const frameH = tall ? 540 : 420;
+    // The frame size comes from the task's solution JSON when present (see
+    // solutionFrameSize), else the built-in default.
+    const jsonSize = solutionFrameSize(def.id);
+    const frameW = jsonSize ? jsonSize.w : 600;
+    const frameH = jsonSize ? jsonSize.h : (tall ? 540 : 420);
     const frameLeft = cx - 300;
     const frameTop = cy - frameH / 2;
     // A horizontal stub from the external tip (x1) all the way to the internal
@@ -9343,12 +9346,44 @@
   // solution WORKSPACE geometry (the walkthrough step highlights stay in code).
   const SOLUTION_DOCS = {};
   const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "halfAdder", "fullAdder", "Add4", "Add16"];
+  // The frame's pins (and size) in the JSON drive the WHOLE task — the build
+  // frame, the check harness and the solution all read the card's pins from the
+  // component def, so applying them here changes the card everywhere.
+  function applySolutionDocToDefs(doc) {
+    const def = doc && doc.frame && WORKSPACE_COMPONENT_DEFS[doc.frame.type];
+    if (!def || !Array.isArray(doc.frame.pins)) return;
+    for (const p of doc.frame.pins) {
+      if (!p || !p.id) continue;
+      const prev = def.pins[p.id] || {};
+      def.pins[p.id] = {
+        x: p.x, y: p.y,
+        direction: p.dir || prev.direction || "in",
+        width: Number.isInteger(p.w) ? p.w : prev.width,
+        label: (p.label != null ? p.label : prev.label) || ""
+      };
+    }
+  }
+  // The frame rectangle size for a task, from its JSON if present (else the
+  // renderMultibitTaskShell default). Used by the shell renderer.
+  function solutionFrameSize(taskId) {
+    const doc = SOLUTION_DOCS[taskId];
+    if (doc && doc.frame && Number.isInteger(doc.frame.frameW) && Number.isInteger(doc.frame.frameH)) {
+      return { w: doc.frame.frameW, h: doc.frame.frameH };
+    }
+    return null;
+  }
   function preloadSolutionDocs() {
     if (typeof fetch !== "function") return;
     for (const task of SOLUTION_JSON_TASKS) {
       fetch(`assets/solutions/${task}.json`)
         .then((r) => (r && r.ok ? r.json() : null))
-        .then((doc) => { if (doc && doc.frame && Array.isArray(doc.components)) SOLUTION_DOCS[task] = doc; })
+        .then((doc) => {
+          if (!doc || !doc.frame || !Array.isArray(doc.components)) return;
+          SOLUTION_DOCS[task] = doc;
+          applySolutionDocToDefs(doc);
+          // If the learner is already inside this task, re-render with the pins.
+          if (state.screen === "workspace" && state.workspace?.taskId === task) render();
+        })
         .catch(() => {});
     }
   }

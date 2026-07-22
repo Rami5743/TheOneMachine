@@ -1,44 +1,229 @@
 {
-  "format": "theonemachine-solution", "version": 1, "task": "ALU1",
-  "frame": { "id": "task-card-1", "type": "taskCard-ALU1", "x": 560, "y": 360, "frameW": 600, "frameH": 420,
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "ALU1",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-ALU1",
+    "x": 560,
+    "y": 360,
+    "frameW": 600,
+    "frameH": 420,
     "pins": [
-      {"id":"inputExt1","x":-340,"y":-90,"w":16,"dir":"in","label":"כניסת המספר הראשון"},
-      {"id":"inputInt1","x":-260,"y":-90,"w":16,"dir":"out","label":""},
-      {"id":"inputExt2","x":-340,"y":90,"w":16,"dir":"in","label":"כניסת המספר השני"},
-      {"id":"inputInt2","x":-260,"y":90,"w":16,"dir":"out","label":""},
-      {"id":"inputExt3","x":-215,"y":-250,"w":6,"dir":"in","label":"כניסת הבקרה"},
-      {"id":"inputInt3","x":-215,"y":-180,"w":6,"dir":"out","label":""},
-      {"id":"outputInt1","x":260,"y":0,"w":16,"dir":"in","label":""},
-      {"id":"outputExt1","x":340,"y":0,"w":16,"dir":"out","label":"יציאת התוצאה"}
-    ]},
-  "external": [ {"id":"source-1","type":"source","x":65,"y":110} ],
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": -90,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר הראשון"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": -90,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -340,
+        "y": 90,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השני"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": 90,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt3",
+        "x": -215,
+        "y": -250,
+        "w": 6,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt3",
+        "x": -215,
+        "y": -180,
+        "w": 6,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 85,
+      "y": 110
+    }
+  ],
   "components": [
-    {"id":"ctrl-split","type":"splitter","x":410,"y":200,"outputs":3,"width":2,"mirrored":false},
-    {"id":"part3-split","type":"splitter","x":545,"y":150,"outputs":2,"width":1,"mirrored":false},
-    {"id":"pn1","type":"gate-PreperNum","x":450,"y":270},
-    {"id":"pn2","type":"gate-PreperNum","x":560,"y":450},
-    {"id":"alu0","type":"gate-ALU0","x":672,"y":270},
-    {"id":"pn3-ctrl","type":"splitter","x":655,"y":185,"outputs":2,"width":1,"mirrored":true},
-    {"id":"pn3","type":"gate-PreperNum","x":792,"y":270}
+    {
+      "id": "ctrl-split",
+      "type": "splitter",
+      "x": 385,
+      "y": 230,
+      "outputs": 3,
+      "width": 2,
+      "mirrored": false
+    },
+    {
+      "id": "part3-split",
+      "type": "splitter",
+      "x": 540,
+      "y": 195,
+      "outputs": 2,
+      "width": 1,
+      "mirrored": false
+    },
+    {
+      "id": "pn1",
+      "type": "gate-PreperNum",
+      "x": 425,
+      "y": 345
+    },
+    {
+      "id": "pn2",
+      "type": "gate-PreperNum",
+      "x": 535,
+      "y": 450
+    },
+    {
+      "id": "alu0",
+      "type": "gate-ALU0",
+      "x": 675,
+      "y": 370
+    },
+    {
+      "id": "pn3-ctrl",
+      "type": "splitter",
+      "x": 655,
+      "y": 195,
+      "outputs": 2,
+      "width": 1,
+      "mirrored": true
+    },
+    {
+      "id": "pn3",
+      "type": "gate-PreperNum",
+      "x": 775,
+      "y": 240
+    }
   ],
   "wires": [
-    {"a":"task-card-1.inputInt3","b":"ctrl-split.single"},
-    {"a":"ctrl-split.leg0","b":"pn1.in2"},
-    {"a":"ctrl-split.leg1","b":"pn2.in2"},
-    {"a":"ctrl-split.leg2","b":"part3-split.single"},
-    {"a":"task-card-1.inputInt1","b":"pn1.in1"},
-    {"a":"task-card-1.inputInt2","b":"pn2.in1"},
-    {"a":"pn1.out1","b":"alu0.in1"},
-    {"a":"pn2.out1","b":"alu0.in2"},
-    {"a":"part3-split.leg0","b":"alu0.in3"},
-    {"a":"part3-split.leg1","b":"pn3-ctrl.leg1"},
-    {"a":"pn3-ctrl.single","b":"pn3.in2"},
-    {"a":"alu0.out1","b":"pn3.in1"},
-    {"a":"pn3.out1","b":"task-card-1.outputInt1"}
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "ctrl-split.single"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "pn1.in2"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "pn2.in2"
+    },
+    {
+      "a": "ctrl-split.leg2",
+      "b": "part3-split.single"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "pn1.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "pn2.in1"
+    },
+    {
+      "a": "pn1.out1",
+      "b": "alu0.in1"
+    },
+    {
+      "a": "pn2.out1",
+      "b": "alu0.in2"
+    },
+    {
+      "a": "part3-split.leg0",
+      "b": "alu0.in3"
+    },
+    {
+      "a": "part3-split.leg1",
+      "b": "pn3-ctrl.leg1"
+    },
+    {
+      "a": "pn3-ctrl.single",
+      "b": "pn3.in2"
+    },
+    {
+      "a": "alu0.out1",
+      "b": "pn3.in1"
+    },
+    {
+      "a": "pn3.out1",
+      "b": "task-card-1.outputInt1"
+    }
   ],
-  "check": { "cases": [
-    {"a":61680,"b":255,"control":0},{"a":1234,"b":5678,"control":2},
-    {"a":4660,"b":65535,"control":1},{"a":43981,"b":255,"control":16},
-    {"a":3855,"b":4080,"control":10},{"a":4660,"b":22136,"control":63}
-  ], "note":"בקרה 6 ביט: 0,1 הכנת כניסה1 · 2,3 כניסה2 · 4 פעולה · 5 NOT" }
+  "check": {
+    "cases": [
+      {
+        "a": 61680,
+        "b": 255,
+        "control": 0
+      },
+      {
+        "a": 1234,
+        "b": 5678,
+        "control": 2
+      },
+      {
+        "a": 4660,
+        "b": 65535,
+        "control": 1
+      },
+      {
+        "a": 43981,
+        "b": 255,
+        "control": 16
+      },
+      {
+        "a": 3855,
+        "b": 4080,
+        "control": 10
+      },
+      {
+        "a": 4660,
+        "b": 22136,
+        "control": 63
+      }
+    ],
+    "note": "בקרה 6 ביט: 0,1 הכנת כניסה1 · 2,3 כניסה2 · 4 פעולה · 5 NOT"
+  }
 }
