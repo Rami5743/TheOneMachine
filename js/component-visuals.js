@@ -246,10 +246,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const halfH = ((n - 1) * spacing) / 2;
     const spineTop = -(halfH + 8);
     const spine = `<rect class="splitter-bar" x="-7" y="${spineTop}" width="14" height="${halfH * 2 + 16}" />`;
-    const inputBar = splitterBusBar(-70, -7, 0, SPLITTER_BAR_H);
-    const leg = (y) => (legWidth === 1 ? splitterCableStub(7, 66, y) : splitterBusBar(7, 66, y, SPLITTER_BAR_H));
+    // Pins on both sides are ~half the old length (single 70→38, legs 66→37).
+    const inputBar = splitterBusBar(-38, -7, 0, SPLITTER_BAR_H);
+    const leg = (y) => (legWidth === 1 ? splitterCableStub(7, 37, y) : splitterBusBar(7, 37, y, SPLITTER_BAR_H));
     const outputStubs = ys.map(leg).join("");
-    const hit = `<rect class="splitter-hit" x="-74" y="${spineTop - 12}" width="146" height="${halfH * 2 + 40}" fill="transparent" />`;
+    const hit = `<rect class="splitter-hit" x="-44" y="${spineTop - 12}" width="87" height="${halfH * 2 + 40}" fill="transparent" />`;
     const inner = `${hit}${spine}${inputBar}${outputStubs}`;
     return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
   }
@@ -330,7 +331,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU", [-26, 26], { controlWidth: 1 });
+      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU0", [-26, 26], { controlWidth: 1 });
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
       if (gateTask && gateTask.id === "ALU1") return aluShapeMarkup(16, "ALU1", [-26, 26], { controlWidth: 6 });
       if (gateTask && gateTask.id === "ALU2") return aluShapeMarkup(16, "ALU2", [-34, 0, 34], { tall: true, controlWidth: 7 });

@@ -12344,10 +12344,10 @@
     const n = splitterOutputCount(component);
     const mirrored = Boolean(component?.mirrored);
     const pins = {
-      single: { x: mirrored ? 70 : -70, y: 0, direction: mirrored ? "out" : "in", label: "פין ראשי של המפצל" }
+      single: { x: mirrored ? 38 : -38, y: 0, direction: mirrored ? "out" : "in", label: "פין ראשי של המפצל" }
     };
     splitterOutputYs(n).forEach((y, i) => {
-      pins[`leg${i}`] = { x: mirrored ? -66 : 66, y, direction: mirrored ? "in" : "out", label: `פין מפצל ${i + 1}` };
+      pins[`leg${i}`] = { x: mirrored ? -37 : 37, y, direction: mirrored ? "in" : "out", label: `פין מפצל ${i + 1}` };
     });
     return pins;
   }
