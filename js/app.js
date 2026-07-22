@@ -13233,8 +13233,12 @@
     if (action === "alu-intro-next") return setState({ aluIntroDialog: { ...state.aluIntroDialog, page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
     if (action === "alu-intro-close") {
       // Reaching the END of the "what is an ALU" message unlocks the ALU0
-      // explanation in the menu — with the fly-to-הסברים flourish, the first time.
-      unlockExplanation("alu-ALU0");
+      // explanation in the menu, with the fly-to-הסברים flourish the first time.
+      // In step pace the silent unlock records it; in see-everything pace it's
+      // already available — either way announceExplanationUnlock plays the
+      // flourish once (so the animation fires in "all" mode too).
+      unlockExplanation("alu-ALU0", { silent: true });
+      announceExplanationUnlock("alu-ALU0");
       // When the message was reached by replaying the ALU0 explanation from the
       // menu, closing it returns to the menu instead of the ALU worktable note.
       if (state.aluIntroDialog?.returnToExplanations) {
