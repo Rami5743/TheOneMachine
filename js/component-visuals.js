@@ -164,40 +164,27 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // The ALU0 gate (chapter 2.6): a box labelled "ALU" with two width-16 number
   // buses on the left, a single-bit control cable poking out the TOP, and one
   // width-16 output bus on the right (control selects AND vs ADD).
-  function aluGateMarkup(width, label) {
-    const edge = 44;
-    const bodyW = edge * 2;
-    const bodyH = 76;               // half-height 38 — the control terminal (-46) sits outside
-    const inX = -62;
-    const outX = 66;
+  // The ALU-family gate symbol (chapter 2.6): the classic ALU shape — a tall,
+  // notched left edge where the operands enter (a chevron pointing right), the
+  // top and bottom sloping in, and a short right edge for the result. `inputYs`
+  // lists the operand terminal heights (2 for ALU0/ALU1, 3 for ALU2/ALU3); an
+  // operand at the notch height reaches the chevron tip like an extra leg.
+  // `opts.tall` makes the body taller so three operands fit.
+  function aluShapeMarkup(width, label, inputYs, opts) {
+    opts = opts || {};
+    const hw = 46;
+    const hh = opts.tall ? 54 : 40;   // tall left (input) edge half-height
+    const hhr = opts.tall ? 30 : 20;  // short right (output) edge half-height
+    const nTop = -13, nBot = 13, nTip = -24;  // the chevron notch on the left edge
+    const inX = -62, outX = 66;
     const text = label || "ALU";
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="6" text-anchor="middle"${text.length > 3 ? ' style="font-size:18px"' : ''}>${text}</text>`;
-    s += busPin(inX, -edge, -26);   // number bus 1 (in1)
-    s += busPin(inX, -edge, 26);    // number bus 2 (in2)
-    s += busPin(edge, outX, 0);     // result bus (out1)
-    // The single-bit control cable pokes out of the top edge toward its terminal.
-    s += `<line class="usercard-pin" x1="0" y1="${-bodyH / 2}" x2="0" y2="-46" />`;
-    return `<g class="usercard">${s}</g>`;
-  }
-
-  // The ALU2 gate (chapter 2.6): like the ALU gate but with THREE number buses
-  // on the left (in1/in2/in3 at -34/0/34) and a width-7 control poking out the top.
-  function alu2GateMarkup(width) {
-    const edge = 44;
-    const bodyW = edge * 2;
-    const bodyH = 92;               // taller: three input bars fit inside
-    const inX = -62;
-    const outX = 66;
-    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="6" text-anchor="middle" style="font-size:18px">ALU2</text>`;
-    s += busPin(inX, -edge, -34);   // number bus 1 (in1)
-    s += busPin(inX, -edge, 0);     // number bus 2 (in2)
-    s += busPin(inX, -edge, 34);    // number bus 3 (in3)
-    s += busPin(edge, outX, 0);     // result bus (out1)
-    s += `<line class="usercard-pin" x1="0" y1="${-bodyH / 2}" x2="0" y2="-46" />`;
+    let s = `<path class="usercard-body" d="M ${-hw} ${-hh} L ${hw} ${-hhr} L ${hw} ${hhr} L ${-hw} ${hh} L ${-hw} ${nBot} L ${nTip} 0 L ${-hw} ${nTop} Z" />`;
+    s += `<text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle"${text.length > 3 ? ' style="font-size:16px"' : ''}>${text}</text>`;
+    for (const y of inputYs) s += busPin(inX, Math.abs(y) < nBot ? nTip : -hw, y);
+    s += busPin(hw, outX, 0);   // result bus on the right
+    // The control cable pokes out of the sloping top edge toward its terminal.
+    s += `<line class="usercard-pin" x1="0" y1="${-(hh + hhr) / 2}" x2="0" y2="-46" />`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -327,10 +314,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU0") return aluGateMarkup(16);
+      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU", [-26, 26]);
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU1") return aluGateMarkup(16, "ALU1");
-      if (gateTask && gateTask.id === "ALU2") return alu2GateMarkup(16);
+      if (gateTask && gateTask.id === "ALU1") return aluShapeMarkup(16, "ALU1", [-26, 26]);
+      if (gateTask && gateTask.id === "ALU2") return aluShapeMarkup(16, "ALU2", [-34, 0, 34], { tall: true });
+      if (gateTask && gateTask.id === "ALU3") return aluShapeMarkup(16, "ALU3", [-34, 0, 34], { tall: true });
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

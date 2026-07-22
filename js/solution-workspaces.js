@@ -1294,6 +1294,43 @@ function createSolutionWorkspaces({
     return aluSolutionWorkspace("ALU2", components, wires);
   }
 
+  // ALU3: the top control bit chooses between two prepared options via MUX16 —
+  // (A) the 12-bit control zero-extended to 16 bits, and (B) the ALU2 result on
+  // the three numbers using the low 7 control bits. Split the control to its
+  // bits, then merge the pieces each option needs.
+  function alu3SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("ALU3"), x: 560, y: 360 },
+      // Split the 12-bit control into its bits.
+      { id: "ctrl-split", type: "splitter", x: 405, y: 360, mirrored: false, outputs: 12, width: 1 },
+      // Option A: the 12 control bits as the low bits of a 16-bit bus (top 4 legs
+      // left unconnected = 0).
+      { id: "optA-merge", type: "splitter", x: 512, y: 250, mirrored: true, outputs: 16, width: 1 },
+      // Option B's ALU2 control: the low 7 control bits merged back to a 7-bit bus.
+      { id: "alu2-ctrl", type: "splitter", x: 520, y: 545, mirrored: true, outputs: 7, width: 1 },
+      { id: "alu2", type: "gate-ALU2", x: 690, y: 470 },
+      { id: "mux", type: "gate-MUX16", x: 790, y: 335 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt4", "ctrl-split.single"),
+      // Option A: low 12 legs -> a 16-bit bus (legs 12..15 stay 0).
+      ...Array.from({ length: 12 }, (_, i) => normalizeWire(`ctrl-split.leg${i}`, `optA-merge.leg${i}`)),
+      normalizeWire("optA-merge.single", "mux.in1"),
+      // Option B: the low 7 control bits -> ALU2 control; ALU2 on the 3 numbers.
+      ...Array.from({ length: 7 }, (_, i) => normalizeWire(`ctrl-split.leg${i}`, `alu2-ctrl.leg${i}`)),
+      normalizeWire("task-card-1.inputInt1", "alu2.in1"),
+      normalizeWire("task-card-1.inputInt2", "alu2.in2"),
+      normalizeWire("task-card-1.inputInt3", "alu2.in3"),
+      normalizeWire("alu2-ctrl.single", "alu2.in4"),
+      normalizeWire("alu2.out1", "mux.in2"),
+      // The top control bit (leg11) selects between the two options.
+      normalizeWire("ctrl-split.leg11", "mux.in3"),
+      normalizeWire("mux.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU3", components, wires);
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
@@ -1303,6 +1340,7 @@ function createSolutionWorkspaces({
     if (taskId === "ALU0") return alu0SolutionFrom();
     if (taskId === "PreperNum") return preperNumSolutionFrom();
     if (taskId === "ALU1") return step >= 5 ? alu1AltSolutionFrom() : alu1SolutionFrom();
+    if (taskId === "ALU3") return alu3SolutionFrom();
     if (taskId === "ALU2") return alu2SolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
