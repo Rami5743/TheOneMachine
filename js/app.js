@@ -648,6 +648,51 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // The ALU2 build frame: three width-16 number buses on the left, a width-7
+  // control bus on TOP, and a single width-16 output. The first (top) control
+  // bit picks whether the ALU1 op runs on inputs 1&2 (bit 0) or 1&3 (bit 1); the
+  // remaining 6 bits are the ALU1 sub-control — see aluGateSpec op "alu2".
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU2"] = {
+    label: "מסגרת ALU2",
+    fixed: true,
+    taskId: "ALU2",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
+      inputExt4: { x: -130, y: -280, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -130, y: -210, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 250 }
+  };
+
+  // gate-ALU2: the placeable card earned by completing ALU2. Three width-16
+  // number buses in, a width-7 control on top, one width-16 bus out.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU2"] = {
+    label: "ALU2",
+    taskId: "ALU2",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu2",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -34, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 34, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in4: { x: 0, y: -46, direction: "in", width: 7, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -4335,6 +4380,56 @@
             wireKey("not16.out", "mux-not.in2"),
             wireKey("part3-split.leg0", "mux-not.in3"),
             wireKey("mux-not.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU2: [
+      {
+        text: "ה-ALU2 מבצע את הפעולה של ALU1 על הכניסה הראשונה ועל אחת משתי הכניסות האחרות. קודם מפצלים את כניסת הבקרה (7 ביטים) לביטים שלה: הביט הראשון (העליון) יבחר על איזו כניסה עובדים, ושאר ששת הביטים הם בדיוק כניסת הבקרה של ה-ALU1.",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt4"],
+          wires: [wireKey("task-card-1.inputInt4", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "עכשיו בוחרים את הכניסה השנייה של ה-ALU1: בעזרת MUX16 בוחרים בין הכניסה השנייה (כשביט הבקרה הראשון 0) לבין הכניסה השלישית (כשהוא 1), לפי הביט הראשון (העליון) של הבקרה.",
+        highlight: {
+          components: ["mux"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "ctrl-split.leg6"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "mux.in1"),
+            wireKey("task-card-1.inputInt3", "mux.in2"),
+            wireKey("ctrl-split.leg6", "mux.in3")
+          ]
+        }
+      },
+      {
+        text: "מרכיבים בחזרה את ששת ביטי הבקרה הנותרים לבס אחד ברוחב 6 — זו כניסת הבקרה של ה-ALU1, שמגדירה איזו פעולה הוא יבצע.",
+        highlight: {
+          components: ["subctrl-merge"],
+          terminals: [],
+          wires: [
+            wireKey("ctrl-split.leg0", "subctrl-merge.leg0"),
+            wireKey("ctrl-split.leg1", "subctrl-merge.leg1"),
+            wireKey("ctrl-split.leg2", "subctrl-merge.leg2"),
+            wireKey("ctrl-split.leg3", "subctrl-merge.leg3"),
+            wireKey("ctrl-split.leg4", "subctrl-merge.leg4"),
+            wireKey("ctrl-split.leg5", "subctrl-merge.leg5")
+          ]
+        }
+      },
+      {
+        text: "לבסוף מכניסים ל-ALU1 את הכניסה הראשונה, את הכניסה שבחרנו (השנייה או השלישית) ואת בס הבקרה שהרכבנו. היציאה של ה-ALU1 היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["alu1"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "alu1.in1"),
+            wireKey("mux.out", "alu1.in2"),
+            wireKey("subctrl-merge.single", "alu1.in3"),
+            wireKey("alu1.out1", "task-card-1.outputInt1")
           ]
         }
       }
@@ -9526,6 +9621,18 @@
         { a: 0x1234, b: 0x5678, control: 63 }  // all bits -> 0x0001
       ];
     }
+    if (taskId === "ALU2") {
+      // (a=in1, b=in2, d=in3, control 0..127). Top bit c6 selects the second
+      // operand (0 → in2, 1 → in3); lower 6 bits c0..c5 are the ALU1 sub-control.
+      return [
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 0 },   // c6=0 -> AND(in1,in2)=0x00F0
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 64 },  // c6=1 -> AND(in1,in3)=0x0000
+        { a: 1234, b: 1, d: 5678, control: 66 },           // c6=1,c1=1 -> ADD(in1,in3)=6912
+        { a: 5, b: 3, d: 99, control: 2 },                 // c6=0,c1=1 -> ADD(in1,in2)=8
+        { a: 0x1234, b: 0, d: 0xFFFF, control: 65 },       // c6=1,c0=1 -> NOT(AND(in1,in3))=0xEDCB
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 127 }  // all bits -> 0x0001
+      ];
+    }
     return [];
   }
 
@@ -9657,6 +9764,33 @@
           { ref: "inputExt2", bits: add16Bits(testCase.b) },
           // 6-bit control bus, little-endian [c0..c5].
           { ref: "inputExt3", bits: Array.from({ length: 6 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU2") {
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      // Top bit c6 selects the second operand (0 → in2, 1 → in3); c0..c5 are the
+      // ALU1 sub-control (c5,c4 prep input1; c3,c2 prep operand2; c1 op; c0 NOT).
+      const op2 = bit(6) ? testCase.d : testCase.b;
+      const p1 = prep(testCase.a, bit(4), bit(5));
+      const p2 = prep(op2, bit(2), bit(3));
+      const combined = bit(1) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(0) ? ~combined : combined) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: add16Bits(testCase.d) },
+          // 7-bit control bus, little-endian [c0..c6].
+          { ref: "inputExt4", bits: Array.from({ length: 7 }, (_, i) => Boolean(bit(i))) }
         ],
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) }
@@ -10525,7 +10659,7 @@
   // Which ALU cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function aluTaskImplemented(id) {
-    return ["Inc", "ALU0", "PreperNum", "ALU1"].includes(id);
+    return ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2"].includes(id);
   }
 
   // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
@@ -10558,7 +10692,7 @@
     // lower on the board. The pre-placed source-1 is the TEST source (it drives
     // inputs during a check) and stays OUTSIDE the frame; the learner adds their
     // own source inside for a constant "1" bus (see the Inc solution/hint).
-    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1") ? 360 : 288;
+    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1" || task.id === "ALU2") ? 360 : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [

@@ -1259,6 +1259,41 @@ function createSolutionWorkspaces({
     }));
   }
 
+  // ALU2: run ALU1 on input1 and a second operand chosen (by the top control
+  // bit) between input2 and input3. Split the 7-bit control into its bits: the
+  // top bit drives a MUX16 that picks the operand; the lower six are merged back
+  // into the 6-bit ALU1 sub-control.
+  function alu2SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("ALU2"), x: 560, y: 360 },
+      { id: "ctrl-split", type: "splitter", x: 430, y: 195, mirrored: false, outputs: 7, width: 1 },
+      { id: "subctrl-merge", type: "splitter", x: 548, y: 235, mirrored: true, outputs: 6, width: 1 },
+      { id: "mux", type: "gate-MUX16", x: 470, y: 468 },
+      { id: "alu1", type: "gate-ALU1", x: 690, y: 360 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt4", "ctrl-split.single"),
+      // The top control bit (leg6) selects the second operand via MUX16.
+      normalizeWire("task-card-1.inputInt2", "mux.in1"),
+      normalizeWire("task-card-1.inputInt3", "mux.in2"),
+      normalizeWire("ctrl-split.leg6", "mux.in3"),
+      // The lower six control bits merge into the ALU1 sub-control bus.
+      normalizeWire("ctrl-split.leg0", "subctrl-merge.leg0"),
+      normalizeWire("ctrl-split.leg1", "subctrl-merge.leg1"),
+      normalizeWire("ctrl-split.leg2", "subctrl-merge.leg2"),
+      normalizeWire("ctrl-split.leg3", "subctrl-merge.leg3"),
+      normalizeWire("ctrl-split.leg4", "subctrl-merge.leg4"),
+      normalizeWire("ctrl-split.leg5", "subctrl-merge.leg5"),
+      // ALU1 on input1 and the chosen operand, with the assembled sub-control.
+      normalizeWire("task-card-1.inputInt1", "alu1.in1"),
+      normalizeWire("mux.out", "alu1.in2"),
+      normalizeWire("subctrl-merge.single", "alu1.in3"),
+      normalizeWire("alu1.out1", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU2", components, wires);
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
@@ -1268,6 +1303,7 @@ function createSolutionWorkspaces({
     if (taskId === "ALU0") return alu0SolutionFrom();
     if (taskId === "PreperNum") return preperNumSolutionFrom();
     if (taskId === "ALU1") return step >= 5 ? alu1AltSolutionFrom() : alu1SolutionFrom();
+    if (taskId === "ALU2") return alu2SolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();

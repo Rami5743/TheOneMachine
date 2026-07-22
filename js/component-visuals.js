@@ -182,6 +182,25 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The ALU2 gate (chapter 2.6): like the ALU gate but with THREE number buses
+  // on the left (in1/in2/in3 at -34/0/34) and a width-7 control poking out the top.
+  function alu2GateMarkup(width) {
+    const edge = 44;
+    const bodyW = edge * 2;
+    const bodyH = 92;               // taller: three input bars fit inside
+    const inX = -62;
+    const outX = 66;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="6" text-anchor="middle" style="font-size:18px">ALU2</text>`;
+    s += busPin(inX, -edge, -34);   // number bus 1 (in1)
+    s += busPin(inX, -edge, 0);     // number bus 2 (in2)
+    s += busPin(inX, -edge, 34);    // number bus 3 (in3)
+    s += busPin(edge, outX, 0);     // result bus (out1)
+    s += `<line class="usercard-pin" x1="0" y1="${-bodyH / 2}" x2="0" y2="-46" />`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // The PreperNum gate (chapter 2.6): a box labelled "Prep" with a width-16 bus
   // on the left, a width-2 control bus poking out the TOP, and a width-16 output
   // bus on the right.
@@ -311,6 +330,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "ALU0") return aluGateMarkup(16);
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
       if (gateTask && gateTask.id === "ALU1") return aluGateMarkup(16, "ALU1");
+      if (gateTask && gateTask.id === "ALU2") return alu2GateMarkup(16);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
