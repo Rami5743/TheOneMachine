@@ -513,6 +513,9 @@
     { id: "arith-bin2dec", title: "המרה מכתיב בינרי לכתיב עשרוני" },
     { id: "arith-dec2bin", title: "המרה מכתיב עשרוני לכתיב בינרי" },
     { id: "arith-binadd", title: "חיבור בינרי" },
+    // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
+    // "what is an ALU" message. Unlocked at the end of that message.
+    { id: "alu-ALU0", title: "ALU0" },
     // Enrichment (processor category): the "words & bytes" reading, opened either
     // from the red link on the last bits-range slide or from the explanations menu.
     { id: "words-bytes", title: "מילים ובתים" }

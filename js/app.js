@@ -1136,6 +1136,12 @@
   registerAllSavedCards();
   let dragState = null;
   let dialogDragState = null;
+  // Where the learner has dragged each kind of movable dialog, keyed by its card
+  // class. A re-render (e.g. clicking "המשך" in the solution walkthrough) rebuilds
+  // the DOM, so the position is re-applied afterwards — the dialog stays put. A
+  // key is dropped once its dialog is no longer on screen, so the next time it
+  // opens it starts from its default place.
+  let draggedDialogPositions = {};
   let suppressNextClick = false;
 
   // Circuit-simulation engine lives in js/circuit-engine.js. We inject the two
@@ -1664,6 +1670,7 @@
     }
     saveState();
     render();
+    applyDraggedDialogPositions();
     if (shouldSpeak) speakCurrent();
   }
 
@@ -2954,9 +2961,9 @@
     }
     if (spec && spec.alu) {
       // An ALU card explanation: replays its solution walkthrough (and, for ALU0,
-      // continues into the "what is an ALU" message). Active once the card is
-      // built — or always, in see-everything pace.
-      const active = taskCompleted(spec.alu) || !isStepByStepPace();
+      // continues into the "what is an ALU" message). Unlocked at the END of that
+      // message (with the flourish) — not merely when the card is built.
+      const active = explanationUnlocked(`alu-${spec.alu}`);
       return active
         ? `<button class="btn btn-primary expl-item" data-action="expl-alu-solution" data-task-id="${esc(spec.alu)}" type="button">${esc(spec.label)}</button>`
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
@@ -9528,24 +9535,30 @@
     // result) INSTEAD of a source/lamp fan-out. The carry bit and any other single
     // bit still use the plain source/lamp path.
     const useConverters = isArithBusTask(baseWorkspace.taskId) || isAluBusTask(baseWorkspace.taskId);
-
-    // The check drives inputs from the pre-placed source-1 (single-bit inputs
-    // directly, wide non-converter inputs via a merging splitter). Where it does,
-    // strip the learner's own wires to source-1 so the check controls it. But when
-    // the check drives NO input from source-1 — every input is a converter-fed
-    // numeric bus, as for Inc — source-1 belongs to the learner (they use it to
-    // build a constant "1" bus), so its wires must be KEPT.
-    const harnessUsesSource = !useConverters
-      || spec.inputs.some((input) => pinWidth(workspace, `task-card-1.${input.ref}`) === 1);
-    if (harnessUsesSource) {
-      workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
-    }
-    removeInvalidWires(workspace);
     const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
+    // The control input is the one poking out the top of the card.
     const controlIdx = spec.inputs.findIndex((input) => {
       const p = frameDef.pins[input.ref];
       return p && p.y < -150;
     });
+    // Only the NUMERIC data buses of arith/ALU cards come from dec→bin converters.
+    // The control bus is not a number, so it (like single bits) is driven from
+    // source-1 through a plain splitter — see the input loop below.
+    const inputConverterDriven = (input, idx) => {
+      const w = pinWidth(workspace, `task-card-1.${input.ref}`);
+      return useConverters && idx !== controlIdx && Number.isInteger(w) && w > 1;
+    };
+
+    // The check drives inputs from the pre-placed source-1 (single bits directly,
+    // control/other wide buses via a merging splitter) EXCEPT the converter-fed
+    // numeric buses. Whenever it uses source-1, strip the learner's own wires to
+    // it so the check controls it. When EVERY input is converter-fed (Inc),
+    // source-1 belongs to the learner (their constant "1" bus) and is kept.
+    const harnessUsesSource = spec.inputs.some((input, idx) => !inputConverterDriven(input, idx));
+    if (harnessUsesSource) {
+      workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
+    }
+    removeInvalidWires(workspace);
     // Geometry for placing the wide dec→bin input converters: each is set LEVEL
     // with the card input pin it feeds (so its bus cable runs straight across,
     // not bent — bent cables tangled), and far enough LEFT that the wide body
@@ -9556,6 +9569,9 @@
     const sourceComp = componentById(workspace, "source-1");
     const CONV_IN_X = 120;                         // left of the old 200: body clears the card
     const CONV_HALF_H = 40, SRC_HALF_H = 50, CLEAR_GAP = 26;
+    // A converter pushed BELOW the source drops well clear of it — the lower
+    // converter sits distinctly beneath the source, not tucked just under it.
+    const DOWN_GAP = 150;
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
@@ -9565,14 +9581,18 @@
         if (input.bits[0]) workspace.wires.push(normalizeWire("source-1.out", ref));
         return;
       }
-      if (useConverters) {
+      if (inputConverterDriven(input, idx)) {
         // A dec→bin converter set to the addend value, feeding the card input,
         // level with that input pin so the wire is straight.
         const pin = frameDef.pins[input.ref];
         let cy = cardY + (pin ? pin.y : 0);
         if (sourceComp && Math.abs(cy - sourceComp.y) < CONV_HALF_H + SRC_HALF_H) {
-          const dir = pin && pin.y > 0 ? 1 : -1; // lower pin -> below the source, else above
-          cy = sourceComp.y + dir * (CONV_HALF_H + SRC_HALF_H + CLEAR_GAP);
+          // A pin above the source's level clears above it; a pin AT the card
+          // centre (the source's own level, e.g. Add4's second number, Inc's
+          // input, PreperNum's number) or below drops well BELOW the source, so
+          // the lower converter sits clearly beneath it.
+          const below = pin && pin.y >= 0;
+          cy = sourceComp.y + (below ? 1 : -1) * (CONV_HALF_H + SRC_HALF_H + (below ? DOWN_GAP : CLEAR_GAP));
         }
         const convId = `mb-in-conv-${idx}`;
         workspace.components.push({ id: convId, type: "converter-out", x: CONV_IN_X, y: cy, value: bitsToDecimal(input.bits), width: w });
@@ -9584,7 +9604,7 @@
       let sy;
       if (idx === controlIdx) {
         const cp = frameDef.pins[input.ref];
-        sy = 288 + (cp ? cp.y : -250); // level with the control pin, up top
+        sy = cardY + (cp ? cp.y : -250); // level with the control pin, up top
       } else {
         sy = stackTop + halfH;          // splitter centre = top + half its height
         stackTop = sy + halfH + 40;     // next data splitter clears this one's legs
@@ -12433,20 +12453,43 @@
     if (line) line.hidden = hidden;
   }
 
+  const DRAGGABLE_DIALOG_CLASSES = [
+    "dialog-card", "workspace-build-help-prompt", "workspace-understood-card",
+    "workspace-accident-card", "workspace-task-intro-card", "not-test-result-card",
+    "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card"
+  ];
+
   function draggableDialogElement(event) {
-    return event.target.closest(`
-      .dialog-card,
-      .workspace-build-help-prompt,
-      .workspace-understood-card,
-      .workspace-accident-card,
-      .workspace-task-intro-card,
-      .not-test-result-card,
-      .note-task-card,
-      .hint-card,
-      .hint-slides-card,
-      .solution-card,
-      .bit-card
-    `);
+    return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
+  }
+
+  // The class that identifies a dialog's kind, used to remember its dragged spot.
+  function dialogDragKey(element) {
+    return DRAGGABLE_DIALOG_CLASSES.find((c) => element.classList.contains(c)) || null;
+  }
+
+  // The fixed-position styles a dragged dialog carries, applied both live (during
+  // the drag) and after a re-render (to keep it where the learner put it).
+  function applyDialogPositionStyles(element, pos) {
+    element.style.position = "fixed";
+    element.style.left = pos.left;
+    element.style.top = pos.top;
+    element.style.right = "auto";
+    element.style.bottom = "auto";
+    element.style.transform = "none";
+    element.style.margin = "0";
+    element.style.width = pos.width;
+    element.style.maxWidth = "none";
+  }
+
+  // After each render, restore any dragged dialog to its saved position; forget
+  // the position of any dialog that is no longer on screen.
+  function applyDraggedDialogPositions() {
+    for (const key of Object.keys(draggedDialogPositions)) {
+      const el = document.querySelector("." + key);
+      if (!el) { delete draggedDialogPositions[key]; continue; }
+      applyDialogPositionStyles(el, draggedDialogPositions[key]);
+    }
   }
 
   function dialogDragBlockedByControl(event) {
@@ -12497,8 +12540,13 @@
 
   function finishDialogDrag(event) {
     if (!dialogDragState || event.pointerId !== dialogDragState.pointerId) return;
-    dialogDragState.element.classList.remove("dialog-dragging");
-    dialogDragState.element.releasePointerCapture?.(event.pointerId);
+    const el = dialogDragState.element;
+    el.classList.remove("dialog-dragging");
+    el.releasePointerCapture?.(event.pointerId);
+    // Remember where this kind of dialog was dropped, so a re-render (e.g.
+    // advancing the solution with "המשך") keeps it there instead of snapping back.
+    const key = dialogDragKey(el);
+    if (key) draggedDialogPositions[key] = { left: el.style.left, top: el.style.top, width: el.style.width };
     dialogDragState = null;
   }
 
@@ -13184,6 +13232,9 @@
     if (action === "alu-note-task") return handleAluNoteTask(button.dataset.taskId);
     if (action === "alu-intro-next") return setState({ aluIntroDialog: { ...state.aluIntroDialog, page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
     if (action === "alu-intro-close") {
+      // Reaching the END of the "what is an ALU" message unlocks the ALU0
+      // explanation in the menu — with the fly-to-הסברים flourish, the first time.
+      unlockExplanation("alu-ALU0");
       // When the message was reached by replaying the ALU0 explanation from the
       // menu, closing it returns to the menu instead of the ALU worktable note.
       if (state.aluIntroDialog?.returnToExplanations) {
