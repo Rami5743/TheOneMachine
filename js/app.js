@@ -1218,6 +1218,10 @@
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
     const here = chapterIndexById(state.chapterId);
+    // In a TASK build (not free build, not card design) a user card must also be
+    // BUILDABLE here: if it relies on a built-in card that isn't in this toolbar —
+    // one from a later chapter, or a current-chapter card not built yet — drop it.
+    const taskBuild = Boolean(workspaceTaskId()) && !state.cardCreation;
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
       // A card built in a LATER chapter (reached by jumping ahead) is hidden;
@@ -1227,15 +1231,9 @@
         const ci = typeof card.chapter === "string" ? chapterIndexById(card.chapter) : -1;
         return !(Number.isInteger(ci) && ci >= 0 && Number.isInteger(here) && here >= 0 && ci > here);
       })
+      .filter((card) => !taskBuild || cardBuildableWithToolbar(card.type))
       .map((card) => ({ type: card.type, label: card.name }));
-  }, splitterAvailable: () => {
-    // The splitter (and its mirrored "merger") is introduced in chapter 2.4
-    // (buses); from then on it stays in the palette for EVERY build, later
-    // chapters included — even single-bit ones.
-    const here = chapterIndexById(state.chapterId);
-    const buses = chapterIndexById("chapter-7");
-    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
-  }, convertersAvailable: () => isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8") });
+  }, splitterAvailable: splitterInToolbar, convertersAvailable: convertersInToolbar });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -11940,6 +11938,58 @@
     if (!card) return false;
     return (card.logic?.components || []).some((c) =>
       String(c.type).startsWith(SAVED_CARD_PREFIX) && cardUsesCard(c.type, targetType, seen));
+  }
+
+  // The built-in (non-user) component types a saved card relies on — directly and
+  // through any chain of other saved cards it embeds.
+  function cardBuiltinDeps(cardType, seen = new Set(), acc = new Set()) {
+    if (seen.has(cardType)) return acc;
+    seen.add(cardType);
+    const card = savedCardByType(cardType);
+    if (!card) return acc;
+    for (const c of (card.logic?.components || [])) {
+      const t = String(c.type || "");
+      if (!t) continue;
+      if (t.startsWith(SAVED_CARD_PREFIX)) cardBuiltinDeps(t, seen, acc);
+      else acc.add(t);
+    }
+    return acc;
+  }
+
+  // Whether the splitter / converters are in the current build's toolbar (same
+  // rules the toolbar itself uses). Kept as functions so both the palette and the
+  // user-card dependency check agree.
+  function splitterInToolbar() {
+    const here = chapterIndexById(state.chapterId);
+    const buses = chapterIndexById("chapter-7");
+    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
+  }
+  function convertersInToolbar() {
+    return isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8");
+  }
+
+  // The built-in component types the current build toolbar offers: Nand and the
+  // basic source/lamp (always), the gate cards available this chapter (per
+  // toolbarGateToolIds — earlier chapters in full, the current chapter only what's
+  // been built), and, where introduced, the splitter and converters.
+  function availableToolbarBuiltins() {
+    const set = new Set(["nand", "source", "lamp"]);
+    for (const id of toolbarGateToolIds()) set.add(gateComponentType(id));
+    if (splitterInToolbar()) set.add("splitter");
+    if (convertersInToolbar()) { set.add("converter-in"); set.add("converter-out"); }
+    return set;
+  }
+
+  // True when every built-in card/tool a user card relies on (transitively) is in
+  // the current toolbar — i.e. the card can actually be built here. A card that
+  // needs a built-in from a later chapter, or a current-chapter card not yet
+  // built, is NOT buildable and should drop out of a task build's palette.
+  function cardBuildableWithToolbar(cardType) {
+    const available = availableToolbarBuiltins();
+    for (const t of cardBuiltinDeps(cardType)) {
+      if (!available.has(t)) return false;
+    }
+    return true;
   }
   function savedCardGeometry(card) {
     const nIn = Math.max(1, (card.inputs || []).length);
