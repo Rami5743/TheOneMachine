@@ -1135,7 +1135,7 @@ function createSolutionWorkspaces({
     // The internal gates sit inside the (cx±300) shell frame: AND16 and Add16 on
     // the left, MUX16 on the right, the card centred over them.
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "source-1", type: "source", x: 65, y: 110 },
       { id: "task-card-1", type: taskCardComponentType("ALU0"), x: 640, y: 360 },
       { id: "and16", type: "gate-AND16", x: 540, y: 240 },
       { id: "add16", type: "gate-Add16", x: 540, y: 470 },
@@ -1161,7 +1161,7 @@ function createSolutionWorkspaces({
   // and its NOT (via Not16) by the FIRST bit (leg1/MSB) — stage 2 NOT.
   function preperNumSolutionFrom() {
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "source-1", type: "source", x: 65, y: 50 },
       { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 620, y: 300 },
       { id: "ctrl-split", type: "splitter", x: 500, y: 185, mirrored: false, outputs: 2, width: 1 },
       { id: "mux1", type: "gate-MUX16", x: 472, y: 302 },
@@ -1263,7 +1263,7 @@ function createSolutionWorkspaces({
   // into the 6-bit ALU1 sub-control.
   function alu2SolutionFrom() {
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "source-1", type: "source", x: 65, y: 80 },
       { id: "task-card-1", type: taskCardComponentType("ALU2"), x: 560, y: 360 },
       { id: "ctrl-split", type: "splitter", x: 430, y: 195, mirrored: false, outputs: 7, width: 1 },
       { id: "subctrl-merge", type: "splitter", x: 548, y: 235, mirrored: true, outputs: 6, width: 1 },
@@ -1298,7 +1298,7 @@ function createSolutionWorkspaces({
   // bits, then merge the pieces each option needs.
   function alu3SolutionFrom() {
     const components = [
-      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "source-1", type: "source", x: 65, y: 80 },
       { id: "task-card-1", type: taskCardComponentType("ALU3"), x: 560, y: 360 },
       // Split the 12-bit control into its bits.
       { id: "ctrl-split", type: "splitter", x: 405, y: 360, mirrored: false, outputs: 12, width: 1 },
