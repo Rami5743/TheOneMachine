@@ -3968,3 +3968,31 @@ object.panel-image.is-pending {
   font-size: 0.9rem;
   text-align: center;
 }
+
+/* Nickname editor at the top of the rankings page. */
+.rankings-nickname {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 0.6rem;
+}
+.rankings-nickname label { font-weight: 700; color: #3a2c14; }
+.rankings-nickname-input {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(70, 50, 25, 0.5);
+  background: #fffdf7;
+  font: inherit;
+  min-width: 140px;
+}
+.rankings-nickname-error { color: #a12a2a; font-size: 0.85rem; }
+
+/* Clickable card rows on the main rankings table. */
+.rankings-row { cursor: pointer; }
+.rankings-row:hover td { background: rgba(255, 224, 138, 0.22); }
+.rankings-row:focus-visible { outline: 2px solid #f5c518; outline-offset: -2px; }
+
+/* Per-card records table. */
+.records-table .rank-nick { text-align: start; font-weight: 700; }
+.rankings-empty-row { color: #b0a488; padding: 14px; }

@@ -829,6 +829,13 @@
     // card, recorded when a card's check passes (see recordCardNandCount). A card
     // built with a sub-card that has no count is stored as null (undefined).
     cardNandCounts: {},
+    // The player's leaderboard nickname (shown only on a card's records page,
+    // never in the main table). Default "ללא שם".
+    rankingsNickname: "ללא שם",
+    // Which card's records page is open (screen "cardRecords").
+    rankingsCardId: null,
+    // Transient: a nickname validation/uniqueness error to show under the field.
+    rankingsNicknameError: null,
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -1551,7 +1558,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -8369,6 +8376,7 @@
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
     if (state.screen === "rankings") return renderRankingsScreen(app);
+    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -9016,9 +9024,27 @@
   const __rankings = createRankings({
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
-    leaderboardFor: () => null
+    getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
+    // Cross-user leaderboard: filled from the cloud once the backend exists.
+    leaderboardFor: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId) : null),
+    leaderboardRows: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardRows ? APP.leaderboardRows(cardId) : null)
   });
   const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
+  const renderCardRecordsScreen = (...args) => __rankings.renderCardRecordsScreen(...args);
+
+  // Save the leaderboard nickname from its input. Empty falls back to the shared
+  // default "ללא שם"; anything else must pass the name charset (and, once the
+  // leaderboard backend exists, be unique across users — enforced there).
+  function saveRankingsNickname() {
+    const input = document.querySelector("[data-rankings-nickname]");
+    let nick = input ? String(input.value || "").trim() : "";
+    if (!nick) nick = "ללא שם";
+    if (nick !== "ללא שם" && !CARD_NAME_ALLOWED.test(nick)) {
+      return setState({ rankingsNicknameError: "הכינוי מכיל תווים לא חוקיים. אותיות, ספרות, רווח, מקף וקו תחתון בלבד." }, false);
+    }
+    setState({ rankingsNickname: nick, rankingsNicknameError: null }, false);
+    if (typeof APP !== "undefined" && APP && typeof APP.setNickname === "function") APP.setNickname(nick);
+  }
 
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.
@@ -13222,8 +13248,11 @@
     if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
-    if (action === "open-rankings") return setState({ screen: "rankings" }, false);
+    if (action === "open-rankings") return setState({ screen: "rankings", rankingsNicknameError: null }, false);
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
+    if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
+    if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
+    if (action === "rankings-nickname-save") return saveRankingsNickname();
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
