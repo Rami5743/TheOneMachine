@@ -1,67 +1,73 @@
 {
-  "task": "halfAdder",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 80,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-halfAdder",
-      "x": 500,
-      "y": 288
-    },
-    {
-      "id": "lamp-1",
-      "type": "lamp",
-      "x": 940,
-      "y": 358
-    },
-    {
-      "id": "lamp-2",
-      "type": "lamp",
-      "x": 940,
-      "y": 158
-    },
-    {
-      "id": "and-1",
-      "type": "gate-And",
-      "x": 330,
-      "y": 200
-    },
-    {
-      "id": "xor-1",
-      "type": "gate-Xor",
-      "x": 330,
-      "y": 380
-    }
-  ],
-  "wires": [
-    {
-      "a": "task-card-1.inputInt1",
-      "b": "xor-1.in1"
-    },
-    {
-      "a": "task-card-1.inputInt2",
-      "b": "xor-1.in2"
-    },
-    {
-      "a": "and-1.in1",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "and-1.in2",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "task-card-1.outputInt1",
-      "b": "xor-1.out"
-    },
-    {
-      "a": "and-1.out",
-      "b": "task-card-1.outputInt2"
+      "type": "usercard-1",
+      "name": "halfAdder-solution",
+      "inputs": [
+        1,
+        1
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "lamp-1",
+            "type": "lamp",
+            "x": 940,
+            "y": 358
+          },
+          {
+            "id": "lamp-2",
+            "type": "lamp",
+            "x": 940,
+            "y": 158
+          },
+          {
+            "id": "and-1",
+            "type": "gate-And",
+            "x": 330,
+            "y": 200
+          },
+          {
+            "id": "xor-1",
+            "type": "gate-Xor",
+            "x": 330,
+            "y": 380
+          }
+        ],
+        "wires": [
+          {
+            "a": "card-frame-1.inputInt0",
+            "b": "xor-1.in1"
+          },
+          {
+            "a": "card-frame-1.inputInt1",
+            "b": "xor-1.in2"
+          },
+          {
+            "a": "and-1.in1",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "and-1.in2",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "card-frame-1.outputInt0",
+            "b": "xor-1.out"
+          },
+          {
+            "a": "and-1.out",
+            "b": "card-frame-1.outputInt1"
+          }
+        ]
+      }
     }
   ]
 }

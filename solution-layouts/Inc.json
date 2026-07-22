@@ -1,69 +1,73 @@
 {
-  "task": "Inc",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 65,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-Inc",
-      "x": 640,
-      "y": 288
-    },
-    {
-      "id": "one-source",
-      "type": "source",
-      "x": 350,
-      "y": 400
-    },
-    {
-      "id": "one-split-lo",
-      "type": "splitter",
-      "x": 490,
-      "y": 400,
-      "outputs": 4,
-      "width": 1,
-      "mirrored": true
-    },
-    {
-      "id": "one-split-hi",
-      "type": "splitter",
-      "x": 660,
-      "y": 400,
-      "outputs": 4,
-      "width": 4,
-      "mirrored": true
-    },
-    {
-      "id": "add-1",
-      "type": "gate-Add16",
-      "x": 770,
-      "y": 300
-    }
-  ],
-  "wires": [
-    {
-      "a": "one-source.out",
-      "b": "one-split-lo.leg0"
-    },
-    {
-      "a": "one-split-hi.leg0",
-      "b": "one-split-lo.single"
-    },
-    {
-      "a": "add-1.in1",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "add-1.in2",
-      "b": "one-split-hi.single"
-    },
-    {
-      "a": "add-1.out1",
-      "b": "task-card-1.outputInt1"
+      "type": "usercard-1",
+      "name": "Inc-solution",
+      "inputs": [
+        16
+      ],
+      "outputs": [
+        16
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "one-source",
+            "type": "source",
+            "x": 210,
+            "y": 400
+          },
+          {
+            "id": "one-split-lo",
+            "type": "splitter",
+            "x": 350,
+            "y": 400,
+            "outputs": 4,
+            "width": 1,
+            "mirrored": true
+          },
+          {
+            "id": "one-split-hi",
+            "type": "splitter",
+            "x": 520,
+            "y": 400,
+            "outputs": 4,
+            "width": 4,
+            "mirrored": true
+          },
+          {
+            "id": "add-1",
+            "type": "gate-Add16",
+            "x": 630,
+            "y": 300
+          }
+        ],
+        "wires": [
+          {
+            "a": "one-source.out",
+            "b": "one-split-lo.leg0"
+          },
+          {
+            "a": "one-split-hi.leg0",
+            "b": "one-split-lo.single"
+          },
+          {
+            "a": "add-1.in1",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "add-1.in2",
+            "b": "one-split-hi.single"
+          },
+          {
+            "a": "add-1.out1",
+            "b": "card-frame-1.outputInt0"
+          }
+        ]
+      }
     }
   ]
 }

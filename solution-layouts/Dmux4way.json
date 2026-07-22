@@ -1,90 +1,98 @@
 {
-  "task": "Dmux4way",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 65,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-Dmux4way",
-      "x": 640,
-      "y": 288
-    },
-    {
-      "id": "ctrl-split",
-      "type": "splitter",
-      "x": 545,
-      "y": 150,
-      "outputs": 2,
-      "width": 1,
-      "mirrored": false
-    },
-    {
-      "id": "dmux-a",
-      "type": "gate-DMux",
-      "x": 590,
-      "y": 300
-    },
-    {
-      "id": "dmux-b",
-      "type": "gate-DMux",
-      "x": 775,
-      "y": 205
-    },
-    {
-      "id": "dmux-c",
-      "type": "gate-DMux",
-      "x": 775,
-      "y": 395
-    }
-  ],
-  "wires": [
-    {
-      "a": "ctrl-split.single",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "dmux-a.in1",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "ctrl-split.leg1",
-      "b": "dmux-a.in2"
-    },
-    {
-      "a": "dmux-a.out1",
-      "b": "dmux-b.in1"
-    },
-    {
-      "a": "dmux-a.out2",
-      "b": "dmux-c.in1"
-    },
-    {
-      "a": "ctrl-split.leg0",
-      "b": "dmux-b.in2"
-    },
-    {
-      "a": "ctrl-split.leg0",
-      "b": "dmux-c.in2"
-    },
-    {
-      "a": "dmux-b.out1",
-      "b": "task-card-1.outputInt1"
-    },
-    {
-      "a": "dmux-b.out2",
-      "b": "task-card-1.outputInt2"
-    },
-    {
-      "a": "dmux-c.out1",
-      "b": "task-card-1.outputInt3"
-    },
-    {
-      "a": "dmux-c.out2",
-      "b": "task-card-1.outputInt4"
+      "type": "usercard-1",
+      "name": "Dmux4way-solution",
+      "inputs": [
+        1,
+        2
+      ],
+      "outputs": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "ctrl-split",
+            "type": "splitter",
+            "x": 405,
+            "y": 150,
+            "outputs": 2,
+            "width": 1,
+            "mirrored": false
+          },
+          {
+            "id": "dmux-a",
+            "type": "gate-DMux",
+            "x": 450,
+            "y": 300
+          },
+          {
+            "id": "dmux-b",
+            "type": "gate-DMux",
+            "x": 635,
+            "y": 205
+          },
+          {
+            "id": "dmux-c",
+            "type": "gate-DMux",
+            "x": 635,
+            "y": 395
+          }
+        ],
+        "wires": [
+          {
+            "a": "ctrl-split.single",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "dmux-a.in1",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "ctrl-split.leg1",
+            "b": "dmux-a.in2"
+          },
+          {
+            "a": "dmux-a.out1",
+            "b": "dmux-b.in1"
+          },
+          {
+            "a": "dmux-a.out2",
+            "b": "dmux-c.in1"
+          },
+          {
+            "a": "ctrl-split.leg0",
+            "b": "dmux-b.in2"
+          },
+          {
+            "a": "ctrl-split.leg0",
+            "b": "dmux-c.in2"
+          },
+          {
+            "a": "dmux-b.out1",
+            "b": "card-frame-1.outputInt0"
+          },
+          {
+            "a": "dmux-b.out2",
+            "b": "card-frame-1.outputInt1"
+          },
+          {
+            "a": "dmux-c.out1",
+            "b": "card-frame-1.outputInt2"
+          },
+          {
+            "a": "dmux-c.out2",
+            "b": "card-frame-1.outputInt3"
+          }
+        ]
+      }
     }
   ]
 }

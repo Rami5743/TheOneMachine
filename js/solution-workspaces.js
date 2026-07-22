@@ -1164,9 +1164,9 @@ function createSolutionWorkspaces({
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 620, y: 300 },
       { id: "ctrl-split", type: "splitter", x: 500, y: 185, mirrored: false, outputs: 2, width: 1 },
-      { id: "mux1", type: "gate-MUX16", x: 450, y: 340 },
+      { id: "mux1", type: "gate-MUX16", x: 472, y: 302 },
       { id: "not16", type: "gate-Not16", x: 610, y: 430 },
-      { id: "mux2", type: "gate-MUX16", x: 740, y: 320 }
+      { id: "mux2", type: "gate-MUX16", x: 733, y: 302 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
