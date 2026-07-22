@@ -21,14 +21,14 @@
             "x": 380,
             "y": 173,
             "outputs": 2,
-            "width": 1,
-            "mirrored": false
+            "mirrored": false,
+            "width": 1
           },
           {
             "id": "mux1",
             "type": "gate-MUX16",
-            "x": 330,
-            "y": 328
+            "x": 352,
+            "y": 290
           },
           {
             "id": "not16",
@@ -39,18 +39,18 @@
           {
             "id": "mux2",
             "type": "gate-MUX16",
-            "x": 620,
-            "y": 308
+            "x": 613,
+            "y": 290
           }
         ],
         "wires": [
           {
-            "a": "ctrl-split.single",
-            "b": "card-frame-1.inputInt1"
+            "a": "card-frame-1.inputInt1",
+            "b": "ctrl-split.single"
           },
           {
-            "a": "mux1.in1",
-            "b": "card-frame-1.inputInt0"
+            "a": "card-frame-1.inputInt0",
+            "b": "mux1.in1"
           },
           {
             "a": "ctrl-split.leg0",
@@ -73,8 +73,8 @@
             "b": "mux2.in3"
           },
           {
-            "a": "mux2.out",
-            "b": "card-frame-1.outputInt0"
+            "a": "card-frame-1.outputInt0",
+            "b": "mux2.out"
           }
         ]
       }
