@@ -1190,14 +1190,18 @@ function createSolutionWorkspaces({
     // TOP here instead of the side). The 6-bit control splits into three 2-bit
     // chunks: leg0 (bottom, bits 0,1) preps input1, leg1 (bits 2,3) preps input2,
     // leg2 (top, bits 4,5) splits again into the op bit (4) and the NOT bit (5).
+    // Layout per the learner's ALU1_3.json (adapted to the control-on-top frame):
+    // pn1 sits level with its number input and directly under ctrl-split's leg0;
+    // pn2 sits lower and further right so its input bus clears pn1; ALU0 is to
+    // the right of both at pn1's height, and the final prep continues to its right.
     const components = [
       { id: "source-1", type: "source", x: 65, y: 110 },
       { id: "task-card-1", type: taskCardComponentType("ALU1"), x: 560, y: 360 },
-      { id: "ctrl-split", type: "splitter", x: 405, y: 205, mirrored: false, outputs: 3, width: 2 },
-      { id: "part3-split", type: "splitter", x: 515, y: 150, mirrored: false, outputs: 2, width: 1 },
-      { id: "pn1", type: "gate-PreperNum", x: 470, y: 285 },
-      { id: "pn2", type: "gate-PreperNum", x: 470, y: 452 },
-      { id: "alu0", type: "gate-ALU0", x: 640, y: 360 }
+      { id: "ctrl-split", type: "splitter", x: 410, y: 200, mirrored: false, outputs: 3, width: 2 },
+      { id: "part3-split", type: "splitter", x: 545, y: 150, mirrored: false, outputs: 2, width: 1 },
+      { id: "pn1", type: "gate-PreperNum", x: 450, y: 270 },
+      { id: "pn2", type: "gate-PreperNum", x: 560, y: 450 },
+      { id: "alu0", type: "gate-ALU0", x: 672, y: 270 }
     ];
     const wires = [
       // Control fan-out. leg0 (bottom) = bits 0,1 -> input1 prep; leg1 (mid) =
@@ -1226,8 +1230,8 @@ function createSolutionWorkspaces({
   function alu1SolutionFrom() {
     return alu1Skeleton(() => ({
       components: [
-        { id: "pn3-ctrl", type: "splitter", x: 720, y: 200, mirrored: true, outputs: 2, width: 1 },
-        { id: "pn3", type: "gate-PreperNum", x: 800, y: 360 }
+        { id: "pn3-ctrl", type: "splitter", x: 655, y: 185, mirrored: true, outputs: 2, width: 1 },
+        { id: "pn3", type: "gate-PreperNum", x: 792, y: 270 }
       ],
       wires: [
         // part3.leg1 (bit 5) -> the NOT stage (pn3 control top bit); bottom stays 0.
@@ -1244,8 +1248,8 @@ function createSolutionWorkspaces({
   function alu1AltSolutionFrom() {
     return alu1Skeleton(() => ({
       components: [
-        { id: "not16", type: "gate-Not16", x: 760, y: 470 },
-        { id: "mux-not", type: "gate-MUX16", x: 812, y: 360 }
+        { id: "not16", type: "gate-Not16", x: 710, y: 400 },
+        { id: "mux-not", type: "gate-MUX16", x: 812, y: 270 }
       ],
       wires: [
         normalizeWire("alu0.out1", "not16.in1"),
