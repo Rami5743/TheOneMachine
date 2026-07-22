@@ -537,8 +537,8 @@
       inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
       inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
       inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
-      inputExt3: { x: -130, y: -250, direction: "in", width: 1, label: "כניסת הבקרה חיצונית" },
-      inputInt3: { x: -130, y: -180, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      inputExt3: { x: -215, y: -250, direction: "in", width: 1, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -215, y: -180, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
@@ -578,8 +578,8 @@
     pins: {
       inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר חיצונית" },
       inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר פנימית" },
-      inputExt2: { x: -130, y: -250, direction: "in", width: 2, label: "כניסת הבקרה חיצונית" },
-      inputInt2: { x: -130, y: -180, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
+      inputExt2: { x: -215, y: -250, direction: "in", width: 2, label: "כניסת הבקרה חיצונית" },
+      inputInt2: { x: -215, y: -180, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
@@ -620,8 +620,8 @@
       inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
       inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
       inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
-      inputExt3: { x: -130, y: -250, direction: "in", width: 6, label: "כניסת הבקרה חיצונית" },
-      inputInt3: { x: -130, y: -180, direction: "out", width: 6, label: "כניסת הבקרה פנימית" },
+      inputExt3: { x: -215, y: -250, direction: "in", width: 6, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -215, y: -180, direction: "out", width: 6, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
@@ -666,8 +666,8 @@
       inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
       inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
       inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
-      inputExt4: { x: -130, y: -280, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
-      inputInt4: { x: -130, y: -210, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
+      inputExt4: { x: -215, y: -280, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -210, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
@@ -711,8 +711,8 @@
       inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
       inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
       inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
-      inputExt4: { x: -130, y: -280, direction: "in", width: 12, label: "כניסת הבקרה חיצונית" },
-      inputInt4: { x: -130, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
+      inputExt4: { x: -215, y: -280, direction: "in", width: 12, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
@@ -9993,18 +9993,6 @@
     // A converter pushed BELOW the source drops well clear of it — the lower
     // converter sits distinctly beneath the source, not tucked just under it.
     const DOWN_GAP = 150;
-    // For the ALU cards the source only feeds the control bus (up top), so it can
-    // sit anywhere. Drop it BELOW every dec→bin converter so it never collides
-    // with them — then each converter stays level with its own input pin (no
-    // converter gets shoved up past its input).
-    if (sourceComp && harnessUsesSource && isAluBusTask(baseWorkspace.taskId)) {
-      const convYs = spec.inputs
-        .map((input, idx) => (inputConverterDriven(input, idx) ? cardY + ((frameDef.pins[input.ref] || {}).y || 0) : null))
-        .filter((y) => y !== null);
-      if (convYs.length) {
-        sourceComp.y = Math.max(...convYs) + CONV_HALF_H + SRC_HALF_H + CLEAR_GAP;
-      }
-    }
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
@@ -10832,16 +10820,25 @@
     const chapter = chapterById("chapter-9");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
-    // ALU0/PreperNum frames have a control pin poking out the top, so they sit
-    // lower on the board. The pre-placed source-1 is the TEST source (it drives
-    // inputs during a check) and stays OUTSIDE the frame; the learner adds their
-    // own source inside for a constant "1" bus (see the Inc solution/hint).
-    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1" || task.id === "ALU2" || task.id === "ALU3") ? 360 : 288;
+    // Frames with a control pin poking out the top sit lower on the board so the
+    // pin (and the check's control splitter) fit. ALU2/ALU3 have a WIDE control
+    // (7/12 bits → a tall control splitter in the check), so they sit lower still.
+    const cardY = task.id === "ALU3" ? 520
+      : task.id === "ALU2" ? 440
+      : (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1") ? 360
+      : 288;
+    // The pre-placed source-1 is the TEST source (it drives the control during a
+    // check). Place it at build time LEVEL WITH THE CONTROL INPUT so it never
+    // moves when the check runs; a card with no control (Inc) keeps the default
+    // spot (its source is the learner's own constant "1", see the Inc solution).
+    const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(task.id)];
+    const controlPin = frameDef ? Object.values(frameDef.pins).find((p) => p.direction === "in" && p.y < -150) : null;
+    const sourceY = controlPin ? cardY + controlPin.y : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
-        { id: "source-1", type: "source", x: 65, y: 288 }
+        { id: "source-1", type: "source", x: 65, y: sourceY }
       ],
       wires: [],
       nextId: 2,
