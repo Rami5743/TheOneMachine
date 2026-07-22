@@ -666,8 +666,8 @@
       inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
       inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
       inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
-      inputExt4: { x: -215, y: -280, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
-      inputInt4: { x: -215, y: -210, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
+      inputExt4: { x: -215, y: -320, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -250, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
     },
