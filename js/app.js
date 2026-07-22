@@ -9102,9 +9102,9 @@
   // (splitter, source, lamp, frame …) = 0. Returns null if a placed card has no
   // stored count (built with a card that wasn't built → the whole build is
   // "undefined").
-  function componentNandCount(type) {
+  function componentNandCount(type, counts) {
     if (type === "nand") return 1;
-    const counts = state.cardNandCounts || {};
+    counts = counts || state.cardNandCounts || {};
     if (typeof type === "string" && type.startsWith("gate-")) {
       const v = counts[type.slice(5)];
       return typeof v === "number" && isFinite(v) ? v : null;
@@ -9116,14 +9116,35 @@
     return 0;
   }
 
-  function computeBuildNandCount(components) {
+  function computeBuildNandCount(components, counts) {
     let total = 0;
     for (const comp of (Array.isArray(components) ? components : [])) {
-      const n = componentNandCount(comp && comp.type);
+      const n = componentNandCount(comp && comp.type, counts);
       if (n === null) return null; // used a card with no count → undefined
       total += n;
     }
     return total;
+  }
+
+  // Fill in a Nand count for cards the player already completed before their
+  // builds were counted (a completed card can no longer be re-checked). We use
+  // the reference solution's count as the baseline; a later live rebuild records
+  // the player's own (best) count. Processed in card order so a super-card's
+  // sub-cards are counted first.
+  function backfillCompletedCardCounts() {
+    const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
+    const counts = { ...(state.cardNandCounts || {}) };
+    let changed = false;
+    for (const card of cards) {
+      if (card.id === "Nand" || typeof counts[card.id] === "number") continue;
+      if (!taskCompleted(card.id)) continue;
+      let ws = null;
+      try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
+      if (!ws) continue;
+      const c = computeBuildNandCount(ws.components, counts);
+      if (typeof c === "number") { counts[card.id] = c; changed = true; }
+    }
+    if (changed) setState({ cardNandCounts: counts }, false);
   }
 
   // Record the player's Nand count for a just-passed card, keeping the BEST
@@ -13261,6 +13282,7 @@
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
+      backfillCompletedCardCounts(); // count already-completed cards (reference build)
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
       return setState({ screen: "rankings", rankingsNicknameError: null }, false);
     }
