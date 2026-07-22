@@ -1,0 +1,299 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "ALU3",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-ALU3",
+    "x": 560,
+    "y": 360,
+    "frameW": 600,
+    "frameH": 540,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": -150,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר הראשון"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": -150,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -340,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השני"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt3",
+        "x": -340,
+        "y": 150,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השלישי"
+      },
+      {
+        "id": "inputInt3",
+        "x": -260,
+        "y": 150,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt4",
+        "x": -215,
+        "y": -280,
+        "w": 12,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt4",
+        "x": -215,
+        "y": -210,
+        "w": 12,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 80
+    }
+  ],
+  "components": [
+    {
+      "id": "ctrl-split",
+      "type": "splitter",
+      "x": 405,
+      "y": 360,
+      "mirrored": false,
+      "outputs": 12,
+      "width": 1
+    },
+    {
+      "id": "optA-merge",
+      "type": "splitter",
+      "x": 512,
+      "y": 250,
+      "mirrored": true,
+      "outputs": 16,
+      "width": 1
+    },
+    {
+      "id": "alu2-ctrl",
+      "type": "splitter",
+      "x": 520,
+      "y": 545,
+      "mirrored": true,
+      "outputs": 7,
+      "width": 1
+    },
+    {
+      "id": "alu2",
+      "type": "gate-ALU2",
+      "x": 690,
+      "y": 470
+    },
+    {
+      "id": "mux",
+      "type": "gate-MUX16",
+      "x": 790,
+      "y": 335
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt4",
+      "b": "ctrl-split.single"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "optA-merge.leg0"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "optA-merge.leg1"
+    },
+    {
+      "a": "ctrl-split.leg2",
+      "b": "optA-merge.leg2"
+    },
+    {
+      "a": "ctrl-split.leg3",
+      "b": "optA-merge.leg3"
+    },
+    {
+      "a": "ctrl-split.leg4",
+      "b": "optA-merge.leg4"
+    },
+    {
+      "a": "ctrl-split.leg5",
+      "b": "optA-merge.leg5"
+    },
+    {
+      "a": "ctrl-split.leg6",
+      "b": "optA-merge.leg6"
+    },
+    {
+      "a": "ctrl-split.leg7",
+      "b": "optA-merge.leg7"
+    },
+    {
+      "a": "ctrl-split.leg8",
+      "b": "optA-merge.leg8"
+    },
+    {
+      "a": "ctrl-split.leg9",
+      "b": "optA-merge.leg9"
+    },
+    {
+      "a": "ctrl-split.leg10",
+      "b": "optA-merge.leg10"
+    },
+    {
+      "a": "ctrl-split.leg11",
+      "b": "optA-merge.leg11"
+    },
+    {
+      "a": "optA-merge.single",
+      "b": "mux.in1"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "alu2-ctrl.leg0"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "alu2-ctrl.leg1"
+    },
+    {
+      "a": "ctrl-split.leg2",
+      "b": "alu2-ctrl.leg2"
+    },
+    {
+      "a": "ctrl-split.leg3",
+      "b": "alu2-ctrl.leg3"
+    },
+    {
+      "a": "ctrl-split.leg4",
+      "b": "alu2-ctrl.leg4"
+    },
+    {
+      "a": "ctrl-split.leg5",
+      "b": "alu2-ctrl.leg5"
+    },
+    {
+      "a": "ctrl-split.leg6",
+      "b": "alu2-ctrl.leg6"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "alu2.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "alu2.in2"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "alu2.in3"
+    },
+    {
+      "a": "alu2-ctrl.single",
+      "b": "alu2.in4"
+    },
+    {
+      "a": "alu2.out1",
+      "b": "mux.in2"
+    },
+    {
+      "a": "ctrl-split.leg11",
+      "b": "mux.in3"
+    },
+    {
+      "a": "mux.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "a": 4369,
+        "b": 8738,
+        "d": 13107,
+        "control": 291
+      },
+      {
+        "a": 43981,
+        "b": 8738,
+        "d": 13107,
+        "control": 1451
+      },
+      {
+        "a": 61680,
+        "b": 255,
+        "d": 3855,
+        "control": 2048
+      },
+      {
+        "a": 61680,
+        "b": 255,
+        "d": 3855,
+        "control": 2112
+      },
+      {
+        "a": 1234,
+        "b": 1,
+        "d": 5678,
+        "control": 2114
+      },
+      {
+        "a": 4660,
+        "b": 22136,
+        "d": 39612,
+        "control": 2175
+      }
+    ],
+    "note": "ביט 12: 0 → בקרה+אפסים · 1 → ALU2 על 7 התחתונים"
+  }
+}

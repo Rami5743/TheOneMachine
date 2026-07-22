@@ -9321,7 +9321,43 @@
   const standardTaskWorkspace = (...args) => __solutionWorkspaces.standardTaskWorkspace(...args);
   const cleanedWorkspaceForTaskTest = (...args) => __solutionWorkspaces.cleanedWorkspaceForTaskTest(...args);
   const workspaceForTaskTestRow = (...args) => __solutionWorkspaces.workspaceForTaskTestRow(...args);
-  const solutionWorkspaceForTask = (...args) => __solutionWorkspaces.solutionWorkspaceForTask(...args);
+
+  // ---- Chapter 2.5 / 2.6 solutions authored in the standalone editor and stored
+  // as assets/solutions/<task>.json (the richer "theonemachine-solution" format:
+  // frame geometry + pins, the out-of-frame source, internal components, wires,
+  // and the check cases). Preloaded at startup; when a doc exists it drives the
+  // solution WORKSPACE geometry (the walkthrough step highlights stay in code).
+  const SOLUTION_DOCS = {};
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "halfAdder", "fullAdder", "Add4", "Add16"];
+  function preloadSolutionDocs() {
+    if (typeof fetch !== "function") return;
+    for (const task of SOLUTION_JSON_TASKS) {
+      fetch(`assets/solutions/${task}.json`)
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((doc) => { if (doc && doc.frame && Array.isArray(doc.components)) SOLUTION_DOCS[task] = doc; })
+        .catch(() => {});
+    }
+  }
+  function workspaceFromSolutionDoc(doc) {
+    const frame = { id: doc.frame.id || "task-card-1", type: doc.frame.type, x: doc.frame.x, y: doc.frame.y };
+    const components = [frame, ...(doc.external || []).map(clonePlain), ...(doc.components || []).map(clonePlain)];
+    const wires = (doc.wires || []).map((wire) => normalizeWire(wire.a, wire.b));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(), components, wires, nextId: 2,
+      selectedTerminal: null, accident: null, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2, taskId: doc.task, taskIntroSeen: true
+    });
+  }
+  // A JSON doc overrides the code builder — except ALU1's step-5 "alternative
+  // MUX16" variant, which only the code builder produces.
+  const solutionWorkspaceForTask = (taskId, step) => {
+    const doc = SOLUTION_DOCS[taskId];
+    if (doc && !(taskId === "ALU1" && Number(step) >= 5)) return workspaceFromSolutionDoc(doc);
+    return __solutionWorkspaces.solutionWorkspaceForTask(taskId, step);
+  };
+  preloadSolutionDocs();
 
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.

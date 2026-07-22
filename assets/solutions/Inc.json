@@ -1,0 +1,132 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Inc",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Inc",
+    "x": 640,
+    "y": 288,
+    "frameW": 600,
+    "frameH": 420,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 288
+    }
+  ],
+  "components": [
+    {
+      "id": "one-source",
+      "type": "source",
+      "x": 350,
+      "y": 400
+    },
+    {
+      "id": "one-split-lo",
+      "type": "splitter",
+      "x": 490,
+      "y": 400,
+      "mirrored": true,
+      "outputs": 4,
+      "width": 1
+    },
+    {
+      "id": "one-split-hi",
+      "type": "splitter",
+      "x": 660,
+      "y": 400,
+      "mirrored": true,
+      "outputs": 4,
+      "width": 4
+    },
+    {
+      "id": "add-1",
+      "type": "gate-Add16",
+      "x": 770,
+      "y": 300
+    }
+  ],
+  "wires": [
+    {
+      "a": "one-source.out",
+      "b": "one-split-lo.leg0"
+    },
+    {
+      "a": "one-split-lo.single",
+      "b": "one-split-hi.leg0"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "add-1.in1"
+    },
+    {
+      "a": "one-split-hi.single",
+      "b": "add-1.in2"
+    },
+    {
+      "a": "add-1.out1",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "a": 0
+      },
+      {
+        "a": 41
+      },
+      {
+        "a": 255
+      },
+      {
+        "a": 4095
+      },
+      {
+        "a": 30000
+      },
+      {
+        "a": 65535
+      }
+    ],
+    "note": "כניסה + 1 (16 ביט)"
+  }
+}

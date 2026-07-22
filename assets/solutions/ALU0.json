@@ -1,0 +1,176 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "ALU0",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-ALU0",
+    "x": 640,
+    "y": 360,
+    "frameW": 600,
+    "frameH": 420,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": -90,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר הראשון"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": -90,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -340,
+        "y": 90,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השני"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": 90,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt3",
+        "x": -260,
+        "y": -250,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt3",
+        "x": -260,
+        "y": -180,
+        "w": 1,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 110
+    }
+  ],
+  "components": [
+    {
+      "id": "and16",
+      "type": "gate-AND16",
+      "x": 540,
+      "y": 240
+    },
+    {
+      "id": "add16",
+      "type": "gate-Add16",
+      "x": 540,
+      "y": 470
+    },
+    {
+      "id": "mux",
+      "type": "gate-MUX16",
+      "x": 760,
+      "y": 355
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "and16.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "and16.in2"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "add16.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "add16.in2"
+    },
+    {
+      "a": "and16.out",
+      "b": "mux.in1"
+    },
+    {
+      "a": "add16.out1",
+      "b": "mux.in2"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "mux.in3"
+    },
+    {
+      "a": "mux.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "a": 65535,
+        "b": 4660,
+        "control": 0
+      },
+      {
+        "a": 3855,
+        "b": 255,
+        "control": 0
+      },
+      {
+        "a": 12,
+        "b": 10,
+        "control": 0
+      },
+      {
+        "a": 5,
+        "b": 3,
+        "control": 1
+      },
+      {
+        "a": 1234,
+        "b": 5678,
+        "control": 1
+      },
+      {
+        "a": 65535,
+        "b": 1,
+        "control": 1
+      }
+    ],
+    "note": "בקרה 0 → AND · 1 → חיבור"
+  }
+}

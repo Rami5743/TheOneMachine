@@ -1,0 +1,163 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "PreperNum",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-PreperNum",
+    "x": 620,
+    "y": 300,
+    "frameW": 600,
+    "frameH": 420,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -215,
+        "y": -250,
+        "w": 2,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt2",
+        "x": -215,
+        "y": -180,
+        "w": 2,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 50
+    }
+  ],
+  "components": [
+    {
+      "id": "ctrl-split",
+      "type": "splitter",
+      "x": 500,
+      "y": 185,
+      "mirrored": false,
+      "outputs": 2,
+      "width": 1
+    },
+    {
+      "id": "mux1",
+      "type": "gate-MUX16",
+      "x": 472,
+      "y": 302
+    },
+    {
+      "id": "not16",
+      "type": "gate-Not16",
+      "x": 610,
+      "y": 430
+    },
+    {
+      "id": "mux2",
+      "type": "gate-MUX16",
+      "x": 733,
+      "y": 302
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "ctrl-split.single"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "mux1.in1"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "mux1.in3"
+    },
+    {
+      "a": "mux1.out",
+      "b": "not16.in1"
+    },
+    {
+      "a": "mux1.out",
+      "b": "mux2.in1"
+    },
+    {
+      "a": "not16.out",
+      "b": "mux2.in2"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "mux2.in3"
+    },
+    {
+      "a": "mux2.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "a": 43981,
+        "control": 0
+      },
+      {
+        "a": 4660,
+        "control": 1
+      },
+      {
+        "a": 61680,
+        "control": 2
+      },
+      {
+        "a": 255,
+        "control": 3
+      },
+      {
+        "a": 12345,
+        "control": 1
+      },
+      {
+        "a": 54321,
+        "control": 3
+      }
+    ],
+    "note": "בקרה 2 ביט: השני מאפס, הראשון עושה NOT"
+  }
+}

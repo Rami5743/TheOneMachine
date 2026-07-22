@@ -1,0 +1,234 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "ALU2",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-ALU2",
+    "x": 560,
+    "y": 360,
+    "frameW": 600,
+    "frameH": 540,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": -150,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר הראשון"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": -150,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -340,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השני"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt3",
+        "x": -340,
+        "y": 150,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המספר השלישי"
+      },
+      {
+        "id": "inputInt3",
+        "x": -260,
+        "y": 150,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt4",
+        "x": -215,
+        "y": -320,
+        "w": 7,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt4",
+        "x": -215,
+        "y": -250,
+        "w": 7,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת התוצאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 65,
+      "y": 40
+    }
+  ],
+  "components": [
+    {
+      "id": "ctrl-split",
+      "type": "splitter",
+      "x": 430,
+      "y": 195,
+      "mirrored": false,
+      "outputs": 7,
+      "width": 1
+    },
+    {
+      "id": "subctrl-merge",
+      "type": "splitter",
+      "x": 548,
+      "y": 235,
+      "mirrored": true,
+      "outputs": 6,
+      "width": 1
+    },
+    {
+      "id": "mux",
+      "type": "gate-MUX16",
+      "x": 470,
+      "y": 468
+    },
+    {
+      "id": "alu1",
+      "type": "gate-ALU1",
+      "x": 690,
+      "y": 360
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt4",
+      "b": "ctrl-split.single"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "mux.in1"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "mux.in2"
+    },
+    {
+      "a": "ctrl-split.leg6",
+      "b": "mux.in3"
+    },
+    {
+      "a": "ctrl-split.leg0",
+      "b": "subctrl-merge.leg0"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "subctrl-merge.leg1"
+    },
+    {
+      "a": "ctrl-split.leg2",
+      "b": "subctrl-merge.leg2"
+    },
+    {
+      "a": "ctrl-split.leg3",
+      "b": "subctrl-merge.leg3"
+    },
+    {
+      "a": "ctrl-split.leg4",
+      "b": "subctrl-merge.leg4"
+    },
+    {
+      "a": "ctrl-split.leg5",
+      "b": "subctrl-merge.leg5"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "alu1.in1"
+    },
+    {
+      "a": "mux.out",
+      "b": "alu1.in2"
+    },
+    {
+      "a": "subctrl-merge.single",
+      "b": "alu1.in3"
+    },
+    {
+      "a": "alu1.out1",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "a": 61680,
+        "b": 255,
+        "d": 3855,
+        "control": 0
+      },
+      {
+        "a": 61680,
+        "b": 255,
+        "d": 3855,
+        "control": 64
+      },
+      {
+        "a": 1234,
+        "b": 1,
+        "d": 5678,
+        "control": 66
+      },
+      {
+        "a": 5,
+        "b": 3,
+        "d": 99,
+        "control": 2
+      },
+      {
+        "a": 4660,
+        "b": 0,
+        "d": 65535,
+        "control": 65
+      },
+      {
+        "a": 4660,
+        "b": 22136,
+        "d": 39612,
+        "control": 127
+      }
+    ],
+    "note": "ביט 7 בוחר אופרנד; 6 התחתונים = בקרת ALU1"
+  }
+}
