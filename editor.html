@@ -58,6 +58,7 @@
     <div class="toolbar">
       <span class="title">עורך פתרונות</span>
       <label class="toggle"><input type="checkbox" id="snap" checked> הצמדה</label>
+      <label class="toggle"><input type="checkbox" id="showcheck"> מנגנוני בדיקה</label>
       <button class="ghost" id="btn-load">טען JSON…</button>
       <button id="btn-save">שמור JSON</button>
       <input type="file" id="file" class="file-in" accept=".json,application/json" />
@@ -66,7 +67,7 @@
   </div>
   <aside class="side">
     <h2>מאפיינים</h2>
-    <section id="props"><p class="hint">בחר רכיב על הלוח כדי לערוך אותו. גרור להזיז. הפינים קבועים — רק הכיתוב שלהם ניתן לעריכה.</p></section>
+    <section id="props"><p class="hint">בחר רכיב, פין או מנגנון בדיקה על הלוח כדי לערוך אותו. גרור להזיז. סמן "מנגנוני בדיקה" כדי להציג ולהזיז ממירים/מפצלים/מנורות.</p></section>
     <section>
       <label>JSON (מודפס חי — אפשר להדביק ולטעון)</label>
       <textarea id="json-box" spellcheck="false"></textarea>
@@ -126,6 +127,33 @@ function pinOffset(comp, pinId) {
   const t = PINS[comp.type]; return t && t[pinId] ? t[pinId] : null;
 }
 
+// ---- check mechanisms (the "harness"): the converters / merging splitter /
+// lamps the game places during the check. The editor derives one element per
+// external card pin (numeric input → dec-bin converter, control input → merging
+// splitter, numeric output → bin-dec converter, single-bit output → lamp) and
+// lets you drag each; a moved element's absolute position is stored under
+// doc.harness.inputs[ref] / doc.harness.outputs[ref], which the game reads. ----
+function isControlPin(p){ return p.y < -150; }
+function harnessStore(){ doc.harness=doc.harness||{}; doc.harness.inputs=doc.harness.inputs||{}; doc.harness.outputs=doc.harness.outputs||{}; return doc.harness; }
+function harnessElements(){
+  const f=doc.frame||{}, out=[];
+  for(const p of (f.pins||[])){
+    if(!p.id.includes("Ext")) continue;
+    const w=p.w||1;
+    if(p.dir==="out"){
+      out.push({side:"outputs",ref:p.id,kind:w>1?"conv-in":"lamp",w,def:{x:w>1?1120:1180,y:f.y+p.y}});
+    } else {
+      if(w===1) continue; // single-bit inputs are driven straight from the source
+      const ctrl=isControlPin(p);
+      out.push({side:"inputs",ref:p.id,kind:ctrl?"split":"conv-out",w,def:{x:ctrl?210:120,y:f.y+p.y}});
+    }
+  }
+  return out;
+}
+function harnessPos(e){ const s=(doc.harness&&doc.harness[e.side]||{})[e.ref];
+  return (s&&Number.isFinite(s.x)&&Number.isFinite(s.y))?{x:s.x,y:s.y}:e.def; }
+function setHarnessPos(e,x,y){ const h=harnessStore(); h[e.side][e.ref]={x:Math.round(x),y:Math.round(y)}; }
+
 // ---- document ----
 let doc=null, selected=null, dragging=null;
 const stage=document.getElementById("stage");
@@ -171,9 +199,37 @@ function render(){
   fh2.addEventListener("pointerdown",(ev)=>startDrag(ev,f,true)); board.appendChild(fh2);
   // components via the game's markup
   for (const c of movable()) board.appendChild(drawComp(c));
+  // check mechanisms (harness), when shown — behind the pin hit-targets
+  if (document.getElementById("showcheck").checked){
+    for (const e of harnessElements()) board.appendChild(drawHarnessEl(e));
+  }
+  // frame pin drag-targets (on top, so a pin is grabbable over any cable)
+  for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
+    const hit=el("circle",{cx:ax,cy:ay,r:12,fill:"transparent",class:"drag-hit"});
+    hit.addEventListener("pointerdown",(ev)=>startPinDrag(ev,p)); board.appendChild(hit); }
   // selection outline
-  if (selected){ const c=(selected==="frame")?{x:f.x,y:f.y,__frame:true}:findComp(selected);
-    if (c){ const b=c.__frame?{w:fw,h:fh}:compBox(c); board.appendChild(el("rect",{x:c.x-b.w/2-6,y:c.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
+  if (selected){
+    if (selected.startsWith("pin:")){ const p=(f.pins||[]).find(pp=>pp.id===selected.slice(4));
+      if(p) board.appendChild(el("circle",{cx:f.x+p.x,cy:f.y+p.y,r:12,class:"selected-outline"})); }
+    else if (selected.startsWith("harness:")){ const e=harnessElements().find(x=>("harness:"+x.side+":"+x.ref)===selected);
+      if(e){ const pos=harnessPos(e); const b=harnessBox(e); board.appendChild(el("rect",{x:pos.x-b.w/2-6,y:pos.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
+    else { const c=(selected==="frame")?{x:f.x,y:f.y,__frame:true}:findComp(selected);
+      if (c){ const b=c.__frame?{w:fw,h:fh}:compBox(c); board.appendChild(el("rect",{x:c.x-b.w/2-6,y:c.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
+  }
+}
+function harnessBox(e){ if(e.kind==="split"){ const n=Math.min(16,Math.max(2,e.w)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; }
+  if(e.kind==="lamp") return {w:60,h:60}; return {w:120,h:96}; }
+function drawHarnessEl(e){
+  const pos=harnessPos(e);
+  let markup;
+  if(e.kind==="conv-out") markup=CV.componentMarkup("converter-out",{width:e.w,value:0});
+  else if(e.kind==="conv-in") markup=CV.componentMarkup("converter-in",{width:e.w});
+  else if(e.kind==="lamp") markup=CV.componentMarkup("lamp",{});
+  else markup=CV.componentMarkup("splitter",{outputs:e.w,mirrored:true,width:1});
+  const g=svgNode(markup,pos.x,pos.y);
+  g.classList.add("drag-hit"); g.setAttribute("opacity","0.9");
+  g.addEventListener("pointerdown",(ev)=>startHarnessDrag(ev,e));
+  return g;
 }
 function txt(s){ return document.createTextNode(s==null?"":String(s)); }
 function compBox(c){ if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; return {w:130,h:110}; }
@@ -188,11 +244,18 @@ function drawComp(c){
 // ---- interaction ----
 function svgPoint(ev){ const pt=stage.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; const p=pt.matrixTransform(stage.getScreenCTM().inverse()); return {x:p.x,y:p.y}; }
 function startDrag(ev, comp, isFrame){ ev.stopPropagation(); selected=isFrame?"frame":comp.id;
-  const s=svgPoint(ev); dragging={comp,ox:comp.x,oy:comp.y,sx:s.x,sy:s.y}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
+  const s=svgPoint(ev); dragging={comp,ox:comp.x,oy:comp.y,sx:s.x,sy:s.y,kind:"comp"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
+function startPinDrag(ev, pin){ ev.stopPropagation(); selected="pin:"+pin.id;
+  const s=svgPoint(ev); dragging={pin,ox:pin.x,oy:pin.y,sx:s.x,sy:s.y,kind:"pin"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
+function startHarnessDrag(ev, e){ ev.stopPropagation(); selected="harness:"+e.side+":"+e.ref;
+  const pos=harnessPos(e); const s=svgPoint(ev); dragging={harnessEl:e,ox:pos.x,oy:pos.y,sx:s.x,sy:s.y,kind:"harness"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
 stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoint(ev);
   let nx=dragging.ox+(p.x-dragging.sx), ny=dragging.oy+(p.y-dragging.sy);
   if(document.getElementById("snap").checked){ nx=Math.round(nx/5)*5; ny=Math.round(ny/5)*5; }
-  dragging.comp.x=Math.round(nx); dragging.comp.y=Math.round(ny); render(); syncJsonBox(); renderProps(); });
+  if(dragging.kind==="pin"){ dragging.pin.x=Math.round(nx); dragging.pin.y=Math.round(ny); }
+  else if(dragging.kind==="harness"){ setHarnessPos(dragging.harnessEl,nx,ny); }
+  else { dragging.comp.x=Math.round(nx); dragging.comp.y=Math.round(ny); }
+  render(); syncJsonBox(); renderProps(); });
 stage.addEventListener("pointerup",()=>{ dragging=null; });
 stage.addEventListener("pointerdown",()=>{ selected=null; renderProps(); render(); });
 
@@ -200,7 +263,29 @@ stage.addEventListener("pointerdown",()=>{ selected=null; renderProps(); render(
 function renderProps(){
   const host=document.getElementById("props"); host.innerHTML="";
   if(!doc){ host.innerHTML='<p class="hint">אין מסמך.</p>'; return; }
-  if(!selected){ host.innerHTML='<p class="hint">בחר רכיב. גרירה מזיזה; הפינים קבועים (רק כיתוב).</p>'; return; }
+  if(!selected){ host.innerHTML='<p class="hint">בחר רכיב או פין. גרירה מזיזה. סמן "מנגנוני בדיקה" כדי להזיז ממירים/מנורות.</p>'; return; }
+  const add0=(h)=>{ const d=document.createElement("div"); d.innerHTML=h; while(d.firstChild)host.appendChild(d.firstChild); };
+  // A frame pin (position is relative to the frame centre; width fixed).
+  if(selected.startsWith("pin:")){ const p=(doc.frame.pins||[]).find(pp=>pp.id===selected.slice(4)); if(!p){host.innerHTML="";return;}
+    add0(`<div class="badge">פין · ${esc(p.id)}${p.w>1?(" ["+p.w+"]"):""}</div>`);
+    add0(`<div class="row"><div><label>X (יחסי למסגרת)</label><input type="number" id="pp-x" value="${p.x}"></div><div><label>Y (יחסי למסגרת)</label><input type="number" id="pp-y" value="${p.y}"></div></div>`);
+    document.getElementById("pp-x").oninput=e=>{p.x=+e.target.value||0;render();syncJsonBox();};
+    document.getElementById("pp-y").oninput=e=>{p.y=+e.target.value||0;render();syncJsonBox();};
+    if(p.id.includes("Ext")){ add0(`<label>כיתוב</label><input type="text" id="pp-l" value="${esc(p.label||"")}">`);
+      document.getElementById("pp-l").oninput=e=>{p.label=e.target.value;render();syncJsonBox();}; }
+    return;
+  }
+  // A check mechanism (harness) — absolute position, stored per pin ref.
+  if(selected.startsWith("harness:")){ const e=harnessElements().find(x=>("harness:"+x.side+":"+x.ref)===selected); if(!e){host.innerHTML="";return;}
+    const pos=harnessPos(e); const kindHe={"conv-out":"ממיר עשרוני→בינארי","conv-in":"ממיר בינארי→עשרוני","split":"מפצל בקרה","lamp":"מנורה"}[e.kind]||e.kind;
+    add0(`<div class="badge">מנגנון בדיקה · ${kindHe} · ${esc(e.ref)} [${e.w}]</div>`);
+    add0(`<div class="row"><div><label>X</label><input type="number" id="hp-x" value="${pos.x}"></div><div><label>Y</label><input type="number" id="hp-y" value="${pos.y}"></div></div>`);
+    document.getElementById("hp-x").oninput=ev=>{setHarnessPos(e,+ev.target.value||0,harnessPos(e).y);render();syncJsonBox();};
+    document.getElementById("hp-y").oninput=ev=>{setHarnessPos(e,harnessPos(e).x,+ev.target.value||0);render();syncJsonBox();};
+    add0(`<p class="hint" style="margin-top:8px">אַפֵּס למיקום ברירת המחדל:</p><button class="ghost" id="hp-reset">איפוס</button>`);
+    document.getElementById("hp-reset").onclick=()=>{ if(doc.harness&&doc.harness[e.side]) delete doc.harness[e.side][e.ref]; render();syncJsonBox();renderProps(); };
+    return;
+  }
   const isFrame=selected==="frame"; const c=isFrame?doc.frame:findComp(selected); if(!c){host.innerHTML="";return;}
   const add=(h)=>{ const d=document.createElement("div"); d.innerHTML=h; while(d.firstChild)host.appendChild(d.firstChild); };
   add(`<div class="badge">${isFrame?("מסגרת · "+(c.type||"")):(esc(c.id)+" · "+esc(c.type))}</div>`);
@@ -232,6 +317,7 @@ function loadDoc(o){ doc=o; selected=null; dragging=null;
   render(); renderProps(); syncJsonBox();
   status(`נטען: ${doc.task||"?"} · ${doc.components.length} רכיבים · ${doc.wires.length} חיבורים`); }
 function status(s){ document.getElementById("status").textContent=s; }
+document.getElementById("showcheck").onchange=()=>{ if(selected&&selected.startsWith("harness:"))selected=null; render(); renderProps(); };
 document.getElementById("btn-load").onclick=()=>document.getElementById("file").click();
 document.getElementById("file").onchange=(e)=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{try{loadDoc(JSON.parse(r.result));}catch(err){status("שגיאת JSON: "+err.message);}}; r.readAsText(f); };
 document.getElementById("btn-apply").onclick=()=>{ try{loadDoc(JSON.parse(document.getElementById("json-box").value));}catch(err){status("שגיאת JSON: "+err.message);} };
