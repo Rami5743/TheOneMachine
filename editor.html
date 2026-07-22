@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>עורך פתרונות — המכונה האחת</title>
+<!-- Reuse the game's own component styling + markup so the editor looks identical -->
+<link rel="stylesheet" href="css/styles.css?v=editor-1" />
+<script src="js/component-visuals.js?v=v81-alu0-label-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -11,8 +14,7 @@
     font-family: system-ui, "Segoe UI", Arial, sans-serif; }
   .app { display:flex; height:100vh; }
   .canvas-wrap { flex:1; position:relative; overflow:hidden; }
-  svg { width:100%; height:100%; display:block; background:
-    radial-gradient(circle at 50% 40%, #3a3228, #262019); cursor:default; }
+  #stage { width:100%; height:100%; display:block; background:#7a6a4e; }
   .side { width:320px; background:var(--panel); border-inline-start:1px solid var(--line);
     display:flex; flex-direction:column; overflow:auto; }
   .side h2 { font-size:15px; margin:0; padding:12px 14px; border-bottom:1px solid var(--line); }
@@ -22,8 +24,7 @@
     width:100%; background:#241f19; color:var(--ink); border:1px solid var(--line);
     border-radius:6px; padding:6px 8px; font-size:13px; font-family:inherit; }
   .side textarea { min-height:120px; resize:vertical; direction:ltr; text-align:left; font-family:ui-monospace,monospace; font-size:11px; }
-  .row { display:flex; gap:8px; }
-  .row > * { flex:1; }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
   button { background:var(--accent); color:#231c10; border:0; border-radius:6px;
     padding:8px 10px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
   button.ghost { background:#463d31; color:var(--ink); }
@@ -33,11 +34,22 @@
   .pin-row { display:flex; gap:6px; align-items:center; margin:4px 0; }
   .pin-row .pid { width:78px; font-size:11px; color:var(--muted); direction:ltr; text-align:left; }
   .pin-row input { flex:1; }
-  .selectable { cursor:move; }
   .selected-outline { stroke:var(--accent); stroke-width:2; fill:none; pointer-events:none; }
   .file-in { display:none; }
   .badge { font-size:11px; color:var(--muted); }
   .toggle { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); cursor:pointer; }
+  .drag-hit { cursor:move; }
+  /* editor wire styling (matches the board's cable / bus look) */
+  .ed-cable { stroke:#1c1712; stroke-width:4; fill:none; stroke-linecap:round; }
+  .ed-bus { stroke:#1c1712; stroke-width:10; fill:none; stroke-linecap:round; }
+  .ed-bus-stripe { stroke:#efe6d2; stroke-width:3; stroke-dasharray:6 3; fill:none; }
+  .ed-frame { fill:none; stroke:#efe6d2; stroke-width:3; }
+  .ed-frame-bus { stroke:#1c1712; stroke-width:10; fill:none; }
+  .ed-frame-cable { stroke:#1c1712; stroke-width:4; fill:none; }
+  .ed-frame-label { fill:#e7d9bb; font-size:20px; }
+  .ed-pin { fill:#c9bda2; }
+  .ed-pin-bus { fill:#d8a24a; }
+  .ed-pin-label { fill:#9c8f77; font-size:11px; }
 </style>
 </head>
 <body>
@@ -45,8 +57,7 @@
   <div class="canvas-wrap">
     <div class="toolbar">
       <span class="title">עורך פתרונות</span>
-      <label class="toggle"><input type="checkbox" id="show-check"> הצג מנגנון בדיקה</label>
-      <label class="toggle"><input type="checkbox" id="snap" checked> הצמדה לרשת</label>
+      <label class="toggle"><input type="checkbox" id="snap" checked> הצמדה</label>
       <button class="ghost" id="btn-load">טען JSON…</button>
       <button id="btn-save">שמור JSON</button>
       <input type="file" id="file" class="file-in" accept=".json,application/json" />
@@ -55,310 +66,200 @@
   </div>
   <aside class="side">
     <h2>מאפיינים</h2>
-    <section id="props"><p class="hint">בחר רכיב על הלוח כדי לערוך אותו. גרור רכיבים כדי להזיז. הפינים קבועים (אין יצירה/מחיקה) — אפשר לערוך רק את הכיתוב שלהם.</p></section>
+    <section id="props"><p class="hint">בחר רכיב על הלוח כדי לערוך אותו. גרור להזיז. הפינים קבועים — רק הכיתוב שלהם ניתן לעריכה.</p></section>
     <section>
-      <label>JSON (מודפס חי — אפשר גם להדביק ולטעון)</label>
+      <label>JSON (מודפס חי — אפשר להדביק ולטעון)</label>
       <textarea id="json-box" spellcheck="false"></textarea>
       <div class="row" style="margin-top:8px;">
         <button class="ghost" id="btn-apply">טען מהטקסט</button>
         <button class="ghost" id="btn-copy">העתק</button>
       </div>
     </section>
-    <section>
-      <div class="hint" id="status"></div>
-    </section>
+    <section><div class="hint" id="status"></div></section>
   </aside>
 </div>
 
 <script>
 "use strict";
-// ---------- Component geometry (pin offsets relative to component x,y) --------
-// Mirrors the game's WORKSPACE_COMPONENT_DEFS pin offsets. Frame pins come from
-// the loaded JSON (so their labels/widths are editable there); everything else
-// is looked up here. A pin: { x, y, w, dir }.
+const NS = "http://www.w3.org/2000/svg";
+// ---- reuse the game's markup ----
+const esc = (s)=>String(s==null?"":s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const gateComponentType = (id)=>"gate-"+id;
+const taskDefById = (id)=>({ id });
+// Minimal defs for the bus gates used in solutions, so busGateSpec routes them
+// through the game's busGateMarkup (base symbol + bus bars), identical to the game.
+const DEFS = {
+  "gate-AND16": { busGate:true, op:"And", busWidth:16, inputs:2, control:false },
+  "gate-Or16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
+  "gate-Not16": { busGate:true, op:"Not", busWidth:16, inputs:1, control:false },
+  "gate-MUX16": { busGate:true, op:"Mux", busWidth:16, inputs:3, control:true }
+};
+const busGateSpec = (type)=>{ const d=DEFS[type]; return d && d.busGate ? { op:d.op, inputs:d.inputs||1, width:d.busWidth, control:!!d.control } : null; };
+const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup:null });
+
+// ---- pin geometry (for wire endpoints); matches the game's defs ----
 const SPLIT_SPACING = 34;
 function splitterPin(comp, pinId) {
-  const n = Math.min(16, Math.max(2, comp.outputs || 4));
-  const mir = !!comp.mirrored;
-  if (pinId === "single") return { x: mir ? 38 : -38, y: 0, w: comp.width || 1 };
+  const n = Math.min(16, Math.max(2, comp.outputs || 4)); const mir = !!comp.mirrored;
+  if (pinId === "single") return { x: mir?38:-38, y:0, w:(comp.width||1)*n };
   const m = pinId.match(/^leg(\d+)$/);
-  if (m) {
-    const i = Math.min(n - 1, Math.max(0, +m[1]));
-    const y = Math.round(((n - 1) / 2 - i) * SPLIT_SPACING);
-    return { x: mir ? -37 : 37, y, w: comp.width || 1 };
-  }
+  if (m) { const i=Math.min(n-1,Math.max(0,+m[1])); return { x: mir?-37:37, y:Math.round(((n-1)/2 - i)*SPLIT_SPACING), w:comp.width||1 }; }
   return null;
 }
-const GATES = {
-  source:        { body:{w:80,h:64}, label:"מקור", pins:{ out:{x:40,y:0,w:1} } },
-  "converter-out":{ body:{w:150,h:80}, label:"→bin", pins:{ out:{x:70,y:0} } },
-  "converter-in":{ body:{w:150,h:80}, label:"→dec", pins:{ in:{x:-70,y:0} } },
-  lamp:          { body:{w:56,h:56}, label:"נורה", pins:{ in:{x:-26,y:0,w:1} } },
-  "gate-PreperNum":{ body:{w:88,h:76}, label:"Prep", pins:{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:66,y:0,w:16} } },
-  "gate-ALU0":   { body:{w:92,h:88,shape:"alu"}, label:"ALU0", pins:{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out1:{x:66,y:0,w:16} } },
-  "gate-ALU1":   { body:{w:92,h:88,shape:"alu"}, label:"ALU1", pins:{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} } },
-  "gate-ALU2":   { body:{w:92,h:108,shape:"alu"}, label:"ALU2", pins:{ in1:{x:-62,y:-34,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:34,w:16}, in4:{x:0,y:-46,w:7}, out1:{x:66,y:0,w:16} } },
-  "gate-ALU3":   { body:{w:92,h:108,shape:"alu"}, label:"ALU3", pins:{ in1:{x:-62,y:-34,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:34,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16} } },
-  "gate-AND16":  { body:{w:88,h:76}, label:"AND16", pins:{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out:{x:66,y:0,w:16} } },
-  "gate-Add16":  { body:{w:88,h:76}, label:"Add16", pins:{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out1:{x:66,y:0,w:16} } },
-  "gate-Not16":  { body:{w:88,h:56}, label:"Not16", pins:{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} } },
-  "gate-MUX16":  { body:{w:88,h:76}, label:"MUX16", pins:{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} } }
+const PINS = {
+  source:{ out:{x:40,y:0,w:1} },
+  "gate-PreperNum":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:66,y:0,w:16} },
+  "gate-ALU0":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out1:{x:66,y:0,w:16} },
+  "gate-ALU1":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} },
+  "gate-ALU2":{ in1:{x:-62,y:-34,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:34,w:16}, in4:{x:0,y:-46,w:7}, out1:{x:66,y:0,w:16} },
+  "gate-ALU3":{ in1:{x:-62,y:-34,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:34,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16} },
+  "gate-AND16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
+  "gate-Or16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
+  "gate-Add16":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out1:{x:66,y:0,w:16} },
+  "gate-Not16":{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} },
+  "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
+  "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} }
 };
-function isSplitter(t){ return t === "splitter"; }
-function compLabel(t){ return isSplitter(t) ? "מפצל" : (GATES[t] ? GATES[t].label : t); }
-function compBody(c){ if (isSplitter(c.type)){ const n=Math.min(16,Math.max(2,c.outputs||4)); const h=(n-1)*SPLIT_SPACING+30; return {w:20,h}; } return (GATES[c.type]||{body:{w:70,h:60}}).body; }
-
-// ---------- Document model -----------------------------------------------------
-let doc = null, selected = null, dragging = null;
-const stage = document.getElementById("stage");
-const NS = "http://www.w3.org/2000/svg";
-
 function pinOffset(comp, pinId) {
-  if (comp.__frame) {
-    const p = (doc.frame.pins || []).find(pp => pp.id === pinId);
-    return p ? { x: p.x, y: p.y, w: p.w } : null;
+  if (comp.__frame) { const p=(doc.frame.pins||[]).find(pp=>pp.id===pinId); return p?{x:p.x,y:p.y,w:p.w}:null; }
+  if (comp.type === "splitter") return splitterPin(comp, pinId);
+  const t = PINS[comp.type]; return t && t[pinId] ? t[pinId] : null;
+}
+
+// ---- document ----
+let doc=null, selected=null, dragging=null;
+const stage=document.getElementById("stage");
+function movable(){ return [...(doc.external||[]), ...(doc.components||[])]; }
+function findComp(id){ if (doc.frame && id===doc.frame.id) return {...doc.frame,__frame:true}; return movable().find(c=>c.id===id)||null; }
+function absPin(ref){ const dot=ref.lastIndexOf("."); const cid=ref.slice(0,dot), pid=ref.slice(dot+1);
+  const comp = (cid===doc.frame.id)?{...doc.frame,__frame:true}:findComp(cid); if(!comp) return null;
+  const off = pinOffset(comp,pid); if(!off) return null; return {x:comp.x+off.x, y:comp.y+off.y, w:off.w}; }
+
+function el(tag, attrs, kids){ const e=document.createElementNS(NS,tag); for(const k in attrs)e.setAttribute(k,attrs[k]); if(kids)for(const c of kids)e.appendChild(c); return e; }
+function svgNode(str, x, y){ const g=document.createElementNS(NS,"g"); g.setAttribute("transform",`translate(${x} ${y})`); g.innerHTML=str; return g; }
+
+function render(){
+  while(stage.firstChild) stage.removeChild(stage.firstChild);
+  if(!doc) return;
+  const f=doc.frame, fw=f.frameW||600, fh=f.frameH||420;
+  // frame shell (rect + pin stubs) — matches renderMultibitTaskShell
+  const board = el("g",{});
+  stage.appendChild(board);
+  board.appendChild(el("rect",{ x:f.x-fw/2, y:f.y-fh/2, width:fw, height:fh, rx:18, class:"ed-frame" }));
+  board.appendChild(el("text",{ x:f.x, y:f.y-fh/2-10, "text-anchor":"middle", class:"ed-frame-label" },[txt(doc.task||f.type)]));
+  for (const p of (f.pins||[])){
+    if (!p.id.includes("Ext")) continue;
+    const intp = (f.pins||[]).find(pp=>pp.id===p.id.replace("Ext","Int"));
+    const ax=f.x+p.x, ay=f.y+p.y, w=p.w||1;
+    if (p.y < -150){ const iy=f.y+(intp?intp.y:p.y+70);
+      board.appendChild(el("line",{x1:ax,y1:ay,x2:ax,y2:iy, class:w>1?"ed-frame-bus":"ed-frame-cable"}));
+    } else { const ix=f.x+(intp?intp.x:(p.x<0?p.x+80:p.x-80));
+      board.appendChild(el("line",{x1:ax,y1:ay,x2:ix,y2:ay, class:w>1?"ed-frame-bus":"ed-frame-cable"})); }
   }
-  if (isSplitter(comp.type)) return splitterPin(comp, pinId);
-  const g = GATES[comp.type];
-  return g && g.pins[pinId] ? g.pins[pinId] : null;
-}
-// Resolve "compId.pinId" to absolute {x,y}
-function findComp(id) {
-  if (doc.frame && (id === doc.frame.id)) return { ...doc.frame, __frame:true };
-  return (allMovable().find(c => c.id === id)) || null;
-}
-function allMovable() {
-  return [...(doc.external||[]), ...(doc.components||[]), ...(showCheck()? checkComps() : [])];
-}
-function absPin(ref) {
-  const dot = ref.lastIndexOf(".");
-  const cid = ref.slice(0, dot), pid = ref.slice(dot+1);
-  const comp = (cid === doc.frame.id) ? { ...doc.frame, __frame:true } : findComp(cid);
-  if (!comp) return null;
-  const off = pinOffset(comp, pid);
-  if (!off) return null;
-  return { x: comp.x + off.x, y: comp.y + off.y };
-}
-
-// ---------- Check harness (optional visual) ------------------------------------
-function showCheck(){ return document.getElementById("show-check").checked; }
-function checkComps(){
-  const cl = (doc.check && doc.check.layout) || {};
-  const list = [];
-  for (const c of (cl.components||[])) list.push({ ...c, __check:true });
-  return list;
-}
-
-// ---------- Rendering ----------------------------------------------------------
-function el(tag, attrs, children) {
-  const e = document.createElementNS(NS, tag);
-  for (const k in attrs) e.setAttribute(k, attrs[k]);
-  if (children) for (const c of children) e.appendChild(c);
-  return e;
-}
-function busStroke(w){ return (w && w>1) ? 7 : 3; }
-
-function render() {
-  while (stage.firstChild) stage.removeChild(stage.firstChild);
-  if (!doc) return;
-  // Frame rectangle
-  const f = doc.frame;
-  const fw = f.frameW || 600, fh = f.frameH || 420;
-  stage.appendChild(el("rect", { x: f.x - fw/2, y: f.y - fh/2, width: fw, height: fh,
-    rx: 16, fill:"none", stroke:"#8a7c63", "stroke-width":2, "stroke-dasharray":"2 0" }));
-  const frameHit = el("rect", { x: f.x - fw/2, y: f.y - fh/2, width: fw, height: fh, rx:16, fill:"transparent", class:"selectable" });
-  frameHit.addEventListener("pointerdown", (ev)=>startDrag(ev, f, true));
-  stage.appendChild(frameHit);
-  stage.appendChild(el("text", { x: f.x, y: f.y - fh/2 - 8, "text-anchor":"middle", fill:"#d8c9ab", "font-size":18 }, [txt(doc.task || f.type)]));
-
-  // Wires (under components)
-  for (const wire of (doc.wires||[])) {
-    const a = absPin(wire.a), b = absPin(wire.b);
-    if (!a || !b) continue;
-    stage.appendChild(el("line", { x1:a.x, y1:a.y, x2:b.x, y2:b.y, stroke:"#e9dcc0", "stroke-width":3, "stroke-linecap":"round", opacity:0.9 }));
+  // wires
+  for (const wire of (doc.wires||[])){ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) continue;
+    const wide=(a.w&&a.w>1)||(b.w&&b.w>1);
+    board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:wide?"ed-bus":"ed-cable"}));
+    if (wide) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-bus-stripe"}));
   }
-  // Frame pins
-  for (const p of (f.pins||[])) {
-    const ax = f.x + p.x, ay = f.y + p.y;
-    stage.appendChild(el("circle", { cx:ax, cy:ay, r:(p.w&&p.w>1)?6:4, fill:(p.w&&p.w>1)?"#d8a24a":"#c9bda2" }));
-    if (p.label) stage.appendChild(el("text", { x:ax, y:ay-9, "text-anchor":"middle", fill:"#9c8f77", "font-size":10 }, [txt(p.w>1?("["+p.w+"] "):"")]));
-  }
-  // Movable components
-  for (const c of allMovable()) drawComp(c);
+  // frame pin dots + labels
+  for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
+    board.appendChild(el("circle",{cx:ax,cy:ay,r:(p.w>1)?6:4, class:(p.w>1)?"ed-pin-bus":"ed-pin"}));
+    if (p.label) board.appendChild(el("text",{x:ax,y:ay-9,"text-anchor":"middle",class:"ed-pin-label"},[txt(p.w>1?("["+p.w+"]"):"")])); }
+  // frame drag-hit (behind components)
+  const fh2=el("rect",{x:f.x-fw/2,y:f.y-fh/2,width:fw,height:fh,rx:18,fill:"transparent",class:"drag-hit"});
+  fh2.addEventListener("pointerdown",(ev)=>startDrag(ev,f,true)); board.appendChild(fh2);
+  // components via the game's markup
+  for (const c of movable()) board.appendChild(drawComp(c));
   // selection outline
-  if (selected) {
-    const c = (selected === "frame") ? {x:f.x,y:f.y,__frame:true} : findComp(selected);
-    if (c) {
-      const b = c.__frame ? {w:fw,h:fh} : compBody(c);
-      stage.appendChild(el("rect", { x:c.x-b.w/2-6, y:c.y-b.h/2-6, width:b.w+12, height:b.h+12, rx:8, class:"selected-outline" }));
-    }
-  }
+  if (selected){ const c=(selected==="frame")?{x:f.x,y:f.y,__frame:true}:findComp(selected);
+    if (c){ const b=c.__frame?{w:fw,h:fh}:compBox(c); board.appendChild(el("rect",{x:c.x-b.w/2-6,y:c.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
 }
 function txt(s){ return document.createTextNode(s==null?"":String(s)); }
-
-function drawComp(c) {
-  const b = compBody(c);
-  const g = el("g", { class:"selectable" });
-  g.addEventListener("pointerdown", (ev)=>startDrag(ev, c, false));
-  if (isSplitter(c.type)) {
-    const n = Math.min(16,Math.max(2,c.outputs||4)); const halfH = (n-1)*SPLIT_SPACING/2;
-    g.appendChild(el("rect", { x:c.x-7, y:c.y-halfH-8, width:14, height:halfH*2+16, fill:"#111", rx:3 }));
-    // single stub
-    const s = splitterPin(c,"single");
-    g.appendChild(el("line",{x1:c.x, y1:c.y, x2:c.x+s.x, y2:c.y+s.y, stroke:"#111", "stroke-width":busStroke(c.width) }));
-    for (let i=0;i<n;i++){ const lp=splitterPin(c,"leg"+i); g.appendChild(el("line",{x1:c.x,y1:c.y+lp.y,x2:c.x+lp.x,y2:c.y+lp.y,stroke:"#111","stroke-width":busStroke(c.width)})); }
-    g.appendChild(el("text",{x:c.x, y:c.y-halfH-12, "text-anchor":"middle", fill:"#c9bda2","font-size":10},[txt("split "+n+"×"+(c.width||1)+(c.mirrored?" ⇄":""))]));
-  } else {
-    const g0 = GATES[c.type];
-    const fill = c.type==="source" ? "#efe6d2" : (c.__check?"#3a5a3a":"#efe6d2");
-    if (g0 && g0.body.shape==="alu") {
-      const hw=b.w/2, hh=b.h/2, hr=b.h*0.32;
-      g.appendChild(el("path",{ d:`M ${c.x-hw} ${c.y-hh} L ${c.x+hw} ${c.y-hr} L ${c.x+hw} ${c.y+hr} L ${c.x-hw} ${c.y+hh} L ${c.x-hw} ${c.y+13} L ${c.x-hw+22} ${c.y} L ${c.x-hw} ${c.y-13} Z`, fill, stroke:"#8a7c63" }));
-    } else {
-      g.appendChild(el("rect",{ x:c.x-b.w/2, y:c.y-b.h/2, width:b.w, height:b.h, rx:10, fill, stroke:"#8a7c63" }));
-    }
-    g.appendChild(el("text",{x:c.x, y:c.y+4, "text-anchor":"middle", fill:"#231c10","font-size":13, "font-weight":600},[txt(compLabel(c.type))]));
-    // pins
-    const pins = g0 ? g0.pins : {};
-    for (const pid in pins){ const p=pins[pid]; g.appendChild(el("circle",{cx:c.x+p.x, cy:c.y+p.y, r:(p.w&&p.w>1)?5:3, fill:(p.w&&p.w>1)?"#d8a24a":"#7a6f5b"})); }
-  }
-  stage.appendChild(g);
+function compBox(c){ if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; return {w:130,h:110}; }
+function drawComp(c){
+  const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width } : {};
+  const g = svgNode(CV.componentMarkup(c.type, opts), c.x, c.y);
+  g.classList.add("drag-hit");
+  g.addEventListener("pointerdown",(ev)=>startDrag(ev,c,false));
+  return g;
 }
 
-// ---------- Interaction --------------------------------------------------------
-function svgPoint(ev){
-  const pt = stage.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY;
-  const m = stage.getScreenCTM().inverse(); const p = pt.matrixTransform(m); return {x:p.x,y:p.y};
-}
-function startDrag(ev, comp, isFrame){
-  ev.stopPropagation();
-  selected = isFrame ? "frame" : comp.id;
-  const start = svgPoint(ev);
-  dragging = { comp, ox: comp.x, oy: comp.y, sx:start.x, sy:start.y };
-  stage.setPointerCapture(ev.pointerId);
-  renderProps(); render();
-}
-stage.addEventListener("pointermove",(ev)=>{
-  if (!dragging) return;
-  const p = svgPoint(ev);
-  let nx = dragging.ox + (p.x - dragging.sx), ny = dragging.oy + (p.y - dragging.sy);
-  if (document.getElementById("snap").checked){ nx = Math.round(nx/5)*5; ny = Math.round(ny/5)*5; }
-  dragging.comp.x = Math.round(nx); dragging.comp.y = Math.round(ny);
-  render(); syncJsonBox(); renderProps();
-});
-stage.addEventListener("pointerup",(ev)=>{ dragging=null; });
+// ---- interaction ----
+function svgPoint(ev){ const pt=stage.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; const p=pt.matrixTransform(stage.getScreenCTM().inverse()); return {x:p.x,y:p.y}; }
+function startDrag(ev, comp, isFrame){ ev.stopPropagation(); selected=isFrame?"frame":comp.id;
+  const s=svgPoint(ev); dragging={comp,ox:comp.x,oy:comp.y,sx:s.x,sy:s.y}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
+stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoint(ev);
+  let nx=dragging.ox+(p.x-dragging.sx), ny=dragging.oy+(p.y-dragging.sy);
+  if(document.getElementById("snap").checked){ nx=Math.round(nx/5)*5; ny=Math.round(ny/5)*5; }
+  dragging.comp.x=Math.round(nx); dragging.comp.y=Math.round(ny); render(); syncJsonBox(); renderProps(); });
+stage.addEventListener("pointerup",()=>{ dragging=null; });
 stage.addEventListener("pointerdown",()=>{ selected=null; renderProps(); render(); });
 
-// ---------- Properties panel ---------------------------------------------------
+// ---- props ----
 function renderProps(){
-  const host = document.getElementById("props");
-  host.innerHTML = "";
-  if (!doc){ host.innerHTML='<p class="hint">אין מסמך טעון.</p>'; return; }
-  if (!selected){ host.innerHTML='<p class="hint">בחר רכיב על הלוח כדי לערוך אותו. גרירה מזיזה; הפינים קבועים (רק כיתוב ניתן לעריכה).</p>'; return; }
-  const isFrame = selected==="frame";
-  const c = isFrame ? doc.frame : findComp(selected);
-  if (!c){ host.innerHTML=""; return; }
-  const add = (html)=>{ const d=document.createElement("div"); d.innerHTML=html; while(d.firstChild) host.appendChild(d.firstChild); };
-  add(`<div class="badge">${isFrame?("מסגרת · "+(c.type||"")):(c.id+" · "+c.type)}</div>`);
+  const host=document.getElementById("props"); host.innerHTML="";
+  if(!doc){ host.innerHTML='<p class="hint">אין מסמך.</p>'; return; }
+  if(!selected){ host.innerHTML='<p class="hint">בחר רכיב. גרירה מזיזה; הפינים קבועים (רק כיתוב).</p>'; return; }
+  const isFrame=selected==="frame"; const c=isFrame?doc.frame:findComp(selected); if(!c){host.innerHTML="";return;}
+  const add=(h)=>{ const d=document.createElement("div"); d.innerHTML=h; while(d.firstChild)host.appendChild(d.firstChild); };
+  add(`<div class="badge">${isFrame?("מסגרת · "+(c.type||"")):(esc(c.id)+" · "+esc(c.type))}</div>`);
   add(`<div class="row"><div><label>X</label><input type="number" id="p-x" value="${c.x}"></div><div><label>Y</label><input type="number" id="p-y" value="${c.y}"></div></div>`);
-  document.getElementById("p-x").oninput = e=>{ c.x=+e.target.value||0; render(); syncJsonBox(); };
-  document.getElementById("p-y").oninput = e=>{ c.y=+e.target.value||0; render(); syncJsonBox(); };
-  if (isFrame){
+  document.getElementById("p-x").oninput=e=>{c.x=+e.target.value||0;render();syncJsonBox();};
+  document.getElementById("p-y").oninput=e=>{c.y=+e.target.value||0;render();syncJsonBox();};
+  if(isFrame){
     add(`<div class="row"><div><label>רוחב מסגרת</label><input type="number" id="p-fw" value="${c.frameW||600}"></div><div><label>גובה מסגרת</label><input type="number" id="p-fh" value="${c.frameH||420}"></div></div>`);
-    document.getElementById("p-fw").oninput=e=>{ c.frameW=+e.target.value||600; render(); syncJsonBox(); };
-    document.getElementById("p-fh").oninput=e=>{ c.frameH=+e.target.value||420; render(); syncJsonBox(); };
+    document.getElementById("p-fw").oninput=e=>{c.frameW=+e.target.value||600;render();syncJsonBox();};
+    document.getElementById("p-fh").oninput=e=>{c.frameH=+e.target.value||420;render();syncJsonBox();};
     add(`<label>כיתובי פינים</label>`);
-    for (const p of (c.pins||[])){
-      const rowId = "pl-"+p.id;
-      add(`<div class="pin-row"><span class="pid">${p.id}${p.w>1?(" ["+p.w+"]"):""}</span><input type="text" id="${rowId}" value="${(p.label||"").replace(/"/g,'&quot;')}"></div>`);
-      document.getElementById(rowId).oninput = e=>{ p.label=e.target.value; render(); syncJsonBox(); };
-    }
-  } else if (isSplitter(c.type)){
+    for(const p of (c.pins||[])){ const id="pl-"+p.id;
+      add(`<div class="pin-row"><span class="pid">${p.id}${p.w>1?(" ["+p.w+"]"):""}</span><input type="text" id="${id}" value="${esc(p.label||"")}"></div>`);
+      document.getElementById(id).oninput=e=>{p.label=e.target.value;render();syncJsonBox();}; }
+  } else if(c.type==="splitter"){
     add(`<div class="row"><div><label>רגליים</label><input type="number" id="p-out" min="2" max="16" value="${c.outputs||4}"></div><div><label>רוחב</label><input type="number" id="p-w" min="1" value="${c.width||1}"></div></div>`);
     add(`<label class="toggle" style="margin-top:8px"><input type="checkbox" id="p-mir" ${c.mirrored?"checked":""}> ממוראה (מאחד)</label>`);
-    document.getElementById("p-out").oninput=e=>{ c.outputs=Math.min(16,Math.max(2,+e.target.value||2)); render(); syncJsonBox(); };
-    document.getElementById("p-w").oninput=e=>{ c.width=Math.max(1,+e.target.value||1); render(); syncJsonBox(); };
-    document.getElementById("p-mir").onchange=e=>{ c.mirrored=e.target.checked; render(); syncJsonBox(); };
+    document.getElementById("p-out").oninput=e=>{c.outputs=Math.min(16,Math.max(2,+e.target.value||2));render();syncJsonBox();};
+    document.getElementById("p-w").oninput=e=>{c.width=Math.max(1,+e.target.value||1);render();syncJsonBox();};
+    document.getElementById("p-mir").onchange=e=>{c.mirrored=e.target.checked;render();syncJsonBox();};
   }
 }
 
-// ---------- JSON in/out --------------------------------------------------------
-function syncJsonBox(){ document.getElementById("json-box").value = JSON.stringify(doc, null, 2); }
-function loadDoc(obj){
-  doc = obj; selected=null; dragging=null;
-  // ensure ids
-  doc.frame = doc.frame || { id:"task-card-1", type:"taskCard", x:560, y:360, frameW:600, frameH:420, pins:[] };
-  doc.frame.id = doc.frame.id || "task-card-1";
-  doc.external = doc.external || [];
-  doc.components = doc.components || [];
-  doc.wires = doc.wires || [];
+// ---- json io ----
+function syncJsonBox(){ document.getElementById("json-box").value=JSON.stringify(doc,null,2); }
+function loadDoc(o){ doc=o; selected=null; dragging=null;
+  doc.frame=doc.frame||{id:"task-card-1",type:"taskCard",x:560,y:360,frameW:600,frameH:420,pins:[]};
+  doc.frame.id=doc.frame.id||"task-card-1"; doc.external=doc.external||[]; doc.components=doc.components||[]; doc.wires=doc.wires||[];
   render(); renderProps(); syncJsonBox();
-  status(`נטען: ${doc.task||"?"} · ${doc.components.length} רכיבים · ${doc.wires.length} חיבורים`);
-}
-function status(s){ document.getElementById("status").textContent = s; }
+  status(`נטען: ${doc.task||"?"} · ${doc.components.length} רכיבים · ${doc.wires.length} חיבורים`); }
+function status(s){ document.getElementById("status").textContent=s; }
+document.getElementById("btn-load").onclick=()=>document.getElementById("file").click();
+document.getElementById("file").onchange=(e)=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{try{loadDoc(JSON.parse(r.result));}catch(err){status("שגיאת JSON: "+err.message);}}; r.readAsText(f); };
+document.getElementById("btn-apply").onclick=()=>{ try{loadDoc(JSON.parse(document.getElementById("json-box").value));}catch(err){status("שגיאת JSON: "+err.message);} };
+document.getElementById("btn-copy").onclick=async()=>{ syncJsonBox(); try{await navigator.clipboard.writeText(document.getElementById("json-box").value); status("הועתק.");}catch{status("סמן ידנית להעתקה.");} };
+document.getElementById("btn-save").onclick=()=>{ syncJsonBox(); const b=new Blob([document.getElementById("json-box").value],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=(doc.task||"solution")+".json"; a.click(); };
 
-document.getElementById("btn-load").onclick = ()=>document.getElementById("file").click();
-document.getElementById("file").onchange = (e)=>{
-  const file = e.target.files[0]; if(!file) return;
-  const r = new FileReader(); r.onload = ()=>{ try{ loadDoc(JSON.parse(r.result)); }catch(err){ status("שגיאת JSON: "+err.message); } }; r.readAsText(file);
-};
-document.getElementById("btn-apply").onclick = ()=>{ try{ loadDoc(JSON.parse(document.getElementById("json-box").value)); }catch(err){ status("שגיאת JSON: "+err.message); } };
-document.getElementById("btn-copy").onclick = async ()=>{ syncJsonBox(); try{ await navigator.clipboard.writeText(document.getElementById("json-box").value); status("הועתק ללוח."); }catch{ status("העתקה נכשלה — סמן ידנית."); } };
-document.getElementById("btn-save").onclick = ()=>{
-  syncJsonBox();
-  const blob = new Blob([document.getElementById("json-box").value], {type:"application/json"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-  a.download = (doc.task||"solution")+".json"; a.click();
-};
-document.getElementById("show-check").onchange = ()=>{ render(); };
-window.addEventListener("keydown",(e)=>{ if((e.key==="Delete")&&selected){ /* deletion disabled per spec (pins fixed) */ } });
-
-// ---------- Default example (ALU1) --------------------------------------------
-const EXAMPLE = {
-  "format":"theonemachine-solution","version":1,"task":"ALU1",
-  "frame":{ "id":"task-card-1","type":"taskCard-ALU1","x":560,"y":360,"frameW":600,"frameH":420,
-    "pins":[
-      {"id":"inputExt1","x":-340,"y":-90,"w":16,"dir":"in","label":"כניסת המספר הראשון"},
-      {"id":"inputInt1","x":-260,"y":-90,"w":16,"dir":"out","label":""},
-      {"id":"inputExt2","x":-340,"y":90,"w":16,"dir":"in","label":"כניסת המספר השני"},
-      {"id":"inputInt2","x":-260,"y":90,"w":16,"dir":"out","label":""},
-      {"id":"inputExt3","x":-215,"y":-250,"w":6,"dir":"in","label":"כניסת הבקרה"},
-      {"id":"inputInt3","x":-215,"y":-180,"w":6,"dir":"out","label":""},
-      {"id":"outputInt1","x":260,"y":0,"w":16,"dir":"in","label":""},
-      {"id":"outputExt1","x":340,"y":0,"w":16,"dir":"out","label":"יציאת התוצאה"}
-    ]},
-  "external":[ {"id":"source-1","type":"source","x":65,"y":110} ],
+// ---- load ALU1 from assets/solutions on start (fallback to embedded) ----
+const EXAMPLE = {"format":"theonemachine-solution","version":1,"task":"ALU1",
+  "frame":{"id":"task-card-1","type":"taskCard-ALU1","x":560,"y":360,"frameW":600,"frameH":420,"pins":[
+    {"id":"inputExt1","x":-340,"y":-90,"w":16,"dir":"in","label":"כניסת המספר הראשון"},{"id":"inputInt1","x":-260,"y":-90,"w":16,"dir":"out","label":""},
+    {"id":"inputExt2","x":-340,"y":90,"w":16,"dir":"in","label":"כניסת המספר השני"},{"id":"inputInt2","x":-260,"y":90,"w":16,"dir":"out","label":""},
+    {"id":"inputExt3","x":-215,"y":-250,"w":6,"dir":"in","label":"כניסת הבקרה"},{"id":"inputInt3","x":-215,"y":-180,"w":6,"dir":"out","label":""},
+    {"id":"outputInt1","x":260,"y":0,"w":16,"dir":"in","label":""},{"id":"outputExt1","x":340,"y":0,"w":16,"dir":"out","label":"יציאת התוצאה"}]},
+  "external":[{"id":"source-1","type":"source","x":65,"y":110}],
   "components":[
     {"id":"ctrl-split","type":"splitter","x":410,"y":200,"outputs":3,"width":2,"mirrored":false},
     {"id":"part3-split","type":"splitter","x":545,"y":150,"outputs":2,"width":1,"mirrored":false},
-    {"id":"pn1","type":"gate-PreperNum","x":450,"y":270},
-    {"id":"pn2","type":"gate-PreperNum","x":560,"y":450},
+    {"id":"pn1","type":"gate-PreperNum","x":450,"y":270},{"id":"pn2","type":"gate-PreperNum","x":560,"y":450},
     {"id":"alu0","type":"gate-ALU0","x":672,"y":270},
     {"id":"pn3-ctrl","type":"splitter","x":655,"y":185,"outputs":2,"width":1,"mirrored":true},
-    {"id":"pn3","type":"gate-PreperNum","x":792,"y":270}
-  ],
+    {"id":"pn3","type":"gate-PreperNum","x":792,"y":270}],
   "wires":[
-    {"a":"task-card-1.inputInt3","b":"ctrl-split.single"},
-    {"a":"ctrl-split.leg0","b":"pn1.in2"},
-    {"a":"ctrl-split.leg1","b":"pn2.in2"},
-    {"a":"ctrl-split.leg2","b":"part3-split.single"},
-    {"a":"task-card-1.inputInt1","b":"pn1.in1"},
-    {"a":"task-card-1.inputInt2","b":"pn2.in1"},
-    {"a":"pn1.out1","b":"alu0.in1"},
-    {"a":"pn2.out1","b":"alu0.in2"},
-    {"a":"part3-split.leg0","b":"alu0.in3"},
-    {"a":"part3-split.leg1","b":"pn3-ctrl.leg1"},
-    {"a":"pn3-ctrl.single","b":"pn3.in2"},
-    {"a":"alu0.out1","b":"pn3.in1"},
-    {"a":"pn3.out1","b":"task-card-1.outputInt1"}
-  ],
-  "check":{ "cases":[
-    {"a":61680,"b":255,"control":0},{"a":1234,"b":5678,"control":2},
-    {"a":4660,"b":65535,"control":1},{"a":43981,"b":255,"control":16},
-    {"a":3855,"b":4080,"control":10},{"a":4660,"b":22136,"control":63}
-  ], "note":"בקרה 6 ביט: 0,1 הכנת כניסה1 · 2,3 כניסה2 · 4 פעולה · 5 NOT" }
-};
-loadDoc(EXAMPLE);
+    {"a":"task-card-1.inputInt3","b":"ctrl-split.single"},{"a":"ctrl-split.leg0","b":"pn1.in2"},{"a":"ctrl-split.leg1","b":"pn2.in2"},
+    {"a":"ctrl-split.leg2","b":"part3-split.single"},{"a":"task-card-1.inputInt1","b":"pn1.in1"},{"a":"task-card-1.inputInt2","b":"pn2.in1"},
+    {"a":"pn1.out1","b":"alu0.in1"},{"a":"pn2.out1","b":"alu0.in2"},{"a":"part3-split.leg0","b":"alu0.in3"},
+    {"a":"part3-split.leg1","b":"pn3-ctrl.leg1"},{"a":"pn3-ctrl.single","b":"pn3.in2"},{"a":"alu0.out1","b":"pn3.in1"},{"a":"pn3.out1","b":"task-card-1.outputInt1"}],
+  "check":{"cases":[{"a":61680,"b":255,"control":0}],"note":"בקרה 6 ביט: 0,1 כניסה1 · 2,3 כניסה2 · 4 פעולה · 5 NOT"}};
+fetch("assets/solutions/ALU1.json").then(r=>r.ok?r.json():null).then(d=>loadDoc(d||EXAMPLE)).catch(()=>loadDoc(EXAMPLE));
 </script>
 </body>
 </html>
