@@ -1110,10 +1110,14 @@ function createSolutionWorkspaces({
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 },
-      { id: "one-source", type: "source", x: 400, y: 400 },
-      { id: "one-split-lo", type: "splitter", x: 510, y: 400, mirrored: true, outputs: 4, width: 1 },
-      { id: "one-split-hi", type: "splitter", x: 650, y: 400, mirrored: true, outputs: 4, width: 4 },
-      { id: "add-1", type: "gate-Add16", x: 730, y: 220 }
+      // The constant-"1" source and its two merging splitters sit along the bottom
+      // of the frame, spaced apart so their legs never overlap each other or the
+      // source. Add16 sits at the card-pin height (y≈300) so the input bus and the
+      // sum bus run straight across instead of diving up to a high adder.
+      { id: "one-source", type: "source", x: 350, y: 400 },
+      { id: "one-split-lo", type: "splitter", x: 490, y: 400, mirrored: true, outputs: 4, width: 1 },
+      { id: "one-split-hi", type: "splitter", x: 660, y: 400, mirrored: true, outputs: 4, width: 4 },
+      { id: "add-1", type: "gate-Add16", x: 770, y: 300 }
     ];
     const wires = [
       normalizeWire("one-source.out", "one-split-lo.leg0"),
