@@ -9813,6 +9813,14 @@
   // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
   // matching the requirement text.
   function multibitTaskCases(taskId) {
+    // The solution JSON (assets/solutions/<task>.json) is the source of truth for
+    // the check cases: its check.cases already use the {a,b,d,control} keys the
+    // reference formula below reads, so honour them verbatim when present. The
+    // hardcoded lists that follow are the fallback for tasks without a JSON.
+    const doc = SOLUTION_DOCS[taskId];
+    if (doc && doc.check && Array.isArray(doc.check.cases) && doc.check.cases.length) {
+      return doc.check.cases.map((c) => ({ ...c }));
+    }
     if (taskId === "Dmux4way") {
       // Data=1 across all four control values (each lights exactly one output),
       // plus a data=0 sanity case (all outputs stay 0).
@@ -9890,9 +9898,9 @@
       ];
     }
     if (taskId === "ALU1") {
-      // (a, b, control 0..63). "First bit is the top leg" (MSB), so bits top->
-      // bottom are c5..c0: c5,c4 prep input1 (c5 NOT / c4 zero), c3,c2 prep
-      // input2, c1 op (0 AND / 1 ADD), c0 final NOT.
+      // Fallback only (ALU1.json supplies the real cases). Control 0..63 with
+      // c0,c1 → prep input1, c2,c3 → prep input2, c4 → op (0 AND / 1 ADD),
+      // c5 → final NOT — the same mapping the reference formula below uses.
       return [
         { a: 0xF0F0, b: 0x00FF, control: 0 },  // AND, no prep -> 0x00F0
         { a: 1234, b: 5678, control: 2 },      // c1 -> ADD -> 6912
