@@ -6450,9 +6450,14 @@
       : (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1;
 
     // Where to land: back to the My-cards page, or the warehouse (default).
+    // Either way, ALSO set the story location + pageReturn to the warehouse, so
+    // that "back" from My-cards returns to the warehouse story — never to the
+    // reset workspace (which would show the Nand-presentation table and exit to
+    // chapter 2.2, since createDefaultWorkspace carries no session return).
+    const warehouse = storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
     const returnPatch = cc.returnScreen === "myCards"
-      ? { screen: "myCards" }
-      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+      ? { ...warehouse, screen: "myCards", pageReturn: "story" }
+      : warehouse;
 
     const firstTime = !state.myCardsIntroSeen && !editing;
     // Saving a brand-new card (not an edit) earns "ממציא כרטיסים"; if that card
@@ -6480,9 +6485,12 @@
   // exit would, but touches neither the saved cards nor the intro flag.
   function discardCardAndExit() {
     const cc = state.cardCreation || {};
+    // See exitCardCreation: land on the warehouse story (and route My-cards'
+    // "back" there) so the reset workspace is never shown.
+    const warehouse = storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
     const returnPatch = cc.returnScreen === "myCards"
-      ? { screen: "myCards" }
-      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+      ? { ...warehouse, screen: "myCards", pageReturn: "story" }
+      : warehouse;
     setState({
       ...returnPatch,
       cardCreation: null,
