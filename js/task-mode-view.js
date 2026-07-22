@@ -383,46 +383,24 @@ function createTaskModeView({
     }
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
+    // The requirements panel (description + truth table) shows during the build
+    // AND during the solution walkthrough, so the learner can always see what the
+    // card must do. During the solution the truth table hides via the solution
+    // dialog's "הסתר טבלה" toggle (solutionTableHidden); the panel's own toggle
+    // collapses the whole thing.
+    const solutionTableHidden = Boolean(state.solutionDialog) && Boolean(state.solutionTableHidden);
     if (task.id === "Mux") {
-      // During the solution walkthrough show only the (highlighted) truth table
-      // in a compact panel, leaving room for the solution dialog and circuit. The
-      // learner can hide/show it with the toggle on the solution dialog.
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderMuxScratchTable()}
-          </section>`;
-      }
-      // Order matters: in the RTL flex row the FIRST child lands on the right.
-      // The click-through text goes on the right (over the fixed lamp, which the
-      // learner must be able to hand-wire), and the interactive table sits on the
-      // left over the gate-build zone (gates are movable, so it never traps them).
-      return renderRequirementsPanel(task, renderMuxScratchTable());
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderMuxScratchTable());
     }
     if (task.id === "DMux") {
       // An empty, editable truth table (like the MUX): the learner fills it in as
       // a thinking aid. Two output columns, four rows.
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderDmuxScratchTable()}
-          </section>`;
-      }
-      return renderRequirementsPanel(task, renderDmuxScratchTable());
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderDmuxScratchTable());
     }
     // Arith cards (halfAdder / fullAdder): a two-output editable scratch table,
     // like the DMux. Any other two-output truth-table task lands here too.
     if (task.outputs === 2 && Array.isArray(task.rows)) {
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderArithScratchTable(task)}
-          </section>`;
-      }
-      return renderRequirementsPanel(task, renderArithScratchTable(task));
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderArithScratchTable(task));
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;
