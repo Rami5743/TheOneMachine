@@ -9993,6 +9993,18 @@
     // A converter pushed BELOW the source drops well clear of it — the lower
     // converter sits distinctly beneath the source, not tucked just under it.
     const DOWN_GAP = 150;
+    // For the ALU cards the source only feeds the control bus (up top), so it can
+    // sit anywhere. Drop it BELOW every dec→bin converter so it never collides
+    // with them — then each converter stays level with its own input pin (no
+    // converter gets shoved up past its input).
+    if (sourceComp && harnessUsesSource && isAluBusTask(baseWorkspace.taskId)) {
+      const convYs = spec.inputs
+        .map((input, idx) => (inputConverterDriven(input, idx) ? cardY + ((frameDef.pins[input.ref] || {}).y || 0) : null))
+        .filter((y) => y !== null);
+      if (convYs.length) {
+        sourceComp.y = Math.max(...convYs) + CONV_HALF_H + SRC_HALF_H + CLEAR_GAP;
+      }
+    }
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
