@@ -183,8 +183,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle"${text.length > 3 ? ' style="font-size:16px"' : ''}>${text}</text>`;
     for (const y of inputYs) s += busPin(inX, Math.abs(y) < nBot ? nTip : -hw, y);
     s += busPin(hw, outX, 0);   // result bus on the right
-    // The control cable pokes out of the sloping top edge toward its terminal.
-    s += `<line class="usercard-pin" x1="0" y1="${-(hh + hhr) / 2}" x2="0" y2="-46" />`;
+    // The control pokes out of the sloping top edge toward its terminal: a wide
+    // (bus) control is drawn as a bus bar, a single-bit control as a thin cable.
+    const topY = -(hh + hhr) / 2;
+    s += (opts.controlWidth > 1)
+      ? busGateBarV(0, topY + 4, -46)
+      : `<line class="usercard-pin" x1="0" y1="${topY}" x2="0" y2="-46" />`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -202,8 +206,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<text class="arith-gate-pin-letter" x="0" y="5" text-anchor="middle" style="font-size:16px">Prep</text>`;
     s += busPin(inX, -edge, 0);   // number bus in
     s += busPin(edge, outX, 0);   // result bus out
-    // The width-2 control bus pokes out of the top edge toward its terminal.
-    s += `<line class="usercard-pin" x1="0" y1="${-bodyH / 2}" x2="0" y2="-46" />`;
+    // The width-2 control bus pokes out of the top edge toward its terminal —
+    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus.
+    s += busGateBarV(0, -bodyH / 2 + 4, -46);
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -289,6 +294,17 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       <line class="splitter-stripe" x1="${b.x1 + 3}" y1="${b.y}" x2="${b.x2 - 3}" y2="${b.y}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />
       ${label}`;
   }
+
+  // A VERTICAL bus bar (for a control pin that pokes out the top of a gate): the
+  // same thick dashed bar as busGateBar but running along y between y1 and y2 at
+  // a fixed x. Used to draw wide control cables (PreperNum, ALU1/2/3) as buses.
+  function busGateBarV(cx, y1, y2) {
+    const half = (11 * K) / 2;
+    const top = Math.min(y1, y2), bot = Math.max(y1, y2);
+    return `
+      <rect class="splitter-bar" x="${cx - half}" y="${top}" width="${11 * K}" height="${bot - top}" />
+      <line class="splitter-stripe" x1="${cx}" y1="${top + 3}" x2="${cx}" y2="${bot - 3}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />`;
+  }
   function busGateMarkup(spec, options = {}) {
     const symbol = gateMarkup(taskDefById(spec.op));
     const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width, !options.toolbar)).join("");
@@ -314,11 +330,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU", [-26, 26]);
+      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU", [-26, 26], { controlWidth: 1 });
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU1") return aluShapeMarkup(16, "ALU1", [-26, 26]);
-      if (gateTask && gateTask.id === "ALU2") return aluShapeMarkup(16, "ALU2", [-34, 0, 34], { tall: true });
-      if (gateTask && gateTask.id === "ALU3") return aluShapeMarkup(16, "ALU3", [-34, 0, 34], { tall: true });
+      if (gateTask && gateTask.id === "ALU1") return aluShapeMarkup(16, "ALU1", [-26, 26], { controlWidth: 6 });
+      if (gateTask && gateTask.id === "ALU2") return aluShapeMarkup(16, "ALU2", [-34, 0, 34], { tall: true, controlWidth: 7 });
+      if (gateTask && gateTask.id === "ALU3") return aluShapeMarkup(16, "ALU3", [-34, 0, 34], { tall: true, controlWidth: 12 });
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
