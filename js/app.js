@@ -604,6 +604,50 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // The ALU1 build frame: two width-16 number buses on the left, a width-6
+  // control bus on TOP, and a single width-16 output on the right. The control
+  // prepares each input (2 bits per input, à la PreperNum), then selects
+  // AND/ADD (à la ALU0), then optionally NOTs — see aluGateSpec op "alu1".
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU1"] = {
+    label: "מסגרת ALU1",
+    fixed: true,
+    taskId: "ALU1",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -130, y: -250, direction: "in", width: 6, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -130, y: -180, direction: "out", width: 6, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-ALU1: the placeable card earned by completing ALU1. Two width-16 number
+  // buses in, a width-6 control on top, one width-16 bus out. The engine runs
+  // the full ALU1 op (prep each input, AND/ADD, optional NOT) — see aluGateSpec
+  // op "alu1".
+  WORKSPACE_COMPONENT_DEFS["gate-ALU1"] = {
+    label: "ALU1",
+    taskId: "ALU1",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu1",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: 0, y: -46, direction: "in", width: 6, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -4218,6 +4262,79 @@
             wireKey("not16.out", "mux2.in2"),
             wireKey("ctrl-split.leg1", "mux2.in3"),
             wireKey("mux2.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU1: [
+      {
+        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק העליון (שני הביטים הראשונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק התחתון מפוצל שוב לשני הביטים האחרונים — ביט הפעולה וביט ה-NOT.",
+        highlight: {
+          components: ["ctrl-split", "part3-split"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [
+            wireKey("task-card-1.inputInt3", "ctrl-split.single"),
+            wireKey("ctrl-split.leg0", "part3-split.single")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מכין את הכניסה הראשונה — PreperNum על הכניסה הראשונה, עם החלק המתאים של הבקרה (שני הביטים הראשונים).",
+        highlight: {
+          components: ["pn1"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "pn1.in1"),
+            wireKey("ctrl-split.leg2", "pn1.in2")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מכין את הכניסה השנייה — PreperNum על הכניסה השנייה, עם שני הביטים הבאים של הבקרה.",
+        highlight: {
+          components: ["pn2"],
+          terminals: ["task-card-1.inputInt2", "ctrl-split.leg1"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "pn2.in1"),
+            wireKey("ctrl-split.leg1", "pn2.in2")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מבצע את הפעולה על שתי ההכנות — ALU0 שמקבל את תוצאות שתי ההכנות ואת הביט החמישי של הבקרה (שקובע אם AND או חיבור).",
+        highlight: {
+          components: ["alu0"],
+          terminals: ["part3-split.leg1"],
+          wires: [
+            wireKey("pn1.out1", "alu0.in1"),
+            wireKey("pn2.out1", "alu0.in2"),
+            wireKey("part3-split.leg1", "alu0.in3")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט השישי).",
+        highlight: {
+          components: ["pn3", "pn3-ctrl"],
+          terminals: ["part3-split.leg0", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("part3-split.leg0", "pn3-ctrl.leg1"),
+            wireKey("alu0.out1", "pn3.in1"),
+            wireKey("pn3.out1", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "פתרון נוסף: במקום ה-PreperNum האחרון אפשר פשוט לעשות MUX16 שבוחר בין תוצאת ה-ALU0 (כשהביט השישי 0) לבין ה-NOT שלה (כשהוא 1). זה פתרון חסכוני יותר, אבל לפעמים קל יותר להשתמש ב-PreperNum מוכן.",
+        highlight: {
+          components: ["not16", "mux-not"],
+          terminals: ["part3-split.leg0", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("alu0.out1", "not16.in1"),
+            wireKey("alu0.out1", "mux-not.in1"),
+            wireKey("not16.out", "mux-not.in2"),
+            wireKey("part3-split.leg0", "mux-not.in3"),
+            wireKey("mux-not.out", "task-card-1.outputInt1")
           ]
         }
       }
@@ -9396,6 +9513,19 @@
         { a: 54321, control: 3 }   // zero then NOT -> 0xFFFF
       ];
     }
+    if (taskId === "ALU1") {
+      // (a, b, control 0..63). "First bit is the top leg" (MSB), so bits top->
+      // bottom are c5..c0: c5,c4 prep input1 (c5 NOT / c4 zero), c3,c2 prep
+      // input2, c1 op (0 AND / 1 ADD), c0 final NOT.
+      return [
+        { a: 0xF0F0, b: 0x00FF, control: 0 },  // AND, no prep -> 0x00F0
+        { a: 1234, b: 5678, control: 2 },      // c1 -> ADD -> 6912
+        { a: 0x1234, b: 0xFFFF, control: 1 },  // c0 -> NOT(AND) -> 0xEDCB
+        { a: 0xABCD, b: 0x00FF, control: 16 }, // c4 -> prep1 zero -> 0 AND .. -> 0
+        { a: 0x0F0F, b: 0x0FF0, control: 40 }, // c5,c3 -> NOT both, AND -> 0xF000
+        { a: 0x1234, b: 0x5678, control: 63 }  // all bits -> 0x0001
+      ];
+    }
     return [];
   }
 
@@ -9502,6 +9632,31 @@
           { ref: "inputExt1", bits: add16Bits(testCase.a) },
           // The 2-bit control bus, little-endian [LSB, MSB] = [second bit, first bit].
           { ref: "inputExt2", bits: [c & 1, (c >> 1) & 1].map(Boolean) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU1") {
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      // "First bit up top" (MSB) convention: c5,c4 prep input1; c3,c2 input2;
+      // c1 op; c0 final NOT.
+      const p1 = prep(testCase.a, bit(4), bit(5));
+      const p2 = prep(testCase.b, bit(2), bit(3));
+      const combined = bit(1) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(0) ? ~combined : combined) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          // 6-bit control bus, little-endian [c0..c5].
+          { ref: "inputExt3", bits: Array.from({ length: 6 }, (_, i) => Boolean(bit(i))) }
         ],
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) }
@@ -9750,11 +9905,11 @@
         }, true);
       }
 
-      // ALU cards (chapter 2.6) with no solution walkthrough (Inc / ALU0):
-      // complete and return to the 2.6 worktable. ALU0 first shows the "what is
-      // an ALU" message; every other ALU card just reopens the note.
+      // ALU cards (chapter 2.6): complete and return to the 2.6 worktable. Some
+      // cards first show an after-completion message (ALU0 "what is an ALU",
+      // ALU1 ready-made-vs-custom); every other ALU card just reopens the note.
       if (isAluTask(taskId)) {
-        const showAluIntro = taskId === "ALU0";
+        const showAluIntro = aluTaskHasMessage(taskId);
         return setState({
           ...aluWorktableReturnTarget(),
           taskDialog: null,
@@ -9762,7 +9917,7 @@
           muxTable: null,
           completedTasks,
           aluNoteList: !showAluIntro,
-          aluIntroDialog: showAluIntro ? { page: 0 } : null,
+          aluIntroDialog: showAluIntro ? { page: 0, taskId } : null,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -10370,7 +10525,7 @@
   // Which ALU cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function aluTaskImplemented(id) {
-    return ["Inc", "ALU0", "PreperNum"].includes(id);
+    return ["Inc", "ALU0", "PreperNum", "ALU1"].includes(id);
   }
 
   // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
@@ -10403,7 +10558,7 @@
     // lower on the board. The pre-placed source-1 is the TEST source (it drives
     // inputs during a check) and stays OUTSIDE the frame; the learner adds their
     // own source inside for a constant "1" bus (see the Inc solution/hint).
-    const cardY = (task.id === "ALU0" || task.id === "PreperNum") ? 360 : 288;
+    const cardY = (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1") ? 360 : 288;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
@@ -10465,16 +10620,34 @@
     "ה-ALU נמצא בתוך המעבד של המחשב והוא זה שמבצע את הפעולות. המעבד \"מפעיל\" את ה-ALU: הוא נותן לו הוראות, מכניס לו את הקלט (מה שנכנס בכניסות הרגילות) ושומר את הפלט של ה-ALU (מה שיוצא מהיציאות) בכל מיני מקומות. כל זאת בהתאם להוראות שהמעבד מקבל, שהם למעשה התוכנה שהמעבד מריץ."
   ];
 
+  // Shown at the end of the ALU1 solution: the ready-made-vs-custom-components
+  // trade-off (the ALU1 solution used a whole PreperNum for just its NOT).
+  const ALU1_COMPLETE_PAGES = [
+    "זה מאוד נפוץ בעולם המחשבים שיש פתרון פשוט שמשתמש ברכיבים מוכנים, ופתרון מסובך יותר שמשתמש בדיוק במה שצריך. יש יתרון להשתמש ברכיבים מוכנים: הם בדוקים היטב, אם תרצה לשפר אותם — זה ישפר גם את המוצר שמשתמש בהם, וזה בדרך כלל פשוט ומהיר יותר. יש גם יתרונות לבנייה של רכיבים המתאימים בדיוק למטרה שלך: זה יעיל יותר — זאת אומרת שהמוצר יהיה מהיר יותר, זול יותר להכנה ולפעמים מדויק יותר. כמו כן, שינוי ברכיב שאתה משתמש בו יכול לפעמים לגרום לשינוי לא צפוי במוצר שלך."
+  ];
+
+  // The after-completion message pages for an ALU card (null if it has none).
+  function aluMessagePagesFor(taskId) {
+    if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
+    if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
+    return null;
+  }
+
+  function aluTaskHasMessage(taskId) {
+    return Boolean(aluMessagePagesFor(taskId));
+  }
+
   function renderAluIntroDialog() {
     if (!state.aluIntroDialog) return "";
-    const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), ALU0_COMPLETE_PAGES.length - 1);
-    const isLast = page >= ALU0_COMPLETE_PAGES.length - 1;
+    const pages = aluMessagePagesFor(state.aluIntroDialog.taskId || "ALU0") || ALU0_COMPLETE_PAGES;
+    const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
+    const isLast = page >= pages.length - 1;
     return `
       <div class="dialog-overlay" role="presentation">
         <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="על ה-ALU">
-          <p class="dialog-paragraph">${esc(ALU0_COMPLETE_PAGES[page])}</p>
+          <p class="dialog-paragraph">${esc(pages[page])}</p>
           <div class="dialog-actions">
-            <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${ALU0_COMPLETE_PAGES.length}</span>
+            <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${pages.length}</span>
             <button class="btn btn-primary" data-action="${isLast ? "alu-intro-close" : "alu-intro-next"}">${isLast ? "הבנתי" : "המשך"}</button>
           </div>
         </section>
@@ -10617,11 +10790,12 @@
       }, true);
     }
 
-    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note. ALU0
-    // shows the "what is an ALU" message every time its solution is closed —
-    // both on first completion and when replaying it from the note.
+    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note. Cards
+    // with an after-completion message (ALU0 "what is an ALU", ALU1 ready-made-
+    // vs-custom) show it every time their solution is closed — both on first
+    // completion and when replaying from the note.
     if (isAluTask(taskId)) {
-      const showAluIntro = taskId === "ALU0";
+      const showAluIntro = aluTaskHasMessage(taskId);
       return setState({
         ...aluWorktableReturnTarget(),
         taskDialog: null,
@@ -10631,7 +10805,7 @@
         muxTable: null,
         completedTasks,
         aluNoteList: !showAluIntro,
-        aluIntroDialog: showAluIntro ? { page: 0 } : null,
+        aluIntroDialog: showAluIntro ? { page: 0, taskId } : null,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -10726,8 +10900,8 @@
     // ALU cards (2.6): back to the ALU worktable with its note (ALU0 first shows
     // the "what is an ALU" message).
     if (isAluTask(taskId)) {
-      const showAluIntro = taskId === "ALU0";
-      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0 } : null }, true);
+      const showAluIntro = aluTaskHasMessage(taskId);
+      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0, taskId } : null }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -13236,9 +13410,12 @@
       // explanation in the menu, with the fly-to-הסברים flourish the first time.
       // In step pace the silent unlock records it; in see-everything pace it's
       // already available — either way announceExplanationUnlock plays the
-      // flourish once (so the animation fires in "all" mode too).
-      unlockExplanation("alu-ALU0", { silent: true });
-      announceExplanationUnlock("alu-ALU0");
+      // flourish once (so the animation fires in "all" mode too). Only ALU0's
+      // message has a matching menu explanation (ALU1's does not).
+      if ((state.aluIntroDialog?.taskId || "ALU0") === "ALU0") {
+        unlockExplanation("alu-ALU0", { silent: true });
+        announceExplanationUnlock("alu-ALU0");
+      }
       // When the message was reached by replaying the ALU0 explanation from the
       // menu, closing it returns to the menu instead of the ALU worktable note.
       if (state.aluIntroDialog?.returnToExplanations) {

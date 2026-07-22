@@ -164,15 +164,16 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // The ALU0 gate (chapter 2.6): a box labelled "ALU" with two width-16 number
   // buses on the left, a single-bit control cable poking out the TOP, and one
   // width-16 output bus on the right (control selects AND vs ADD).
-  function aluGateMarkup(width) {
+  function aluGateMarkup(width, label) {
     const edge = 44;
     const bodyW = edge * 2;
     const bodyH = 76;               // half-height 38 — the control terminal (-46) sits outside
     const inX = -62;
     const outX = 66;
+    const text = label || "ALU";
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="6" text-anchor="middle">ALU</text>`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="6" text-anchor="middle"${text.length > 3 ? ' style="font-size:18px"' : ''}>${text}</text>`;
     s += busPin(inX, -edge, -26);   // number bus 1 (in1)
     s += busPin(inX, -edge, 26);    // number bus 2 (in2)
     s += busPin(edge, outX, 0);     // result bus (out1)
@@ -309,6 +310,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
       if (gateTask && gateTask.id === "ALU0") return aluGateMarkup(16);
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
+      if (gateTask && gateTask.id === "ALU1") return aluGateMarkup(16, "ALU1");
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

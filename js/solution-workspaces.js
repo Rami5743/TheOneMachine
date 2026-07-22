@@ -1181,6 +1181,84 @@ function createSolutionWorkspaces({
     return aluSolutionWorkspace("PreperNum", components, wires);
   }
 
+  // ALU1 shared skeleton: the control split into the parts we need, plus a
+  // PreperNum on each of the two numbers and an ALU0 combining them. `finalStage`
+  // returns the extra components/wires that turn ALU0's result into the card
+  // output (either a third PreperNum doing the optional NOT, or a MUX16 variant).
+  function alu1Skeleton(finalStage) {
+    // The card sits a bit left of the usual centre (cx=560) so the wide chain
+    // (control split → two preps → ALU0 → final stage) fits inside the frame and
+    // the final stage stays clear of the solution text panel on the right.
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("ALU1"), x: 560, y: 360 },
+      // Split the 6-bit control into three 2-bit parts: top part (first two bits)
+      // preps input1, middle part input2, bottom part is split again into the op
+      // bit (fifth) and the final-NOT bit (sixth).
+      { id: "ctrl-split", type: "splitter", x: 420, y: 210, mirrored: false, outputs: 3, width: 2 },
+      { id: "part3-split", type: "splitter", x: 532, y: 208, mirrored: false, outputs: 2, width: 1 },
+      { id: "pn1", type: "gate-PreperNum", x: 392, y: 285 },
+      { id: "pn2", type: "gate-PreperNum", x: 392, y: 452 },
+      { id: "alu0", type: "gate-ALU0", x: 582, y: 360 }
+    ];
+    const wires = [
+      // Control fan-out. ctrl-split.leg2 (top) = first two bits -> input1 prep;
+      // leg1 (mid) = next two -> input2 prep; leg0 (bottom) -> part3 (op + NOT).
+      normalizeWire("task-card-1.inputInt3", "ctrl-split.single"),
+      normalizeWire("ctrl-split.leg2", "pn1.in2"),
+      normalizeWire("ctrl-split.leg1", "pn2.in2"),
+      normalizeWire("ctrl-split.leg0", "part3-split.single"),
+      // Data: prep each number, then ALU0 does the op (fifth control bit).
+      normalizeWire("task-card-1.inputInt1", "pn1.in1"),
+      normalizeWire("task-card-1.inputInt2", "pn2.in1"),
+      normalizeWire("pn1.out1", "alu0.in1"),
+      normalizeWire("pn2.out1", "alu0.in2"),
+      normalizeWire("part3-split.leg1", "alu0.in3")
+    ];
+    const extra = finalStage();
+    components.push(...extra.components);
+    wires.push(...extra.wires);
+    return aluSolutionWorkspace("ALU1", components, wires);
+  }
+
+  // Main ALU1 solution: the final optional NOT is a THIRD PreperNum. Its control
+  // is a 2-bit bus whose "second" bit (zero stage) is left unconnected (=0) and
+  // whose "first" bit (NOT stage) is the sixth control bit — so it never zeroes,
+  // and NOTs exactly when the sixth bit says to.
+  function alu1SolutionFrom() {
+    return alu1Skeleton(() => ({
+      components: [
+        { id: "pn3-ctrl", type: "splitter", x: 668, y: 232, mirrored: true, outputs: 2, width: 1 },
+        { id: "pn3", type: "gate-PreperNum", x: 762, y: 360 }
+      ],
+      wires: [
+        // leg1 (top/"first" bit) = NOT stage <- sixth control bit; leg0 stays 0.
+        normalizeWire("part3-split.leg0", "pn3-ctrl.leg1"),
+        normalizeWire("pn3-ctrl.single", "pn3.in2"),
+        normalizeWire("alu0.out1", "pn3.in1"),
+        normalizeWire("pn3.out1", "task-card-1.outputInt1")
+      ]
+    }));
+  }
+
+  // Alternative ALU1 solution: instead of the third PreperNum, a MUX16 chooses
+  // between ALU0's result and its NOT (via Not16) by the sixth control bit.
+  function alu1AltSolutionFrom() {
+    return alu1Skeleton(() => ({
+      components: [
+        { id: "not16", type: "gate-Not16", x: 720, y: 470 },
+        { id: "mux-not", type: "gate-MUX16", x: 772, y: 360 }
+      ],
+      wires: [
+        normalizeWire("alu0.out1", "not16.in1"),
+        normalizeWire("alu0.out1", "mux-not.in1"),
+        normalizeWire("not16.out", "mux-not.in2"),
+        normalizeWire("part3-split.leg0", "mux-not.in3"),
+        normalizeWire("mux-not.out", "task-card-1.outputInt1")
+      ]
+    }));
+  }
+
   function solutionWorkspaceForTask(taskId, step = 0) {
     if (taskId === "halfAdder") return halfAdderSolutionFrom();
     if (taskId === "fullAdder") return fullAdderSolutionFrom();
@@ -1189,6 +1267,7 @@ function createSolutionWorkspaces({
     if (taskId === "Inc") return incSolutionFrom();
     if (taskId === "ALU0") return alu0SolutionFrom();
     if (taskId === "PreperNum") return preperNumSolutionFrom();
+    if (taskId === "ALU1") return step >= 5 ? alu1AltSolutionFrom() : alu1SolutionFrom();
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();

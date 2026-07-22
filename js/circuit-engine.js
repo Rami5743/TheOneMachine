@@ -391,6 +391,38 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
                 const stage1 = zeroBit ? false : Boolean(x[i]);
                 outVec.push(notBit ? !stage1 : stage1);
               }
+            } else if (alu.op === "alu1") {
+              // ALU1: two number buses (in1, in2) + a 6-bit control (in3). The
+              // control bus is read the way a learner splits it: the "first" bit
+              // is the TOP leg = the MSB. So the six control positions top→bottom
+              // are c5,c4,c3,c2,c1,c0. "First two bits" (c5,c4) prep input1 as a
+              // PreperNum 2-bit sub-control (first=top=c5 NOTs, second=c4 zeroes);
+              // "next two" (c3,c2) prep input2; "fifth" (c1) picks op (0 AND,
+              // 1 ADD); "sixth"/last (c0) NOTs the whole result.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in3`, outputs);
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[4], ctrl[5]);
+              const p2 = prep(v2, ctrl[2], ctrl[3]);
+              const opAdd = ctrl[1];
+              const finalNot = ctrl[0];
+              const combined = [];
+              if (opAdd) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              for (let i = 0; i < w; i += 1) outVec.push(finalNot ? !combined[i] : combined[i]);
             } else {
               // and-add (ALU0): in1, in2 number buses + single-bit control in3.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
