@@ -4359,13 +4359,13 @@
     ],
     ALU1: [
       {
-        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק העליון (שני הביטים הראשונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק התחתון מפוצל שוב לשני הביטים האחרונים — ביט הפעולה וביט ה-NOT.",
+        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק התחתון (שני הביטים הראשונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק העליון מפוצל שוב לשני הביטים האחרונים — ביט הפעולה וביט ה-NOT.",
         highlight: {
           components: ["ctrl-split", "part3-split"],
           terminals: ["task-card-1.inputInt3"],
           wires: [
             wireKey("task-card-1.inputInt3", "ctrl-split.single"),
-            wireKey("ctrl-split.leg0", "part3-split.single")
+            wireKey("ctrl-split.leg2", "part3-split.single")
           ]
         }
       },
@@ -4373,10 +4373,10 @@
         text: "החלק הזה מכין את הכניסה הראשונה — PreperNum על הכניסה הראשונה, עם החלק המתאים של הבקרה (שני הביטים הראשונים).",
         highlight: {
           components: ["pn1"],
-          terminals: ["task-card-1.inputInt1", "ctrl-split.leg2"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg0"],
           wires: [
             wireKey("task-card-1.inputInt1", "pn1.in1"),
-            wireKey("ctrl-split.leg2", "pn1.in2")
+            wireKey("ctrl-split.leg0", "pn1.in2")
           ]
         }
       },
@@ -4395,11 +4395,11 @@
         text: "החלק הזה מבצע את הפעולה על שתי ההכנות — ALU0 שמקבל את תוצאות שתי ההכנות ואת הביט החמישי של הבקרה (שקובע אם AND או חיבור).",
         highlight: {
           components: ["alu0"],
-          terminals: ["part3-split.leg1"],
+          terminals: ["part3-split.leg0"],
           wires: [
             wireKey("pn1.out1", "alu0.in1"),
             wireKey("pn2.out1", "alu0.in2"),
-            wireKey("part3-split.leg1", "alu0.in3")
+            wireKey("part3-split.leg0", "alu0.in3")
           ]
         }
       },
@@ -4407,9 +4407,9 @@
         text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט השישי).",
         highlight: {
           components: ["pn3", "pn3-ctrl"],
-          terminals: ["part3-split.leg0", "task-card-1.outputInt1"],
+          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
           wires: [
-            wireKey("part3-split.leg0", "pn3-ctrl.leg1"),
+            wireKey("part3-split.leg1", "pn3-ctrl.leg1"),
             wireKey("alu0.out1", "pn3.in1"),
             wireKey("pn3.out1", "task-card-1.outputInt1")
           ]
@@ -4419,12 +4419,12 @@
         text: "פתרון נוסף: במקום ה-PreperNum האחרון אפשר פשוט לעשות MUX16 שבוחר בין תוצאת ה-ALU0 (כשהביט השישי 0) לבין ה-NOT שלה (כשהוא 1). זה פתרון חסכוני יותר, אבל לפעמים קל יותר להשתמש ב-PreperNum מוכן.",
         highlight: {
           components: ["not16", "mux-not"],
-          terminals: ["part3-split.leg0", "task-card-1.outputInt1"],
+          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
           wires: [
             wireKey("alu0.out1", "not16.in1"),
             wireKey("alu0.out1", "mux-not.in1"),
             wireKey("not16.out", "mux-not.in2"),
-            wireKey("part3-split.leg0", "mux-not.in3"),
+            wireKey("part3-split.leg1", "mux-not.in3"),
             wireKey("mux-not.out", "task-card-1.outputInt1")
           ]
         }
@@ -9855,12 +9855,11 @@
         const s1 = zeroBit ? 0 : (n & 0xffff);
         return (notBit ? ~s1 : s1) & 0xffff;
       };
-      // "First bit up top" (MSB) convention: c5,c4 prep input1; c3,c2 input2;
-      // c1 op; c0 final NOT.
-      const p1 = prep(testCase.a, bit(4), bit(5));
+      // c0,c1 prep input1 (bottom chunk); c2,c3 prep input2; c4 op; c5 final NOT.
+      const p1 = prep(testCase.a, bit(0), bit(1));
       const p2 = prep(testCase.b, bit(2), bit(3));
-      const combined = bit(1) ? ((p1 + p2) & 0xffff) : (p1 & p2);
-      const result = (bit(0) ? ~combined : combined) & 0xffff;
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(5) ? ~combined : combined) & 0xffff;
       return {
         inputs: [
           { ref: "inputExt1", bits: add16Bits(testCase.a) },
@@ -9881,12 +9880,12 @@
         return (notBit ? ~s1 : s1) & 0xffff;
       };
       // Top bit c6 selects the second operand (0 → in2, 1 → in3); c0..c5 are the
-      // ALU1 sub-control (c5,c4 prep input1; c3,c2 prep operand2; c1 op; c0 NOT).
+      // ALU1 sub-control (c0,c1 prep input1; c2,c3 prep operand2; c4 op; c5 NOT).
       const op2 = bit(6) ? testCase.d : testCase.b;
-      const p1 = prep(testCase.a, bit(4), bit(5));
+      const p1 = prep(testCase.a, bit(0), bit(1));
       const p2 = prep(op2, bit(2), bit(3));
-      const combined = bit(1) ? ((p1 + p2) & 0xffff) : (p1 & p2);
-      const result = (bit(0) ? ~combined : combined) & 0xffff;
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(5) ? ~combined : combined) & 0xffff;
       return {
         inputs: [
           { ref: "inputExt1", bits: add16Bits(testCase.a) },
@@ -9911,10 +9910,10 @@
       // 1 -> ALU2 on the low 7 bits (c6 selects the operand between in2 and in3).
       const optionA = c & 0xffff;
       const op2 = bit(6) ? testCase.d : testCase.b;
-      const p1 = prep(testCase.a, bit(4), bit(5));
+      const p1 = prep(testCase.a, bit(0), bit(1));
       const p2 = prep(op2, bit(2), bit(3));
-      const combined = bit(1) ? ((p1 + p2) & 0xffff) : (p1 & p2);
-      const optionB = (bit(0) ? ~combined : combined) & 0xffff;
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const optionB = (bit(5) ? ~combined : combined) & 0xffff;
       const result = bit(11) ? optionB : optionA;
       return {
         inputs: [

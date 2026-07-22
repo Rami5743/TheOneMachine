@@ -393,12 +393,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               }
             } else if (alu.op === "alu1") {
               // ALU1: two number buses (in1, in2) + a 6-bit control (in3). The
-              // control bus is read the way a learner splits it: the "first" bit
-              // is the TOP leg = the MSB. So the six control positions top→bottom
-              // are c5,c4,c3,c2,c1,c0. "First two bits" (c5,c4) prep input1 as a
-              // PreperNum 2-bit sub-control (first=top=c5 NOTs, second=c4 zeroes);
-              // "next two" (c3,c2) prep input2; "fifth" (c1) picks op (0 AND,
-              // 1 ADD); "sixth"/last (c0) NOTs the whole result.
+              // control splits into three 2-bit chunks (leg0=c0,c1 the bottom
+              // chunk … leg2=c4,c5 the top). c0,c1 prep input1 as a PreperNum
+              // 2-bit sub-control (c0 zeroes, c1 NOTs); c2,c3 prep input2; c4
+              // picks the op (0 AND, 1 ADD); c5 NOTs the whole result.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
               const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
               const ctrl = inputBits(workspace, `${component.id}.in3`, outputs);
@@ -410,10 +408,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
                 }
                 return r;
               };
-              const p1 = prep(v1, ctrl[4], ctrl[5]);
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
               const p2 = prep(v2, ctrl[2], ctrl[3]);
-              const opAdd = ctrl[1];
-              const finalNot = ctrl[0];
+              const opAdd = ctrl[4];
+              const finalNot = ctrl[5];
               const combined = [];
               if (opAdd) {
                 const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
@@ -425,9 +423,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               for (let i = 0; i < w; i += 1) outVec.push(finalNot ? !combined[i] : combined[i]);
             } else if (alu.op === "alu2") {
               // ALU2: three number buses (in1,in2,in3) + a 7-bit control (in4).
-              // The "first" (top/MSB) control bit c6 selects the second operand
-              // (0 → in2, 1 → in3); the lower six bits c0..c5 are the ALU1 sub-
-              // control run on (in1, chosen operand).
+              // The top control bit c6 selects the second operand (0 → in2,
+              // 1 → in3); the lower six bits c0..c5 are the ALU1 sub-control run
+              // on (in1, chosen operand) — c0,c1 prep in1; c2,c3 prep the operand;
+              // c4 op; c5 final NOT.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
               const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
               const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
@@ -441,17 +440,17 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
                 }
                 return r;
               };
-              const p1 = prep(v1, ctrl[4], ctrl[5]);
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
               const p2 = prep(op2, ctrl[2], ctrl[3]);
               const combined = [];
-              if (ctrl[1]) {
+              if (ctrl[4]) {
                 const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
                 const total = toNum(p1) + toNum(p2);
                 for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
               } else {
                 for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
               }
-              for (let i = 0; i < w; i += 1) outVec.push(ctrl[0] ? !combined[i] : combined[i]);
+              for (let i = 0; i < w; i += 1) outVec.push(ctrl[5] ? !combined[i] : combined[i]);
             } else if (alu.op === "alu3") {
               // ALU3: three number buses (in1,in2,in3) + a 12-bit control (in4).
               // If the "first" (top/MSB) control bit c11 is 0 the output is the
@@ -474,10 +473,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
                 }
                 return r;
               };
-              const p1 = prep(v1, ctrl[4], ctrl[5]);
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
               const p2 = prep(op2, ctrl[2], ctrl[3]);
               const combined = [];
-              if (ctrl[1]) {
+              if (ctrl[4]) {
                 const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
                 const total = toNum(p1) + toNum(p2);
                 for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
@@ -485,7 +484,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
                 for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
               }
               const optionB = [];
-              for (let i = 0; i < w; i += 1) optionB.push(ctrl[0] ? !combined[i] : combined[i]);
+              for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
               const selector = ctrl[11];
               for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
             } else {
