@@ -2037,7 +2037,7 @@
           ${labeledButton("menu", "home", "תפריט ראשי")}
           ${labeledButton("chapters", "book", "פרקים")}
           ${labeledButton("explanations", "grad-cap", "הסברים")}
-          ${labeledButton("achievements", "trophy", "השיגים")}
+          ${labeledButton("achievements", "trophy", "הישגים")}
           ${myCardsButton()}
           ${labeledButton("about", "info", "אודות")}
           ${labeledButton("settings", "gear", "הגדרות")}
@@ -3284,7 +3284,7 @@
             ${labeledButton("continue", "resume-rtl", "המשך")}
             ${labeledButton("chapters", "book", "פרקים")}
             ${labeledButton("explanations", "grad-cap", "הסברים")}
-            ${labeledButton("achievements", "trophy", "השיגים")}
+            ${labeledButton("achievements", "trophy", "הישגים")}
             ${myCardsButton()}
             ${labeledButton("about", "info", "אודות")}
             ${labeledButton("settings", "gear", "הגדרות")}
@@ -3446,13 +3446,15 @@
       ${topbar()}
       <main class="screen menu-screen achievements-screen">
         <section class="menu-card achievements-card">
-          <h1>השיגים</h1>
+          <div class="achievements-top-actions">
+            <button class="btn" data-action="open-rankings" type="button">דירוגים</button>
+          </div>
+          <h1>הישגים</h1>
           <div class="achievements-columns">
-            ${column("progress", "השיגי התקדמות")}
-            ${column("special", "השיגים מיוחדים")}
+            ${column("progress", "הישגי התקדמות")}
+            ${column("special", "הישגים מיוחדים")}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
-            <button class="btn" data-action="open-rankings" type="button">דירוגים</button>
             ${pageBackButton()}
           </div>
         </section>
