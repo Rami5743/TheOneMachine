@@ -2916,6 +2916,13 @@
       ],
       enrichment: []
     },
+    // ALU (chapter 2.6): the ALU0 explanation replays its solution and then the
+    // "what is an ALU" message. Sits above Memory.
+    {
+      title: "ALU",
+      inGame: [{ alu: "ALU0", label: "ALU0" }],
+      enrichment: []
+    },
     // Memory: reserved for later (empty for now).
     {
       title: "זיכרון",
@@ -2943,6 +2950,15 @@
       const id = `arith-${spec.arith}`;
       return explanationUnlocked(id)
         ? `<button class="btn btn-primary expl-item" data-action="expl-arith-solution" data-arith="${esc(spec.arith)}" type="button">${esc(spec.label)}</button>`
+        : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
+    }
+    if (spec && spec.alu) {
+      // An ALU card explanation: replays its solution walkthrough (and, for ALU0,
+      // continues into the "what is an ALU" message). Active once the card is
+      // built — or always, in see-everything pace.
+      const active = taskCompleted(spec.alu) || !isStepByStepPace();
+      return active
+        ? `<button class="btn btn-primary expl-item" data-action="expl-alu-solution" data-task-id="${esc(spec.alu)}" type="button">${esc(spec.label)}</button>`
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
@@ -5855,6 +5871,7 @@
       ${renderNotTestResultDialog()}
       ${renderHintDialog()}
       ${renderConverterValueDialog()}
+      ${renderAluIntroDialog()}
       ${renderInfoDialog()}`;
     if (prevToolboxScroll) {
       const list = app.querySelector(".toolbox-list");
@@ -10477,6 +10494,14 @@
     // A gate solution opened from the explanations menu just goes back there,
     // without touching task progress or the story flow.
     if (state.solutionDialog?.returnToExplanations) {
+      // The ALU0 menu explanation continues into the "what is an ALU" message
+      // (over the solution circuit) and only then returns to the menu.
+      if (taskId === "ALU0") {
+        return setState({
+          solutionDialog: null,
+          aluIntroDialog: { page: 0, returnToExplanations: true }
+        }, false);
+      }
       return setState({
         screen: "explanations",
         solutionDialog: null,
@@ -13157,8 +13182,15 @@
     if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
     if (action === "alu-note-close") return setState({ aluNoteList: false });
     if (action === "alu-note-task") return handleAluNoteTask(button.dataset.taskId);
-    if (action === "alu-intro-next") return setState({ aluIntroDialog: { page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
-    if (action === "alu-intro-close") return setState({ aluIntroDialog: null, aluNoteList: true });
+    if (action === "alu-intro-next") return setState({ aluIntroDialog: { ...state.aluIntroDialog, page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
+    if (action === "alu-intro-close") {
+      // When the message was reached by replaying the ALU0 explanation from the
+      // menu, closing it returns to the menu instead of the ALU worktable note.
+      if (state.aluIntroDialog?.returnToExplanations) {
+        return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
+      }
+      return setState({ aluIntroDialog: null, aluNoteList: true });
+    }
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
@@ -13176,6 +13208,7 @@
     }
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
     if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
+    if (action === "expl-alu-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
     if (action === "expl-routing-info") return setState({ explRoutingInfo: { taskId: button.dataset.taskId } }, false);
     if (action === "expl-routing-info-close") return setState({ explRoutingInfo: null }, false);
     if (action === "expl-arith-solution") return openArithExplanationSolution(button.dataset.arith);
