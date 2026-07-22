@@ -239,6 +239,98 @@
 
   window.addEventListener("tom:statesaved", schedulePush);
 
+  // ---- efficiency leaderboard (hall of fame) --------------------------------
+  // One public-read row per user in a `rankings` table:
+  //   { user_id uuid pk, nickname text, counts jsonb, updated_at }
+  // counts maps cardId -> the user's best (lowest) Nand count. We cache every
+  // row and derive, per card, the record (lowest count) and each user's rank
+  // (ties share a rank). Nicknames appear only on a card's records list.
+  var LB_TABLE = "rankings";
+  var lbRows = [];
+  var lbPushTimer = null;
+
+  function myState() {
+    try { return JSON.parse(localStateString() || "{}"); } catch (e) { return {}; }
+  }
+  function myNickname() {
+    var s = myState();
+    return (typeof s.rankingsNickname === "string" && s.rankingsNickname) || "ללא שם";
+  }
+
+  async function fetchLeaderboard() {
+    if (!sb) return;
+    var res = await sb.from(LB_TABLE).select("nickname,counts");
+    if (res.error) { console.warn("[leaderboard] read failed:", res.error.message); return; }
+    lbRows = Array.isArray(res.data) ? res.data : [];
+    try { window.dispatchEvent(new CustomEvent("tom:leaderboard")); } catch (e) { /* ignore */ }
+  }
+
+  async function pushMyRankings() {
+    if (!sb || !currentUser) return;
+    var s = myState();
+    var res = await sb.from(LB_TABLE).upsert(
+      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
+    if (res.error) console.warn("[leaderboard] write failed:", res.error.message);
+    else fetchLeaderboard();
+  }
+
+  function scheduleRankingsPush() {
+    if (!currentUser) return;
+    clearTimeout(lbPushTimer);
+    lbPushTimer = setTimeout(pushMyRankings, 1500);
+  }
+  window.addEventListener("tom:statesaved", scheduleRankingsPush);
+
+  // Every user's (nickname, count) for a card that has a numeric count, ranked
+  // ascending with ties sharing a rank (1, 2, 2, 4 …).
+  function rankedEntries(cardId) {
+    var entries = lbRows
+      .map(function (r) {
+        var v = r && r.counts ? r.counts[cardId] : undefined;
+        return (typeof v === "number" && isFinite(v)) ? { nickname: (r.nickname || "ללא שם"), count: v } : null;
+      })
+      .filter(Boolean)
+      .sort(function (a, b) { return a.count - b.count; });
+    var rank = 0, prev = null, seen = 0;
+    return entries.map(function (e) {
+      seen += 1;
+      if (prev === null || e.count > prev) { rank = seen; prev = e.count; }
+      return { rank: rank, count: e.count, nickname: e.nickname };
+    });
+  }
+
+  function publishLeaderboardBridge() {
+    if (typeof APP === "undefined" || !APP) return;
+    APP.leaderboardRows = function (cardId) { return rankedEntries(cardId); };
+    APP.leaderboardFor = function (cardId) {
+      var ranked = rankedEntries(cardId);
+      if (!ranked.length) return null;
+      var out = { record: ranked[0].count, rank: null };
+      if (currentUser) {
+        var myCount = (myState().cardNandCounts || {})[cardId];
+        if (typeof myCount === "number") {
+          var below = ranked.filter(function (r) { return r.count < myCount; }).length;
+          out.rank = below + 1; // ties share a rank; robust even if my row isn't fetched yet
+        }
+      }
+      return out;
+    };
+    APP.refreshLeaderboard = fetchLeaderboard;
+    APP.setNickname = async function (nick) {
+      if (!sb || !currentUser) return; // local-only when signed out (no cross-user uniqueness)
+      var res = await sb.from(LB_TABLE).upsert(
+        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
+      if (res.error) {
+        // A unique-index violation means the nickname is taken.
+        try { window.dispatchEvent(new CustomEvent("tom:nicknametaken", { detail: { nickname: nick } })); } catch (e) { /* ignore */ }
+      } else { fetchLeaderboard(); }
+    };
+  }
+
   // ---- boot -----------------------------------------------------------------
   function loadOneScript(src) {
     return new Promise(function (resolve, reject) {
@@ -276,12 +368,14 @@
       return;
     }
     publishBridge(); // menu may now show the account button (starts logged-out)
+    publishLeaderboardBridge(); // rankings screen can query the leaderboard
     renderChip();    // show the floating chip (starts logged-out)
+    fetchLeaderboard(); // load the public leaderboard even before sign-in
     sb.auth.onAuthStateChange(function (event, session) {
       currentUser = (session && session.user) || null;
       if (!currentUser) reconciledUid = null;
       announceAuth();
-      if (currentUser) reconcile(currentUser.id);
+      if (currentUser) { reconcile(currentUser.id); pushMyRankings(); }
     });
   }
 

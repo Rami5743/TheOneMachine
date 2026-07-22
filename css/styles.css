@@ -3910,3 +3910,89 @@ object.panel-image.is-pending {
   flex-wrap: wrap;
   padding: 0 14px 14px;
 }
+
+/* ---- Efficiency rankings screen (דירוגי יעילות) ------------------------- */
+.rankings-card { max-width: 720px; }
+.rankings-sub {
+  margin: -0.3rem 0 1rem;
+  color: #5c4a2c;
+  font-size: 0.95rem;
+}
+.rankings-table-wrap { overflow-x: auto; }
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  direction: rtl;
+  font-size: 0.98rem;
+}
+.rankings-table th,
+.rankings-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(70, 50, 25, 0.18);
+}
+.rankings-table th {
+  font-weight: 800;
+  color: #3a2c14;
+  border-bottom: 2px solid rgba(70, 50, 25, 0.4);
+  white-space: nowrap;
+}
+.rankings-table td.rank-card-name,
+.rankings-table th.rank-card-name {
+  text-align: start;
+  font-weight: 700;
+}
+.rankings-table tbody tr:hover { background: rgba(255, 224, 138, 0.18); }
+.rank-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+.rank-undef, .rank-empty { color: #b0a488; }
+
+/* Rank medals for the top three (gold / silver / bronze). */
+.rank-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: 800;
+  color: #2b2308;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.rank-medal-gold   { background: radial-gradient(circle at 35% 30%, #fff3b0, #f5c518 65%, #b8860b); }
+.rank-medal-silver { background: radial-gradient(circle at 35% 30%, #ffffff, #cfd4da 65%, #8f969e); }
+.rank-medal-bronze { background: radial-gradient(circle at 35% 30%, #f6c9a0, #cd7f32 65%, #8c531b); }
+.rankings-note {
+  margin-top: 1rem;
+  color: #5c4a2c;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Nickname editor at the top of the rankings page. */
+.rankings-nickname {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 0.6rem;
+}
+.rankings-nickname label { font-weight: 700; color: #3a2c14; }
+.rankings-nickname-input {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(70, 50, 25, 0.5);
+  background: #fffdf7;
+  font: inherit;
+  min-width: 140px;
+}
+.rankings-nickname-error { color: #a12a2a; font-size: 0.85rem; }
+
+/* Clickable card rows on the main rankings table. */
+.rankings-row { cursor: pointer; }
+.rankings-row:hover td { background: rgba(255, 224, 138, 0.22); }
+.rankings-row:focus-visible { outline: 2px solid #f5c518; outline-offset: -2px; }
+
+/* Per-card records table. */
+.records-table .rank-nick { text-align: start; font-weight: 700; }
+.rankings-empty-row { color: #b0a488; padding: 14px; }

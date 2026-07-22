@@ -959,6 +959,17 @@
     // יסודי" (re-doing an already-done task after clearing its note).
     tasksEverCompleted: [],
     tasksClearedAfterCompletion: [],
+    // Efficiency ranking: the player's best (lowest) recursive Nand count per
+    // card, recorded when a card's check passes (see recordCardNandCount). A card
+    // built with a sub-card that has no count is stored as null (undefined).
+    cardNandCounts: {},
+    // The player's leaderboard nickname (shown only on a card's records page,
+    // never in the main table). Default "ללא שם".
+    rankingsNickname: "ללא שם",
+    // Which card's records page is open (screen "cardRecords").
+    rankingsCardId: null,
+    // Transient: a nickname validation/uniqueness error to show under the field.
+    rankingsNicknameError: null,
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -1688,7 +1699,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -3427,6 +3438,7 @@
             ${column("special", "השיגים מיוחדים")}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
+            <button class="btn" data-action="open-rankings" type="button">דירוגים</button>
             ${pageBackButton()}
           </div>
         </section>
@@ -8681,6 +8693,8 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
+    if (state.screen === "rankings") return renderRankingsScreen(app);
+    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -9359,6 +9373,33 @@
   };
   preloadSolutionDocs();
 
+  // The efficiency-rankings screen. Cross-user rank/record come from
+  // leaderboardFor (null until the leaderboard backend exists → placeholders).
+  const __rankings = createRankings({
+    getState: () => state, esc, adaptGender, topbar,
+    isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
+    getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
+    // Cross-user leaderboard: filled from the cloud once the backend exists.
+    leaderboardFor: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId) : null),
+    leaderboardRows: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardRows ? APP.leaderboardRows(cardId) : null)
+  });
+  const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
+  const renderCardRecordsScreen = (...args) => __rankings.renderCardRecordsScreen(...args);
+
+  // Save the leaderboard nickname from its input. Empty falls back to the shared
+  // default "ללא שם"; anything else must pass the name charset (and, once the
+  // leaderboard backend exists, be unique across users — enforced there).
+  function saveRankingsNickname() {
+    const input = document.querySelector("[data-rankings-nickname]");
+    let nick = input ? String(input.value || "").trim() : "";
+    if (!nick) nick = "ללא שם";
+    if (nick !== "ללא שם" && !CARD_NAME_ALLOWED.test(nick)) {
+      return setState({ rankingsNicknameError: "הכינוי מכיל תווים לא חוקיים. אותיות, ספרות, רווח, מקף וקו תחתון בלבד." }, false);
+    }
+    setState({ rankingsNickname: nick, rankingsNicknameError: null }, false);
+    if (typeof APP !== "undefined" && APP && typeof APP.setNickname === "function") APP.setNickname(nick);
+  }
+
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.
   function refreshMuxSolutionIfShown() {
@@ -9409,6 +9450,71 @@
     document.body.appendChild(holder);
   }
 
+  // ---- Efficiency ranking: recursive Nand count of the player's build --------
+  // A single component contributes: a raw Nand = 1; a placed built card
+  // (gate-<id> or usercard-<n>) = that card's own stored count; anything else
+  // (splitter, source, lamp, frame …) = 0. Returns null if a placed card has no
+  // stored count (built with a card that wasn't built → the whole build is
+  // "undefined").
+  function componentNandCount(type, counts) {
+    if (type === "nand") return 1;
+    counts = counts || state.cardNandCounts || {};
+    if (typeof type === "string" && type.startsWith("gate-")) {
+      const v = counts[type.slice(5)];
+      return typeof v === "number" && isFinite(v) ? v : null;
+    }
+    if (typeof type === "string" && type.startsWith("usercard-")) {
+      const v = counts[type];
+      return typeof v === "number" && isFinite(v) ? v : null;
+    }
+    return 0;
+  }
+
+  function computeBuildNandCount(components, counts) {
+    let total = 0;
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const n = componentNandCount(comp && comp.type, counts);
+      if (n === null) return null; // used a card with no count → undefined
+      total += n;
+    }
+    return total;
+  }
+
+  // Fill in a Nand count for cards the player already completed before their
+  // builds were counted (a completed card can no longer be re-checked). We use
+  // the reference solution's count as the baseline; a later live rebuild records
+  // the player's own (best) count. Processed in card order so a super-card's
+  // sub-cards are counted first.
+  function backfillCompletedCardCounts() {
+    const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
+    const counts = { ...(state.cardNandCounts || {}) };
+    let changed = false;
+    for (const card of cards) {
+      if (card.id === "Nand" || typeof counts[card.id] === "number") continue;
+      if (!taskCompleted(card.id)) continue;
+      let ws = null;
+      try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
+      if (!ws) continue;
+      const c = computeBuildNandCount(ws.components, counts);
+      if (typeof c === "number") { counts[card.id] = c; changed = true; }
+    }
+    if (changed) setState({ cardNandCounts: counts }, false);
+  }
+
+  // Record the player's Nand count for a just-passed card, keeping the BEST
+  // (lowest) valid build. Uses the pre-harness snapshot (the learner's own
+  // circuit) when available.
+  function recordCardNandCount(taskId, buildWorkspace) {
+    if (!taskId) return null;
+    const ws = buildWorkspace || {};
+    const count = computeBuildNandCount(ws.components);
+    const prev = (state.cardNandCounts || {})[taskId];
+    let next;
+    if (count === null) next = (typeof prev === "number") ? prev : null;
+    else next = (typeof prev === "number") ? Math.min(prev, count) : count;
+    return { ...(state.cardNandCounts || {}), [taskId]: next };
+  }
+
   function showNotTestResult(result, workspace, taskId) {
     clearNotTestTimer();
     const patch = {
@@ -9423,10 +9529,15 @@
         if (!failed.includes(taskId)) patch.tasksFailedOnce = [...failed, taskId];
       }
       if (taskHasHints(taskId)) patch.hintState = recordHintFailure(taskId);
-    } else if (result === "success" && taskId && !taskCompleted(taskId)
+    } else if (result === "success" && taskId
         && !(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []).includes(taskId)) {
       // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
-      unlockAchievement("precise-engineer");
+      if (!taskCompleted(taskId)) unlockAchievement("precise-engineer");
+    }
+    // Efficiency ranking: record the player's recursive Nand count for this card
+    // (their best build) from the pre-harness snapshot of their own circuit.
+    if (result === "success" && taskId) {
+      patch.cardNandCounts = recordCardNandCount(taskId, notTestSnapshot || workspace);
     }
     setState(patch, false);
   }
@@ -13377,6 +13488,18 @@
     const user = event.detail && event.detail.user;
     if (user && typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("connected");
     if (state.screen === "menu") render();
+    // A fresh sign-in refreshes the leaderboard for the rankings screens.
+    if (user && typeof APP !== "undefined" && APP.refreshLeaderboard) APP.refreshLeaderboard();
+  });
+
+  // Fresh leaderboard data arrived → re-render if a rankings screen is showing.
+  window.addEventListener("tom:leaderboard", () => {
+    if (state.screen === "rankings" || state.screen === "cardRecords") render();
+  });
+
+  // The chosen nickname is already taken by another user → show it on the field.
+  window.addEventListener("tom:nicknametaken", () => {
+    setState({ rankingsNicknameError: "הכינוי הזה כבר תפוס. בחר כינוי אחר." }, false);
   });
 
   // Load a whole-progress file picked from the main menu.
@@ -13698,6 +13821,15 @@
     if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
+    if (action === "open-rankings") {
+      backfillCompletedCardCounts(); // count already-completed cards (reference build)
+      if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
+      return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+    }
+    if (action === "rankings-back") return setState({ screen: "achievements" }, false);
+    if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
+    if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
+    if (action === "rankings-nickname-save") return saveRankingsNickname();
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
