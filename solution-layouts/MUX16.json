@@ -1,146 +1,152 @@
 {
-  "task": "MUX16",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 65,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-MUX16",
-      "x": 640,
-      "y": 288
-    },
-    {
-      "id": "split-a",
-      "type": "splitter",
-      "x": 430,
-      "y": 198,
-      "outputs": 4,
-      "width": 4,
-      "mirrored": false
-    },
-    {
-      "id": "split-b",
-      "type": "splitter",
-      "x": 430,
-      "y": 378,
-      "outputs": 4,
-      "width": 4,
-      "mirrored": false
-    },
-    {
-      "id": "merge",
-      "type": "splitter",
-      "x": 850,
-      "y": 288,
-      "outputs": 4,
-      "width": 4,
-      "mirrored": true
-    },
-    {
-      "id": "mux4-0",
-      "type": "gate-MUX4",
-      "x": 650,
-      "y": 393
-    },
-    {
-      "id": "mux4-1",
-      "type": "gate-MUX4",
-      "x": 650,
-      "y": 323
-    },
-    {
-      "id": "mux4-2",
-      "type": "gate-MUX4",
-      "x": 650,
-      "y": 253
-    },
-    {
-      "id": "mux4-3",
-      "type": "gate-MUX4",
-      "x": 650,
-      "y": 183
-    }
-  ],
-  "wires": [
-    {
-      "a": "split-a.single",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "split-b.single",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "merge.single",
-      "b": "task-card-1.outputInt"
-    },
-    {
-      "a": "mux4-0.in1",
-      "b": "split-a.leg0"
-    },
-    {
-      "a": "mux4-0.in2",
-      "b": "split-b.leg0"
-    },
-    {
-      "a": "mux4-0.in3",
-      "b": "task-card-1.inputInt3"
-    },
-    {
-      "a": "merge.leg0",
-      "b": "mux4-0.out"
-    },
-    {
-      "a": "mux4-1.in1",
-      "b": "split-a.leg1"
-    },
-    {
-      "a": "mux4-1.in2",
-      "b": "split-b.leg1"
-    },
-    {
-      "a": "mux4-1.in3",
-      "b": "task-card-1.inputInt3"
-    },
-    {
-      "a": "merge.leg1",
-      "b": "mux4-1.out"
-    },
-    {
-      "a": "mux4-2.in1",
-      "b": "split-a.leg2"
-    },
-    {
-      "a": "mux4-2.in2",
-      "b": "split-b.leg2"
-    },
-    {
-      "a": "mux4-2.in3",
-      "b": "task-card-1.inputInt3"
-    },
-    {
-      "a": "merge.leg2",
-      "b": "mux4-2.out"
-    },
-    {
-      "a": "mux4-3.in1",
-      "b": "split-a.leg3"
-    },
-    {
-      "a": "mux4-3.in2",
-      "b": "split-b.leg3"
-    },
-    {
-      "a": "mux4-3.in3",
-      "b": "task-card-1.inputInt3"
-    },
-    {
-      "a": "merge.leg3",
-      "b": "mux4-3.out"
+      "type": "usercard-1",
+      "name": "MUX16-solution",
+      "inputs": [
+        16,
+        16,
+        1
+      ],
+      "outputs": [
+        16
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "split-a",
+            "type": "splitter",
+            "x": 290,
+            "y": 198,
+            "outputs": 4,
+            "width": 4,
+            "mirrored": false
+          },
+          {
+            "id": "split-b",
+            "type": "splitter",
+            "x": 290,
+            "y": 378,
+            "outputs": 4,
+            "width": 4,
+            "mirrored": false
+          },
+          {
+            "id": "merge",
+            "type": "splitter",
+            "x": 710,
+            "y": 288,
+            "outputs": 4,
+            "width": 4,
+            "mirrored": true
+          },
+          {
+            "id": "mux4-0",
+            "type": "gate-MUX4",
+            "x": 510,
+            "y": 393
+          },
+          {
+            "id": "mux4-1",
+            "type": "gate-MUX4",
+            "x": 510,
+            "y": 323
+          },
+          {
+            "id": "mux4-2",
+            "type": "gate-MUX4",
+            "x": 510,
+            "y": 253
+          },
+          {
+            "id": "mux4-3",
+            "type": "gate-MUX4",
+            "x": 510,
+            "y": 183
+          }
+        ],
+        "wires": [
+          {
+            "a": "split-a.single",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "split-b.single",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "merge.single",
+            "b": "card-frame-1.outputInt0"
+          },
+          {
+            "a": "mux4-0.in1",
+            "b": "split-a.leg0"
+          },
+          {
+            "a": "mux4-0.in2",
+            "b": "split-b.leg0"
+          },
+          {
+            "a": "mux4-0.in3",
+            "b": "card-frame-1.inputInt2"
+          },
+          {
+            "a": "merge.leg0",
+            "b": "mux4-0.out"
+          },
+          {
+            "a": "mux4-1.in1",
+            "b": "split-a.leg1"
+          },
+          {
+            "a": "mux4-1.in2",
+            "b": "split-b.leg1"
+          },
+          {
+            "a": "mux4-1.in3",
+            "b": "card-frame-1.inputInt2"
+          },
+          {
+            "a": "merge.leg1",
+            "b": "mux4-1.out"
+          },
+          {
+            "a": "mux4-2.in1",
+            "b": "split-a.leg2"
+          },
+          {
+            "a": "mux4-2.in2",
+            "b": "split-b.leg2"
+          },
+          {
+            "a": "mux4-2.in3",
+            "b": "card-frame-1.inputInt2"
+          },
+          {
+            "a": "merge.leg2",
+            "b": "mux4-2.out"
+          },
+          {
+            "a": "mux4-3.in1",
+            "b": "split-a.leg3"
+          },
+          {
+            "a": "mux4-3.in2",
+            "b": "split-b.leg3"
+          },
+          {
+            "a": "mux4-3.in3",
+            "b": "card-frame-1.inputInt2"
+          },
+          {
+            "a": "merge.leg3",
+            "b": "mux4-3.out"
+          }
+        ]
+      }
     }
   ]
 }

@@ -1,130 +1,135 @@
 {
-  "task": "AND4",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 65,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-AND4",
-      "x": 640,
-      "y": 288
-    },
-    {
-      "id": "split-a",
-      "type": "splitter",
-      "x": 450,
-      "y": 198,
-      "outputs": 4,
-      "width": 1,
-      "mirrored": false
-    },
-    {
-      "id": "split-b",
-      "type": "splitter",
-      "x": 450,
-      "y": 378,
-      "outputs": 4,
-      "width": 1,
-      "mirrored": false
-    },
-    {
-      "id": "merge",
-      "type": "splitter",
-      "x": 830,
-      "y": 288,
-      "outputs": 4,
-      "width": 1,
-      "mirrored": true
-    },
-    {
-      "id": "and-0",
-      "type": "gate-And",
-      "x": 660,
-      "y": 393
-    },
-    {
-      "id": "and-1",
-      "type": "gate-And",
-      "x": 660,
-      "y": 323
-    },
-    {
-      "id": "and-2",
-      "type": "gate-And",
-      "x": 660,
-      "y": 253
-    },
-    {
-      "id": "and-3",
-      "type": "gate-And",
-      "x": 660,
-      "y": 183
-    }
-  ],
-  "wires": [
-    {
-      "a": "split-a.single",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "split-b.single",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "merge.single",
-      "b": "task-card-1.outputInt"
-    },
-    {
-      "a": "and-0.in1",
-      "b": "split-a.leg0"
-    },
-    {
-      "a": "and-0.in2",
-      "b": "split-b.leg0"
-    },
-    {
-      "a": "and-0.out",
-      "b": "merge.leg0"
-    },
-    {
-      "a": "and-1.in1",
-      "b": "split-a.leg1"
-    },
-    {
-      "a": "and-1.in2",
-      "b": "split-b.leg1"
-    },
-    {
-      "a": "and-1.out",
-      "b": "merge.leg1"
-    },
-    {
-      "a": "and-2.in1",
-      "b": "split-a.leg2"
-    },
-    {
-      "a": "and-2.in2",
-      "b": "split-b.leg2"
-    },
-    {
-      "a": "and-2.out",
-      "b": "merge.leg2"
-    },
-    {
-      "a": "and-3.in1",
-      "b": "split-a.leg3"
-    },
-    {
-      "a": "and-3.in2",
-      "b": "split-b.leg3"
-    },
-    {
-      "a": "and-3.out",
-      "b": "merge.leg3"
+      "type": "usercard-1",
+      "name": "AND4-solution",
+      "inputs": [
+        4,
+        4
+      ],
+      "outputs": [
+        4
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "split-a",
+            "type": "splitter",
+            "x": 310,
+            "y": 198,
+            "outputs": 4,
+            "width": 1,
+            "mirrored": false
+          },
+          {
+            "id": "split-b",
+            "type": "splitter",
+            "x": 310,
+            "y": 378,
+            "outputs": 4,
+            "width": 1,
+            "mirrored": false
+          },
+          {
+            "id": "merge",
+            "type": "splitter",
+            "x": 690,
+            "y": 288,
+            "outputs": 4,
+            "width": 1,
+            "mirrored": true
+          },
+          {
+            "id": "and-0",
+            "type": "gate-And",
+            "x": 520,
+            "y": 393
+          },
+          {
+            "id": "and-1",
+            "type": "gate-And",
+            "x": 520,
+            "y": 323
+          },
+          {
+            "id": "and-2",
+            "type": "gate-And",
+            "x": 520,
+            "y": 253
+          },
+          {
+            "id": "and-3",
+            "type": "gate-And",
+            "x": 520,
+            "y": 183
+          }
+        ],
+        "wires": [
+          {
+            "a": "split-a.single",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "split-b.single",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "merge.single",
+            "b": "card-frame-1.outputInt0"
+          },
+          {
+            "a": "and-0.in1",
+            "b": "split-a.leg0"
+          },
+          {
+            "a": "and-0.in2",
+            "b": "split-b.leg0"
+          },
+          {
+            "a": "and-0.out",
+            "b": "merge.leg0"
+          },
+          {
+            "a": "and-1.in1",
+            "b": "split-a.leg1"
+          },
+          {
+            "a": "and-1.in2",
+            "b": "split-b.leg1"
+          },
+          {
+            "a": "and-1.out",
+            "b": "merge.leg1"
+          },
+          {
+            "a": "and-2.in1",
+            "b": "split-a.leg2"
+          },
+          {
+            "a": "and-2.in2",
+            "b": "split-b.leg2"
+          },
+          {
+            "a": "and-2.out",
+            "b": "merge.leg2"
+          },
+          {
+            "a": "and-3.in1",
+            "b": "split-a.leg3"
+          },
+          {
+            "a": "and-3.in2",
+            "b": "split-b.leg3"
+          },
+          {
+            "a": "and-3.out",
+            "b": "merge.leg3"
+          }
+        ]
+      }
     }
   ]
 }

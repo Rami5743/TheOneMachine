@@ -1,53 +1,58 @@
 {
-  "task": "And",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 80,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-And",
-      "x": 500,
-      "y": 288
-    },
-    {
-      "id": "lamp-1",
-      "type": "lamp",
-      "x": 910,
-      "y": 258
-    },
-    {
-      "id": "nand-1",
-      "type": "nand",
-      "x": 420,
-      "y": 288
-    },
-    {
-      "id": "not-1",
-      "type": "gate-Not",
-      "x": 640,
-      "y": 288
-    }
-  ],
-  "wires": [
-    {
-      "a": "nand-1.in1",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "nand-1.in2",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "nand-1.out",
-      "b": "not-1.in1"
-    },
-    {
-      "a": "not-1.out",
-      "b": "task-card-1.outputInt"
+      "type": "usercard-1",
+      "name": "And-solution",
+      "inputs": [
+        1,
+        1
+      ],
+      "outputs": [
+        1
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "lamp-1",
+            "type": "lamp",
+            "x": 910,
+            "y": 258
+          },
+          {
+            "id": "nand-1",
+            "type": "nand",
+            "x": 420,
+            "y": 288
+          },
+          {
+            "id": "not-1",
+            "type": "gate-Not",
+            "x": 640,
+            "y": 288
+          }
+        ],
+        "wires": [
+          {
+            "a": "nand-1.in1",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "nand-1.in2",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "nand-1.out",
+            "b": "not-1.in1"
+          },
+          {
+            "a": "not-1.out",
+            "b": "card-frame-1.outputInt0"
+          }
+        ]
+      }
     }
   ]
 }

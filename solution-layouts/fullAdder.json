@@ -1,81 +1,88 @@
 {
-  "task": "fullAdder",
-  "components": [
+  "format": "theonemachine-card",
+  "version": 1,
+  "root": "usercard-1",
+  "cards": [
     {
-      "id": "source-1",
-      "type": "source",
-      "x": 80,
-      "y": 288
-    },
-    {
-      "id": "task-card-1",
-      "type": "taskCard-fullAdder",
-      "x": 500,
-      "y": 288
-    },
-    {
-      "id": "lamp-1",
-      "type": "lamp",
-      "x": 940,
-      "y": 358
-    },
-    {
-      "id": "lamp-2",
-      "type": "lamp",
-      "x": 940,
-      "y": 158
-    },
-    {
-      "id": "ha-1",
-      "type": "gate-halfAdder",
-      "x": 330,
-      "y": 200
-    },
-    {
-      "id": "ha-2",
-      "type": "gate-halfAdder",
-      "x": 500,
-      "y": 320
-    },
-    {
-      "id": "ha-3",
-      "type": "gate-halfAdder",
-      "x": 690,
-      "y": 240
-    }
-  ],
-  "wires": [
-    {
-      "a": "ha-1.in1",
-      "b": "task-card-1.inputInt1"
-    },
-    {
-      "a": "ha-1.in2",
-      "b": "task-card-1.inputInt2"
-    },
-    {
-      "a": "ha-1.out1",
-      "b": "ha-2.in1"
-    },
-    {
-      "a": "ha-2.in2",
-      "b": "task-card-1.inputInt3"
-    },
-    {
-      "a": "ha-2.out1",
-      "b": "task-card-1.outputInt1"
-    },
-    {
-      "a": "ha-1.out2",
-      "b": "ha-3.in1"
-    },
-    {
-      "a": "ha-2.out2",
-      "b": "ha-3.in2"
-    },
-    {
-      "a": "ha-3.out1",
-      "b": "task-card-1.outputInt2"
+      "type": "usercard-1",
+      "name": "fullAdder-solution",
+      "inputs": [
+        1,
+        1,
+        1
+      ],
+      "outputs": [
+        1,
+        1
+      ],
+      "logic": {
+        "components": [
+          {
+            "id": "lamp-1",
+            "type": "lamp",
+            "x": 940,
+            "y": 358
+          },
+          {
+            "id": "lamp-2",
+            "type": "lamp",
+            "x": 940,
+            "y": 158
+          },
+          {
+            "id": "ha-1",
+            "type": "gate-halfAdder",
+            "x": 330,
+            "y": 200
+          },
+          {
+            "id": "ha-2",
+            "type": "gate-halfAdder",
+            "x": 500,
+            "y": 320
+          },
+          {
+            "id": "ha-3",
+            "type": "gate-halfAdder",
+            "x": 690,
+            "y": 240
+          }
+        ],
+        "wires": [
+          {
+            "a": "ha-1.in1",
+            "b": "card-frame-1.inputInt0"
+          },
+          {
+            "a": "ha-1.in2",
+            "b": "card-frame-1.inputInt1"
+          },
+          {
+            "a": "ha-1.out1",
+            "b": "ha-2.in1"
+          },
+          {
+            "a": "ha-2.in2",
+            "b": "card-frame-1.inputInt2"
+          },
+          {
+            "a": "ha-2.out1",
+            "b": "card-frame-1.outputInt0"
+          },
+          {
+            "a": "ha-1.out2",
+            "b": "ha-3.in1"
+          },
+          {
+            "a": "ha-2.out2",
+            "b": "ha-3.in2"
+          },
+          {
+            "a": "ha-3.out1",
+            "b": "card-frame-1.outputInt1"
+          }
+        ]
+      }
     }
   ]
 }
