@@ -825,6 +825,10 @@
     // יסודי" (re-doing an already-done task after clearing its note).
     tasksEverCompleted: [],
     tasksClearedAfterCompletion: [],
+    // Efficiency ranking: the player's best (lowest) recursive Nand count per
+    // card, recorded when a card's check passes (see recordCardNandCount). A card
+    // built with a sub-card that has no count is stored as null (undefined).
+    cardNandCounts: {},
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -1547,7 +1551,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
 
     if (loaded.dialog) {
@@ -3285,6 +3289,7 @@
             ${column("special", "השיגים מיוחדים")}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
+            <button class="btn" data-action="open-rankings" type="button">דירוגים</button>
             ${pageBackButton()}
           </div>
         </section>
@@ -8363,6 +8368,7 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
+    if (state.screen === "rankings") return renderRankingsScreen(app);
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -9005,6 +9011,15 @@
   const workspaceForTaskTestRow = (...args) => __solutionWorkspaces.workspaceForTaskTestRow(...args);
   const solutionWorkspaceForTask = (...args) => __solutionWorkspaces.solutionWorkspaceForTask(...args);
 
+  // The efficiency-rankings screen. Cross-user rank/record come from
+  // leaderboardFor (null until the leaderboard backend exists → placeholders).
+  const __rankings = createRankings({
+    getState: () => state, esc, adaptGender, topbar,
+    isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
+    leaderboardFor: () => null
+  });
+  const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
+
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.
   function refreshMuxSolutionIfShown() {
@@ -9055,6 +9070,50 @@
     document.body.appendChild(holder);
   }
 
+  // ---- Efficiency ranking: recursive Nand count of the player's build --------
+  // A single component contributes: a raw Nand = 1; a placed built card
+  // (gate-<id> or usercard-<n>) = that card's own stored count; anything else
+  // (splitter, source, lamp, frame …) = 0. Returns null if a placed card has no
+  // stored count (built with a card that wasn't built → the whole build is
+  // "undefined").
+  function componentNandCount(type) {
+    if (type === "nand") return 1;
+    const counts = state.cardNandCounts || {};
+    if (typeof type === "string" && type.startsWith("gate-")) {
+      const v = counts[type.slice(5)];
+      return typeof v === "number" && isFinite(v) ? v : null;
+    }
+    if (typeof type === "string" && type.startsWith("usercard-")) {
+      const v = counts[type];
+      return typeof v === "number" && isFinite(v) ? v : null;
+    }
+    return 0;
+  }
+
+  function computeBuildNandCount(components) {
+    let total = 0;
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const n = componentNandCount(comp && comp.type);
+      if (n === null) return null; // used a card with no count → undefined
+      total += n;
+    }
+    return total;
+  }
+
+  // Record the player's Nand count for a just-passed card, keeping the BEST
+  // (lowest) valid build. Uses the pre-harness snapshot (the learner's own
+  // circuit) when available.
+  function recordCardNandCount(taskId, buildWorkspace) {
+    if (!taskId) return null;
+    const ws = buildWorkspace || {};
+    const count = computeBuildNandCount(ws.components);
+    const prev = (state.cardNandCounts || {})[taskId];
+    let next;
+    if (count === null) next = (typeof prev === "number") ? prev : null;
+    else next = (typeof prev === "number") ? Math.min(prev, count) : count;
+    return { ...(state.cardNandCounts || {}), [taskId]: next };
+  }
+
   function showNotTestResult(result, workspace, taskId) {
     clearNotTestTimer();
     const patch = {
@@ -9069,10 +9128,15 @@
         if (!failed.includes(taskId)) patch.tasksFailedOnce = [...failed, taskId];
       }
       if (taskHasHints(taskId)) patch.hintState = recordHintFailure(taskId);
-    } else if (result === "success" && taskId && !taskCompleted(taskId)
+    } else if (result === "success" && taskId
         && !(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []).includes(taskId)) {
       // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
-      unlockAchievement("precise-engineer");
+      if (!taskCompleted(taskId)) unlockAchievement("precise-engineer");
+    }
+    // Efficiency ranking: record the player's recursive Nand count for this card
+    // (their best build) from the pre-harness snapshot of their own circuit.
+    if (result === "success" && taskId) {
+      patch.cardNandCounts = recordCardNandCount(taskId, notTestSnapshot || workspace);
     }
     setState(patch, false);
   }
@@ -13158,6 +13222,8 @@
     if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
+    if (action === "open-rankings") return setState({ screen: "rankings" }, false);
+    if (action === "rankings-back") return setState({ screen: "achievements" }, false);
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
