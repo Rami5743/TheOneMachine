@@ -12927,6 +12927,18 @@
     const user = event.detail && event.detail.user;
     if (user && typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("connected");
     if (state.screen === "menu") render();
+    // A fresh sign-in refreshes the leaderboard for the rankings screens.
+    if (user && typeof APP !== "undefined" && APP.refreshLeaderboard) APP.refreshLeaderboard();
+  });
+
+  // Fresh leaderboard data arrived → re-render if a rankings screen is showing.
+  window.addEventListener("tom:leaderboard", () => {
+    if (state.screen === "rankings" || state.screen === "cardRecords") render();
+  });
+
+  // The chosen nickname is already taken by another user → show it on the field.
+  window.addEventListener("tom:nicknametaken", () => {
+    setState({ rankingsNicknameError: "הכינוי הזה כבר תפוס. בחר כינוי אחר." }, false);
   });
 
   // Load a whole-progress file picked from the main menu.
@@ -13248,7 +13260,10 @@
     if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
-    if (action === "open-rankings") return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+    if (action === "open-rankings") {
+      if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
+      return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+    }
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
     if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
     if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
