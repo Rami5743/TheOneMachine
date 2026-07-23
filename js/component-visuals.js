@@ -245,8 +245,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // cable; a wider — or still-undetermined — leg draws as a bus bar.
     const legs = Array.isArray(legWidths) ? legWidths : null;
     const legWidthOf = (i) => (legs ? legs[i] : (Number.isInteger(width) ? width : null));
+    // Leg i sits at ((n-1)/2 - i)*spacing — leg 0 at the BOTTOM — matching the pin
+    // geometry (splitterOutputYs in app.js / splitterPin in editor.html). Drawing
+    // it top-down instead would put each leg's bus/cable shape on the opposite leg
+    // from its own pin, which shows once legs have different widths.
     const ys = [];
-    for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
+    for (let i = 0; i < n; i++) ys.push(Math.round(((n - 1) / 2 - i) * spacing));
     const halfH = ((n - 1) * spacing) / 2;
     const spineTop = -(halfH + 8);
     const spine = `<rect class="splitter-bar" x="-7" y="${spineTop}" width="14" height="${halfH * 2 + 16}" />`;
