@@ -63,6 +63,7 @@
       <label class="toggle"><input type="checkbox" id="showcheck"> מנגנוני בדיקה</label>
       <button class="ghost" id="btn-load">טען JSON…</button>
       <button id="btn-save">שמור JSON</button>
+      <button id="btn-bundle" title="מייצר את assets/solutions/solutions.js עם הפתרון הנוכחי ממוזג לשאר">שמור חבילה</button>
       <input type="file" id="file" class="file-in" accept=".json,application/json" />
     </div>
     <svg id="stage" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet"></svg>
@@ -325,6 +326,21 @@ document.getElementById("file").onchange=(e)=>{ const f=e.target.files[0]; if(!f
 document.getElementById("btn-apply").onclick=()=>{ try{loadDoc(JSON.parse(document.getElementById("json-box").value));}catch(err){status("שגיאת JSON: "+err.message);} };
 document.getElementById("btn-copy").onclick=async()=>{ syncJsonBox(); try{await navigator.clipboard.writeText(document.getElementById("json-box").value); status("הועתק.");}catch{status("סמן ידנית להעתקה.");} };
 document.getElementById("btn-save").onclick=()=>{ syncJsonBox(); const b=new Blob([document.getElementById("json-box").value],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download=(doc.task||"solution")+".json"; a.click(); };
+// Emit assets/solutions/solutions.js — the whole embedded bundle with the doc
+// currently open merged in — so the game reads the edit from file:// (no rebuild
+// step / no server needed). Mirrors tools/build-solutions.js output exactly.
+document.getElementById("btn-bundle").onclick=()=>{
+  syncJsonBox();
+  const all=Object.assign({}, window.EMBEDDED_SOLUTIONS||{});
+  if(doc&&doc.task) all[doc.task]=doc;
+  const banner="// AUTO-GENERATED from assets/solutions/*.json — do not edit by hand.\n"
+    +"// Regenerate with: node tools/build-solutions.js (or the editor's “שמור חבילה” button).\n"
+    +"// Lets the solution docs load from file:// (no server), where fetch() is blocked.\n";
+  const text=banner+"window.EMBEDDED_SOLUTIONS = "+JSON.stringify(all,null,2)+";\n";
+  const b=new Blob([text],{type:"application/javascript"}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(b); a.download="solutions.js"; a.click();
+  status("נשמרה חבילה: solutions.js ("+Object.keys(all).length+" פתרונות: "+Object.keys(all).join(", ")+"). החלף בה את assets/solutions/solutions.js");
+};
 
 // ---- load ALU1 from assets/solutions on start (fallback to embedded) ----
 const EXAMPLE = {"format":"theonemachine-solution","version":1,"task":"ALU1",
