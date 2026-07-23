@@ -4272,19 +4272,11 @@
     ],
     Inc: [
       {
-        text: "כדי להוסיף 1 צריך קודם ליצור בס ברוחב 16 שמייצג את המספר 1. מוסיפים מקור מתח משלנו (מלבד מקור המתח החיצוני שמשמש לבדיקות), ובונים את הבס בעזרת שני מפצלים בגודל 4. המפצל הראשון מאגד 4 ביטים לבס ברוחב 4 — רק הביט התחתון (ספרת האחדות) מחובר למקור המתח, כך שהוא מייצג 0001.",
+        text: "כדי להוסיף 1 צריך בס ברוחב 16 שמייצג את המספר 1. מוסיפים מקור מתח משלנו (מלבד מקור המתח החיצוני שמשמש לבדיקות) ומפצל־מיזוג בעל שתי רגליים לא־שוות: הרגל התחתונה ברוחב ביט אחד ומחוברת למקור המתח, והרגל העליונה ברוחב 15 ביט ונשארת לא מחוברת (0). כך הצד המאוחד הוא בס ברוחב 16 שמייצג בדיוק 0001 — המספר 1.",
         highlight: {
-          components: ["one-source", "one-split-lo"],
-          terminals: ["one-split-lo.single", "one-split-lo.leg0"],
-          wires: [wireKey("one-source.out", "one-split-lo.leg0")]
-        }
-      },
-      {
-        text: "המפצל השני מאגד 4 בסים ברוחב 4 לבס ברוחב 16 — רק הקבוצה התחתונה מחוברת (לפלט של המפצל הראשון), והשאר נשארות לא מחוברות (0). כך מתקבל בס ברוחב 16 שמייצג בדיוק את המספר 1.",
-        highlight: {
-          components: ["one-split-hi"],
-          terminals: ["one-split-hi.single", "one-split-hi.leg0"],
-          wires: [wireKey("one-split-lo.single", "one-split-hi.leg0")]
+          components: ["one-source", "one-merge"],
+          terminals: ["one-merge.single", "one-merge.leg0"],
+          wires: [wireKey("one-source.out", "one-merge.leg0")]
         }
       },
       {
@@ -4294,7 +4286,7 @@
           terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
           wires: [
             wireKey("task-card-1.inputInt1", "add-1.in1"),
-            wireKey("one-split-hi.single", "add-1.in2"),
+            wireKey("one-merge.single", "add-1.in2"),
             wireKey("add-1.out1", "task-card-1.outputInt1")
           ]
         }
@@ -4458,7 +4450,7 @@
     ],
     ALU2: [
       {
-        text: "ה-ALU2 מבצע את הפעולה של ALU1 על הכניסה הראשונה ועל אחת משתי הכניסות האחרות. קודם מפצלים את כניסת הבקרה (7 ביטים) לביטים שלה: הביט הראשון (העליון) יבחר על איזו כניסה עובדים, ושאר ששת הביטים הם בדיוק כניסת הבקרה של ה-ALU1.",
+        text: "ה-ALU2 מבצע את הפעולה של ALU1 על הכניסה הראשונה ועל אחת משתי הכניסות האחרות. מפצלים את כניסת הבקרה (7 ביטים) לשתי רגליים לא־שוות: הרגל התחתונה ברוחב 6 ביט — היא בדיוק כניסת הבקרה של ה-ALU1, והרגל העליונה ברוחב ביט אחד — היא בוחרת על איזו כניסה עובדים.",
         highlight: {
           components: ["ctrl-split"],
           terminals: ["task-card-1.inputInt4"],
@@ -4466,41 +4458,26 @@
         }
       },
       {
-        text: "עכשיו בוחרים את הכניסה השנייה של ה-ALU1: בעזרת MUX16 בוחרים בין הכניסה השנייה (כשביט הבקרה הראשון 0) לבין הכניסה השלישית (כשהוא 1), לפי הביט הראשון (העליון) של הבקרה.",
+        text: "בוחרים את הכניסה השנייה של ה-ALU1: בעזרת MUX16 בוחרים בין הכניסה השנייה (כשביט הבחירה 0) לבין הכניסה השלישית (כשהוא 1), לפי הרגל העליונה (ביט אחד) של הבקרה.",
         highlight: {
           components: ["mux"],
-          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "ctrl-split.leg6"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "ctrl-split.leg1"],
           wires: [
             wireKey("task-card-1.inputInt2", "mux.in1"),
             wireKey("task-card-1.inputInt3", "mux.in2"),
-            wireKey("ctrl-split.leg6", "mux.in3")
+            wireKey("ctrl-split.leg1", "mux.in3")
           ]
         }
       },
       {
-        text: "מרכיבים בחזרה את ששת ביטי הבקרה הנותרים לבס אחד ברוחב 6 — זו כניסת הבקרה של ה-ALU1, שמגדירה איזו פעולה הוא יבצע.",
-        highlight: {
-          components: ["subctrl-merge"],
-          terminals: [],
-          wires: [
-            wireKey("ctrl-split.leg0", "subctrl-merge.leg0"),
-            wireKey("ctrl-split.leg1", "subctrl-merge.leg1"),
-            wireKey("ctrl-split.leg2", "subctrl-merge.leg2"),
-            wireKey("ctrl-split.leg3", "subctrl-merge.leg3"),
-            wireKey("ctrl-split.leg4", "subctrl-merge.leg4"),
-            wireKey("ctrl-split.leg5", "subctrl-merge.leg5")
-          ]
-        }
-      },
-      {
-        text: "לבסוף מכניסים ל-ALU1 את הכניסה הראשונה, את הכניסה שבחרנו (השנייה או השלישית) ואת בס הבקרה שהרכבנו. היציאה של ה-ALU1 היא היציאה של הכרטיס.",
+        text: "לבסוף מכניסים ל-ALU1 את הכניסה הראשונה, את הכניסה שבחרנו (השנייה או השלישית), ואת ששת ביטי הבקרה (הרגל התחתונה) ישירות ככניסת הבקרה שלו. היציאה של ה-ALU1 היא היציאה של הכרטיס.",
         highlight: {
           components: ["alu1"],
           terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
           wires: [
             wireKey("task-card-1.inputInt1", "alu1.in1"),
             wireKey("mux.out", "alu1.in2"),
-            wireKey("subctrl-merge.single", "alu1.in3"),
+            wireKey("ctrl-split.leg0", "alu1.in3"),
             wireKey("alu1.out1", "task-card-1.outputInt1")
           ]
         }
@@ -4508,7 +4485,7 @@
     ],
     ALU3: [
       {
-        text: "ל-ALU3 יש שתי אפשרויות ליציאה, לפי הביט הראשון (העליון) של הבקרה. נכין את שתיהן ונבחר ביניהן בעזרת MUX16. קודם מפצלים את כניסת הבקרה (12 ביטים) לביטים שלה.",
+        text: "ל-ALU3 יש שתי אפשרויות ליציאה, לפי הביט העליון של הבקרה. נכין את שתיהן ונבחר ביניהן בעזרת MUX16. מפצלים את כניסת הבקרה (12 ביטים) לשלוש רגליים לא־שוות: הרגל התחתונה ברוחב 7 ביט (בקרת ה-ALU2), הרגל האמצעית ברוחב 4 ביט (אינה בשימוש), והרגל העליונה ברוחב ביט אחד (ביט הבחירה).",
         highlight: {
           components: ["ctrl-split"],
           terminals: ["task-card-1.inputInt4"],
@@ -4516,36 +4493,35 @@
         }
       },
       {
-        text: "האפשרות הראשונה (כשהביט הראשון 0): היציאה זהה לכניסת הבקרה עם 4 אפסים לפניה. מרכיבים בס ברוחב 16 שבו 12 הביטים התחתונים הם ביטי הבקרה, וארבעת הביטים העליונים לא מחוברים (כלומר 0).",
+        text: "האפשרות הראשונה (כשביט הבחירה 0): היציאה זהה לכניסת הבקרה עם 4 אפסים לפניה. מרכיבים בס ברוחב 16 בעזרת מפצל־מיזוג בעל שתי רגליים לא־שוות: הרגל התחתונה ברוחב 12 ביט ומחוברת ישירות לכניסת הבקרה, והרגל העליונה ברוחב 4 ביט ונשארת לא מחוברת (0).",
         highlight: {
           components: ["optA-merge"],
-          terminals: [],
-          wires: Array.from({ length: 12 }, (_, i) => wireKey(`ctrl-split.leg${i}`, `optA-merge.leg${i}`))
+          terminals: ["task-card-1.inputInt4"],
+          wires: [wireKey("task-card-1.inputInt4", "optA-merge.leg0")]
         }
       },
       {
-        text: "האפשרות השנייה (כשהביט הראשון 1): הפעולה של ALU2 על שלוש הכניסות, לפי 7 ביטי הבקרה התחתונים. מרכיבים אותם לבס ברוחב 7 ומזינים אותו ואת שלוש הכניסות ל-ALU2.",
+        text: "האפשרות השנייה (כשביט הבחירה 1): הפעולה של ALU2 על שלוש הכניסות, לפי 7 ביטי הבקרה התחתונים — הרגל התחתונה של המפצל. מזינים אותה ואת שלוש הכניסות ל-ALU2.",
         highlight: {
-          components: ["alu2-ctrl", "alu2"],
+          components: ["alu2"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3"],
           wires: [
-            ...Array.from({ length: 7 }, (_, i) => wireKey(`ctrl-split.leg${i}`, `alu2-ctrl.leg${i}`)),
+            wireKey("ctrl-split.leg0", "alu2.in4"),
             wireKey("task-card-1.inputInt1", "alu2.in1"),
             wireKey("task-card-1.inputInt2", "alu2.in2"),
-            wireKey("task-card-1.inputInt3", "alu2.in3"),
-            wireKey("alu2-ctrl.single", "alu2.in4")
+            wireKey("task-card-1.inputInt3", "alu2.in3")
           ]
         }
       },
       {
-        text: "לבסוף, בעזרת MUX16 בוחרים בין שתי האפשרויות לפי הביט הראשון (העליון) של הבקרה: כשהוא 0 יוצאת האפשרות הראשונה, וכשהוא 1 יוצאת תוצאת ה-ALU2. היציאה של ה-MUX16 היא היציאה של הכרטיס.",
+        text: "לבסוף, בעזרת MUX16 בוחרים בין שתי האפשרויות לפי הביט העליון של הבקרה (הרגל העליונה): כשהוא 0 יוצאת האפשרות הראשונה, וכשהוא 1 יוצאת תוצאת ה-ALU2. היציאה של ה-MUX16 היא היציאה של הכרטיס.",
         highlight: {
           components: ["mux"],
-          terminals: ["ctrl-split.leg11", "task-card-1.outputInt1"],
+          terminals: ["ctrl-split.leg2", "task-card-1.outputInt1"],
           wires: [
             wireKey("optA-merge.single", "mux.in1"),
             wireKey("alu2.out1", "mux.in2"),
-            wireKey("ctrl-split.leg11", "mux.in3"),
+            wireKey("ctrl-split.leg2", "mux.in3"),
             wireKey("mux.out", "task-card-1.outputInt1")
           ]
         }
