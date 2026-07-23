@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg viewBox="-66 -62 138 124" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+    .usercard-body { fill:#f4e7cf; stroke:#4a3b28; stroke-width:4; }
+    .usercard-pin { stroke:#111; stroke-width:5; stroke-linecap:round; fill:none; }
+    .arith-gate-pin-letter { font-family:Arial,sans-serif; font-size:20px; font-weight:800; fill:#2c2113; text-anchor:middle; }
+    .splitter-bar { fill:#111; stroke:none; }
+    .splitter-stripe { stroke:#d8d8d8; stroke-width:3; stroke-dasharray:6 3; stroke-linecap:butt; fill:none; }
+    .splitter-width-label { fill:#ffe37a; font-family:Arial,sans-serif; font-weight:800; font-size:13px; text-anchor:middle; }
+  </style>
+  <g class="usercard"><path class="usercard-body" d="M -46 -54 L 46 -30 L 46 30 L -46 54 L -46 13 L -24 0 L -46 -13 Z" /><text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU2</text>
+      <rect class="splitter-bar" x="-62" y="-43.16666666666667" width="16" height="18.333333333333336" />
+      <line class="splitter-stripe" x1="-59" y1="-34" x2="-49" y2="-34" style="stroke-width:5;stroke-dasharray:10 5" />
+      <text class="splitter-width-label" x="-54" y="-55.66666666666667" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <rect class="splitter-bar" x="-62" y="-9.166666666666668" width="38" height="18.333333333333336" />
+      <line class="splitter-stripe" x1="-59" y1="0" x2="-27" y2="0" style="stroke-width:5;stroke-dasharray:10 5" />
+      <text class="splitter-width-label" x="-43" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <rect class="splitter-bar" x="-62" y="24.833333333333332" width="16" height="18.333333333333336" />
+      <line class="splitter-stripe" x1="-59" y1="34" x2="-49" y2="34" style="stroke-width:5;stroke-dasharray:10 5" />
+      <text class="splitter-width-label" x="-54" y="12.333333333333332" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <rect class="splitter-bar" x="46" y="-9.166666666666668" width="20" height="18.333333333333336" />
+      <line class="splitter-stripe" x1="49" y1="0" x2="63" y2="0" style="stroke-width:5;stroke-dasharray:10 5" />
+      <text class="splitter-width-label" x="56" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <rect class="splitter-bar" x="-9.166666666666668" y="-46" width="18.333333333333336" height="8" />
+      <line class="splitter-stripe" x1="0" y1="-43" x2="0" y2="-41" style="stroke-width:5;stroke-dasharray:10 5" /></g>
+</svg>

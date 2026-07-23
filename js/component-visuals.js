@@ -32,6 +32,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "gate-DMux") return "gate-dmux.svg";
     if (type === "bus") return "bus.svg";
     if (type === "splitter") return "splitter.svg";
+    if (type === "gate-ALU0") return "gate-alu0.svg";
+    if (type === "gate-ALU1") return "gate-alu1.svg";
+    if (type === "gate-ALU2") return "gate-alu2.svg";
+    if (type === "gate-ALU3") return "gate-alu3.svg";
     return "";
   }
 
@@ -339,11 +343,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU0") return aluShapeMarkup(16, "ALU0", [-26, 26], { controlWidth: 1 });
+      // The ALU icons are editable SVG files (assets/components/gate-alu*.svg),
+      // generated from aluShapeMarkup. Edit the file to change the look.
+      if (gateTask && gateTask.id === "ALU0") return componentSvgImage("gate-alu0.svg", -66, -62, 138, 124);
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU1") return aluShapeMarkup(16, "ALU1", [-26, 26], { controlWidth: 6 });
-      if (gateTask && gateTask.id === "ALU2") return aluShapeMarkup(16, "ALU2", [-34, 0, 34], { tall: true, controlWidth: 7 });
-      if (gateTask && gateTask.id === "ALU3") return aluShapeMarkup(16, "ALU3", [-34, 0, 34], { tall: true, controlWidth: 12 });
+      if (gateTask && gateTask.id === "ALU1") return componentSvgImage("gate-alu1.svg", -66, -62, 138, 124);
+      if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -62, 138, 124);
+      if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -62, 138, 124);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
