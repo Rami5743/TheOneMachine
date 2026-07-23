@@ -289,22 +289,34 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         }
 
         if (type === "splitter") {
-          const w = Number.isInteger(component.width) ? component.width : null;
-          if (w === null) continue; // untyped splitter: nothing to propagate yet
           const count = splitterCount(component);
+          // Per-leg widths (legs need not be equal). Legacy splitters carry only a
+          // scalar `width` meaning every leg is that width — fall back to it when
+          // no legWidths array is present. Every leg must be determined to route.
+          const legs = Array.isArray(component.legWidths) ? component.legWidths : null;
+          const uniform = Number.isInteger(component.width) ? component.width : null;
+          const legW = Array.from({ length: count }, (_, i) => (legs ? legs[i] : uniform));
+          if (legW.some((w) => !Number.isInteger(w) || w < 1)) continue;
+          const single = legW.reduce((sum, w) => sum + w, 0);
+          // If the single side has a stored width it must equal the leg sum.
+          if (Number.isInteger(component.singleWidth) && component.singleWidth !== single) continue;
           if (component.mirrored) {
-            // Legs are inputs; the single pin outputs their concatenation.
+            // Legs are inputs; the single pin outputs their concatenation (leg 0 =
+            // the low chunk).
             let vec = [];
             for (let i = 0; i < count; i += 1) {
-              vec = vec.concat(fitBits(inputBits(workspace, `${component.id}.leg${i}`, outputs), w));
+              vec = vec.concat(fitBits(inputBits(workspace, `${component.id}.leg${i}`, outputs), legW[i]));
             }
             if (setBits(outputs, `${component.id}.single`, vec)) changed = true;
           } else {
-            // The single pin is the input; each leg outputs one chunk of it.
+            // The single pin is the input; each leg outputs its own chunk, taken
+            // from the running bit offset (leg 0 = the low chunk).
             const inVec = inputBits(workspace, `${component.id}.single`, outputs);
+            let offset = 0;
             for (let i = 0; i < count; i += 1) {
-              const chunk = fitBits(inVec.slice(i * w, i * w + w), w);
+              const chunk = fitBits(inVec.slice(offset, offset + legW[i]), legW[i]);
               if (setBits(outputs, `${component.id}.leg${i}`, chunk)) changed = true;
+              offset += legW[i];
             }
           }
           continue;

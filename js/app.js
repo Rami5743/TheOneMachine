@@ -1712,6 +1712,9 @@
       : 0;
     const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
+    // Recompute splitter widths from the saved wiring, so an inferred (or freed)
+    // per-leg width is correct on load without needing an edit first.
+    reconcileSplitterWidths(workspace);
 
     if (loaded.dialog) {
       return {
@@ -6129,10 +6132,17 @@
   // above it (legs = the width, the single pin = width * output count).
   function renderSplitterWidthLabels() {
     if (state.screen !== "workspace") return "";
+    // Per-pin width labels: each leg shows its own (possibly different) width and
+    // the single side shows the sum. A pin whose width is still undetermined
+    // (null) gets no label.
     return state.workspace.components
-      .filter((c) => c.type === "splitter" && Number.isInteger(c.width))
+      .filter((c) => c.type === "splitter")
       .map((c) => Object.entries(splitterPins(c)).map(([pinId, pin]) => {
-        const w = pinId === "single" ? c.width * splitterOutputCount(c) : c.width;
+        const legMatch = /^leg(\d+)$/.exec(pinId);
+        const w = pinId === "single"
+          ? c.singleWidth
+          : (legMatch && Array.isArray(c.legWidths) ? c.legWidths[Number(legMatch[1])] : null);
+        if (!Number.isInteger(w)) return "";
         return `<text class="splitter-width-label" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
   }
@@ -10278,7 +10288,9 @@
       const splOv = inHarness(input.ref);
       const splX = splOv && Number.isFinite(splOv.x) ? splOv.x : 210;
       const splY = splOv && Number.isFinite(splOv.y) ? splOv.y : sy;
-      workspace.components.push({ id: splitId, type: "splitter", x: splX, y: splY, mirrored: true, outputs: w, width: 1 });
+      // Every leg is 1 bit (some intentionally left unwired for 0 bits), so pin
+      // the widths explicitly rather than relying on wire reconciliation.
+      workspace.components.push({ id: splitId, type: "splitter", x: splX, y: splY, mirrored: true, outputs: w, legWidths: Array(w).fill(1), singleWidth: w });
       input.bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
@@ -10314,7 +10326,7 @@
         groupLamps.push(lampId);
       } else {
         const splX = oOv && Number.isFinite(oOv.x) ? oOv.x : 1050;
-        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: splX, y: cy, mirrored: false, outputs: w, width: 1 };
+        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: splX, y: cy, mirrored: false, outputs: w, legWidths: Array(w).fill(1), singleWidth: w };
         workspace.components.push(outSplit);
         workspace.wires.push(normalizeWire(ref, `${outSplit.id}.single`));
         const layout = busLampLayout(w, cy, splX + 130);
@@ -12424,6 +12436,7 @@
   function withWorkspace(mutator) {
     const workspace = normalizeWorkspace(state.workspace);
     mutator(workspace);
+    reconcileSplitterWidths(workspace);
     syncConverterWidths(workspace);
     workspace.selectedTerminal = terminalExists(workspace, workspace.selectedTerminal) ? workspace.selectedTerminal : null;
     workspace.unlocked = true;
@@ -12938,9 +12951,25 @@
       if (def && Number.isInteger(def.busWidth)) return def.busWidth;
       return 1;
     }
-    const w = Number.isInteger(info.component.width) ? info.component.width : null;
-    if (w === null) return null;
-    return info.pinId === "single" ? w * splitterOutputCount(info.component) : w;
+    // A splitter's per-pin width comes from reconcileSplitterWidths (which stores
+    // the resolved legWidths[]/singleWidth on the component). null = still
+    // undetermined. Legs need not be equal; the single side is the sum. Legacy
+    // splitters (code-built display workspaces) carry only a uniform scalar
+    // `width` — fall back to it.
+    const legs = Array.isArray(info.component.legWidths) ? info.component.legWidths : null;
+    const uniform = Number.isInteger(info.component.width) ? info.component.width : null;
+    if (info.pinId === "single") {
+      if (Number.isInteger(info.component.singleWidth)) return info.component.singleWidth;
+      if (legs) return legs.every((w) => Number.isInteger(w)) ? legs.reduce((sum, w) => sum + w, 0) : null;
+      return uniform !== null ? uniform * splitterOutputCount(info.component) : null;
+    }
+    const legMatch = /^leg(\d+)$/.exec(info.pinId);
+    if (legMatch) {
+      const i = Number(legMatch[1]);
+      if (legs) return Number.isInteger(legs[i]) ? legs[i] : null;
+      return uniform;
+    }
+    return null;
   }
 
   function isSplitterSinglePin(workspace, ref) {
@@ -12948,9 +12977,35 @@
     return Boolean(info && info.component.type === "splitter" && info.pinId === "single");
   }
 
+  // Whether setting splitter pin `info` (currently undetermined) to width W keeps
+  // the "legs sum to the single side" constraint satisfiable. Unfixed legs still
+  // need at least 1 bit each, so they reserve headroom.
+  function splitterPinAcceptsWidth(component, pinId, W) {
+    if (!Number.isInteger(W) || W < 1) return false;
+    const n = splitterOutputCount(component);
+    const legs = Array.isArray(component.legWidths) ? component.legWidths : [];
+    const single = Number.isInteger(component.singleWidth) ? component.singleWidth : null;
+    const knownSum = legs.reduce((sum, w) => sum + (Number.isInteger(w) ? w : 0), 0);
+    const unknownLegs = Array.from({ length: n }, (_, i) => legs[i]).filter((w) => !Number.isInteger(w)).length;
+    if (pinId === "single") {
+      if (single !== null) return single === W;
+      return unknownLegs === 0 ? W === knownSum : W >= knownSum + unknownLegs;
+    }
+    const legMatch = /^leg(\d+)$/.exec(pinId);
+    if (!legMatch) return false;
+    const i = Number(legMatch[1]);
+    if (Number.isInteger(legs[i])) return legs[i] === W;
+    if (single !== null) {
+      const otherUnknown = unknownLegs - 1; // this leg becomes known
+      return otherUnknown === 0 ? knownSum + W === single : knownSum + W + otherUnknown <= single;
+    }
+    return true; // single still open — no upper bound yet
+  }
+
   // Whether a candidate connection between a and b obeys the width rules: at
-  // least one side defined; two defined widths must be equal; defining a
-  // splitter's single pin requires the width to divide its output count.
+  // least one side defined; two defined widths must be equal; a still-open
+  // splitter pin must be able to take the incoming width without breaking the
+  // legs-sum-to-single constraint.
   function wireWidthLegal(workspace, a, b) {
     const wa = pinWidth(workspace, a);
     const wb = pinWidth(workspace, b);
@@ -12958,15 +13013,15 @@
     if (wa !== null && wb !== null) return wa === wb;
     const defined = wa !== null ? wa : wb;
     const undefRef = wa === null ? a : b;
-    if (isSplitterSinglePin(workspace, undefRef)) {
-      const info = pinDefFor(workspace, undefRef);
-      return defined % splitterOutputCount(info.component) === 0;
+    const info = pinDefFor(workspace, undefRef);
+    if (info && info.component.type === "splitter") {
+      return splitterPinAcceptsWidth(info.component, info.pinId, defined);
     }
-    return true;
+    return true; // a converter (or other open pin) simply adopts the width
   }
 
-  // After a legal wire is added, fix the width of the newly-defined splitter (if
-  // one side was undefined). Setting the splitter's width defines all its pins.
+  // A converter with an undetermined width adopts the connected bus width when a
+  // wire fixes it. (Splitter widths are handled by reconcileSplitterWidths.)
   function applyWireWidthDefinition(workspace, a, b) {
     const wa = pinWidth(workspace, a);
     const wb = pinWidth(workspace, b);
@@ -12975,18 +13030,90 @@
     const undefRef = wa === null ? a : b;
     const info = pinDefFor(workspace, undefRef);
     if (!info) return;
+    if (info.component.type !== "converter-in" && info.component.type !== "converter-out") return;
     const component = componentById(workspace, info.component.id);
-    if (!component) return;
-    // A converter adopts the connected bus width directly; a splitter's single
-    // pin spreads the width across its legs.
-    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
-      component.width = defined;
-      return;
+    if (component) component.width = defined;
+  }
+
+  // Recompute every splitter's per-leg widths from the current wiring. A leg /
+  // single pin fixed by a cable takes that cable's width; when all pins but one
+  // are fixed the last is inferred (single = Σlegs). Runs to a fixpoint so
+  // splitter→splitter chains settle, and is called after every wire change so a
+  // disconnect frees the pins it fixed.
+  function reconcileSplitterWidths(workspace) {
+    const splitters = workspace.components.filter((c) => c.type === "splitter");
+    if (!splitters.length) return;
+    const scratch = new Map();
+    for (const s of splitters) scratch.set(s.id, { legs: Array(splitterOutputCount(s)).fill(null), single: null });
+    // Resolved width of any pin under the scratch state (splitters) or the static
+    // model (gates/converters).
+    const resolved = (ref) => {
+      const info = pinDefFor(workspace, ref);
+      if (!info) return null;
+      if (info.component.type !== "splitter") return pinWidth(workspace, ref);
+      const cur = scratch.get(info.component.id);
+      if (!cur) return null;
+      if (info.pinId === "single") return cur.single;
+      const m = /^leg(\d+)$/.exec(info.pinId);
+      return m ? cur.legs[Number(m[1])] : null;
+    };
+    const fixFromWire = (ref, otherRef) => {
+      const info = pinDefFor(workspace, ref);
+      if (!info || info.component.type !== "splitter") return false;
+      const cur = scratch.get(info.component.id);
+      if (!cur) return false;
+      const ow = resolved(otherRef);
+      if (!Number.isInteger(ow)) return false;
+      const knownSum = cur.legs.reduce((sum, w) => sum + (w || 0), 0);
+      const unknownLegs = cur.legs.filter((w) => w == null).length;
+      if (info.pinId === "single") {
+        if (cur.single != null) return false;
+        if (unknownLegs === 0 ? ow !== knownSum : ow < knownSum + unknownLegs) return false;
+        cur.single = ow;
+        return true;
+      }
+      const m = /^leg(\d+)$/.exec(info.pinId);
+      if (!m) return false;
+      const i = Number(m[1]);
+      if (cur.legs[i] != null) return false;
+      if (cur.single != null) {
+        const otherUnknown = unknownLegs - 1;
+        if (otherUnknown === 0 ? knownSum + ow !== cur.single : knownSum + ow + otherUnknown > cur.single) return false;
+      }
+      cur.legs[i] = ow;
+      return true;
+    };
+    const infer = (cur) => {
+      const unknownIdx = cur.legs.map((w, i) => (w == null ? i : -1)).filter((i) => i >= 0);
+      const knownSum = cur.legs.reduce((sum, w) => sum + (w || 0), 0);
+      // All legs known → the single side is their sum.
+      if (cur.single == null && unknownIdx.length === 0) { cur.single = knownSum; return true; }
+      if (cur.single != null && unknownIdx.length >= 1) {
+        const remaining = cur.single - knownSum;
+        // Exactly one leg open → it takes whatever is left.
+        if (unknownIdx.length === 1 && remaining >= 1) { cur.legs[unknownIdx[0]] = remaining; return true; }
+        // N legs open with exactly N bits left → each must be 1 (legs are ≥1 bit),
+        // which is what lets the "split a bus into all-1-bit legs" pattern resolve.
+        if (remaining === unknownIdx.length) { for (const i of unknownIdx) cur.legs[i] = 1; return true; }
+      }
+      return false;
+    };
+    let changed = true;
+    let guard = 0;
+    while (changed && guard < 256) {
+      changed = false;
+      guard += 1;
+      for (const wire of workspace.wires) {
+        if (fixFromWire(wire.a, wire.b)) changed = true;
+        if (fixFromWire(wire.b, wire.a)) changed = true;
+      }
+      for (const s of splitters) if (infer(scratch.get(s.id))) changed = true;
     }
-    if (info.component.type !== "splitter") return;
-    component.width = info.pinId === "single"
-      ? Math.round(defined / splitterOutputCount(component))
-      : defined;
+    for (const s of splitters) {
+      const cur = scratch.get(s.id);
+      s.legWidths = cur.legs.slice();
+      s.singleWidth = cur.single;
+    }
   }
 
   function focusWorkspaceComponent(id) {
@@ -13030,7 +13157,8 @@
       const component = componentById(workspace, id);
       if (!component || component.type !== "splitter") return;
       component.outputs = n;
-      component.width = null;
+      component.legWidths = Array(n).fill(null);
+      component.singleWidth = null;
       workspace.wires = workspace.wires.filter((wire) => !wire.a.startsWith(`${id}.`) && !wire.b.startsWith(`${id}.`));
     });
   }

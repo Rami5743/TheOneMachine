@@ -237,10 +237,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // y-axis. (The toolbar uses the static splitter.svg — see splitterMarkup.)
   const SPLITTER_OUTPUT_SPACING = 34;
   const SPLITTER_BAR_H = 11;
-  function splitterBoardMarkup(outputs, mirrored, width) {
+  function splitterBoardMarkup(outputs, mirrored, width, legWidths) {
     const n = Math.min(16, Math.max(2, Number(outputs) || 4));
     const spacing = SPLITTER_OUTPUT_SPACING;
-    const legWidth = Number.isInteger(width) ? width : null;
+    // Per-leg widths (legs may differ). Fall back to the legacy uniform `width`
+    // when a legWidths array is not supplied. A leg of width 1 draws as a plain
+    // cable; a wider — or still-undetermined — leg draws as a bus bar.
+    const legs = Array.isArray(legWidths) ? legWidths : null;
+    const legWidthOf = (i) => (legs ? legs[i] : (Number.isInteger(width) ? width : null));
     const ys = [];
     for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
     const halfH = ((n - 1) * spacing) / 2;
@@ -248,8 +252,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const spine = `<rect class="splitter-bar" x="-7" y="${spineTop}" width="14" height="${halfH * 2 + 16}" />`;
     // Pins on both sides are ~half the old length (single 70→38, legs 66→37).
     const inputBar = splitterBusBar(-38, -7, 0, SPLITTER_BAR_H);
-    const leg = (y) => (legWidth === 1 ? splitterCableStub(7, 37, y) : splitterBusBar(7, 37, y, SPLITTER_BAR_H));
-    const outputStubs = ys.map(leg).join("");
+    const leg = (y, i) => (legWidthOf(i) === 1 ? splitterCableStub(7, 37, y) : splitterBusBar(7, 37, y, SPLITTER_BAR_H));
+    const outputStubs = ys.map((y, i) => leg(y, i)).join("");
     const hit = `<rect class="splitter-hit" x="-44" y="${spineTop - 12}" width="87" height="${halfH * 2 + 40}" fill="transparent" />`;
     const inner = `${hit}${spine}${inputBar}${outputStubs}`;
     return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
@@ -259,7 +263,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The board passes the instance's output count; the toolbar does not, and
     // gets the static reference symbol.
     if (Number.isInteger(options.outputs)) {
-      return splitterBoardMarkup(options.outputs, options.mirrored, options.width);
+      return splitterBoardMarkup(options.outputs, options.mirrored, options.width, options.legWidths);
     }
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
