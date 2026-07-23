@@ -43,7 +43,35 @@ function achvStar(cx, cy, s, fill) {
   return `<g transform="translate(${cx},${cy}) scale(${s})"><path d="M0,-6 L1.76,-1.85 L5.7,-1.85 L2.35,0.7 L3.53,4.85 L0,2.4 L-3.53,4.85 L-2.35,0.7 L-5.7,-1.85 L-1.76,-1.85 Z" fill="${fill}"/></g>`;
 }
 
+// A hanging medal for the "מדליסט" (medalist) achievements: two ribbon bands and
+// a bevelled disc with a star. `gold` picks the gold palette (first-place medals);
+// otherwise a neutral silver disc for a plain medal.
+function achievementMedal(gold) {
+  const g = `achv-medal-${gold ? "gold" : "silver"}`;
+  const top = gold ? "#ffe07a" : "#eef2f7";
+  const bot = gold ? "#d99411" : "#9aa6b5";
+  const rim = gold ? "#a9720f" : "#6f7d8c";
+  const star = gold ? "#a9720f" : "#5f6b78";
+  return `<svg class="achv-trophy" viewBox="0 0 80 80" role="img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="${g}" cx="0.38" cy="0.34" r="0.75">
+          <stop offset="0" stop-color="${top}"/>
+          <stop offset="1" stop-color="${bot}"/>
+        </radialGradient>
+      </defs>
+      <path d="M27 8 L20 40 L33 40 L38 14 Z" fill="#c23b3b"/>
+      <path d="M53 8 L60 40 L47 40 L42 14 Z" fill="#2f6bd0"/>
+      <circle cx="40" cy="52" r="20" fill="url(#${g})" stroke="${rim}" stroke-width="2.4"/>
+      <circle cx="40" cy="52" r="15" fill="none" stroke="${rim}" stroke-width="1.4" opacity="0.55"/>
+      <path d="M28 44 C30 58 36 63 41 65" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+      ${achvStar(40, 52, 1.9, star)}
+    </svg>`;
+}
+
 function renderAchievementIcon(id) {
+  if (typeof id === "string" && id.indexOf("medalist-") === 0) {
+    return achievementMedal(id.endsWith("gold"));
+  }
   switch (id) {
     case "card-creator": // gold cup, a fresh card being made
       return achievementTrophy(id, { top: "#ffdf6b", bot: "#e0a51c", rim: "#b9781a", base: "#c98a12", emblem:
