@@ -6508,11 +6508,10 @@
       const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
       if (usesSavedCard) unlockAchievement("useful-inventor");
     }
-    // Editing a user card can silently change how any card built on top of it
-    // behaves (there is no spec check for a user-designed card), so drop the
-    // efficiency records of every card that uses it — they must be rebuilt and
-    // re-checked to re-earn a ranking.
-    const invalidation = editing ? invalidateBuildsUsingCard(card.type) : null;
+    // Editing a user card does NOT touch any efficiency record: builds inline
+    // their user cards when recorded (see recordCardNandCount), so no stored
+    // build references this card anymore — its edit changes neither count nor
+    // validity of anything already ranked.
     setState({
       ...returnPatch,
       cardCreation: null,
@@ -6520,7 +6519,6 @@
       savedCards,
       nextSavedCardId,
       myCardsIntroSeen: true,
-      ...(invalidation || {}),
       infoDialog: firstTime
         ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
         : null
@@ -9689,14 +9687,46 @@
     if (changed) setState({ cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) }, false);
   }
 
+  // A user card has no spec check of its own, so we treat it as if it were opened
+  // INLINE at the moment its parent is recorded: every "usercard-<n>" in a build
+  // is replaced by that card's own components (recursively, so nested user cards
+  // expand too). The stored build therefore never references a user card — only
+  // Nands and regular gate-<id> cards remain. Consequences (both intended):
+  //   • Editing a user card later cannot change any recorded build — not its Nand
+  //     count and not its validity — because the reference is already gone.
+  //   • Improving a regular sub-card still propagates (its gate-<id> stays live).
+  // A user-card cycle (should not happen) is broken by dropping the repeat.
+  function expandUserCards(components, seen) {
+    seen = seen || new Set();
+    const out = [];
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const t = comp && comp.type;
+      if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX)) {
+        if (seen.has(t)) continue; // cycle guard → contributes nothing
+        const card = (state.savedCards || []).find((c) => c.type === t);
+        const inner = card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : [];
+        const nextSeen = new Set(seen);
+        nextSeen.add(t);
+        out.push(...expandUserCards(inner, nextSeen));
+      } else {
+        out.push(comp); // Nand, gate-<id>, splitter, source, converter … kept as-is
+      }
+    }
+    return out;
+  }
+
   // Record the player's build for a just-passed card, keeping the leaner one
   // (fewer recursive Nands). Uses the pre-harness snapshot (the learner's own
-  // circuit) when available. Storing the full build — not just the number — lets
-  // later improvements to sub-cards flow through automatically.
+  // circuit) when available. User cards are inlined (see expandUserCards) so the
+  // record is frozen against later user-card edits; regular sub-cards stay live,
+  // so improving them still flows through automatically.
   function recordCardNandCount(taskId, buildWorkspace) {
     if (!taskId) return null;
     const ws = buildWorkspace || {};
-    const newBuild = { components: clonePlain(ws.components || []), wires: clonePlain(ws.wires || []) };
+    const newBuild = {
+      components: expandUserCards(clonePlain(ws.components || [])),
+      wires: clonePlain(ws.wires || [])
+    };
     const builds = { ...(state.cardBuilds || {}) };
     const prevBuild = builds[taskId];
     const newCount = computeBuildNandCount(newBuild.components);
@@ -9711,46 +9741,6 @@
     }
     builds[taskId] = keep;
     return { cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) };
-  }
-
-  // Does this component list reference `targetType` (a "usercard-<n>") anywhere in
-  // its recursive expansion? Walks gate-<id> sub-builds and other user cards'
-  // saved logic. Used to find which records an edited user card invalidates.
-  function componentsReferenceCard(components, targetType, seen) {
-    for (const comp of (Array.isArray(components) ? components : [])) {
-      const t = comp && comp.type;
-      if (t === targetType) return true;
-      if (typeof t === "string" && t.startsWith("gate-")) {
-        const b = (state.cardBuilds || {})[t.slice(5)];
-        if (b && componentsReferenceCard(b.components, targetType, seen)) return true;
-      } else if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX)) {
-        if (seen.has(t)) continue;
-        seen.add(t);
-        const card = (state.savedCards || []).find((c) => c.type === t);
-        if (card && card.logic && componentsReferenceCard(card.logic.components, targetType, seen)) return true;
-      }
-    }
-    return false;
-  }
-
-  // A user card has no spec check of its own, so once it is EDITED we can no
-  // longer trust any recorded build that used it: drop those records (task cards
-  // whose stored build references this user card, directly or transitively). The
-  // player must rebuild and pass the check again to re-earn the ranking. Regular
-  // (task) cards need no such re-check — improving them only triggers a recount.
-  function invalidateBuildsUsingCard(targetType) {
-    const builds = state.cardBuilds || {};
-    const next = {};
-    let changed = false;
-    for (const cardId of Object.keys(builds)) {
-      if (componentsReferenceCard(builds[cardId].components, targetType, new Set())) {
-        changed = true; // drop this record
-      } else {
-        next[cardId] = builds[cardId];
-      }
-    }
-    if (!changed) return null;
-    return { cardBuilds: next, cardNandCounts: recomputeAllCardCounts(next) };
   }
 
   function showNotTestResult(result, workspace, taskId) {
