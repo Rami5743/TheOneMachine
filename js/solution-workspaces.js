@@ -665,7 +665,9 @@ function createSolutionWorkspaces({
       normalizeWire("or4.out", "not1.in1"),
       normalizeWire("not1.out", "task-card-1.outputInt")
     ];
-    legYs.forEach((y, i) => { wires.push(normalizeWire(`split-in.leg${i}`, `or4.in${i + 1}`)); });
+    // leg 0 is the BOTTOM leg and Or4way's in1 is its TOP input, so map leg i to
+    // in(4-i) — bottom leg to bottom input — to keep the wires from crossing.
+    legYs.forEach((y, i) => { wires.push(normalizeWire(`split-in.leg${i}`, `or4.in${4 - i}`)); });
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
       components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
@@ -680,27 +682,28 @@ function createSolutionWorkspaces({
   // Is0_16: split the 16-bit input into four 4-bit nibbles, test each with an
   // Is0_4, then AND the four results (And3way + And) — 1 iff every nibble is 0.
   function is0_16SolutionWorkspaceFrom() {
-    const legYs = [339, 305, 271, 237];
+    const legYs = [339, 305, 271, 237]; // is0-0 (bottom) … is0-3 (top)
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
       { id: "task-card-1", type: taskCardComponentType("Is0_16"), x: 640, y: 288 },
-      { id: "split-in", type: "splitter", x: 400, y: 288, mirrored: false, outputs: 4, width: 4 },
-      { id: "and3", type: "gate-AND3way", x: 700, y: 330 },
-      { id: "and-final", type: "gate-And", x: 830, y: 288 }
+      { id: "split-in", type: "splitter", x: 380, y: 288, mirrored: false, outputs: 4, width: 4 },
+      // A balanced AND tree keeps the wires from crossing: AND the bottom pair and
+      // the top pair, then AND those two results.
+      { id: "and-lo", type: "gate-And", x: 700, y: 322 },
+      { id: "and-hi", type: "gate-And", x: 700, y: 254 },
+      { id: "and-final", type: "gate-And", x: 840, y: 288 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt1", "split-in.single"),
-      normalizeWire("and3.out", "and-final.in1"),
+      normalizeWire("is0-1.out", "and-lo.in1"), normalizeWire("is0-0.out", "and-lo.in2"),
+      normalizeWire("is0-3.out", "and-hi.in1"), normalizeWire("is0-2.out", "and-hi.in2"),
+      normalizeWire("and-hi.out", "and-final.in1"), normalizeWire("and-lo.out", "and-final.in2"),
       normalizeWire("and-final.out", "task-card-1.outputInt")
     ];
     legYs.forEach((y, i) => {
-      components.push({ id: `is0-${i}`, type: "gate-Is0_4", x: 555, y });
+      components.push({ id: `is0-${i}`, type: "gate-Is0_4", x: 540, y });
       wires.push(normalizeWire(`split-in.leg${i}`, `is0-${i}.in1`));
     });
-    wires.push(normalizeWire("is0-0.out", "and3.in1"));
-    wires.push(normalizeWire("is0-1.out", "and3.in2"));
-    wires.push(normalizeWire("is0-2.out", "and3.in3"));
-    wires.push(normalizeWire("is0-3.out", "and-final.in2"));
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
       components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,

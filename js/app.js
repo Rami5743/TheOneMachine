@@ -4571,7 +4571,7 @@
         text: "מחברים את כל 4 הכבלים ל-Or4way. הפלט שלו הוא 0 בדיוק כאשר כל הביטים הם 0.",
         highlight: {
           components: ["or4"],
-          wires: [wireKey("split-in.leg0", "or4.in1"), wireKey("split-in.leg1", "or4.in2"), wireKey("split-in.leg2", "or4.in3"), wireKey("split-in.leg3", "or4.in4")]
+          wires: [wireKey("split-in.leg0", "or4.in4"), wireKey("split-in.leg1", "or4.in3"), wireKey("split-in.leg2", "or4.in2"), wireKey("split-in.leg3", "or4.in1")]
         }
       },
       {
@@ -4600,11 +4600,11 @@
         }
       },
       {
-        text: "עושים And על 4 התוצאות (בעזרת And3Way ועוד And). היציאה היא 1 רק אם כל 4 הרבעים היו 0 — כלומר כל 16 הביטים 0.",
+        text: "עושים And על 4 התוצאות — מחברים אותן בזוגות עם And, ואז And על שתי התוצאות. היציאה היא 1 רק אם כל 4 הרבעים היו 0 — כלומר כל 16 הביטים 0.",
         highlight: {
-          components: ["and3", "and-final"],
+          components: ["and-lo", "and-hi", "and-final"],
           terminals: ["task-card-1.outputInt"],
-          wires: [wireKey("is0-0.out", "and3.in1"), wireKey("is0-1.out", "and3.in2"), wireKey("is0-2.out", "and3.in3"), wireKey("and3.out", "and-final.in1"), wireKey("is0-3.out", "and-final.in2"), wireKey("and-final.out", "task-card-1.outputInt")]
+          wires: [wireKey("is0-0.out", "and-lo.in2"), wireKey("is0-1.out", "and-lo.in1"), wireKey("is0-2.out", "and-hi.in2"), wireKey("is0-3.out", "and-hi.in1"), wireKey("and-lo.out", "and-final.in2"), wireKey("and-hi.out", "and-final.in1"), wireKey("and-final.out", "task-card-1.outputInt")]
         }
       }
     ],
