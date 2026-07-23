@@ -9445,11 +9445,39 @@
       workspaceCompleted: false, workspaceSession: 2, taskId: doc.task, taskIntroSeen: true
     });
   }
-  // A JSON doc overrides the code builder — except ALU1's step-5 "alternative
-  // MUX16" variant, which only the code builder produces.
+  // ALU1's "alternative" (step-5) solution is IDENTICAL to the main JSON solution
+  // up to the ALU0, and only the final stage differs: instead of a third
+  // PreperNum doing the NOT, a MUX16 picks between the ALU0 output and its NOT
+  // (Not16), selected by the NOT control bit. Derive it from the JSON doc so the
+  // shared part matches the first solution exactly.
+  function alu1AltDoc() {
+    const base = SOLUTION_DOCS.ALU1;
+    if (!base || !Array.isArray(base.components)) return null;
+    const doc = clonePlain(base);
+    const drop = new Set(["pn3", "pn3-ctrl"]); // the final PreperNum stage
+    const partOf = (ref) => String(ref).split(".")[0];
+    doc.components = doc.components.filter((c) => !drop.has(c.id));
+    doc.wires = doc.wires.filter((w) => !drop.has(partOf(w.a)) && !drop.has(partOf(w.b)));
+    // Place the MUX16 where the dropped PreperNum sat, with the Not16 just below.
+    const pn3 = base.components.find((c) => c.id === "pn3") || { x: 775, y: 240 };
+    doc.components.push({ id: "mux-not", type: "gate-MUX16", x: pn3.x, y: pn3.y });
+    doc.components.push({ id: "not16", type: "gate-Not16", x: pn3.x - 15, y: pn3.y + 160 });
+    doc.wires.push(
+      { a: "alu0.out1", b: "not16.in1" },
+      { a: "alu0.out1", b: "mux-not.in1" },
+      { a: "not16.out", b: "mux-not.in2" },
+      { a: "part3-split.leg1", b: "mux-not.in3" },
+      { a: "mux-not.out", b: "task-card-1.outputInt1" }
+    );
+    return doc;
+  }
   const solutionWorkspaceForTask = (taskId, step) => {
     const doc = SOLUTION_DOCS[taskId];
-    const alu1Alt = taskId === "ALU1" && Number(step) >= 5; // the code-only MUX16 variant
+    const alu1Alt = taskId === "ALU1" && Number(step) >= 5; // the MUX16 variant
+    if (alu1Alt && doc) {
+      const alt = alu1AltDoc();
+      if (alt) return workspaceFromSolutionDoc(alt);
+    }
     if (doc && !alu1Alt) return workspaceFromSolutionDoc(doc);
     if (SOLUTION_JSON_REQUIRED && isJsonBackedTask(taskId) && !alu1Alt) {
       throw new Error(`[solutions] ${taskId}.json not loaded (${SOLUTION_DOC_STATUS[taskId] || "pending"}) — refusing hardcoded solution fallback (SOLUTION_JSON_REQUIRED)`);
