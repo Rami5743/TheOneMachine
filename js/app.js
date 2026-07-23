@@ -11039,16 +11039,24 @@
   // for testing; this constant "1" belongs to the card's own logic, so it gets a
   // dedicated internal source. The resulting single (one-split-hi.single) is the
   // "1" bus, left for the learner to feed — with the card's input — into Add16.
-  const INC_ONE_SRC = { id: "one-source", type: "source", x: 400, y: 380 };
-  const INC_ONE_LO = { id: "one-split-lo", type: "splitter", x: 510, y: 380, mirrored: true, outputs: 4, width: 1 };
-  const INC_ONE_HI = { id: "one-split-hi", type: "splitter", x: 650, y: 380, mirrored: true, outputs: 4, width: 4 };
-  const INC_W_ONE = [
-    ["one-source.out", "one-split-lo.leg0"],
-    ["one-split-lo.single", "one-split-hi.leg0"]
-  ];
-  const INC_HINT_STAGES = {
-    "inc-build-one": { components: [INC_ONE_SRC, INC_ONE_LO, INC_ONE_HI], wires: INC_W_ONE }
-  };
+  // The Inc "build the constant 1" hint scaffolds the SAME constant-1 sub-circuit
+  // the solution uses (its own internal source feeding a merging splitter so the
+  // single side is a 16-bit 0001), leaving the input + 1-bus → Add16 wiring to the
+  // learner. Derive it from the Inc solution JSON so it always matches: keep every
+  // solution component EXCEPT the adder, and only the wires among the kept ones
+  // (the source→splitter wire) — so the internal source sits exactly where the
+  // solution places it. The external source-1 stays outside for testing.
+  function incConstantHintStage() {
+    const doc = SOLUTION_DOCS.Inc;
+    if (!doc || !Array.isArray(doc.components)) return null;
+    const isAdder = (c) => /^gate-Add/.test(c.type || "");
+    const keep = doc.components.filter((c) => !isAdder(c));
+    const keepIds = new Set(keep.map((c) => c.id));
+    const wires = (doc.wires || [])
+      .filter((w) => keepIds.has(String(w.a).split(".")[0]) && keepIds.has(String(w.b).split(".")[0]))
+      .map((w) => [w.a, w.b]);
+    return { components: keep.map(clonePlain), wires };
+  }
 
   function openArithNote() {
     // Examine both converters before the tasks note opens (mirrors the 2.4
@@ -11284,12 +11292,23 @@
     // spot (its source is the learner's own constant "1", see the Inc solution).
     const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(task.id)];
     const controlPin = frameDef ? Object.values(frameDef.pins).find((p) => p.direction === "in" && p.y < -150) : null;
-    const sourceY = controlPin ? cardY + controlPin.y : 288;
+    // The EXTERNAL test source's spot: for a card with a control it sits level with
+    // the control pin (so it doesn't move when the check runs); a card with no
+    // control (Inc) takes the source position straight from its solution JSON's
+    // `external`, so the build matches the solution. The card's OWN constant source
+    // (Inc's internal "1") is part of the solution, never pre-placed in the build.
+    let sourceX = 65;
+    let sourceY = controlPin ? cardY + controlPin.y : 288;
+    if (!controlPin) {
+      const doc = SOLUTION_DOCS[task.id];
+      const ext = doc && Array.isArray(doc.external) ? doc.external.find((c) => c.type === "source") : null;
+      if (ext && Number.isFinite(ext.x) && Number.isFinite(ext.y)) { sourceX = ext.x; sourceY = ext.y; }
+    }
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
-        { id: "source-1", type: "source", x: 65, y: sourceY }
+        { id: "source-1", type: "source", x: sourceX, y: sourceY }
       ],
       wires: [],
       nextId: 2,
@@ -11805,13 +11824,14 @@
       return setState(a16Patch, false);
     }
 
-    // Inc interactive hint: build the width-16 "1" bus (two merging splitters of
-    // size 4), leaving the input + the 1-bus → Add16 wiring to the learner.
-    if (taskId === "Inc" && INC_HINT_STAGES[hint.action]) {
+    // Inc interactive hint: scaffold the constant-1 sub-circuit from the solution,
+    // leaving the input + the 1-bus → Add16 wiring to the learner.
+    const incStage = taskId === "Inc" && hint.action === "inc-build-one" ? incConstantHintStage() : null;
+    if (incStage) {
       const incWs = normalizeWorkspace(clonePlain(state.workspace));
       const source = componentById(incWs, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
       const card = componentById(incWs, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 };
-      const stage = INC_HINT_STAGES[hint.action];
+      const stage = incStage;
       incWs.components = [clonePlain(source), clonePlain(card), ...stage.components];
       incWs.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
       incWs.nextId = 2;
