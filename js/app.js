@@ -1494,6 +1494,14 @@
     const card = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
     const cx = Number.isFinite(card?.x) ? card.x : 640;
     const cy = Number.isFinite(card?.y) ? card.y : 288;
+    // No silent fallback: a JSON-backed card whose geometry has NOT been supplied
+    // by its JSON (still loading, or the fetch failed) shows an explicit notice
+    // instead of the old hardcoded frame, so a missing JSON is impossible to miss.
+    if (SOLUTION_JSON_REQUIRED && frameDef.__jsonBacked && !frameDef.__jsonApplied) {
+      const why = SOLUTION_DOC_STATUS[def.id] || "בטעינה…";
+      return `<text x="${cx}" y="${cy - 12}" text-anchor="middle" fill="#e35d4a" font-size="24" font-weight="700">שגיאה: ${esc(def.id)}.json לא נטען</text>
+        <text x="${cx}" y="${cy + 22}" text-anchor="middle" fill="#c9bda2" font-size="16">${esc(why)} — הגאומטריה חייבת להגיע מה-JSON (אין נפילה חזרה)</text>`;
+    }
     // Add16 stacks four (tall) Add4 gates; ALU2/ALU3 have three number inputs
     // (and tall control splitters in their solutions), so they get a taller frame.
     const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3";
@@ -9345,7 +9353,23 @@
   // and the check cases). Preloaded at startup; when a doc exists it drives the
   // solution WORKSPACE geometry (the walkthrough step highlights stay in code).
   const SOLUTION_DOCS = {};
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "halfAdder", "fullAdder", "Add4", "Add16"];
+  const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
+  // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
+  // ones that actually have a file — the 2.5 arith tasks are still code-backed).
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3"];
+  // When true the game REFUSES to fall back to hardcoded geometry / check cases
+  // for a JSON-backed task: if its JSON did not load, the build shell, the check
+  // and the solution all fail loudly (console + on-screen) instead of silently
+  // reverting to the old baked-in values — so we can actually verify the JSON is
+  // the thing being used.
+  const SOLUTION_JSON_REQUIRED = true;
+  const isJsonBackedTask = (taskId) => SOLUTION_JSON_TASKS.includes(taskId);
+  // Mark each JSON-backed card def so the shell renderer can tell whether its
+  // geometry has been supplied by the JSON yet (__jsonApplied) or not.
+  for (const task of SOLUTION_JSON_TASKS) {
+    const def = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(task)];
+    if (def) def.__jsonBacked = true;
+  }
   // The frame's pins (and size) in the JSON drive the WHOLE task — the build
   // frame, the check harness and the solution all read the card's pins from the
   // component def, so applying them here changes the card everywhere.
@@ -9362,6 +9386,8 @@
         label: (p.label != null ? p.label : prev.label) || ""
       };
     }
+    def.__jsonApplied = true;
+    if (typeof console !== "undefined") console.info(`[solutions] applied ${doc.task}: ${doc.frame.pins.length} frame pins, ${(doc.components || []).length} components, ${((doc.check || {}).cases || []).length} check cases from JSON`);
   }
   // The frame rectangle size for a task, from its JSON if present (else the
   // renderMultibitTaskShell default). Used by the shell renderer.
@@ -9376,15 +9402,20 @@
     if (typeof fetch !== "function") return;
     for (const task of SOLUTION_JSON_TASKS) {
       fetch(`assets/solutions/${task}.json`)
-        .then((r) => (r && r.ok ? r.json() : null))
+        .then((r) => { if (!r || !r.ok) throw new Error(`HTTP ${r ? r.status : "no response"}`); return r.json(); })
         .then((doc) => {
-          if (!doc || !doc.frame || !Array.isArray(doc.components)) return;
+          if (!doc || !doc.frame || !Array.isArray(doc.components)) throw new Error("malformed JSON (missing frame/components)");
           SOLUTION_DOCS[task] = doc;
+          SOLUTION_DOC_STATUS[task] = "loaded";
           applySolutionDocToDefs(doc);
           // If the learner is already inside this task, re-render with the pins.
           if (state.screen === "workspace" && state.workspace?.taskId === task) render();
         })
-        .catch(() => {});
+        .catch((err) => {
+          SOLUTION_DOC_STATUS[task] = "error: " + (err && err.message || err);
+          if (typeof console !== "undefined") console.error(`[solutions] FAILED to load assets/solutions/${task}.json — ${err && err.message || err}. With SOLUTION_JSON_REQUIRED on, this task will show an error instead of using hardcoded geometry.`);
+          if (state.screen === "workspace" && state.workspace?.taskId === task) render();
+        });
     }
   }
   function workspaceFromSolutionDoc(doc) {
@@ -9403,7 +9434,11 @@
   // MUX16" variant, which only the code builder produces.
   const solutionWorkspaceForTask = (taskId, step) => {
     const doc = SOLUTION_DOCS[taskId];
-    if (doc && !(taskId === "ALU1" && Number(step) >= 5)) return workspaceFromSolutionDoc(doc);
+    const alu1Alt = taskId === "ALU1" && Number(step) >= 5; // the code-only MUX16 variant
+    if (doc && !alu1Alt) return workspaceFromSolutionDoc(doc);
+    if (SOLUTION_JSON_REQUIRED && isJsonBackedTask(taskId) && !alu1Alt) {
+      throw new Error(`[solutions] ${taskId}.json not loaded (${SOLUTION_DOC_STATUS[taskId] || "pending"}) — refusing hardcoded solution fallback (SOLUTION_JSON_REQUIRED)`);
+    }
     return __solutionWorkspaces.solutionWorkspaceForTask(taskId, step);
   };
   preloadSolutionDocs();
@@ -9820,6 +9855,9 @@
     const doc = SOLUTION_DOCS[taskId];
     if (doc && doc.check && Array.isArray(doc.check.cases) && doc.check.cases.length) {
       return doc.check.cases.map((c) => ({ ...c }));
+    }
+    if (SOLUTION_JSON_REQUIRED && isJsonBackedTask(taskId)) {
+      throw new Error(`[solutions] ${taskId}.json not loaded (${SOLUTION_DOC_STATUS[taskId] || "pending"}) — refusing hardcoded check cases (SOLUTION_JSON_REQUIRED)`);
     }
     if (taskId === "Dmux4way") {
       // Data=1 across all four control values (each lights exactly one output),
