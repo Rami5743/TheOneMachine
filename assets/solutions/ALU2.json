@@ -105,19 +105,14 @@
       "id": "ctrl-split",
       "type": "splitter",
       "x": 430,
-      "y": 195,
+      "y": 210,
       "mirrored": false,
-      "outputs": 7,
-      "width": 1
-    },
-    {
-      "id": "subctrl-merge",
-      "type": "splitter",
-      "x": 548,
-      "y": 235,
-      "mirrored": true,
-      "outputs": 6,
-      "width": 1
+      "outputs": 2,
+      "legWidths": [
+        6,
+        1
+      ],
+      "singleWidth": 7
     },
     {
       "id": "mux",
@@ -138,6 +133,14 @@
       "b": "ctrl-split.single"
     },
     {
+      "a": "ctrl-split.leg0",
+      "b": "alu1.in3"
+    },
+    {
+      "a": "ctrl-split.leg1",
+      "b": "mux.in3"
+    },
+    {
       "a": "task-card-1.inputInt2",
       "b": "mux.in1"
     },
@@ -146,44 +149,12 @@
       "b": "mux.in2"
     },
     {
-      "a": "ctrl-split.leg6",
-      "b": "mux.in3"
-    },
-    {
-      "a": "ctrl-split.leg0",
-      "b": "subctrl-merge.leg0"
-    },
-    {
-      "a": "ctrl-split.leg1",
-      "b": "subctrl-merge.leg1"
-    },
-    {
-      "a": "ctrl-split.leg2",
-      "b": "subctrl-merge.leg2"
-    },
-    {
-      "a": "ctrl-split.leg3",
-      "b": "subctrl-merge.leg3"
-    },
-    {
-      "a": "ctrl-split.leg4",
-      "b": "subctrl-merge.leg4"
-    },
-    {
-      "a": "ctrl-split.leg5",
-      "b": "subctrl-merge.leg5"
-    },
-    {
-      "a": "task-card-1.inputInt1",
-      "b": "alu1.in1"
-    },
-    {
       "a": "mux.out",
       "b": "alu1.in2"
     },
     {
-      "a": "subctrl-merge.single",
-      "b": "alu1.in3"
+      "a": "task-card-1.inputInt1",
+      "b": "alu1.in1"
     },
     {
       "a": "alu1.out1",

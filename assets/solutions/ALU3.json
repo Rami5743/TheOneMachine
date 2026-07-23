@@ -107,8 +107,13 @@
       "x": 405,
       "y": 360,
       "mirrored": false,
-      "outputs": 12,
-      "width": 1
+      "outputs": 3,
+      "legWidths": [
+        7,
+        4,
+        1
+      ],
+      "singleWidth": 12
     },
     {
       "id": "optA-merge",
@@ -116,17 +121,12 @@
       "x": 512,
       "y": 250,
       "mirrored": true,
-      "outputs": 16,
-      "width": 1
-    },
-    {
-      "id": "alu2-ctrl",
-      "type": "splitter",
-      "x": 520,
-      "y": 545,
-      "mirrored": true,
-      "outputs": 7,
-      "width": 1
+      "outputs": 2,
+      "legWidths": [
+        12,
+        4
+      ],
+      "singleWidth": 16
     },
     {
       "id": "alu2",
@@ -147,84 +147,20 @@
       "b": "ctrl-split.single"
     },
     {
-      "a": "ctrl-split.leg0",
+      "a": "task-card-1.inputInt4",
       "b": "optA-merge.leg0"
     },
     {
-      "a": "ctrl-split.leg1",
-      "b": "optA-merge.leg1"
+      "a": "ctrl-split.leg0",
+      "b": "alu2.in4"
     },
     {
       "a": "ctrl-split.leg2",
-      "b": "optA-merge.leg2"
-    },
-    {
-      "a": "ctrl-split.leg3",
-      "b": "optA-merge.leg3"
-    },
-    {
-      "a": "ctrl-split.leg4",
-      "b": "optA-merge.leg4"
-    },
-    {
-      "a": "ctrl-split.leg5",
-      "b": "optA-merge.leg5"
-    },
-    {
-      "a": "ctrl-split.leg6",
-      "b": "optA-merge.leg6"
-    },
-    {
-      "a": "ctrl-split.leg7",
-      "b": "optA-merge.leg7"
-    },
-    {
-      "a": "ctrl-split.leg8",
-      "b": "optA-merge.leg8"
-    },
-    {
-      "a": "ctrl-split.leg9",
-      "b": "optA-merge.leg9"
-    },
-    {
-      "a": "ctrl-split.leg10",
-      "b": "optA-merge.leg10"
-    },
-    {
-      "a": "ctrl-split.leg11",
-      "b": "optA-merge.leg11"
+      "b": "mux.in3"
     },
     {
       "a": "optA-merge.single",
       "b": "mux.in1"
-    },
-    {
-      "a": "ctrl-split.leg0",
-      "b": "alu2-ctrl.leg0"
-    },
-    {
-      "a": "ctrl-split.leg1",
-      "b": "alu2-ctrl.leg1"
-    },
-    {
-      "a": "ctrl-split.leg2",
-      "b": "alu2-ctrl.leg2"
-    },
-    {
-      "a": "ctrl-split.leg3",
-      "b": "alu2-ctrl.leg3"
-    },
-    {
-      "a": "ctrl-split.leg4",
-      "b": "alu2-ctrl.leg4"
-    },
-    {
-      "a": "ctrl-split.leg5",
-      "b": "alu2-ctrl.leg5"
-    },
-    {
-      "a": "ctrl-split.leg6",
-      "b": "alu2-ctrl.leg6"
     },
     {
       "a": "task-card-1.inputInt1",
@@ -239,16 +175,8 @@
       "b": "alu2.in3"
     },
     {
-      "a": "alu2-ctrl.single",
-      "b": "alu2.in4"
-    },
-    {
       "a": "alu2.out1",
       "b": "mux.in2"
-    },
-    {
-      "a": "ctrl-split.leg11",
-      "b": "mux.in3"
     },
     {
       "a": "mux.out",

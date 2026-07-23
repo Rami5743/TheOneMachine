@@ -13,15 +13,15 @@
       {
         "id": "inputExt1",
         "x": -340,
-        "y": -90,
+        "y": -15,
         "w": 16,
         "dir": "in",
         "label": "כניסת המספר הראשון"
       },
       {
         "id": "inputInt1",
-        "x": -260,
-        "y": -90,
+        "x": -265,
+        "y": -15,
         "w": 16,
         "dir": "out",
         "label": ""
@@ -86,12 +86,24 @@
   ],
   "harness": {
     "inputs": {
-      "inputExt1": { "x": 120, "y": 270 },
-      "inputExt2": { "x": 120, "y": 450 },
-      "inputExt3": { "x": 210, "y": 110 }
+      "inputExt1": {
+        "x": 120,
+        "y": 270
+      },
+      "inputExt2": {
+        "x": 120,
+        "y": 450
+      },
+      "inputExt3": {
+        "x": 210,
+        "y": 110
+      }
     },
     "outputs": {
-      "outputExt1": { "x": 1120, "y": 360 }
+      "outputExt1": {
+        "x": 1120,
+        "y": 360
+      }
     }
   },
   "components": [

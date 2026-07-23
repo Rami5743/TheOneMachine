@@ -66,11 +66,15 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "one-merge",
         "type": "splitter",
-        "x": 540,
+        "x": 560,
         "y": 430,
         "mirrored": true,
-        "outputs": 16,
-        "width": 1
+        "outputs": 2,
+        "legWidths": [
+          1,
+          15
+        ],
+        "singleWidth": 16
       },
       {
         "id": "add-1",
@@ -225,20 +229,20 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "and16",
         "type": "gate-AND16",
-        "x": 540,
-        "y": 240
+        "x": 535,
+        "y": 295
       },
       {
         "id": "add16",
         "type": "gate-Add16",
-        "x": 540,
-        "y": 470
+        "x": 530,
+        "y": 425
       },
       {
         "id": "mux",
         "type": "gate-MUX16",
-        "x": 760,
-        "y": 355
+        "x": 755,
+        "y": 360
       }
     ],
     "wires": [
@@ -525,15 +529,15 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -340,
-          "y": -90,
+          "y": -15,
           "w": 16,
           "dir": "in",
           "label": "כניסת המספר הראשון"
         },
         {
           "id": "inputInt1",
-          "x": -260,
-          "y": -90,
+          "x": -265,
+          "y": -15,
           "w": 16,
           "dir": "out",
           "label": ""
@@ -868,19 +872,14 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "ctrl-split",
         "type": "splitter",
         "x": 430,
-        "y": 195,
+        "y": 210,
         "mirrored": false,
-        "outputs": 7,
-        "width": 1
-      },
-      {
-        "id": "subctrl-merge",
-        "type": "splitter",
-        "x": 548,
-        "y": 235,
-        "mirrored": true,
-        "outputs": 6,
-        "width": 1
+        "outputs": 2,
+        "legWidths": [
+          6,
+          1
+        ],
+        "singleWidth": 7
       },
       {
         "id": "mux",
@@ -901,6 +900,14 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "ctrl-split.single"
       },
       {
+        "a": "ctrl-split.leg0",
+        "b": "alu1.in3"
+      },
+      {
+        "a": "ctrl-split.leg1",
+        "b": "mux.in3"
+      },
+      {
         "a": "task-card-1.inputInt2",
         "b": "mux.in1"
       },
@@ -909,44 +916,12 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "mux.in2"
       },
       {
-        "a": "ctrl-split.leg6",
-        "b": "mux.in3"
-      },
-      {
-        "a": "ctrl-split.leg0",
-        "b": "subctrl-merge.leg0"
-      },
-      {
-        "a": "ctrl-split.leg1",
-        "b": "subctrl-merge.leg1"
-      },
-      {
-        "a": "ctrl-split.leg2",
-        "b": "subctrl-merge.leg2"
-      },
-      {
-        "a": "ctrl-split.leg3",
-        "b": "subctrl-merge.leg3"
-      },
-      {
-        "a": "ctrl-split.leg4",
-        "b": "subctrl-merge.leg4"
-      },
-      {
-        "a": "ctrl-split.leg5",
-        "b": "subctrl-merge.leg5"
-      },
-      {
-        "a": "task-card-1.inputInt1",
-        "b": "alu1.in1"
-      },
-      {
         "a": "mux.out",
         "b": "alu1.in2"
       },
       {
-        "a": "subctrl-merge.single",
-        "b": "alu1.in3"
+        "a": "task-card-1.inputInt1",
+        "b": "alu1.in1"
       },
       {
         "a": "alu1.out1",
@@ -1130,8 +1105,13 @@ window.EMBEDDED_SOLUTIONS = {
         "x": 405,
         "y": 360,
         "mirrored": false,
-        "outputs": 12,
-        "width": 1
+        "outputs": 3,
+        "legWidths": [
+          7,
+          4,
+          1
+        ],
+        "singleWidth": 12
       },
       {
         "id": "optA-merge",
@@ -1139,17 +1119,12 @@ window.EMBEDDED_SOLUTIONS = {
         "x": 512,
         "y": 250,
         "mirrored": true,
-        "outputs": 16,
-        "width": 1
-      },
-      {
-        "id": "alu2-ctrl",
-        "type": "splitter",
-        "x": 520,
-        "y": 545,
-        "mirrored": true,
-        "outputs": 7,
-        "width": 1
+        "outputs": 2,
+        "legWidths": [
+          12,
+          4
+        ],
+        "singleWidth": 16
       },
       {
         "id": "alu2",
@@ -1170,84 +1145,20 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "ctrl-split.single"
       },
       {
-        "a": "ctrl-split.leg0",
+        "a": "task-card-1.inputInt4",
         "b": "optA-merge.leg0"
       },
       {
-        "a": "ctrl-split.leg1",
-        "b": "optA-merge.leg1"
+        "a": "ctrl-split.leg0",
+        "b": "alu2.in4"
       },
       {
         "a": "ctrl-split.leg2",
-        "b": "optA-merge.leg2"
-      },
-      {
-        "a": "ctrl-split.leg3",
-        "b": "optA-merge.leg3"
-      },
-      {
-        "a": "ctrl-split.leg4",
-        "b": "optA-merge.leg4"
-      },
-      {
-        "a": "ctrl-split.leg5",
-        "b": "optA-merge.leg5"
-      },
-      {
-        "a": "ctrl-split.leg6",
-        "b": "optA-merge.leg6"
-      },
-      {
-        "a": "ctrl-split.leg7",
-        "b": "optA-merge.leg7"
-      },
-      {
-        "a": "ctrl-split.leg8",
-        "b": "optA-merge.leg8"
-      },
-      {
-        "a": "ctrl-split.leg9",
-        "b": "optA-merge.leg9"
-      },
-      {
-        "a": "ctrl-split.leg10",
-        "b": "optA-merge.leg10"
-      },
-      {
-        "a": "ctrl-split.leg11",
-        "b": "optA-merge.leg11"
+        "b": "mux.in3"
       },
       {
         "a": "optA-merge.single",
         "b": "mux.in1"
-      },
-      {
-        "a": "ctrl-split.leg0",
-        "b": "alu2-ctrl.leg0"
-      },
-      {
-        "a": "ctrl-split.leg1",
-        "b": "alu2-ctrl.leg1"
-      },
-      {
-        "a": "ctrl-split.leg2",
-        "b": "alu2-ctrl.leg2"
-      },
-      {
-        "a": "ctrl-split.leg3",
-        "b": "alu2-ctrl.leg3"
-      },
-      {
-        "a": "ctrl-split.leg4",
-        "b": "alu2-ctrl.leg4"
-      },
-      {
-        "a": "ctrl-split.leg5",
-        "b": "alu2-ctrl.leg5"
-      },
-      {
-        "a": "ctrl-split.leg6",
-        "b": "alu2-ctrl.leg6"
       },
       {
         "a": "task-card-1.inputInt1",
@@ -1262,16 +1173,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "alu2.in3"
       },
       {
-        "a": "alu2-ctrl.single",
-        "b": "alu2.in4"
-      },
-      {
         "a": "alu2.out1",
         "b": "mux.in2"
-      },
-      {
-        "a": "ctrl-split.leg11",
-        "b": "mux.in3"
       },
       {
         "a": "mux.out",

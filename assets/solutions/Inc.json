@@ -62,11 +62,15 @@
     {
       "id": "one-merge",
       "type": "splitter",
-      "x": 540,
+      "x": 560,
       "y": 430,
       "mirrored": true,
-      "outputs": 16,
-      "width": 1
+      "outputs": 2,
+      "legWidths": [
+        1,
+        15
+      ],
+      "singleWidth": 16
     },
     {
       "id": "add-1",
