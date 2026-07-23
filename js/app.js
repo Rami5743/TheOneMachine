@@ -684,9 +684,9 @@
     aluOp: "alu2",
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -34, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
       in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 34, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
       in4: { x: 0, y: -46, direction: "in", width: 7, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
@@ -729,9 +729,9 @@
     aluOp: "alu3",
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -34, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
       in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 34, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
       in4: { x: 0, y: -46, direction: "in", width: 12, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },

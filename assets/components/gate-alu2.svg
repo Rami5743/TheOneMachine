@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg viewBox="-66 -62 138 124" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <style>
+<svg
+   viewBox="-66 -62 138 124"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="gate-alu2.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs5" />
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="9.3913043"
+     inkscape:cx="47.384259"
+     inkscape:cy="70.543981"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg5" />
+  <style
+     id="style1">
     .usercard-body { fill:#f4e7cf; stroke:#4a3b28; stroke-width:4; }
     .usercard-pin { stroke:#111; stroke-width:5; stroke-linecap:round; fill:none; }
     .arith-gate-pin-letter { font-family:Arial,sans-serif; font-size:20px; font-weight:800; fill:#2c2113; text-anchor:middle; }
@@ -8,19 +38,120 @@
     .splitter-stripe { stroke:#d8d8d8; stroke-width:3; stroke-dasharray:6 3; stroke-linecap:butt; fill:none; }
     .splitter-width-label { fill:#ffe37a; font-family:Arial,sans-serif; font-weight:800; font-size:13px; text-anchor:middle; }
   </style>
-  <g class="usercard"><path class="usercard-body" d="M -46 -54 L 46 -30 L 46 30 L -46 54 L -46 13 L -24 0 L -46 -13 Z" /><text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU2</text>
-      <rect class="splitter-bar" x="-62" y="-43.16666666666667" width="16" height="18.333333333333336" />
-      <line class="splitter-stripe" x1="-59" y1="-34" x2="-49" y2="-34" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="-54" y="-55.66666666666667" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
-      <rect class="splitter-bar" x="-62" y="-9.166666666666668" width="38" height="18.333333333333336" />
-      <line class="splitter-stripe" x1="-59" y1="0" x2="-27" y2="0" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="-43" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
-      <rect class="splitter-bar" x="-62" y="24.833333333333332" width="16" height="18.333333333333336" />
-      <line class="splitter-stripe" x1="-59" y1="34" x2="-49" y2="34" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="-54" y="12.333333333333332" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
-      <rect class="splitter-bar" x="46" y="-9.166666666666668" width="20" height="18.333333333333336" />
-      <line class="splitter-stripe" x1="49" y1="0" x2="63" y2="0" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="56" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
-      <rect class="splitter-bar" x="-9.166666666666668" y="-46" width="18.333333333333336" height="8" />
-      <line class="splitter-stripe" x1="0" y1="-43" x2="0" y2="-41" style="stroke-width:5;stroke-dasharray:10 5" /></g>
+  <path
+     class="usercard-body"
+     d="m -46,-54 92,24 V 30 L -46,54 V 24.833334 l 9.363472,-10.569374 -9.255514,0.07899 -0.131137,-29.078194 8.748967,-0.248527 L -46,-24.833334 Z"
+     id="path1"
+     sodipodi:nodetypes="ccccccccccc" />
+  <text
+     class="arith-gate-pin-letter"
+     x="6"
+     y="6"
+     text-anchor="middle"
+     style="font-size:16px"
+     id="text1">ALU2</text>
+  <rect
+     class="splitter-bar"
+     x="-62"
+     y="-49.166668"
+     width="16"
+     height="18.333334"
+     id="rect1" />
+  <line
+     class="splitter-stripe"
+     x1="-59"
+     y1="-40"
+     x2="-49"
+     y2="-40"
+     style="stroke-width:5;stroke-dasharray:10, 5"
+     id="line1" />
+  <rect
+     class="splitter-bar"
+     x="-62"
+     y="-9.166667"
+     width="16"
+     height="18.333334"
+     id="rect1-0"
+     style="fill:#111111;stroke:none;stroke-width:1" />
+  <text
+     class="splitter-width-label"
+     x="-59.28"
+     y="-50.699"
+     text-anchor="middle"
+     style="font-size:21.6667px"
+     id="text2">16</text>
+  <text
+     class="splitter-width-label"
+     x="-59.28"
+     y="-10.699"
+     text-anchor="middle"
+     style="font-size:21.6667px"
+     id="text3">16</text>
+  <rect
+     class="splitter-bar"
+     x="-62"
+     y="30.833334"
+     width="16"
+     height="18.333334"
+     id="rect3" />
+  <line
+     class="splitter-stripe"
+     x1="-59"
+     y1="40"
+     x2="-49"
+     y2="40"
+     style="stroke-width:5;stroke-dasharray:10, 5"
+     id="line3" />
+  <text
+     class="splitter-width-label"
+     x="-59.28"
+     y=" 29.301"
+     text-anchor="middle"
+     style="font-size:21.6667px"
+     id="text4">16</text>
+  <rect
+     class="splitter-bar"
+     x="46"
+     y="-9.166667"
+     width="20"
+     height="18.333334"
+     id="rect4" />
+  <line
+     class="splitter-stripe"
+     x1="49"
+     y1="0"
+     x2="63"
+     y2="0"
+     style="stroke-width:5;stroke-dasharray:10, 5"
+     id="line4" />
+  <text
+     class="splitter-width-label"
+     x="56"
+     y="-21.666666"
+     text-anchor="middle"
+     style="font-size:21.6667px"
+     id="text5">16</text>
+  <rect
+     class="splitter-bar"
+     x="-9.166667"
+     y="-46"
+     width="18.333334"
+     height="8"
+     id="rect5" />
+  <line
+     class="splitter-stripe"
+     x1="0"
+     y1="-43"
+     x2="0"
+     y2="-41"
+     style="stroke-width:5;stroke-dasharray:10, 5"
+     id="line5" />
+  <line
+     class="splitter-stripe"
+     x1="-59"
+     y1="0"
+     x2="-49"
+     y2="0"
+     style="fill:none;stroke:#d8d8d8;stroke-width:5;stroke-linecap:butt;stroke-dasharray:10, 5"
+     id="line1-4" />
 </svg>
