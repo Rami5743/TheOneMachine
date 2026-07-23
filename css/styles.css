@@ -3918,7 +3918,7 @@ object.panel-image.is-pending {
   color: #5c4a2c;
   font-size: 0.95rem;
 }
-.rankings-table-wrap { overflow-x: auto; }
+.rankings-table-wrap { overflow-x: auto; overflow-y: auto; max-height: 60vh; }
 .rankings-table {
   width: 100%;
   border-collapse: collapse;
@@ -3936,6 +3936,10 @@ object.panel-image.is-pending {
   color: #3a2c14;
   border-bottom: 2px solid rgba(70, 50, 25, 0.4);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: #f3e4c4;
+  z-index: 1;
 }
 .rankings-table td.rank-card-name,
 .rankings-table th.rank-card-name {

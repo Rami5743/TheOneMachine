@@ -962,7 +962,13 @@
     // Efficiency ranking: the player's best (lowest) recursive Nand count per
     // card, recorded when a card's check passes (see recordCardNandCount). A card
     // built with a sub-card that has no count is stored as null (undefined).
+    // Derived — recomputed from cardBuilds (see recomputeAllCardCounts).
     cardNandCounts: {},
+    // The player's actual best build per card: { components, wires }. We store the
+    // whole implementation (not just the count) so that improving one card
+    // automatically improves every card that is built on top of it — the counts
+    // are recomputed recursively from these builds. Keyed by card id (task id).
+    cardBuilds: {},
     // The player's leaderboard nickname (shown only on a card's records page,
     // never in the main table). Default "ללא שם".
     rankingsNickname: "ללא שם",
@@ -9550,68 +9556,155 @@
   }
 
   // ---- Efficiency ranking: recursive Nand count of the player's build --------
+  // We store the whole IMPLEMENTATION of each card (its components+wires) rather
+  // than a frozen number, and compute the Nand count recursively on demand. That
+  // way improving one card (e.g. building a leaner Not) automatically improves
+  // every card built on top of it — its stored build references the sub-card, and
+  // the sub-card's count is looked up live.
+  //
   // A single component contributes: a raw Nand = 1; a placed built card
-  // (gate-<id> or usercard-<n>) = that card's own stored count; anything else
-  // (splitter, source, lamp, frame …) = 0. Returns null if a placed card has no
-  // stored count (built with a card that wasn't built → the whole build is
-  // "undefined").
-  function componentNandCount(type, counts) {
-    if (type === "nand") return 1;
-    counts = counts || state.cardNandCounts || {};
-    if (typeof type === "string" && type.startsWith("gate-")) {
-      const v = counts[type.slice(5)];
-      return typeof v === "number" && isFinite(v) ? v : null;
+  // (gate-<id> → that card's build, or usercard-<n> → that user card's own
+  // circuit) = that card's recursive count; anything else (splitter, source,
+  // lamp, frame, converter …) = 0. Returns null if a placed card has no known
+  // build (so the whole build is "undefined"). A cycle also yields null.
+  function cardBuildComponents(cardKey) {
+    // cardKey is either a task id ("and", "Mux" …) or a "usercard-<n>" type.
+    if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
+      const card = (state.savedCards || []).find((c) => c.type === cardKey);
+      return card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
     }
-    if (typeof type === "string" && type.startsWith("usercard-")) {
-      const v = counts[type];
-      return typeof v === "number" && isFinite(v) ? v : null;
+    const build = (state.cardBuilds || {})[cardKey];
+    return build && Array.isArray(build.components) ? build.components : null;
+  }
+
+  function cardRecursiveCount(cardKey, memo, stack) {
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null; // cycle guard
+    const comps = cardBuildComponents(cardKey);
+    if (!comps) return null; // this card was never built → undefined
+    stack.add(cardKey);
+    const total = sumComponentsCount(comps, memo, stack);
+    stack.delete(cardKey);
+    memo.set(cardKey, total);
+    return total;
+  }
+
+  function componentNandCount(type, memo, stack) {
+    if (type === "nand") return 1;
+    if (typeof type === "string" && type.startsWith("gate-")) {
+      return cardRecursiveCount(type.slice(5), memo, stack);
+    }
+    if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) {
+      return cardRecursiveCount(type, memo, stack);
     }
     return 0;
   }
 
-  function computeBuildNandCount(components, counts) {
+  function sumComponentsCount(components, memo, stack) {
     let total = 0;
     for (const comp of (Array.isArray(components) ? components : [])) {
-      const n = componentNandCount(comp && comp.type, counts);
-      if (n === null) return null; // used a card with no count → undefined
+      const n = componentNandCount(comp && comp.type, memo, stack);
+      if (n === null) return null; // used a card with no build → undefined
       total += n;
     }
     return total;
   }
 
-  // Fill in a Nand count for cards the player already completed before their
-  // builds were counted (a completed card can no longer be re-checked). We use
-  // the reference solution's count as the baseline; a later live rebuild records
-  // the player's own (best) count. Processed in card order so a super-card's
-  // sub-cards are counted first.
+  // The recursive Nand count of an explicit component list (a fresh build not yet
+  // stored). Sub-cards are resolved against the CURRENT stored builds.
+  function computeBuildNandCount(components) {
+    return sumComponentsCount(components, new Map(), new Set());
+  }
+
+  // Rebuild the whole cardNandCounts map from the stored implementations. Called
+  // whenever a build changes so improvements ripple through every dependent card.
+  function recomputeAllCardCounts(builds) {
+    const source = builds || state.cardBuilds || {};
+    const memo = new Map();
+    const counts = {};
+    for (const cardId of Object.keys(source)) {
+      const c = cardRecursiveCountWithBuilds(cardId, source, memo);
+      counts[cardId] = (typeof c === "number") ? c : null;
+    }
+    return counts;
+  }
+
+  // Same recursion as cardRecursiveCount but against an explicit builds map (used
+  // by recomputeAllCardCounts, which may run on a builds map not yet in state).
+  function cardRecursiveCountWithBuilds(cardKey, builds, memo, stack) {
+    stack = stack || new Set();
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null;
+    let comps;
+    if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
+      const card = (state.savedCards || []).find((c) => c.type === cardKey);
+      comps = card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
+    } else {
+      const b = builds[cardKey];
+      comps = b && Array.isArray(b.components) ? b.components : null;
+    }
+    if (!comps) return null;
+    stack.add(cardKey);
+    let total = 0;
+    for (const comp of comps) {
+      const type = comp && comp.type;
+      let n;
+      if (type === "nand") n = 1;
+      else if (typeof type === "string" && type.startsWith("gate-")) n = cardRecursiveCountWithBuilds(type.slice(5), builds, memo, stack);
+      else if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) n = cardRecursiveCountWithBuilds(type, builds, memo, stack);
+      else n = 0;
+      if (n === null) { total = null; break; }
+      total += n;
+    }
+    stack.delete(cardKey);
+    memo.set(cardKey, total);
+    return total;
+  }
+
+  // Fill in builds for cards the player already completed before their builds
+  // were stored (a completed card can no longer be re-checked). We seed the
+  // reference solution as that card's build; a later live rebuild replaces it
+  // with the player's own (leaner) circuit.
   function backfillCompletedCardCounts() {
     const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
-    const counts = { ...(state.cardNandCounts || {}) };
+    const builds = { ...(state.cardBuilds || {}) };
     let changed = false;
     for (const card of cards) {
-      if (card.id === "Nand" || typeof counts[card.id] === "number") continue;
+      if (card.id === "Nand" || builds[card.id]) continue;
       if (!taskCompleted(card.id)) continue;
       let ws = null;
       try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
-      if (!ws) continue;
-      const c = computeBuildNandCount(ws.components, counts);
-      if (typeof c === "number") { counts[card.id] = c; changed = true; }
+      if (!ws || !Array.isArray(ws.components)) continue;
+      builds[card.id] = { components: clonePlain(ws.components), wires: clonePlain(ws.wires || []) };
+      changed = true;
     }
-    if (changed) setState({ cardNandCounts: counts }, false);
+    if (changed) setState({ cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) }, false);
   }
 
-  // Record the player's Nand count for a just-passed card, keeping the BEST
-  // (lowest) valid build. Uses the pre-harness snapshot (the learner's own
-  // circuit) when available.
+  // Record the player's build for a just-passed card, keeping the leaner one
+  // (fewer recursive Nands). Uses the pre-harness snapshot (the learner's own
+  // circuit) when available. Storing the full build — not just the number — lets
+  // later improvements to sub-cards flow through automatically.
   function recordCardNandCount(taskId, buildWorkspace) {
     if (!taskId) return null;
     const ws = buildWorkspace || {};
-    const count = computeBuildNandCount(ws.components);
-    const prev = (state.cardNandCounts || {})[taskId];
-    let next;
-    if (count === null) next = (typeof prev === "number") ? prev : null;
-    else next = (typeof prev === "number") ? Math.min(prev, count) : count;
-    return { ...(state.cardNandCounts || {}), [taskId]: next };
+    const newBuild = { components: clonePlain(ws.components || []), wires: clonePlain(ws.wires || []) };
+    const builds = { ...(state.cardBuilds || {}) };
+    const prevBuild = builds[taskId];
+    const newCount = computeBuildNandCount(newBuild.components);
+    let keep;
+    if (newCount === null) {
+      keep = prevBuild || newBuild; // invalid new count → don't lose an existing build
+    } else if (prevBuild) {
+      const prevCount = computeBuildNandCount(prevBuild.components);
+      keep = (typeof prevCount === "number" && prevCount <= newCount) ? prevBuild : newBuild;
+    } else {
+      keep = newBuild;
+    }
+    builds[taskId] = keep;
+    return { cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) };
   }
 
   function showNotTestResult(result, workspace, taskId) {
@@ -9633,10 +9726,11 @@
       // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
       if (!taskCompleted(taskId)) unlockAchievement("precise-engineer");
     }
-    // Efficiency ranking: record the player's recursive Nand count for this card
-    // (their best build) from the pre-harness snapshot of their own circuit.
+    // Efficiency ranking: store the player's best build for this card (from the
+    // pre-harness snapshot of their own circuit) and recompute all counts so any
+    // dependent card improves too.
     if (result === "success" && taskId) {
-      patch.cardNandCounts = recordCardNandCount(taskId, notTestSnapshot || workspace);
+      Object.assign(patch, recordCardNandCount(taskId, notTestSnapshot || workspace));
     }
     setState(patch, false);
   }
@@ -14067,7 +14161,10 @@
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
-      backfillCompletedCardCounts(); // count already-completed cards (reference build)
+      backfillCompletedCardCounts(); // seed reference builds for already-completed cards
+      // Recompute from the current builds + user cards so any improvement to a
+      // sub-card (or an edited user card) is reflected in every dependent count.
+      setState({ cardNandCounts: recomputeAllCardCounts() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
       return setState({ screen: "rankings", rankingsNicknameError: null }, false);
     }
