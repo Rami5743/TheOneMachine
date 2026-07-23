@@ -9787,7 +9787,7 @@
       const inSep = Math.max(180, splitHalfH * 2 + 30);
       const sy = 288 + (dataIdx - (numData - 1) / 2) * inSep;
       dataIdx += 1;
-      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: w, width: 1 });
+      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: w, legWidths: Array(w).fill(1), singleWidth: w });
       bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
@@ -9796,7 +9796,7 @@
 
     // Output side: an unmirrored splitter (single = input) at the card's output
     // pin fans the output bus out to one lamp per bit.
-    const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, width: 1 };
+    const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, legWidths: Array(width).fill(1), singleWidth: width };
     workspace.components.push(outSplit);
     workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
     const layout = busLampLayout(width, outSplit.y, 1180);

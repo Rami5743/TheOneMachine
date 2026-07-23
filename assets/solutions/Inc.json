@@ -56,26 +56,17 @@
     {
       "id": "one-source",
       "type": "source",
-      "x": 350,
-      "y": 400
+      "x": 360,
+      "y": 430
     },
     {
-      "id": "one-split-lo",
+      "id": "one-merge",
       "type": "splitter",
-      "x": 490,
-      "y": 400,
+      "x": 540,
+      "y": 430,
       "mirrored": true,
-      "outputs": 4,
+      "outputs": 16,
       "width": 1
-    },
-    {
-      "id": "one-split-hi",
-      "type": "splitter",
-      "x": 660,
-      "y": 400,
-      "mirrored": true,
-      "outputs": 4,
-      "width": 4
     },
     {
       "id": "add-1",
@@ -87,19 +78,15 @@
   "wires": [
     {
       "a": "one-source.out",
-      "b": "one-split-lo.leg0"
+      "b": "one-merge.leg0"
     },
     {
-      "a": "one-split-lo.single",
-      "b": "one-split-hi.leg0"
+      "a": "one-merge.single",
+      "b": "add-1.in2"
     },
     {
       "a": "task-card-1.inputInt1",
       "b": "add-1.in1"
-    },
-    {
-      "a": "one-split-hi.single",
-      "b": "add-1.in2"
     },
     {
       "a": "add-1.out1",
