@@ -343,6 +343,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           if (bus) {
             const inVecs = Array.from({ length: bus.inputs }, (_, k) => inputBits(workspace, `${component.id}.in${k + 1}`, outputs));
             const outVec = [];
+            if (bus.op === "Is0") {
+              // Is-zero detector: a single output bit, 1 iff every input bit is 0.
+              if (setBits(outputs, `${component.id}.out`, [!inVecs[0].some(Boolean)])) changed = true;
+              continue;
+            }
             if (bus.control) {
               // MUX bus gate: the last input is a single shared control bit; the
               // rest are per-bit data buses. output[i] = op(data…[i], control).

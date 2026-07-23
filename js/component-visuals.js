@@ -284,7 +284,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     Or: [{ x1: -58, x2: -28, y: -23 }, { x1: -58, x2: -28, y: 23 }, { x1: 62, x2: 80, y: 0 }],
     // MUX: two data inputs (left) and the output (right) are buses; the control
     // stub on top stays a thin single-bit line.
-    Mux: [{ x1: -62, x2: -30, y: -23 }, { x1: -62, x2: -30, y: 23 }, { x1: 30, x2: 66, y: 0 }]
+    Mux: [{ x1: -62, x2: -30, y: -23 }, { x1: -62, x2: -30, y: 23 }, { x1: 30, x2: 66, y: 0 }],
+    // Is0 borrows the Not symbol but only its INPUT is a bus; the output is a
+    // single bit, so only the input side gets a bus bar.
+    Is0: [{ x1: -60, x2: -42, y: 0 }]
   };
 
   // A bus gate (gate-Not4 …): the base gate's schematic symbol, with its thin
@@ -319,7 +322,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       <line class="splitter-stripe" x1="${cx}" y1="${top + 3}" x2="${cx}" y2="${bot - 3}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />`;
   }
   function busGateMarkup(spec, options = {}) {
-    const symbol = gateMarkup(taskDefById(spec.op));
+    // Is0 has no symbol of its own — draw it with the Not gate's shape.
+    const symbol = gateMarkup(taskDefById(spec.op === "Is0" ? "Not" : spec.op));
     const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width, !options.toolbar)).join("");
     return `<g class="bus-gate">${symbol}${bars}</g>`;
   }

@@ -649,6 +649,69 @@ function createSolutionWorkspaces({
     });
   }
 
+  // Is0_4: split the 4-bit input into 4 single bits, OR them all together
+  // (Or4way) — 0 iff every bit was 0 — then NOT the result to get 1 iff all-zero.
+  function is0_4SolutionWorkspaceFrom() {
+    const legYs = [339, 305, 271, 237]; // leg0 (bottom) … leg3 (top)
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Is0_4"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 420, y: 288, mirrored: false, outputs: 4, width: 1 },
+      { id: "or4", type: "gate-OR4way", x: 590, y: 288 },
+      { id: "not1", type: "gate-Not", x: 760, y: 288 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-in.single"),
+      normalizeWire("or4.out", "not1.in1"),
+      normalizeWire("not1.out", "task-card-1.outputInt")
+    ];
+    legYs.forEach((y, i) => { wires.push(normalizeWire(`split-in.leg${i}`, `or4.in${i + 1}`)); });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Is0_4", taskIntroSeen: true
+    });
+  }
+
+  // Is0_16: split the 16-bit input into four 4-bit nibbles, test each with an
+  // Is0_4, then AND the four results (And3way + And) — 1 iff every nibble is 0.
+  function is0_16SolutionWorkspaceFrom() {
+    const legYs = [339, 305, 271, 237];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Is0_16"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 400, y: 288, mirrored: false, outputs: 4, width: 4 },
+      { id: "and3", type: "gate-AND3way", x: 700, y: 330 },
+      { id: "and-final", type: "gate-And", x: 830, y: 288 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-in.single"),
+      normalizeWire("and3.out", "and-final.in1"),
+      normalizeWire("and-final.out", "task-card-1.outputInt")
+    ];
+    legYs.forEach((y, i) => {
+      components.push({ id: `is0-${i}`, type: "gate-Is0_4", x: 555, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `is0-${i}.in1`));
+    });
+    wires.push(normalizeWire("is0-0.out", "and3.in1"));
+    wires.push(normalizeWire("is0-1.out", "and3.in2"));
+    wires.push(normalizeWire("is0-2.out", "and3.in3"));
+    wires.push(normalizeWire("is0-3.out", "and-final.in2"));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Is0_16", taskIntroSeen: true
+    });
+  }
+
   // Not16: split the 16-bit input into 4 buses of width 4, apply a Not4 to each,
   // merge the four 4-bit results back into the 16-bit output.
   function not16SolutionWorkspaceFrom() {
@@ -1347,6 +1410,8 @@ function createSolutionWorkspaces({
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
+    if (taskId === "Is0_4") return is0_4SolutionWorkspaceFrom();
+    if (taskId === "Is0_16") return is0_16SolutionWorkspaceFrom();
     if (taskId === "Not16") return step >= 3 ? not16DirectSolutionFrom() : not16SolutionWorkspaceFrom();
     if (taskId === "AND4") return and4SolutionWorkspaceFrom();
     if (taskId === "OR4") return step >= 3 ? or4NotAndSolutionFrom() : or4SolutionWorkspaceFrom();

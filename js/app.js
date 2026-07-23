@@ -234,8 +234,8 @@
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
   // The card/gate are only built for tasks with a real build workspace so far.
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4"];
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16"];
   // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
@@ -247,8 +247,10 @@
         cardPins[`inputExt${i + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${busTask.label}${num} חיצונית` };
         cardPins[`inputInt${i + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${busTask.label}${num} פנימית` };
       });
-      cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` };
-      cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` };
+      // Is0's output is a SINGLE bit (not a width-N bus), so force its width to 1.
+      const outW = busTask.op === "Is0" ? { width: 1 } : {};
+      cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית`, ...outW };
+      cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית`, ...outW };
       WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
         label: `מסגרת ${busTask.label}`,
         fixed: true,
@@ -267,11 +269,14 @@
       // differs. It reuses the base gate's pins/bounds; `busWidth` makes its
       // pins buses, and `op` drives the componentwise evaluation. The base gate
       // (gate-Not / gate-And …) was defined above, from TASK_DEFS.
-      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op)];
+      // Is0 has no base gate of its own — it borrows the Not gate's 1-in/1-out
+      // shape, but its output pin is a single bit while its input stays a bus.
+      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op === "Is0" ? "Not" : busTask.op)];
       const gatePins = {};
       Object.entries(baseDef ? baseDef.pins : {}).forEach(([pinId, pin]) => {
         gatePins[pinId] = { ...pin };
       });
+      if (busTask.op === "Is0" && gatePins.out) gatePins.out.width = 1;
       WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
         label: busTask.label,
         gate: true,
@@ -4550,6 +4555,56 @@
             wireKey("ctrl-split.leg2", "mux.in3"),
             wireKey("mux.out", "task-card-1.outputInt1")
           ]
+        }
+      }
+    ],
+    Is0_4: [
+      {
+        text: "מפצלים את בס הכניסה ל-4 כבלים בודדים בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "מחברים את כל 4 הכבלים ל-Or4way. הפלט שלו הוא 0 בדיוק כאשר כל הביטים הם 0.",
+        highlight: {
+          components: ["or4"],
+          wires: [wireKey("split-in.leg0", "or4.in1"), wireKey("split-in.leg1", "or4.in2"), wireKey("split-in.leg2", "or4.in3"), wireKey("split-in.leg3", "or4.in4")]
+        }
+      },
+      {
+        text: "מפעילים Not על הפלט של ה-Or4way — כך מקבלים 1 בדיוק כשכל הביטים היו 0. זו יציאת הכרטיס.",
+        highlight: {
+          components: ["not1"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("or4.out", "not1.in1"), wireKey("not1.out", "task-card-1.outputInt")]
+        }
+      }
+    ],
+    Is0_16: [
+      {
+        text: "מפצלים את בס הכניסה (רוחב 16) ל-4 בסים ברוחב 4 בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "בודקים כל אחד מ-4 הרבעים בעזרת Is0_4 שכבר בנית — כל אחד מוציא 1 אם הרבע שלו הוא 0.",
+        highlight: {
+          components: ["is0-0", "is0-1", "is0-2", "is0-3"],
+          wires: [wireKey("split-in.leg0", "is0-0.in1"), wireKey("split-in.leg1", "is0-1.in1"), wireKey("split-in.leg2", "is0-2.in1"), wireKey("split-in.leg3", "is0-3.in1")]
+        }
+      },
+      {
+        text: "עושים And על 4 התוצאות (בעזרת And3Way ועוד And). היציאה היא 1 רק אם כל 4 הרבעים היו 0 — כלומר כל 16 הביטים 0.",
+        highlight: {
+          components: ["and3", "and-final"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("is0-0.out", "and3.in1"), wireKey("is0-1.out", "and3.in2"), wireKey("is0-2.out", "and3.in3"), wireKey("and3.out", "and-final.in1"), wireKey("is0-3.out", "and-final.in2"), wireKey("and-final.out", "task-card-1.outputInt")]
         }
       }
     ],
@@ -9886,6 +9941,22 @@
       [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean)],
       [[1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1].map(Boolean), [0,1,0,1,1,1,0,0,1,1,1,0,0,0,1,1].map(Boolean)]
     ],
+    // Is0: single-input; output is 1 iff the whole bus is 0. Include the all-zero
+    // case plus several non-zero patterns (some with a single 1 bit).
+    Is0_4: [
+      [false, false, false, false],
+      [true, false, false, false],
+      [false, false, false, true],
+      [true, false, true, false],
+      [false, true, true, true]
+    ],
+    Is0_16: [
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1].map(Boolean),
+      [1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [1,0,1,1, 0,0,1,0, 1,1,0,0, 0,1,0,1].map(Boolean)
+    ],
     // MUX: each case is [data1, data2, [control]] — control is a single bit.
     MUX4: [
       [[1,0,1,1].map(Boolean), [0,1,0,1].map(Boolean), [false]],
@@ -9914,6 +9985,8 @@
   // A MUX task's last input is a single shared control bit (data buses are the
   // rest): output[i] = op(data…[i], control).
   function busTaskExpected(def, buses) {
+    // Is0: a single-bit output — 1 iff every bit of the (single) input bus is 0.
+    if (def.op === "Is0") return [buses[0].every((bit) => !bit)];
     if (def.control) {
       const dataBuses = buses.slice(0, -1);
       const control = buses[buses.length - 1][0];
@@ -9981,18 +10054,24 @@
       workspace.wires.push(normalizeWire(`${splitId}.single`, inputRef));
     });
 
-    // Output side: an unmirrored splitter (single = input) at the card's output
-    // pin fans the output bus out to one lamp per bit.
-    const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, legWidths: Array(width).fill(1), singleWidth: width };
-    workspace.components.push(outSplit);
-    workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
-    const layout = busLampLayout(width, outSplit.y, 1180);
-    for (let i = 0; i < width; i += 1) {
-      const lampId = `bus-out-lamp-${i}`;
-      const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
-      if (layout.scale !== 1) lamp.scale = layout.scale;
-      workspace.components.push(lamp);
-      workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
+    // Output side. A single-bit output (Is0) goes straight to one lamp; a bus
+    // output is fanned out by an unmirrored splitter to one lamp per bit.
+    const outWidth = pinWidth(workspace, "task-card-1.outputExt");
+    if (Number.isInteger(outWidth) && outWidth === 1) {
+      workspace.components.push({ id: "bus-out-lamp-0", type: "lamp", x: 1120, y: 288 });
+      workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-lamp-0.in"));
+    } else {
+      const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, legWidths: Array(width).fill(1), singleWidth: width };
+      workspace.components.push(outSplit);
+      workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
+      const layout = busLampLayout(width, outSplit.y, 1180);
+      for (let i = 0; i < width; i += 1) {
+        const lampId = `bus-out-lamp-${i}`;
+        const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
+        if (layout.scale !== 1) lamp.scale = layout.scale;
+        workspace.components.push(lamp);
+        workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
+      }
     }
     return workspace;
   }
@@ -10789,7 +10868,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return ["Not4", "Not16", "AND4", "AND16", "OR4", "MUX4", "MUX16"].includes(id);
+    return ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16", "MUX4", "MUX16"].includes(id);
   }
 
   function openBusesNote() {
