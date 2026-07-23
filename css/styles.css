@@ -3177,6 +3177,18 @@ button { font: inherit; }
   padding: 10px 14px;
 }
 
+/* The converter schematic is drawn with black strokes too, so it gets the same
+   light backdrop as the bus/splitter symbol above. */
+.converter-schematic {
+  align-self: center;
+  max-width: 100%;
+  height: auto;
+  background: #efe7d0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
 @media (max-width: 820px) {
   .bit-card {
     width: min(620px, calc(100vw - 28px));
