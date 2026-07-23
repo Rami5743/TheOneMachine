@@ -6508,6 +6508,11 @@
       const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
       if (usesSavedCard) unlockAchievement("useful-inventor");
     }
+    // Editing a user card can silently change how any card built on top of it
+    // behaves (there is no spec check for a user-designed card), so drop the
+    // efficiency records of every card that uses it — they must be rebuilt and
+    // re-checked to re-earn a ranking.
+    const invalidation = editing ? invalidateBuildsUsingCard(card.type) : null;
     setState({
       ...returnPatch,
       cardCreation: null,
@@ -6515,6 +6520,7 @@
       savedCards,
       nextSavedCardId,
       myCardsIntroSeen: true,
+      ...(invalidation || {}),
       infoDialog: firstTime
         ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
         : null
@@ -9705,6 +9711,46 @@
     }
     builds[taskId] = keep;
     return { cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) };
+  }
+
+  // Does this component list reference `targetType` (a "usercard-<n>") anywhere in
+  // its recursive expansion? Walks gate-<id> sub-builds and other user cards'
+  // saved logic. Used to find which records an edited user card invalidates.
+  function componentsReferenceCard(components, targetType, seen) {
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const t = comp && comp.type;
+      if (t === targetType) return true;
+      if (typeof t === "string" && t.startsWith("gate-")) {
+        const b = (state.cardBuilds || {})[t.slice(5)];
+        if (b && componentsReferenceCard(b.components, targetType, seen)) return true;
+      } else if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX)) {
+        if (seen.has(t)) continue;
+        seen.add(t);
+        const card = (state.savedCards || []).find((c) => c.type === t);
+        if (card && card.logic && componentsReferenceCard(card.logic.components, targetType, seen)) return true;
+      }
+    }
+    return false;
+  }
+
+  // A user card has no spec check of its own, so once it is EDITED we can no
+  // longer trust any recorded build that used it: drop those records (task cards
+  // whose stored build references this user card, directly or transitively). The
+  // player must rebuild and pass the check again to re-earn the ranking. Regular
+  // (task) cards need no such re-check — improving them only triggers a recount.
+  function invalidateBuildsUsingCard(targetType) {
+    const builds = state.cardBuilds || {};
+    const next = {};
+    let changed = false;
+    for (const cardId of Object.keys(builds)) {
+      if (componentsReferenceCard(builds[cardId].components, targetType, new Set())) {
+        changed = true; // drop this record
+      } else {
+        next[cardId] = builds[cardId];
+      }
+    }
+    if (!changed) return null;
+    return { cardBuilds: next, cardNandCounts: recomputeAllCardCounts(next) };
   }
 
   function showNotTestResult(result, workspace, taskId) {
