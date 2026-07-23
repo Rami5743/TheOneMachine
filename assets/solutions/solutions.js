@@ -1102,8 +1102,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "ctrl-split",
         "type": "splitter",
-        "x": 405,
-        "y": 360,
+        "x": 480,
+        "y": 150,
         "mirrored": false,
         "outputs": 3,
         "legWidths": [
@@ -1116,8 +1116,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "optA-merge",
         "type": "splitter",
-        "x": 512,
-        "y": 250,
+        "x": 445,
+        "y": 235,
         "mirrored": true,
         "outputs": 2,
         "legWidths": [
@@ -1129,14 +1129,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "alu2",
         "type": "gate-ALU2",
-        "x": 690,
-        "y": 470
+        "x": 520,
+        "y": 355
       },
       {
         "id": "mux",
         "type": "gate-MUX16",
-        "x": 790,
-        "y": 335
+        "x": 705,
+        "y": 360
       }
     ],
     "wires": [
