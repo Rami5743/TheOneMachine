@@ -649,21 +649,19 @@ function createSolutionWorkspaces({
     });
   }
 
-  // Is0_4: split the 4-bit input into 4 single bits, OR them all together
-  // (Or4way) — 0 iff every bit was 0 — then NOT the result to get 1 iff all-zero.
-  function is0_4SolutionWorkspaceFrom() {
+  // Neq0_4 (≠0): split the 4-bit input into 4 single bits and OR them with an
+  // Or4way — its output is 1 iff at least one bit is 1, i.e. the bus is ≠ 0.
+  function neq0_4SolutionWorkspaceFrom() {
     const legYs = [339, 305, 271, 237]; // leg0 (bottom) … leg3 (top)
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
-      { id: "task-card-1", type: taskCardComponentType("Is0_4"), x: 640, y: 288 },
-      { id: "split-in", type: "splitter", x: 420, y: 288, mirrored: false, outputs: 4, width: 1 },
-      { id: "or4", type: "gate-OR4way", x: 590, y: 288 },
-      { id: "not1", type: "gate-Not", x: 760, y: 288 }
+      { id: "task-card-1", type: taskCardComponentType("Neq0_4"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 440, y: 288, mirrored: false, outputs: 4, width: 1 },
+      { id: "or4", type: "gate-OR4way", x: 640, y: 288 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt1", "split-in.single"),
-      normalizeWire("or4.out", "not1.in1"),
-      normalizeWire("not1.out", "task-card-1.outputInt")
+      normalizeWire("or4.out", "task-card-1.outputInt")
     ];
     // leg 0 is the BOTTOM leg and Or4way's in1 is its TOP input, so map leg i to
     // in(4-i) — bottom leg to bottom input — to keep the wires from crossing.
@@ -675,34 +673,29 @@ function createSolutionWorkspaces({
       nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
       workspaceCompleted: false, workspaceSession: 2,
       exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
-      taskId: "Is0_4", taskIntroSeen: true
+      taskId: "Neq0_4", taskIntroSeen: true
     });
   }
 
-  // Is0_16: split the 16-bit input into four 4-bit nibbles, test each with an
-  // Is0_4, then AND the four results (And3way + And) — 1 iff every nibble is 0.
-  function is0_16SolutionWorkspaceFrom() {
-    const legYs = [339, 305, 271, 237]; // is0-0 (bottom) … is0-3 (top)
+  // Neq0_16: split the 16-bit input into four 4-bit nibbles, test each with a
+  // Neq0_4, then OR the four results with an Or4way — 1 iff any nibble is ≠ 0.
+  function neq0_16SolutionWorkspaceFrom() {
+    const legYs = [339, 305, 271, 237]; // neq0-0 (bottom) … neq0-3 (top)
     const components = [
       { id: "source-1", type: "source", x: 65, y: 288 },
-      { id: "task-card-1", type: taskCardComponentType("Is0_16"), x: 640, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Neq0_16"), x: 640, y: 288 },
       { id: "split-in", type: "splitter", x: 380, y: 288, mirrored: false, outputs: 4, width: 4 },
-      // A balanced AND tree keeps the wires from crossing: AND the bottom pair and
-      // the top pair, then AND those two results.
-      { id: "and-lo", type: "gate-And", x: 700, y: 322 },
-      { id: "and-hi", type: "gate-And", x: 700, y: 254 },
-      { id: "and-final", type: "gate-And", x: 840, y: 288 }
+      { id: "or4", type: "gate-OR4way", x: 720, y: 288 }
     ];
     const wires = [
       normalizeWire("task-card-1.inputInt1", "split-in.single"),
-      normalizeWire("is0-1.out", "and-lo.in1"), normalizeWire("is0-0.out", "and-lo.in2"),
-      normalizeWire("is0-3.out", "and-hi.in1"), normalizeWire("is0-2.out", "and-hi.in2"),
-      normalizeWire("and-hi.out", "and-final.in1"), normalizeWire("and-lo.out", "and-final.in2"),
-      normalizeWire("and-final.out", "task-card-1.outputInt")
+      normalizeWire("or4.out", "task-card-1.outputInt")
     ];
     legYs.forEach((y, i) => {
-      components.push({ id: `is0-${i}`, type: "gate-Is0_4", x: 540, y });
-      wires.push(normalizeWire(`split-in.leg${i}`, `is0-${i}.in1`));
+      components.push({ id: `neq0-${i}`, type: "gate-Neq0_4", x: 540, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `neq0-${i}.in1`));
+      // neq0 i (bottom→top) into or4.in(4-i) (bottom→top) so the wires don't cross.
+      wires.push(normalizeWire(`neq0-${i}.out`, `or4.in${4 - i}`));
     });
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
@@ -711,7 +704,7 @@ function createSolutionWorkspaces({
       nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
       workspaceCompleted: false, workspaceSession: 2,
       exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
-      taskId: "Is0_16", taskIntroSeen: true
+      taskId: "Neq0_16", taskIntroSeen: true
     });
   }
 
@@ -1413,8 +1406,8 @@ function createSolutionWorkspaces({
     if (taskId === "Dmux4way") return dmux4waySolutionFrom();
     if (taskId === "Mux4way16") return mux4way16SolutionFrom();
     if (taskId === "Not4") return not4SolutionWorkspaceFrom();
-    if (taskId === "Is0_4") return is0_4SolutionWorkspaceFrom();
-    if (taskId === "Is0_16") return is0_16SolutionWorkspaceFrom();
+    if (taskId === "Neq0_4") return neq0_4SolutionWorkspaceFrom();
+    if (taskId === "Neq0_16") return neq0_16SolutionWorkspaceFrom();
     if (taskId === "Not16") return step >= 3 ? not16DirectSolutionFrom() : not16SolutionWorkspaceFrom();
     if (taskId === "AND4") return and4SolutionWorkspaceFrom();
     if (taskId === "OR4") return step >= 3 ? or4NotAndSolutionFrom() : or4SolutionWorkspaceFrom();

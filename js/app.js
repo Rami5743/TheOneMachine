@@ -234,8 +234,8 @@
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
   // The card/gate are only built for tasks with a real build workspace so far.
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16"];
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16"];
   // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
@@ -247,8 +247,8 @@
         cardPins[`inputExt${i + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${busTask.label}${num} חיצונית` };
         cardPins[`inputInt${i + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${busTask.label}${num} פנימית` };
       });
-      // Is0's output is a SINGLE bit (not a width-N bus), so force its width to 1.
-      const outW = busTask.op === "Is0" ? { width: 1 } : {};
+      // Neq0's output is a SINGLE bit (not a width-N bus), so force its width to 1.
+      const outW = busTask.op === "Neq0" ? { width: 1 } : {};
       cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית`, ...outW };
       cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית`, ...outW };
       WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
@@ -269,14 +269,14 @@
       // differs. It reuses the base gate's pins/bounds; `busWidth` makes its
       // pins buses, and `op` drives the componentwise evaluation. The base gate
       // (gate-Not / gate-And …) was defined above, from TASK_DEFS.
-      // Is0 has no base gate of its own — it borrows the Not gate's 1-in/1-out
+      // Neq0 has no base gate of its own — it borrows the Not gate's 1-in/1-out
       // shape, but its output pin is a single bit while its input stays a bus.
-      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op === "Is0" ? "Not" : busTask.op)];
+      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op === "Neq0" ? "Not" : busTask.op)];
       const gatePins = {};
       Object.entries(baseDef ? baseDef.pins : {}).forEach(([pinId, pin]) => {
         gatePins[pinId] = { ...pin };
       });
-      if (busTask.op === "Is0" && gatePins.out) gatePins.out.width = 1;
+      if (busTask.op === "Neq0" && gatePins.out) gatePins.out.width = 1;
       WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
         label: busTask.label,
         gate: true,
@@ -4558,7 +4558,7 @@
         }
       }
     ],
-    Is0_4: [
+    Neq0_4: [
       {
         text: "מפצלים את בס הכניסה ל-4 כבלים בודדים בעזרת מפצל.",
         highlight: {
@@ -4568,22 +4568,15 @@
         }
       },
       {
-        text: "מחברים את כל 4 הכבלים ל-Or4way. הפלט שלו הוא 0 בדיוק כאשר כל הביטים הם 0.",
+        text: "מחברים את כל 4 הכבלים ל-Or4way. הפלט שלו הוא 1 בדיוק כאשר לפחות ביט אחד דלוק — כלומר כשהבס שונה מ-0. זו יציאת הכרטיס.",
         highlight: {
           components: ["or4"],
-          wires: [wireKey("split-in.leg0", "or4.in4"), wireKey("split-in.leg1", "or4.in3"), wireKey("split-in.leg2", "or4.in2"), wireKey("split-in.leg3", "or4.in1")]
-        }
-      },
-      {
-        text: "מפעילים Not על הפלט של ה-Or4way — כך מקבלים 1 בדיוק כשכל הביטים היו 0. זו יציאת הכרטיס.",
-        highlight: {
-          components: ["not1"],
           terminals: ["task-card-1.outputInt"],
-          wires: [wireKey("or4.out", "not1.in1"), wireKey("not1.out", "task-card-1.outputInt")]
+          wires: [wireKey("split-in.leg0", "or4.in4"), wireKey("split-in.leg1", "or4.in3"), wireKey("split-in.leg2", "or4.in2"), wireKey("split-in.leg3", "or4.in1"), wireKey("or4.out", "task-card-1.outputInt")]
         }
       }
     ],
-    Is0_16: [
+    Neq0_16: [
       {
         text: "מפצלים את בס הכניסה (רוחב 16) ל-4 בסים ברוחב 4 בעזרת מפצל.",
         highlight: {
@@ -4593,18 +4586,18 @@
         }
       },
       {
-        text: "בודקים כל אחד מ-4 הרבעים בעזרת Is0_4 שכבר בנית — כל אחד מוציא 1 אם הרבע שלו הוא 0.",
+        text: "בודקים כל אחד מ-4 הרבעים בעזרת ≠0_4 שכבר בנית — כל אחד מוציא 1 אם הרבע שלו שונה מ-0.",
         highlight: {
-          components: ["is0-0", "is0-1", "is0-2", "is0-3"],
-          wires: [wireKey("split-in.leg0", "is0-0.in1"), wireKey("split-in.leg1", "is0-1.in1"), wireKey("split-in.leg2", "is0-2.in1"), wireKey("split-in.leg3", "is0-3.in1")]
+          components: ["neq0-0", "neq0-1", "neq0-2", "neq0-3"],
+          wires: [wireKey("split-in.leg0", "neq0-0.in1"), wireKey("split-in.leg1", "neq0-1.in1"), wireKey("split-in.leg2", "neq0-2.in1"), wireKey("split-in.leg3", "neq0-3.in1")]
         }
       },
       {
-        text: "עושים And על 4 התוצאות — מחברים אותן בזוגות עם And, ואז And על שתי התוצאות. היציאה היא 1 רק אם כל 4 הרבעים היו 0 — כלומר כל 16 הביטים 0.",
+        text: "מחברים את 4 התוצאות ל-Or4way. היציאה היא 1 אם לפחות רבע אחד שונה מ-0 — כלומר הבס כולו שונה מ-0.",
         highlight: {
-          components: ["and-lo", "and-hi", "and-final"],
+          components: ["or4"],
           terminals: ["task-card-1.outputInt"],
-          wires: [wireKey("is0-0.out", "and-lo.in2"), wireKey("is0-1.out", "and-lo.in1"), wireKey("is0-2.out", "and-hi.in2"), wireKey("is0-3.out", "and-hi.in1"), wireKey("and-lo.out", "and-final.in2"), wireKey("and-hi.out", "and-final.in1"), wireKey("and-final.out", "task-card-1.outputInt")]
+          wires: [wireKey("neq0-0.out", "or4.in4"), wireKey("neq0-1.out", "or4.in3"), wireKey("neq0-2.out", "or4.in2"), wireKey("neq0-3.out", "or4.in1"), wireKey("or4.out", "task-card-1.outputInt")]
         }
       }
     ],
@@ -9941,16 +9934,16 @@
       [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean)],
       [[1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1].map(Boolean), [0,1,0,1,1,1,0,0,1,1,1,0,0,0,1,1].map(Boolean)]
     ],
-    // Is0: single-input; output is 1 iff the whole bus is 0. Include the all-zero
-    // case plus several non-zero patterns (some with a single 1 bit).
-    Is0_4: [
+    // Neq0: single-input; output is 1 iff the bus is different from 0. Include the
+    // all-zero case plus several non-zero patterns (some with a single 1 bit).
+    Neq0_4: [
       [false, false, false, false],
       [true, false, false, false],
       [false, false, false, true],
       [true, false, true, false],
       [false, true, true, true]
     ],
-    Is0_16: [
+    Neq0_16: [
       [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
       [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1].map(Boolean),
       [1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
@@ -9985,8 +9978,9 @@
   // A MUX task's last input is a single shared control bit (data buses are the
   // rest): output[i] = op(data…[i], control).
   function busTaskExpected(def, buses) {
-    // Is0: a single-bit output — 1 iff every bit of the (single) input bus is 0.
-    if (def.op === "Is0") return [buses[0].every((bit) => !bit)];
+    // Neq0 (≠0): a single-bit output — 1 iff at least one bit of the (single)
+    // input bus is 1 (i.e. the bus is different from 0).
+    if (def.op === "Neq0") return [buses[0].some((bit) => bit)];
     if (def.control) {
       const dataBuses = buses.slice(0, -1);
       const control = buses[buses.length - 1][0];
@@ -10054,7 +10048,7 @@
       workspace.wires.push(normalizeWire(`${splitId}.single`, inputRef));
     });
 
-    // Output side. A single-bit output (Is0) goes straight to one lamp; a bus
+    // Output side. A single-bit output (Neq0) goes straight to one lamp; a bus
     // output is fanned out by an unmirrored splitter to one lamp per bit.
     const outWidth = pinWidth(workspace, "task-card-1.outputExt");
     if (Number.isInteger(outWidth) && outWidth === 1) {
@@ -10868,7 +10862,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return ["Not4", "Not16", "AND4", "AND16", "OR4", "Is0_4", "Is0_16", "MUX4", "MUX16"].includes(id);
+    return ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16", "MUX4", "MUX16"].includes(id);
   }
 
   function openBusesNote() {

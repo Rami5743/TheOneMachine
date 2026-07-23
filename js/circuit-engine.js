@@ -343,9 +343,9 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           if (bus) {
             const inVecs = Array.from({ length: bus.inputs }, (_, k) => inputBits(workspace, `${component.id}.in${k + 1}`, outputs));
             const outVec = [];
-            if (bus.op === "Is0") {
-              // Is-zero detector: a single output bit, 1 iff every input bit is 0.
-              if (setBits(outputs, `${component.id}.out`, [!inVecs[0].some(Boolean)])) changed = true;
+            if (bus.op === "Neq0") {
+              // ≠0 detector: a single output bit, 1 iff at least one input bit is 1.
+              if (setBits(outputs, `${component.id}.out`, [inVecs[0].some(Boolean)])) changed = true;
               continue;
             }
             if (bus.control) {

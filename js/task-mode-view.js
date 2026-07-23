@@ -66,9 +66,9 @@ function createTaskModeView({
     // MUX cards get a wider frame so the AND4/OR4/NOT4 layout fits comfortably.
     const frameLeft = def.control ? cx - 330 : cx - 300;
     const frameW = def.control ? 660 : 600;
-    // Is0's output is a SINGLE bit, so its output stub is a plain cable (no bus
+    // Neq0's output is a SINGLE bit, so its output stub is a plain cable (no bus
     // bar / width label); every other bus card outputs a width-N bus.
-    const outputStub = def.op === "Is0"
+    const outputStub = def.op === "Neq0"
       ? `<line class="workspace-task-shell-pin" x1="${cx + 260}" y1="288" x2="${cx + 340}" y2="288" />`
       : busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width);
     return `

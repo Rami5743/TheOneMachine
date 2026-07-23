@@ -284,10 +284,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     Or: [{ x1: -58, x2: -28, y: -23 }, { x1: -58, x2: -28, y: 23 }, { x1: 62, x2: 80, y: 0 }],
     // MUX: two data inputs (left) and the output (right) are buses; the control
     // stub on top stays a thin single-bit line.
-    Mux: [{ x1: -62, x2: -30, y: -23 }, { x1: -62, x2: -30, y: 23 }, { x1: 30, x2: 66, y: 0 }],
-    // Is0 borrows the Not symbol but only its INPUT is a bus; the output is a
-    // single bit, so only the input side gets a bus bar.
-    Is0: [{ x1: -60, x2: -42, y: 0 }]
+    Mux: [{ x1: -62, x2: -30, y: -23 }, { x1: -62, x2: -30, y: 23 }, { x1: 30, x2: 66, y: 0 }]
   };
 
   // A bus gate (gate-Not4 …): the base gate's schematic symbol, with its thin
@@ -321,9 +318,28 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       <rect class="splitter-bar" x="${cx - half}" y="${top}" width="${11 * K}" height="${bot - top}" />
       <line class="splitter-stripe" x1="${cx}" y1="${top + 3}" x2="${cx}" y2="${bot - 3}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />`;
   }
+  // The ≠0 detector (Neq0_4 / Neq0_16): a box labelled "≠0" with ONE bus input on
+  // the left and a SINGLE-bit cable output on the right (output = 1 iff the bus is
+  // not all-zero). It has no base gate to borrow — an inverter's NOT triangle
+  // would mislabel it — so it gets its own "≠0" box, like Inc's "+1" box. Pins
+  // match the borrowed Not geometry (in at x=-60, out at x=80).
+  function neq0GateMarkup(width, options = {}) {
+    const edge = 30;
+    const bodyW = edge * 2;
+    const bodyH = 64;
+    const inX = -60;
+    const outX = 80;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:22px">&#8800;0</text>`;
+    s += busPin(inX, -edge, 0);   // bus input on the left
+    s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
+    return `<g class="usercard">${s}</g>`;
+  }
   function busGateMarkup(spec, options = {}) {
-    // Is0 has no symbol of its own — draw it with the Not gate's shape.
-    const symbol = gateMarkup(taskDefById(spec.op === "Is0" ? "Not" : spec.op));
+    // Neq0 (≠0) is drawn as its own "≠0" box rather than borrowing a gate symbol.
+    if (spec.op === "Neq0") return neq0GateMarkup(spec.width, options);
+    const symbol = gateMarkup(taskDefById(spec.op));
     const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width, !options.toolbar)).join("");
     return `<g class="bus-gate">${symbol}${bars}</g>`;
   }

@@ -211,11 +211,12 @@
     { id: "AND4",  label: "And4",  op: "And", width: 4,  inputs: 2, requires: "Not4", description: "ה-And4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת And על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
     { id: "AND16", label: "And16", op: "And", width: 16, inputs: 2, requires: "AND4", description: "ה-And16 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 16, ויציאה אחת שהיא בס ברוחב 16. כל אחד מ-16 הרכיבים של היציאה מתקבל מהפעלת And על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
     { id: "OR4",   label: "Or4",   op: "Or",  width: 4,  inputs: 2, requires: "AND4", description: "ה-Or4 הוא כרטיס עם 2 כניסות שלכל אחת נכנס בס ברוחב 4, ויציאה אחת שהיא בס ברוחב 4. כל אחד מ-4 הרכיבים של היציאה מתקבל מהפעלת Or על שני רכיבים מתאימים מהכניסות (אחד מכל כניסה)." },
-    // Is0 checks whether a bus is identically 0. Unlike the others its output is a
-    // SINGLE bit (1 iff every input bit is 0), not a width-N bus — op "Is0" is
-    // handled specially (NOR of all bits) wherever the componentwise model is used.
-    { id: "Is0_4",  label: "Is0_4",  op: "Is0", width: 4,  inputs: 1, requires: "Not4", description: "ה-Is0_4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא כבל בודד. היציאה היא 1 אם כל 4 הביטים של הכניסה הם 0, ואחרת היא 0. (במילים אחרות, הכרטיס בודק אם הבס הוא 0 זהותית.)" },
-    { id: "Is0_16", label: "Is0_16", op: "Is0", width: 16, inputs: 1, requires: "Is0_4", description: "ה-Is0_16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא כבל בודד. היציאה היא 1 אם כל 16 הביטים של הכניסה הם 0, ואחרת היא 0. אפשר להיעזר ב-Is0_4 שכבר בנית." },
+    // Neq0 (≠0) checks whether a bus is DIFFERENT from 0. Unlike the others its
+    // output is a SINGLE bit (1 iff at least one input bit is 1), not a width-N
+    // bus — op "Neq0" is handled specially (OR of all bits) wherever the
+    // componentwise model is used.
+    { id: "Neq0_4",  label: "≠0_4",  op: "Neq0", width: 4,  inputs: 1, requires: "Not4", description: "ה-≠0_4 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 4, ויציאה אחת שהיא כבל בודד. היציאה היא 1 אם הכניסה שונה מ-0 (כלומר לפחות אחד מ-4 הביטים דלוק), ואחרת היא 0." },
+    { id: "Neq0_16", label: "≠0_16", op: "Neq0", width: 16, inputs: 1, requires: "Neq0_4", description: "ה-≠0_16 הוא כרטיס עם כניסה אחת שהיא בס ברוחב 16, ויציאה אחת שהיא כבל בודד. היציאה היא 1 אם הכניסה שונה מ-0 (כלומר לפחות אחד מ-16 הביטים דלוק). אפשר להיעזר ב-≠0_4 שכבר בנית." },
     { id: "MUX4",  label: "Mux4",  op: "Mux", width: 4,  inputs: 2, requires: "OR4", control: true, description: "ה-Mux4 הוא כרטיס עם 3 כניסות: אחת מהכניסות היא כניסת בקרה (מלמעלה) ושתי האחרות הן בס ברוחב 4. ויציאה אחת שהיא בס ברוחב 4. אם כניסת הבקרה היא 0 אז היציאה זהה לכניסה הראשונה. אם כניסת הבקרה היא 1 אז היציאה זהה לכניסה השנייה." },
     // MUX16 unlocks only after every other bus card is built (see busTaskUnlocked).
     { id: "MUX16", label: "Mux16", op: "Mux", width: 16, inputs: 2, requires: "MUX4", control: true, description: "ה-Mux16 הוא כרטיס עם 3 כניסות: אחת מהכניסות היא כניסת בקרה (מלמעלה) ושתי האחרות הן בס ברוחב 16. ויציאה אחת שהיא בס ברוחב 16. אם כניסת הבקרה היא 0 אז היציאה זהה לכניסה הראשונה. אם כניסת הבקרה היא 1 אז היציאה זהה לכניסה השנייה." }
@@ -417,15 +418,15 @@
       { kind: "interactive", title: "רמז 5", action: "or4-split-both" },
       { kind: "interactive", title: "רמז 6", action: "or4-split-both-and" }
     ],
-    Is0_4: [
-      { kind: "text", title: "רמז 1", text: "היציאה צריכה להיות 1 רק אם כל הביטים הם 0. חשוב מה קורה אם אפילו ביט אחד הוא 1." },
-      { kind: "text", title: "רמז 2", text: "אם עושים Or לכל הביטים, מקבלים 0 בדיוק כשכולם 0. אז אם נהפוך את התוצאה (Not), נקבל 1 בדיוק כשכולם 0." },
-      { kind: "text", title: "רמז 3", text: "פצל את הבס ל-4 כבלים בודדים, חבר את כולם ל-Or4way (Or בעל 4 כניסות), ואז חבר את היציאה שלו ל-Not. היציאה של ה-Not היא היציאה של הכרטיס." }
+    Neq0_4: [
+      { kind: "text", title: "רמז 1", text: "היציאה צריכה להיות 1 אם לפחות ביט אחד דלוק. חשוב על OR של כל הביטים." },
+      { kind: "text", title: "רמז 2", text: "אם עושים OR לכל הביטים, מקבלים 1 בדיוק כשלפחות אחד מהם דלוק — כלומר בדיוק כשהבס שונה מ-0." },
+      { kind: "text", title: "רמז 3", text: "פצל את הבס ל-4 כבלים בודדים וחבר את כולם ל-Or4way (Or בעל 4 כניסות). היציאה של ה-Or4way היא יציאת הכרטיס." }
     ],
-    Is0_16: [
-      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-Is0_4 שכבר בנית." },
-      { kind: "text", title: "רמז 2", text: "פצל את הכניסה ל-4 בסים ברוחב 4, ובדוק כל אחד מהם בעזרת Is0_4. הבס כולו הוא 0 רק אם כל 4 הרבעים הם 0." },
-      { kind: "text", title: "רמז 3", text: "עשה And על 4 התוצאות של ה-Is0_4-ים (למשל בעזרת And3way ועוד And, או שרשור של Andים). היציאה היא 1 רק אם כל הרבעים היו 0." }
+    Neq0_16: [
+      { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-≠0_4 שכבר בנית." },
+      { kind: "text", title: "רמז 2", text: "פצל את הכניסה ל-4 בסים ברוחב 4, ובדוק כל אחד מהם בעזרת ≠0_4. הבס כולו שונה מ-0 אם לפחות רבע אחד שונה מ-0." },
+      { kind: "text", title: "רמז 3", text: "עשה OR על 4 התוצאות של ה-≠0_4-ים (למשל בעזרת Or4way). היציאה היא 1 אם לפחות אחת מהן דלוקה." }
     ],
     MUX4: [
       { kind: "text", title: "רמז 1", text: "זה דומה ל-And4 רק שצריך להשתמש ב-Mux במקום ב-And." },
