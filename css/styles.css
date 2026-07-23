@@ -3922,7 +3922,7 @@ object.panel-image.is-pending {
 .rankings-card { max-width: 720px; }
 .rankings-sub {
   margin: -0.3rem 0 1rem;
-  color: #5c4a2c;
+  color: #cdbb92;
   font-size: 0.95rem;
 }
 .rankings-table-wrap { overflow-x: auto; }
@@ -3940,7 +3940,7 @@ object.panel-image.is-pending {
 }
 .rankings-table th {
   font-weight: 800;
-  color: #3a2c14;
+  color: #ffe08a;
   border-bottom: 2px solid rgba(70, 50, 25, 0.4);
   white-space: nowrap;
 }
@@ -4001,7 +4001,7 @@ object.panel-image.is-pending {
 .rank-medal-bronze::before { background: linear-gradient(#3a7d3f, #275c2b); }
 .rankings-note {
   margin-top: 1rem;
-  color: #5c4a2c;
+  color: #cdbb92;
   font-size: 0.9rem;
   text-align: center;
 }
@@ -4014,7 +4014,7 @@ object.panel-image.is-pending {
   flex-wrap: wrap;
   margin: 0 0 0.6rem;
 }
-.rankings-nickname label { font-weight: 700; color: #3a2c14; }
+.rankings-nickname label { font-weight: 700; color: #e7d9bb; }
 .rankings-nickname-input {
   padding: 5px 10px;
   border-radius: 8px;
