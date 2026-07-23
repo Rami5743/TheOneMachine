@@ -9408,18 +9408,35 @@
     }
     return null;
   }
+  // reRender is true only for the async fetch path, which resolves AFTER the app
+  // has booted. The synchronous embedded path runs during IIFE init (before the
+  // boot render and before later consts exist), so it must NOT call render() —
+  // the applied defs are already in place for the first paint.
+  function acceptSolutionDoc(task, doc, reRender) {
+    if (!doc || !doc.frame || !Array.isArray(doc.components)) return false;
+    SOLUTION_DOCS[task] = doc;
+    SOLUTION_DOC_STATUS[task] = "loaded";
+    applySolutionDocToDefs(doc);
+    if (reRender && state.screen === "workspace" && state.workspace?.taskId === task) render();
+    return true;
+  }
   function preloadSolutionDocs() {
-    if (typeof fetch !== "function") return;
+    // Opened from disk (file://) the browser blocks fetch() of local JSON, so the
+    // solutions are also shipped as a plain <script> (assets/solutions/solutions.js
+    // → window.EMBEDDED_SOLUTIONS). Prefer that; only fetch the tasks it lacks
+    // (e.g. when served over HTTP without the bundle).
+    const embedded = (typeof window !== "undefined" && window.EMBEDDED_SOLUTIONS) || null;
+    const remaining = [];
     for (const task of SOLUTION_JSON_TASKS) {
+      if (embedded && embedded[task] && acceptSolutionDoc(task, embedded[task], false)) continue;
+      remaining.push(task);
+    }
+    if (!remaining.length || typeof fetch !== "function") return;
+    for (const task of remaining) {
       fetch(`assets/solutions/${task}.json`)
         .then((r) => { if (!r || !r.ok) throw new Error(`HTTP ${r ? r.status : "no response"}`); return r.json(); })
         .then((doc) => {
-          if (!doc || !doc.frame || !Array.isArray(doc.components)) throw new Error("malformed JSON (missing frame/components)");
-          SOLUTION_DOCS[task] = doc;
-          SOLUTION_DOC_STATUS[task] = "loaded";
-          applySolutionDocToDefs(doc);
-          // If the learner is already inside this task, re-render with the pins.
-          if (state.screen === "workspace" && state.workspace?.taskId === task) render();
+          if (!acceptSolutionDoc(task, doc, true)) throw new Error("malformed JSON (missing frame/components)");
         })
         .catch((err) => {
           SOLUTION_DOC_STATUS[task] = "error: " + (err && err.message || err);

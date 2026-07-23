@@ -7,6 +7,8 @@
 <!-- Reuse the game's own component styling + markup so the editor looks identical -->
 <link rel="stylesheet" href="css/styles.css?v=editor-1" />
 <script src="js/component-visuals.js?v=v81-alu0-label-1"></script>
+<!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
+<script src="assets/solutions/solutions.js?v=v1-embedded-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -345,7 +347,9 @@ const EXAMPLE = {"format":"theonemachine-solution","version":1,"task":"ALU1",
     {"a":"pn1.out1","b":"alu0.in1"},{"a":"pn2.out1","b":"alu0.in2"},{"a":"part3-split.leg0","b":"alu0.in3"},
     {"a":"part3-split.leg1","b":"pn3-ctrl.leg1"},{"a":"pn3-ctrl.single","b":"pn3.in2"},{"a":"alu0.out1","b":"pn3.in1"},{"a":"pn3.out1","b":"task-card-1.outputInt1"}],
   "check":{"cases":[{"a":61680,"b":255,"control":0}],"note":"בקרה 6 ביט: 0,1 כניסה1 · 2,3 כניסה2 · 4 פעולה · 5 NOT"}};
-fetch("assets/solutions/ALU1.json").then(r=>r.ok?r.json():null).then(d=>loadDoc(d||EXAMPLE)).catch(()=>loadDoc(EXAMPLE));
+// Prefer the embedded bundle (works from file://); fall back to fetch (served), then the inline EXAMPLE.
+if (window.EMBEDDED_SOLUTIONS && window.EMBEDDED_SOLUTIONS.ALU1) { loadDoc(window.EMBEDDED_SOLUTIONS.ALU1); }
+else { fetch("assets/solutions/ALU1.json").then(r=>r.ok?r.json():null).then(d=>loadDoc(d||EXAMPLE)).catch(()=>loadDoc(EXAMPLE)); }
 </script>
 </body>
 </html>
