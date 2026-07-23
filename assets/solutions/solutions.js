@@ -52,22 +52,22 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 65,
-        "y": 288
+        "x": 60,
+        "y": 80
       }
     ],
     "components": [
       {
         "id": "one-source",
         "type": "source",
-        "x": 360,
-        "y": 430
+        "x": 445,
+        "y": 395
       },
       {
         "id": "one-merge",
         "type": "splitter",
-        "x": 560,
-        "y": 430,
+        "x": 570,
+        "y": 380,
         "mirrored": true,
         "outputs": 2,
         "legWidths": [
@@ -79,8 +79,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "add-1",
         "type": "gate-Add16",
-        "x": 770,
-        "y": 300
+        "x": 670,
+        "y": 290
       }
     ],
     "wires": [
