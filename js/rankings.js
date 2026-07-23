@@ -15,9 +15,10 @@
 
 function createRankings({ getState, esc, adaptGender, topbar, isRegistered, leaderboardFor, leaderboardRows, getNickname }) {
   const DEFAULT_NICKNAME = "ללא שם";
-  // The buildable cards, in game order. Nand is the given primitive (always 1).
+  // The buildable cards, in game order. Nand (the given primitive) is not listed
+  // — it is always 1 and nothing to rank.
   function rankingCards() {
-    const rows = [{ id: "Nand", label: "Nand" }];
+    const rows = [];
     const push = (arr) => {
       (Array.isArray(arr) ? arr : []).forEach((t) => {
         if (t && typeof t.id === "string") rows.push({ id: t.id, label: t.label || t.id });
