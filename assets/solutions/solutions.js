@@ -603,12 +603,12 @@ window.EMBEDDED_SOLUTIONS = {
     "harness": {
       "inputs": {
         "inputExt1": {
-          "x": 120,
-          "y": 270
+          "x": 51,
+          "y": 347
         },
         "inputExt2": {
-          "x": 120,
-          "y": 450
+          "x": 50,
+          "y": 449
         },
         "inputExt3": {
           "x": 210,
@@ -972,20 +972,20 @@ window.EMBEDDED_SOLUTIONS = {
     "harness": {
       "inputs": {
         "inputExt1": {
-          "x": 120,
-          "y": 210
+          "x": 50,
+          "y": 333
         },
         "inputExt2": {
-          "x": 120,
-          "y": 360
+          "x": 49,
+          "y": 472
         },
         "inputExt3": {
-          "x": 120,
-          "y": 510
+          "x": 50,
+          "y": 609
         },
         "inputExt4": {
-          "x": 210,
-          "y": 40
+          "x": 166,
+          "y": 142
         }
       },
       "outputs": {
