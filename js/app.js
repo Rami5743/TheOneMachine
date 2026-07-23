@@ -2774,6 +2774,16 @@
     if (BIN_STAGES.every((s) => menuResolved.includes(s))) unlockAchievement("very-thorough-calc");
     const firstTryClean = Array.isArray(state.binFirstTryClean) ? state.binFirstTryClean : [];
     if (BIN_STAGES.every((s) => firstTryClean.includes(s))) unlockAchievement("thorough-precise-calc");
+
+    // Per-chapter medalist achievements: earn any currently-deserved medal (once
+    // earned they persist; losing the medal later only adds a "לשעבר" label, it
+    // never un-earns). Only when the leaderboard can actually be evaluated.
+    const medalElig = medalEligibilityMap();
+    if (medalElig) {
+      (typeof MEDAL_ACHIEVEMENTS !== "undefined" ? MEDAL_ACHIEVEMENTS : []).forEach((a) => {
+        if (medalElig[a.id]) unlockAchievement(a.id);
+      });
+    }
   }
 
   function explanationReplayActive(id = null) {
@@ -3428,11 +3438,19 @@
   // not-yet-earned ones are also listed, greyed out.
   function renderAchievements() {
     const seeAll = !isStepByStepPace();
+    // Live medal eligibility (null when it cannot be evaluated). An EARNED medalist
+    // achievement whose medal is currently lost gets a " לשעבר" title suffix.
+    const medalElig = medalEligibilityMap();
+    const titleFor = (a, locked) => {
+      let t = adaptGender(a.title);
+      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " לשעבר";
+      return t;
+    };
     const card = (a, locked) => `
       <div class="achv-item${locked ? " achv-locked" : ""}">
         <div class="achv-icon">${renderAchievementIcon(a.id)}</div>
         <div class="achv-text">
-          <div class="achv-title">${esc(adaptGender(a.title))}</div>
+          <div class="achv-title">${esc(titleFor(a, locked))}</div>
           ${a.description ? `<div class="achv-desc">${esc(adaptGender(a.description))}</div>` : ""}
         </div>
       </div>`;
@@ -9495,6 +9513,22 @@
   const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
   const renderCardRecordsScreen = (...args) => __rankings.renderCardRecordsScreen(...args);
 
+  // Per-chapter "מדליסט" achievements: eligibility is derived LIVE from the
+  // leaderboard (medals = rank 1–3, gold = rank 1). `medalDataReady` gates it so
+  // that before any leaderboard fetch we neither earn a medal nor wrongly stamp
+  // an earned one as "לשעבר" — we simply cannot evaluate yet.
+  const __medals = createMedalAchievements({
+    leaderboardFor: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId) : null)
+  });
+  let medalDataReady = false;
+  const signedIn = () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user);
+  // The live eligibility map, or null when medals cannot be evaluated (signed out
+  // / no leaderboard data). Null means: don't earn, and don't decorate titles.
+  function medalEligibilityMap() {
+    if (!medalDataReady || !signedIn()) return null;
+    return __medals.eligibilityMap();
+  }
+
   // Save the leaderboard nickname from its input. Empty falls back to the shared
   // default "ללא שם"; anything else must pass the name charset (and, once the
   // leaderboard backend exists, be unique across users — enforced there).
@@ -13867,9 +13901,13 @@
     if (user && typeof APP !== "undefined" && APP.refreshLeaderboard) APP.refreshLeaderboard();
   });
 
-  // Fresh leaderboard data arrived → re-render if a rankings screen is showing.
+  // Fresh leaderboard data arrived → medals can now be evaluated. Earn any newly
+  // deserved medalist achievement, and re-render any screen whose display depends
+  // on the leaderboard (rankings, or achievements for the medal titles/"לשעבר").
   window.addEventListener("tom:leaderboard", () => {
-    if (state.screen === "rankings" || state.screen === "cardRecords") render();
+    medalDataReady = true;
+    syncAchievements();
+    if (["rankings", "cardRecords", "achievements", "menu"].includes(state.screen)) render();
   });
 
   // The chosen nickname is already taken by another user → show it on the field.
