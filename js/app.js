@@ -2768,6 +2768,10 @@
     const arithIds = (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : []).map((t) => t.id);
     if (arithIds.length > 0 && arithIds.every((id) => taskCompleted(id))) unlockAchievement("arith-engineer");
 
+    // Chapter 2.6 ALU-task group (Inc / ALU0 / PreperNum / ALU1-3).
+    const aluIds = (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
+    if (aluIds.length > 0 && aluIds.every((id) => taskCompleted(id))) unlockAchievement("alu-engineer");
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
@@ -2776,6 +2780,7 @@
     if (chapterClean(routeIds)) unlockAchievement("precise-routing-engineer");
     if (chapterClean(busIds)) unlockAchievement("precise-bus-engineer");
     if (chapterClean(arithIds)) unlockAchievement("precise-arith-engineer");
+    if (chapterClean(aluIds)) unlockAchievement("precise-alu-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
