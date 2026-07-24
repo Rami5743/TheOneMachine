@@ -775,7 +775,7 @@ window.EMBEDDED_SOLUTIONS = {
       "x": 560,
       "y": 360,
       "frameW": 600,
-      "frameH": 540,
+      "frameH": 460,
       "pins": [
         {
           "id": "inputExt1",
@@ -1006,7 +1006,7 @@ window.EMBEDDED_SOLUTIONS = {
       "x": 560,
       "y": 360,
       "frameW": 600,
-      "frameH": 540,
+      "frameH": 430,
       "pins": [
         {
           "id": "inputExt1",
