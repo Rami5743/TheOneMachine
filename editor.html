@@ -96,7 +96,9 @@ const DEFS = {
   "gate-AND16": { busGate:true, op:"And", busWidth:16, inputs:2, control:false },
   "gate-Or16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
   "gate-Not16": { busGate:true, op:"Not", busWidth:16, inputs:1, control:false },
-  "gate-MUX16": { busGate:true, op:"Mux", busWidth:16, inputs:3, control:true }
+  "gate-MUX16": { busGate:true, op:"Mux", busWidth:16, inputs:3, control:true },
+  "gate-Neq0_16": { busGate:true, op:"Neq0", busWidth:16, inputs:1, control:false },
+  "gate-Neq0_4":  { busGate:true, op:"Neq0", busWidth:4,  inputs:1, control:false }
 };
 const busGateSpec = (type)=>{ const d=DEFS[type]; return d && d.busGate ? { op:d.op, inputs:d.inputs||1, width:d.busWidth, control:!!d.control } : null; };
 const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup:null });
@@ -123,7 +125,9 @@ const PINS = {
   "gate-Add16":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out1:{x:66,y:0,w:16} },
   "gate-Not16":{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} },
   "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
-  "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} }
+  "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} },
+  "gate-Neq0_16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:1} },
+  "gate-Neq0_4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:1} }
 };
 function pinOffset(comp, pinId) {
   if (comp.__frame) { const p=(doc.frame.pins||[]).find(pp=>pp.id===pinId); return p?{x:p.x,y:p.y,w:p.w}:null; }

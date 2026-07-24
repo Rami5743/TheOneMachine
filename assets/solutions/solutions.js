@@ -1311,16 +1311,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt4",
-          "x": -215,
-          "y": -280,
+          "x": -115,
+          "y": -230,
           "w": 12,
           "dir": "in",
           "label": "כניסת הבקרה"
         },
         {
           "id": "inputInt4",
-          "x": -215,
-          "y": -210,
+          "x": -115,
+          "y": -140,
           "w": 12,
           "dir": "out",
           "label": ""
@@ -1343,8 +1343,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt2",
-          "x": -90,
-          "y": 150,
+          "x": 70,
+          "y": 145,
           "w": 1,
           "dir": "in",
           "label": "יציאת ng",
@@ -1352,8 +1352,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputExt2",
-          "x": -90,
-          "y": 230,
+          "x": 70,
+          "y": 225,
           "w": 1,
           "dir": "out",
           "label": "",
@@ -1361,7 +1361,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt3",
-          "x": 90,
+          "x": 195,
           "y": 150,
           "w": 1,
           "dir": "in",
@@ -1370,8 +1370,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputExt3",
-          "x": 90,
-          "y": 230,
+          "x": 195,
+          "y": 225,
           "w": 1,
           "dir": "out",
           "label": "",
@@ -1391,14 +1391,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "alu3",
         "type": "gate-ALU3",
-        "x": 470,
-        "y": 350
+        "x": 445,
+        "y": 360
       },
       {
         "id": "ng-split",
         "type": "splitter",
-        "x": 520,
-        "y": 470,
+        "x": 550,
+        "y": 465,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -1490,20 +1490,20 @@ window.EMBEDDED_SOLUTIONS = {
     "harness": {
       "inputs": {
         "inputExt1": {
-          "x": 50,
-          "y": 210
-        },
-        "inputExt2": {
-          "x": 50,
+          "x": 35,
           "y": 360
         },
+        "inputExt2": {
+          "x": 40,
+          "y": 515
+        },
         "inputExt3": {
-          "x": 50,
-          "y": 510
+          "x": 40,
+          "y": 665
         },
         "inputExt4": {
-          "x": 200,
-          "y": 80
+          "x": 170,
+          "y": 95
         }
       },
       "outputs": {
@@ -1512,12 +1512,12 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 360
         },
         "outputExt2": {
-          "x": 470,
-          "y": 700
+          "x": 535,
+          "y": 630
         },
         "outputExt3": {
-          "x": 650,
-          "y": 700
+          "x": 870,
+          "y": 625
         }
       }
     }
