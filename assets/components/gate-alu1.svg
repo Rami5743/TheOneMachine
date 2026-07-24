@@ -8,16 +8,21 @@
     .splitter-stripe { stroke:#d8d8d8; stroke-width:3; stroke-dasharray:6 3; stroke-linecap:butt; fill:none; }
     .splitter-width-label { fill:#ffe37a; font-family:Arial,sans-serif; font-weight:800; font-size:13px; text-anchor:middle; }
   </style>
-  <g class="usercard"><path class="usercard-body" d="M -46 -40 L 46 -20 L 46 20 L -46 40 L -46 13 L -24 0 L -46 -13 Z" /><text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU1</text>
+  <!-- Pins first, then the body ON TOP so pins don't appear to enter the body. -->
+  <g class="usercard">
       <rect class="splitter-bar" x="-62" y="-35.16666666666667" width="16" height="18.333333333333336" />
       <line class="splitter-stripe" x1="-59" y1="-26" x2="-49" y2="-26" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="-54" y="-47.66666666666667" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
       <rect class="splitter-bar" x="-62" y="16.833333333333332" width="16" height="18.333333333333336" />
       <line class="splitter-stripe" x1="-59" y1="26" x2="-49" y2="26" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="-54" y="4.333333333333332" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
       <rect class="splitter-bar" x="46" y="-9.166666666666668" width="20" height="18.333333333333336" />
       <line class="splitter-stripe" x1="49" y1="0" x2="63" y2="0" style="stroke-width:5;stroke-dasharray:10 5" />
-      <text class="splitter-width-label" x="56" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
       <rect class="splitter-bar" x="-9.166666666666668" y="-46" width="18.333333333333336" height="20" />
-      <line class="splitter-stripe" x1="0" y1="-43" x2="0" y2="-29" style="stroke-width:5;stroke-dasharray:10 5" /></g>
+      <line class="splitter-stripe" x1="0" y1="-43" x2="0" y2="-29" style="stroke-width:5;stroke-dasharray:10 5" />
+      <path class="usercard-body" d="M -46 -40 L 46 -20 L 46 20 L -46 40 L -46 13 L -24 0 L -46 -13 Z" />
+      <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU1</text>
+      <text class="splitter-width-label" x="-54" y="-47.66666666666667" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <text class="splitter-width-label" x="-54" y="4.333333333333332" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <text class="splitter-width-label" x="56" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
+      <text class="splitter-width-label" x="16" y="-32" text-anchor="start" style="font-size:18px">6</text>
+  </g>
 </svg>

@@ -374,7 +374,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // matches the viewBox 1:1 so the body/pins stay put.
       if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
-      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 136);
+      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/nz
+      // pins and their captions below them aren't clipped; the image box matches
+      // it 1:1 so the body/pins keep their positions.
+      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 158);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
