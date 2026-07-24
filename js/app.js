@@ -2471,6 +2471,12 @@
   // its button is hidden. Only the panel-based skips (part-2 story scenes) can be
   // no-ops — part-1 jumps to the next chapter, chapter-4 opens the workbench, and
   // the 2.4 closing monologue jumps to chapter 2.5.
+  // The intro (חלק 1: מבוא) — its own "דלג על המבוא" shortcut jumps straight to
+  // chapter 2.1, and is ALWAYS available (both paces), unlike the per-chapter דלג.
+  function introChapterActive() {
+    return state.screen === "story" && currentChapter()?.partId === "part-1";
+  }
+
   function skipLeadsNowhere() {
     if (state.screen !== "story") return false;
     const chapter = currentChapter();
@@ -3908,6 +3914,7 @@
           ${navButton("restart", "restart", "חזור")}
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
           ${skipLeadsNowhere() ? "" : `<button class="btn" data-action="skip" ${routingFinalPanelActive() ? "disabled" : skipDisabled}>דלג</button>`}
+          ${introChapterActive() ? `<button class="btn btn-skip-intro" data-action="skip-intro" type="button">דלג על המבוא</button>` : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -12814,6 +12821,23 @@
     openTaskWorkspace(task.id);
   }
 
+  // Jump straight from anywhere in the intro to the start of chapter 2.1. Always
+  // allowed (no pace gate), and bumps maxChapterReached so 2.1 stays unlocked.
+  function skipIntro() {
+    const target = chapterById("chapter-4");
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: target.id,
+      sceneId: target.sceneId,
+      panelIndex: 0,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      maxChapterReached: Math.max(Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0, chapterIndexById(target.id)),
+      workspace: createDefaultWorkspace()
+    }, true);
+  }
+
   function skipStory() {
     if (state.screen === "workspace") {
       if (workspaceSkipDisabled()) return;
@@ -14745,6 +14769,7 @@
     if (action === "workspace-reset") return resetWorkspaceCurrentMode();
     if (action === "restart") return restartPanel();
     if (action === "skip") return skipStory();
+    if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();

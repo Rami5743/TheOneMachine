@@ -718,6 +718,17 @@ button { font: inherit; }
 
 .btn-primary { background: var(--primary); }
 
+/* "דלג על המבוא" — a subtle accent so the skip-the-whole-intro shortcut stands
+   apart from the ordinary nav buttons. */
+.btn-skip-intro {
+  border-color: rgba(255, 224, 138, 0.8);
+  color: #ffe9b0;
+}
+.btn-skip-intro:hover,
+.btn-skip-intro:focus-visible {
+  background: rgba(255, 224, 138, 0.16);
+}
+
 .story-screen {
   height: 100%;
   min-height: 0;
