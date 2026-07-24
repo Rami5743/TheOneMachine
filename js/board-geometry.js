@@ -27,6 +27,21 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
   }
 
   function clampComponentPosition(type, x, y) {
+    // The task-card frame (taskCard-<id>) is placed PROGRAMMATICALLY at a
+    // deliberate, valid spot (aluBuildCardY during a build, the same position in
+    // the solution walkthrough) and is never dragged by the learner. It must
+    // therefore render at EXACTLY that Y everywhere. Clamping it is not only
+    // pointless but actively harmful: normalizeWorkspace runs during boot
+    // (loadState) and on every save, and at those moments the board DOM may not
+    // be laid out yet, so workspaceBoardSize() returns its small fallback
+    // (height 600). With that fallback, a tall card (ALU2/ALU3/ALU4, whose frame
+    // reaches far below its centre) gets clamped UP — moving the frame to a
+    // different height than the un-clamped copy shown once the real board exists.
+    // That mismatch is the "the card suddenly sits higher in the solution than
+    // during the build" bug. Frames are authored valid, so never clamp them.
+    if (typeof type === "string" && type.startsWith("taskCard-")) {
+      return { x, y };
+    }
     const size = workspaceBoardSize();
     const bounds = componentDef(type)?.bounds || { left: 8, right: 8, top: 8, bottom: 8 };
     const minX = Math.min(bounds.left, size.width - bounds.right);
