@@ -289,15 +289,6 @@
   // ALU2. None have a build workspace yet — they open a "המשך יבוא..." notice.
   const ALU_TASKS = [
     {
-      id: "Inc",
-      label: "Inc",
-      requires: [],
-      inputs: 1,
-      outputs: 1,
-      busWidth: 16,
-      requirements: "ה-Inc הוא כרטיס עם כניסה אחת ויציאה אחת. הכניסה והיציאה הן בסים ברוחב 16. הכרטיס צריך להוסיף 1 לכניסה ולהוציא את התוצאה."
-    },
-    {
       id: "ALU0",
       label: "ALU0",
       requires: [],
@@ -350,6 +341,17 @@
       outputs: 3,
       busWidth: 16,
       requirements: "ה-ALU4 הוא כרטיס עם 4 כניסות ו-3 יציאות. הוא זהה בפעולתו ל-ALU3, אבל בנוסף מוציא עוד 2 יציאות למטה: האחת (ng) זהה לביט הראשון בבס היציאה של ה-ALU3, והשנייה (nz) היא ביט שהוא אפס אם כל היציאה של ה-ALU3 היא 0, ו-1 אחרת.\n\nהערה: כשמפצלים בס, הביט הראשון שלו למעלה והאחרון למטה."
+    },
+    {
+      // Inc is listed LAST but stays available from the very start (requires: [])
+      // -- no other task depends on it, so its position is display-only.
+      id: "Inc",
+      label: "Inc",
+      requires: [],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 16,
+      requirements: "ה-Inc הוא כרטיס עם כניסה אחת ויציאה אחת. הכניסה והיציאה הן בסים ברוחב 16. הכרטיס צריך להוסיף 1 לכניסה ולהוציא את התוצאה."
     }
   ];
 
