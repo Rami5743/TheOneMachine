@@ -1259,7 +1259,7 @@ window.EMBEDDED_SOLUTIONS = {
       "x": 560,
       "y": 360,
       "frameW": 600,
-      "frameH": 700,
+      "frameH": 360,
       "pins": [
         {
           "id": "inputExt1",
@@ -1343,35 +1343,39 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt2",
-          "x": 260,
-          "y": 120,
+          "x": -90,
+          "y": 150,
           "w": 1,
           "dir": "in",
-          "label": "יציאת ng"
+          "label": "יציאת ng",
+          "caption": "ng"
         },
         {
           "id": "outputExt2",
-          "x": 340,
-          "y": 120,
+          "x": -90,
+          "y": 230,
           "w": 1,
           "dir": "out",
-          "label": ""
+          "label": "",
+          "caption": "ng"
         },
         {
           "id": "outputInt3",
-          "x": 260,
-          "y": 250,
+          "x": 90,
+          "y": 150,
           "w": 1,
           "dir": "in",
-          "label": "יציאת nz"
+          "label": "יציאת nz",
+          "caption": "nz"
         },
         {
           "id": "outputExt3",
-          "x": 340,
-          "y": 250,
+          "x": 90,
+          "y": 230,
           "w": 1,
           "dir": "out",
-          "label": ""
+          "label": "",
+          "caption": "nz"
         }
       ]
     },
@@ -1388,12 +1392,12 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "alu3",
         "type": "gate-ALU3",
         "x": 470,
-        "y": 360
+        "y": 350
       },
       {
         "id": "ng-split",
         "type": "splitter",
-        "x": 660,
+        "x": 520,
         "y": 470,
         "mirrored": false,
         "outputs": 2,
@@ -1406,8 +1410,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "nz",
         "type": "gate-Neq0_16",
-        "x": 690,
-        "y": 570
+        "x": 660,
+        "y": 470
       }
     ],
     "wires": [
@@ -1508,12 +1512,12 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 360
         },
         "outputExt2": {
-          "x": 1140,
-          "y": 480
+          "x": 470,
+          "y": 700
         },
         "outputExt3": {
-          "x": 1140,
-          "y": 610
+          "x": 650,
+          "y": 700
         }
       }
     }

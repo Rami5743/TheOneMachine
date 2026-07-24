@@ -765,12 +765,13 @@
       inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" },
-      outputInt2: { x: 260, y: 120, direction: "in", width: 1, label: "יציאת ng פנימית" },
-      outputExt2: { x: 340, y: 120, direction: "out", width: 1, label: "יציאת ng חיצונית" },
-      outputInt3: { x: 260, y: 250, direction: "in", width: 1, label: "יציאת nz פנימית" },
-      outputExt3: { x: 340, y: 250, direction: "out", width: 1, label: "יציאת nz חיצונית" }
+      // ng/nz come out the BOTTOM edge of the card (pointing down), captioned.
+      outputInt2: { x: -90, y: 150, direction: "in", width: 1, label: "יציאת ng פנימית", caption: "ng" },
+      outputExt2: { x: -90, y: 230, direction: "out", width: 1, label: "יציאת ng חיצונית", caption: "ng" },
+      outputInt3: { x: 90, y: 150, direction: "in", width: 1, label: "יציאת nz פנימית", caption: "nz" },
+      outputExt3: { x: 90, y: 230, direction: "out", width: 1, label: "יציאת nz חיצונית", caption: "nz" }
     },
-    bounds: { left: 340, right: 340, top: 310, bottom: 320 }
+    bounds: { left: 340, right: 340, top: 310, bottom: 280 }
   };
 
   // gate-ALU4: the placeable card earned by completing ALU4. Same inputs as ALU3,
@@ -1602,6 +1603,13 @@
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>`;
+      } else if (pin.y > 150) {
+        // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
+        // internal pin DOWN to the external tip, with its short caption below.
+        const iy = cy + (internalPin ? internalPin.y : pin.y - 70);
+        const cap = pin.caption || "";
+        stubs += `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+          ${cap ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 24}" text-anchor="middle">${esc(cap)}</text>` : ""}`;
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
@@ -9550,7 +9558,10 @@
         x: p.x, y: p.y,
         direction: p.dir || prev.direction || "in",
         width: Number.isInteger(p.w) ? p.w : prev.width,
-        label: (p.label != null ? p.label : prev.label) || ""
+        label: (p.label != null ? p.label : prev.label) || "",
+        // Short caption drawn on the frame stub (e.g. "ng"/"nz" for ALU4's
+        // bottom outputs); carried through from the JSON pin.
+        caption: (p.caption != null ? p.caption : prev.caption) || ""
       };
     }
     def.__jsonApplied = true;
@@ -9610,9 +9621,9 @@
   function aluBuildCardY(taskId) {
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
-      // ALU4 has two extra outputs BELOW the card, so it sits a little higher so
-      // they (and their check lamps) fit on the board.
-      : taskId === "ALU4" ? 420
+      // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
+      // near the middle so the bottom outputs (and their check lamps) fit.
+      : taskId === "ALU4" ? 360
       : (taskId === "ALU0" || taskId === "PreperNum" || taskId === "ALU1") ? 360
       : 288;
   }
