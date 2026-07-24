@@ -1791,7 +1791,14 @@
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+      .replaceAll("'", "&#39;")
+      // The ≠0_N card names are LTR ("not-equal zero, N bits") but begin with a
+      // math symbol, so inside RTL Hebrew text the bidi algorithm reorders them
+      // (e.g. "4_0≠"). Wrap each in LTR isolates (U+2066 … U+2069) so the name
+      // always reads left-to-right wherever it is shown — hints, solution steps,
+      // card requirements, the note list, the toolbar tool and the frame title.
+      // These names only ever appear in display text; machine ids use "Neq0_N".
+      .replace(/≠0_\d+/g, "⁦$&⁩");
   }
 
   function stopSpeech() {
@@ -2346,7 +2353,9 @@
   function hintButtonLabel() {
     const taskId = workspaceTaskId();
     if (solutionAvailable(taskId)) return "רוצה לראות את הפתרון";
-    return hintProgress(taskId).seen === 0 ? "רוצה רמז" : "רוצה עוד רמז";
+    // Stay on "רוצה רמז" through the first hint; only after the SECOND hint has
+    // been opened (seen >= 2) does it become "רוצה עוד רמז".
+    return hintProgress(taskId).seen < 2 ? "רוצה רמז" : "רוצה עוד רמז";
   }
 
   function setHintProgress(taskId, progress) {
