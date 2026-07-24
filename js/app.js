@@ -12539,9 +12539,36 @@
   }
 
   function dismissWorkspaceTaskIntro() {
-    withWorkspace((workspace) => {
-      workspace.taskIntroSeen = true;
+    const overlay = app.querySelector(".workspace-task-intro-overlay");
+    const card = app.querySelector(".workspace-task-intro-card");
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!card || reduceMotion) {
+      return withWorkspace((workspace) => { workspace.taskIntroSeen = true; });
+    }
+    // Fly the requirements card from the centre to the bottom-right corner (where
+    // the requirements panel lives), then reveal that panel by marking the intro
+    // seen. A short one-off transition, so no persistent CSS is needed.
+    const cardRect = card.getBoundingClientRect();
+    const board = app.querySelector("[data-workspace-board]");
+    const bRect = board ? board.getBoundingClientRect()
+      : { right: window.innerWidth, bottom: window.innerHeight };
+    const scale = 0.34;
+    const targetCX = bRect.right - 16 - (cardRect.width * scale) / 2;
+    const targetCY = bRect.bottom - 14 - (cardRect.height * scale) / 2;
+    const dx = Math.round(targetCX - (cardRect.left + cardRect.width / 2));
+    const dy = Math.round(targetCY - (cardRect.top + cardRect.height / 2));
+    card.style.pointerEvents = "none";
+    card.style.transformOrigin = "center center";
+    card.style.transition = "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease";
+    if (overlay) overlay.style.pointerEvents = "none";
+    requestAnimationFrame(() => {
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      card.style.opacity = "0.12";
     });
+    window.setTimeout(() => {
+      withWorkspace((workspace) => { workspace.taskIntroSeen = true; });
+    }, 480);
   }
 
   // The task ids that belong to each task note. Chapter 2.4's tasks live in two

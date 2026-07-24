@@ -187,12 +187,31 @@ function createTaskModeView({
     if (!workspaceTaskIntroActive()) return "";
     const task = taskDefById(state.workspace?.taskId);
     const label = task?.label || "הכרטיס";
+    // The Not intro shows the card's REQUIREMENTS (description + truth table)
+    // centred on the board with a "הבנתי" button; on click the card flies to the
+    // bottom-right corner and becomes the normal requirements panel (the docking
+    // animation lives in dismissWorkspaceTaskIntro). While it is centred, the
+    // corner panel is hidden (see renderNotTaskHint) so nothing is duplicated.
+    const desc = task ? esc(adaptGender(task.description)) : "";
+    let table = "";
+    if (task && Array.isArray(task.rows) && task.rows.length) {
+      const inputHeaders = Array.from({ length: task.inputs }, (_, index) =>
+        `<th>${task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`}</th>`).join("");
+      const rows = task.rows.map((row) =>
+        `<tr><td class="truth-output-cell">${row.output ? 1 : 0}</td>${row.inputs.map((v) => `<td>${v ? 1 : 0}</td>`).join("")}</tr>`).join("");
+      table = `
+        <table class="workspace-task-hint-table">
+          <thead><tr><th class="truth-output-cell">יציאה</th>${inputHeaders}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
     return `
       <div class="workspace-task-intro-overlay" role="presentation">
-        <section class="workspace-task-intro-card" role="dialog" aria-modal="false" aria-label="הוראות לבניית ${esc(label)}">
-          <p>${genderText("אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של", "את צריכה לבנות את הכרטיס בתוך המסגרת. אל תשכחי לחבר את הכניסות והיציאה של")} ${esc(label)} ${genderText("לרכיבים שאתה שם בפנים.", "לרכיבים שאת שמה בפנים.")}</p>
+        <section class="workspace-task-intro-card workspace-task-intro-card--requirements" role="dialog" aria-modal="false" aria-label="דרישות ${esc(label)}">
+          ${desc ? `<p>${desc}</p>` : ""}
+          ${table}
           <div class="workspace-task-intro-actions">
-            <button class="btn btn-primary" data-action="workspace-task-intro-ok">אישור</button>
+            <button class="btn btn-primary" data-action="workspace-task-intro-ok">הבנתי</button>
           </div>
         </section>
       </div>`;
@@ -388,6 +407,9 @@ function createTaskModeView({
     }
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
+    // While the Not intro presents the requirements centred, hide the corner
+    // panel so they are not shown twice; it appears (docked) once dismissed.
+    if (task.id === "Not" && !state.workspace?.taskIntroSeen) return "";
     // The requirements panel (description + truth table) shows during the build
     // AND during the solution walkthrough, so the learner can always see what the
     // card must do. During the solution the truth table hides via the solution
