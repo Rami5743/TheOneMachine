@@ -1393,6 +1393,76 @@ button { font: inherit; }
   fill: #735c3b;
 }
 
+/* Optional bottom-left "why do we need this?" panel: a hideable explainer.
+   Click-through while open (only its hide/show button captures clicks) so the
+   board underneath stays reachable; sits opposite the bottom-right
+   requirements panel. */
+.workspace-why-note {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 9;
+  width: min(330px, calc(50% - 28px));
+  padding: 32px 14px 12px;
+  border: 1px solid rgba(36, 26, 13, 0.85);
+  border-radius: 12px;
+  background: rgba(24, 19, 12, 0.92);
+  color: #f2e8d4;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  direction: rtl;
+  pointer-events: none;
+}
+
+.workspace-why-note .why-note-title {
+  display: block;
+  font-weight: 800;
+  color: #ffd98a;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.workspace-why-note .why-note-text {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: #efe6d3;
+}
+
+/* Hide/show toggle, pinned to the panel's top-left corner. */
+.why-note-toggle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
+  pointer-events: auto;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 227, 138, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffe3a0;
+  cursor: pointer;
+}
+
+.why-note-toggle:hover,
+.why-note-toggle:focus-visible {
+  background: rgba(255, 224, 138, 0.28);
+}
+
+/* Collapsed: just the title bar with the show button beside it. */
+.workspace-why-note.workspace-why-note-collapsed {
+  width: auto;
+  max-width: min(360px, calc(100% - 28px));
+  padding: 8px 14px 8px 80px;
+  pointer-events: auto;
+}
+
+.workspace-why-note-collapsed .why-note-title {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .workspace-component {
   cursor: move;
   pointer-events: visiblePainted;

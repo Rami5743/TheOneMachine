@@ -941,6 +941,9 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
+    // The bottom-left "why do we need this?" panel is hidden once the learner
+    // dismisses it (a persistent preference, kept across tasks and reloads).
+    whyNoteHidden: false,
     bitDialog: null,
     bitInfoUnlocked: false,
     xorTableHelpUnlocked: false,
@@ -6312,6 +6315,34 @@
   // canvas ends, so the bottom item isn't flush against the edge.
   const WORKSPACE_CANVAS_BOTTOM_PAD = 28;
 
+  // The optional bottom-left "למה צריך את זה לעזאזל?" panel. Only tasks listed in
+  // TASK_WHY_NOTES have one. It is hideable (a persistent preference) and, while
+  // open, click-through so the board underneath stays reachable — only its
+  // hide/show button captures clicks. Not shown during the solution walkthrough
+  // or card creation, which have their own overlays.
+  function renderWhyNote() {
+    const taskId = state.workspace?.taskId;
+    const text = (typeof TASK_WHY_NOTES !== "undefined" && TASK_WHY_NOTES) ? TASK_WHY_NOTES[taskId] : null;
+    if (!text) return "";
+    if (state.solutionDialog || state.cardCreation) return "";
+    const title = "למה צריך את זה לעזאזל?";
+    if (state.whyNoteHidden) {
+      return `
+        <section class="workspace-why-note workspace-why-note-collapsed" aria-label="${esc(title)}">
+          <button class="why-note-toggle" data-action="why-note-toggle" type="button">הצגה</button>
+          <span class="why-note-title">${esc(title)}</span>
+        </section>`;
+    }
+    return `
+      <section class="workspace-why-note" aria-label="${esc(title)}">
+        <button class="why-note-toggle" data-action="why-note-toggle" type="button">הסתרה</button>
+        <div class="why-note-body">
+          <span class="why-note-title">${esc(title)}</span>
+          <p class="why-note-text">${esc(adaptGender(text))}</p>
+        </div>
+      </section>`;
+  }
+
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
     // The whole workspace is re-rendered via innerHTML on every state change
@@ -6355,6 +6386,7 @@
               </svg>
               </div>
               ${renderNotTaskHint()}
+              ${renderWhyNote()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${state.cardCreation ? renderCardCreationOverlays() : ""}
@@ -14814,6 +14846,7 @@
     }
     if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
+    if (action === "why-note-toggle") return setState({ whyNoteHidden: !state.whyNoteHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
