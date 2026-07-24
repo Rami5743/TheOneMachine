@@ -1102,8 +1102,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "ctrl-split",
         "type": "splitter",
-        "x": 480,
-        "y": 150,
+        "x": 565,
+        "y": 205,
         "mirrored": false,
         "outputs": 3,
         "legWidths": [
@@ -1410,8 +1410,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "nz",
         "type": "gate-Neq0_16",
-        "x": 660,
-        "y": 470
+        "x": 675,
+        "y": 425
       }
     ],
     "wires": [

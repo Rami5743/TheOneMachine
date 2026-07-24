@@ -104,8 +104,8 @@
     {
       "id": "ctrl-split",
       "type": "splitter",
-      "x": 480,
-      "y": 150,
+      "x": 565,
+      "y": 205,
       "mirrored": false,
       "outputs": 3,
       "legWidths": [
