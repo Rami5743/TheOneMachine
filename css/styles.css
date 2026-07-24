@@ -1361,11 +1361,27 @@ button { font: inherit; }
   place-items: stretch;
 }
 
+/* The scrolling viewport for the board canvas. When a task's content (a tall
+   card's frame + solution, or a check's harness lamps) is taller than the
+   visible board, this scrolls vertically so nothing is stranded off-screen.
+   Overlays (solution dialog, hints) stay OUTSIDE this wrapper — pinned to the
+   board viewport — so they don't scroll away with the canvas. */
+.workspace-board-scroll {
+  min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 10px;
+  overscroll-behavior: contain;
+}
+
 .workspace-canvas {
   width: 100%;
   height: 100%;
   max-width: 100%;
-  max-height: 100%;
+  /* No max-height: the canvas may grow TALLER than the viewport so the board
+     scrolls to it (its height is set in JS from the actual content extent). */
+  max-height: none;
   display: block;
   touch-action: none;
   user-select: none;

@@ -13,6 +13,10 @@
 
 function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, componentRenderScale }) {
   const renderScale = (type) => (componentRenderScale ? componentRenderScale(type) : 1);
+  // The tallest authored content (tall-card solutions, check harness lamps)
+  // reaches roughly y≈720; this virtual floor keeps such content placeable even
+  // when the real board viewport is shorter (the board scrolls to reveal it).
+  const CLAMP_MIN_BOARD_HEIGHT = 900;
 
   function terminalPosition(workspace, ref, overrides = null) {
     const info = pinDefFor(workspace, ref);
@@ -44,10 +48,16 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
     }
     const size = workspaceBoardSize();
     const bounds = componentDef(type)?.bounds || { left: 8, right: 8, top: 8, bottom: 8 };
+    // The board scrolls VERTICALLY, so a component may legitimately sit below the
+    // visible viewport (a check's harness lamps, a tall card's solution). Clamp Y
+    // against a generous virtual height rather than the real (possibly short, or
+    // boot-time fallback) viewport, so low content is never pulled up out of
+    // place. X still clamps to the real width — there is no horizontal scroll.
+    const heightForClamp = Math.max(size.height, CLAMP_MIN_BOARD_HEIGHT);
     const minX = Math.min(bounds.left, size.width - bounds.right);
     const maxX = Math.max(bounds.left, size.width - bounds.right);
-    const minY = Math.min(bounds.top, size.height - bounds.bottom);
-    const maxY = Math.max(bounds.top, size.height - bounds.bottom);
+    const minY = Math.min(bounds.top, heightForClamp - bounds.bottom);
+    const maxY = Math.max(bounds.top, heightForClamp - bounds.bottom);
 
     return {
       x: Math.min(maxX, Math.max(minX, x)),

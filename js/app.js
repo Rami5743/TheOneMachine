@@ -6308,6 +6308,10 @@
       }).join("")).join("");
   }
 
+  // A little breathing room below the lowest board content before the scroll
+  // canvas ends, so the bottom item isn't flush against the edge.
+  const WORKSPACE_CANVAS_BOTTOM_PAD = 28;
+
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
     // The whole workspace is re-rendered via innerHTML on every state change
@@ -6315,6 +6319,9 @@
     // scroll position to the top. Capture it before the rebuild and restore it
     // after, so the palette stays where the learner left it.
     const prevToolboxScroll = app.querySelector(".toolbox-list")?.scrollTop || 0;
+    // The board can scroll vertically; a full re-render (e.g. after a drag)
+    // would otherwise snap it back to the top, so preserve its position too.
+    const prevBoardScroll = app.querySelector("[data-workspace-scroll]")?.scrollTop || 0;
     app.innerHTML = `
       ${topbar()}
       <main class="screen workspace-screen">
@@ -6323,6 +6330,7 @@
           ${renderCreateCardBubble()}
           <section class="workspace-board-wrap">
             <div class="workspace-board" data-workspace-board>
+              <div class="workspace-board-scroll" data-workspace-scroll>
               <svg class="workspace-canvas" data-workspace-svg  aria-label="שולחן עבודה אלקטרוני" role="img">
                 <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
                 <g class="workspace-task-shell-layer">
@@ -6345,6 +6353,7 @@
                   ${renderSplitterControls()}
                 </g>
               </svg>
+              </div>
               ${renderNotTaskHint()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
@@ -6381,6 +6390,39 @@
       const list = app.querySelector(".toolbox-list");
       if (list) list.scrollTop = prevToolboxScroll;
     }
+    // Size the canvas to its content so the board scrolls when a task is taller
+    // than the viewport, then restore the previous scroll position.
+    fitWorkspaceCanvas();
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
+  }
+
+  // Grow the board canvas to fit any content below the visible fold so the
+  // board's scroll viewport can reach it. When everything fits, the canvas
+  // stays exactly viewport-high and no scrollbar appears. getBBox includes the
+  // full-size background rect, so its height is naturally max(viewport, content).
+  function fitWorkspaceCanvas() {
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    const svg = app.querySelector("[data-workspace-svg]");
+    if (!scroll || !svg) return;
+    const viewport = scroll.clientHeight;
+    if (!viewport) return;
+    // Reset to the viewport height first so the measurement reflects real
+    // content (not last render's grown height).
+    svg.style.height = `${viewport}px`;
+    let contentBottom = viewport;
+    try {
+      const bb = svg.getBBox();
+      if (bb && Number.isFinite(bb.y) && Number.isFinite(bb.height)) {
+        contentBottom = Math.ceil(bb.y + bb.height);
+      }
+    } catch {}
+    // Only grow (and thus show a scrollbar) when content actually runs past the
+    // fold; when it fits, keep the canvas exactly viewport-high so nothing
+    // scrolls. contentBottom is >= viewport because getBBox includes the
+    // full-height background rect.
+    const height = contentBottom > viewport ? contentBottom + WORKSPACE_CANVAS_BOTTOM_PAD : viewport;
+    svg.style.height = `${height}px`;
   }
 
   function activeMonologueNandComponent() {
@@ -13762,10 +13804,14 @@
   }
 
   function boardPointFromEvent(event) {
-    const board = app.querySelector("[data-workspace-board]");
-    if (!board) return null;
+    // Map a pointer event to BOARD-CONTENT coordinates. The board scrolls
+    // vertically, so the content point is the offset within the scroll viewport
+    // PLUS the current scroll position; content bounds are the scrollable size,
+    // not the visible viewport, so a point below the fold maps correctly.
+    const scroll = app.querySelector("[data-workspace-scroll]") || app.querySelector("[data-workspace-board]");
+    if (!scroll) return null;
 
-    const rect = board.getBoundingClientRect();
+    const rect = scroll.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
 
     const insideBoard =
@@ -13774,9 +13820,12 @@
       event.clientY >= rect.top &&
       event.clientY <= rect.bottom;
 
+    const contentW = scroll.scrollWidth || rect.width;
+    const contentH = scroll.scrollHeight || rect.height;
+
     return {
-      x: Math.min(rect.width, Math.max(0, event.clientX - rect.left)),
-      y: Math.min(rect.height, Math.max(0, event.clientY - rect.top)),
+      x: Math.min(contentW, Math.max(0, event.clientX - rect.left + (scroll.scrollLeft || 0))),
+      y: Math.min(contentH, Math.max(0, event.clientY - rect.top + (scroll.scrollTop || 0))),
       inside: insideBoard
     };
   }
@@ -15193,6 +15242,7 @@
   });
 
   window.addEventListener("resize", () => {
+    if (state.screen === "workspace") requestAnimationFrame(fitWorkspaceCanvas);
     if (workspaceNandMonologueActive()) requestAnimationFrame(positionWorkspaceNandMonologue);
   });
 
