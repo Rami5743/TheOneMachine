@@ -11986,6 +11986,41 @@
       return setState(mbPatch, false);
     }
 
+    // ≠0 bus tasks: the interactive hints scaffold the input splitter, and (for
+    // ≠0_16) one ≠0_4 per leg. ≠0_4 splits its bus into 4 single wires (the
+    // learner ORs them with an Or4way); ≠0_16 splits into 4 buses of width 4 and
+    // runs each through a ≠0_4. The OR of the results is left to the learner.
+    if (taskId === "Neq0_4" || taskId === "Neq0_16") {
+      const nqWs = normalizeWorkspace(clonePlain(state.workspace));
+      const card = componentById(nqWs, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
+      const source = componentById(nqWs, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const isWide = taskId === "Neq0_16";
+      const comps = [clonePlain(source), clonePlain(card), { id: "split-in", type: "splitter", x: 440, y: 288, mirrored: false, outputs: 4, width: isWide ? 4 : 1 }];
+      const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+      if (isWide && hint.action === "neq0_16-split-and-neq0") {
+        // Leg i sits at ((4-1)/2 - i)*34 below/above the splitter centre (y=288).
+        const legYs = [339, 305, 271, 237];
+        for (let i = 0; i < 4; i += 1) {
+          comps.push({ id: `neq0-${i}`, type: "gate-Neq0_4", x: 600, y: legYs[i] });
+          wires.push(normalizeWire(`split-in.leg${i}`, `neq0-${i}.in1`));
+        }
+      }
+      nqWs.components = comps;
+      nqWs.wires = wires;
+      nqWs.nextId = 2;
+      nqWs.selectedTerminal = null;
+      nqWs.accident = null;
+      nqWs.focusedComponentId = null;
+      nqWs.unlocked = true;
+      nqWs.taskIntroSeen = true;
+      const nqPatch = {
+        workspace: normalizeWorkspace(nqWs),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) nqPatch.hintState = hintStateOverride;
+      return setState(nqPatch, false);
+    }
+
     // Bus tasks: the interactive hints scaffold splitter(s) on the input bus(es)
     // and, at the next step, one sub-gate wired to a leg. Not4 splits into 4
     // single wires and uses a NOT; Not16 splits into 4 buses of width 4 and uses
