@@ -32,10 +32,15 @@ function createWorkspaceNavigation({
   }
 
   function firstWorkspaceExitTarget() {
-    const chapter = simpleGatesChapter();
+    // Leaving the Nand workbench returns to the two post-experiment slides that
+    // now sit right AFTER the launch panel (panel82) in the 2.1 scene — panel80
+    // (the Nand shrinking) and panel81 (chips) — before the story flows on to
+    // 2.2's panel83. Land on the panel right after the launch.
+    const chapter = chapterById("chapter-4");
     const scene = sceneByChapter(chapter);
-    const panel83Index = panelIndexByImage(scene, "panel83.png");
-    return storyTarget(chapter, panel83Index >= 0 ? panel83Index : 0);
+    const launchIndex = scene.panels.findIndex(isWorkspaceLaunchPanel);
+    const idx = launchIndex >= 0 ? Math.min(launchIndex + 1, scene.panels.length - 1) : 0;
+    return storyTarget(chapter, idx);
   }
 
   function secondWorkspaceExitTarget() {
