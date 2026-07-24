@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   viewBox="-66 -62 138 124"
+   viewBox="-66 -74 138 136"
    version="1.1"
    id="svg5"
    sodipodi:docname="gate-alu3.svg"
@@ -105,7 +105,7 @@
   <text
      class="splitter-width-label"
      x="-59.28"
-     y=" 29.301"
+     y="29.301"
      text-anchor="middle"
      style="font-size:21.6667px"
      id="text4">16</text>

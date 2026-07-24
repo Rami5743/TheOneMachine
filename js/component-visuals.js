@@ -365,11 +365,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
       // The ALU icons are editable SVG files (assets/components/gate-alu*.svg),
       // generated from aluShapeMarkup. Edit the file to change the look.
-      if (gateTask && gateTask.id === "ALU0") return componentSvgImage("gate-alu0.svg", -66, -62, 138, 124);
+      if (gateTask && gateTask.id === "ALU0") return componentSvgImage("gate-alu0.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
-      if (gateTask && gateTask.id === "ALU1") return componentSvgImage("gate-alu1.svg", -66, -62, 138, 124);
-      if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -62, 138, 124);
-      if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -62, 138, 124);
+      if (gateTask && gateTask.id === "ALU1") return componentSvgImage("gate-alu1.svg", -66, -74, 138, 136);
+      // ALU2/ALU3 have three bus inputs; their icon's viewBox is 12px taller at
+      // the top so the topmost "16" width label isn't clipped. The image box
+      // matches the viewBox 1:1 so the body/pins stay put.
+      if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
+      if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }
