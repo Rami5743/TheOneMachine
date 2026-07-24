@@ -513,7 +513,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The bus stub (thick dashed bar), left for "in", right for "out".
     const bx1 = dir === "in" ? -edge - ext : edge;
     const bx2 = dir === "in" ? -edge : edge + ext;
-    s += `<rect x="${bx1}" y="${-half}" width="${bx2 - bx1}" height="${half * 2}" fill="#111" />
+    s += `<rect x="${bx1}" y="${-half}" width="${bx2 - bx1}" height="${half * 2}" fill="#3d2a17" />
       <line x1="${bx1 + 3}" y1="0" x2="${bx2 - 3}" y2="0" stroke="#e9e2cf" stroke-width="2.4" stroke-dasharray="6 3" />`;
     return s;
   }

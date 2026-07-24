@@ -35,9 +35,9 @@
      inkscape:current-layer="svg2" />
   <style
      id="style1">
-    .bar    { fill: #111; stroke: none; }
+    .bar    { fill: #3d2a17; stroke: none; }
     .stripe { fill: none; stroke: #d8d8d8; stroke-width: 3; stroke-dasharray: 6 3; stroke-linecap: butt; }
-    .line   { stroke: #111; stroke-width: 5; stroke-linecap: round; fill: none; }
+    .line   { stroke: #3d2a17; stroke-width: 5; stroke-linecap: round; fill: none; }
     .label  { fill: #ffe37a; font-family: Arial, sans-serif; font-weight: 900; font-size: 18px; dominant-baseline: middle; text-anchor: middle; }
   </style>
   <rect
