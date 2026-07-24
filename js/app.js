@@ -944,6 +944,9 @@
     // The bottom-left "why do we need this?" panel is hidden once the learner
     // dismisses it (a persistent preference, kept across tasks and reloads).
     whyNoteHidden: false,
+    // The one-off arrow pointing at the And task's requirements; set once the
+    // learner starts building (persists so it doesn't nag on every visit).
+    andArrowSeen: false,
     bitDialog: null,
     bitInfoUnlocked: false,
     xorTableHelpUnlocked: false,
@@ -6350,6 +6353,37 @@
       </section>`;
   }
 
+  // A one-off hint arrow that points at the And task's requirements panel
+  // (bottom-right). It disappears the moment the learner starts building — see
+  // the pointerdown handler, which removes it without a disruptive re-render.
+  function andArrowActive() {
+    return state.screen === "workspace"
+      && state.workspace?.taskId === "And"
+      && !state.andArrowSeen
+      && !state.solutionDialog
+      && !state.cardCreation
+      && !workspaceAccidentActive();
+  }
+
+  function renderAndArrow() {
+    if (!andArrowActive()) return "";
+    return `
+      <div class="workspace-and-arrow" aria-hidden="true">
+        <span class="workspace-and-arrow-label">הדרישות כאן</span>
+        <svg viewBox="0 0 24 24" width="52" height="52" class="workspace-and-arrow-svg">
+          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>`;
+  }
+
+  function dismissAndArrow() {
+    if (!state.workspace || state.andArrowSeen) return;
+    state.andArrowSeen = true;
+    saveState();
+    const el = app.querySelector(".workspace-and-arrow");
+    if (el) el.remove();
+  }
+
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
     // The whole workspace is re-rendered via innerHTML on every state change
@@ -6394,6 +6428,7 @@
               </div>
               ${renderNotTaskHint()}
               ${renderWhyNote()}
+              ${renderAndArrow()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${state.cardCreation ? renderCardCreationOverlays() : ""}
@@ -14930,6 +14965,11 @@
     if (workspaceInteractionLocked()) {
       event.preventDefault();
       return;
+    }
+
+    // The learner is starting to build — retire the And requirements arrow.
+    if (andArrowActive() && event.target.closest(".workspace-layout")) {
+      dismissAndArrow();
     }
 
     const terminal = event.target.closest("[data-action='workspace-terminal']");

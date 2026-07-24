@@ -1404,6 +1404,40 @@ button { font: inherit; }
   fill: #735c3b;
 }
 
+/* One-off arrow pointing DOWN at the And task's requirements panel (bottom-
+   right). Bounces gently; removed once the learner starts building. */
+.workspace-and-arrow {
+  position: absolute;
+  right: 150px;
+  bottom: 250px;
+  z-index: 12;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #ffe08a;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
+  animation: and-arrow-bounce 1.05s ease-in-out infinite;
+}
+
+.workspace-and-arrow-label {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #ffe9b0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+@keyframes and-arrow-bounce {
+  0%, 100% { transform: translateY(-7px); }
+  50% { transform: translateY(9px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-and-arrow { animation: none; }
+}
+
 /* Optional bottom-left "why do we need this?" panel: a hideable explainer.
    Click-through while open (only its hide/show button captures clicks) so the
    board underneath stays reachable; sits opposite the bottom-right
