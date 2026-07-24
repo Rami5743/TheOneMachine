@@ -17,6 +17,7 @@ const ACHIEVEMENTS = [
   { id: "bus-engineer", title: "מהנדס באסים", description: "השלמת את כל המשימות של פרק 2.4.", category: "progress" },
   { id: "calculator", title: "מחשב", description: "השלמת את משימות החשבון של פרק 2.5.", category: "progress" },
   { id: "arith-engineer", title: "מהנדס חשבון", description: "השלמת את כל הכרטיסים של פרק 2.5.", category: "progress" },
+  { id: "alu-engineer", title: "מהנדס ALU", description: "השלמת את כל הכרטיסים של פרק 2.6.", category: "progress" },
   // Special: side accomplishments and mastery.
   { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
   { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
@@ -24,6 +25,7 @@ const ACHIEVEMENTS = [
   { id: "precise-routing-engineer", title: "מהנדס נתובים מדויק", description: "השלמת את כל הכרטיסים של פרק 2.3 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-bus-engineer", title: "מהנדס באסים מדויק", description: "השלמת את כל המשימות של פרק 2.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-arith-engineer", title: "מהנדס חשבון מדויק", description: "השלמת את כל הכרטיסים של פרק 2.5 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-alu-engineer", title: "מהנדס ALU מדויק", description: "השלמת את כל הכרטיסים של פרק 2.6 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
   { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
   { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },

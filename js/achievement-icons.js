@@ -43,15 +43,57 @@ function achvStar(cx, cy, s, fill) {
   return `<g transform="translate(${cx},${cy}) scale(${s})"><path d="M0,-6 L1.76,-1.85 L5.7,-1.85 L2.35,0.7 L3.53,4.85 L0,2.4 L-3.53,4.85 L-2.35,0.7 L-5.7,-1.85 L-1.76,-1.85 Z" fill="${fill}"/></g>`;
 }
 
-// A hanging medal for the "מדליסט" (medalist) achievements: two ribbon bands and
-// a bevelled disc with a star. `gold` picks the gold palette (first-place medals);
-// otherwise a neutral silver disc for a plain medal.
-function achievementMedal(gold) {
-  const g = `achv-medal-${gold ? "gold" : "silver"}`;
+// The per-stage emblem engraved on a medal's centre plaque (chapter → symbol,
+// mirroring the "מהנדס" achievement icons). Drawn in the `ink` colour on a white
+// plaque centred at (40,52), so it reads on both gold and silver discs.
+const MEDAL_STAGE_EMBLEMS = {
+  "2.2": (ink) => // boolean: an AND gate
+    `<path d="M37 46 H41 A5.5 5.5 0 0 1 41 57 H37 Z" fill="${ink}"/>
+     <g stroke="${ink}" stroke-width="1.8" stroke-linecap="round">
+       <line x1="32" y1="49" x2="37" y2="49"/><line x1="32" y1="54" x2="37" y2="54"/>
+       <line x1="46.6" y1="51.5" x2="51" y2="51.5"/></g>`,
+  "2.3": (ink) => // routing: a multiplexer trapezoid
+    `<path d="M36 47 L45 50 V54 L36 57 Z" fill="${ink}"/>
+     <g stroke="${ink}" stroke-width="1.7" stroke-linecap="round">
+       <line x1="31" y1="49" x2="36" y2="49"/><line x1="31" y1="55" x2="36" y2="55"/>
+       <line x1="45" y1="52" x2="50" y2="52"/></g>`,
+  "2.4": (ink) => // buses: parallel bus lines
+    `<g stroke="${ink}" stroke-width="2.5" stroke-linecap="round">
+       <line x1="35" y1="47" x2="35" y2="57"/><line x1="40" y1="47" x2="40" y2="57"/>
+       <line x1="45" y1="47" x2="45" y2="57"/></g>`,
+  "2.5": (ink) => // arithmetic: a plus
+    `<path d="M40 46 V58 M34 52 H46" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`,
+  "2.6": (ink) => // ALU: the notched trapezoid schematic symbol
+    `<path d="M34 46 L39 46 L40 48.6 L41 46 L46 46 L43 58 L37 58 Z" fill="${ink}"/>`
+};
+
+// A laurel wreath framing the medal from below — marks the "all cards" (יסודי /
+// על) variants, mastery of the whole chapter.
+function medalWreath() {
+  // Leaves sit OUTSIDE the disc (radius > 20 from the centre 40,52) so the opaque
+  // medal does not cover them; the two branches meet at the bottom.
+  const branch = `
+    <g fill="#4f9a4a" stroke="#2f6b2c" stroke-width="0.6">
+      <path d="M40 77 Q25 76 16 57" fill="none" stroke="#6b4a1e" stroke-width="1.6"/>
+      <ellipse cx="33.5" cy="75.5" rx="3.6" ry="1.9" transform="rotate(60 33.5 75.5)"/>
+      <ellipse cx="27.5" cy="73" rx="3.8" ry="2" transform="rotate(45 27.5 73)"/>
+      <ellipse cx="22.5" cy="69" rx="3.9" ry="2" transform="rotate(28 22.5 69)"/>
+      <ellipse cx="18.8" cy="64" rx="3.8" ry="2" transform="rotate(12 18.8 64)"/>
+      <ellipse cx="16.4" cy="58.5" rx="3.5" ry="1.9" transform="rotate(-4 16.4 58.5)"/>
+    </g>`;
+  return `${branch}<g transform="translate(80,0) scale(-1,1)">${branch}</g>`;
+}
+
+// A hanging medal for the "מדליסט" (medalist) achievements. `gold` picks the gold
+// palette (first-place / זהב) vs a neutral silver disc; `all` adds the laurel
+// wreath (every card in the chapter); `chapter` selects the engraved stage emblem.
+function achievementMedal({ gold, all, chapter }) {
+  const g = `achv-medal-${gold ? "gold" : "silver"}-${chapter || "x"}`;
   const top = gold ? "#ffe07a" : "#eef2f7";
   const bot = gold ? "#d99411" : "#9aa6b5";
   const rim = gold ? "#a9720f" : "#6f7d8c";
-  const star = gold ? "#a9720f" : "#5f6b78";
+  const ink = gold ? "#7a5209" : "#465059";
+  const emblem = (MEDAL_STAGE_EMBLEMS[chapter] || (() => ""))(ink);
   return `<svg class="achv-trophy" viewBox="0 0 80 80" role="img" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id="${g}" cx="0.38" cy="0.34" r="0.75">
@@ -59,18 +101,24 @@ function achievementMedal(gold) {
           <stop offset="1" stop-color="${bot}"/>
         </radialGradient>
       </defs>
+      ${all ? medalWreath() : ""}
       <path d="M27 8 L20 40 L33 40 L38 14 Z" fill="#c23b3b"/>
       <path d="M53 8 L60 40 L47 40 L42 14 Z" fill="#2f6bd0"/>
       <circle cx="40" cy="52" r="20" fill="url(#${g})" stroke="${rim}" stroke-width="2.4"/>
-      <circle cx="40" cy="52" r="15" fill="none" stroke="${rim}" stroke-width="1.4" opacity="0.55"/>
-      <path d="M28 44 C30 58 36 63 41 65" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
-      ${achvStar(40, 52, 1.9, star)}
+      <circle cx="40" cy="52" r="11.5" fill="#fffdf3" stroke="${rim}" stroke-width="1.3"/>
+      <path d="M28 44 C30 58 36 63 41 65" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.25"/>
+      ${emblem}
     </svg>`;
 }
 
 function renderAchievementIcon(id) {
   if (typeof id === "string" && id.indexOf("medalist-") === 0) {
-    return achievementMedal(id.endsWith("gold"));
+    // id: medalist-<chapter>[-gold|-all|-allgold] → distinct icon per stage+tier.
+    const rest = id.slice("medalist-".length);
+    const dash = rest.indexOf("-");
+    const chapter = dash === -1 ? rest : rest.slice(0, dash);
+    const suffix = dash === -1 ? "" : rest.slice(dash + 1);
+    return achievementMedal({ chapter, gold: suffix.indexOf("gold") !== -1, all: suffix.indexOf("all") !== -1 });
   }
   switch (id) {
     case "card-creator": // gold cup, a fresh card being made
@@ -101,6 +149,15 @@ function renderAchievementIcon(id) {
       return achievementTrophy(id, { top: "#ffb35c", bot: "#c25a12", rim: "#8f3f0a", base: "#c25a12", handle: "#e07a24", emblem:
         `<rect x="30" y="19" width="20" height="20" rx="3" fill="#fffdf3" stroke="#8f3f0a" stroke-width="1.6"/>
            <path d="M40 23 V35 M34 29 H46" stroke="#c25a12" stroke-width="3" stroke-linecap="round"/>` });
+    case "alu-engineer": // steel-blue cup, the ALU notched-trapezoid schematic (chapter 2.6)
+      return achievementTrophy(id, { top: "#8ea6c8", bot: "#2b3f5e", rim: "#1d2c44", base: "#2b3f5e", handle: "#425a80", emblem:
+        `<path d="M30 20 L37 20 L40 25 L43 20 L50 20 L45 39 L35 39 Z" fill="#fffdf3" stroke="#1d2c44" stroke-width="1.6" stroke-linejoin="round"/>
+           <text x="40" y="34" font-size="7.5" font-weight="900" text-anchor="middle" fill="#2b3f5e" font-family="Arial,sans-serif">ALU</text>` });
+    case "precise-alu-engineer": // steel-blue cup, ALU trapezoid on a bullseye (2.6 first-try clean)
+      return achievementTrophy(id, { top: "#8ea6c8", bot: "#243652", rim: "#f3d27a", base: "#243652", handle: "#425a80", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <path d="M33 21 L37.5 21 L40 25 L42.5 21 L47 21 L43.5 35 L36.5 35 Z" fill="#fffdf3" stroke="#1d2c44" stroke-width="1.4" stroke-linejoin="round"/>` });
     case "equipment-destroyer": // burnt cup, cracked, with a flame
       return achievementTrophy(id, { top: "#c8492a", bot: "#5f1808", rim: "#3a1206", base: "#4a1608", handle: "#7a2410",
         emblem: `<path d="M40 19 C44 23 44 28 41 31 C43 31 45.5 29 45.5 26 C49 30 48 37 40 38 C32 37 32 30 35.5 27 C35.5 29.5 38 30.5 39 29.5 C36.5 26 38 22 40 19 Z" fill="#ffb038"/><path d="M40 24 C42 27 41.5 30 40 32 C38.5 30 38 27 40 24 Z" fill="#ff6a1e"/>`,
