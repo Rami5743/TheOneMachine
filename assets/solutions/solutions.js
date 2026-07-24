@@ -604,11 +604,11 @@ window.EMBEDDED_SOLUTIONS = {
       "inputs": {
         "inputExt1": {
           "x": 51,
-          "y": 347
+          "y": 345
         },
         "inputExt2": {
           "x": 50,
-          "y": 449
+          "y": 450
         },
         "inputExt3": {
           "x": 210,
@@ -980,12 +980,12 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 465
         },
         "inputExt3": {
-          "x": 80,
+          "x": 75,
           "y": 600
         },
         "inputExt4": {
-          "x": 166,
-          "y": 142
+          "x": 175,
+          "y": 75
         }
       },
       "outputs": {
