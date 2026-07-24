@@ -9499,9 +9499,34 @@
         });
     }
   }
+  // Where the game actually places a JSON-backed task's frame on the build board
+  // (see openAluTaskWorkspace): x is always 640; y drops the card far enough that
+  // its control pin and the check's control splitter fit. Shared so the solution
+  // walkthrough sits at the SAME position as the real build.
+  const ALU_BUILD_CARD_X = 640;
+  function aluBuildCardY(taskId) {
+    return taskId === "ALU3" ? 520
+      : taskId === "ALU2" ? 440
+      : (taskId === "ALU0" || taskId === "PreperNum" || taskId === "ALU1") ? 360
+      : 288;
+  }
   function workspaceFromSolutionDoc(doc) {
-    const frame = { id: doc.frame.id || "task-card-1", type: doc.frame.type, x: doc.frame.x, y: doc.frame.y };
-    const components = [frame, ...(doc.external || []).map(clonePlain), ...(doc.components || []).map(clonePlain)];
+    // The JSON authors the frame at its own position; the game build places the
+    // same card at (640, aluBuildCardY). Translate the whole solution by that
+    // delta so the walkthrough appears at the same spot — same height — as the
+    // real task, instead of shifted up/down from it.
+    const gameX = ALU_BUILD_CARD_X;
+    const gameY = aluBuildCardY(doc.task);
+    const dx = Number.isFinite(doc.frame.x) ? gameX - doc.frame.x : 0;
+    const dy = Number.isFinite(doc.frame.y) ? gameY - doc.frame.y : 0;
+    const shift = (c) => {
+      const k = clonePlain(c);
+      if (Number.isFinite(k.x)) k.x += dx;
+      if (Number.isFinite(k.y)) k.y += dy;
+      return k;
+    };
+    const frame = { id: doc.frame.id || "task-card-1", type: doc.frame.type, x: gameX, y: gameY };
+    const components = [frame, ...(doc.external || []).map(shift), ...(doc.components || []).map(shift)];
     const wires = (doc.wires || []).map((wire) => normalizeWire(wire.a, wire.b));
     return normalizeWorkspace({
       ...createDefaultWorkspace(), components, wires, nextId: 2,
@@ -11366,10 +11391,8 @@
     // Frames with a control pin poking out the top sit lower on the board so the
     // pin (and the check's control splitter) fit. ALU2/ALU3 have a WIDE control
     // (7/12 bits → a tall control splitter in the check), so they sit lower still.
-    const cardY = task.id === "ALU3" ? 520
-      : task.id === "ALU2" ? 440
-      : (task.id === "ALU0" || task.id === "PreperNum" || task.id === "ALU1") ? 360
-      : 288;
+    // aluBuildCardY is shared with the solution walkthrough so the two match.
+    const cardY = aluBuildCardY(task.id);
     // The pre-placed source-1 is the TEST source (it drives the control during a
     // check). Place it at build time LEVEL WITH THE CONTROL INPUT so it never
     // moves when the check runs; a card with no control (Inc) keeps the default
