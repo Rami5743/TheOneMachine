@@ -2623,13 +2623,13 @@
       { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0 },
       { transform: "translate(-50%,-50%) scale(0.9)", opacity: 1, offset: 0.15 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.1)`, opacity: 0.1, offset: 1 }
-    ], { duration: 460, easing: "cubic-bezier(.55,0,.9,.85)" });
+    ], { duration: 920, easing: "cubic-bezier(.55,0,.9,.85)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the card lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 300, delay: 320, easing: "ease-out" });
+    ], { duration: 600, delay: 640, easing: "ease-out" });
   }
 
   function nandIntroScene() {
