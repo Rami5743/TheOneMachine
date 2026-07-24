@@ -36,6 +36,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "gate-ALU1") return "gate-alu1.svg";
     if (type === "gate-ALU2") return "gate-alu2.svg";
     if (type === "gate-ALU3") return "gate-alu3.svg";
+    if (type === "gate-ALU4") return "gate-alu4.svg";
     return "";
   }
 
@@ -373,6 +374,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // matches the viewBox 1:1 so the body/pins stay put.
       if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
+      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 136);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

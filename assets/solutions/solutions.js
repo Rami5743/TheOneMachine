@@ -1248,5 +1248,274 @@ window.EMBEDDED_SOLUTIONS = {
         }
       }
     }
+  },
+  "ALU4": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "ALU4",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-ALU4",
+      "x": 560,
+      "y": 360,
+      "frameW": 600,
+      "frameH": 700,
+      "pins": [
+        {
+          "id": "inputExt1",
+          "x": -340,
+          "y": -150,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת המספר הראשון"
+        },
+        {
+          "id": "inputInt1",
+          "x": -260,
+          "y": -150,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt2",
+          "x": -340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת המספר השני"
+        },
+        {
+          "id": "inputInt2",
+          "x": -260,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt3",
+          "x": -340,
+          "y": 150,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת המספר השלישי"
+        },
+        {
+          "id": "inputInt3",
+          "x": -260,
+          "y": 150,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt4",
+          "x": -215,
+          "y": -280,
+          "w": 12,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt4",
+          "x": -215,
+          "y": -210,
+          "w": 12,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "outputInt1",
+          "x": 260,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת התוצאה"
+        },
+        {
+          "id": "outputExt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "outputInt2",
+          "x": 260,
+          "y": 120,
+          "w": 1,
+          "dir": "in",
+          "label": "יציאת ng"
+        },
+        {
+          "id": "outputExt2",
+          "x": 340,
+          "y": 120,
+          "w": 1,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "outputInt3",
+          "x": 260,
+          "y": 250,
+          "w": 1,
+          "dir": "in",
+          "label": "יציאת nz"
+        },
+        {
+          "id": "outputExt3",
+          "x": 340,
+          "y": 250,
+          "w": 1,
+          "dir": "out",
+          "label": ""
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 65,
+        "y": 80
+      }
+    ],
+    "components": [
+      {
+        "id": "alu3",
+        "type": "gate-ALU3",
+        "x": 470,
+        "y": 360
+      },
+      {
+        "id": "ng-split",
+        "type": "splitter",
+        "x": 660,
+        "y": 470,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          15,
+          1
+        ],
+        "singleWidth": 16
+      },
+      {
+        "id": "nz",
+        "type": "gate-Neq0_16",
+        "x": 690,
+        "y": 570
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "alu3.in1"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "alu3.in2"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "alu3.in3"
+      },
+      {
+        "a": "task-card-1.inputInt4",
+        "b": "alu3.in4"
+      },
+      {
+        "a": "alu3.out1",
+        "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "alu3.out1",
+        "b": "ng-split.single"
+      },
+      {
+        "a": "alu3.out1",
+        "b": "nz.in1"
+      },
+      {
+        "a": "ng-split.leg1",
+        "b": "task-card-1.outputInt2"
+      },
+      {
+        "a": "nz.out",
+        "b": "task-card-1.outputInt3"
+      }
+    ],
+    "check": {
+      "cases": [
+        {
+          "a": 0,
+          "b": 0,
+          "d": 0,
+          "control": 0
+        },
+        {
+          "a": 4369,
+          "b": 8738,
+          "d": 13107,
+          "control": 291
+        },
+        {
+          "a": 0,
+          "b": 0,
+          "d": 0,
+          "control": 2080
+        },
+        {
+          "a": 4660,
+          "b": 22136,
+          "d": 39612,
+          "control": 2175
+        },
+        {
+          "a": 32768,
+          "b": 65535,
+          "d": 3855,
+          "control": 2048
+        }
+      ],
+      "note": "ALU4 = ALU3 result on the main output; ng = the first (top/MSB) bit of the result; nz = 1 iff the result is non-zero."
+    },
+    "harness": {
+      "inputs": {
+        "inputExt1": {
+          "x": 50,
+          "y": 210
+        },
+        "inputExt2": {
+          "x": 50,
+          "y": 360
+        },
+        "inputExt3": {
+          "x": 50,
+          "y": 510
+        },
+        "inputExt4": {
+          "x": 200,
+          "y": 80
+        }
+      },
+      "outputs": {
+        "outputExt1": {
+          "x": 1120,
+          "y": 360
+        },
+        "outputExt2": {
+          "x": 1140,
+          "y": 480
+        },
+        "outputExt3": {
+          "x": 1140,
+          "y": 610
+        }
+      }
+    }
   }
 };

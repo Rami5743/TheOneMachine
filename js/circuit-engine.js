@@ -504,6 +504,42 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
               const selector = ctrl[11];
               for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
+            } else if (alu.op === "alu4") {
+              // ALU4: the ALU3 result (into out1, written below), PLUS two extra
+              // single-bit outputs — ng (out2) = the first/top (MSB) bit of the
+              // result, and nz (out3) = 1 iff the result is non-zero.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in4`, outputs);
+              const optionA = [];
+              for (let i = 0; i < w; i += 1) optionA.push(i < ctrl.length ? Boolean(ctrl[i]) : false);
+              const op2 = ctrl[6] ? v3 : v2;
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
+              const p2 = prep(op2, ctrl[2], ctrl[3]);
+              const combined = [];
+              if (ctrl[4]) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              const optionB = [];
+              for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
+              const selector = ctrl[11];
+              for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
+              // ng = the first (top/MSB) bit of the result; nz = result is non-zero.
+              if (setBits(outputs, `${component.id}.out2`, [Boolean(outVec[w - 1])])) changed = true;
+              if (setBits(outputs, `${component.id}.out3`, [outVec.some(Boolean)])) changed = true;
             } else {
               // and-add (ALU0): in1, in2 number buses + single-bit control in3.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);

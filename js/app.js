@@ -743,6 +743,57 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // taskCard-ALU4: like ALU3 (4 inputs, 16-bit result on the right) plus two
+  // single-bit outputs at the BOTTOM — ng (the first/top bit of the result) and
+  // nz (1 iff the result is non-zero). JSON-backed: applySolutionDocToDefs
+  // overwrites these pins from ALU4.json at load; this is the pre-JSON skeleton.
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU4"] = {
+    label: "מסגרת ALU4",
+    fixed: true,
+    taskId: "ALU4",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
+      inputExt4: { x: -215, y: -280, direction: "in", width: 12, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" },
+      outputInt2: { x: 260, y: 120, direction: "in", width: 1, label: "יציאת ng פנימית" },
+      outputExt2: { x: 340, y: 120, direction: "out", width: 1, label: "יציאת ng חיצונית" },
+      outputInt3: { x: 260, y: 250, direction: "in", width: 1, label: "יציאת nz פנימית" },
+      outputExt3: { x: 340, y: 250, direction: "out", width: 1, label: "יציאת nz חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 320 }
+  };
+
+  // gate-ALU4: the placeable card earned by completing ALU4. Same inputs as ALU3,
+  // a 16-bit result on the right, and the ng/nz single-bit outputs at the bottom.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU4"] = {
+    label: "ALU4",
+    taskId: "ALU4",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu4",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in4: { x: 0, y: -46, direction: "in", width: 12, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" },
+      out2: { x: -20, y: 60, direction: "out", width: 1, label: "יציאת ng" },
+      out3: { x: 20, y: 60, direction: "out", width: 1, label: "יציאת nz" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 74 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -1515,7 +1566,7 @@
     }
     // Add16 stacks four (tall) Add4 gates; ALU2/ALU3 have three number inputs
     // (and tall control splitters in their solutions), so they get a taller frame.
-    const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3";
+    const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3" || def.id === "ALU4";
     // The frame size comes from the task's solution JSON when present (see
     // solutionFrameSize), else the built-in default.
     const jsonSize = solutionFrameSize(def.id);
@@ -1798,7 +1849,7 @@
       // always reads left-to-right wherever it is shown — hints, solution steps,
       // card requirements, the note list, the toolbar tool and the frame title.
       // These names only ever appear in display text; machine ids use "Neq0_N".
-      .replace(/≠0_\d+/g, "⁦$&⁩");
+      .replace(/≠0(?:_\d+)?/g, "⁦$&⁩");
   }
 
   function stopSpeech() {
@@ -4568,6 +4619,44 @@
             wireKey("alu2.out1", "mux.in2"),
             wireKey("ctrl-split.leg2", "mux.in3"),
             wireKey("mux.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU4: [
+      {
+        text: "מכניסים את שלושת המספרים ואת כניסת הבקרה ל-ALU3. היציאה שלו היא בדיוק היציאה הראשית של הכרטיס.",
+        highlight: {
+          components: ["alu3"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "alu3.in1"),
+            wireKey("task-card-1.inputInt2", "alu3.in2"),
+            wireKey("task-card-1.inputInt3", "alu3.in3"),
+            wireKey("task-card-1.inputInt4", "alu3.in4"),
+            wireKey("alu3.out1", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "היציאה ng היא הביט הראשון (העליון) של בס היציאה. מפצלים את בס היציאה לשתי רגליים לא־שוות — 15 ביט למטה וביט אחד למעלה — והרגל העליונה (ביט אחד) היא ng.",
+        highlight: {
+          components: ["ng-split"],
+          terminals: ["task-card-1.outputInt2"],
+          wires: [
+            wireKey("alu3.out1", "ng-split.single"),
+            wireKey("ng-split.leg1", "task-card-1.outputInt2")
+          ]
+        }
+      },
+      {
+        text: "היציאה nz היא 1 אם בס היציאה שונה מ-0. מכניסים את בס היציאה ל-≠0_16, והיציאה שלו היא nz.",
+        highlight: {
+          components: ["nz"],
+          terminals: ["task-card-1.outputInt3"],
+          wires: [
+            wireKey("alu3.out1", "nz.in1"),
+            wireKey("nz.out", "task-card-1.outputInt3")
           ]
         }
       }
@@ -9434,7 +9523,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -9521,6 +9610,9 @@
   function aluBuildCardY(taskId) {
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
+      // ALU4 has two extra outputs BELOW the card, so it sits a little higher so
+      // they (and their check lamps) fit on the board.
+      : taskId === "ALU4" ? 420
       : (taskId === "ALU0" || taskId === "PreperNum" || taskId === "ALU1") ? 360
       : 288;
   }
@@ -10281,6 +10373,18 @@
         { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F }   // c11=1, sel1, all -> 0x0001
       ];
     }
+    if (taskId === "ALU4") {
+      // Same shape as ALU3 (result), chosen to exercise ng (top/MSB bit) and nz
+      // (result non-zero): all-zero result, a small positive, ~0 (all ones),
+      // 0x0001, and a result with the MSB set.
+      return [
+        { a: 0, b: 0, d: 0, control: 0x000 },                 // 0x0000 -> ng=0, nz=0
+        { a: 0x1111, b: 0x2222, d: 0x3333, control: 0x123 },  // 0x0123 -> ng=0, nz=1
+        { a: 0, b: 0, d: 0, control: 0x820 },                 // c11,c5 NOT -> 0xFFFF -> ng=1, nz=1
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F },  // 0x0001 -> ng=0, nz=1
+        { a: 0x8000, b: 0xFFFF, d: 0x0F0F, control: 0x800 }   // c11=1 sel0 AND -> 0x8000 -> ng=1, nz=1
+      ];
+    }
     return [];
   }
 
@@ -10470,6 +10574,36 @@
         ],
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU4") {
+      // ALU4 = ALU3 result + two single-bit outputs: ng (the first/top MSB bit of
+      // the result) and nz (1 iff the result is non-zero).
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      const optionA = c & 0xffff;
+      const op2 = bit(6) ? testCase.d : testCase.b;
+      const p1 = prep(testCase.a, bit(0), bit(1));
+      const p2 = prep(op2, bit(2), bit(3));
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const optionB = (bit(5) ? ~combined : combined) & 0xffff;
+      const result = (bit(11) ? optionB : optionA) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: add16Bits(testCase.d) },
+          { ref: "inputExt4", bits: Array.from({ length: 12 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) },
+          { ref: "outputExt2", expected: [Boolean((result >> 15) & 1)] }, // ng = MSB
+          { ref: "outputExt3", expected: [result !== 0] }                  // nz = non-zero
         ]
       };
     }
@@ -11373,7 +11507,7 @@
   // Which ALU cards have a real build workspace so far. The rest stay a
   // "המשך יבוא..." placeholder in the note.
   function aluTaskImplemented(id) {
-    return ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3"].includes(id);
+    return ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4"].includes(id);
   }
 
   // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
