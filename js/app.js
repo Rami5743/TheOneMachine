@@ -4586,14 +4586,14 @@
         }
       },
       {
-        text: "בודקים כל אחד מ-4 הרבעים בעזרת ≠0_4 שכבר בנית — כל אחד מוציא 1 אם הרבע שלו שונה מ-0.",
+        text: "בודקים כל אחד מ-4 הבסים שהתקבלו בעזרת ≠0_4 שכבר בנית — כל אחד מוציא 1 אם הבס שלו שונה מ-0.",
         highlight: {
           components: ["neq0-0", "neq0-1", "neq0-2", "neq0-3"],
           wires: [wireKey("split-in.leg0", "neq0-0.in1"), wireKey("split-in.leg1", "neq0-1.in1"), wireKey("split-in.leg2", "neq0-2.in1"), wireKey("split-in.leg3", "neq0-3.in1")]
         }
       },
       {
-        text: "מחברים את 4 התוצאות ל-Or4way. היציאה היא 1 אם לפחות רבע אחד שונה מ-0 — כלומר הבס כולו שונה מ-0.",
+        text: "מחברים את 4 התוצאות ל-Or4way. היציאה היא 1 אם לפחות בס אחד שונה מ-0 — כלומר הבס כולו שונה מ-0.",
         highlight: {
           components: ["or4"],
           terminals: ["task-card-1.outputInt"],
