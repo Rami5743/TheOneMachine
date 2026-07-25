@@ -7548,13 +7548,16 @@
     };
   }
 
-  // "חזרה למחסן": save the card and leave the build page. The name must be valid
-  // and unused; on any problem we show a dialog and FAIL the exit (stay put).
-  function exitCardCreation() {
+  // Save the card being built into state. On an invalid/duplicate name it shows
+  // the blocking dialog and returns null (caller must NOT leave). On success it
+  // returns the state patch that records the card, resets the build workspace and
+  // (once ever) queues the "you can now use this card" message — but does NOT
+  // navigate, so both "חזרה למחסן" and any other exit can reuse it.
+  function cardSavePatch() {
     const cc = state.cardCreation || {};
     const editing = Boolean(cc.editingType);
     const err = validateCardName(cc.name, cc.editingType || null);
-    if (err) return setState({ infoDialog: { message: err, discardCard: true } });
+    if (err) { setState({ infoDialog: { message: err, discardCard: true } }); return null; }
 
     const card = buildSavedCardFromCreation();
     registerSavedCard(card);
@@ -7567,6 +7570,33 @@
       ? state.nextSavedCardId
       : (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1;
 
+    const firstTime = !state.myCardsIntroSeen && !editing;
+    // Saving a brand-new card (not an edit) earns "ממציא כרטיסים"; if that card
+    // is built out of a card from "הכרטיסים שלי", it also earns "ממציא שימושי".
+    if (!editing) {
+      unlockAchievement("card-inventor");
+      const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
+      if (usesSavedCard) unlockAchievement("useful-inventor");
+    }
+    // Editing a user card does NOT touch any efficiency record.
+    return {
+      cardCreation: null,
+      workspace: createDefaultWorkspace(),
+      savedCards,
+      nextSavedCardId,
+      myCardsIntroSeen: true,
+      infoDialog: firstTime
+        ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
+        : null
+    };
+  }
+
+  // "חזרה למחסן": save the card and leave the build page. The name must be valid
+  // and unused; on any problem we show a dialog and FAIL the exit (stay put).
+  function exitCardCreation() {
+    const cc = state.cardCreation || {};
+    const patch = cardSavePatch();
+    if (!patch) return;
     // Where to land: back to the My-cards page, or the warehouse (default).
     // Either way, ALSO set the story location + pageReturn to the warehouse, so
     // that "back" from My-cards returns to the warehouse story — never to the
@@ -7576,30 +7606,18 @@
     const returnPatch = cc.returnScreen === "myCards"
       ? { ...warehouse, screen: "myCards", pageReturn: "story" }
       : warehouse;
+    setState({ ...returnPatch, ...patch }, false);
+  }
 
-    const firstTime = !state.myCardsIntroSeen && !editing;
-    // Saving a brand-new card (not an edit) earns "ממציא כרטיסים"; if that card
-    // is built out of a card from "הכרטיסים שלי", it also earns "ממציא שימושי".
-    if (!editing) {
-      unlockAchievement("card-inventor");
-      const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
-      if (usesSavedCard) unlockAchievement("useful-inventor");
-    }
-    // Editing a user card does NOT touch any efficiency record: builds inline
-    // their user cards when recorded (see recordCardNandCount), so no stored
-    // build references this card anymore — its edit changes neither count nor
-    // validity of anything already ranked.
-    setState({
-      ...returnPatch,
-      cardCreation: null,
-      workspace: createDefaultWorkspace(),
-      savedCards,
-      nextSavedCardId,
-      myCardsIntroSeen: true,
-      infoDialog: firstTime
-        ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
-        : null
-    }, false);
+  // Leaving the card-build screen by any OTHER route (a topbar navigation) must
+  // still save the card first, with the same messages. Returns false when the
+  // save is blocked (invalid card — dialog shown), so the caller aborts the nav.
+  function saveCardBeforeLeaving() {
+    if (!state.cardCreation) return true;
+    const patch = cardSavePatch();
+    if (!patch) return false;
+    setState(patch, false);
+    return true;
   }
 
   // "השלך את הכרטיס": abandon the card-build page WITHOUT saving (offered when
@@ -15703,6 +15721,12 @@
     }
 
     const action = button.dataset.action;
+
+    // Leaving the card-build screen by a topbar navigation saves the card first
+    // (same messages as "חזרה למחסן"); a blocked save (invalid card) aborts the nav.
+    if (state.cardCreation && isGlobalNavigationAction(action)) {
+      if (!saveCardBeforeLeaving()) { event.preventDefault(); return; }
+    }
 
     if (action === "converter-digit") {
       event.preventDefault();
