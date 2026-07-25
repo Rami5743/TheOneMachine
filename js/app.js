@@ -6577,29 +6577,54 @@
     return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
   }
 
-  // The (inactive) ALU4 workbench the demo drives. The step-by-step converters and
-  // wires are layered in from the step index — for now just the frame and source.
+  // The (inactive) ALU1 workbench the demo drives, built up from the step index:
+  // a real ALU1 gate whose converters/control the engine actually evaluates, so
+  // the readouts (19, 7, 12; and the swapped 65524) are computed, not faked.
+  // control 010011 (c0..c5 = 0,1,0,0,1,1) = NOT input1, ADD, NOT result → a − b.
   function buildSubtractionDemoWorkspace(step) {
-    const components = [
-      { id: "task-card-1", type: "taskCard-ALU4", x: 720, y: 430 },
-      { id: "source-1", type: "source", x: 95, y: 470 }
-    ];
+    const swapped = step >= 8;                 // step 8 swaps the two operands
+    const v1 = swapped ? 7 : 19;
+    const v2 = swapped ? 19 : 7;
+    const alu = { id: "alu", type: "gate-ALU1", x: 790, y: 440 };
+    const components = [alu];
+    const wires = [];
+    // Input 1 (always, from step 0).
+    components.push({ id: "conv1", type: "converter-out", x: 300, y: 320, value: v1, width: 16 });
+    wires.push({ a: "conv1.out", b: "alu.in1" });
+    // Input 2 (step 1).
+    if (step >= 1) {
+      components.push({ id: "conv2", type: "converter-out", x: 300, y: 570, value: v2, width: 16 });
+      wires.push({ a: "conv2.out", b: "alu.in2" });
+    }
+    // Control 010011 via a merging splitter fed by one source (step 2).
+    if (step >= 2) {
+      components.push({ id: "ctrl-src", type: "source", x: 500, y: 120 });
+      components.push({ id: "ctrl-split", type: "splitter", x: 700, y: 160, mirrored: true, outputs: 6, width: 1 });
+      wires.push({ a: "ctrl-split.single", b: "alu.in3" });
+      for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
+    }
+    // Output converter (from step 5) — it shows the weird swapped value at step 8,
+    // then at step 9 it is replaced by lamps so the leading bit can be pointed at.
+    if (step >= 5 && step < 9) {
+      components.push({ id: "convOut", type: "converter-in", x: 1160, y: 440, width: 16 });
+      wires.push({ a: "alu.out1", b: "convOut.in" });
+    }
+    // Step 9: swap the output converter for a splitter + 16 lamps. leg15 (the top
+    // lamp) is the leading bit — the one the script points at.
+    if (step >= 9) {
+      components.push({ id: "out-split", type: "splitter", x: 1000, y: 430, mirrored: false, outputs: 16, width: 1 });
+      wires.push({ a: "alu.out1", b: "out-split.single" });
+      for (let i = 0; i < 16; i += 1) {
+        components.push({ id: `olamp${i}`, type: "lamp", x: 1175, y: 430 - (i - 7.5) * 26 });
+        wires.push({ a: `out-split.leg${i}`, b: `olamp${i}.in` });
+      }
+    }
     return normalizeWorkspace({
       ...createDefaultWorkspace(),
-      components,
-      wires: [],
-      nextId: 2,
-      unlocked: true,
-      helpPromptSeen: true,
-      buildHelpButtonVisible: false,
-      understoodPromptShown: false,
-      understoodButtonVisible: false,
-      nandOutputObserved: { zero: false, one: false },
-      nandMonologueStep: null,
-      workspaceCompleted: false,
-      workspaceSession: 2,
-      taskId: "ALU4",
-      taskIntroSeen: true
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2, taskId: null, freeBuild: true, taskIntroSeen: true
     });
   }
 
@@ -6622,7 +6647,9 @@
 
   function advanceSubtractionDemo() {
     if (!subtractionDemoActive()) return;
-    if (state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST) return openSubtractionDemoLinks(true);
+    // Finishing the last bubble rolls straight into chapter 3.1 (the YouTube-links
+    // window is reached ONLY via the red teaser, never from "המשך").
+    if (state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST) return finishSubtractionDemo();
     setSubtractionDemoStep(state.subtractionDemo.step + 1);
   }
 
@@ -6631,29 +6658,27 @@
     setSubtractionDemoStep(state.subtractionDemo.step - 1);
   }
 
-  // The "still under construction — watch these videos" window, reached at the end
-  // of the demo and from the red teaser. fromEnd: opened by finishing the demo
-  // (its "המשך" then leads into chapter 3.1), vs opened mid-demo by the teaser
-  // (its "חזרה" just returns to the demo).
-  function openSubtractionDemoLinks(fromEnd) {
-    setState({ subtractionDemoLinks: { fromEnd: Boolean(fromEnd) } }, false);
+  // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
+  // "we need memory" monologue in the warehouse.
+  function finishSubtractionDemo() {
+    const chapter = chapterById("chapter-10");
+    setState({
+      ...transientUiClearPatch(),
+      ...storyTarget(chapter, 0),
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, true);
+  }
+
+  // The "still under construction — watch these videos" window, opened ONLY by the
+  // red teaser; "חזרה" just returns to the demo where it was.
+  function openSubtractionDemoLinks() {
+    setState({ subtractionDemoLinks: {} }, false);
   }
 
   function closeSubtractionDemoLinks() {
-    const fromEnd = Boolean(state.subtractionDemoLinks?.fromEnd);
-    if (fromEnd) {
-      // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
-      // "we need memory" monologue in the warehouse.
-      const chapter = chapterById("chapter-10");
-      return setState({
-        ...transientUiClearPatch(),
-        ...storyTarget(chapter, 0),
-        subtractionDemo: null,
-        subtractionDemoLinks: null,
-        workspace: createDefaultWorkspace(),
-        replayNonce: state.replayNonce + 1
-      }, true);
-    }
     setState({ subtractionDemoLinks: null }, false);
   }
 
@@ -6691,7 +6716,7 @@
           <p>${esc(intro)}</p>
           <ul class="subtraction-demo-links-list">${links}</ul>
           <div class="pace-dialog-actions">
-            <button class="btn btn-primary" data-action="subtraction-demo-links-close" type="button">${state.subtractionDemoLinks.fromEnd ? "המשך" : "חזרה"}</button>
+            <button class="btn btn-primary" data-action="subtraction-demo-links-close" type="button">חזרה</button>
           </div>
         </section>
       </div>`;
@@ -15360,7 +15385,7 @@
     if (action === "nand-monologue-prev") return previousNandMonologue();
     if (action === "subtraction-demo-next") return advanceSubtractionDemo();
     if (action === "subtraction-demo-prev") return subtractionDemoBack();
-    if (action === "subtraction-demo-teaser") return openSubtractionDemoLinks(state.subtractionDemo && state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST);
+    if (action === "subtraction-demo-teaser") return openSubtractionDemoLinks();
     if (action === "subtraction-demo-links-close") return closeSubtractionDemoLinks();
     if (action === "workspace-reset") return resetWorkspaceCurrentMode();
     if (action === "restart") return restartPanel();
