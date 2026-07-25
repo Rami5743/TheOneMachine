@@ -850,7 +850,9 @@ button { font: inherit; }
   min-height: 0;
   justify-content: center;
   align-content: center;
-  overflow: hidden;
+  /* Was overflow:hidden, but that clips the icon-button hover tooltips, which are
+     drawn ABOVE the buttons and so rise out of this thin bar. Let them show. */
+  overflow: visible;
   padding: 0;
 }
 
