@@ -1,20 +1,29 @@
--- Efficiency leaderboard ("hall of fame") for The One Machine.
+-- Leaderboard ("hall of fame") for The One Machine — efficiency AND speed.
 -- Run this once in the Supabase project's SQL editor.
 --
--- One public-read row per user. `counts` maps cardId -> the user's best (lowest)
--- Nand count for that card. Nicknames are unique (except the shared default
--- 'ללא שם'). The app reads every row to derive each card's record and the
--- signed-in user's rank; nicknames appear only on a card's records page.
+-- One public-read row per user.
+--   `counts` maps cardId -> the user's best (lowest) TOTAL Nand count  (efficiency)
+--   `serial` maps cardId -> the user's best (lowest) SERIAL Nand count (speed:
+--            the most Nands in series on any input→output path)
+-- Nicknames are unique (except the shared default 'ללא שם'). The app reads every
+-- row to derive each card's record and the signed-in user's rank; nicknames
+-- appear only on a card's records page.
 --
 -- No DROP statements (so the SQL editor shows no "destructive operation"
 -- warning). Run it once; a second run errors harmlessly on the policies.
+-- If the table already exists from an earlier version, the `add column`
+-- statement below adds the new `serial` column.
 
 create table if not exists public.rankings (
   user_id    uuid primary key references auth.users(id) on delete cascade,
   nickname   text not null default 'ללא שם',
   counts     jsonb not null default '{}'::jsonb,
+  serial     jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
+
+-- For projects whose `rankings` table predates the speed leaderboard.
+alter table public.rankings add column if not exists serial jsonb not null default '{}'::jsonb;
 
 alter table public.rankings enable row level security;
 

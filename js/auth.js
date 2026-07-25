@@ -259,7 +259,8 @@
 
   async function fetchLeaderboard() {
     if (!sb) return;
-    var res = await sb.from(LB_TABLE).select("nickname,counts");
+    // `counts` = efficiency (total Nands), `serial` = speed (serial Nands).
+    var res = await sb.from(LB_TABLE).select("nickname,counts,serial");
     if (res.error) { console.warn("[leaderboard] read failed:", res.error.message); return; }
     lbRows = Array.isArray(res.data) ? res.data : [];
     try { window.dispatchEvent(new CustomEvent("tom:leaderboard")); } catch (e) { /* ignore */ }
@@ -269,7 +270,7 @@
     if (!sb || !currentUser) return;
     var s = myState();
     var res = await sb.from(LB_TABLE).upsert(
-      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, updated_at: new Date().toISOString() },
+      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, updated_at: new Date().toISOString() },
       { onConflict: "user_id" }
     );
     if (res.error) console.warn("[leaderboard] write failed:", res.error.message);
@@ -283,12 +284,18 @@
   }
   window.addEventListener("tom:statesaved", scheduleRankingsPush);
 
-  // Every user's (nickname, count) for a card that has a numeric count, ranked
-  // ascending with ties sharing a rank (1, 2, 2, 4 …).
-  function rankedEntries(cardId) {
+  // The jsonb column and my-state map for a leaderboard dimension.
+  function dimColumn(dim) { return dim === "serial" ? "serial" : "counts"; }
+  function dimStateMap(dim) { return dim === "serial" ? "cardSerialCounts" : "cardNandCounts"; }
+
+  // Every user's (nickname, count) for a card that has a numeric count in the
+  // given dimension, ranked ascending with ties sharing a rank (1, 2, 2, 4 …).
+  function rankedEntries(cardId, dim) {
+    var col = dimColumn(dim);
     var entries = lbRows
       .map(function (r) {
-        var v = r && r.counts ? r.counts[cardId] : undefined;
+        var m = r && r[col];
+        var v = m ? m[cardId] : undefined;
         return (typeof v === "number" && isFinite(v)) ? { nickname: (r.nickname || "ללא שם"), count: v } : null;
       })
       .filter(Boolean)
@@ -303,13 +310,13 @@
 
   function publishLeaderboardBridge() {
     if (typeof APP === "undefined" || !APP) return;
-    APP.leaderboardRows = function (cardId) { return rankedEntries(cardId); };
-    APP.leaderboardFor = function (cardId) {
-      var ranked = rankedEntries(cardId);
+    APP.leaderboardRows = function (cardId, dim) { return rankedEntries(cardId, dim); };
+    APP.leaderboardFor = function (cardId, dim) {
+      var ranked = rankedEntries(cardId, dim);
       if (!ranked.length) return null;
       var out = { record: ranked[0].count, rank: null };
       if (currentUser) {
-        var myCount = (myState().cardNandCounts || {})[cardId];
+        var myCount = (myState()[dimStateMap(dim)] || {})[cardId];
         if (typeof myCount === "number") {
           var below = ranked.filter(function (r) { return r.count < myCount; }).length;
           out.rank = below + 1; // ties share a rank; robust even if my row isn't fetched yet
@@ -321,7 +328,7 @@
     APP.setNickname = async function (nick) {
       if (!sb || !currentUser) return; // local-only when signed out (no cross-user uniqueness)
       var res = await sb.from(LB_TABLE).upsert(
-        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), updated_at: new Date().toISOString() },
+        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), serial: (myState().cardSerialCounts || {}), updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
       if (res.error) {
