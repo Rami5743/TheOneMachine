@@ -54,9 +54,13 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       { type: "source", label: "מקור מתח" },
       // The splitter is available in every build from chapter 2.4 on (once it is
       // introduced), plus the free "empty table" and any bus/multibit task build.
-      ...((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace()) ? [{ type: "splitter", label: "מפצל" }] : []),
+      // NEVER in the minimal Nand-presentation palette, though: splitterAvailable
+      // keys off the CURRENT chapter, so once the learner has reached 2.4 and
+      // later replays the Nand presentation it would otherwise leak in (only the
+      // splitter, since built gates/cards are already excluded above).
+      ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
       // The binary↔decimal converters, on the 2.5 worktable (arith builds).
-      ...((typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
+      ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
     ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.

@@ -24,12 +24,19 @@ function createTaskModeView({
   notTestActive,
   multibitTaskDefById,
   isMultibitTaskWorkspace,
-  renderMultibitTaskShell
+  renderMultibitTaskShell,
+  multibitCheckDisplayRow
 }) {
   function busDefFor() {
     const state = getState();
     return typeof busTaskDefById === "function" ? busTaskDefById(state.workspace?.taskId) : null;
   }
+
+  // A small grip pinned to the requirements panel's top-right corner. The panel
+  // itself is click-through (so the board underneath stays wireable); this handle
+  // is the one pointer-events:auto spot by which the whole panel can be dragged
+  // (wired to the generic dialog-drag via data-drag-handle in app.js).
+  const PANEL_DRAG_HANDLE = `<span class="panel-drag-handle" data-drag-handle role="presentation" title="גרירה">⠿</span>`;
 
   // One bus pin on the task frame: a thick black bar with a light dashed line
   // along it (the "bus" look) and the bit width above — same visual as the bus
@@ -66,13 +73,18 @@ function createTaskModeView({
     // MUX cards get a wider frame so the AND4/OR4/NOT4 layout fits comfortably.
     const frameLeft = def.control ? cx - 330 : cx - 300;
     const frameW = def.control ? 660 : 600;
+    // Neq0's output is a SINGLE bit, so its output stub is a plain cable (no bus
+    // bar / width label); every other bus card outputs a width-N bus.
+    const outputStub = def.op === "Neq0"
+      ? `<line class="workspace-task-shell-pin" x1="${cx + 260}" y1="288" x2="${cx + 340}" y2="288" />`
+      : busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width);
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="${frameLeft}" y="${frameTop}" width="${frameW}" height="${frameH}" rx="18" />
         <text class="workspace-task-shell-title" x="${cx}" y="${frameTop - 10}" text-anchor="middle">${esc(def.label)}</text>
         ${inputBars}
         ${control}
-        ${busPinBar(cx + 260, cx + 340, 288, cx + 320, def.width)}
+        ${outputStub}
       </g>`;
   }
 
@@ -93,10 +105,36 @@ function createTaskModeView({
       inCells += row.inputs[j].slice().reverse().map((b) => cell(b, false)).join("");
     }
     return `
-      <table class="workspace-task-hint-table bus-check-table">
-        <thead><tr>${outHead}${inHeads}</tr></thead>
-        <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
-      </table>`;
+      <div class="workspace-task-hint-scroll" data-check-scroll>
+        <table class="workspace-task-hint-table bus-check-table">
+          <thead><tr>${outHead}${inHeads}</tr></thead>
+          <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
+        </table>
+      </div>`;
+  }
+
+  // The single-row DECIMAL check table for a numeric multibit card (adders / Inc /
+  // ALU): the case's numeric inputs and the expected numeric result, each as a
+  // plain number. row = { inputs:[{header,value}], result:{header,value} }. LTR
+  // DOM == visual left-to-right; read right-to-left as כניסה 1, כניסה 2 …, בקרה,
+  // then the result — so the result is first in the DOM and the inputs run last
+  // to first (matching renderBusCheckRow's ordering).
+  function renderMultibitCheckRow(row) {
+    const cell = (v, isOut) => `<td class="${isOut ? "truth-output-cell" : ""}">${esc(String(v))}</td>`;
+    const outHead = `<th class="truth-output-cell">${esc(row.result.header)}</th>`;
+    const outCell = cell(row.result.value, true);
+    let inHeads = "", inCells = "";
+    for (let j = row.inputs.length - 1; j >= 0; j -= 1) {
+      inHeads += `<th>${esc(row.inputs[j].header)}</th>`;
+      inCells += cell(row.inputs[j].value, false);
+    }
+    return `
+      <div class="workspace-task-hint-scroll" data-check-scroll>
+        <table class="workspace-task-hint-table bus-check-table">
+          <thead><tr>${outHead}${inHeads}</tr></thead>
+          <tbody><tr class="truth-row-active">${outCell}${inCells}</tr></tbody>
+        </table>
+      </div>`;
   }
   function renderMuxTaskShell(task) {
     // Custom layout: two numbered data inputs on the left, the control input on
@@ -166,14 +204,25 @@ function createTaskModeView({
     if (task.id === "Mux") return renderMuxTaskShell(task);
     if (task.id === "DMux") return renderDmuxTaskShell(task);
     if (task.outputs === 2 && Array.isArray(task.rows)) return renderArithTaskShell(task);
-    const inputLines = taskInputYs(task.inputs).map((y) => `
-        <line class="workspace-task-shell-pin" x1="160" y1="${288 + y}" x2="240" y2="${288 + y}" />`).join("");
+    // Each pin stub is tagged with "כניסה"/"יציאה" (with an index when the card
+    // has more than one input) so the learner knows which side is which.
+    const inputLines = taskInputYs(task.inputs).map((y, index) => {
+      const yy = 288 + y;
+      const label = task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`;
+      // The label sits OUTSIDE the frame — centred over the external pin tip
+      // (x≈160), fully left of the frame's left edge (x=200) so it never lands on
+      // the frame outline.
+      return `
+        <line class="workspace-task-shell-pin" x1="160" y1="${yy}" x2="240" y2="${yy}" />
+        <text class="workspace-task-shell-pin-label" x="160" y="${yy - 14}" text-anchor="middle">${label}</text>`;
+    }).join("");
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
         <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(task.label)}</text>
         ${inputLines}
         <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
+        <text class="workspace-task-shell-pin-label" x="840" y="274" text-anchor="middle">יציאה</text>
       </g>`;
   }
 
@@ -182,12 +231,44 @@ function createTaskModeView({
     if (!workspaceTaskIntroActive()) return "";
     const task = taskDefById(state.workspace?.taskId);
     const label = task?.label || "הכרטיס";
+    const step = Number(state.workspace?.taskIntroStep) || 0;
+    // Step 1 — WHERE to build: the original "build the card inside the frame"
+    // note. "הבנתי" advances to step 2 (it does NOT dock yet).
+    if (step === 0) {
+      return `
+        <div class="workspace-task-intro-overlay" role="presentation">
+          <section class="workspace-task-intro-card" role="dialog" aria-modal="false" aria-label="הוראות לבניית ${esc(label)}">
+            <p>${genderText("אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של", "את צריכה לבנות את הכרטיס בתוך המסגרת. אל תשכחי לחבר את הכניסות והיציאה של")} ${esc(label)} ${genderText("לרכיבים שאתה שם בפנים.", "לרכיבים שאת שמה בפנים.")}</p>
+            <div class="workspace-task-intro-actions">
+              <button class="btn btn-primary" data-action="workspace-task-intro-next">הבנתי</button>
+            </div>
+          </section>
+        </div>`;
+    }
+    // Step 2 — WHAT the card must do: the REQUIREMENTS (description + truth
+    // table). "הבנתי" flies the card to the bottom-right corner where it becomes
+    // the normal requirements panel (docking in dismissWorkspaceTaskIntro). The
+    // corner panel stays hidden while centred (see renderNotTaskHint).
+    const desc = task ? esc(adaptGender(task.description)) : "";
+    let table = "";
+    if (task && Array.isArray(task.rows) && task.rows.length) {
+      const inputHeaders = Array.from({ length: task.inputs }, (_, index) =>
+        `<th>${task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`}</th>`).join("");
+      const rows = task.rows.map((row) =>
+        `<tr><td class="truth-output-cell">${row.output ? 1 : 0}</td>${row.inputs.map((v) => `<td>${v ? 1 : 0}</td>`).join("")}</tr>`).join("");
+      table = `
+        <table class="workspace-task-hint-table">
+          <thead><tr><th class="truth-output-cell">יציאה</th>${inputHeaders}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
     return `
       <div class="workspace-task-intro-overlay" role="presentation">
-        <section class="workspace-task-intro-card" role="dialog" aria-modal="false" aria-label="הוראות לבניית ${esc(label)}">
-          <p>${genderText("אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של", "את צריכה לבנות את הכרטיס בתוך המסגרת. אל תשכחי לחבר את הכניסות והיציאה של")} ${esc(label)} ${genderText("לרכיבים שאתה שם בפנים.", "לרכיבים שאת שמה בפנים.")}</p>
+        <section class="workspace-task-intro-card workspace-task-intro-card--requirements" role="dialog" aria-modal="false" aria-label="דרישות ${esc(label)}">
+          ${desc ? `<p>${desc}</p>` : ""}
+          ${table}
           <div class="workspace-task-intro-actions">
-            <button class="btn btn-primary" data-action="workspace-task-intro-ok">אישור</button>
+            <button class="btn btn-primary" data-action="workspace-task-intro-ok">הבנתי</button>
           </div>
         </section>
       </div>`;
@@ -320,7 +401,7 @@ function createTaskModeView({
   function renderRequirementsPanel(task, scratchTableHtml) {
     const state = getState();
     const hidden = Boolean(state.requirementsPanelHidden);
-    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>`;
+    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
     if (hidden) {
       return `
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(task.label)}">
@@ -332,7 +413,7 @@ function createTaskModeView({
       <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
         ${toggle}
         <div class="mux-hint-text"><p>${esc(adaptGender(task.description))}</p></div>
-        <div class="mux-hint-table">${scratchTableHtml}</div>
+        <div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${scratchTableHtml}</div>
       </section>`;
   }
 
@@ -340,16 +421,16 @@ function createTaskModeView({
     const state = getState();
     if (!isNotTaskWorkspace()) return "";
     if (typeof isMultibitTaskWorkspace === "function" && isMultibitTaskWorkspace()) {
-      // During the solution walkthrough the solution dialog carries the text, so
-      // the requirements panel steps aside.
-      if (state.solutionDialog) return "";
+      // The requirements panel stays available even during the solution
+      // walkthrough (it's collapsible and click-through, so it doesn't block the
+      // solution dialog or the circuit).
       const mbDef = typeof multibitTaskDefById === "function" ? multibitTaskDefById(state.workspace?.taskId) : null;
       if (!mbDef) return "";
       // Collapsible, click-through requirements panel (same UX as the MUX/DMUX
       // build): the card's output pins sit in the lower-right, under the panel,
       // so it must let clicks fall through and be hideable to reach them.
       const hidden = Boolean(state.requirementsPanelHidden);
-      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>`;
+      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
       if (hidden) {
         return `
           <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(mbDef.label)}">
@@ -363,10 +444,18 @@ function createTaskModeView({
         .filter(Boolean)
         .map((part) => `<p>${esc(part).replace(/^הערה/, "<strong>הערה</strong>")}</p>`)
         .join("");
+      // Numeric cards (adders/Inc/ALU) show a single-row table for the case under
+      // test, with the inputs as decimal numbers, while a check runs or is frozen.
+      const numericRow = typeof multibitCheckDisplayRow === "function" ? multibitCheckDisplayRow() : null;
+      const numericTable = numericRow ? renderMultibitCheckRow(numericRow) : "";
+      // While the check row is up, let the panel grow to fit it (capped at the
+      // workbench width by CSS).
+      const wideClass = numericTable ? " workspace-task-hint-check-wide" : "";
       return `
-        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit" aria-label="דרישות ${esc(mbDef.label)}">
+        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit${wideClass}" aria-label="דרישות ${esc(mbDef.label)}">
           ${toggle}
           <div class="mux-hint-text">${paragraphs}</div>
+          ${numericTable}
         </section>`;
     }
     const busDef = busDefFor();
@@ -375,54 +464,36 @@ function createTaskModeView({
       // single-row truth table for the case currently under test.
       const row = typeof busCheckDisplayRow === "function" ? busCheckDisplayRow() : null;
       const table = row ? renderBusCheckRow(busDef, row) : "";
+      const wideClass = table ? " workspace-task-hint-check-wide" : "";
       return `
-        <section class="workspace-task-hint" aria-label="הסבר על ${esc(busDef.label)}">
+        <section class="workspace-task-hint${wideClass}" aria-label="הסבר על ${esc(busDef.label)}">
           <p>${esc(adaptGender(busDef.description || ""))}</p>
           ${table}
         </section>`;
     }
     const task = taskDefById(state.workspace?.taskId);
     if (!task) return "";
+    // While the Not intro presents the requirements centred, hide the corner
+    // panel so they are not shown twice; it appears (docked) once dismissed.
+    if (task.id === "Not" && !state.workspace?.taskIntroSeen) return "";
+    // The requirements panel (description + truth table) shows during the build
+    // AND during the solution walkthrough, so the learner can always see what the
+    // card must do. During the solution the truth table hides via the solution
+    // dialog's "הסתר טבלה" toggle (solutionTableHidden); the panel's own toggle
+    // collapses the whole thing.
+    const solutionTableHidden = Boolean(state.solutionDialog) && Boolean(state.solutionTableHidden);
     if (task.id === "Mux") {
-      // During the solution walkthrough show only the (highlighted) truth table
-      // in a compact panel, leaving room for the solution dialog and circuit. The
-      // learner can hide/show it with the toggle on the solution dialog.
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderMuxScratchTable()}
-          </section>`;
-      }
-      // Order matters: in the RTL flex row the FIRST child lands on the right.
-      // The click-through text goes on the right (over the fixed lamp, which the
-      // learner must be able to hand-wire), and the interactive table sits on the
-      // left over the gate-build zone (gates are movable, so it never traps them).
-      return renderRequirementsPanel(task, renderMuxScratchTable());
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderMuxScratchTable());
     }
     if (task.id === "DMux") {
       // An empty, editable truth table (like the MUX): the learner fills it in as
       // a thinking aid. Two output columns, four rows.
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderDmuxScratchTable()}
-          </section>`;
-      }
-      return renderRequirementsPanel(task, renderDmuxScratchTable());
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderDmuxScratchTable());
     }
     // Arith cards (halfAdder / fullAdder): a two-output editable scratch table,
     // like the DMux. Any other two-output truth-table task lands here too.
     if (task.outputs === 2 && Array.isArray(task.rows)) {
-      if (state.solutionDialog) {
-        if (state.solutionTableHidden) return "";
-        return `
-          <section class="workspace-task-hint workspace-task-hint-mux-solution" aria-label="טבלת האמת של ${esc(task.label)}">
-            ${renderArithScratchTable(task)}
-          </section>`;
-      }
-      return renderRequirementsPanel(task, renderArithScratchTable(task));
+      return renderRequirementsPanel(task, solutionTableHidden ? "" : renderArithScratchTable(task));
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;
@@ -438,15 +509,17 @@ function createTaskModeView({
     return `
       <section class="workspace-task-hint" aria-label="הסבר על ${esc(task.label)}">
         <p>${esc(adaptGender(task.description))}</p>
-        <table class="workspace-task-hint-table">
-          <thead>
-            <tr>
-              <th class="truth-output-cell">יציאה</th>
-              ${inputHeaders}
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="workspace-task-hint-scroll" data-check-scroll>
+          <table class="workspace-task-hint-table">
+            <thead>
+              <tr>
+                <th class="truth-output-cell">יציאה</th>
+                ${inputHeaders}
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       </section>`;
   }
 

@@ -11,6 +11,10 @@ const PARTS = [
   {
     "id": "part-2",
     "title": "חלק 2: מכונות חישוב"
+  },
+  {
+    "id": "part-3",
+    "title": "חלק 3: זיכרון"
   }
 ];
 
@@ -62,6 +66,18 @@ const CHAPTERS = [
     "partId": "part-2",
     "title": "2.5 אריתמטיקה",
     "sceneId": "arithmetic"
+  },
+  {
+    "id": "chapter-9",
+    "partId": "part-2",
+    "title": "2.6 ALU",
+    "sceneId": "alu"
+  },
+  {
+    "id": "chapter-10",
+    "partId": "part-3",
+    "title": "3.1 פליפ פלופ",
+    "sceneId": "flipflop"
   }
 ];
 
@@ -126,7 +142,7 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel14.svg",
-        "read": "סילארד: אתה יודע שאני שותף לחזון שלך של ממשלה עולמית, אבל אני מדבר איתך על המציאות, לא על החזון. אתה לימדת אותנו שהכול יחסי. השאלה היא לא האם אתה סומך על ארצות הברית, אלא על מי אתה סומך יותר: על רוזבלט וממשלת ארצות הברית או על היטלר והממשלה של גרמניה הנאצית. אני לא חושב שזאת שאלה קשה..."
+        "read": "סילארד: אתה יודע שאני שותף לחזון שלך של ממשלה עולמית, אבל אני מדבר איתך על המציאות, לא על החזון. אתה לימדת אותנו שהכול יחסי. השאלה היא לא האם אתה סומך על ארצות הברית, אלא על מי אתה סומך יותר: על רוזוולט וממשלת ארצות הברית או על היטלר והממשלה של גרמניה הנאצית. אני לא חושב שזאת שאלה קשה..."
       },
       {
         "image": "assets/panels/panel15.svg",
@@ -223,7 +239,7 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel35.svg",
-        "read": "רוזבלט: שלום פרופסור אופנהיימר, מדבר הנשיא רוזבלט."
+        "read": "רוזוולט: שלום פרופסור אופנהיימר, מדבר הנשיא רוזוולט."
       },
       {
         "image": "assets/panels/panel36.svg",
@@ -231,7 +247,7 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel37.svg",
-        "read": "רוזבלט: המולדת צריכה שתנהל עבורה פרויקט לאומי בעל חשיבות עליונה."
+        "read": "רוזוולט: המולדת צריכה שתנהל עבורה פרויקט לאומי בעל חשיבות עליונה."
       },
       {
         "image": "assets/panels/panel38.svg",
@@ -239,7 +255,7 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel39.svg",
-        "read": "רוזבלט: אני לא יכול להגיד את זה בטלפון, אתה תקבל את כל הפרטים עם שליח, אבל אתה צריך להתחייב לשמור על סודיות מוחלטת."
+        "read": "רוזוולט: אני לא יכול להגיד את זה בטלפון, אתה תקבל את כל הפרטים עם שליח, אבל אתה צריך להתחייב לשמור על סודיות מוחלטת."
       },
       {
         "image": "assets/panels/panel40.svg",
@@ -247,7 +263,7 @@ const SCENES = {
       },
       {
         "image": "assets/panels/panel41.svg",
-        "read": "רוזבלט: אתה תוכל כמובן לסרב, אבל לא תוכל לדבר על זה עם איש."
+        "read": "רוזוולט: אתה תוכל כמובן לסרב, אבל לא תוכל לדבר על זה עם איש."
       },
       {
         "image": "assets/panels/panel42.svg",
@@ -284,8 +300,8 @@ const SCENES = {
       {
         "image": "assets/panels/panel50.svg",
         "youngImage": "assets/panels/panel50_young.svg",
-        "read": "אופנהיימר: לעזאזל עם רוזבלט, לעזאזל עם איינשטיין, לעזאזל עם סילארד, ולעזאזל איתי. כולנו בני כלבות.",
-        "youngRead": "אופנהיימר: לעזאזל עם רוזבלט, לעזאזל עם איינשטיין, לעזאזל עם סילארד, ולעזאזל איתי."
+        "read": "אופנהיימר: לעזאזל עם רוזוולט, לעזאזל עם איינשטיין, לעזאזל עם סילארד, ולעזאזל איתי. כולנו בני כלבות.",
+        "youngRead": "אופנהיימר: לעזאזל עם רוזוולט, לעזאזל עם איינשטיין, לעזאזל עם סילארד, ולעזאזל איתי."
       }
     ]
   },
@@ -450,19 +466,19 @@ const SCENES = {
         "femaleRead": "נאנד: אבל את לא צריכה לדאוג לזה, לג'ון יש אנשים שמטפלים בזה."
       },
       {
+        "image": "assets/panels/panel82.svg",
+        "femaleImage": "assets/panels/panel82_girl.svg",
+        "read": "נאנד: רוצה לדעת מה אני עושה? תנסה לחבר חלק מהכניסות שלי למקור מתח ואת היציאה למנורה. רק אל תתבלבל ביניהן. זה יכול לשרוף אותי.",
+        "femaleRead": "נאנד: רוצה לדעת מה אני עושה? תנסי לחבר חלק מהכניסות שלי למקור מתח ואת היציאה למנורה. רק אל תתבלבלי ביניהן. זה יכול לשרוף אותי.",
+        "workspaceLaunch": true
+      },
+      {
         "image": "assets/panels/panel80.svg",
         "read": "נאנד: עכשיו, בשנת 1943, אני די גדול, אבל בעוד מספר שנים יופיעו טריודות חדשות, שמבוססות על מוליכים למחצה ולא על שפורפרות ריק. הן נקראות טרנזיסטורים. הן הרבה יותר קטנות, כך שגם אני אקטן בהרבה, ואהפוך גם למהיר בהרבה. עם השנים אני אהפוך לקטן ומהיר עוד יותר, כך שעד סוף המאה ה-20 אני אהיה כל כך קטן שאפשר יהיה לראות אותי רק במיקרוסקופ. זה חשוב, כי צריך אלפים ממני כדי לבנות מחשב פשוט, ומיליונים בשביל מחשב של המאה ה-21."
       },
       {
         "image": "assets/panels/panel81.svg",
         "read": "נאנד: היום, כדי להרכיב ממספר Nand-ים רכיב אלקטרוני, צריך לסדר אותנו על גבי כרטיס ולהלחים. עוד מספר עשורים יהיה אפשר לייצר — בעצם להדפיס — אלפים או אפילו מיליונים ממני בבת אחת, מחוברים יחד לפי תכנון מראש וארוזים בקופסה קטנה שנקראת צ'יפ. את הצ'יפים האלה ירכיבו על כרטיסים, ומהם יבנו מחשבים."
-      },
-      {
-        "image": "assets/panels/panel82.svg",
-        "femaleImage": "assets/panels/panel82_girl.svg",
-        "read": "נאנד: רוצה לדעת מה אני עושה? תנסה לחבר חלק מהכניסות שלי למקור מתח ואת היציאה למנורה. רק אל תתבלבל ביניהן. זה יכול לשרוף אותי.",
-        "femaleRead": "נאנד: רוצה לדעת מה אני עושה? תנסי לחבר חלק מהכניסות שלי למקור מתח ואת היציאה למנורה. רק אל תתבלבלי ביניהן. זה יכול לשרוף אותי.",
-        "workspaceLaunch": true
       }
     ]
   },
@@ -861,6 +877,83 @@ const SCENES = {
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
           { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
+      }
+    ]
+  },
+  "alu": {
+    "id": "alu",
+    "type": "story",
+    "chapterId": "chapter-9",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "Chapter 2.6 (ALU) opening: von Neumann speech over the reused 2.5 farewell room. Speech is baked into each SVG; read is the TTS narration.",
+        "image": "assets/panels/panel120_chapter_2_6_alu_1.svg",
+        "year": "1943",
+        "read": "מצוין. עבודה טובה. עכשיו יש לנו מכונה שמחברת מספרים. אנחנו נצטרך עוד מכונות שעושות עוד חישובים. אנחנו רוצים לבנות מכונה אחת שתעשה את כל החישובים שנצטרך. היא תקבל את מספרים שאליהם אנחנו רוצים לעשות את החישוב ובס נוסף שיגיד לה איזה חישוב לעשות."
+      },
+      {
+        "image": "assets/panels/panel121_chapter_2_6_alu_2.svg",
+        "year": "1943",
+        "read": "תזכור, בפועל המכונה לא באמת בוחרת שום דבר. היא עושה את כל החישובים ובסוף רק אחד מהם יוצא. כמו שאתה זוכר יש לנו כרטיס שיכול \"לבחור\" בין אפשרויות. זה עדיין לא המחשב שאנחנו רוצים לעשות, כי המכונה הזאת תוכל לבצע רק חישובים פשוטים - של צעד אחד. וצריך \"להגיד\" לה לעשות כל חישוב בנפרד. היא יותר דומה למחשבון. אבל זה צעד חשוב בבניית המחשב. בסופו של דבר כל חישוב מורכב בנוי מהרבה צעדים פשוטים."
+      },
+      {
+        "image": "assets/panels/panel122_chapter_2_6_alu_3.svg",
+        "year": "1943",
+        "read": "נקרא לה ALU ראשי תיבות באנגלית של \"יחידה לוגית אריתמטית\". היא תוכל לעשות פעולות אריתמטיות כמו חיבור ופעולות לוגיות כמו AND."
+      },
+      {
+        "comment": "Von Neumann leans over the worktable placing the ALU tasks note. No speech bubble.",
+        "image": "assets/panels/panel123_chapter_2_6_alu_handover.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Von Neumann's farewell (reused 2.5 farewell room) as he hands over the ALU tasks and leaves.",
+        "image": "assets/panels/panel124_chapter_2_6_alu_farewell.svg",
+        "year": "1943",
+        "read": "הנה המשימות שלך. אני צריך לחזור לעבודה. סוף-סוף חזרו התוצאות של החישוב שביקשתי, ואני יכול להמשיך לעבוד על ניתוח של תנועת הגזים בפיצוץ. זה פיצוץ רגיל, אבל אנחנו צריכים לדעת לכוון אותו במדויק כדי לגרום ל.... טוב לא משנה...."
+      },
+      {
+        "comment": "The ALU worktable. Same room and click-zones as panel119, but the tasks note opens the 2.6 ALU list (alu-tasks-note).",
+        "image": "assets/panels/panel125_chapter_2_6_alu_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "alu-tasks-note", "left": 18, "top": 65, "width": 15, "height": 15 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
+      },
+      {
+        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
+        "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
+        "year": "1943",
+        "read": "מצוין, בנית ALU, זה לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+      },
+      {
+        "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
+        "image": "assets/panels/panel127_chapter_2_6_alu_done_2.svg",
+        "year": "1943",
+        "read": "אתה אולי שאלת את עצמך איך עושים חיסור, זו הרי פעולה לא פחות חשובה מחיבור. הנה תראה משהו מגניב:"
+      }
+    ]
+  },
+  "flipflop": {
+    "id": "flipflop",
+    "type": "story",
+    "chapterId": "chapter-10",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "Chapter 3.1 (part 3, memory) opening: von Neumann back in the warehouse, introducing the need for memory (speech baked into the SVG). Reached after the subtraction demo.",
+        "image": "assets/panels/panel128_chapter_3_1_memory.svg",
+        "year": "1943",
+        "read": "טוב, נפסיק לברבר ונמשיך לעבוד. כדי שהמחשב שלנו יוכל לבצע חישובים מסובכים הוא צריך אפשרות לזכור את מה שהוא עושה. בשביל זה הוא צריך זיכרון. עד עכשיו כל הכרטיסים שבנינו ידעו לבצע חישוב אבל לא ידעו לשמור שום דבר. אנחנו צריכים לבנות כרטיסים שיכולים לשמור משהו. זאת אומרת שחוץ מכניסות ויציאות הם יוכלו להימצא גם במצבים שונים ונוכל להעביר אותם ממצב למצב על ידי שינוי הכניסות."
       }
     ]
   }

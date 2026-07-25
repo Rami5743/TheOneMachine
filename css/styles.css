@@ -718,6 +718,17 @@ button { font: inherit; }
 
 .btn-primary { background: var(--primary); }
 
+/* "דלג על המבוא" — a subtle accent so the skip-the-whole-intro shortcut stands
+   apart from the ordinary nav buttons. */
+.btn-skip-intro {
+  border-color: rgba(255, 224, 138, 0.8);
+  color: #ffe9b0;
+}
+.btn-skip-intro:hover,
+.btn-skip-intro:focus-visible {
+  background: rgba(255, 224, 138, 0.16);
+}
+
 .story-screen {
   height: 100%;
   min-height: 0;
@@ -839,7 +850,9 @@ button { font: inherit; }
   min-height: 0;
   justify-content: center;
   align-content: center;
-  overflow: hidden;
+  /* Was overflow:hidden, but that clips the icon-button hover tooltips, which are
+     drawn ABOVE the buttons and so rise out of this thin bar. Let them show. */
+  overflow: visible;
   padding: 0;
 }
 
@@ -1361,11 +1374,27 @@ button { font: inherit; }
   place-items: stretch;
 }
 
+/* The scrolling viewport for the board canvas. When a task's content (a tall
+   card's frame + solution, or a check's harness lamps) is taller than the
+   visible board, this scrolls vertically so nothing is stranded off-screen.
+   Overlays (solution dialog, hints) stay OUTSIDE this wrapper — pinned to the
+   board viewport — so they don't scroll away with the canvas. */
+.workspace-board-scroll {
+  min-height: 0;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 10px;
+  overscroll-behavior: contain;
+}
+
 .workspace-canvas {
   width: 100%;
   height: 100%;
   max-width: 100%;
-  max-height: 100%;
+  /* No max-height: the canvas may grow TALLER than the viewport so the board
+     scrolls to it (its height is set in JS from the actual content extent). */
+  max-height: none;
   display: block;
   touch-action: none;
   user-select: none;
@@ -1377,9 +1406,145 @@ button { font: inherit; }
   fill: #735c3b;
 }
 
+/* One-off arrow pointing DOWN at the And task's requirements panel (bottom-
+   right). Bounces gently; removed once the learner starts building. */
+.workspace-and-arrow {
+  position: absolute;
+  right: 150px;
+  bottom: 315px;
+  z-index: 12;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #ffe08a;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55));
+  animation: and-arrow-bounce 1.05s ease-in-out infinite;
+}
+
+.workspace-and-arrow-label {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #ffe9b0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+@keyframes and-arrow-bounce {
+  0%, 100% { transform: translateY(-7px); }
+  50% { transform: translateY(9px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-and-arrow { animation: none; }
+}
+
+/* Optional bottom-left "why do we need this?" panel: a hideable explainer.
+   Click-through while open (only its hide/show button captures clicks) so the
+   board underneath stays reachable; sits opposite the bottom-right
+   requirements panel. */
+.workspace-why-note {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 9;
+  width: min(330px, calc(50% - 28px));
+  padding: 32px 14px 12px;
+  border: 1px solid rgba(36, 26, 13, 0.85);
+  border-radius: 12px;
+  background: rgba(24, 19, 12, 0.92);
+  color: #f2e8d4;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  direction: rtl;
+  pointer-events: none;
+}
+
+.workspace-why-note .why-note-title {
+  display: block;
+  font-weight: 800;
+  color: #ffd98a;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.workspace-why-note .why-note-text {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: #efe6d3;
+}
+
+/* Hide/show toggle, pinned to the panel's top-left corner. */
+.why-note-toggle {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
+  pointer-events: auto;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 227, 138, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffe3a0;
+  cursor: pointer;
+}
+
+.why-note-toggle:hover,
+.why-note-toggle:focus-visible {
+  background: rgba(255, 224, 138, 0.28);
+}
+
+/* Collapsed: just the title bar with the show button beside it. */
+.workspace-why-note.workspace-why-note-collapsed {
+  width: auto;
+  max-width: min(360px, calc(100% - 28px));
+  padding: 8px 14px 8px 80px;
+  pointer-events: auto;
+}
+
+.workspace-why-note-collapsed .why-note-title {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .workspace-component {
   cursor: move;
   pointer-events: visiblePainted;
+}
+
+/* The Nand-presentation "how to connect" demo: a looping ghost cable + fingertip
+   drawn from the source pin to a Nand input pin, in a bright gold so it reads on
+   the wooden board. Purely decorative — never intercepts pointer events. */
+.nand-connect-demo { pointer-events: none; }
+.nand-demo-pulse {
+  fill: none;
+  stroke: #ffd35a;
+  stroke-width: 3;
+}
+.nand-demo-cable {
+  stroke: #ffd35a;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 10 7;
+  fill: none;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+}
+.nand-demo-hand {
+  fill: #ffe08a;
+  stroke: #7a5200;
+  stroke-width: 2;
+}
+
+/* The wire (crosshair) cursor shown across a pin's whole grab radius while
+   hovering empty board near it (toggled by updateWorkspaceHoverCursor). A
+   component's own move cursor and a pin's crosshair still win on their own
+   elements, so this only paints the empty board around a pin. */
+.workspace-board-scroll.workspace-wire-cursor,
+.workspace-board-scroll.workspace-wire-cursor .workspace-canvas {
+  cursor: crosshair;
 }
 
 .workspace-component * {
@@ -1463,7 +1628,7 @@ button { font: inherit; }
 }
 
 .wire-line {
-  stroke: #101010;
+  stroke: #46545f;
   stroke-width: 5;
   stroke-linecap: round;
   filter: drop-shadow(0 1px 0.5px rgba(255,255,255,0.42));
@@ -1914,6 +2079,126 @@ button { font: inherit; }
   overflow: visible;
 }
 
+/* ---- Chapter 2.6 subtraction demo ---- */
+/* The red enrichment teaser, pinned across the top of the (locked) workbench. */
+.subtraction-demo-teaser {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100% - 32px);
+  padding: 7px 16px;
+  border: 1px solid rgba(180, 40, 30, 0.55);
+  border-radius: 999px;
+  background: rgba(38, 20, 16, 0.92);
+  color: #ff6a53;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+  direction: rtl;
+  text-align: right;
+}
+.subtraction-demo-teaser span { unicode-bidi: plaintext; }
+.subtraction-demo-teaser:hover,
+.subtraction-demo-teaser:focus-visible { color: #ff8f7c; border-color: #ff6a53; }
+
+/* Von Neumann's speech bubble for the current step: top of the board, with a
+   small tail pointing to the right side of the screen. Draggable. */
+.subtraction-demo-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 11;
+}
+.subtraction-demo-speech {
+  position: absolute;
+  right: 44px;
+  top: 16px;
+  width: min(640px, calc(100% - 64px));
+  padding: 20px 26px 20px 42px;
+  border: 3px solid #111;
+  border-radius: 26px;
+  background: #f7f7f2;
+  color: #111;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  direction: rtl;
+  text-align: right;
+  pointer-events: auto;
+  cursor: grab;
+  animation: subtraction-demo-pop 0.32s ease-out both;
+}
+.subtraction-demo-speech:active { cursor: grabbing; }
+/* Roughly double the reading size of the narration text (bubble grows with it). */
+.subtraction-demo-speech p { margin: 0; font-size: 2rem; line-height: 1.4; direction: rtl; unicode-bidi: plaintext; }
+/* Little drag grip in the (LTR-left) corner of the bubble. */
+.subtraction-demo-grip {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #9a9a92;
+  letter-spacing: -1px;
+  user-select: none;
+}
+/* The tail: a right-pointing triangle on the bubble's right edge (black border
+   via the ::before, cream fill via the ::after sitting just inside it). */
+.subtraction-demo-speech::before,
+.subtraction-demo-speech::after {
+  content: "";
+  position: absolute;
+  top: 50%;                 /* centre on the bubble's side, whatever its height */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+}
+.subtraction-demo-speech::before {
+  right: -21px;
+  border-left: 21px solid #111;
+}
+.subtraction-demo-speech::after {
+  right: -15px;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 16px solid #f7f7f2;
+}
+@keyframes subtraction-demo-pop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* Newly-revealed board parts fade/scale in as each step adds them. */
+.subtraction-demo-fresh { animation: subtraction-demo-appear 0.5s ease-out both; }
+@keyframes subtraction-demo-appear { from { opacity: 0; } to { opacity: 1; } }
+
+/* The "still under construction" links list. */
+.subtraction-demo-links-title { margin: 0 0 6px; font-size: 1.25rem; }
+.subtraction-demo-links-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.subtraction-demo-link {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(36, 26, 13, 0.55);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+}
+.subtraction-demo-link:hover,
+.subtraction-demo-link:focus-visible { background: rgba(255, 208, 122, 0.22); }
+
 .workspace-nand-speech {
   position: absolute;
   width: min(560px, calc(100% - 24px));
@@ -2316,6 +2601,32 @@ button { font: inherit; }
   background: #ffe08a;
 }
 
+/* Drag grip pinned to a click-through panel's top-right corner (the requirements
+   panel and the "why the hell" note). It is the only pointer-events:auto surface
+   on those otherwise wire-through panels, so the whole panel can be moved by it. */
+.panel-drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: grab;
+  padding: 0 6px;
+  line-height: 1;
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+  color: rgba(120, 100, 66, 0.85);
+  user-select: none;
+  touch-action: none;
+}
+.panel-drag-handle:hover { color: #ffe08a; }
+.dialog-dragging .panel-drag-handle,
+.panel-drag-handle:active { cursor: grabbing; }
+
+/* On the dark "why the hell" note the grip needs a light tint to read. */
+.workspace-why-note .panel-drag-handle { color: rgba(242, 232, 212, 0.7); }
+.workspace-why-note .panel-drag-handle:hover { color: #ffe08a; }
+
 /* Collapsed requirements panel: a minimal title bar (button + card title). */
 .workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-collapsed {
   display: block;
@@ -2378,6 +2689,35 @@ button { font: inherit; }
   border-collapse: collapse;
   font-size: 0.92rem;
   background: #fff;
+}
+
+/* Horizontal-scroll wrapper for a check truth table (or its single failing row).
+   When the table is wider than the requirements panel — e.g. a 16-bit bus check
+   row — it scrolls sideways instead of squishing its cells, so the frozen
+   failing row stays readable. Narrow tables still fill the panel width. */
+.workspace-task-hint-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workspace-task-hint-scroll > .workspace-task-hint-table {
+  width: max-content;
+  min-width: 100%;
+}
+
+/* During a check the requirements panel widens to fit the single check row
+   (its px width is set by sizeCheckPanel, capped at the workbench width). The
+   multibit panel stacks the text above the row instead of side-by-side, and the
+   row's scroll wrapper fills the widened panel so it can pan when it overflows. */
+.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-multibit.workspace-task-hint-check-wide {
+  flex-direction: column;
+}
+
+.workspace-task-hint-check-wide [data-check-scroll] {
+  width: 100%;
 }
 
 .workspace-task-hint-table th,
@@ -2729,7 +3069,33 @@ button { font: inherit; }
   padding: 0;
   display: inline-grid;
   place-items: center;
+  position: relative;
 }
+
+/* Hover tooltip shown ABOVE the icon button — the native `title` appears at the
+   cursor, which sits on the button and covers it, so we roll our own. */
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: rgba(18, 13, 8, 0.96);
+  color: #f5eecf;
+  border: 1px solid rgba(120, 95, 55, 0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 60;
+}
+.icon-btn[data-tooltip]:hover::after,
+.icon-btn[data-tooltip]:focus-visible::after { opacity: 1; }
 
 .nav-icon {
   width: 26px;
@@ -3171,6 +3537,18 @@ button { font: inherit; }
   width: min(240px, 70%);
   height: auto;
   object-fit: contain;
+  background: #efe7d0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+/* The converter schematic is drawn with black strokes too, so it gets the same
+   light backdrop as the bus/splitter symbol above. */
+.converter-schematic {
+  align-self: center;
+  max-width: 100%;
+  height: auto;
   background: #efe7d0;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -3909,4 +4287,161 @@ object.panel-image.is-pending {
   justify-content: center;
   flex-wrap: wrap;
   padding: 0 14px 14px;
+}
+
+/* ---- Efficiency rankings screen (דירוגי יעילות) ------------------------- */
+/* The rankings list can be longer than the viewport: top-align the card and let
+   the whole page scroll (place-items:center on .menu-screen would clip and trap
+   the top). */
+.rankings-screen {
+  align-items: start;
+  overflow-y: auto;
+}
+.rankings-card { max-width: 720px; }
+/* Two-tab strip: דירוגי יעילות / דירוגי מהירות. */
+.rankings-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0.6rem 0 0.9rem;
+  border-bottom: 2px solid rgba(70, 50, 25, 0.4);
+}
+.rankings-tab {
+  appearance: none;
+  border: 1px solid rgba(70, 50, 25, 0.4);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: rgba(70, 50, 25, 0.14);
+  color: #cdbb92;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-bottom: -2px;
+}
+.rankings-tab:hover { background: rgba(255, 224, 138, 0.14); }
+.rankings-tab.is-active {
+  background: #2a2118;
+  color: #f3d488;
+  border-color: rgba(70, 50, 25, 0.4);
+  border-bottom: 2px solid #2a2118;
+}
+.rankings-sub {
+  margin: -0.3rem 0 1rem;
+  color: #cdbb92;
+  font-size: 0.95rem;
+}
+.rankings-table-wrap { overflow-x: auto; }
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  direction: rtl;
+  font-size: 0.98rem;
+}
+.rankings-table th,
+.rankings-table td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(70, 50, 25, 0.18);
+}
+.rankings-table th {
+  font-weight: 800;
+  color: #ffe08a;
+  border-bottom: 2px solid rgba(70, 50, 25, 0.4);
+  white-space: nowrap;
+}
+.rankings-table td.rank-card-name,
+.rankings-table th.rank-card-name {
+  text-align: start;
+  font-weight: 700;
+}
+.rankings-table tbody tr:hover { background: rgba(255, 224, 138, 0.18); }
+.rank-count { font-variant-numeric: tabular-nums; font-weight: 700; }
+.rank-undef, .rank-empty { color: #b0a488; }
+
+/* Rank medals for the top three (gold / silver / bronze): a beveled metal disc
+   with a little ribbon above it and an engraved inner ring. */
+.rank-medal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 9px; /* room for the ribbon above */
+  border-radius: 50%;
+  font-weight: 800;
+  color: #2b2308;
+  border: 2px solid rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.7),
+    inset 0 -3px 5px rgba(0, 0, 0, 0.35),
+    0 2px 5px rgba(0, 0, 0, 0.4);
+}
+/* Engraved inner ring. */
+.rank-medal::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+/* Ribbon hanging above the disc (a notched trapezoid), sitting just above it. */
+.rank-medal::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 18px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 3px 3px 0 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 66%, 0 100%);
+}
+.rank-medal-gold   { background: radial-gradient(circle at 35% 30%, #fff6c4, #f5c518 60%, #a9790a); }
+.rank-medal-silver { background: radial-gradient(circle at 35% 30%, #ffffff, #d3d8de 60%, #868d95); }
+.rank-medal-bronze { background: radial-gradient(circle at 35% 30%, #f8d0a8, #cd7f32 60%, #7e4a17); }
+.rank-medal-gold::before   { background: linear-gradient(#c0161f, #8e1119); }
+.rank-medal-silver::before { background: linear-gradient(#2f6fb0, #1f4f86); }
+.rank-medal-bronze::before { background: linear-gradient(#3a7d3f, #275c2b); }
+.rankings-note {
+  margin-top: 1rem;
+  color: #cdbb92;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Nickname editor at the top of the rankings page. */
+.rankings-nickname {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 0.6rem;
+}
+.rankings-nickname label { font-weight: 700; color: #e7d9bb; }
+.rankings-nickname-input {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(70, 50, 25, 0.5);
+  background: #fffdf7;
+  font: inherit;
+  min-width: 140px;
+}
+.rankings-nickname-error { color: #a12a2a; font-size: 0.85rem; }
+
+/* Clickable card rows on the main rankings table. */
+.rankings-row { cursor: pointer; }
+.rankings-row:hover td { background: rgba(255, 224, 138, 0.22); }
+.rankings-row:focus-visible { outline: 2px solid #f5c518; outline-offset: -2px; }
+
+/* Per-card records table. */
+.records-table .rank-nick { text-align: start; font-weight: 700; }
+.rankings-empty-row { color: #b0a488; padding: 14px; }
+
+/* The "דירוגים" button at the top of the achievements page. */
+.achievements-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.4rem;
 }

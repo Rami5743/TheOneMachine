@@ -60,6 +60,7 @@
     return TASK_DEFS.find((task) => task.id === taskId)
       || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
+      || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || null;
   }
 
@@ -233,8 +234,8 @@
   //  * a placeable bus GATE (gate-<id>) with the same op on a whole bus, which
   //    the learner reuses inside later tasks (e.g. Not4 inside Not16).
   // The card/gate are only built for tasks with a real build workspace so far.
-  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4"];
-  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4"];
+  const BUS_TASKS_WITH_CARD = ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16"];
+  const BUS_TASKS_WITH_GATE = ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16"];
   // Vertical positions of a bus card's input pins by input count.
   function busCardInputYs(n) { return n <= 1 ? [0] : [-90, 90]; }
   for (const busTask of (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : [])) {
@@ -246,8 +247,10 @@
         cardPins[`inputExt${i + 1}`] = { x: -340, y, direction: "in", label: `כניסת ${busTask.label}${num} חיצונית` };
         cardPins[`inputInt${i + 1}`] = { x: -260, y, direction: "out", label: `כניסת ${busTask.label}${num} פנימית` };
       });
-      cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית` };
-      cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית` };
+      // Neq0's output is a SINGLE bit (not a width-N bus), so force its width to 1.
+      const outW = busTask.op === "Neq0" ? { width: 1 } : {};
+      cardPins.outputInt = { x: 260, y: 0, direction: "in", label: `יציאת ${busTask.label} פנימית`, ...outW };
+      cardPins.outputExt = { x: 340, y: 0, direction: "out", label: `יציאת ${busTask.label} חיצונית`, ...outW };
       WORKSPACE_COMPONENT_DEFS[taskCardComponentType(busTask.id)] = {
         label: `מסגרת ${busTask.label}`,
         fixed: true,
@@ -266,11 +269,14 @@
       // differs. It reuses the base gate's pins/bounds; `busWidth` makes its
       // pins buses, and `op` drives the componentwise evaluation. The base gate
       // (gate-Not / gate-And …) was defined above, from TASK_DEFS.
-      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op)];
+      // Neq0 has no base gate of its own — it borrows the Not gate's 1-in/1-out
+      // shape, but its output pin is a single bit while its input stays a bus.
+      const baseDef = WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.op === "Neq0" ? "Not" : busTask.op)];
       const gatePins = {};
       Object.entries(baseDef ? baseDef.pins : {}).forEach(([pinId, pin]) => {
         gatePins[pinId] = { ...pin };
       });
+      if (busTask.op === "Neq0" && gatePins.out) gatePins.out.width = 1;
       WORKSPACE_COMPONENT_DEFS[gateComponentType(busTask.id)] = {
         label: busTask.label,
         gate: true,
@@ -481,6 +487,314 @@
     bounds: { left: 64, right: 84, top: 40, bottom: 40 }
   };
 
+  // ---- Chapter 2.6 ALU cards -----------------------------------------------
+  // The Inc build frame: a single width-16 bus input on the left and a single
+  // width-16 bus output on the right. The card must output (input + 1) mod 2^16.
+  // Checked with the multi-bit harness (numeric buses -> converters). Same shape
+  // as taskCard-Add16 but with one input.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Inc"] = {
+    label: "מסגרת Inc",
+    fixed: true,
+    taskId: "Inc",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר חיצונית" },
+      inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+  };
+
+  // gate-Inc: the placeable card earned by completing Inc. A "+1" box — one
+  // width-16 number bus in, one width-16 sum bus out (input + 1, mod 2^16). The
+  // engine treats it as an arith-bus gate with the `inc` flag (see
+  // arithBusGateSpec / the arith branch in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-Inc"] = {
+    label: "Inc",
+    taskId: "Inc",
+    gate: true,
+    busAdder: true,
+    incGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+  };
+
+  // The ALU0 build frame: two width-16 number buses on the left, a single-bit
+  // control input on TOP (pokes out above the frame, like the MUX control), and a
+  // single width-16 output on the right. control=0 → bitwise AND of the two
+  // numbers; control=1 → their sum (mod 2^16). Checked with the multi-bit harness.
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU0"] = {
+    label: "מסגרת ALU0",
+    fixed: true,
+    taskId: "ALU0",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -260, y: -250, direction: "in", width: 1, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -260, y: -180, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-ALU0: the placeable card earned by completing ALU0. Two width-16 number
+  // buses in, a single-bit control on top, one width-16 bus out. The engine
+  // selects AND (control=0) or ADD (control=1) — see aluGateSpec / the ALU branch
+  // in circuit-engine.js.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU0"] = {
+    label: "ALU0",
+    taskId: "ALU0",
+    gate: true,
+    aluGate: true,
+    aluOp: "and-add",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // The PreperNum build frame: a width-16 number bus on the left, a width-2
+  // control bus on TOP, and a width-16 output on the right. Two-stage operation
+  // selected by the control (first bit zeroes the input, second bit NOTs it).
+  WORKSPACE_COMPONENT_DEFS["taskCard-PreperNum"] = {
+    label: "מסגרת PreperNum",
+    fixed: true,
+    taskId: "PreperNum",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר חיצונית" },
+      inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר פנימית" },
+      inputExt2: { x: -215, y: -250, direction: "in", width: 2, label: "כניסת הבקרה חיצונית" },
+      inputInt2: { x: -215, y: -180, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-PreperNum: the placeable card earned by completing PreperNum. One
+  // width-16 number bus in, a width-2 control on top, one width-16 bus out. The
+  // engine runs the two-stage op (see aluGateSpec op "prepnum").
+  WORKSPACE_COMPONENT_DEFS["gate-PreperNum"] = {
+    label: "PreperNum",
+    taskId: "PreperNum",
+    gate: true,
+    aluGate: true,
+    aluOp: "prepnum",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // The ALU1 build frame: two width-16 number buses on the left, a width-6
+  // control bus on TOP, and a single width-16 output on the right. The control
+  // prepares each input (2 bits per input, à la PreperNum), then selects
+  // AND/ADD (à la ALU0), then optionally NOTs — see aluGateSpec op "alu1".
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU1"] = {
+    label: "מסגרת ALU1",
+    fixed: true,
+    taskId: "ALU1",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -90, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -90, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 90, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 90, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -215, y: -250, direction: "in", width: 6, label: "כניסת הבקרה חיצונית" },
+      inputInt3: { x: -215, y: -180, direction: "out", width: 6, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 190 }
+  };
+
+  // gate-ALU1: the placeable card earned by completing ALU1. Two width-16 number
+  // buses in, a width-6 control on top, one width-16 bus out. The engine runs
+  // the full ALU1 op (prep each input, AND/ADD, optional NOT) — see aluGateSpec
+  // op "alu1".
+  WORKSPACE_COMPONENT_DEFS["gate-ALU1"] = {
+    label: "ALU1",
+    taskId: "ALU1",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu1",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: 0, y: -46, direction: "in", width: 6, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // The ALU2 build frame: three width-16 number buses on the left, a width-7
+  // control bus on TOP, and a single width-16 output. The first (top) control
+  // bit picks whether the ALU1 op runs on inputs 1&2 (bit 0) or 1&3 (bit 1); the
+  // remaining 6 bits are the ALU1 sub-control — see aluGateSpec op "alu2".
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU2"] = {
+    label: "מסגרת ALU2",
+    fixed: true,
+    taskId: "ALU2",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
+      inputExt4: { x: -215, y: -320, direction: "in", width: 7, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -250, direction: "out", width: 7, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 250 }
+  };
+
+  // gate-ALU2: the placeable card earned by completing ALU2. Three width-16
+  // number buses in, a width-7 control on top, one width-16 bus out.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU2"] = {
+    label: "ALU2",
+    taskId: "ALU2",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu2",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in4: { x: 0, y: -58, direction: "in", width: 7, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // The ALU3 build frame: three width-16 number buses on the left, a width-12
+  // control bus on TOP, and a single width-16 output. If the first (top) control
+  // bit is 0 the output is the 12-bit control zero-extended to 16 bits; otherwise
+  // it runs ALU2 using the low 7 control bits — see aluGateSpec op "alu3".
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU3"] = {
+    label: "מסגרת ALU3",
+    fixed: true,
+    taskId: "ALU3",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
+      inputExt4: { x: -215, y: -280, direction: "in", width: 12, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 250 }
+  };
+
+  // gate-ALU3: the placeable card earned by completing ALU3. Three width-16
+  // number buses in, a width-12 control on top, one width-16 bus out.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU3"] = {
+    label: "ALU3",
+    taskId: "ALU3",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu3",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // taskCard-ALU4: like ALU3 (4 inputs, 16-bit result on the right) plus two
+  // single-bit outputs at the BOTTOM — ng (the first/top bit of the result) and
+  // nz (1 iff the result is non-zero). JSON-backed: applySolutionDocToDefs
+  // overwrites these pins from ALU4.json at load; this is the pre-JSON skeleton.
+  WORKSPACE_COMPONENT_DEFS["taskCard-ALU4"] = {
+    label: "מסגרת ALU4",
+    fixed: true,
+    taskId: "ALU4",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 16, label: "כניסת המספר הראשון חיצונית" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 16, label: "כניסת המספר הראשון פנימית" },
+      inputExt2: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת המספר השני חיצונית" },
+      inputInt2: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת המספר השני פנימית" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 16, label: "כניסת המספר השלישי חיצונית" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 16, label: "כניסת המספר השלישי פנימית" },
+      inputExt4: { x: -215, y: -280, direction: "in", width: 12, label: "כניסת הבקרה חיצונית" },
+      inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" },
+      // ng/nz come out the BOTTOM edge of the card (pointing down), captioned.
+      outputInt2: { x: -90, y: 150, direction: "in", width: 1, label: "יציאת ng פנימית", caption: "ng" },
+      outputExt2: { x: -90, y: 230, direction: "out", width: 1, label: "יציאת ng חיצונית", caption: "ng" },
+      outputInt3: { x: 90, y: 150, direction: "in", width: 1, label: "יציאת nz פנימית", caption: "nz" },
+      outputExt3: { x: 90, y: 230, direction: "out", width: 1, label: "יציאת nz חיצונית", caption: "nz" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 280 }
+  };
+
+  // gate-ALU4: the placeable card earned by completing ALU4. Same inputs as ALU3,
+  // a 16-bit result on the right, and the ng/nz single-bit outputs at the bottom.
+  WORKSPACE_COMPONENT_DEFS["gate-ALU4"] = {
+    label: "ALU4",
+    taskId: "ALU4",
+    gate: true,
+    aluGate: true,
+    aluOp: "alu4",
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: -40, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר השני" },
+      in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
+      in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
+      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" },
+      out2: { x: -20, y: 66, direction: "out", width: 1, label: "יציאת ng" },
+      out3: { x: 20, y: 66, direction: "out", width: 1, label: "יציאת nz" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 74 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -627,6 +941,12 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
+    // The bottom-left "why do we need this?" panel is hidden once the learner
+    // dismisses it (a persistent preference, kept across tasks and reloads).
+    whyNoteHidden: false,
+    // The one-off arrow pointing at the And task's requirements; set once the
+    // learner starts building (persists so it doesn't nag on every visit).
+    andArrowSeen: false,
     bitDialog: null,
     bitInfoUnlocked: false,
     xorTableHelpUnlocked: false,
@@ -662,6 +982,15 @@
     busesNoteList: false,
     // The 2.5 arithmetic worktable note (halfAdder → fullAdder → Add4 → Add16).
     arithNoteList: false,
+    // The 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 → ALU3).
+    aluNoteList: false,
+    // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
+    aluIntroDialog: null,
+    // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
+    // subtraction on an inactive workbench). { step } while running, else null.
+    subtractionDemo: null,
+    // The demo's "still under construction" links window ({ fromEnd } | null).
+    subtractionDemoLinks: null,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -698,6 +1027,32 @@
     // יסודי" (re-doing an already-done task after clearing its note).
     tasksEverCompleted: [],
     tasksClearedAfterCompletion: [],
+    // Efficiency ranking: the player's best (lowest) recursive Nand count per
+    // card, recorded when a card's check passes (see recordCardNandCount). A card
+    // built with a sub-card that has no count is stored as null (undefined).
+    // Derived — recomputed from cardBuilds (see recomputeAllCardCounts).
+    cardNandCounts: {},
+    // The player's actual best build per card: { components, wires }. We store the
+    // whole implementation (not just the count) so that improving one card
+    // automatically improves every card that is built on top of it — the counts
+    // are recomputed recursively from these builds. Keyed by card id (task id).
+    cardBuilds: {},
+    // Speed ranking: the SERIAL Nand count — the most Nands in series on any path
+    // from an input to an output (the critical-path depth). Lower is faster. It is
+    // an INDEPENDENT track: cardSerialBuilds keeps the player's shallowest build
+    // per card (which may differ from the most Nand-efficient one in cardBuilds),
+    // and cardSerialCounts is derived from it. Keyed by card id.
+    cardSerialBuilds: {},
+    cardSerialCounts: {},
+    // The player's leaderboard nickname (shown only on a card's records page,
+    // never in the main table). Default "ללא שם".
+    rankingsNickname: "ללא שם",
+    // Which card's records page is open (screen "cardRecords").
+    rankingsCardId: null,
+    // Active rankings tab: "efficiency" (default) or "speed".
+    rankingsTab: "efficiency",
+    // Transient: a nickname validation/uniqueness error to show under the field.
+    rankingsNicknameError: null,
     createCardUnlocked: false,
     cardIntroPending: false,
     // Set once the von Neumann beat has played, so the scripted moment never
@@ -1009,13 +1364,19 @@
   registerAllSavedCards();
   let dragState = null;
   let dialogDragState = null;
+  // Where the learner has dragged each kind of movable dialog, keyed by its card
+  // class. A re-render (e.g. clicking "המשך" in the solution walkthrough) rebuilds
+  // the DOM, so the position is re-applied afterwards — the dialog stays put. A
+  // key is dropped once its dialog is no longer on screen, so the next time it
+  // opens it starts from its default place.
+  let draggedDialogPositions = {};
   let suppressNextClick = false;
 
   // Circuit-simulation engine lives in js/circuit-engine.js. We inject the two
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -1091,6 +1452,10 @@
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
     const here = chapterIndexById(state.chapterId);
+    // In a TASK build (not free build, not card design) a user card must also be
+    // BUILDABLE here: if it relies on a built-in card that isn't in this toolbar —
+    // one from a later chapter, or a current-chapter card not built yet — drop it.
+    const taskBuild = Boolean(workspaceTaskId()) && !state.cardCreation;
     return (state.savedCards || [])
       .filter((card) => !editing || !cardUsesCard(card.type, editing))
       // A card built in a LATER chapter (reached by jumping ahead) is hidden;
@@ -1100,15 +1465,9 @@
         const ci = typeof card.chapter === "string" ? chapterIndexById(card.chapter) : -1;
         return !(Number.isInteger(ci) && ci >= 0 && Number.isInteger(here) && here >= 0 && ci > here);
       })
+      .filter((card) => !taskBuild || cardBuildableWithToolbar(card.type))
       .map((card) => ({ type: card.type, label: card.name }));
-  }, splitterAvailable: () => {
-    // The splitter (and its mirrored "merger") is introduced in chapter 2.4
-    // (buses); from then on it stays in the palette for EVERY build, later
-    // chapters included — even single-bit ones.
-    const here = chapterIndexById(state.chapterId);
-    const buses = chapterIndexById("chapter-7");
-    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
-  }, convertersAvailable: () => isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8") });
+  }, splitterAvailable: splitterInToolbar, convertersAvailable: convertersInToolbar });
   const renderToolbar = (...args) => __toolbarView.renderToolbar(...args);
 
   // Workbench-screen buttons and prompt overlays live in js/workspace-chrome-view.js.
@@ -1116,7 +1475,7 @@
   // keep existing call sites unchanged.
   const __workspaceChromeView = createWorkspaceChromeView({
     getState: () => state,
-    genderText,
+    genderText, navButton,
     workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled
   });
   const renderWorkspaceAccidentModal = (...a) => __workspaceChromeView.renderWorkspaceAccidentModal(...a);
@@ -1137,7 +1496,7 @@
   const __taskModeView = createTaskModeView({
     getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, busCheckDisplayRow, taskInputYs, solutionHighlightConfig,
     isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive,
-    multibitTaskDefById, isMultibitTaskWorkspace, renderMultibitTaskShell
+    multibitTaskDefById, isMultibitTaskWorkspace, renderMultibitTaskShell, multibitCheckDisplayRow
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
   const renderWorkspaceTaskIntro = (...a) => __taskModeView.renderWorkspaceTaskIntro(...a);
@@ -1200,6 +1559,7 @@
     // still goes through the arith path (guarded by isArithTask where it matters).
     return MULTIBIT_TASKS.find((task) => task.id === id)
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -1217,10 +1577,22 @@
     const card = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
     const cx = Number.isFinite(card?.x) ? card.x : 640;
     const cy = Number.isFinite(card?.y) ? card.y : 288;
-    // Add16 stacks four (tall) Add4 gates, so it gets a much taller frame.
-    const tall = def.id === "Add16";
-    const frameW = 600;
-    const frameH = tall ? 540 : 420;
+    // No silent fallback: a JSON-backed card whose geometry has NOT been supplied
+    // by its JSON (still loading, or the fetch failed) shows an explicit notice
+    // instead of the old hardcoded frame, so a missing JSON is impossible to miss.
+    if (SOLUTION_JSON_REQUIRED && frameDef.__jsonBacked && !frameDef.__jsonApplied) {
+      const why = SOLUTION_DOC_STATUS[def.id] || "בטעינה…";
+      return `<text x="${cx}" y="${cy - 12}" text-anchor="middle" fill="#e35d4a" font-size="24" font-weight="700">שגיאה: ${esc(def.id)}.json לא נטען</text>
+        <text x="${cx}" y="${cy + 22}" text-anchor="middle" fill="#c9bda2" font-size="16">${esc(why)} — הגאומטריה חייבת להגיע מה-JSON (אין נפילה חזרה)</text>`;
+    }
+    // Add16 stacks four (tall) Add4 gates; ALU2/ALU3 have three number inputs
+    // (and tall control splitters in their solutions), so they get a taller frame.
+    const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3" || def.id === "ALU4";
+    // The frame size comes from the task's solution JSON when present (see
+    // solutionFrameSize), else the built-in default.
+    const jsonSize = solutionFrameSize(def.id);
+    const frameW = jsonSize ? jsonSize.w : 600;
+    const frameH = jsonSize ? jsonSize.h : (tall ? 540 : 420);
     const frameLeft = cx - 300;
     const frameTop = cy - frameH / 2;
     // A horizontal stub from the external tip (x1) all the way to the internal
@@ -1240,12 +1612,24 @@
       const ay = cy + pin.y;
       const w = pin.width || 1;
       if (pin.y < -150) {
-        // Control bus poking out the top, drawn down to its internal pin.
+        // Control poking out the top, drawn down to its internal pin. A wide
+        // control (2-bit MUX select) is a bus with a width label; a single-bit
+        // control (e.g. ALU0's op-select) is a plain cable, no label.
         const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
-        stubs += `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
-          <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
-          <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
-          <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`;
+        stubs += (w > 1)
+          ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
+             <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
+             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
+             <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
+          : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
+             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>`;
+      } else if (pin.y > 150) {
+        // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
+        // internal pin DOWN to the external tip, with its short caption below.
+        const iy = cy + (internalPin ? internalPin.y : pin.y - 70);
+        const cap = pin.caption || "";
+        stubs += `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+          ${cap ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 24}" text-anchor="middle">${esc(cap)}</text>` : ""}`;
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
@@ -1316,7 +1700,8 @@
       Boolean(state.hintDialog) ||
       Boolean(state.hintSlides) ||
       Boolean(state.solutionDialog) ||
-      workspaceNandMonologueActive()
+      workspaceNandMonologueActive() ||
+      subtractionDemoActive()
     );
   }
 
@@ -1336,8 +1721,16 @@
       converterValueEdit: null,
       busesNoteList: false,
       arithNoteList: false,
+      aluNoteList: false,
+      aluIntroDialog: null,
       panelAnswer: null,
-      wordsBytesDialog: null
+      wordsBytesDialog: null,
+      // The subtraction demo is a workbench-screen mode; leaving it via any topbar
+      // navigation (all of which apply this patch) must end it, so its bubble and
+      // board lock don't bleed onto the next workbench you open (a task build, the
+      // card creator, …).
+      subtractionDemo: null,
+      subtractionDemoLinks: null
     };
   }
 
@@ -1414,8 +1807,11 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
+    // Recompute splitter widths from the saved wiring, so an inferred (or freed)
+    // per-leg width is correct on load without needing an edit first.
+    reconcileSplitterWidths(workspace);
 
     if (loaded.dialog) {
       return {
@@ -1433,7 +1829,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
     );
 
     return {
@@ -1459,7 +1855,7 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -1481,7 +1877,14 @@
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;")
       .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+      .replaceAll("'", "&#39;")
+      // The ≠0_N card names are LTR ("not-equal zero, N bits") but begin with a
+      // math symbol, so inside RTL Hebrew text the bidi algorithm reorders them
+      // (e.g. "4_0≠"). Wrap each in LTR isolates (U+2066 … U+2069) so the name
+      // always reads left-to-right wherever it is shown — hints, solution steps,
+      // card requirements, the note list, the toolbar tool and the frame title.
+      // These names only ever appear in display text; machine ids use "Neq0_N".
+      .replace(/≠0(?:_\d+)?/g, "⁦$&⁩");
   }
 
   function stopSpeech() {
@@ -1531,6 +1934,7 @@
     }
     saveState();
     render();
+    applyDraggedDialogPositions();
     if (shouldSpeak) speakCurrent();
   }
 
@@ -1604,6 +2008,10 @@
     }
     if (name === "speaker-muted") {
       return `<svg ${common}><path d="M4 9 V15 H8 L13 19 V5 L8 9 Z" /><path d="M17 9 L21 15" /><path d="M21 9 L17 15" /></svg>`;
+    }
+    // Skip-to-end (RTL: travel leftward) — two left chevrons meeting an end bar.
+    if (name === "skip-rtl") {
+      return `<svg ${common}><path d="M20 5.5 L13.5 12 L20 18.5" /><path d="M13 5.5 L6.5 12 L13 18.5" /><path d="M5 5.5 V18.5" /></svg>`;
     }
     // Simple, monochrome line house (Chrome-style) — main menu.
     if (name === "home") {
@@ -1681,7 +2089,9 @@
   function navButton(action, iconName, label, options = {}) {
     const classes = `btn icon-btn${options.primary ? " btn-primary" : ""}`;
     const disabled = options.disabled ? "disabled" : "";
-    return `<button class="${classes}" data-action="${esc(action)}" aria-label="${esc(label)}" title="${esc(label)}" ${disabled}>${navIcon(iconName)}<span class="visually-hidden">${esc(label)}</span></button>`;
+    // data-tooltip drives a CSS tooltip shown ABOVE the button (so the cursor,
+    // which sits on the button, never covers it — unlike the native title).
+    return `<button class="${classes}" data-action="${esc(action)}" aria-label="${esc(label)}" data-tooltip="${esc(label)}" ${disabled}>${navIcon(iconName)}<span class="visually-hidden">${esc(label)}</span></button>`;
   }
 
   // A button with an icon shown beside its visible text label (top bar / menu).
@@ -1737,7 +2147,7 @@
           ${labeledButton("menu", "home", "תפריט ראשי")}
           ${labeledButton("chapters", "book", "פרקים")}
           ${labeledButton("explanations", "grad-cap", "הסברים")}
-          ${labeledButton("achievements", "trophy", "השיגים")}
+          ${labeledButton("achievements", "trophy", "הישגים")}
           ${myCardsButton()}
           ${labeledButton("about", "info", "אודות")}
           ${labeledButton("settings", "gear", "הגדרות")}
@@ -1899,7 +2309,8 @@
     { chapter: "chapter-5", ids: () => TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -1951,6 +2362,27 @@
   // Entry point of chapter 2.4 (the "buses" story scene).
   function chapter24StartTarget() {
     return storyTarget(chapterById("chapter-7"), 0);
+  }
+
+  // Entry point of chapter 2.6 (the "alu" story scene) — reached after all the
+  // 2.5 arithmetic cards are built.
+  function chapter26StartTarget() {
+    return storyTarget(chapterById("chapter-9"), 0);
+  }
+
+  function allAluTasksCompletedIn(taskIds = completedTaskIds()) {
+    const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
+    const alu = typeof ALU_TASKS !== "undefined" ? ALU_TASKS : [];
+    return alu.length > 0 && alu.every((task) => completed.has(task.id));
+  }
+
+  // The closing 2.6 monologue: von Neumann back in the doorway once every ALU card
+  // is built (panel126/127), reached after the LAST ALU task instead of returning
+  // to the worktable note.
+  function aluDoneMonologueTarget() {
+    const chapter = chapterById("chapter-9");
+    const index = panelIndexByImage(sceneByChapter(chapter), "panel126_chapter_2_6_alu_done_1.svg");
+    return storyTarget(chapter, index >= 0 ? index : 0);
   }
 
   function taskUnlockRequirement(taskId) {
@@ -2028,7 +2460,82 @@
   function hintButtonLabel() {
     const taskId = workspaceTaskId();
     if (solutionAvailable(taskId)) return "רוצה לראות את הפתרון";
-    return hintProgress(taskId).seen === 0 ? "רוצה רמז" : "רוצה עוד רמז";
+    // "רוצה עוד רמז" once the learner has already opened a hint AND a further one
+    // is available to open; otherwise "רוצה רמז". (This never flips prematurely:
+    // right after opening the only unlocked hint, no further one is available, so
+    // it stays "רוצה רמז" until the next hint unlocks.)
+    const progress = hintProgress(taskId);
+    return (progress.seen >= 1 && unlockedHintCount(taskId) > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
+  }
+
+  // ---- 60-second "nudge" timer -------------------------------------------------
+  // When the learner is stuck, gently move things along: in a hinted build task
+  // it unlocks the hint prompt / the next hint / the solution a minute after they
+  // last made progress; in the Nand presentation it pops the "הבנת?" prompt if
+  // they haven't discovered the Nand's behaviour. It is armed only when the
+  // NUDGE CONTEXT changes (a hint opened, a hint unlocked, an observation made) —
+  // not on every render — so it measures real elapsed time, and it re-validates
+  // at fire time so a stale nudge never triggers.
+  const IDLE_NUDGE_MS = 60000;
+  let idleNudgeTimerId = null;
+  let idleNudgeKey = null;
+
+  function clearIdleNudge() {
+    if (idleNudgeTimerId) { window.clearTimeout(idleNudgeTimerId); idleNudgeTimerId = null; }
+  }
+
+  function idleNudgePlan() {
+    if (state.screen !== "workspace") return null;
+    // A modal / walkthrough owns the screen — don't nudge underneath it.
+    if (workspaceAccidentActive() || workspaceBuildHelpPromptActive() || workspaceUnderstoodPromptActive()
+        || workspaceNandMonologueActive() || workspaceTaskIntroActive()
+        || state.solutionDialog || state.cardCreation) {
+      return null;
+    }
+    // (A) Hinted build task: unlock the next hint (or, once all hints are out,
+    // the solution) once the learner has caught up on the hints shown so far.
+    const taskId = workspaceTaskId();
+    if (hintedTaskActive() && taskId && !solutionAvailable(taskId)) {
+      const seen = hintProgress(taskId).seen;
+      const unlocked = unlockedHintCount(taskId);
+      // Only nudge when there is no unread hint already waiting.
+      if (seen >= unlocked) return { key: `hint:${taskId}:${seen}:${unlocked}`, fire: () => unlockNextHintByTime(taskId) };
+      return null;
+    }
+    // (B) Nand presentation: pop the "הבנת?" prompt if the Nand output has not
+    // yet been seen going both 0 and 1.
+    if (isNandPresentationWorkspace()
+        && !state.workspace?.understoodButtonVisible
+        && !(state.workspace?.nandOutputObserved?.zero && state.workspace?.nandOutputObserved?.one)) {
+      return { key: "nand-understood", fire: () => openUnderstoodPrompt() };
+    }
+    return null;
+  }
+
+  function syncIdleNudge() {
+    const plan = idleNudgePlan();
+    if (!plan) { clearIdleNudge(); idleNudgeKey = null; return; }
+    if (plan.key === idleNudgeKey && idleNudgeTimerId) return; // already ticking for this context
+    clearIdleNudge();
+    idleNudgeKey = plan.key;
+    idleNudgeTimerId = window.setTimeout(() => {
+      idleNudgeTimerId = null;
+      const firedKey = idleNudgeKey;
+      idleNudgeKey = null;
+      const current = idleNudgePlan(); // re-validate: fire only if still pending
+      if (current && current.key === firedKey) current.fire();
+    }, IDLE_NUDGE_MS);
+  }
+
+  function unlockNextHintByTime(taskId) {
+    if (!taskId || taskCompleted(taskId)) return;
+    const total = taskHints(taskId).length;
+    const cur = unlockedHintCount(taskId);
+    const seen = hintProgress(taskId).seen;
+    // failures = cur+2 unlocks exactly one more hint; once all hints are out,
+    // total+2 unlocks the solution — the same thresholds a failed check uses.
+    const failures = cur < total ? cur + 2 : total + 2;
+    setState({ hintState: setHintProgress(taskId, { failures, seen }) }, false);
   }
 
   function setHintProgress(taskId, progress) {
@@ -2082,11 +2589,19 @@
   // its button is hidden. Only the panel-based skips (part-2 story scenes) can be
   // no-ops — part-1 jumps to the next chapter, chapter-4 opens the workbench, and
   // the 2.4 closing monologue jumps to chapter 2.5.
+  // The intro (חלק 1: מבוא) — its own "דלג על המבוא" shortcut jumps straight to
+  // chapter 2.1, and is ALWAYS available (both paces), unlike the per-chapter דלג.
+  function introChapterActive() {
+    return state.screen === "story" && currentChapter()?.partId === "part-1";
+  }
+
   function skipLeadsNowhere() {
     if (state.screen !== "story") return false;
     const chapter = currentChapter();
     if (chapter?.partId === "part-1" || chapter?.id === "chapter-4") return false;
     if (busesClosingMonologue()) return false;
+    if (aluAtWorktable()) return true;          // 2.6 ALU tasks note: no skip here
+    if (aluSkipToNextChapter()) return false;   // 2.6 after the worktable: jumps to 3.1
     return skipTargetPanelIndex() === state.panelIndex;
   }
 
@@ -2265,13 +2780,13 @@
       { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.22 },
       { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: 0.42 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0.15, offset: 1 }
-    ], { duration: 780, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 1560, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the icon lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
-    ], { duration: 320, delay: 560, easing: "ease-out" });
+    ], { duration: 640, delay: 1120, easing: "ease-out" });
   }
 
   // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
@@ -2296,13 +2811,13 @@
       { transform: "translate(-50%,-50%) scale(1)", opacity: 1, offset: 0 },
       { transform: "translate(-50%,-50%) scale(0.9)", opacity: 1, offset: 0.15 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.1)`, opacity: 0.1, offset: 1 }
-    ], { duration: 460, easing: "cubic-bezier(.55,0,.9,.85)" });
+    ], { duration: 920, easing: "cubic-bezier(.55,0,.9,.85)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the card lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 300, delay: 320, easing: "ease-out" });
+    ], { duration: 600, delay: 640, easing: "ease-out" });
   }
 
   function nandIntroScene() {
@@ -2441,6 +2956,10 @@
     const arithIds = (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : []).map((t) => t.id);
     if (arithIds.length > 0 && arithIds.every((id) => taskCompleted(id))) unlockAchievement("arith-engineer");
 
+    // Chapter 2.6 ALU-task group (Inc / ALU0 / PreperNum / ALU1-3).
+    const aluIds = (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
+    if (aluIds.length > 0 && aluIds.every((id) => taskCompleted(id))) unlockAchievement("alu-engineer");
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
@@ -2449,6 +2968,7 @@
     if (chapterClean(routeIds)) unlockAchievement("precise-routing-engineer");
     if (chapterClean(busIds)) unlockAchievement("precise-bus-engineer");
     if (chapterClean(arithIds)) unlockAchievement("precise-arith-engineer");
+    if (chapterClean(aluIds)) unlockAchievement("precise-alu-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
@@ -2461,6 +2981,16 @@
     if (BIN_STAGES.every((s) => menuResolved.includes(s))) unlockAchievement("very-thorough-calc");
     const firstTryClean = Array.isArray(state.binFirstTryClean) ? state.binFirstTryClean : [];
     if (BIN_STAGES.every((s) => firstTryClean.includes(s))) unlockAchievement("thorough-precise-calc");
+
+    // Per-chapter medalist achievements: earn any currently-deserved medal (once
+    // earned they persist; losing the medal later only adds a "לשעבר" label, it
+    // never un-earns). Only when the leaderboard can actually be evaluated.
+    const medalElig = medalEligibilityMap();
+    if (medalElig) {
+      (typeof MEDAL_ACHIEVEMENTS !== "undefined" ? MEDAL_ACHIEVEMENTS : []).forEach((a) => {
+        if (medalElig[a.id]) unlockAchievement(a.id);
+      });
+    }
   }
 
   function explanationReplayActive(id = null) {
@@ -2683,6 +3213,19 @@
       if (!explanationUnlocked("words-bytes")) return;
       return setState({ wordsBytesDialog: { page: 0 } }, false);
     }
+
+    // Replays the scripted subtraction demo on the workbench; when it finishes (or
+    // is skipped) it returns to the explanations menu instead of the plot.
+    if (id === "subtraction-demo") {
+      if (!explanationUnlocked("subtraction-demo")) return;
+      return openSubtractionDemo({ fromExplanations: true });
+    }
+
+    // Opens the "negative numbers" videos window over the menu.
+    if (id === "negative-numbers") {
+      if (!explanationUnlocked("negative-numbers")) return;
+      return setState({ subtractionDemoLinks: { fromExplanations: true } }, false);
+    }
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -2776,6 +3319,13 @@
       ],
       enrichment: []
     },
+    // ALU (chapter 2.6): the ALU0 explanation replays its solution and then the
+    // "what is an ALU" message. Sits above Memory.
+    {
+      title: "ALU",
+      inGame: [{ alu: "ALU0", label: "ALU" }, "subtraction-demo"],
+      enrichment: ["negative-numbers"]
+    },
     // Memory: reserved for later (empty for now).
     {
       title: "זיכרון",
@@ -2803,6 +3353,15 @@
       const id = `arith-${spec.arith}`;
       return explanationUnlocked(id)
         ? `<button class="btn btn-primary expl-item" data-action="expl-arith-solution" data-arith="${esc(spec.arith)}" type="button">${esc(spec.label)}</button>`
+        : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
+    }
+    if (spec && spec.alu) {
+      // An ALU card explanation: replays its solution walkthrough (and, for ALU0,
+      // continues into the "what is an ALU" message). Unlocked at the END of that
+      // message (with the flourish) — not merely when the card is built.
+      const active = explanationUnlocked(`alu-${spec.alu}`);
+      return active
+        ? `<button class="btn btn-primary expl-item" data-action="expl-alu-solution" data-task-id="${esc(spec.alu)}" type="button">${esc(spec.label)}</button>`
         : `<button class="btn expl-item" type="button" disabled aria-disabled="true">${esc(spec.label)}</button>`;
     }
     if (spec && Array.isArray(spec.gates)) {
@@ -2851,6 +3410,7 @@
         </section>
         ${renderExplRoutingInfoDialog()}
         ${renderWordsBytesDialog()}
+        ${renderSubtractionDemoLinks()}
       </main>`;
   }
 
@@ -2961,7 +3521,7 @@
             ${labeledButton("continue", "resume-rtl", "המשך")}
             ${labeledButton("chapters", "book", "פרקים")}
             ${labeledButton("explanations", "grad-cap", "הסברים")}
-            ${labeledButton("achievements", "trophy", "השיגים")}
+            ${labeledButton("achievements", "trophy", "הישגים")}
             ${myCardsButton()}
             ${labeledButton("about", "info", "אודות")}
             ${labeledButton("settings", "gear", "הגדרות")}
@@ -3036,12 +3596,12 @@
       { transform: "translate(-50%,-50%) scale(1.15) rotate(0deg)", opacity: 1, offset: 0.24 },
       { transform: "translate(-50%,-50%) scale(1) rotate(0deg)", opacity: 1, offset: 0.52 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.16)`, opacity: 0.12, offset: 1 }
-    ], { duration: 900, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 1800, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 340, delay: 640, easing: "ease-out" });
+    ], { duration: 680, delay: 1280, easing: "ease-out" });
   }
 
   // A bridge for sibling modules (e.g. warehouse-hotspots.js, which owns the
@@ -3099,11 +3659,19 @@
   // not-yet-earned ones are also listed, greyed out.
   function renderAchievements() {
     const seeAll = !isStepByStepPace();
+    // Live medal eligibility (null when it cannot be evaluated). An EARNED medalist
+    // achievement whose medal is currently lost gets a " לשעבר" title suffix.
+    const medalElig = medalEligibilityMap();
+    const titleFor = (a, locked) => {
+      let t = adaptGender(a.title);
+      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " לשעבר";
+      return t;
+    };
     const card = (a, locked) => `
       <div class="achv-item${locked ? " achv-locked" : ""}">
         <div class="achv-icon">${renderAchievementIcon(a.id)}</div>
         <div class="achv-text">
-          <div class="achv-title">${esc(adaptGender(a.title))}</div>
+          <div class="achv-title">${esc(titleFor(a, locked))}</div>
           ${a.description ? `<div class="achv-desc">${esc(adaptGender(a.description))}</div>` : ""}
         </div>
       </div>`;
@@ -3123,10 +3691,13 @@
       ${topbar()}
       <main class="screen menu-screen achievements-screen">
         <section class="menu-card achievements-card">
-          <h1>השיגים</h1>
+          <div class="achievements-top-actions">
+            <button class="btn" data-action="open-rankings" type="button">דירוגים</button>
+          </div>
+          <h1>הישגים</h1>
           <div class="achievements-columns">
-            ${column("progress", "השיגי התקדמות")}
-            ${column("special", "השיגים מיוחדים")}
+            ${column("progress", "הישגי התקדמות")}
+            ${column("special", "הישגים מיוחדים")}
           </div>
           <div class="about-actions" style="margin-top:1.15rem;padding-top:1rem;border-top:1px dashed rgba(70,50,25,.35);">
             ${pageBackButton()}
@@ -3476,7 +4047,8 @@
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
-          ${skipLeadsNowhere() ? "" : `<button class="btn" data-action="skip" ${routingFinalPanelActive() ? "disabled" : skipDisabled}>דלג</button>`}
+          ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
+          ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -3490,7 +4062,9 @@
       ${renderComponentMonologue()}
       ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
-      ${renderArithNoteList()}`;
+      ${renderArithNoteList()}
+      ${renderAluNoteList()}
+      ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -3663,6 +4237,10 @@
   }
 
   function solutionHighlightConfig() {
+    // The subtraction demo lights up the control leg(s) the current bubble talks
+    // about (the whole control on the 110010 step, then just the NOT-input1 and
+    // NOT-result legs), so "the pins we're talking about" are visibly marked.
+    if (subtractionDemoActive()) return subtractionDemoHighlight();
     if (!state.solutionDialog) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
     const taskId = state.solutionDialog.taskId || "Not";
     const steps = TASK_SOLUTION_STEPS[taskId] || [];
@@ -3941,6 +4519,344 @@
           components: ["merge"],
           terminals: ["merge.single", "task-card-1.outputInt1"],
           wires: [wireKey("merge.single", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    Inc: [
+      {
+        text: "כדי להוסיף 1 צריך בס ברוחב 16 שמייצג את המספר 1. מוסיפים מקור מתח משלנו (מלבד מקור המתח החיצוני שמשמש לבדיקות) ומפצל־מיזוג בעל שתי רגליים לא־שוות: הרגל התחתונה ברוחב ביט אחד ומחוברת למקור המתח, והרגל העליונה ברוחב 15 ביט ונשארת לא מחוברת (0). כך הצד המאוחד הוא בס ברוחב 16 שמייצג בדיוק 0001 — המספר 1.",
+        highlight: {
+          components: ["one-source", "one-merge"],
+          terminals: ["one-merge.single", "one-merge.leg0"],
+          wires: [wireKey("one-source.out", "one-merge.leg0")]
+        }
+      },
+      {
+        text: "עכשיו מחברים את הכניסה של הכרטיס ואת בס ה-1 לשתי הכניסות של Add16. הסכום — הכניסה ועוד 1 — הוא התוצאה, ואותה מוציאים מיציאת הכרטיס.",
+        highlight: {
+          components: ["add-1"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "add-1.in1"),
+            wireKey("one-merge.single", "add-1.in2"),
+            wireKey("add-1.out1", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU0: [
+      {
+        text: "הכרטיס צריך לבצע אחת משתי פעולות לפי הבקרה. הרעיון: מבצעים את שתי הפעולות במקביל, ואז \"בוחרים\" ביניהן לפי ביט הבקרה.",
+        highlight: { components: [], terminals: [], wires: [] }
+      },
+      {
+        text: "קודם מבצעים את הפעולה הראשונה — AND על שתי הכניסות בעזרת AND16.",
+        highlight: {
+          components: ["and16"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "and16.in1"),
+            wireKey("task-card-1.inputInt2", "and16.in2")
+          ]
+        }
+      },
+      {
+        text: "במקביל מחברים את אותן שתי הכניסות בעזרת Add16.",
+        highlight: {
+          components: ["add16"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "add16.in1"),
+            wireKey("task-card-1.inputInt2", "add16.in2")
+          ]
+        }
+      },
+      {
+        text: "עכשיו יש שתי תוצאות. בעזרת MUX16 בוחרים ביניהן לפי ביט הבקרה: כשהבקרה 0 יוצאת תוצאת ה-AND, וכשהיא 1 יוצאת תוצאת החיבור. היציאה של ה-MUX16 היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["mux"],
+          terminals: ["task-card-1.inputInt3", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("and16.out", "mux.in1"),
+            wireKey("add16.out1", "mux.in2"),
+            wireKey("task-card-1.inputInt3", "mux.in3"),
+            wireKey("mux.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    PreperNum: [
+      {
+        text: "כניסת הבקרה היא בס ברוחב 2. קודם מפצלים אותה לשני הביטים שלה — הביט הראשון (למעלה) והביט השני (למטה).",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt2", "ctrl-split.leg0", "ctrl-split.leg1"],
+          wires: [wireKey("task-card-1.inputInt2", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "שלב 1 — לאפס אם ביט הבקרה השני הוא 1: בעזרת MUX16 בוחרים בין הכניסה (כשהביט 0) לבין בס של אפסים (כשהביט 1). את בס האפסים לא צריך לבנות — כניסה לא מחוברת של ה-MUX16 היא ממילא 0. הבחירה נעשית לפי הביט השני (למטה).",
+        highlight: {
+          components: ["mux1"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg0"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "mux1.in1"),
+            wireKey("ctrl-split.leg0", "mux1.in3")
+          ]
+        }
+      },
+      {
+        text: "שלב 2 — לבצע NOT אם ביט הבקרה הראשון הוא 1: קודם מכינים את ה-NOT של תוצאת שלב 1 בעזרת Not16.",
+        highlight: {
+          components: ["not16"],
+          terminals: [],
+          wires: [wireKey("mux1.out", "not16.in1")]
+        }
+      },
+      {
+        text: "ואז בעזרת MUX16 נוסף בוחרים בין תוצאת שלב 1 (כשהביט 0) לבין ה-NOT שלה (כשהביט 1), לפי ביט הבקרה הראשון (למעלה). התוצאה יוצאת מהכרטיס.",
+        highlight: {
+          components: ["mux2"],
+          terminals: ["ctrl-split.leg1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("mux1.out", "mux2.in1"),
+            wireKey("not16.out", "mux2.in2"),
+            wireKey("ctrl-split.leg1", "mux2.in3"),
+            wireKey("mux2.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU1: [
+      {
+        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק התחתון (שני הביטים האחרונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק העליון (שני הביטים הראשונים) מפוצל שוב — לביט ה-NOT (הראשון) וביט הפעולה (השני).",
+        highlight: {
+          components: ["ctrl-split", "part3-split"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [
+            wireKey("task-card-1.inputInt3", "ctrl-split.single"),
+            wireKey("ctrl-split.leg2", "part3-split.single")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מכין את הכניסה הראשונה — PreperNum על הכניסה הראשונה, עם החלק המתאים של הבקרה (שני הביטים האחרונים).",
+        highlight: {
+          components: ["pn1"],
+          terminals: ["task-card-1.inputInt1", "ctrl-split.leg0"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "pn1.in1"),
+            wireKey("ctrl-split.leg0", "pn1.in2")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מכין את הכניסה השנייה — PreperNum על הכניסה השנייה, עם שני הביטים הבאים של הבקרה.",
+        highlight: {
+          components: ["pn2"],
+          terminals: ["task-card-1.inputInt2", "ctrl-split.leg1"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "pn2.in1"),
+            wireKey("ctrl-split.leg1", "pn2.in2")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה מבצע את הפעולה על שתי ההכנות — ALU0 שמקבל את תוצאות שתי ההכנות ואת הביט השני של הבקרה (שקובע אם AND או חיבור).",
+        highlight: {
+          components: ["alu0"],
+          terminals: ["part3-split.leg0"],
+          wires: [
+            wireKey("pn1.out1", "alu0.in1"),
+            wireKey("pn2.out1", "alu0.in2"),
+            wireKey("part3-split.leg0", "alu0.in3")
+          ]
+        }
+      },
+      {
+        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון).",
+        highlight: {
+          components: ["pn3", "pn3-ctrl"],
+          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("part3-split.leg1", "pn3-ctrl.leg1"),
+            wireKey("alu0.out1", "pn3.in1"),
+            wireKey("pn3.out1", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "פתרון נוסף: במקום ה-PreperNum האחרון אפשר פשוט לעשות MUX16 שבוחר בין תוצאת ה-ALU0 (כשהביט הראשון 0) לבין ה-NOT שלה (כשהוא 1). זה פתרון חסכוני יותר, אבל לפעמים קל יותר להשתמש ב-PreperNum מוכן.",
+        highlight: {
+          components: ["not16", "mux-not"],
+          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("alu0.out1", "not16.in1"),
+            wireKey("alu0.out1", "mux-not.in1"),
+            wireKey("not16.out", "mux-not.in2"),
+            wireKey("part3-split.leg1", "mux-not.in3"),
+            wireKey("mux-not.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU2: [
+      {
+        text: "ה-ALU2 מבצע את הפעולה של ALU1 על הכניסה הראשונה ועל אחת משתי הכניסות האחרות. מפצלים את כניסת הבקרה (7 ביטים) לשתי רגליים לא־שוות: הרגל התחתונה ברוחב 6 ביט — היא בדיוק כניסת הבקרה של ה-ALU1, והרגל העליונה ברוחב ביט אחד — היא בוחרת על איזו כניסה עובדים.",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt4"],
+          wires: [wireKey("task-card-1.inputInt4", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "בוחרים את הכניסה השנייה של ה-ALU1: בעזרת MUX16 בוחרים בין הכניסה השנייה (כשביט הבחירה 0) לבין הכניסה השלישית (כשהוא 1), לפי הרגל העליונה (ביט אחד) של הבקרה.",
+        highlight: {
+          components: ["mux"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt3", "ctrl-split.leg1"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "mux.in1"),
+            wireKey("task-card-1.inputInt3", "mux.in2"),
+            wireKey("ctrl-split.leg1", "mux.in3")
+          ]
+        }
+      },
+      {
+        text: "לבסוף מכניסים ל-ALU1 את הכניסה הראשונה, את הכניסה שבחרנו (השנייה או השלישית), ואת ששת ביטי הבקרה (הרגל התחתונה) ישירות ככניסת הבקרה שלו. היציאה של ה-ALU1 היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["alu1"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "alu1.in1"),
+            wireKey("mux.out", "alu1.in2"),
+            wireKey("ctrl-split.leg0", "alu1.in3"),
+            wireKey("alu1.out1", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU3: [
+      {
+        text: "ל-ALU3 יש שתי אפשרויות ליציאה, לפי הביט העליון של הבקרה. נכין את שתיהן ונבחר ביניהן בעזרת MUX16. מפצלים את כניסת הבקרה (12 ביטים) לשלוש רגליים לא־שוות: הרגל התחתונה ברוחב 7 ביט (בקרת ה-ALU2), הרגל האמצעית ברוחב 4 ביט (אינה בשימוש), והרגל העליונה ברוחב ביט אחד (ביט הבחירה).",
+        highlight: {
+          components: ["ctrl-split"],
+          terminals: ["task-card-1.inputInt4"],
+          wires: [wireKey("task-card-1.inputInt4", "ctrl-split.single")]
+        }
+      },
+      {
+        text: "האפשרות הראשונה (כשביט הבחירה 0): היציאה זהה לכניסת הבקרה עם 4 אפסים לפניה. מרכיבים בס ברוחב 16 בעזרת מפצל־מיזוג בעל שתי רגליים לא־שוות: הרגל התחתונה ברוחב 12 ביט ומחוברת ישירות לכניסת הבקרה, והרגל העליונה ברוחב 4 ביט ונשארת לא מחוברת (0).",
+        highlight: {
+          components: ["optA-merge"],
+          terminals: ["task-card-1.inputInt4"],
+          wires: [wireKey("task-card-1.inputInt4", "optA-merge.leg0")]
+        }
+      },
+      {
+        text: "האפשרות השנייה (כשביט הבחירה 1): הפעולה של ALU2 על שלוש הכניסות, לפי 7 ביטי הבקרה התחתונים — הרגל התחתונה של המפצל. מזינים אותה ואת שלוש הכניסות ל-ALU2.",
+        highlight: {
+          components: ["alu2"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3"],
+          wires: [
+            wireKey("ctrl-split.leg0", "alu2.in4"),
+            wireKey("task-card-1.inputInt1", "alu2.in1"),
+            wireKey("task-card-1.inputInt2", "alu2.in2"),
+            wireKey("task-card-1.inputInt3", "alu2.in3")
+          ]
+        }
+      },
+      {
+        text: "לבסוף, בעזרת MUX16 בוחרים בין שתי האפשרויות לפי הביט העליון של הבקרה (הרגל העליונה): כשהוא 0 יוצאת האפשרות הראשונה, וכשהוא 1 יוצאת תוצאת ה-ALU2. היציאה של ה-MUX16 היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["mux"],
+          terminals: ["ctrl-split.leg2", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("optA-merge.single", "mux.in1"),
+            wireKey("alu2.out1", "mux.in2"),
+            wireKey("ctrl-split.leg2", "mux.in3"),
+            wireKey("mux.out", "task-card-1.outputInt1")
+          ]
+        }
+      }
+    ],
+    ALU4: [
+      {
+        text: "מכניסים את שלושת המספרים ואת כניסת הבקרה ל-ALU3. היציאה שלו היא בדיוק היציאה הראשית של הכרטיס.",
+        highlight: {
+          components: ["alu3"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("task-card-1.inputInt1", "alu3.in1"),
+            wireKey("task-card-1.inputInt2", "alu3.in2"),
+            wireKey("task-card-1.inputInt3", "alu3.in3"),
+            wireKey("task-card-1.inputInt4", "alu3.in4"),
+            wireKey("alu3.out1", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "היציאה ng היא הביט הראשון (העליון) של בס היציאה. מפצלים את בס היציאה לשתי רגליים לא־שוות — 15 ביט למטה וביט אחד למעלה — והרגל העליונה (ביט אחד) היא ng.",
+        highlight: {
+          components: ["ng-split"],
+          terminals: ["task-card-1.outputInt2"],
+          wires: [
+            wireKey("alu3.out1", "ng-split.single"),
+            wireKey("ng-split.leg1", "task-card-1.outputInt2")
+          ]
+        }
+      },
+      {
+        text: "היציאה nz היא 1 אם בס היציאה שונה מ-0. מכניסים את בס היציאה ל-≠0_16, והיציאה שלו היא nz.",
+        highlight: {
+          components: ["nz"],
+          terminals: ["task-card-1.outputInt3"],
+          wires: [
+            wireKey("alu3.out1", "nz.in1"),
+            wireKey("nz.out", "task-card-1.outputInt3")
+          ]
+        }
+      }
+    ],
+    Neq0_4: [
+      {
+        text: "מפצלים את בס הכניסה ל-4 כבלים בודדים בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "מחברים את כל 4 הכבלים ל-Or4way. הפלט שלו הוא 1 בדיוק כאשר לפחות ביט אחד דלוק — כלומר כשהבס שונה מ-0. זו יציאת הכרטיס.",
+        highlight: {
+          components: ["or4"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("split-in.leg0", "or4.in4"), wireKey("split-in.leg1", "or4.in3"), wireKey("split-in.leg2", "or4.in2"), wireKey("split-in.leg3", "or4.in1"), wireKey("or4.out", "task-card-1.outputInt")]
+        }
+      }
+    ],
+    Neq0_16: [
+      {
+        text: "מפצלים את בס הכניסה (רוחב 16) ל-4 בסים ברוחב 4 בעזרת מפצל.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "בודקים כל אחד מ-4 הבסים שהתקבלו בעזרת ≠0_4 שכבר בנית — כל אחד מוציא 1 אם הבס שלו שונה מ-0.",
+        highlight: {
+          components: ["neq0-0", "neq0-1", "neq0-2", "neq0-3"],
+          wires: [wireKey("split-in.leg0", "neq0-0.in1"), wireKey("split-in.leg1", "neq0-1.in1"), wireKey("split-in.leg2", "neq0-2.in1"), wireKey("split-in.leg3", "neq0-3.in1")]
+        }
+      },
+      {
+        text: "מחברים את 4 התוצאות ל-Or4way. היציאה היא 1 אם לפחות בס אחד שונה מ-0 — כלומר הבס כולו שונה מ-0.",
+        highlight: {
+          components: ["or4"],
+          terminals: ["task-card-1.outputInt"],
+          wires: [wireKey("neq0-0.out", "or4.in4"), wireKey("neq0-1.out", "or4.in3"), wireKey("neq0-2.out", "or4.in2"), wireKey("neq0-3.out", "or4.in1"), wireKey("or4.out", "task-card-1.outputInt")]
         }
       }
     ],
@@ -5421,10 +6337,10 @@
           ${navButton("hint-slides-replay", "restart", "הקרא שוב")}
           ${navButton("hint-slides-next", "arrow-left", "המשך", { primary: true })}
           ${inlineChapterHint
-            ? `<button class="btn" data-action="hint-slides-skip-to-chapter-last" type="button" ${inlineXorHintSkipDisabled() ? "disabled" : ""}>דלג</button>`
+            ? navButton("hint-slides-skip-to-chapter-last", "skip-rtl", "דלג", { disabled: inlineXorHintSkipDisabled() })
             : (explanationReplayActive("truth-table-cards")
               ? `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`
-              : `<button class="btn" data-action="hint-slides-close" type="button">דלג</button>`)}
+              : navButton("hint-slides-close", "skip-rtl", "דלג"))}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
@@ -5525,12 +6441,747 @@
   // above it (legs = the width, the single pin = width * output count).
   function renderSplitterWidthLabels() {
     if (state.screen !== "workspace") return "";
+    // Per-pin width labels: each leg shows its own (possibly different) width and
+    // the single side shows the sum. A pin whose width is still undetermined
+    // (null) gets no label.
     return state.workspace.components
-      .filter((c) => c.type === "splitter" && Number.isInteger(c.width))
+      .filter((c) => c.type === "splitter")
       .map((c) => Object.entries(splitterPins(c)).map(([pinId, pin]) => {
-        const w = pinId === "single" ? c.width * splitterOutputCount(c) : c.width;
-        return `<text class="splitter-width-label" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
+        const legMatch = /^leg(\d+)$/.exec(pinId);
+        const w = pinId === "single"
+          ? c.singleWidth
+          : (legMatch && Array.isArray(c.legWidths) ? c.legWidths[Number(legMatch[1])] : null);
+        if (!Number.isInteger(w)) return "";
+        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
+  }
+
+  // A little breathing room below the lowest board content before the scroll
+  // canvas ends, so the bottom item isn't flush against the edge.
+  const WORKSPACE_CANVAS_BOTTOM_PAD = 28;
+
+  // The optional bottom-left "למה צריך את זה לעזאזל?" panel. Only tasks listed in
+  // TASK_WHY_NOTES have one. It is hideable (a persistent preference) and, while
+  // open, click-through so the board underneath stays reachable — only its
+  // hide/show button captures clicks. Not shown during the solution walkthrough
+  // or card creation, which have their own overlays.
+  function renderWhyNote() {
+    const taskId = state.workspace?.taskId;
+    const text = (typeof TASK_WHY_NOTES !== "undefined" && TASK_WHY_NOTES) ? TASK_WHY_NOTES[taskId] : null;
+    if (!text) return "";
+    if (state.solutionDialog || state.cardCreation) return "";
+    const title = "למה צריך את זה לעזאזל?";
+    // A grip pinned to the note (its top-right corner) — the note is click-through,
+    // so this is the one pointer-events:auto surface by which it can be dragged.
+    const dragHandle = `<span class="panel-drag-handle" data-drag-handle role="presentation" title="גרירה">⠿</span>`;
+    if (state.whyNoteHidden) {
+      return `
+        <section class="workspace-why-note workspace-why-note-collapsed" aria-label="${esc(title)}">
+          <button class="why-note-toggle" data-action="why-note-toggle" type="button">הצגה</button>${dragHandle}
+          <span class="why-note-title">${esc(title)}</span>
+        </section>`;
+    }
+    return `
+      <section class="workspace-why-note" aria-label="${esc(title)}">
+        <button class="why-note-toggle" data-action="why-note-toggle" type="button">הסתרה</button>${dragHandle}
+        <div class="why-note-body">
+          <span class="why-note-title">${esc(title)}</span>
+          <p class="why-note-text">${esc(adaptGender(text))}</p>
+        </div>
+      </section>`;
+  }
+
+  // A one-off hint arrow that points at the And task's requirements panel
+  // (bottom-right). It disappears the moment the learner starts building — see
+  // the pointerdown handler, which removes it without a disruptive re-render.
+  function andArrowActive() {
+    return state.screen === "workspace"
+      && state.workspace?.taskId === "And"
+      && !state.andArrowSeen
+      && !state.solutionDialog
+      && !state.cardCreation
+      && !workspaceAccidentActive();
+  }
+
+  function renderAndArrow() {
+    if (!andArrowActive()) return "";
+    return `
+      <div class="workspace-and-arrow" aria-hidden="true">
+        <span class="workspace-and-arrow-label">הדרישות כאן</span>
+        <svg viewBox="0 0 24 24" width="52" height="52" class="workspace-and-arrow-svg">
+          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>`;
+  }
+
+  function dismissAndArrow() {
+    if (!state.workspace || state.andArrowSeen) return;
+    state.andArrowSeen = true;
+    saveState();
+    const el = app.querySelector(".workspace-and-arrow");
+    if (el) el.remove();
+  }
+
+  // The Nand-presentation connect demo: a looping ghost animation showing a cable
+  // drawn from the source pin to a Nand input pin, teaching the wiring gesture. It
+  // loops until the learner's first click on the board (dismissed) and re-arms
+  // whenever they leave and return to the presentation, or press the reset button.
+  let nandConnectDemoDismissed = false;
+  // When the demo first appeared (perf clock), so a click can't kill it before the
+  // 2s minimum is up, and a pending "remove at the 2s mark" timer.
+  let nandConnectDemoShownAt = 0;
+  let nandConnectDemoDismissTimer = null;
+  const NAND_DEMO_MIN_MS = 2000;
+  const perfNow = () => (typeof performance !== "undefined" && performance.now ? performance.now() : 0);
+
+  // Re-arm the demo so it plays again (leaving the presentation, or pressing reset).
+  function armNandConnectDemo() {
+    nandConnectDemoDismissed = false;
+    nandConnectDemoShownAt = 0;
+    if (nandConnectDemoDismissTimer) { window.clearTimeout(nandConnectDemoDismissTimer); nandConnectDemoDismissTimer = null; }
+  }
+
+  function removeNandConnectDemoNow() {
+    nandConnectDemoDismissed = true;
+    nandConnectDemoShownAt = 0;
+    if (nandConnectDemoDismissTimer) { window.clearTimeout(nandConnectDemoDismissTimer); nandConnectDemoDismissTimer = null; }
+    const el = app.querySelector("[data-nand-connect-demo]");
+    if (el) el.remove();
+  }
+
+  function nandConnectDemoActive() {
+    const ws = state.workspace;
+    return isNandPresentationWorkspace()
+      && !nandConnectDemoDismissed
+      && !!ws
+      && Array.isArray(ws.wires) && ws.wires.length === 0
+      && !Number.isInteger(ws.nandMonologueStep)
+      && ws.unlocked
+      && !ws.accident
+      && !state.cardCreation
+      && !workspaceInteractionLocked();
+  }
+
+  function renderNandConnectDemo() {
+    if (!nandConnectDemoActive()) return "";
+    const ws = state.workspace;
+    const from = terminalPosition(ws, "source-1.out");
+    const to = terminalPosition(ws, "nand-1.in1");
+    if (!from || !to) return "";
+    // Stamp the moment the demo first appears (once), so the 2s minimum can be
+    // enforced against a too-early click.
+    if (!nandConnectDemoShownAt) nandConnectDemoShownAt = perfNow();
+    const dur = "2.4s";                 // one loop; comfortably over the 2s minimum
+    const kt = "0;0.5;0.85;1";           // draw → hold → reset
+    const fade = "0;1;1;0;0";
+    const fadeKt = "0;0.12;0.7;0.9;1";
+    const drawX = `${from.x};${to.x};${to.x};${from.x}`;
+    const drawY = `${from.y};${to.y};${to.y};${from.y}`;
+    const pulse = (cx, cy, begin) => `
+      <circle class="nand-demo-pulse" cx="${cx}" cy="${cy}" r="12">
+        <animate attributeName="r" values="10;22;10" dur="1.2s" begin="${begin}" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.85;0;0.85" dur="1.2s" begin="${begin}" repeatCount="indefinite"/>
+      </circle>`;
+    return `
+      <g class="nand-connect-demo" data-nand-connect-demo pointer-events="none" aria-hidden="true">
+        ${pulse(from.x, from.y, "0s")}
+        ${pulse(to.x, to.y, "0.6s")}
+        <line class="nand-demo-cable" x1="${from.x}" y1="${from.y}" x2="${from.x}" y2="${from.y}">
+          <animate attributeName="x2" values="${drawX}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="y2" values="${drawY}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="${fade}" keyTimes="${fadeKt}" dur="${dur}" repeatCount="indefinite"/>
+        </line>
+        <circle class="nand-demo-hand" cx="${from.x}" cy="${from.y}" r="11">
+          <animate attributeName="cx" values="${drawX}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="${drawY}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="${fade}" keyTimes="${fadeKt}" dur="${dur}" repeatCount="indefinite"/>
+        </circle>
+      </g>`;
+  }
+
+  function dismissNandConnectDemo() {
+    if (nandConnectDemoDismissed || nandConnectDemoDismissTimer) return;
+    const elapsed = nandConnectDemoShownAt ? perfNow() - nandConnectDemoShownAt : NAND_DEMO_MIN_MS;
+    if (elapsed < NAND_DEMO_MIN_MS) {
+      // A click before the 2s minimum keeps the demo on screen until the minimum
+      // is up, then removes it — the click still does its own thing meanwhile.
+      nandConnectDemoDismissTimer = window.setTimeout(removeNandConnectDemoNow, NAND_DEMO_MIN_MS - elapsed);
+      return;
+    }
+    removeNandConnectDemoNow();
+  }
+
+  // ---- Chapter 2.6 scripted "subtraction" demo -----------------------------
+  // Von Neumann drives an ALU4 through 19 − 7 on an INACTIVE workbench. One speech
+  // bubble (and, later, one animation) per "המשך" press. The board is locked; only
+  // the demo's own controls (הקודם/המשך) and the red enrichment teaser work.
+  const SUBTRACTION_DEMO_LAST = (typeof SUBTRACTION_DEMO_TEXTS !== "undefined" ? SUBTRACTION_DEMO_TEXTS.length : 1) - 1;
+
+  function subtractionDemoActive() {
+    return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
+  }
+
+  // Where each of the 16 output lamps sits at the lamps step: a column down the far
+  // right, CENTRED on the output splitter (y=500, legs span 245..755) and evenly
+  // spread, so the top lamp (bit 15, the leading bit VN points at) protrudes above
+  // the splitter and the bottom lamp (bit 0) protrudes the same amount below it.
+  function subtractionLampPos(i) {
+    return { x: 850, y: 215 + (15 - i) * 38 };   // centre 500 = splitter centre
+  }
+
+  // The (inactive) ALU1 workbench the demo drives, built up from the step index:
+  // a real ALU1 gate whose converters/control the engine actually evaluates, so
+  // the readouts (19, 7, 12; and the swapped 65524) are computed, not faked.
+  // control 010011 (c0..c5 = 0,1,0,0,1,1) = NOT input1, ADD, NOT result → a − b.
+  function buildSubtractionDemoWorkspace(step) {
+    const swapped = step >= 9;                 // step 9 swaps the two operands
+    // The two converters keep their own displayed numbers (conv1 shows 19, conv2
+    // shows 7) the WHOLE time — the swap is done by moving them to each other's
+    // spot and rewiring, not by changing the digits (see the swap animation).
+    const conv1Y = swapped ? 620 : 380;        // 19 sits low after the swap
+    const conv2Y = swapped ? 380 : 620;        // 7 rises to the top after the swap
+    const conv1In = swapped ? "alu.in2" : "alu.in1";
+    const conv2In = swapped ? "alu.in1" : "alu.in2";
+    // Layout follows the desired relative arrangement: the control (source + its
+    // merging splitter) sits along the TOP; the two input converters are stacked on
+    // the LEFT with the ALU vertically between them; the output splitter is just
+    // right of the ALU and the bit-lamp column runs down the far RIGHT.
+    // The ALU is drawn bigger than the usual 0.6 gate scale so it reads as the
+    // centrepiece; the whole symbol (body AND pins) scales together, so the wires
+    // still meet the pins exactly and the pin bus-widths are unchanged.
+    const alu = { id: "alu", type: "gate-ALU1", x: 470, y: 500, scale: 0.95 };
+    const components = [alu];
+    const wires = [];
+    // Input 1 (always, from step 0). conv1 always shows 19.
+    components.push({ id: "conv1", type: "converter-out", x: 190, y: conv1Y, value: 19, width: 16 });
+    wires.push({ a: "conv1.out", b: conv1In });
+    // Input 2 (step 1). conv2 always shows 7.
+    if (step >= 1) {
+      components.push({ id: "conv2", type: "converter-out", x: 190, y: conv2Y, value: 7, width: 16 });
+      wires.push({ a: "conv2.out", b: conv2In });
+    }
+    // Control 010011 via a merging splitter fed by one source (step 2), along the top.
+    if (step >= 2) {
+      components.push({ id: "ctrl-src", type: "source", x: 180, y: 150 });
+      // The merging splitter's single (output) pin sits at centre+38; place the
+      // splitter so that pin lands directly ABOVE the ALU's control pin (alu.in3 is
+      // at the ALU's centre x = 470), so the control cable drops straight down.
+      components.push({ id: "ctrl-split", type: "splitter", x: 432, y: 150, mirrored: true, outputs: 6, width: 1 });
+      wires.push({ a: "ctrl-split.single", b: "alu.in3" });
+      for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
+    }
+    // Output converter (from step 6) — it shows the weird swapped value at step 9,
+    // then at step 10 it is replaced by lamps so the leading bit can be pointed at.
+    if (step >= 6 && step < 10) {
+      components.push({ id: "convOut", type: "converter-in", x: 850, y: 500, width: 16 });
+      wires.push({ a: "alu.out1", b: "convOut.in" });
+    }
+    // Step 10: swap the output converter for a splitter + 16 small lamps in one
+    // column. leg15 (the TOP lamp) is the leading bit — the one pointed at.
+    if (step >= 10) {
+      components.push({ id: "out-split", type: "splitter", x: 660, y: 500, mirrored: false, outputs: 16, width: 1 });
+      wires.push({ a: "alu.out1", b: "out-split.single" });
+      for (let i = 0; i < 16; i += 1) {
+        const pos = subtractionLampPos(i);
+        components.push({ id: `olamp${i}`, type: "lamp", x: pos.x, y: pos.y, scale: 0.5 });
+        wires.push({ a: `out-split.leg${i}`, b: `olamp${i}.in` });
+      }
+    }
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2, taskId: null, freeBuild: true, taskIntroSeen: true
+    });
+  }
+
+  // Which control legs/wires the current bubble highlights. Control 010011 wires
+  // legs [1,4,5]: c1 = NOT input1, c4 = the ADD op, c5 = NOT the result.
+  function subtractionDemoHighlight() {
+    const empty = { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
+    if (!subtractionDemoActive()) return empty;
+    // While a step's parts are still gliding in / being wired, hold the highlight
+    // back — it is revealed only once the entrance animation finishes.
+    if (subtractionHighlightHold) return empty;
+    const step = state.subtractionDemo.step;
+    const legWire = (leg) => wireKey("ctrl-src.out", `ctrl-split.leg${leg}`);
+    const terminals = new Set();
+    const wires = new Set();
+    if (step === 2) {
+      // "the 110010 control bits" (shown top-first) — the whole control path (every wired leg plus
+      // the merged control cable into the ALU's control pin).
+      for (const leg of [1, 4, 5]) { wires.add(legWire(leg)); terminals.add(`ctrl-split.leg${leg}`); }
+      wires.add(wireKey("ctrl-split.single", "alu.in3"));
+      terminals.add("alu.in3");
+    } else if (step === 3) {
+      wires.add(legWire(1)); terminals.add("ctrl-split.leg1");   // NOT of input 1
+    } else if (step === 4) {
+      wires.add(legWire(4)); terminals.add("ctrl-split.leg4");   // the ADD operation
+    } else if (step === 5) {
+      wires.add(legWire(5)); terminals.add("ctrl-split.leg5");   // NOT of the result
+    } else if (step === 10 || step === 11) {
+      // "the leading bit" — the top lamp's cable (out-split.leg15 → olamp15).
+      wires.add(wireKey("out-split.leg15", "olamp15.in"));
+      terminals.add("olamp15.in");
+    } else {
+      return empty;
+    }
+    return { terminals, wires, components: new Set(), truthRows: new Set(), truthCols: new Set() };
+  }
+
+  // The pending board animation for the current step transition, played once after
+  // the next render paints (see render()'s workspace branch). Reset after playing.
+  let subtractionDemoAnim = null;
+  // True while a multi-beat scripted transition (the swap / the lamps fade) is
+  // mid-flight, so a stray click or key press can't interrupt it.
+  let subtractionDemoBusy = false;
+  // True between a step's render and the end of its entrance animation, so the
+  // control highlight only appears AFTER the splitter has arrived and been wired.
+  let subtractionHighlightHold = false;
+  // True when the demo was opened as a replay from the explanations menu, so it
+  // returns THERE (not to chapter 3.1) when finished/skipped/backed-out. Kept as a
+  // module var so it survives the per-step subtractionDemo state rebuilds.
+  let subtractionFromExplanations = false;
+
+  // Work out what a forward reveal adds (new components / wires) so it can slide
+  // the parts in from the toolbar and then draw their cables. Skipped for backward
+  // or jump navigation (those just snap to the final state).
+  // Steps whose bubble highlights a control leg (see subtractionDemoHighlight).
+  const SUBTRACTION_HIGHLIGHT_STEPS = [2, 3, 4, 5];
+
+  function planSubtractionSlide(prevStep, nextStep) {
+    subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
+    const isOpen = prevStep == null;
+    if (!isOpen && nextStep !== prevStep + 1) return;
+    const sets = subtractionEnterSets(isOpen ? null : prevStep, nextStep);
+    if (!sets.enterComps.length && !sets.enterWires.length) return;
+    subtractionDemoAnim = { mode: "slide", ...sets };
+    // If this step also highlights (the control step), hold the highlight back so
+    // it appears only AFTER the splitter has slid in and its cables are drawn.
+    if (SUBTRACTION_HIGHLIGHT_STEPS.includes(nextStep)) subtractionHighlightHold = true;
+  }
+
+  function openSubtractionDemo(options = {}) {
+    subtractionDemoBusy = false;
+    subtractionHighlightHold = false;
+    subtractionFromExplanations = Boolean(options.fromExplanations);
+    // Reaching the demo (its first appearance) counts as seeing it → unlock its
+    // replay silently; the flourish is announced when it finishes OR is skipped,
+    // so an interrupt fires the flourish at that moment instead of never.
+    unlockExplanation("subtraction-demo", { silent: true });
+    planSubtractionSlide(null, 0);
+    setState({
+      screen: "workspace",
+      subtractionDemo: { step: 0 },
+      subtractionDemoLinks: null,
+      dialog: null, taskDialog: null, notTest: null, hintDialog: null, solutionDialog: null,
+      aluNoteList: false, aluIntroDialog: null, infoDialog: null,
+      workspace: buildSubtractionDemoWorkspace(0),
+      replayNonce: state.replayNonce + 1
+    }, false);
+  }
+
+  function setSubtractionDemoStep(step, animate) {
+    const clamped = Math.min(Math.max(step, 0), SUBTRACTION_DEMO_LAST);
+    const prevStep = subtractionDemoActive() ? state.subtractionDemo.step : null;
+    if (animate) planSubtractionSlide(prevStep, clamped);
+    else { subtractionDemoAnim = null; subtractionHighlightHold = false; }
+    setState({ subtractionDemo: { step: clamped }, workspace: buildSubtractionDemoWorkspace(clamped) }, false);
+  }
+
+  function advanceSubtractionDemo() {
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    const step = state.subtractionDemo.step;
+    // Finishing the last bubble rolls straight into chapter 3.1 (the YouTube-links
+    // window is reached ONLY via the red teaser, never from "המשך").
+    if (step >= SUBTRACTION_DEMO_LAST) return finishSubtractionDemo();
+    if (step === 8) return runSubtractionSwapTransition();    // 8 → 9: animated operand swap
+    if (step === 9) return runSubtractionLampsTransition();   // 9 → 10: converter → lamps fade
+    setSubtractionDemoStep(step + 1, true);
+  }
+
+  function subtractionDemoBack() {
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    // From the FIRST slide, "back" exits: to the explanations menu when the demo
+    // was opened from there, otherwise back to the plot slide that led into it
+    // ("הנה תראה משהו מגניב").
+    if (state.subtractionDemo.step <= 0) {
+      if (subtractionFromExplanations) return returnToExplanationsFromDemo();
+      return exitSubtractionDemoToStory();
+    }
+    setSubtractionDemoStep(state.subtractionDemo.step - 1);
+  }
+
+  // Leave the demo back to the explanations menu (a menu-opened replay).
+  function returnToExplanationsFromDemo() {
+    subtractionFromExplanations = false;
+    setState({
+      ...transientUiClearPatch(),
+      screen: "explanations",
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, false);
+  }
+
+  // Leave the demo back to the plot slide that opens it (panel127, the 2.6
+  // "הנה תראה משהו מגניב" teaser) — used by "back" on the demo's first slide.
+  function exitSubtractionDemoToStory() {
+    const chapter = chapterById("chapter-9");
+    const scene = sceneByChapter(chapter);
+    const idx = panelIndexByImage(scene, "panel127_chapter_2_6_alu_done_2.svg");
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: scene.id,
+      panelIndex: idx >= 0 ? idx : Math.max(scene.panels.length - 1, 0),
+      started: true,
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, true);
+  }
+
+  // Replay the CURRENT step's entrance animation from the top (the circular button).
+  function replaySubtractionStep() {
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    const step = state.subtractionDemo.step;
+    if (step === 9) return replaySubtractionSwap();     // re-run the operand swap
+    if (step === 10) return replaySubtractionLamps();   // re-run the converter→lamps fade
+    // Slide/highlight steps: re-plan this step's entrance and re-render so its parts
+    // glide back in, their cables redraw, and (the control step) the highlight
+    // re-reveals afterwards. A step that adds nothing just re-renders harmlessly.
+    planSubtractionSlide(step === 0 ? null : step - 1, step);
+    setState({ subtractionDemo: { step }, workspace: buildSubtractionDemoWorkspace(step) }, false);
+  }
+
+  function replaySubtractionSwap() {
+    subtractionDemoBusy = true;
+    subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
+    // Reset to the pre-swap (unswapped, connected) board, then replay the swap.
+    setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(8) }, false);
+    window.setTimeout(() => { subtractionDemoBusy = false; runSubtractionSwapTransition(); }, 60);
+  }
+
+  function replaySubtractionLamps() {
+    subtractionDemoBusy = true;
+    subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
+    // Reset to the converter-output board, then replay the converter→lamps fade.
+    setState({ subtractionDemo: { step: 10 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
+    window.setTimeout(() => { subtractionDemoBusy = false; runSubtractionLampsTransition(); }, 60);
+  }
+
+  // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
+  // "we need memory" monologue in the warehouse. Seeing it through to the end (or
+  // skipping it) unlocks the demo's replay in the explanations menu, with the
+  // "new explanation" flourish — so an interrupt/skip fires the flourish right then.
+  function finishSubtractionDemo() {
+    announceExplanationUnlock("subtraction-demo");
+    // A replay opened from the menu just returns there.
+    if (subtractionFromExplanations) return returnToExplanationsFromDemo();
+    const chapter = chapterById("chapter-10");
+    setState({
+      ...transientUiClearPatch(),
+      ...storyTarget(chapter, 0),
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, true);
+  }
+
+  // --- Subtraction demo board animations -----------------------------------
+  // What a step reveals over the one before it: the new components (minus the
+  // ever-present ALU) and the new cables.
+  function subtractionEnterSets(prevStep, nextStep) {
+    const prev = prevStep == null ? { components: [], wires: [] } : buildSubtractionDemoWorkspace(prevStep);
+    const next = buildSubtractionDemoWorkspace(nextStep);
+    const pc = new Set(prev.components.map((c) => c.id));
+    const pw = new Set(prev.wires.map((w) => wireKey(w.a, w.b)));
+    return {
+      enterComps: next.components.filter((c) => !pc.has(c.id) && c.id !== "alu").map((c) => c.id),
+      enterWires: next.wires.map((w) => wireKey(w.a, w.b)).filter((k) => !pw.has(k))
+    };
+  }
+
+  const subtractionBoardRoot = () => app.querySelector("[data-workspace-board]");
+  const subtractionCompEl = (id) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-component-id="${id}"]`); };
+  const subtractionWireEl = (key) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-wire-key="${key}"]`); };
+  const subtractionLabelEls = (id) => { const r = subtractionBoardRoot(); return r ? [...r.querySelectorAll(`[data-splitter-id="${id}"]`)] : []; };
+  const subtractionEnteringSplitters = (ids) => (ids || []).filter((id) => ((state.workspace.components.find((c) => c.id === id) || {}).type === "splitter"));
+  function subtractionCompScale(comp) {
+    return Number.isFinite(comp.scale) ? comp.scale : componentRenderScale(comp.type);
+  }
+  // Set an SVG line/path so it looks undrawn (dasharray = its own length, fully
+  // offset), ready to be "drawn" by transitioning the offset back to 0.
+  function subtractionPrimeDraw(line) {
+    let len;
+    if (line.tagName.toLowerCase() === "path") { try { len = line.getTotalLength(); } catch (e) { len = 1400; } }
+    else {
+      const x1 = +line.getAttribute("x1"), y1 = +line.getAttribute("y1");
+      const x2 = +line.getAttribute("x2"), y2 = +line.getAttribute("y2");
+      len = Math.hypot(x2 - x1, y2 - y1) || 1400;
+    }
+    line.style.transition = "none";
+    line.style.strokeDasharray = `${len}`;
+    line.style.strokeDashoffset = `${len}`;
+    return len;
+  }
+  function subtractionHideWire(key) {
+    const g = subtractionWireEl(key);
+    if (g) g.style.opacity = "0";
+  }
+  function subtractionDrawWire(key, duration) {
+    const g = subtractionWireEl(key);
+    if (!g) return;
+    const lines = [...g.querySelectorAll(".wire-line, .wire-bus-stripe")];
+    lines.forEach(subtractionPrimeDraw);
+    g.style.opacity = "1";
+    requestAnimationFrame(() => {
+      lines.forEach((line) => {
+        line.style.transition = `stroke-dashoffset ${duration || 0.45}s ease`;
+        line.style.strokeDashoffset = "0";
+      });
+    });
+  }
+  // The full CSS transform matching a component's board position (a CSS style
+  // transform REPLACES the presentation-attribute transform board-render set, so
+  // it must carry the base translate+scale, not just an offset).
+  function subtractionCompTransform(comp, x, y) {
+    const scale = subtractionCompScale(comp);
+    const tx = Number.isFinite(x) ? x : comp.x;
+    const ty = Number.isFinite(y) ? y : comp.y;
+    return `translate(${tx}px, ${ty}px)${scale !== 1 ? ` scale(${scale})` : ""}`;
+  }
+  // Slide a component in from the toolbar side (off the left edge) to its spot.
+  function subtractionSlideCompFrom(id, fromX, fromY, dur) {
+    const comp = state.workspace.components.find((c) => c.id === id);
+    const el = subtractionCompEl(id);
+    if (!comp || !el) return;
+    el.style.transition = "none";
+    el.style.transform = subtractionCompTransform(comp, Number.isFinite(fromX) ? fromX : comp.x, Number.isFinite(fromY) ? fromY : comp.y);
+    el.style.opacity = "0.35";
+    requestAnimationFrame(() => {
+      el.style.transition = `transform ${dur || 0.55}s cubic-bezier(.22,.61,.36,1), opacity ${dur || 0.5}s ease`;
+      el.style.transform = subtractionCompTransform(comp);
+      el.style.opacity = "1";
+    });
+  }
+
+  // Play whatever animation the last step transition queued, after the render
+  // paints. Runs once, then clears the queue.
+  function playSubtractionDemoAnim() {
+    const anim = subtractionDemoAnim;
+    subtractionDemoAnim = null;
+    if (!anim || !subtractionDemoActive()) return;
+    if (anim.mode === "slide" || anim.mode === "fadeIn") {
+      (anim.enterWires || []).forEach(subtractionHideWire);
+      // A newly-appearing component enters first, then its cable is drawn (or,
+      // for the lamps swap, both simply fade in together).
+      if (anim.mode === "fadeIn") {
+        (anim.enterComps || []).forEach((id) => {
+          const el = subtractionCompEl(id);
+          if (!el) return;
+          el.style.transition = "none";
+          el.style.opacity = "0";
+          requestAnimationFrame(() => { el.style.transition = "opacity 0.5s ease"; el.style.opacity = "1"; });
+        });
+        (anim.enterWires || []).forEach((key) => {
+          const g = subtractionWireEl(key);
+          if (!g) return;
+          g.style.opacity = "0";
+          requestAnimationFrame(() => { g.style.transition = "opacity 0.5s ease"; g.style.opacity = "1"; });
+        });
+        // The entering splitter's width labels fade in with it.
+        subtractionEnteringSplitters(anim.enterComps).forEach((id) => subtractionLabelEls(id).forEach((t) => {
+          t.style.transition = "none"; t.style.opacity = "0";
+          requestAnimationFrame(() => { t.style.transition = "opacity 0.5s ease"; t.style.opacity = "1"; });
+        }));
+        return;
+      }
+      // slide: parts glide in from the left, then the cables draw once they land.
+      // A splitter's width labels ("1"/"6") float at its final pin spots, so hide
+      // them while it glides in and reveal them only once its cables are drawn.
+      const slideSplitters = subtractionEnteringSplitters(anim.enterComps);
+      slideSplitters.forEach((id) => subtractionLabelEls(id).forEach((t) => { t.style.transition = "none"; t.style.opacity = "0"; }));
+      (anim.enterComps || []).forEach((id) => subtractionSlideCompFrom(id, -160));
+      const delay = (anim.enterComps && anim.enterComps.length) ? 520 : 0;
+      window.setTimeout(() => (anim.enterWires || []).forEach((key) => subtractionDrawWire(key)), delay);
+      if (slideSplitters.length) {
+        window.setTimeout(() => slideSplitters.forEach((id) => subtractionLabelEls(id).forEach((t) => { t.style.transition = "opacity 0.4s ease"; t.style.opacity = "1"; })), delay + 460);
+      }
+      // Reveal the (held) highlight only after the parts have landed AND their
+      // cables have finished drawing — never all at once.
+      if (subtractionHighlightHold) {
+        window.setTimeout(() => {
+          subtractionHighlightHold = false;
+          if (subtractionDemoActive()) render();
+        }, delay + 620);
+      }
+      return;
+    }
+    if (anim.mode === "move") {
+      (anim.moves || []).forEach(({ id, fromY }) => {
+        const comp = state.workspace.components.find((c) => c.id === id);
+        const el = subtractionCompEl(id);
+        if (!comp || !el) return;
+        el.style.transition = "none";
+        el.style.transform = subtractionCompTransform(comp, comp.x, fromY);
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 0.6s cubic-bezier(.4,0,.2,1)";
+          el.style.transform = subtractionCompTransform(comp);
+        });
+      });
+    }
+  }
+
+  // Remove the two operand cables from a built demo workspace (used mid-swap so
+  // the output momentarily reads 0 while the converters are being moved).
+  function subtractionStripInputWires(ws) {
+    ws.wires = ws.wires.filter((w) => ![w.a, w.b].some((r) => r === "conv1.out" || r === "conv2.out"));
+    return ws;
+  }
+
+  // 8 → 9. The operand swap, in three visible beats: (1) unplug the two operand
+  // cables — the output resets to 0; (2) slide the converters to each other's
+  // spot, KEEPING their own numbers; (3) plug them back in — the output now shows
+  // the swapped (weird) result.
+  function runSubtractionSwapTransition() {
+    subtractionDemoBusy = true;
+    // Beat 1: fade out the two operand cables on the current (step-8) board.
+    [wireKey("conv1.out", "alu.in1"), wireKey("conv2.out", "alu.in2")].forEach((key) => {
+      const g = subtractionWireEl(key);
+      if (g) { g.style.transition = "opacity 0.28s ease"; g.style.opacity = "0"; }
+    });
+    window.setTimeout(() => {
+      // Now on step 9's bubble, but converters still at the OLD spots, unplugged.
+      subtractionDemoAnim = null;
+      const old = subtractionStripInputWires(buildSubtractionDemoWorkspace(8));
+      setState({ subtractionDemo: { step: 9 }, workspace: old }, false);
+      window.setTimeout(() => {
+        // Beat 2: slide the converters to their swapped spots (still unplugged).
+        subtractionDemoAnim = { mode: "move", moves: [{ id: "conv1", fromY: 380 }, { id: "conv2", fromY: 620 }] };
+        const movedWs = subtractionStripInputWires(buildSubtractionDemoWorkspace(9));
+        setState({ subtractionDemo: { step: 9 }, workspace: movedWs }, false);
+        window.setTimeout(() => {
+          // Beat 3: plug the operands back in — the output shows the new value.
+          subtractionDemoAnim = { mode: "slide", enterComps: [], enterWires: [wireKey("conv1.out", "alu.in2"), wireKey("conv2.out", "alu.in1")] };
+          setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
+          window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
+        }, 720);
+      }, 180);
+    }, 300);
+  }
+
+  // 9 → 10. Fade the output converter OUT, then fade the splitter + lamps IN (no
+  // sliding), so the readout "becomes" the 16 bit-lamps.
+  function runSubtractionLampsTransition() {
+    subtractionDemoBusy = true;
+    const convEl = subtractionCompEl("convOut");
+    const convWire = subtractionWireEl(wireKey("alu.out1", "convOut.in"));
+    [convEl, convWire].forEach((el) => { if (el) { el.style.transition = "opacity 0.3s ease"; el.style.opacity = "0"; } });
+    window.setTimeout(() => {
+      subtractionDemoAnim = { mode: "fadeIn", ...subtractionEnterSets(9, 10) };
+      setState({ subtractionDemo: { step: 10 }, workspace: buildSubtractionDemoWorkspace(10) }, false);
+      window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
+    }, 320);
+  }
+
+  // Drag the demo speech bubble around. Its offset is kept in a module var and
+  // reapplied on every re-render, so it stays put as the steps advance. A real
+  // drag sets suppressNextClick so releasing does not also advance a step.
+  function startSubtractionBubbleDrag(event) {
+    const bubble = event.target.closest("[data-subtraction-bubble]");
+    if (!bubble) return;
+    event.preventDefault();
+    const startX = event.clientX, startY = event.clientY;
+    const base = { dx: subtractionBubbleOffset.dx, dy: subtractionBubbleOffset.dy };
+    let moved = false;
+    const onMove = (e) => {
+      if (Math.abs(e.clientX - startX) > 3 || Math.abs(e.clientY - startY) > 3) moved = true;
+      subtractionBubbleOffset = { dx: base.dx + (e.clientX - startX), dy: base.dy + (e.clientY - startY) };
+      bubble.style.transform = `translate(${subtractionBubbleOffset.dx}px, ${subtractionBubbleOffset.dy}px)`;
+    };
+    const onUp = () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      if (moved) suppressNextClick = true;
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+  }
+
+  // The "still under construction — watch these videos" window, opened ONLY by the
+  // red teaser; "חזרה" just returns to the demo where it was.
+  function openSubtractionDemoLinks() {
+    // Opening the "negative numbers" window (from the demo's red teaser) unlocks it
+    // in the explanations menu; the flourish is announced when the window closes.
+    unlockExplanation("negative-numbers", { silent: true });
+    setState({ subtractionDemoLinks: {} }, false);
+  }
+
+  function closeSubtractionDemoLinks() {
+    announceExplanationUnlock("negative-numbers");
+    setState({ subtractionDemoLinks: null }, false);
+  }
+
+  // The draggable speech bubble's on-screen offset from its default top-right
+  // anchor, persisted across step re-renders (module-level, not saved state).
+  let subtractionBubbleOffset = { dx: 0, dy: 0 };
+
+  // The demo's speech bubble (current step). The red enrichment teaser is pinned
+  // above it but shows ONLY on the final step. Rendered over the (locked) bench.
+  function renderSubtractionDemo() {
+    if (!subtractionDemoActive()) return "";
+    const step = Math.min(Math.max(state.subtractionDemo.step, 0), SUBTRACTION_DEMO_LAST);
+    const text = (typeof SUBTRACTION_DEMO_TEXTS !== "undefined" && SUBTRACTION_DEMO_TEXTS[step]) || "";
+    const teaser = (typeof SUBTRACTION_DEMO_TEASER !== "undefined") ? SUBTRACTION_DEMO_TEASER : "";
+    // The teaser sits on the final step only (where the plot hands off to the
+    // "under construction" enrichment window).
+    const teaserHtml = step >= SUBTRACTION_DEMO_LAST
+      ? `<button class="subtraction-demo-teaser" data-action="subtraction-demo-teaser" type="button">
+          <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+          <span>${esc(teaser)}</span>
+        </button>`
+      : "";
+    const off = subtractionBubbleOffset;
+    const style = (off.dx || off.dy) ? ` style="transform:translate(${off.dx}px, ${off.dy}px)"` : "";
+    return `
+      ${teaserHtml}
+      <div class="subtraction-demo-layer" data-subtraction-demo role="presentation">
+        <div class="subtraction-demo-speech" data-subtraction-bubble${style}>
+          <span class="subtraction-demo-grip" data-subtraction-bubble-grip aria-hidden="true">⠿</span>
+          <p>${esc(text)}</p>
+        </div>
+      </div>`;
+  }
+
+  // The "still under construction — watch these videos" window.
+  function renderSubtractionDemoLinks() {
+    if (!state.subtractionDemoLinks) return "";
+    const title = (typeof SUBTRACTION_DEMO_LINKS_TITLE !== "undefined") ? SUBTRACTION_DEMO_LINKS_TITLE : "";
+    const intro = (typeof SUBTRACTION_DEMO_LINKS_INTRO !== "undefined") ? SUBTRACTION_DEMO_LINKS_INTRO : "";
+    const links = (typeof SUBTRACTION_DEMO_LINKS !== "undefined" ? SUBTRACTION_DEMO_LINKS : [])
+      .map((l) => `<li><a class="subtraction-demo-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`)
+      .join("");
+    return `
+      <div class="pace-dialog-overlay subtraction-demo-links-overlay" role="presentation">
+        <section class="pace-dialog-card subtraction-demo-links-card" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <h2 class="subtraction-demo-links-title">${esc(title)}</h2>
+          <p>${esc(intro)}</p>
+          <ul class="subtraction-demo-links-list">${links}</ul>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="subtraction-demo-links-close" type="button">חזרה</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderWorkspace() {
@@ -5540,6 +7191,9 @@
     // scroll position to the top. Capture it before the rebuild and restore it
     // after, so the palette stays where the learner left it.
     const prevToolboxScroll = app.querySelector(".toolbox-list")?.scrollTop || 0;
+    // The board can scroll vertically; a full re-render (e.g. after a drag)
+    // would otherwise snap it back to the top, so preserve its position too.
+    const prevBoardScroll = app.querySelector("[data-workspace-scroll]")?.scrollTop || 0;
     app.innerHTML = `
       ${topbar()}
       <main class="screen workspace-screen">
@@ -5548,6 +7202,7 @@
           ${renderCreateCardBubble()}
           <section class="workspace-board-wrap">
             <div class="workspace-board" data-workspace-board>
+              <div class="workspace-board-scroll" data-workspace-scroll>
               <svg class="workspace-canvas" data-workspace-svg  aria-label="שולחן עבודה אלקטרוני" role="img">
                 <rect class="workspace-board-bg" x="0" y="0" width="100%" height="100%" rx="18" />
                 <g class="workspace-task-shell-layer">
@@ -5563,6 +7218,9 @@
                 <g class="workspace-terminal-layer">
                   ${renderTerminals()}
                 </g>
+                <g class="workspace-nand-demo-layer">
+                  ${renderNandConnectDemo()}
+                </g>
                 <g class="workspace-splitter-labels-layer">
                   ${renderSplitterWidthLabels()}
                 </g>
@@ -5570,15 +7228,26 @@
                   ${renderSplitterControls()}
                 </g>
               </svg>
-              ${renderNotTaskHint()}
+              </div>
+              ${subtractionDemoActive() ? "" : renderNotTaskHint()}
+              ${subtractionDemoActive() ? "" : renderWhyNote()}
+              ${renderAndArrow()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
+              ${renderSubtractionDemo()}
               ${state.cardCreation ? renderCardCreationOverlays() : ""}
             </div>
           </section>
         </section>
         ${state.cardCreation ? renderCardCreationControls() : (explanationReplayActive("nand-function") ? renderNandFunctionExplanationControls() : `
         <section class="controls">
+          ${subtractionDemoActive() ? `
+            ${navButton("subtraction-demo-prev", "arrow-right", "הקודם")}
+            ${navButton("subtraction-demo-replay", "restart", "הצג שוב את השקף")}
+            ${navButton("subtraction-demo-next", "arrow-left", "המשך", { primary: true })}
+            ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
+            ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
+          ` : `
           ${navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
             ${navButton("nand-monologue-prev", "arrow-right", "הקודם")}
@@ -5591,8 +7260,10 @@
           ${renderWorkspaceBuildHelpButton()}
           ${renderWorkspaceUnderstoodButton()}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
+          `}
         </section>`)}
       </main>
+      ${renderSubtractionDemoLinks()}
       ${renderWorkspaceUnderstoodPrompt()}
       ${renderWorkspaceBuildHelpPrompt()}
       ${renderWorkspaceTaskIntro()}
@@ -5600,11 +7271,86 @@
       ${renderNotTestResultDialog()}
       ${renderHintDialog()}
       ${renderConverterValueDialog()}
+      ${renderAluIntroDialog()}
       ${renderInfoDialog()}`;
     if (prevToolboxScroll) {
       const list = app.querySelector(".toolbox-list");
       if (list) list.scrollTop = prevToolboxScroll;
     }
+    // Size the canvas to its content so the board scrolls when a task is taller
+    // than the viewport, then restore the previous scroll position.
+    fitWorkspaceCanvas();
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
+    sizeCheckPanel();
+    revealFrozenCheckRow();
+  }
+
+  // While a check row is up, grow the requirements panel to fit the single row —
+  // up to the workbench width. If the row is wider than the whole workbench the
+  // panel caps at that width and the row's [data-check-scroll] wrapper scrolls
+  // horizontally. (An overflow:auto wrapper collapses under a pure-CSS max-content
+  // rule, so the fit is measured and applied here instead.)
+  function sizeCheckPanel() {
+    const panel = app.querySelector(".workspace-task-hint-check-wide");
+    if (!panel) return;
+    const table = panel.querySelector("[data-check-scroll] table");
+    if (!table) return;
+    requestAnimationFrame(() => {
+      if (!table.isConnected) return;
+      const board = app.querySelector("[data-workspace-scroll]");
+      const boardWidth = board ? board.clientWidth : (panel.offsetParent?.clientWidth || 0);
+      if (!boardWidth) return;
+      const cs = window.getComputedStyle(panel);
+      const chrome = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+        + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+      const maxWidth = boardWidth - 32;                 // 16px breathing room each side
+      const natural = table.scrollWidth + chrome;
+      panel.style.width = `${Math.min(natural, maxWidth)}px`;
+    });
+  }
+
+  // When a check has failed and the state is frozen (the "הבדיקה נכשלה" notice is
+  // up), make sure the failing truth-table row is actually visible: scroll it
+  // into view inside its (possibly overflowing) requirements panel. The row's
+  // own [data-check-scroll] wrapper already exposes a horizontal scrollbar via
+  // CSS, so an over-wide row (e.g. a 16-bit bus check) can be panned sideways.
+  function revealFrozenCheckRow() {
+    if (state.notTest?.result !== "failure") return;
+    requestAnimationFrame(() => {
+      const activeRow = app.querySelector(".workspace-task-hint .truth-row-active");
+      if (activeRow && typeof activeRow.scrollIntoView === "function") {
+        activeRow.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    });
+  }
+
+  // Grow the board canvas to fit any content below the visible fold so the
+  // board's scroll viewport can reach it. When everything fits, the canvas
+  // stays exactly viewport-high and no scrollbar appears. getBBox includes the
+  // full-size background rect, so its height is naturally max(viewport, content).
+  function fitWorkspaceCanvas() {
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    const svg = app.querySelector("[data-workspace-svg]");
+    if (!scroll || !svg) return;
+    const viewport = scroll.clientHeight;
+    if (!viewport) return;
+    // Reset to the viewport height first so the measurement reflects real
+    // content (not last render's grown height).
+    svg.style.height = `${viewport}px`;
+    let contentBottom = viewport;
+    try {
+      const bb = svg.getBBox();
+      if (bb && Number.isFinite(bb.y) && Number.isFinite(bb.height)) {
+        contentBottom = Math.ceil(bb.y + bb.height);
+      }
+    } catch {}
+    // Only grow (and thus show a scrollbar) when content actually runs past the
+    // fold; when it fits, keep the canvas exactly viewport-high so nothing
+    // scrolls. contentBottom is >= viewport because getBBox includes the
+    // full-height background rect.
+    const height = contentBottom > viewport ? contentBottom + WORKSPACE_CANVAS_BOTTOM_PAD : viewport;
+    svg.style.height = `${height}px`;
   }
 
   function activeMonologueNandComponent() {
@@ -5747,6 +7493,8 @@
     const returnPanelIndex = Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0);
     setState({
       screen: "workspace",
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
       workspace: createCardBuildWorkspace(returnChapterId, returnPanelIndex),
       cardCreation: {
         name: "כרטיס חדש",
@@ -5848,13 +7596,16 @@
     };
   }
 
-  // "חזרה למחסן": save the card and leave the build page. The name must be valid
-  // and unused; on any problem we show a dialog and FAIL the exit (stay put).
-  function exitCardCreation() {
+  // Save the card being built into state. On an invalid/duplicate name it shows
+  // the blocking dialog and returns null (caller must NOT leave). On success it
+  // returns the state patch that records the card, resets the build workspace and
+  // (once ever) queues the "you can now use this card" message — but does NOT
+  // navigate, so both "חזרה למחסן" and any other exit can reuse it.
+  function cardSavePatch() {
     const cc = state.cardCreation || {};
     const editing = Boolean(cc.editingType);
     const err = validateCardName(cc.name, cc.editingType || null);
-    if (err) return setState({ infoDialog: { message: err, discardCard: true } });
+    if (err) { setState({ infoDialog: { message: err, discardCard: true } }); return null; }
 
     const card = buildSavedCardFromCreation();
     registerSavedCard(card);
@@ -5867,11 +7618,6 @@
       ? state.nextSavedCardId
       : (state.nextSavedCardId || ((state.savedCards || []).length + 1)) + 1;
 
-    // Where to land: back to the My-cards page, or the warehouse (default).
-    const returnPatch = cc.returnScreen === "myCards"
-      ? { screen: "myCards" }
-      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
-
     const firstTime = !state.myCardsIntroSeen && !editing;
     // Saving a brand-new card (not an edit) earns "ממציא כרטיסים"; if that card
     // is built out of a card from "הכרטיסים שלי", it also earns "ממציא שימושי".
@@ -5880,8 +7626,8 @@
       const usesSavedCard = (card.logic?.components || []).some((c) => String(c.type || "").startsWith(SAVED_CARD_PREFIX));
       if (usesSavedCard) unlockAchievement("useful-inventor");
     }
-    setState({
-      ...returnPatch,
+    // Editing a user card does NOT touch any efficiency record.
+    return {
       cardCreation: null,
       workspace: createDefaultWorkspace(),
       savedCards,
@@ -5890,7 +7636,36 @@
       infoDialog: firstTime
         ? 'מעכשיו אתה יכול להשתמש בכרטיס הזה. תוכל גם לחזור ולערוך אותו מתוך תפריט "הכרטיסים שלי". שם גם תוכל לשמור אותו במקום בטוח'
         : null
-    }, false);
+    };
+  }
+
+  // "חזרה למחסן": save the card and leave the build page. The name must be valid
+  // and unused; on any problem we show a dialog and FAIL the exit (stay put).
+  function exitCardCreation() {
+    const cc = state.cardCreation || {};
+    const patch = cardSavePatch();
+    if (!patch) return;
+    // Where to land: back to the My-cards page, or the warehouse (default).
+    // Either way, ALSO set the story location + pageReturn to the warehouse, so
+    // that "back" from My-cards returns to the warehouse story — never to the
+    // reset workspace (which would show the Nand-presentation table and exit to
+    // chapter 2.2, since createDefaultWorkspace carries no session return).
+    const warehouse = storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+    const returnPatch = cc.returnScreen === "myCards"
+      ? { ...warehouse, screen: "myCards", pageReturn: "story" }
+      : warehouse;
+    setState({ ...returnPatch, ...patch }, false);
+  }
+
+  // Leaving the card-build screen by any OTHER route (a topbar navigation) must
+  // still save the card first, with the same messages. Returns false when the
+  // save is blocked (invalid card — dialog shown), so the caller aborts the nav.
+  function saveCardBeforeLeaving() {
+    if (!state.cardCreation) return true;
+    const patch = cardSavePatch();
+    if (!patch) return false;
+    setState(patch, false);
+    return true;
   }
 
   // "השלך את הכרטיס": abandon the card-build page WITHOUT saving (offered when
@@ -5898,9 +7673,12 @@
   // exit would, but touches neither the saved cards nor the intro flag.
   function discardCardAndExit() {
     const cc = state.cardCreation || {};
+    // See exitCardCreation: land on the warehouse story (and route My-cards'
+    // "back" there) so the reset workspace is never shown.
+    const warehouse = storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
     const returnPatch = cc.returnScreen === "myCards"
-      ? { screen: "myCards" }
-      : storyTarget(chapterById(cc.returnChapterId || "chapter-7"), Number.isInteger(cc.returnPanelIndex) ? cc.returnPanelIndex : 0);
+      ? { ...warehouse, screen: "myCards", pageReturn: "story" }
+      : warehouse;
     setState({
       ...returnPatch,
       cardCreation: null,
@@ -8074,6 +9852,10 @@
   function render() {
     syncExplanationUnlocks();
     syncAchievements();
+    syncIdleNudge();
+    // Re-arm the Nand connect demo whenever we are away from the presentation, so
+    // it plays again on the learner's next visit but stays dismissed once clicked.
+    if (!isNandPresentationWorkspace() && (nandConnectDemoDismissed || nandConnectDemoShownAt)) armNandConnectDemo();
     // Play the unlock flourishes after this render paints (so the target buttons
     // exist and are laid out). The flying icons live on <body>, so the next
     // render does not wipe them mid-animation.
@@ -8091,6 +9873,8 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
+    if (state.screen === "rankings") return renderRankingsScreen(app);
+    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -8109,6 +9893,9 @@
       }
       if (workspaceNandMonologueActive()) {
         requestAnimationFrame(positionWorkspaceNandMonologue);
+      }
+      if (subtractionDemoActive() && subtractionDemoAnim) {
+        requestAnimationFrame(playSubtractionDemoAnim);
       }
       // Focus the pin-width picker when it opens, so clicking elsewhere blurs it
       // (and closes it via focusout).
@@ -8208,6 +9995,17 @@
       }
     }
 
+    // The 2.6 closing monologue's teaser slide ("הנה תראה משהו מגניב:") leads into
+    // the scripted subtraction demo on the workbench (not another story panel).
+    if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
+      return openSubtractionDemo();
+    }
+    // Chapter 3.1 (flip-flop) is where the story currently ends — its last slide's
+    // "המשך" shows a "המשך יבוא" notice instead of falling off into the chapters.
+    if (state.screen === "story" && state.chapterId === "chapter-10" && state.panelIndex >= scene.panels.length - 1) {
+      return setState({ infoDialog: "המשך יבוא..." }, false);
+    }
+
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
 
     if (state.panelIndex < scene.panels.length - 1) {
@@ -8292,17 +10090,33 @@
 
   function resetWorkspaceCurrentMode() {
     const taskId = workspaceTaskId();
-    if (taskId && taskDefById(taskId)) {
+    const isTaskBuild = taskId && (
+      taskDefById(taskId)
+      || (typeof busTaskDefById === "function" && busTaskDefById(taskId))
+      || (typeof multibitTaskDefById === "function" && multibitTaskDefById(taskId))
+    );
+    if (isTaskBuild) {
       const current = normalizeWorkspace(state.workspace);
-      const workspace = standardTaskWorkspace(taskId);
-      workspace.taskIntroSeen = true;
-      // Preserve where this task must return to (e.g. the 2.3 routing worktable);
-      // standardTaskWorkspace does not carry the session-return fields.
-      workspace.sessionReturnChapterId = current.sessionReturnChapterId;
-      workspace.sessionReturnPanelIndex = current.sessionReturnPanelIndex;
-      workspace.exitTargetPanelIndex = current.exitTargetPanelIndex;
+      // "נקה שולחן" clears the learner's work — every wire and every part they
+      // added — but must KEEP the pre-placed scaffolding (the card frame and the
+      // test source/lamps) EXACTLY where it is. Rebuilding from a generic template
+      // used to relocate the frame (e.g. an ALU frame sits lower on the board than
+      // the simple-gate default), which read as "the reset moved the frame".
+      const preplacedIds = new Set(["task-card-1", "source-1", "lamp-1", "lamp-2"]);
+      const components = current.components.filter((c) => componentDef(c.type)?.fixed || preplacedIds.has(c.id));
+      const workspace = {
+        ...current,
+        components,
+        wires: [],
+        selectedTerminal: null,
+        focusedComponentId: null,
+        accident: null,
+        taskIntroSeen: true
+      };
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
+    // Pressing reset in the Nand presentation replays the connect demo from the top.
+    armNandConnectDemo();
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
   }
 
@@ -8582,6 +10396,25 @@
   // The lamp component(s) a task needs on its workbench — one per output. The
   // DMUX's two lamps sit beside its two right-hand outputs.
   function taskLampComponents(taskId) {
+    // JSON-backed cards (halfAdder/fullAdder …) carry the fixed test-lamp spots in
+    // their solution JSON's `harness.outputs`, keyed by the frame's external output
+    // pin (outputExtN → lamp-N). Reading them here keeps the game's pre-placed lamps
+    // and the editor's check view showing the same positions from one source.
+    const doc = (typeof SOLUTION_DOCS !== "undefined") ? SOLUTION_DOCS[taskId] : null;
+    const harnessOut = doc && doc.harness && doc.harness.outputs;
+    if (harnessOut && typeof harnessOut === "object") {
+      const lamps = [];
+      Object.keys(harnessOut).forEach((ref) => {
+        const m = /^outputExt(\d+)$/.exec(ref);
+        const pos = harnessOut[ref];
+        if (!m || !pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
+        lamps.push({ id: `lamp-${m[1]}`, type: "lamp", x: pos.x, y: pos.y });
+      });
+      if (lamps.length) {
+        lamps.sort((a, b) => a.id.localeCompare(b.id));
+        return lamps;
+      }
+    }
     const count = taskDefById(taskId)?.outputs || 1;
     if (count > 1) {
       // Arith cards put sum (lamp-1) at the bottom and carry (lamp-2) on top;
@@ -8731,7 +10564,232 @@
   const standardTaskWorkspace = (...args) => __solutionWorkspaces.standardTaskWorkspace(...args);
   const cleanedWorkspaceForTaskTest = (...args) => __solutionWorkspaces.cleanedWorkspaceForTaskTest(...args);
   const workspaceForTaskTestRow = (...args) => __solutionWorkspaces.workspaceForTaskTestRow(...args);
-  const solutionWorkspaceForTask = (...args) => __solutionWorkspaces.solutionWorkspaceForTask(...args);
+
+  // ---- Chapter 2.5 / 2.6 solutions authored in the standalone editor and stored
+  // as assets/solutions/<task>.json (the richer "theonemachine-solution" format:
+  // frame geometry + pins, the out-of-frame source, internal components, wires,
+  // and the check cases). Preloaded at startup; when a doc exists it drives the
+  // solution WORKSPACE geometry (the walkthrough step highlights stay in code).
+  const SOLUTION_DOCS = {};
+  const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
+  // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
+  // ones that actually have a file — the 2.5 arith tasks are still code-backed).
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder"];
+  // When true the game REFUSES to fall back to hardcoded geometry / check cases
+  // for a JSON-backed task: if its JSON did not load, the build shell, the check
+  // and the solution all fail loudly (console + on-screen) instead of silently
+  // reverting to the old baked-in values — so we can actually verify the JSON is
+  // the thing being used.
+  const SOLUTION_JSON_REQUIRED = true;
+  const isJsonBackedTask = (taskId) => SOLUTION_JSON_TASKS.includes(taskId);
+  // Mark each JSON-backed card def so the shell renderer can tell whether its
+  // geometry has been supplied by the JSON yet (__jsonApplied) or not.
+  for (const task of SOLUTION_JSON_TASKS) {
+    const def = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(task)];
+    if (def) def.__jsonBacked = true;
+  }
+  // The frame's pins (and size) in the JSON drive the WHOLE task — the build
+  // frame, the check harness and the solution all read the card's pins from the
+  // component def, so applying them here changes the card everywhere.
+  function applySolutionDocToDefs(doc) {
+    const def = doc && doc.frame && WORKSPACE_COMPONENT_DEFS[doc.frame.type];
+    if (!def || !Array.isArray(doc.frame.pins)) return;
+    for (const p of doc.frame.pins) {
+      if (!p || !p.id) continue;
+      const prev = def.pins[p.id] || {};
+      def.pins[p.id] = {
+        x: p.x, y: p.y,
+        direction: p.dir || prev.direction || "in",
+        width: Number.isInteger(p.w) ? p.w : prev.width,
+        label: (p.label != null ? p.label : prev.label) || "",
+        // Short caption drawn on the frame stub (e.g. "ng"/"nz" for ALU4's
+        // bottom outputs); carried through from the JSON pin.
+        caption: (p.caption != null ? p.caption : prev.caption) || ""
+      };
+    }
+    def.__jsonApplied = true;
+    if (typeof console !== "undefined") console.info(`[solutions] applied ${doc.task}: ${doc.frame.pins.length} frame pins, ${(doc.components || []).length} components, ${((doc.check || {}).cases || []).length} check cases from JSON`);
+  }
+  // The frame rectangle size for a task, from its JSON if present (else the
+  // renderMultibitTaskShell default). Used by the shell renderer.
+  function solutionFrameSize(taskId) {
+    const doc = SOLUTION_DOCS[taskId];
+    if (doc && doc.frame && Number.isInteger(doc.frame.frameW) && Number.isInteger(doc.frame.frameH)) {
+      return { w: doc.frame.frameW, h: doc.frame.frameH };
+    }
+    return null;
+  }
+  // reRender is true only for the async fetch path, which resolves AFTER the app
+  // has booted. The synchronous embedded path runs during IIFE init (before the
+  // boot render and before later consts exist), so it must NOT call render() —
+  // the applied defs are already in place for the first paint.
+  function acceptSolutionDoc(task, doc, reRender) {
+    if (!doc || !doc.frame || !Array.isArray(doc.components)) return false;
+    SOLUTION_DOCS[task] = doc;
+    SOLUTION_DOC_STATUS[task] = "loaded";
+    applySolutionDocToDefs(doc);
+    if (reRender && state.screen === "workspace" && state.workspace?.taskId === task) render();
+    return true;
+  }
+  function preloadSolutionDocs() {
+    // Opened from disk (file://) the browser blocks fetch() of local JSON, so the
+    // solutions are also shipped as a plain <script> (assets/solutions/solutions.js
+    // → window.EMBEDDED_SOLUTIONS). Prefer that; only fetch the tasks it lacks
+    // (e.g. when served over HTTP without the bundle).
+    const embedded = (typeof window !== "undefined" && window.EMBEDDED_SOLUTIONS) || null;
+    const remaining = [];
+    for (const task of SOLUTION_JSON_TASKS) {
+      if (embedded && embedded[task] && acceptSolutionDoc(task, embedded[task], false)) continue;
+      remaining.push(task);
+    }
+    if (!remaining.length || typeof fetch !== "function") return;
+    for (const task of remaining) {
+      fetch(`assets/solutions/${task}.json`)
+        .then((r) => { if (!r || !r.ok) throw new Error(`HTTP ${r ? r.status : "no response"}`); return r.json(); })
+        .then((doc) => {
+          if (!acceptSolutionDoc(task, doc, true)) throw new Error("malformed JSON (missing frame/components)");
+        })
+        .catch((err) => {
+          SOLUTION_DOC_STATUS[task] = "error: " + (err && err.message || err);
+          if (typeof console !== "undefined") console.error(`[solutions] FAILED to load assets/solutions/${task}.json — ${err && err.message || err}. With SOLUTION_JSON_REQUIRED on, this task will show an error instead of using hardcoded geometry.`);
+          if (state.screen === "workspace" && state.workspace?.taskId === task) render();
+        });
+    }
+  }
+  // Where the game actually places a JSON-backed task's frame on the build board
+  // (see openAluTaskWorkspace): x is always 640; y drops the card far enough that
+  // its control pin and the check's control splitter fit. Shared so the solution
+  // walkthrough sits at the SAME position as the real build.
+  const ALU_BUILD_CARD_X = 640;
+  // Where the game places a JSON-backed card's frame on the X axis. The wide
+  // ALU/adder cards sit at 640; the single-bit 2.5 cards (halfAdder/fullAdder)
+  // build at 500 like the simple gates, so their walkthrough must line up there.
+  function buildCardX(taskId) {
+    return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
+  }
+  function aluBuildCardY(taskId) {
+    return taskId === "ALU3" ? 520
+      : taskId === "ALU2" ? 440
+      // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
+      // near the middle so the bottom outputs (and their check lamps) fit.
+      : taskId === "ALU4" ? 360
+      : (taskId === "ALU0" || taskId === "PreperNum" || taskId === "ALU1") ? 360
+      // The tall 2.5 Add16 frame (four Add4 chunks stacked inside) sits a touch
+      // lower so its title clears the top of the board — matching its build.
+      : taskId === "Add16" ? 310
+      : 288;
+  }
+  function workspaceFromSolutionDoc(doc) {
+    // The JSON authors the frame at its own position; the game build places the
+    // same card at (640, aluBuildCardY). Translate the whole solution by that
+    // delta so the walkthrough appears at the same spot — same height — as the
+    // real task, instead of shifted up/down from it.
+    const gameX = buildCardX(doc.task);
+    const gameY = aluBuildCardY(doc.task);
+    const dx = Number.isFinite(doc.frame.x) ? gameX - doc.frame.x : 0;
+    const dy = Number.isFinite(doc.frame.y) ? gameY - doc.frame.y : 0;
+    const shift = (c) => {
+      const k = clonePlain(c);
+      if (Number.isFinite(k.x)) k.x += dx;
+      if (Number.isFinite(k.y)) k.y += dy;
+      return k;
+    };
+    const frame = { id: doc.frame.id || "task-card-1", type: doc.frame.type, x: gameX, y: gameY };
+    const components = [frame, ...(doc.external || []).map(shift), ...(doc.components || []).map(shift)];
+    const wires = (doc.wires || []).map((wire) => normalizeWire(wire.a, wire.b));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(), components, wires, nextId: 2,
+      selectedTerminal: null, accident: null, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2, taskId: doc.task, taskIntroSeen: true
+    });
+  }
+  // ALU1's "alternative" (step-5) solution is IDENTICAL to the main JSON solution
+  // up to the ALU0, and only the final stage differs: instead of a third
+  // PreperNum doing the NOT, a MUX16 picks between the ALU0 output and its NOT
+  // (Not16), selected by the NOT control bit. Derive it from the JSON doc so the
+  // shared part matches the first solution exactly.
+  function alu1AltDoc() {
+    const base = SOLUTION_DOCS.ALU1;
+    if (!base || !Array.isArray(base.components)) return null;
+    const doc = clonePlain(base);
+    const drop = new Set(["pn3", "pn3-ctrl"]); // the final PreperNum stage
+    const partOf = (ref) => String(ref).split(".")[0];
+    doc.components = doc.components.filter((c) => !drop.has(c.id));
+    doc.wires = doc.wires.filter((w) => !drop.has(partOf(w.a)) && !drop.has(partOf(w.b)));
+    // Place the MUX16 where the dropped PreperNum sat, with the Not16 just below.
+    const pn3 = base.components.find((c) => c.id === "pn3") || { x: 775, y: 240 };
+    doc.components.push({ id: "mux-not", type: "gate-MUX16", x: pn3.x, y: pn3.y });
+    doc.components.push({ id: "not16", type: "gate-Not16", x: pn3.x - 15, y: pn3.y + 160 });
+    doc.wires.push(
+      { a: "alu0.out1", b: "not16.in1" },
+      { a: "alu0.out1", b: "mux-not.in1" },
+      { a: "not16.out", b: "mux-not.in2" },
+      { a: "part3-split.leg1", b: "mux-not.in3" },
+      { a: "mux-not.out", b: "task-card-1.outputInt1" }
+    );
+    return doc;
+  }
+  const solutionWorkspaceForTask = (taskId, step) => {
+    const doc = SOLUTION_DOCS[taskId];
+    const alu1Alt = taskId === "ALU1" && Number(step) >= 5; // the MUX16 variant
+    if (alu1Alt && doc) {
+      const alt = alu1AltDoc();
+      if (alt) return workspaceFromSolutionDoc(alt);
+    }
+    if (doc && !alu1Alt) return workspaceFromSolutionDoc(doc);
+    if (SOLUTION_JSON_REQUIRED && isJsonBackedTask(taskId) && !alu1Alt) {
+      throw new Error(`[solutions] ${taskId}.json not loaded (${SOLUTION_DOC_STATUS[taskId] || "pending"}) — refusing hardcoded solution fallback (SOLUTION_JSON_REQUIRED)`);
+    }
+    return __solutionWorkspaces.solutionWorkspaceForTask(taskId, step);
+  };
+  preloadSolutionDocs();
+
+  // The efficiency-rankings screen. Cross-user rank/record come from
+  // leaderboardFor (null until the leaderboard backend exists → placeholders).
+  const __rankings = createRankings({
+    getState: () => state, esc, adaptGender, topbar,
+    isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
+    getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
+    getTab: () => (state.rankingsTab === "speed" ? "speed" : "efficiency"),
+    // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
+    // "serial" = speed). Filled from the cloud once the backend exists.
+    leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
+    leaderboardRows: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardRows ? APP.leaderboardRows(cardId, dim) : null)
+  });
+  const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
+  const renderCardRecordsScreen = (...args) => __rankings.renderCardRecordsScreen(...args);
+
+  // Per-chapter "מדליסט" achievements: eligibility is derived LIVE from the
+  // leaderboard (medals = rank 1–3, gold = rank 1). `medalDataReady` gates it so
+  // that before any leaderboard fetch we neither earn a medal nor wrongly stamp
+  // an earned one as "לשעבר" — we simply cannot evaluate yet.
+  const __medals = createMedalAchievements({
+    leaderboardFor: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId) : null)
+  });
+  let medalDataReady = false;
+  const signedIn = () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user);
+  // The live eligibility map, or null when medals cannot be evaluated (signed out
+  // / no leaderboard data). Null means: don't earn, and don't decorate titles.
+  function medalEligibilityMap() {
+    if (!medalDataReady || !signedIn()) return null;
+    return __medals.eligibilityMap();
+  }
+
+  // Save the leaderboard nickname from its input. Empty falls back to the shared
+  // default "ללא שם"; anything else must pass the name charset (and, once the
+  // leaderboard backend exists, be unique across users — enforced there).
+  function saveRankingsNickname() {
+    const input = document.querySelector("[data-rankings-nickname]");
+    let nick = input ? String(input.value || "").trim() : "";
+    if (!nick) nick = "ללא שם";
+    if (nick !== "ללא שם" && !CARD_NAME_ALLOWED.test(nick)) {
+      return setState({ rankingsNicknameError: "הכינוי מכיל תווים לא חוקיים. אותיות, ספרות, רווח, מקף וקו תחתון בלבד." }, false);
+    }
+    setState({ rankingsNickname: nick, rankingsNicknameError: null }, false);
+    if (typeof APP !== "undefined" && APP && typeof APP.setNickname === "function") APP.setNickname(nick);
+  }
 
   // If a fresh SVG layout arrives while a MUX solution is on screen, rebuild it
   // in place so the new positions apply immediately.
@@ -8783,11 +10841,341 @@
     document.body.appendChild(holder);
   }
 
-  function showNotTestResult(result, workspace, taskId) {
+  // ---- Efficiency ranking: recursive Nand count of the player's build --------
+  // We store the whole IMPLEMENTATION of each card (its components+wires) rather
+  // than a frozen number, and compute the Nand count recursively on demand. That
+  // way improving one card (e.g. building a leaner Not) automatically improves
+  // every card built on top of it — its stored build references the sub-card, and
+  // the sub-card's count is looked up live.
+  //
+  // A single component contributes: a raw Nand = 1; a placed built card
+  // (gate-<id> → that card's build, or usercard-<n> → that user card's own
+  // circuit) = that card's recursive count; anything else (splitter, source,
+  // lamp, frame, converter …) = 0. Returns null if a placed card has no known
+  // build (so the whole build is "undefined"). A cycle also yields null.
+  function cardBuildComponents(cardKey) {
+    // cardKey is either a task id ("and", "Mux" …) or a "usercard-<n>" type.
+    if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
+      const card = (state.savedCards || []).find((c) => c.type === cardKey);
+      return card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
+    }
+    const build = (state.cardBuilds || {})[cardKey];
+    return build && Array.isArray(build.components) ? build.components : null;
+  }
+
+  function cardRecursiveCount(cardKey, memo, stack) {
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null; // cycle guard
+    const comps = cardBuildComponents(cardKey);
+    if (!comps) return null; // this card was never built → undefined
+    stack.add(cardKey);
+    const total = sumComponentsCount(comps, memo, stack);
+    stack.delete(cardKey);
+    memo.set(cardKey, total);
+    return total;
+  }
+
+  function componentNandCount(type, memo, stack) {
+    if (type === "nand") return 1;
+    if (typeof type === "string" && type.startsWith("gate-")) {
+      return cardRecursiveCount(type.slice(5), memo, stack);
+    }
+    if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) {
+      return cardRecursiveCount(type, memo, stack);
+    }
+    return 0;
+  }
+
+  function sumComponentsCount(components, memo, stack) {
+    let total = 0;
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const n = componentNandCount(comp && comp.type, memo, stack);
+      if (n === null) return null; // used a card with no build → undefined
+      total += n;
+    }
+    return total;
+  }
+
+  // The recursive Nand count of an explicit component list (a fresh build not yet
+  // stored). Sub-cards are resolved against the CURRENT stored builds.
+  function computeBuildNandCount(components) {
+    return sumComponentsCount(components, new Map(), new Set());
+  }
+
+  // Rebuild the whole cardNandCounts map from the stored implementations. Called
+  // whenever a build changes so improvements ripple through every dependent card.
+  function recomputeAllCardCounts(builds) {
+    const source = builds || state.cardBuilds || {};
+    const memo = new Map();
+    const counts = {};
+    for (const cardId of Object.keys(source)) {
+      const c = cardRecursiveCountWithBuilds(cardId, source, memo);
+      counts[cardId] = (typeof c === "number") ? c : null;
+    }
+    return counts;
+  }
+
+  // Same recursion as cardRecursiveCount but against an explicit builds map (used
+  // by recomputeAllCardCounts, which may run on a builds map not yet in state).
+  function cardRecursiveCountWithBuilds(cardKey, builds, memo, stack) {
+    stack = stack || new Set();
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null;
+    let comps;
+    if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
+      const card = (state.savedCards || []).find((c) => c.type === cardKey);
+      comps = card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
+    } else {
+      const b = builds[cardKey];
+      comps = b && Array.isArray(b.components) ? b.components : null;
+    }
+    if (!comps) return null;
+    stack.add(cardKey);
+    let total = 0;
+    for (const comp of comps) {
+      const type = comp && comp.type;
+      let n;
+      if (type === "nand") n = 1;
+      else if (typeof type === "string" && type.startsWith("gate-")) n = cardRecursiveCountWithBuilds(type.slice(5), builds, memo, stack);
+      else if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) n = cardRecursiveCountWithBuilds(type, builds, memo, stack);
+      else n = 0;
+      if (n === null) { total = null; break; }
+      total += n;
+    }
+    stack.delete(cardKey);
+    memo.set(cardKey, total);
+    return total;
+  }
+
+  // ---- Speed ranking: the SERIAL Nand count (critical-path depth) -----------
+  // The most Nands in series on any input→output path of a build. We build a
+  // directed graph from the build's wires (direction via terminalDirection) and
+  // take the longest weighted path. To keep it a DAG we split every component
+  // into an input-side node ("<id>#in") and an output-side node ("<id>#out");
+  // only signal-propagating components (Nand, a placed gate/card, a splitter) get
+  // an internal in→out edge, so a card frame — whose "inputs" are sources and
+  // "outputs" are sinks with no path between them — never forms a cycle. Each
+  // component's serial weight sits on its #out node.
+  function serialPropagates(type) {
+    return type === "nand"
+      || (typeof type === "string" && type.startsWith("gate-"))
+      || (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX))
+      || type === "splitter";
+  }
+  function refComponentId(ref) {
+    const dot = String(ref).lastIndexOf(".");
+    return dot > 0 ? String(ref).slice(0, dot) : null;
+  }
+  // longest weighted input→output path over one build. weightOf(type) → the
+  // component's serial contribution (number, or null when undefined). Returns the
+  // depth, or null if any weight was undefined.
+  function longestSerialPath(build, weightOf) {
+    const comps = Array.isArray(build.components) ? build.components : [];
+    const wires = Array.isArray(build.wires) ? build.wires : [];
+    const typeById = new Map(comps.map((c) => [c.id, c.type]));
+    const preds = new Map();
+    const addPred = (node, pred) => {
+      if (!preds.has(node)) preds.set(node, []);
+      preds.get(node).push(pred);
+    };
+    // Internal in→out edge for propagating components.
+    comps.forEach((c) => {
+      if (serialPropagates(c.type)) addPred(`${c.id}#out`, `${c.id}#in`);
+      else { preds.set(`${c.id}#out`, preds.get(`${c.id}#out`) || []); preds.set(`${c.id}#in`, preds.get(`${c.id}#in`) || []); }
+    });
+    // Wire edges: source #out → dest #in.
+    for (const w of wires) {
+      const da = terminalDirection(build, w.a);
+      const db = terminalDirection(build, w.b);
+      let outRef = null, inRef = null;
+      if (da === "out" && db === "in") { outRef = w.a; inRef = w.b; }
+      else if (db === "out" && da === "in") { outRef = w.b; inRef = w.a; }
+      else continue;
+      const oc = refComponentId(outRef), ic = refComponentId(inRef);
+      if (oc && ic) addPred(`${ic}#in`, `${oc}#out`);
+    }
+    let undefinedWeight = false;
+    const memo = new Map();
+    const visiting = new Set();
+    function depth(node) {
+      if (memo.has(node)) return memo.get(node);
+      if (visiting.has(node)) return 0; // cycle guard (shouldn't happen)
+      visiting.add(node);
+      // Weight lives on #out nodes; #in nodes carry 0.
+      let w = 0;
+      if (node.endsWith("#out")) {
+        const type = typeById.get(node.slice(0, -4));
+        const raw = weightOf(type);
+        if (raw === null) { undefinedWeight = true; w = 0; } else w = raw;
+      }
+      let best = 0;
+      for (const p of (preds.get(node) || [])) best = Math.max(best, depth(p));
+      visiting.delete(node);
+      const d = w + best;
+      memo.set(node, d);
+      return d;
+    }
+    let max = 0;
+    comps.forEach((c) => { max = Math.max(max, depth(`${c.id}#out`), depth(`${c.id}#in`)); });
+    return undefinedWeight ? null : max;
+  }
+
+  // Recursive serial depth of a card, resolving each placed gate to the serial
+  // depth of ITS build. (User cards were flattened into the build at record time,
+  // so only Nands / gate-<id> / passives appear here.)
+  function cardSerialWithBuilds(cardKey, builds, memo, stack) {
+    stack = stack || new Set();
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null;
+    const b = builds[cardKey];
+    if (!b || !Array.isArray(b.components)) return null;
+    stack.add(cardKey);
+    const d = longestSerialPath(b, (type) => {
+      if (type === "nand") return 1;
+      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), builds, memo, stack);
+      return 0; // passive (splitter/source/frame/converter …)
+    });
+    stack.delete(cardKey);
+    memo.set(cardKey, d);
+    return d;
+  }
+
+  function recomputeAllCardSerial(serialBuilds) {
+    const source = serialBuilds || state.cardSerialBuilds || {};
+    const memo = new Map();
+    const out = {};
+    for (const cardId of Object.keys(source)) {
+      const d = cardSerialWithBuilds(cardId, source, memo);
+      out[cardId] = (typeof d === "number") ? d : null;
+    }
+    return out;
+  }
+
+  // The serial depth of one explicit build, resolving placed gates against the
+  // CURRENT stored serial builds (used to compare a fresh build to the stored one).
+  function computeBuildSerial(build, serialBuilds) {
+    const memo = new Map();
+    return longestSerialPath(build, (type) => {
+      if (type === "nand") return 1;
+      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), serialBuilds || state.cardSerialBuilds || {}, memo);
+      return 0;
+    });
+  }
+
+  // Fill in builds for cards the player already completed before their builds
+  // were stored (a completed card can no longer be re-checked). We seed the
+  // reference solution as that card's build; a later live rebuild replaces it
+  // with the player's own (leaner) circuit.
+  function backfillCompletedCardCounts() {
+    const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
+    const builds = { ...(state.cardBuilds || {}) };
+    let changed = false;
+    for (const card of cards) {
+      if (card.id === "Nand" || builds[card.id]) continue;
+      if (!taskCompleted(card.id)) continue;
+      let ws = null;
+      try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
+      if (!ws || !Array.isArray(ws.components)) continue;
+      builds[card.id] = { components: clonePlain(ws.components), wires: clonePlain(ws.wires || []) };
+      changed = true;
+    }
+    if (!changed) return;
+    // Seed the serial track from the same reference builds (only where empty).
+    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
+    for (const id of Object.keys(builds)) if (!serialBuilds[id]) serialBuilds[id] = builds[id];
+    setState({
+      cardBuilds: builds,
+      cardSerialBuilds: serialBuilds,
+      cardNandCounts: recomputeAllCardCounts(builds),
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+    }, false);
+  }
+
+  // A user card has no spec check of its own, so we treat it as if it were opened
+  // INLINE at the moment its parent is recorded: every "usercard-<n>" in a build
+  // is replaced by that card's own components (recursively, so nested user cards
+  // expand too). The stored build therefore never references a user card — only
+  // Nands and regular gate-<id> cards remain. Consequences (both intended):
+  //   • Editing a user card later cannot change any recorded build — not its Nand
+  //     count and not its validity — because the reference is already gone.
+  //   • Improving a regular sub-card still propagates (its gate-<id> stays live).
+  // A user-card cycle (should not happen) is broken by dropping the repeat.
+  function expandUserCards(components, seen) {
+    seen = seen || new Set();
+    const out = [];
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const t = comp && comp.type;
+      if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX)) {
+        if (seen.has(t)) continue; // cycle guard → contributes nothing
+        const card = (state.savedCards || []).find((c) => c.type === t);
+        const inner = card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : [];
+        const nextSeen = new Set(seen);
+        nextSeen.add(t);
+        out.push(...expandUserCards(inner, nextSeen));
+      } else {
+        out.push(comp); // Nand, gate-<id>, splitter, source, converter … kept as-is
+      }
+    }
+    return out;
+  }
+
+  // Record the player's build for a just-passed card, keeping the leaner one
+  // (fewer recursive Nands). Uses the pre-harness snapshot (the learner's own
+  // circuit) when available. User cards are inlined (see expandUserCards) so the
+  // record is frozen against later user-card edits; regular sub-cards stay live,
+  // so improving them still flows through automatically.
+  function recordCardNandCount(taskId, buildWorkspace) {
+    if (!taskId) return null;
+    const ws = buildWorkspace || {};
+    const newBuild = {
+      components: expandUserCards(clonePlain(ws.components || [])),
+      wires: clonePlain(ws.wires || [])
+    };
+    // Efficiency track: keep the build with the fewest total Nands.
+    const builds = { ...(state.cardBuilds || {}) };
+    const prevBuild = builds[taskId];
+    const newCount = computeBuildNandCount(newBuild.components);
+    if (newCount === null) {
+      builds[taskId] = prevBuild || newBuild; // invalid new count → don't lose an existing build
+    } else if (prevBuild) {
+      const prevCount = computeBuildNandCount(prevBuild.components);
+      builds[taskId] = (typeof prevCount === "number" && prevCount <= newCount) ? prevBuild : newBuild;
+    } else {
+      builds[taskId] = newBuild;
+    }
+    // Speed track: independently keep the build with the shallowest serial depth.
+    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
+    const prevSerialBuild = serialBuilds[taskId];
+    const newSerial = computeBuildSerial(newBuild, serialBuilds);
+    if (newSerial === null) {
+      serialBuilds[taskId] = prevSerialBuild || newBuild;
+    } else if (prevSerialBuild) {
+      const prevSerial = computeBuildSerial(prevSerialBuild, serialBuilds);
+      serialBuilds[taskId] = (typeof prevSerial === "number" && prevSerial <= newSerial) ? prevSerialBuild : newBuild;
+    } else {
+      serialBuilds[taskId] = newBuild;
+    }
+    return {
+      cardBuilds: builds,
+      cardSerialBuilds: serialBuilds,
+      cardNandCounts: recomputeAllCardCounts(builds),
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+    };
+  }
+
+  function showNotTestResult(result, workspace, taskId, rowIndex) {
     clearNotTestTimer();
     const patch = {
       workspace,
-      notTest: { result, taskId }
+      // Keep the failing row index so the truth-table row (and, for bus/multibit
+      // tasks, the single check row) stays highlighted while the failure notice
+      // is up — the check state is frozen until the learner clicks "אישור".
+      notTest: Number.isInteger(rowIndex)
+        ? { result, taskId, rowIndex }
+        : { result, taskId }
     };
     if (result === "failure") {
       // Remember that this card's test has failed at least once, so a later
@@ -8797,10 +11185,16 @@
         if (!failed.includes(taskId)) patch.tasksFailedOnce = [...failed, taskId];
       }
       if (taskHasHints(taskId)) patch.hintState = recordHintFailure(taskId);
-    } else if (result === "success" && taskId && !taskCompleted(taskId)
+    } else if (result === "success" && taskId
         && !(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []).includes(taskId)) {
       // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
-      unlockAchievement("precise-engineer");
+      if (!taskCompleted(taskId)) unlockAchievement("precise-engineer");
+    }
+    // Efficiency ranking: store the player's best build for this card (from the
+    // pre-harness snapshot of their own circuit) and recompute all counts so any
+    // dependent card improves too.
+    if (result === "success" && taskId) {
+      Object.assign(patch, recordCardNandCount(taskId, notTestSnapshot || workspace));
     }
     setState(patch, false);
   }
@@ -8816,9 +11210,12 @@
     setState({
       workspace,
       notTest: { active: true, taskId: task.id, rowIndex },
-      // For MUX, temporarily fill the row under test in the scratch table.
+      // Temporarily fill the row under test in the editable scratch table with the
+      // correct values (overriding whatever the learner typed there); it reverts
+      // to their own table as the check moves to the next row.
       ...(task.id === "Mux" ? { muxTable: muxCheckDisplayTable(rowIndex) } : {}),
-      ...(task.id === "DMux" ? { muxTable: dmuxCheckDisplayTable(rowIndex) } : {})
+      ...(task.id === "DMux" ? { muxTable: dmuxCheckDisplayTable(rowIndex) } : {}),
+      ...(isArithTask(task.id) ? { muxTable: arithCheckDisplayTable(task.id, rowIndex) } : {})
     }, false);
 
     notTestTimer = window.setTimeout(() => {
@@ -8826,7 +11223,7 @@
       const expected = rowExpectedOutputs(row);
       const pairs = taskOutputLampPairs(task);
       const ok = pairs.every((pair, index) => Boolean(evaluation.lamps.get(pair.lampId)) === Boolean(expected[index]));
-      if (!ok) return showNotTestResult("failure", workspace, task.id);
+      if (!ok) return showNotTestResult("failure", workspace, task.id, rowIndex);
       runNotTestRow(workspace, rowIndex + 1);
     }, 850);
   }
@@ -8882,6 +11279,22 @@
       [[0,1,1,0,1,1,1,0,0,0,1,1,1,0,1,0].map(Boolean), [1,1,0,0,0,1,1,1,1,0,1,1,0,1,0,1].map(Boolean)],
       [[1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1].map(Boolean), [0,1,0,1,1,1,0,0,1,1,1,0,0,0,1,1].map(Boolean)]
     ],
+    // Neq0: single-input; output is 1 iff the bus is different from 0. Include the
+    // all-zero case plus several non-zero patterns (some with a single 1 bit).
+    Neq0_4: [
+      [false, false, false, false],
+      [true, false, false, false],
+      [false, false, false, true],
+      [true, false, true, false],
+      [false, true, true, true]
+    ],
+    Neq0_16: [
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1].map(Boolean),
+      [1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [0,0,0,0, 0,0,1,0, 0,0,0,0, 0,0,0,0].map(Boolean),
+      [1,0,1,1, 0,0,1,0, 1,1,0,0, 0,1,0,1].map(Boolean)
+    ],
     // MUX: each case is [data1, data2, [control]] — control is a single bit.
     MUX4: [
       [[1,0,1,1].map(Boolean), [0,1,0,1].map(Boolean), [false]],
@@ -8910,6 +11323,9 @@
   // A MUX task's last input is a single shared control bit (data buses are the
   // rest): output[i] = op(data…[i], control).
   function busTaskExpected(def, buses) {
+    // Neq0 (≠0): a single-bit output — 1 iff at least one bit of the (single)
+    // input bus is 1 (i.e. the bus is different from 0).
+    if (def.op === "Neq0") return [buses[0].some((bit) => bit)];
     if (def.control) {
       const dataBuses = buses.slice(0, -1);
       const control = buses[buses.length - 1][0];
@@ -8928,6 +11344,52 @@
     if (!testCase) return null;
     const buses = caseInputBuses(def, testCase);
     return { inputs: buses, outputs: busTaskExpected(def, buses) };
+  }
+
+  // While a multibit NUMERIC check runs (Add4/Add16/Inc/ALU*/PreperNum), the case
+  // under test as a one-row table: each numeric input shown as a DECIMAL number
+  // plus the expected numeric result. Returns null for the routing/bitwise cards
+  // (Mux4way16/Dmux4way) whose inputs are bit patterns rather than numbers, and
+  // null when no such check is active/frozen.
+  function multibitCheckDisplayRow() {
+    if (!state.notTest?.active && !state.notTest?.result) return null;
+    const taskId = state.notTest?.taskId;
+    if (!multibitTaskDefById(taskId)) return null;
+    const testCase = multibitTaskCases(taskId)[state.notTest?.rowIndex];
+    // Numeric cards always carry a numeric operand `a`; routing cards don't.
+    if (!testCase || typeof testCase.a !== "number") return null;
+    const spec = multibitCaseSpec(taskId, testCase);
+    const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
+    // The numeric inputs, in a stable right-to-left reading order: the operands
+    // (a, b, d), then carry-in, then the control value — only those this card has.
+    const operandKeys = ["a", "b", "d"].filter((k) => typeof testCase[k] === "number");
+    const inputs = operandKeys.map((k, i) => ({
+      header: operandKeys.length === 1 ? "כניסה" : `כניסה ${i + 1}`,
+      value: testCase[k]
+    }));
+    if (typeof testCase.cin === "number") inputs.push({ header: "נשא נכנס", value: testCase.cin });
+    // The control is NOT a number — each bit selects a sub-operation — so show it
+    // as its binary bit pattern (MSB..LSB), not a decimal. The control input is the
+    // one right after the operands in the spec; its bit width is the card's.
+    if (typeof testCase.control === "number") {
+      const ctrl = spec.inputs[operandKeys.length];
+      const bits = Array.isArray(ctrl && ctrl.bits) ? ctrl.bits : [Boolean(testCase.control & 1)];
+      const bitStr = bits.slice().reverse().map((b) => (b ? 1 : 0)).join("");
+      inputs.push({ header: "בקרה", value: bitStr });
+    }
+    // The expected numeric result. Add4 spreads its answer over a sum bus + a
+    // carry bit, so combine them (a+b+cin); every other card has a single result
+    // bus whose decimal value is the answer (its widest output for ALU4, whose
+    // ng/nz are just 1-bit flags).
+    let result;
+    if (taskId === "Add4") {
+      result = testCase.a + testCase.b + testCase.cin;
+    } else {
+      const main = spec.outputs.find((o) => o.expected.length > 1) || spec.outputs[0];
+      result = bitsToDecimal(main.expected);
+    }
+    const resultHeader = (taskId === "Add4" || taskId === "Add16") ? "סכום" : "תוצאה";
+    return { inputs, result: { header: resultHeader, value: result } };
   }
 
   // Assemble the check circuit for one input case. The learner's circuit inside
@@ -8970,25 +11432,31 @@
       const inSep = Math.max(180, splitHalfH * 2 + 30);
       const sy = 288 + (dataIdx - (numData - 1) / 2) * inSep;
       dataIdx += 1;
-      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: w, width: 1 });
+      workspace.components.push({ id: splitId, type: "splitter", x: 230, y: sy, mirrored: true, outputs: w, legWidths: Array(w).fill(1), singleWidth: w });
       bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
       workspace.wires.push(normalizeWire(`${splitId}.single`, inputRef));
     });
 
-    // Output side: an unmirrored splitter (single = input) at the card's output
-    // pin fans the output bus out to one lamp per bit.
-    const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, width: 1 };
-    workspace.components.push(outSplit);
-    workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
-    const layout = busLampLayout(width, outSplit.y, 1180);
-    for (let i = 0; i < width; i += 1) {
-      const lampId = `bus-out-lamp-${i}`;
-      const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
-      if (layout.scale !== 1) lamp.scale = layout.scale;
-      workspace.components.push(lamp);
-      workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
+    // Output side. A single-bit output (Neq0) goes straight to one lamp; a bus
+    // output is fanned out by an unmirrored splitter to one lamp per bit.
+    const outWidth = pinWidth(workspace, "task-card-1.outputExt");
+    if (Number.isInteger(outWidth) && outWidth === 1) {
+      workspace.components.push({ id: "bus-out-lamp-0", type: "lamp", x: 1120, y: 288 });
+      workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-lamp-0.in"));
+    } else {
+      const outSplit = { id: "bus-out-split", type: "splitter", x: 1050, y: 288, mirrored: false, outputs: width, legWidths: Array(width).fill(1), singleWidth: width };
+      workspace.components.push(outSplit);
+      workspace.wires.push(normalizeWire("task-card-1.outputExt", "bus-out-split.single"));
+      const layout = busLampLayout(width, outSplit.y, 1180);
+      for (let i = 0; i < width; i += 1) {
+        const lampId = `bus-out-lamp-${i}`;
+        const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
+        if (layout.scale !== 1) lamp.scale = layout.scale;
+        workspace.components.push(lamp);
+        workspace.wires.push(normalizeWire(`bus-out-split.leg${i}`, `${lampId}.in`));
+      }
     }
     return workspace;
   }
@@ -9019,7 +11487,7 @@
       const evaluation = evaluateWorkspaceBits(workspace);
       const expected = busTaskExpected(def, buses);
       const ok = expected.every((bit, i) => Boolean(evaluation.lamps.get(`bus-out-lamp-${i}`)) === Boolean(bit));
-      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      if (!ok) return showNotTestResult("failure", workspace, def.id, caseIndex);
       // Harness the NEXT case from the pristine learner circuit, not from this
       // already-harnessed workspace — otherwise each case re-wraps the previous
       // harness and duplicate splitters/lamps pile up on the board.
@@ -9041,6 +11509,17 @@
   // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
   // matching the requirement text.
   function multibitTaskCases(taskId) {
+    // The solution JSON (assets/solutions/<task>.json) is the source of truth for
+    // the check cases: its check.cases already use the {a,b,d,control} keys the
+    // reference formula below reads, so honour them verbatim when present. The
+    // hardcoded lists that follow are the fallback for tasks without a JSON.
+    const doc = SOLUTION_DOCS[taskId];
+    if (doc && doc.check && Array.isArray(doc.check.cases) && doc.check.cases.length) {
+      return doc.check.cases.map((c) => ({ ...c }));
+    }
+    if (SOLUTION_JSON_REQUIRED && isJsonBackedTask(taskId)) {
+      throw new Error(`[solutions] ${taskId}.json not loaded (${SOLUTION_DOC_STATUS[taskId] || "pending"}) — refusing hardcoded check cases (SOLUTION_JSON_REQUIRED)`);
+    }
     if (taskId === "Dmux4way") {
       // Data=1 across all four control values (each lights exactly one output),
       // plus a data=0 sanity case (all outputs stay 0).
@@ -9080,6 +11559,90 @@
         { a: 40000, b: 25535 },  // = 65535, all ones
         { a: 65535, b: 1 },      // overflow -> 0 (drop the leading carry)
         { a: 65535, b: 65535 }   // = 131070, keep only the low 16 bits
+      ];
+    }
+    if (taskId === "Inc") {
+      // a -> a+1: 0, a plain value, a carry rippling across a nibble boundary,
+      // across all 16 bits, and the full overflow (65535 -> 0).
+      return [
+        { a: 0 },
+        { a: 41 },
+        { a: 255 },     // 0x00FF + 1 -> carry into the next nibble
+        { a: 4095 },    // 0x0FFF + 1 -> carry across chunks
+        { a: 30000 },
+        { a: 65535 }    // overflow -> 0 (drop the 17th digit)
+      ];
+    }
+    if (taskId === "ALU0") {
+      // (a, b, control): control=0 -> a AND b (bitwise); control=1 -> a + b.
+      return [
+        { a: 0xFFFF, b: 0x1234, control: 0 }, // AND -> 0x1234
+        { a: 0x0F0F, b: 0x00FF, control: 0 }, // AND -> 0x000F
+        { a: 12, b: 10, control: 0 },         // AND -> 8
+        { a: 5, b: 3, control: 1 },           // add -> 8
+        { a: 1234, b: 5678, control: 1 },     // add -> 6912
+        { a: 65535, b: 1, control: 1 }        // add overflow -> 0
+      ];
+    }
+    if (taskId === "PreperNum") {
+      // (a, control 0..3): the 2 control bits select the two stages. Cover all
+      // four combinations (nothing / NOT / zero / zero-then-NOT).
+      return [
+        { a: 0xABCD, control: 0 }, // nothing -> 0xABCD
+        { a: 0x1234, control: 1 }, // NOT only -> 0xEDCB
+        { a: 0xF0F0, control: 2 }, // zero -> 0
+        { a: 0x00FF, control: 3 }, // zero then NOT -> 0xFFFF
+        { a: 12345, control: 1 },  // NOT only
+        { a: 54321, control: 3 }   // zero then NOT -> 0xFFFF
+      ];
+    }
+    if (taskId === "ALU1") {
+      // Fallback only (ALU1.json supplies the real cases). Control 0..63 with
+      // c0,c1 → prep input1, c2,c3 → prep input2, c4 → op (0 AND / 1 ADD),
+      // c5 → final NOT — the same mapping the reference formula below uses.
+      return [
+        { a: 0xF0F0, b: 0x00FF, control: 0 },  // AND, no prep -> 0x00F0
+        { a: 1234, b: 5678, control: 2 },      // c1 -> ADD -> 6912
+        { a: 0x1234, b: 0xFFFF, control: 1 },  // c0 -> NOT(AND) -> 0xEDCB
+        { a: 0xABCD, b: 0x00FF, control: 16 }, // c4 -> prep1 zero -> 0 AND .. -> 0
+        { a: 0x0F0F, b: 0x0FF0, control: 40 }, // c5,c3 -> NOT both, AND -> 0xF000
+        { a: 0x1234, b: 0x5678, control: 63 }  // all bits -> 0x0001
+      ];
+    }
+    if (taskId === "ALU2") {
+      // (a=in1, b=in2, d=in3, control 0..127). Top bit c6 selects the second
+      // operand (0 → in2, 1 → in3); lower 6 bits c0..c5 are the ALU1 sub-control.
+      return [
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 0 },   // c6=0 -> AND(in1,in2)=0x00F0
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 64 },  // c6=1 -> AND(in1,in3)=0x0000
+        { a: 1234, b: 1, d: 5678, control: 66 },           // c6=1,c1=1 -> ADD(in1,in3)=6912
+        { a: 5, b: 3, d: 99, control: 2 },                 // c6=0,c1=1 -> ADD(in1,in2)=8
+        { a: 0x1234, b: 0, d: 0xFFFF, control: 65 },       // c6=1,c0=1 -> NOT(AND(in1,in3))=0xEDCB
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 127 }  // all bits -> 0x0001
+      ];
+    }
+    if (taskId === "ALU3") {
+      // (a=in1, b=in2, d=in3, control 0..4095, 12 bits). Top bit c11 selects:
+      // c11=0 -> output = control zero-extended; c11=1 -> ALU2 on the low 7 bits.
+      return [
+        { a: 0x1111, b: 0x2222, d: 0x3333, control: 0x123 },  // c11=0 -> 0x0123
+        { a: 0xABCD, b: 0x2222, d: 0x3333, control: 0x5AB },  // c11=0 -> 0x05AB
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 0x800 },  // c11=1, ALU2 sel0 -> AND(in1,in2)=0x00F0
+        { a: 0xF0F0, b: 0x00FF, d: 0x0F0F, control: 0x840 },  // c11=1, ALU2 sel1 -> AND(in1,in3)=0x0000
+        { a: 1234, b: 1, d: 5678, control: 0x842 },           // c11=1, sel1, add -> 6912
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F }   // c11=1, sel1, all -> 0x0001
+      ];
+    }
+    if (taskId === "ALU4") {
+      // Same shape as ALU3 (result), chosen to exercise ng (top/MSB bit) and nz
+      // (result non-zero): all-zero result, a small positive, ~0 (all ones),
+      // 0x0001, and a result with the MSB set.
+      return [
+        { a: 0, b: 0, d: 0, control: 0x000 },                 // 0x0000 -> ng=0, nz=0
+        { a: 0x1111, b: 0x2222, d: 0x3333, control: 0x123 },  // 0x0123 -> ng=0, nz=1
+        { a: 0, b: 0, d: 0, control: 0x820 },                 // c11,c5 NOT -> 0xFFFF -> ng=1, nz=1
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F },  // 0x0001 -> ng=0, nz=1
+        { a: 0x8000, b: 0xFFFF, d: 0x0F0F, control: 0x800 }   // c11=1 sel0 AND -> 0x8000 -> ng=1, nz=1
       ];
     }
     return [];
@@ -9151,6 +11714,159 @@
         ]
       };
     }
+    if (taskId === "Inc") {
+      const result = (testCase.a + 1) & 0xffff; // input + 1, drop the 17th digit
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU0") {
+      const result = testCase.control
+        ? (testCase.a + testCase.b) & 0xffff  // add (drop the 17th digit)
+        : (testCase.a & testCase.b) & 0xffff; // bitwise AND
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: [Boolean(testCase.control)] }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "PreperNum") {
+      const c = testCase.control;
+      const zeroBit = c & 1;          // LSB (bottom) = the "second" bit — stage 1: zero
+      const notBit = (c >> 1) & 1;    // MSB (top) = the "first" bit — stage 2: NOT
+      const stage1 = zeroBit ? 0 : (testCase.a & 0xffff);
+      const result = (notBit ? ~stage1 : stage1) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          // The 2-bit control bus, little-endian [LSB, MSB] = [second bit, first bit].
+          { ref: "inputExt2", bits: [c & 1, (c >> 1) & 1].map(Boolean) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU1") {
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      // c0,c1 prep input1 (bottom chunk); c2,c3 prep input2; c4 op; c5 final NOT.
+      const p1 = prep(testCase.a, bit(0), bit(1));
+      const p2 = prep(testCase.b, bit(2), bit(3));
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(5) ? ~combined : combined) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          // 6-bit control bus, little-endian [c0..c5].
+          { ref: "inputExt3", bits: Array.from({ length: 6 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU2") {
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      // Top bit c6 selects the second operand (0 → in2, 1 → in3); c0..c5 are the
+      // ALU1 sub-control (c0,c1 prep input1; c2,c3 prep operand2; c4 op; c5 NOT).
+      const op2 = bit(6) ? testCase.d : testCase.b;
+      const p1 = prep(testCase.a, bit(0), bit(1));
+      const p2 = prep(op2, bit(2), bit(3));
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const result = (bit(5) ? ~combined : combined) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: add16Bits(testCase.d) },
+          // 7-bit control bus, little-endian [c0..c6].
+          { ref: "inputExt4", bits: Array.from({ length: 7 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU3") {
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      // c11 selects: 0 -> control zero-extended (c is 12-bit, so already <0x1000);
+      // 1 -> ALU2 on the low 7 bits (c6 selects the operand between in2 and in3).
+      const optionA = c & 0xffff;
+      const op2 = bit(6) ? testCase.d : testCase.b;
+      const p1 = prep(testCase.a, bit(0), bit(1));
+      const p2 = prep(op2, bit(2), bit(3));
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const optionB = (bit(5) ? ~combined : combined) & 0xffff;
+      const result = bit(11) ? optionB : optionA;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: add16Bits(testCase.d) },
+          // 12-bit control bus, little-endian [c0..c11].
+          { ref: "inputExt4", bits: Array.from({ length: 12 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) }
+        ]
+      };
+    }
+    if (taskId === "ALU4") {
+      // ALU4 = ALU3 result + two single-bit outputs: ng (the first/top MSB bit of
+      // the result) and nz (1 iff the result is non-zero).
+      const c = testCase.control;
+      const bit = (i) => (c >> i) & 1;
+      const prep = (n, zeroBit, notBit) => {
+        const s1 = zeroBit ? 0 : (n & 0xffff);
+        return (notBit ? ~s1 : s1) & 0xffff;
+      };
+      const optionA = c & 0xffff;
+      const op2 = bit(6) ? testCase.d : testCase.b;
+      const p1 = prep(testCase.a, bit(0), bit(1));
+      const p2 = prep(op2, bit(2), bit(3));
+      const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+      const optionB = (bit(5) ? ~combined : combined) & 0xffff;
+      const result = (bit(11) ? optionB : optionA) & 0xffff;
+      return {
+        inputs: [
+          { ref: "inputExt1", bits: add16Bits(testCase.a) },
+          { ref: "inputExt2", bits: add16Bits(testCase.b) },
+          { ref: "inputExt3", bits: add16Bits(testCase.d) },
+          { ref: "inputExt4", bits: Array.from({ length: 12 }, (_, i) => Boolean(bit(i))) }
+        ],
+        outputs: [
+          { ref: "outputExt1", expected: add16Bits(result) },
+          { ref: "outputExt2", expected: [Boolean((result >> 15) & 1)] }, // ng = MSB
+          { ref: "outputExt3", expected: [result !== 0] }                  // nz = non-zero
+        ]
+      };
+    }
     return { inputs: [], outputs: [] };
   }
 
@@ -9165,8 +11881,6 @@
     workspace.selectedTerminal = null;
     workspace.accident = null;
     workspace.focusedComponentId = null;
-    workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
-    removeInvalidWires(workspace);
 
     // Inputs down the left side. The control bus (the input that pokes out the
     // top of the card) gets its merging splitter placed HIGH, level with the
@@ -9179,14 +11893,63 @@
     // addend) and reads each numeric output into a bin→dec converter (showing the
     // result) INSTEAD of a source/lamp fan-out. The carry bit and any other single
     // bit still use the plain source/lamp path.
-    const useConverters = isArithBusTask(baseWorkspace.taskId);
+    const useConverters = isArithBusTask(baseWorkspace.taskId) || isAluBusTask(baseWorkspace.taskId);
     const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
+    // The control input is the one poking out the top of the card.
     const controlIdx = spec.inputs.findIndex((input) => {
       const p = frameDef.pins[input.ref];
       return p && p.y < -150;
     });
+    // Only the NUMERIC data buses of arith/ALU cards come from dec→bin converters.
+    // The control bus is not a number, so it (like single bits) is driven from
+    // source-1 through a plain splitter — see the input loop below.
+    const inputConverterDriven = (input, idx) => {
+      const w = pinWidth(workspace, `task-card-1.${input.ref}`);
+      return useConverters && idx !== controlIdx && Number.isInteger(w) && w > 1;
+    };
+
+    // The check drives inputs from the pre-placed source-1 (single bits directly,
+    // control/other wide buses via a merging splitter) EXCEPT the converter-fed
+    // numeric buses. Whenever it uses source-1, strip the learner's own wires to
+    // it so the check controls it. When EVERY input is converter-fed (Inc),
+    // source-1 belongs to the learner (their constant "1" bus) and is kept.
+    const harnessUsesSource = spec.inputs.some((input, idx) => !inputConverterDriven(input, idx));
+    if (harnessUsesSource) {
+      workspace.wires = workspace.wires.filter((wire) => wire.a !== "source-1.out" && wire.b !== "source-1.out");
+    }
+    removeInvalidWires(workspace);
+    // Geometry for placing the wide dec→bin input converters: each is set LEVEL
+    // with the card input pin it feeds (so its bus cable runs straight across,
+    // not bent — bent cables tangled), and far enough LEFT that the wide body
+    // clears the card frame. A converter that would land on the pre-placed source
+    // (lower-left) is pushed clear of it — below for a lower pin, above otherwise.
+    const cardComp = componentById(workspace, "task-card-1");
+    const cardY = cardComp ? cardComp.y : 288;
+    const sourceComp = componentById(workspace, "source-1");
+    const CONV_IN_X = 120;                         // left of the old 200: body clears the card
+    // The solution JSON may pin each check mechanism (a converter/splitter/lamp
+    // group) to an explicit position, keyed by the card pin it serves — see the
+    // editor's "check" mode. When present it overrides the auto-placement below;
+    // positions never affect the check result, only where things sit on screen.
+    const solDoc = SOLUTION_DOCS[baseWorkspace.taskId] || {};
+    const solHarness = solDoc.harness || {};
+    const inHarness = (bareRef) => (solHarness.inputs && solHarness.inputs[bareRef]) || null;
+    const outHarness = (bareRef) => (solHarness.outputs && solHarness.outputs[bareRef]) || null;
+    // The harness positions are authored in the solution editor against the frame
+    // at its JSON position (doc.frame.x/y). The GAME places the same frame at a
+    // per-task spot (see openAluTaskWorkspace's cardY), so the whole card is
+    // shifted. Translate every authored check-mechanism position by that same
+    // frame delta, so a mechanism the author lined up with a pin stays lined up.
+    const jsonFrame = solDoc.frame || {};
+    const frameDX = cardComp && Number.isFinite(jsonFrame.x) ? cardComp.x - jsonFrame.x : 0;
+    const frameDY = cardComp && Number.isFinite(jsonFrame.y) ? cardComp.y - jsonFrame.y : 0;
+    const ovX = (ov, fallback) => (ov && Number.isFinite(ov.x) ? ov.x + frameDX : fallback);
+    const ovY = (ov, fallback) => (ov && Number.isFinite(ov.y) ? ov.y + frameDY : fallback);
+    const CONV_HALF_H = 40, SRC_HALF_H = 50, CLEAR_GAP = 26;
+    // A converter pushed BELOW the source drops well clear of it — the lower
+    // converter sits distinctly beneath the source, not tucked just under it.
+    const DOWN_GAP = 150;
     let stackTop = 100; // top of the next data splitter's leg span (below the control)
-    let convInY = 120;  // stacked y for numeric-input converters
     spec.inputs.forEach((input, idx) => {
       const ref = `task-card-1.${input.ref}`;
       const w = pinWidth(workspace, ref);
@@ -9195,12 +11958,25 @@
         if (input.bits[0]) workspace.wires.push(normalizeWire("source-1.out", ref));
         return;
       }
-      if (useConverters) {
-        // A dec→bin converter set to the addend value, feeding the card input.
+      if (inputConverterDriven(input, idx)) {
+        // A dec→bin converter set to the addend value, feeding the card input,
+        // level with that input pin so the wire is straight.
+        const pin = frameDef.pins[input.ref];
+        let cy = cardY + (pin ? pin.y : 0);
+        if (sourceComp && Math.abs(cy - sourceComp.y) < CONV_HALF_H + SRC_HALF_H) {
+          // A pin above the source's level clears above it; a pin AT the card
+          // centre (the source's own level, e.g. Add4's second number, Inc's
+          // input, PreperNum's number) or below drops well BELOW the source, so
+          // the lower converter sits clearly beneath it.
+          const below = pin && pin.y >= 0;
+          cy = sourceComp.y + (below ? 1 : -1) * (CONV_HALF_H + SRC_HALF_H + (below ? DOWN_GAP : CLEAR_GAP));
+        }
         const convId = `mb-in-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-out", x: 200, y: convInY, value: bitsToDecimal(input.bits), width: w });
+        const ov = inHarness(input.ref);
+        const convX = ovX(ov, CONV_IN_X);
+        const convY = ovY(ov, cy);
+        workspace.components.push({ id: convId, type: "converter-out", x: convX, y: convY, value: bitsToDecimal(input.bits), width: w });
         workspace.wires.push(normalizeWire(`${convId}.out`, ref));
-        convInY += 160;
         return;
       }
       const splitId = `mb-in-split-${idx}`;
@@ -9208,12 +11984,17 @@
       let sy;
       if (idx === controlIdx) {
         const cp = frameDef.pins[input.ref];
-        sy = 288 + (cp ? cp.y : -250); // level with the control pin, up top
+        sy = cardY + (cp ? cp.y : -250); // level with the control pin, up top
       } else {
         sy = stackTop + halfH;          // splitter centre = top + half its height
         stackTop = sy + halfH + 40;     // next data splitter clears this one's legs
       }
-      workspace.components.push({ id: splitId, type: "splitter", x: 210, y: sy, mirrored: true, outputs: w, width: 1 });
+      const splOv = inHarness(input.ref);
+      const splX = ovX(splOv, 210);
+      const splY = ovY(splOv, sy);
+      // Every leg is 1 bit (some intentionally left unwired for 0 bits), so pin
+      // the widths explicitly rather than relying on wire reconciliation.
+      workspace.components.push({ id: splitId, type: "splitter", x: splX, y: splY, mirrored: true, outputs: w, legWidths: Array(w).fill(1), singleWidth: w });
       input.bits.forEach((bit, i) => {
         if (bit) workspace.wires.push(normalizeWire("source-1.out", `${splitId}.leg${i}`));
       });
@@ -9228,11 +12009,18 @@
     spec.outputs.forEach((output, idx) => {
       const ref = `task-card-1.${output.ref}`;
       const w = pinWidth(workspace, ref);
-      const cy = 288 + (idx - (spec.outputs.length - 1) / 2) * 133;
+      const oOv = outHarness(output.ref);
+      // The default (un-overridden) spot for an output's check mechanism sits LEVEL
+      // WITH ITS FRAME PIN — the same rule the solution editor uses to preview it
+      // (harnessElements: y = frame.y + pin.y) — so the game and the editor agree.
+      // A missing pin falls back to the old index-based vertical spread.
+      const outPin = frameDef.pins[output.ref];
+      const cy = ovY(oOv, outPin ? cardY + outPin.y : 288 + (idx - (spec.outputs.length - 1) / 2) * 133);
       if (useConverters && Number.isInteger(w) && w > 1) {
         // A bin→dec converter displaying the numeric result of this output bus.
         const convId = `mb-out-conv-${idx}`;
-        workspace.components.push({ id: convId, type: "converter-in", x: 1120, y: cy, width: w });
+        const convX = ovX(oOv, 1120);
+        workspace.components.push({ id: convId, type: "converter-in", x: convX, y: cy, width: w });
         workspace.wires.push(normalizeWire(ref, `${convId}.in`));
         lampGroups.push([]);
         outChecks.push({ kind: "converter", converterId: convId, expected: bitsToDecimal(output.expected) });
@@ -9241,14 +12029,16 @@
       const groupLamps = [];
       if (!Number.isInteger(w) || w === 1) {
         const lampId = `mb-out-${idx}-lamp-0`;
-        workspace.components.push({ id: lampId, type: "lamp", x: 1180, y: cy });
+        const lampX = ovX(oOv, 1180);
+        workspace.components.push({ id: lampId, type: "lamp", x: lampX, y: cy });
         workspace.wires.push(normalizeWire(ref, `${lampId}.in`));
         groupLamps.push(lampId);
       } else {
-        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: 1050, y: cy, mirrored: false, outputs: w, width: 1 };
+        const splX = ovX(oOv, 1050);
+        const outSplit = { id: `mb-out-split-${idx}`, type: "splitter", x: splX, y: cy, mirrored: false, outputs: w, legWidths: Array(w).fill(1), singleWidth: w };
         workspace.components.push(outSplit);
         workspace.wires.push(normalizeWire(ref, `${outSplit.id}.single`));
-        const layout = busLampLayout(w, cy, 1180);
+        const layout = busLampLayout(w, cy, splX + 130);
         for (let i = 0; i < w; i += 1) {
           const lampId = `mb-out-${idx}-lamp-${i}`;
           const lamp = { id: lampId, type: "lamp", x: layout.positions[i].x, y: layout.positions[i].y };
@@ -9285,7 +12075,7 @@
         }
         return chk.expected.every((bit, i) => Boolean(evaluation.lamps.get(chk.lamps[i])) === Boolean(bit));
       });
-      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      if (!ok) return showNotTestResult("failure", workspace, def.id, caseIndex);
       // Re-harness the NEXT case from the pristine learner circuit (see the bus
       // check note), so harnesses don't pile up.
       runMultibitTestCase(baseWorkspace, caseIndex + 1);
@@ -9326,18 +12116,47 @@
         : completedTaskIds();
 
       // Arith cards with no solution walkthrough yet: complete and return to the
-      // 2.5 worktable. All done -> "המשך יבוא" immediately; otherwise reopen the
-      // note so the next card unlocks.
+      // 2.5 worktable. All done -> roll into chapter 2.6 (the ALU opening);
+      // otherwise reopen the note so the next card unlocks.
       if (isArithTask(taskId)) {
         const allArithDone = allArithTasksCompletedIn(completedTasks);
+        if (allArithDone) {
+          return setState({
+            ...chapter26StartTarget(),
+            taskDialog: null,
+            notTest: null,
+            muxTable: null,
+            completedTasks,
+            arithNoteList: false,
+            workspace: createDefaultWorkspace(),
+            replayNonce: state.replayNonce + 1
+          }, true);
+        }
         return setState({
           ...arithWorktableReturnTarget(),
           taskDialog: null,
           notTest: null,
           muxTable: null,
           completedTasks,
-          arithNoteList: !allArithDone,
-          infoDialog: allArithDone ? "המשך יבוא..." : null,
+          arithNoteList: true,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // ALU cards (chapter 2.6): complete and return to the 2.6 worktable. Some
+      // cards first show an after-completion message (ALU0 "what is an ALU",
+      // ALU1 ready-made-vs-custom); every other ALU card just reopens the note.
+      if (isAluTask(taskId)) {
+        const showAluIntro = aluTaskHasMessage(taskId);
+        return setState({
+          ...aluWorktableReturnTarget(),
+          taskDialog: null,
+          notTest: null,
+          muxTable: null,
+          completedTasks,
+          aluNoteList: !showAluIntro,
+          aluIntroDialog: showAluIntro ? { page: 0, taskId } : null,
           workspace: createDefaultWorkspace(),
           replayNonce: state.replayNonce + 1
         }, true);
@@ -9374,11 +12193,13 @@
     const bus = Boolean(busTaskDefById(taskId));
     const multibit = Boolean(multibitTaskDefById(taskId));
     const arith = isArithTask(taskId);
-    const chapter = arith ? chapterById("chapter-8")
+    const alu = isAluTask(taskId);
+    const chapter = alu ? chapterById("chapter-9")
+      : arith ? chapterById("chapter-8")
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit || arith) {
+    if (routing || bus || multibit || arith || alu) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -9490,7 +12311,7 @@
 
   // Which bus tasks have a real build workspace built.
   function busTaskImplemented(id) {
-    return ["Not4", "Not16", "AND4", "AND16", "OR4", "MUX4", "MUX16"].includes(id);
+    return ["Not4", "Not16", "AND4", "AND16", "OR4", "Neq0_4", "Neq0_16", "MUX4", "MUX16"].includes(id);
   }
 
   function openBusesNote() {
@@ -9635,6 +12456,33 @@
     });
   }
 
+  // A task-def row as the arith scratch table shows it: the inputs in in1..inN,
+  // then the correct sum/carry. Mirrors muxRowDisplay/dmuxRowDisplay.
+  function arithRowDisplay(taskId, row) {
+    const r = {};
+    arithScratchColumns(taskId).forEach((c) => { r[c] = null; });
+    row.inputs.forEach((value, index) => { r[`in${index + 1}`] = value ? 1 : 0; });
+    const outs = Array.isArray(row.outputs) ? row.outputs : [row.output];
+    r.sum = outs[0] ? 1 : 0;
+    r.carry = outs[1] ? 1 : 0;
+    return r;
+  }
+
+  // The arith scratch table shown mid-check: the learner's own table (from the
+  // pre-check snapshot), with ONLY the row currently under test overwritten with
+  // the correct values — regardless of what the learner had typed there. Because
+  // it always rebuilds from the snapshot, the previous row reverts as the check
+  // moves on. Mirrors muxCheckDisplayTable/dmuxCheckDisplayTable.
+  function arithCheckDisplayTable(taskId, rowIndex) {
+    const count = arithScratchRowCount(taskId);
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === count
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : arithEmptyScratchTable(taskId);
+    const row = taskDefById(taskId)?.rows?.[rowIndex];
+    if (row) snap[rowIndex] = arithRowDisplay(taskId, row);
+    return snap;
+  }
+
   // The fullAdder build hints construct the 3-halfAdder circuit one stage at a
   // time. Each stage is the cumulative circuit up to that point: HA1 adds the
   // first two inputs; HA2 adds the third to that sum; the sum output is wired;
@@ -9731,6 +12579,34 @@
     "add16-next-chunk": { components: [A16_SPLIT_A, A16_SPLIT_B, A16_AD_UNITS, A16_AD_NEXT, A16_MERGE], wires: A16_W_NEXT }
   };
 
+  // The Inc "1"-bus interactive hint: build a width-16 bus that represents the
+  // number 1 using its OWN source (inside the card) and two merging splitters of
+  // size 4. The low splitter merges four single bits into a 4-bit bus with only
+  // its units leg (leg0) fed from that source (= 0001 = 1); the high splitter
+  // merges four 4-bit buses into a 16-bit bus with only its low chunk (leg0)
+  // connected (= …0000 0000 0000 0001 = 1). The pre-placed source-1 stays outside
+  // for testing; this constant "1" belongs to the card's own logic, so it gets a
+  // dedicated internal source. The resulting single (one-split-hi.single) is the
+  // "1" bus, left for the learner to feed — with the card's input — into Add16.
+  // The Inc "build the constant 1" hint scaffolds the SAME constant-1 sub-circuit
+  // the solution uses (its own internal source feeding a merging splitter so the
+  // single side is a 16-bit 0001), leaving the input + 1-bus → Add16 wiring to the
+  // learner. Derive it from the Inc solution JSON so it always matches: keep every
+  // solution component EXCEPT the adder, and only the wires among the kept ones
+  // (the source→splitter wire) — so the internal source sits exactly where the
+  // solution places it. The external source-1 stays outside for testing.
+  function incConstantHintStage() {
+    const doc = SOLUTION_DOCS.Inc;
+    if (!doc || !Array.isArray(doc.components)) return null;
+    const isAdder = (c) => /^gate-Add/.test(c.type || "");
+    const keep = doc.components.filter((c) => !isAdder(c));
+    const keepIds = new Set(keep.map((c) => c.id));
+    const wires = (doc.wires || [])
+      .filter((w) => keepIds.has(String(w.a).split(".")[0]) && keepIds.has(String(w.b).split(".")[0]))
+      .map((w) => [w.a, w.b]);
+    return { components: keep.map(clonePlain), wires };
+  }
+
   function openArithNote() {
     // Examine both converters before the tasks note opens (mirrors the 2.4
     // bus/splitter equipment gate, which is unconditional).
@@ -9750,19 +12626,30 @@
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const bus = isArithBusTask(task.id);
+    // The card frame and the pre-placed test source are FIXED components: their
+    // spots are authored in the solution JSON (frame.x/y and the `external` source),
+    // so the build shell reads them from there instead of hardcoding — that way the
+    // build board, the solution walkthrough and the editor all agree. Fallbacks keep
+    // the historical positions if a task ever loses its JSON.
+    const doc = (typeof SOLUTION_DOCS !== "undefined") ? SOLUTION_DOCS[task.id] : null;
+    const frameFallbackY = task.id === "Add16" ? 310 : 288;
+    const frameX = doc && doc.frame && Number.isFinite(doc.frame.x) ? doc.frame.x : (bus ? 640 : 500);
+    const frameY = doc && doc.frame && Number.isFinite(doc.frame.y) ? doc.frame.y : (bus ? frameFallbackY : 288);
+    const extSource = doc && Array.isArray(doc.external) ? doc.external.find((c) => c.type === "source") : null;
+    const srcX = extSource && Number.isFinite(extSource.x) ? extSource.x : (bus ? 65 : 80);
+    const srcY = extSource && Number.isFinite(extSource.y) ? extSource.y : (bus ? frameFallbackY : 288);
     const workspace = {
       ...createDefaultWorkspace(),
       components: bus
         ? [
           // Bus adder card (Add4/Add16): no output lamps — the multi-bit check
-          // harness wires its own splitter/lamp fan-out. Add16 sits lower so its
-          // taller frame (four stacked Add4 gates) fits on the board.
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 310 : 288 },
-          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 310 : 288 }
+          // harness wires its own splitter/lamp fan-out.
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: frameX, y: frameY },
+          { id: "source-1", type: "source", x: srcX, y: srcY }
         ]
         : [
-          { id: "source-1", type: "source", x: 80, y: 288 },
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
+          { id: "source-1", type: "source", x: srcX, y: srcY },
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: frameX, y: frameY },
           ...taskLampComponents(task.id)
         ],
       wires: [],
@@ -9891,11 +12778,226 @@
       </div>`;
   }
 
+  // ---- Chapter 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 →
+  // ALU3). Mirrors the arith note, but `requires` is a LIST (all prerequisites
+  // must be completed) and none of the cards have a build workspace yet, so a
+  // tapped-but-unlocked card just shows the "המשך יבוא..." notice.
+  function aluTaskDefById(id) {
+    return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).find((task) => task.id === id) || null;
+  }
+
+  function isAluTask(id) {
+    return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).some((task) => task.id === id);
+  }
+
+  function aluTaskUnlocked(id) {
+    const def = aluTaskDefById(id);
+    if (!def) return false;
+    const reqs = Array.isArray(def.requires) ? def.requires : (def.requires ? [def.requires] : []);
+    return reqs.every((req) => taskCompleted(req));
+  }
+
+  function aluTaskLockedMessage(id) {
+    const def = aluTaskDefById(id);
+    const reqs = def && Array.isArray(def.requires) ? def.requires : [];
+    const missing = reqs.filter((req) => !taskCompleted(req)).map((req) => aluTaskDefById(req)?.label || req);
+    if (!missing.length) return "";
+    return missing.length === 1
+      ? `קודם צריך לבנות את ${missing[0]}`
+      : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
+  }
+
+  // Which ALU cards have a real build workspace so far. The rest stay a
+  // "המשך יבוא..." placeholder in the note.
+  function aluTaskImplemented(id) {
+    return ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4"].includes(id);
+  }
+
+  // ALU bus cards (Inc …) are multi-bit, checked with the multi-bit harness like
+  // the arith adder cards.
+  function isAluBusTask(id) {
+    return Boolean(aluTaskDefById(id)?.busWidth);
+  }
+
+  function openAluNote() {
+    return setState({ aluNoteList: true });
+  }
+
+  // The 2.6 ALU worktable (panel125) the learner returns to after a build.
+  function aluWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-9");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  // Open the build workspace for an ALU bus card (Inc …). Mirrors the arith bus
+  // branch of openArithTaskWorkspace but keeps the chapter-9 worktable as the
+  // return target so completion reopens the ALU note (not the 2.5 arith note).
+  function openAluTaskWorkspace(taskId) {
+    const task = aluTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-9");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    // Frames with a control pin poking out the top sit lower on the board so the
+    // pin (and the check's control splitter) fit. ALU2/ALU3 have a WIDE control
+    // (7/12 bits → a tall control splitter in the check), so they sit lower still.
+    // aluBuildCardY is shared with the solution walkthrough so the two match.
+    const cardY = aluBuildCardY(task.id);
+    // The pre-placed source-1 is the TEST source (it drives the control during a
+    // check). Place it at build time LEVEL WITH THE CONTROL INPUT so it never
+    // moves when the check runs; a card with no control (Inc) keeps the default
+    // spot (its source is the learner's own constant "1", see the Inc solution).
+    const frameDef = WORKSPACE_COMPONENT_DEFS[taskCardComponentType(task.id)];
+    const controlPin = frameDef ? Object.values(frameDef.pins).find((p) => p.direction === "in" && p.y < -150) : null;
+    // The EXTERNAL test source's spot: for a card with a control it sits level with
+    // the control pin (so it doesn't move when the check runs); a card with no
+    // control (Inc) takes the source position straight from its solution JSON's
+    // `external`, so the build matches the solution. The card's OWN constant source
+    // (Inc's internal "1") is part of the solution, never pre-placed in the build.
+    let sourceX = 65;
+    let sourceY = controlPin ? cardY + controlPin.y : 288;
+    if (!controlPin) {
+      const doc = SOLUTION_DOCS[task.id];
+      const ext = doc && Array.isArray(doc.external) ? doc.external.find((c) => c.type === "source") : null;
+      if (ext && Number.isFinite(ext.x) && Number.isFinite(ext.y)) { sourceX = ext.x; sourceY = ext.y; }
+    }
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: cardY },
+        { id: "source-1", type: "source", x: sourceX, y: sourceY }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      aluNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  function handleAluNoteTask(id) {
+    const task = aluTaskDefById(id);
+    if (!task) return;
+    if (!aluTaskUnlocked(task.id)) {
+      return setState({ infoDialog: aluTaskLockedMessage(task.id) });
+    }
+    if (!aluTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    // A completed card reopens its solution walkthrough if it has one; Inc has
+    // none ("figure it out yourself"), so a completed card just rebuilds.
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openAluTaskWorkspace(task.id);
+  }
+
+  // The paged "what is an ALU" message shown right after ALU0 is built.
+  const ALU0_COMPLETE_PAGES = [
+    "שים לב, בנית גרסה פשוטה של ALU (מעין \"מחשבון\"). המכונה הזאת מקבלת 2 מספרים ובחירה של פעולה, ומבצעת את הפעולה שבחרת. למעשה, אין כאן שום בחירה, היא תמיד עושה אותו חישוב. פשוט הביט שמציין את הפעולה הוא חלק מהחישוב. סה\"כ מדובר בכרטיס עם 33 ביטים נכנסים ו-16 ביטים יוצאים. אפשר אפילו לכתוב לו טבלת אמת. אבל היא תהיה עצומה. אפשר גם לנסות לבנות אותו לפי השיטה הכללית לבניית כרטיס על פי טבלת אמת, אבל זה ידרוש מיליארדי NANDים. שזה בלתי אפשרי לחלוטין באמצע המאה העשרים, גם בתחילת מאה ה-21 זה מאוד יקר וכמובן מיותר.",
+    "ה-ALU במחשב מודרני הרבה יותר מסובך. אבל העיקרון דומה. יש מספר כניסות \"רגילות\", מספר כניסות בקרה ומספר יציאות. כניסות הבקרה מגדירות איזו פעולה תתבצע על הכניסות הרגילות והתוצאה תופיע ביציאות. כרגיל ההפרדה בין הכניסות הרגילות וכניסות הבקרה היא מלאכותית, ונועדה לעזור לנו להבין מה ה-ALU עושה.",
+    "ה-ALU נמצא בתוך המעבד של המחשב והוא זה שמבצע את הפעולות. המעבד \"מפעיל\" את ה-ALU: הוא נותן לו הוראות, מכניס לו את הקלט (מה שנכנס בכניסות הרגילות) ושומר את הפלט של ה-ALU (מה שיוצא מהיציאות) בכל מיני מקומות. כל זאת בהתאם להוראות שהמעבד מקבל, שהם למעשה התוכנה שהמעבד מריץ."
+  ];
+
+  // Shown at the end of the ALU1 solution: the ready-made-vs-custom-components
+  // trade-off (the ALU1 solution used a whole PreperNum for just its NOT).
+  const ALU1_COMPLETE_PAGES = [
+    "זה מאוד נפוץ בעולם המחשבים שיש פתרון פשוט שמשתמש ברכיבים מוכנים, ופתרון מסובך יותר שמשתמש בדיוק במה שצריך. יש יתרון להשתמש ברכיבים מוכנים: הם בדוקים היטב, אם תרצה לשפר אותם — זה ישפר גם את המוצר שמשתמש בהם, וזה בדרך כלל פשוט ומהיר יותר. יש גם יתרונות לבנייה של רכיבים המתאימים בדיוק למטרה שלך: זה יעיל יותר — זאת אומרת שהמוצר יהיה מהיר יותר, זול יותר להכנה ולפעמים מדויק יותר. כמו כן, שינוי ברכיב שאתה משתמש בו יכול לפעמים לגרום לשינוי לא צפוי במוצר שלך."
+  ];
+
+  // The after-completion message pages for an ALU card (null if it has none).
+  function aluMessagePagesFor(taskId) {
+    if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
+    if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
+    return null;
+  }
+
+  function aluTaskHasMessage(taskId) {
+    return Boolean(aluMessagePagesFor(taskId));
+  }
+
+  function renderAluIntroDialog() {
+    if (!state.aluIntroDialog) return "";
+    const pages = aluMessagePagesFor(state.aluIntroDialog.taskId || "ALU0") || ALU0_COMPLETE_PAGES;
+    const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
+    const isLast = page >= pages.length - 1;
+    return `
+      <div class="dialog-overlay" role="presentation">
+        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="על ה-ALU">
+          <p class="dialog-paragraph">${esc(pages[page])}</p>
+          <div class="dialog-actions">
+            <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${pages.length}</span>
+            <button class="btn btn-primary" data-action="${isLast ? "alu-intro-close" : "alu-intro-next"}">${isLast ? "הבנתי" : "המשך"}</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderAluNoteList() {
+    if (!state.aluNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !aluTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="alu-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="alu-note-close">סגור</button>
+            ${noteClearProgressButton("alu")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
     // A gate solution opened from the explanations menu just goes back there,
     // without touching task progress or the story flow.
     if (state.solutionDialog?.returnToExplanations) {
+      // The ALU0 menu explanation continues into the "what is an ALU" message
+      // (over the solution circuit) and only then returns to the menu.
+      if (taskId === "ALU0") {
+        return setState({
+          solutionDialog: null,
+          aluIntroDialog: { page: 0, returnToExplanations: true }
+        }, false);
+      }
       return setState({
         screen: "explanations",
         solutionDialog: null,
@@ -9917,8 +13019,9 @@
       : completedTaskIds();
 
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
-    // with the note reopened (so the next task unlocks).
-    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    // with the note reopened (so the next task unlocks). ALU bus cards (Inc …)
+    // are also multibit tasks but route to their own worktable (handled below).
+    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       // Finishing the LAST multi-bit task (Mux4way16) rolls into the closing von
@@ -9958,10 +13061,24 @@
     }
 
     // Arith cards (2.5): back to the worktable. If this completion finished the
-    // WHOLE note, show the "המשך יבוא" notice immediately (end of current
-    // content); otherwise reopen the note so the next card unlocks.
+    // WHOLE note, roll into chapter 2.6 (the ALU opening); otherwise reopen the
+    // note so the next card unlocks.
     if (isArithTask(taskId)) {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
+      if (allArithDone) {
+        return setState({
+          ...chapter26StartTarget(),
+          taskDialog: null,
+          solutionDialog: null,
+          notTest: null,
+          hintDialog: null,
+          muxTable: null,
+          completedTasks,
+          arithNoteList: false,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
       return setState({
         ...arithWorktableReturnTarget(),
         taskDialog: null,
@@ -9970,8 +13087,45 @@
         hintDialog: null,
         muxTable: null,
         completedTasks,
-        arithNoteList: !allArithDone,
-        infoDialog: allArithDone ? "המשך יבוא..." : null,
+        arithNoteList: true,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // ALU cards (chapter 2.6): back to the 2.6 worktable with the ALU note. Cards
+    // with an after-completion message (ALU0 "what is an ALU", ALU1 ready-made-
+    // vs-custom) show it every time their solution is closed — both on first
+    // completion and when replaying from the note.
+    if (isAluTask(taskId)) {
+      // Finishing the LAST ALU card rolls into the closing von Neumann doorway
+      // monologue ("you built an ALU …") instead of returning to the worktable.
+      if (allAluTasksCompletedIn(completedTasks)) {
+        return setState({
+          ...aluDoneMonologueTarget(),
+          taskDialog: null,
+          solutionDialog: null,
+          notTest: null,
+          hintDialog: null,
+          muxTable: null,
+          completedTasks,
+          aluNoteList: false,
+          aluIntroDialog: null,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
+      const showAluIntro = aluTaskHasMessage(taskId);
+      return setState({
+        ...aluWorktableReturnTarget(),
+        taskDialog: null,
+        solutionDialog: null,
+        notTest: null,
+        hintDialog: null,
+        muxTable: null,
+        completedTasks,
+        aluNoteList: !showAluIntro,
+        aluIntroDialog: showAluIntro ? { page: 0, taskId } : null,
         workspace: createDefaultWorkspace(),
         replayNonce: state.replayNonce + 1
       }, true);
@@ -10046,7 +13200,7 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
-    if (!isArithTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       if (taskId === "Mux4way16") {
@@ -10057,10 +13211,18 @@
       return setState({ ...storyTarget(returnChapter, returnPanelIndex), ...base, busesNoteList: true }, true);
     }
     // Arith cards (2.5): back to the arithmetic worktable with its note, not the
-    // 2.2 gates worktable. All done -> show the "המשך יבוא" notice.
+    // 2.2 gates worktable. All done -> roll into chapter 2.6 (the ALU opening).
     if (isArithTask(taskId)) {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
-      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: !allArithDone, infoDialog: allArithDone ? "המשך יבוא..." : null }, true);
+      if (allArithDone) return setState({ ...chapter26StartTarget(), ...base, arithNoteList: false }, true);
+      return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
+    }
+    // ALU cards (2.6): back to the ALU worktable with its note (ALU0 first shows
+    // the "what is an ALU" message).
+    if (isAluTask(taskId)) {
+      if (allAluTasksCompletedIn(completedTasks)) return setState({ ...aluDoneMonologueTarget(), ...base, aluNoteList: false, aluIntroDialog: null }, true);
+      const showAluIntro = aluTaskHasMessage(taskId);
+      return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0, taskId } : null }, true);
     }
     return setState({ ...secondWorkspaceExitTarget(), ...base, taskDialog: { message: "", ...(isRoutingTask(taskId) ? { mode: "routing" } : {}) } }, true);
   }
@@ -10074,7 +13236,7 @@
     if (step >= steps.length - 1) return finishSolutionDialog();
     const nextStep = step + 1;
     const nextWorkspace = solutionWorkspaceForTask(taskId, nextStep);
-    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId) || isArithTask(taskId)) {
+    if (isRoutingTask(taskId) || busTaskDefById(taskId) || multibitTaskDefById(taskId) || isArithTask(taskId) || isAluTask(taskId)) {
       // The rebuilt solution workspace must keep the worktable return target.
       nextWorkspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || nextWorkspace.sessionReturnChapterId;
       if (Number.isInteger(state.workspace?.sessionReturnPanelIndex)) {
@@ -10238,6 +13400,30 @@
       return setState(a16Patch, false);
     }
 
+    // Inc interactive hint: scaffold the constant-1 sub-circuit from the solution,
+    // leaving the input + the 1-bus → Add16 wiring to the learner.
+    const incStage = taskId === "Inc" && hint.action === "inc-build-one" ? incConstantHintStage() : null;
+    if (incStage) {
+      const incWs = normalizeWorkspace(clonePlain(state.workspace));
+      const source = componentById(incWs, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const card = componentById(incWs, "task-card-1") || { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 };
+      const stage = incStage;
+      incWs.components = [clonePlain(source), clonePlain(card), ...stage.components];
+      incWs.wires = stage.wires.map((pair) => normalizeWire(pair[0], pair[1]));
+      incWs.nextId = 2;
+      incWs.selectedTerminal = null;
+      incWs.accident = null;
+      incWs.focusedComponentId = null;
+      incWs.unlocked = true;
+      incWs.taskIntroSeen = true;
+      const incPatch = {
+        workspace: normalizeWorkspace(incWs),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) incPatch.hintState = hintStateOverride;
+      return setState(incPatch, false);
+    }
+
     // Dmux4way interactive hint: scaffold the control-bus splitter and the first
     // DMUX, wired to the data input and the first (pair-selecting) control bit.
     // The two DMUX outputs are left for the learner to route onward.
@@ -10267,6 +13453,41 @@
       };
       if (hintStateOverride) mbPatch.hintState = hintStateOverride;
       return setState(mbPatch, false);
+    }
+
+    // ≠0 bus tasks: the interactive hints scaffold the input splitter, and (for
+    // ≠0_16) one ≠0_4 per leg. ≠0_4 splits its bus into 4 single wires (the
+    // learner ORs them with an Or4way); ≠0_16 splits into 4 buses of width 4 and
+    // runs each through a ≠0_4. The OR of the results is left to the learner.
+    if (taskId === "Neq0_4" || taskId === "Neq0_16") {
+      const nqWs = normalizeWorkspace(clonePlain(state.workspace));
+      const card = componentById(nqWs, "task-card-1") || { id: "task-card-1", type: taskCardComponentType(taskId), x: 640, y: 288 };
+      const source = componentById(nqWs, "source-1") || { id: "source-1", type: "source", x: 65, y: 288 };
+      const isWide = taskId === "Neq0_16";
+      const comps = [clonePlain(source), clonePlain(card), { id: "split-in", type: "splitter", x: 440, y: 288, mirrored: false, outputs: 4, width: isWide ? 4 : 1 }];
+      const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+      if (isWide && hint.action === "neq0_16-split-and-neq0") {
+        // Leg i sits at ((4-1)/2 - i)*34 below/above the splitter centre (y=288).
+        const legYs = [339, 305, 271, 237];
+        for (let i = 0; i < 4; i += 1) {
+          comps.push({ id: `neq0-${i}`, type: "gate-Neq0_4", x: 600, y: legYs[i] });
+          wires.push(normalizeWire(`split-in.leg${i}`, `neq0-${i}.in1`));
+        }
+      }
+      nqWs.components = comps;
+      nqWs.wires = wires;
+      nqWs.nextId = 2;
+      nqWs.selectedTerminal = null;
+      nqWs.accident = null;
+      nqWs.focusedComponentId = null;
+      nqWs.unlocked = true;
+      nqWs.taskIntroSeen = true;
+      const nqPatch = {
+        workspace: normalizeWorkspace(nqWs),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) nqPatch.hintState = hintStateOverride;
+      return setState(nqPatch, false);
     }
 
     // Bus tasks: the interactive hints scaffold splitter(s) on the input bus(es)
@@ -10547,9 +13768,36 @@
   }
 
   function dismissWorkspaceTaskIntro() {
-    withWorkspace((workspace) => {
-      workspace.taskIntroSeen = true;
+    const overlay = app.querySelector(".workspace-task-intro-overlay");
+    const card = app.querySelector(".workspace-task-intro-card");
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!card || reduceMotion) {
+      return withWorkspace((workspace) => { workspace.taskIntroSeen = true; });
+    }
+    // Fly the requirements card from the centre to the bottom-right corner (where
+    // the requirements panel lives), then reveal that panel by marking the intro
+    // seen. A short one-off transition, so no persistent CSS is needed.
+    const cardRect = card.getBoundingClientRect();
+    const board = app.querySelector("[data-workspace-board]");
+    const bRect = board ? board.getBoundingClientRect()
+      : { right: window.innerWidth, bottom: window.innerHeight };
+    const scale = 0.34;
+    const targetCX = bRect.right - 16 - (cardRect.width * scale) / 2;
+    const targetCY = bRect.bottom - 14 - (cardRect.height * scale) / 2;
+    const dx = Math.round(targetCX - (cardRect.left + cardRect.width / 2));
+    const dy = Math.round(targetCY - (cardRect.top + cardRect.height / 2));
+    card.style.pointerEvents = "none";
+    card.style.transformOrigin = "center center";
+    card.style.transition = "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease";
+    if (overlay) overlay.style.pointerEvents = "none";
+    requestAnimationFrame(() => {
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      card.style.opacity = "0.12";
     });
+    window.setTimeout(() => {
+      withWorkspace((workspace) => { workspace.taskIntroSeen = true; });
+    }, 480);
   }
 
   // The task ids that belong to each task note. Chapter 2.4's tasks live in two
@@ -10560,6 +13808,7 @@
     if (kind === "buses") return BUS_TASK_DEFS.map((t) => t.id);
     if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
     if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
+    if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     return [];
   }
 
@@ -10828,6 +14077,23 @@
     openTaskWorkspace(task.id);
   }
 
+  // Jump straight from anywhere in the intro to the start of chapter 2.1. Always
+  // allowed (no pace gate), and bumps maxChapterReached so 2.1 stays unlocked.
+  function skipIntro() {
+    const target = chapterById("chapter-4");
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: target.id,
+      sceneId: target.sceneId,
+      panelIndex: 0,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      maxChapterReached: Math.max(Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0, chapterIndexById(target.id)),
+      workspace: createDefaultWorkspace()
+    }, true);
+  }
+
   function skipStory() {
     if (state.screen === "workspace") {
       if (workspaceSkipDisabled()) return;
@@ -10857,13 +14123,26 @@
       return;
     }
 
-    if (chapter.id === "chapter-4") return openWorkspace();
+    if (chapter.id === "chapter-4") {
+      // Before the Nand workbench the shortcut opens it (skip the intro story);
+      // AFTER it (the post-experiment slides 80/81) the presentation is done, so
+      // the shortcut moves on to chapter 2.2 instead of re-opening the workbench.
+      if (nandPostWorkbench()) {
+        const nextChapter = CHAPTERS[chapterIndex + 1];
+        if (nextChapter) return openChapter(nextChapter.id);
+      }
+      return openWorkspace();
+    }
 
     // The 2.4 closing monologue leads into chapter 2.5 — skip jumps there.
     if (busesClosingMonologue()) {
       const nextChapter = CHAPTERS[chapterIndex + 1];
       if (nextChapter) return openChapter(nextChapter.id);
     }
+
+    // Chapter 2.6 from the tasks worktable on (the note, the closing monologue and
+    // the subtraction demo) — skip jumps to the start of chapter 3.1.
+    if (aluSkipToNextChapter()) return openChapter("chapter-10");
 
     const patch = { panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null };
     // Skipping the 2.4 opening also skips examining the new bus and splitter, so
@@ -10895,6 +14174,44 @@
     return null;
   }
 
+  // Chapter 2.6 (alu): the opening monologue's "דלג" brings the learner to the
+  // tasks worktable (panel125, where the ALU note is). On the worktable slide
+  // itself there is NO skip (that is where the ALU tasks are done). AFTER it —
+  // the closing monologue and the subtraction demo — "דלג" jumps to chapter 3.1.
+  function aluWorktablePanelIndex() {
+    const scene = currentScene();
+    return scene ? panelIndexByImage(scene, "panel125_chapter_2_6_alu_worktable.svg") : -1;
+  }
+  function aluAtWorktable() {
+    if (currentChapter()?.id !== "chapter-9") return false;
+    const wt = aluWorktablePanelIndex();
+    return wt >= 0 && state.panelIndex === wt;
+  }
+  function aluSkipTarget() {
+    if (currentChapter()?.id !== "chapter-9") return null;
+    const wt = aluWorktablePanelIndex();
+    if (wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex < wt) return wt;
+    return null; // at the worktable → no skip; after it → a chapter jump
+  }
+  // True for chapter-9 STORY panels AFTER the worktable, where "דלג" leaves for
+  // chapter 3.1 instead of moving within the scene.
+  function aluSkipToNextChapter() {
+    if (state.screen !== "story" || currentChapter()?.id !== "chapter-9") return false;
+    const wt = aluWorktablePanelIndex();
+    return wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex > wt;
+  }
+
+  // True on chapter-4 (2.1) STORY panels AFTER the Nand-workbench launch panel —
+  // the post-experiment slides (80/81), where the Nand presentation is done, so
+  // "דלג" should move on to 2.2 rather than re-open the workbench.
+  function nandPostWorkbench() {
+    if (state.screen !== "story" || currentChapter()?.id !== "chapter-4") return false;
+    const scene = currentScene();
+    if (!scene) return false;
+    const launch = workspaceLaunchPanelIndex(scene);
+    return Number.isInteger(launch) && Number.isInteger(state.panelIndex) && state.panelIndex > launch;
+  }
+
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
   // worktable — but once PAST that worktable (i.e. inside the von Neumann
   // monologue) it becomes the next-tasks worktable that closes the monologue,
@@ -10906,6 +14223,9 @@
     // Chapter 2.5: milestone-based skip target (see arithSkipTarget).
     const arithTarget = arithSkipTarget();
     if (arithTarget != null) return arithTarget;
+    // Chapter 2.6: the opening monologue skips to the tasks worktable.
+    const aluTarget = aluSkipTarget();
+    if (aluTarget != null) return aluTarget;
     // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
@@ -11032,6 +14352,7 @@
   function withWorkspace(mutator) {
     const workspace = normalizeWorkspace(state.workspace);
     mutator(workspace);
+    reconcileSplitterWidths(workspace);
     syncConverterWidths(workspace);
     workspace.selectedTerminal = terminalExists(workspace, workspace.selectedTerminal) ? workspace.selectedTerminal : null;
     workspace.unlocked = true;
@@ -11201,10 +14522,10 @@
     const n = splitterOutputCount(component);
     const mirrored = Boolean(component?.mirrored);
     const pins = {
-      single: { x: mirrored ? 70 : -70, y: 0, direction: mirrored ? "out" : "in", label: "פין ראשי של המפצל" }
+      single: { x: mirrored ? 38 : -38, y: 0, direction: mirrored ? "out" : "in", label: "פין ראשי של המפצל" }
     };
     splitterOutputYs(n).forEach((y, i) => {
-      pins[`leg${i}`] = { x: mirrored ? -66 : 66, y, direction: mirrored ? "in" : "out", label: `פין מפצל ${i + 1}` };
+      pins[`leg${i}`] = { x: mirrored ? -37 : 37, y, direction: mirrored ? "in" : "out", label: `פין מפצל ${i + 1}` };
     });
     return pins;
   }
@@ -11292,6 +14613,63 @@
     if (!card) return false;
     return (card.logic?.components || []).some((c) =>
       String(c.type).startsWith(SAVED_CARD_PREFIX) && cardUsesCard(c.type, targetType, seen));
+  }
+
+  // The built-in (non-user) component types a saved card relies on — directly and
+  // through any chain of other saved cards it embeds.
+  function cardBuiltinDeps(cardType, seen = new Set(), acc = new Set()) {
+    if (seen.has(cardType)) return acc;
+    seen.add(cardType);
+    const card = savedCardByType(cardType);
+    if (!card) return acc;
+    for (const c of (card.logic?.components || [])) {
+      const t = String(c.type || "");
+      if (!t) continue;
+      if (t.startsWith(SAVED_CARD_PREFIX)) cardBuiltinDeps(t, seen, acc);
+      else acc.add(t);
+    }
+    return acc;
+  }
+
+  // Whether the splitter / converters are in the current build's toolbar (same
+  // rules the toolbar itself uses). Kept as functions so both the palette and the
+  // user-card dependency check agree.
+  function splitterInToolbar() {
+    const here = chapterIndexById(state.chapterId);
+    const buses = chapterIndexById("chapter-7");
+    return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
+  }
+  function convertersInToolbar() {
+    // The bin/dec converters join the palette on the 2.5 worktable and stay from
+    // there on (chapter-8 = 2.5), so 2.6 builds (and the subtraction demo) keep them.
+    const here = chapterIndexById(state.chapterId);
+    const arith = chapterIndexById("chapter-8");
+    if (Number.isInteger(here) && here >= 0 && Number.isInteger(arith) && arith >= 0 && here >= arith) return true;
+    return isArithTask(state.workspace?.taskId);
+  }
+
+  // The built-in component types the current build toolbar offers: Nand and the
+  // basic source/lamp (always), the gate cards available this chapter (per
+  // toolbarGateToolIds — earlier chapters in full, the current chapter only what's
+  // been built), and, where introduced, the splitter and converters.
+  function availableToolbarBuiltins() {
+    const set = new Set(["nand", "source", "lamp"]);
+    for (const id of toolbarGateToolIds()) set.add(gateComponentType(id));
+    if (splitterInToolbar()) set.add("splitter");
+    if (convertersInToolbar()) { set.add("converter-in"); set.add("converter-out"); }
+    return set;
+  }
+
+  // True when every built-in card/tool a user card relies on (transitively) is in
+  // the current toolbar — i.e. the card can actually be built here. A card that
+  // needs a built-in from a later chapter, or a current-chapter card not yet
+  // built, is NOT buildable and should drop out of a task build's palette.
+  function cardBuildableWithToolbar(cardType) {
+    const available = availableToolbarBuiltins();
+    for (const t of cardBuiltinDeps(cardType)) {
+      if (!available.has(t)) return false;
+    }
+    return true;
   }
   function savedCardGeometry(card) {
     const nIn = Math.max(1, (card.inputs || []).length);
@@ -11459,8 +14837,18 @@
     if (!def || !def.busAdder) return null;
     // Add4 chains its blocks through a single-bit carry-in (in3) / carry-out
     // (out2); Add16 has neither (it adds mod 2^16 and drops the final carry).
+    // gate-Inc is a single-input increment (input + 1) — flagged with `inc`.
     const carry = Boolean(def.pins && def.pins.in3);
-    return { width: def.busWidth, carry };
+    return { width: def.busWidth, carry, inc: Boolean(def.incGate) };
+  }
+
+  // A placeable ALU gate (gate-ALU0): a single-bit control (in3) selects the
+  // operation on the two width-N number buses. Its behaviour lives in the ALU
+  // branch of circuit-engine.js (keyed on the width).
+  function aluGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.aluGate) return null;
+    return { width: def.busWidth, op: def.aluOp || "and-add" };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
@@ -11484,9 +14872,25 @@
       if (def && Number.isInteger(def.busWidth)) return def.busWidth;
       return 1;
     }
-    const w = Number.isInteger(info.component.width) ? info.component.width : null;
-    if (w === null) return null;
-    return info.pinId === "single" ? w * splitterOutputCount(info.component) : w;
+    // A splitter's per-pin width comes from reconcileSplitterWidths (which stores
+    // the resolved legWidths[]/singleWidth on the component). null = still
+    // undetermined. Legs need not be equal; the single side is the sum. Legacy
+    // splitters (code-built display workspaces) carry only a uniform scalar
+    // `width` — fall back to it.
+    const legs = Array.isArray(info.component.legWidths) ? info.component.legWidths : null;
+    const uniform = Number.isInteger(info.component.width) ? info.component.width : null;
+    if (info.pinId === "single") {
+      if (Number.isInteger(info.component.singleWidth)) return info.component.singleWidth;
+      if (legs) return legs.every((w) => Number.isInteger(w)) ? legs.reduce((sum, w) => sum + w, 0) : null;
+      return uniform !== null ? uniform * splitterOutputCount(info.component) : null;
+    }
+    const legMatch = /^leg(\d+)$/.exec(info.pinId);
+    if (legMatch) {
+      const i = Number(legMatch[1]);
+      if (legs) return Number.isInteger(legs[i]) ? legs[i] : null;
+      return uniform;
+    }
+    return null;
   }
 
   function isSplitterSinglePin(workspace, ref) {
@@ -11494,9 +14898,35 @@
     return Boolean(info && info.component.type === "splitter" && info.pinId === "single");
   }
 
+  // Whether setting splitter pin `info` (currently undetermined) to width W keeps
+  // the "legs sum to the single side" constraint satisfiable. Unfixed legs still
+  // need at least 1 bit each, so they reserve headroom.
+  function splitterPinAcceptsWidth(component, pinId, W) {
+    if (!Number.isInteger(W) || W < 1) return false;
+    const n = splitterOutputCount(component);
+    const legs = Array.isArray(component.legWidths) ? component.legWidths : [];
+    const single = Number.isInteger(component.singleWidth) ? component.singleWidth : null;
+    const knownSum = legs.reduce((sum, w) => sum + (Number.isInteger(w) ? w : 0), 0);
+    const unknownLegs = Array.from({ length: n }, (_, i) => legs[i]).filter((w) => !Number.isInteger(w)).length;
+    if (pinId === "single") {
+      if (single !== null) return single === W;
+      return unknownLegs === 0 ? W === knownSum : W >= knownSum + unknownLegs;
+    }
+    const legMatch = /^leg(\d+)$/.exec(pinId);
+    if (!legMatch) return false;
+    const i = Number(legMatch[1]);
+    if (Number.isInteger(legs[i])) return legs[i] === W;
+    if (single !== null) {
+      const otherUnknown = unknownLegs - 1; // this leg becomes known
+      return otherUnknown === 0 ? knownSum + W === single : knownSum + W + otherUnknown <= single;
+    }
+    return true; // single still open — no upper bound yet
+  }
+
   // Whether a candidate connection between a and b obeys the width rules: at
-  // least one side defined; two defined widths must be equal; defining a
-  // splitter's single pin requires the width to divide its output count.
+  // least one side defined; two defined widths must be equal; a still-open
+  // splitter pin must be able to take the incoming width without breaking the
+  // legs-sum-to-single constraint.
   function wireWidthLegal(workspace, a, b) {
     const wa = pinWidth(workspace, a);
     const wb = pinWidth(workspace, b);
@@ -11504,15 +14934,15 @@
     if (wa !== null && wb !== null) return wa === wb;
     const defined = wa !== null ? wa : wb;
     const undefRef = wa === null ? a : b;
-    if (isSplitterSinglePin(workspace, undefRef)) {
-      const info = pinDefFor(workspace, undefRef);
-      return defined % splitterOutputCount(info.component) === 0;
+    const info = pinDefFor(workspace, undefRef);
+    if (info && info.component.type === "splitter") {
+      return splitterPinAcceptsWidth(info.component, info.pinId, defined);
     }
-    return true;
+    return true; // a converter (or other open pin) simply adopts the width
   }
 
-  // After a legal wire is added, fix the width of the newly-defined splitter (if
-  // one side was undefined). Setting the splitter's width defines all its pins.
+  // A converter with an undetermined width adopts the connected bus width when a
+  // wire fixes it. (Splitter widths are handled by reconcileSplitterWidths.)
   function applyWireWidthDefinition(workspace, a, b) {
     const wa = pinWidth(workspace, a);
     const wb = pinWidth(workspace, b);
@@ -11521,18 +14951,90 @@
     const undefRef = wa === null ? a : b;
     const info = pinDefFor(workspace, undefRef);
     if (!info) return;
+    if (info.component.type !== "converter-in" && info.component.type !== "converter-out") return;
     const component = componentById(workspace, info.component.id);
-    if (!component) return;
-    // A converter adopts the connected bus width directly; a splitter's single
-    // pin spreads the width across its legs.
-    if (info.component.type === "converter-in" || info.component.type === "converter-out") {
-      component.width = defined;
-      return;
+    if (component) component.width = defined;
+  }
+
+  // Recompute every splitter's per-leg widths from the current wiring. A leg /
+  // single pin fixed by a cable takes that cable's width; when all pins but one
+  // are fixed the last is inferred (single = Σlegs). Runs to a fixpoint so
+  // splitter→splitter chains settle, and is called after every wire change so a
+  // disconnect frees the pins it fixed.
+  function reconcileSplitterWidths(workspace) {
+    const splitters = workspace.components.filter((c) => c.type === "splitter");
+    if (!splitters.length) return;
+    const scratch = new Map();
+    for (const s of splitters) scratch.set(s.id, { legs: Array(splitterOutputCount(s)).fill(null), single: null });
+    // Resolved width of any pin under the scratch state (splitters) or the static
+    // model (gates/converters).
+    const resolved = (ref) => {
+      const info = pinDefFor(workspace, ref);
+      if (!info) return null;
+      if (info.component.type !== "splitter") return pinWidth(workspace, ref);
+      const cur = scratch.get(info.component.id);
+      if (!cur) return null;
+      if (info.pinId === "single") return cur.single;
+      const m = /^leg(\d+)$/.exec(info.pinId);
+      return m ? cur.legs[Number(m[1])] : null;
+    };
+    const fixFromWire = (ref, otherRef) => {
+      const info = pinDefFor(workspace, ref);
+      if (!info || info.component.type !== "splitter") return false;
+      const cur = scratch.get(info.component.id);
+      if (!cur) return false;
+      const ow = resolved(otherRef);
+      if (!Number.isInteger(ow)) return false;
+      const knownSum = cur.legs.reduce((sum, w) => sum + (w || 0), 0);
+      const unknownLegs = cur.legs.filter((w) => w == null).length;
+      if (info.pinId === "single") {
+        if (cur.single != null) return false;
+        if (unknownLegs === 0 ? ow !== knownSum : ow < knownSum + unknownLegs) return false;
+        cur.single = ow;
+        return true;
+      }
+      const m = /^leg(\d+)$/.exec(info.pinId);
+      if (!m) return false;
+      const i = Number(m[1]);
+      if (cur.legs[i] != null) return false;
+      if (cur.single != null) {
+        const otherUnknown = unknownLegs - 1;
+        if (otherUnknown === 0 ? knownSum + ow !== cur.single : knownSum + ow + otherUnknown > cur.single) return false;
+      }
+      cur.legs[i] = ow;
+      return true;
+    };
+    const infer = (cur) => {
+      const unknownIdx = cur.legs.map((w, i) => (w == null ? i : -1)).filter((i) => i >= 0);
+      const knownSum = cur.legs.reduce((sum, w) => sum + (w || 0), 0);
+      // All legs known → the single side is their sum.
+      if (cur.single == null && unknownIdx.length === 0) { cur.single = knownSum; return true; }
+      if (cur.single != null && unknownIdx.length >= 1) {
+        const remaining = cur.single - knownSum;
+        // Exactly one leg open → it takes whatever is left.
+        if (unknownIdx.length === 1 && remaining >= 1) { cur.legs[unknownIdx[0]] = remaining; return true; }
+        // N legs open with exactly N bits left → each must be 1 (legs are ≥1 bit),
+        // which is what lets the "split a bus into all-1-bit legs" pattern resolve.
+        if (remaining === unknownIdx.length) { for (const i of unknownIdx) cur.legs[i] = 1; return true; }
+      }
+      return false;
+    };
+    let changed = true;
+    let guard = 0;
+    while (changed && guard < 256) {
+      changed = false;
+      guard += 1;
+      for (const wire of workspace.wires) {
+        if (fixFromWire(wire.a, wire.b)) changed = true;
+        if (fixFromWire(wire.b, wire.a)) changed = true;
+      }
+      for (const s of splitters) if (infer(scratch.get(s.id))) changed = true;
     }
-    if (info.component.type !== "splitter") return;
-    component.width = info.pinId === "single"
-      ? Math.round(defined / splitterOutputCount(component))
-      : defined;
+    for (const s of splitters) {
+      const cur = scratch.get(s.id);
+      s.legWidths = cur.legs.slice();
+      s.singleWidth = cur.single;
+    }
   }
 
   function focusWorkspaceComponent(id) {
@@ -11576,7 +15078,8 @@
       const component = componentById(workspace, id);
       if (!component || component.type !== "splitter") return;
       component.outputs = n;
-      component.width = null;
+      component.legWidths = Array(n).fill(null);
+      component.singleWidth = null;
       workspace.wires = workspace.wires.filter((wire) => !wire.a.startsWith(`${id}.`) && !wire.b.startsWith(`${id}.`));
     });
   }
@@ -11672,10 +15175,14 @@
   }
 
   function boardPointFromEvent(event) {
-    const board = app.querySelector("[data-workspace-board]");
-    if (!board) return null;
+    // Map a pointer event to BOARD-CONTENT coordinates. The board scrolls
+    // vertically, so the content point is the offset within the scroll viewport
+    // PLUS the current scroll position; content bounds are the scrollable size,
+    // not the visible viewport, so a point below the fold maps correctly.
+    const scroll = app.querySelector("[data-workspace-scroll]") || app.querySelector("[data-workspace-board]");
+    if (!scroll) return null;
 
-    const rect = board.getBoundingClientRect();
+    const rect = scroll.getBoundingClientRect();
     if (!rect.width || !rect.height) return null;
 
     const insideBoard =
@@ -11684,9 +15191,12 @@
       event.clientY >= rect.top &&
       event.clientY <= rect.bottom;
 
+    const contentW = scroll.scrollWidth || rect.width;
+    const contentH = scroll.scrollHeight || rect.height;
+
     return {
-      x: Math.min(rect.width, Math.max(0, event.clientX - rect.left)),
-      y: Math.min(rect.height, Math.max(0, event.clientY - rect.top)),
+      x: Math.min(contentW, Math.max(0, event.clientX - rect.left + (scroll.scrollLeft || 0))),
+      y: Math.min(contentH, Math.max(0, event.clientY - rect.top + (scroll.scrollTop || 0))),
       inside: insideBoard
     };
   }
@@ -11700,20 +15210,49 @@
     if (line) line.hidden = hidden;
   }
 
+  const DRAGGABLE_DIALOG_CLASSES = [
+    "dialog-card", "workspace-build-help-prompt", "workspace-understood-card",
+    "workspace-accident-card", "workspace-task-intro-card", "not-test-result-card",
+    "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card",
+    "workspace-task-hint-mux", "workspace-why-note"
+  ];
+
+  // These panels are click-through (pointer-events:none so the board underneath
+  // stays wireable), so they may ONLY be grabbed by their explicit drag handle —
+  // never by a random press on the panel body.
+  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
+
   function draggableDialogElement(event) {
-    return event.target.closest(`
-      .dialog-card,
-      .workspace-build-help-prompt,
-      .workspace-understood-card,
-      .workspace-accident-card,
-      .workspace-task-intro-card,
-      .not-test-result-card,
-      .note-task-card,
-      .hint-card,
-      .hint-slides-card,
-      .solution-card,
-      .bit-card
-    `);
+    return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
+  }
+
+  // The class that identifies a dialog's kind, used to remember its dragged spot.
+  function dialogDragKey(element) {
+    return DRAGGABLE_DIALOG_CLASSES.find((c) => element.classList.contains(c)) || null;
+  }
+
+  // The fixed-position styles a dragged dialog carries, applied both live (during
+  // the drag) and after a re-render (to keep it where the learner put it).
+  function applyDialogPositionStyles(element, pos) {
+    element.style.position = "fixed";
+    element.style.left = pos.left;
+    element.style.top = pos.top;
+    element.style.right = "auto";
+    element.style.bottom = "auto";
+    element.style.transform = "none";
+    element.style.margin = "0";
+    element.style.width = pos.width;
+    element.style.maxWidth = "none";
+  }
+
+  // After each render, restore any dragged dialog to its saved position; forget
+  // the position of any dialog that is no longer on screen.
+  function applyDraggedDialogPositions() {
+    for (const key of Object.keys(draggedDialogPositions)) {
+      const el = document.querySelector("." + key);
+      if (!el) { delete draggedDialogPositions[key]; continue; }
+      applyDialogPositionStyles(el, draggedDialogPositions[key]);
+    }
   }
 
   function dialogDragBlockedByControl(event) {
@@ -11724,6 +15263,8 @@
     if (event.button !== undefined && event.button !== 0) return false;
     const element = draggableDialogElement(event);
     if (!element || dialogDragBlockedByControl(event)) return false;
+    // Click-through panels must be grabbed by their handle, not their body.
+    if (HANDLE_ONLY_DRAG_CLASSES.has(dialogDragKey(element)) && !event.target.closest("[data-drag-handle]")) return false;
 
     const rect = element.getBoundingClientRect();
     element.style.position = "fixed";
@@ -11764,9 +15305,39 @@
 
   function finishDialogDrag(event) {
     if (!dialogDragState || event.pointerId !== dialogDragState.pointerId) return;
-    dialogDragState.element.classList.remove("dialog-dragging");
-    dialogDragState.element.releasePointerCapture?.(event.pointerId);
+    const el = dialogDragState.element;
+    el.classList.remove("dialog-dragging");
+    el.releasePointerCapture?.(event.pointerId);
+    // Remember where this kind of dialog was dropped, so a re-render (e.g.
+    // advancing the solution with "המשך") keeps it there instead of snapping back.
+    const key = dialogDragKey(el);
+    if (key) draggedDialogPositions[key] = { left: el.style.left, top: el.style.top, width: el.style.width };
     dialogDragState = null;
+  }
+
+  // Wiring is forgiving: a click does not have to land exactly on a pin. A click
+  // within TERMINAL_CLICK_TOLERANCE board-units of a pin counts as a click on it,
+  // and when several pins are in range the CLOSEST to the click point wins. The
+  // pin circles are r=12; this widens the effective grab radius well beyond that.
+  const TERMINAL_CLICK_TOLERANCE = 36;
+  function nearestTerminalRef(point, tolerance = TERMINAL_CLICK_TOLERANCE) {
+    if (!point) return null;
+    let bestRef = null;
+    let bestDist = Infinity;
+    app.querySelectorAll("[data-action='workspace-terminal']").forEach((el) => {
+      const cx = Number(el.getAttribute("cx"));
+      const cy = Number(el.getAttribute("cy"));
+      if (!Number.isFinite(cx) || !Number.isFinite(cy)) return;
+      const dist = Math.hypot(point.x - cx, point.y - cy);
+      if (dist <= tolerance && dist < bestDist) {
+        bestDist = dist;
+        bestRef = el.getAttribute("data-terminal-ref");
+      }
+    });
+    return bestRef;
+  }
+  function nearestTerminalRefFromEvent(event, tolerance) {
+    return nearestTerminalRef(boardPointFromEvent(event), tolerance);
   }
 
   function startCableDrag(ref, event) {
@@ -11815,7 +15386,8 @@
     dragState = null;
 
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-action='workspace-terminal']");
-    const to = target?.dataset.terminalRef || null;
+    // Dropping near a pin (not exactly on it) still connects to the nearest one.
+    const to = target?.dataset.terminalRef || nearestTerminalRefFromEvent(event);
 
     suppressNextClick = true;
     window.setTimeout(() => { suppressNextClick = false; }, 0);
@@ -12104,6 +15676,22 @@
     const user = event.detail && event.detail.user;
     if (user && typeof APP !== "undefined" && APP.unlockAchievement) APP.unlockAchievement("connected");
     if (state.screen === "menu") render();
+    // A fresh sign-in refreshes the leaderboard for the rankings screens.
+    if (user && typeof APP !== "undefined" && APP.refreshLeaderboard) APP.refreshLeaderboard();
+  });
+
+  // Fresh leaderboard data arrived → medals can now be evaluated. Earn any newly
+  // deserved medalist achievement, and re-render any screen whose display depends
+  // on the leaderboard (rankings, or achievements for the medal titles/"לשעבר").
+  window.addEventListener("tom:leaderboard", () => {
+    medalDataReady = true;
+    syncAchievements();
+    if (["rankings", "cardRecords", "achievements", "menu"].includes(state.screen)) render();
+  });
+
+  // The chosen nickname is already taken by another user → show it on the field.
+  window.addEventListener("tom:nicknametaken", () => {
+    setState({ rankingsNicknameError: "הכינוי הזה כבר תפוס. בחר כינוי אחר." }, false);
   });
 
   // Load a whole-progress file picked from the main menu.
@@ -12292,6 +15880,7 @@
       state.createCardUnlocked &&
       state.screen === "workspace" &&
       !state.cardCreation &&
+      !subtractionDemoActive() &&           // the demo owns board clicks (they advance it)
       !event.target.closest(".topbar")
     ) {
       event.preventDefault();
@@ -12325,6 +15914,19 @@
         return explanationReplayActive("nand-function") ? nextExplanationPanel() : advanceNandMonologue();
       }
 
+      // During the subtraction demo a plain click on the board advances a step,
+      // like "המשך". The bubble (draggable) and teaser live outside the board, so
+      // dragging the bubble or clicking the teaser never reaches here.
+      if (
+        state.screen === "workspace" &&
+        subtractionDemoActive() &&
+        !state.subtractionDemoLinks &&
+        event.target.closest("[data-workspace-board]")
+      ) {
+        event.preventDefault();
+        return advanceSubtractionDemo();
+      }
+
       if (
         state.screen === "story" &&
         !state.dialog &&
@@ -12343,6 +15945,12 @@
     }
 
     const action = button.dataset.action;
+
+    // Leaving the card-build screen by a topbar navigation saves the card first
+    // (same messages as "חזרה למחסן"); a blocked save (invalid card) aborts the nav.
+    if (state.cardCreation && isGlobalNavigationAction(action)) {
+      if (!saveCardBeforeLeaving()) { event.preventDefault(); return; }
+    }
 
     if (action === "converter-digit") {
       event.preventDefault();
@@ -12391,7 +15999,7 @@
       return;
     }
 
-    if (workspaceTaskIntroActive() && !isGlobalNavigationAction(action) && !["workspace-task-intro-ok"].includes(action)) {
+    if (workspaceTaskIntroActive() && !isGlobalNavigationAction(action) && !["workspace-task-intro-ok", "workspace-task-intro-next"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -12425,6 +16033,24 @@
     if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
     if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
+    if (action === "open-rankings") {
+      backfillCompletedCardCounts(); // seed reference builds for already-completed cards
+      // Recompute both metrics from the current builds + user cards so any
+      // improvement to a sub-card (or an edited user card) is reflected.
+      setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
+      if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
+      return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+    }
+    if (action === "rankings-back") return setState({ screen: "achievements" }, false);
+    // Switch the efficiency/speed tab on either rankings page.
+    if (action === "rankings-tab") {
+      const tab = button.dataset.tab === "speed" ? "speed" : "efficiency";
+      return setState({ rankingsTab: tab }, false);
+    }
+    // Opening a card's records keeps the current tab (arrive on the tab you came from).
+    if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
+    if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
+    if (action === "rankings-nickname-save") return saveRankingsNickname();
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
@@ -12438,16 +16064,36 @@
     if (action === "bus-note-task") return handleBusNoteTask(Number(button.dataset.taskIndex));
     if (action === "multibit-note-task") return handleMultibitNoteTask(button.dataset.taskId);
     if (action === "arith-note-close") {
-      // The arith note is the LAST task list in the game. Closing it while every
-      // card is already built shows the "המשך יבוא" notice — this is the "come
-      // back to this state from elsewhere" trigger (finishing the last task shows
-      // the same notice immediately; see finishSolutionDialog).
+      // Closing the arith note while every card is already built rolls the story
+      // forward into chapter 2.6 (the ALU opening) — the same transition that
+      // finishing the last card triggers immediately (see finishSolutionDialog).
       const allArithDone = allArithTasksCompletedIn();
       return setState(allArithDone
-        ? { arithNoteList: false, infoDialog: "המשך יבוא..." }
+        ? { ...chapter26StartTarget(), arithNoteList: false }
         : { arithNoteList: false });
     }
     if (action === "arith-note-task") return handleArithNoteTask(button.dataset.taskId);
+    if (action === "alu-note-close") return setState({ aluNoteList: false });
+    if (action === "alu-note-task") return handleAluNoteTask(button.dataset.taskId);
+    if (action === "alu-intro-next") return setState({ aluIntroDialog: { ...state.aluIntroDialog, page: (Number(state.aluIntroDialog?.page) || 0) + 1 } });
+    if (action === "alu-intro-close") {
+      // Reaching the END of the "what is an ALU" message unlocks the ALU0
+      // explanation in the menu, with the fly-to-הסברים flourish the first time.
+      // In step pace the silent unlock records it; in see-everything pace it's
+      // already available — either way announceExplanationUnlock plays the
+      // flourish once (so the animation fires in "all" mode too). Only ALU0's
+      // message has a matching menu explanation (ALU1's does not).
+      if ((state.aluIntroDialog?.taskId || "ALU0") === "ALU0") {
+        unlockExplanation("alu-ALU0", { silent: true });
+        announceExplanationUnlock("alu-ALU0");
+      }
+      // When the message was reached by replaying the ALU0 explanation from the
+      // menu, closing it returns to the menu instead of the ALU worktable note.
+      if (state.aluIntroDialog?.returnToExplanations) {
+        return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
+      }
+      return setState({ aluIntroDialog: null, aluNoteList: true });
+    }
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
@@ -12465,6 +16111,7 @@
     }
     if (action === "explanation-open") return startExplanation(button.dataset.explanationId);
     if (action === "expl-gate-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
+    if (action === "expl-alu-solution") return showTaskSolution(button.dataset.taskId, { completeOnClose: false, returnToExplanations: true });
     if (action === "expl-routing-info") return setState({ explRoutingInfo: { taskId: button.dataset.taskId } }, false);
     if (action === "expl-routing-info-close") return setState({ explRoutingInfo: null }, false);
     if (action === "expl-arith-solution") return openArithExplanationSolution(button.dataset.arith);
@@ -12494,9 +16141,16 @@
     if (action === "next") return nextPanel();
     if (action === "prev") return previousPanel();
     if (action === "nand-monologue-prev") return previousNandMonologue();
+    if (action === "subtraction-demo-next") return advanceSubtractionDemo();
+    if (action === "subtraction-demo-prev") return subtractionDemoBack();
+    if (action === "subtraction-demo-replay") return replaySubtractionStep();
+    if (action === "subtraction-demo-skip") return finishSubtractionDemo();
+    if (action === "subtraction-demo-teaser") return openSubtractionDemoLinks();
+    if (action === "subtraction-demo-links-close") return closeSubtractionDemoLinks();
     if (action === "workspace-reset") return resetWorkspaceCurrentMode();
     if (action === "restart") return restartPanel();
     if (action === "skip") return skipStory();
+    if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
@@ -12550,10 +16204,12 @@
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);
     if (action === "arith-tasks-note") return openArithNote();
+    if (action === "alu-tasks-note") return openAluNote();
     if (action === "return-to-nand-dialog") return openReturnToNandDialog();
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
     if (action === "workspace-accident-ok") return resetWorkspaceAfterAccident();
+    if (action === "workspace-task-intro-next") return withWorkspace((workspace) => { workspace.taskIntroStep = 1; });
     if (action === "workspace-task-intro-ok") return dismissWorkspaceTaskIntro();
     if (action === "check-not-task") return startNotTaskTest();
     if (action === "mux-truth-cell") return handleMuxTruthCell(Number(button.dataset.row), button.dataset.col);
@@ -12597,6 +16253,7 @@
     }
     if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
+    if (action === "why-note-toggle") return setState({ whyNoteHidden: !state.whyNoteHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
@@ -12624,10 +16281,35 @@
     if (event.target.closest("[data-action='explanations-return-to-menu']")) return;
     if (event.target.closest("[data-action='sound']")) return;
     if (event.target.closest("[data-action='next']") && workspaceNandMonologueActive()) return;
+    // The subtraction demo locks the board but its own controls/teaser must work.
+    if (event.target.closest("[data-action='subtraction-demo-next']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-prev']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-replay']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-skip']")) return;
+    if (event.target.closest("[data-action='sound']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-teaser']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-links-close']")) return;
+    if (event.target.closest(".subtraction-demo-link")) return;
+    // The demo bubble is draggable even though the board itself is locked.
+    if (subtractionDemoActive() && event.target.closest("[data-subtraction-bubble]")) {
+      return startSubtractionBubbleDrag(event);
+    }
 
     if (workspaceInteractionLocked()) {
       event.preventDefault();
       return;
+    }
+
+    // The learner is starting to build — retire the And requirements arrow.
+    if (andArrowActive() && event.target.closest(".workspace-layout")) {
+      dismissAndArrow();
+    }
+
+    // The first click on the board retires the Nand connect demo (it keeps
+    // looping until then). Removal only hides the ghost — it never swallows the
+    // click, so the same press can still start a wire.
+    if (nandConnectDemoActive() && event.target.closest(".workspace-layout")) {
+      dismissNandConnectDemo();
     }
 
     const terminal = event.target.closest("[data-action='workspace-terminal']");
@@ -12653,10 +16335,27 @@
     // ghost. Let the event fall through to the click without capturing it here.
     if (event.target.closest("[data-action='converter-digit']")) return;
 
+    // Pressing ON a MOVABLE component's body moves the part — this wins over the
+    // near-pin tolerance below, so a press over the body drags the component even
+    // when it sits within a pin's grab radius. Fixed parts (the card frame, the
+    // pre-placed source/lamp) can't move, so a press near them falls through to
+    // the tolerance and wires their pins instead.
     const component = event.target.closest("[data-action='workspace-component']");
     if (component) {
+      const comp = componentById(state.workspace, component.dataset.componentId);
+      if (comp && !isFixedWorkspaceComponent(comp)) {
+        event.preventDefault();
+        return startComponentDrag(component.dataset.componentId, event);
+      }
+    }
+
+    // A press that just MISSED a pin (on empty board or over a fixed part, but not
+    // over a movable component's body) still grabs the nearest pin within
+    // tolerance, so wiring near a pin stays forgiving.
+    const nearTerminalRef = nearestTerminalRefFromEvent(event);
+    if (nearTerminalRef) {
       event.preventDefault();
-      return startComponentDrag(component.dataset.componentId, event);
+      return startCableDrag(nearTerminalRef, event);
     }
 
     // A pointerdown anywhere else while a splitter is focused (empty board, a
@@ -12668,9 +16367,27 @@
     }
   });
 
+  // While NOT dragging, show the wire (crosshair) cursor everywhere inside a pin's
+  // grab radius — not just over the tiny pin hit-circle — so the enlarged click
+  // tolerance is discoverable. Over a component body the part's own move cursor
+  // wins (matching that a press there drags the part), so the wire cursor is
+  // suppressed there.
+  function updateWorkspaceHoverCursor(event) {
+    const scroll = state.screen === "workspace" ? app.querySelector("[data-workspace-scroll]") : null;
+    if (!scroll) return;
+    // Only a MOVABLE component's body suppresses the wire cursor (its press moves
+    // the part); over a fixed part a press wires its pin, so the wire cursor shows.
+    const compEl = event.target.closest("[data-action='workspace-component']");
+    const comp = compEl && componentById(state.workspace, compEl.dataset.componentId);
+    const overMovable = comp && !isFixedWorkspaceComponent(comp);
+    const nearPin = !overMovable
+      && (event.target.closest("[data-action='workspace-terminal']") || nearestTerminalRefFromEvent(event));
+    scroll.classList.toggle("workspace-wire-cursor", Boolean(nearPin));
+  }
+
   document.addEventListener("pointermove", (event) => {
     if (dialogDragState) return updateDialogDrag(event);
-    if (!dragState) return;
+    if (!dragState) return updateWorkspaceHoverCursor(event);
     if (dragState.kind === "wire") return updateCableDrag(event);
     if (dragState.kind === "component") return updateComponentDrag(event);
     if (dragState.kind === "new-component") return updateToolbarDrag(event);
@@ -12902,6 +16619,10 @@
 
       if (workspaceTaskIntroActive()) {
         const actionElement = event.target.closest("[data-action]");
+        if ((event.key === "Enter" || event.key === " ") && actionElement?.dataset.action === "workspace-task-intro-next") {
+          event.preventDefault();
+          return withWorkspace((workspace) => { workspace.taskIntroStep = 1; });
+        }
         if ((event.key === "Enter" || event.key === " ") && actionElement?.dataset.action === "workspace-task-intro-ok") {
           event.preventDefault();
           return dismissWorkspaceTaskIntro();
@@ -12950,6 +16671,20 @@
         if (event.key === "ArrowRight") {
           event.preventDefault();
           return previousNandMonologue();
+        }
+        return;
+      }
+
+      // Subtraction demo: the arrow keys / space step between bubbles (RTL, so the
+      // RIGHT arrow goes back and LEFT/space advance), matching the prev/next buttons.
+      if (subtractionDemoActive() && !state.subtractionDemoLinks) {
+        if (event.key === "ArrowLeft" || event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          return advanceSubtractionDemo();
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          return subtractionDemoBack();
         }
         return;
       }
@@ -13025,6 +16760,7 @@
   });
 
   window.addEventListener("resize", () => {
+    if (state.screen === "workspace") requestAnimationFrame(fitWorkspaceCanvas);
     if (workspaceNandMonologueActive()) requestAnimationFrame(positionWorkspaceNandMonologue);
   });
 

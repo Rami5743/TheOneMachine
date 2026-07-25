@@ -15,14 +15,14 @@ function createNandMonologueView({ getState, esc, workspaceNandMonologueActive, 
           <thead>
             <tr>
               <th class="truth-output-cell">יציאה</th>
-              <th>כניסה 1</th>
               <th>כניסה 2</th>
+              <th>כניסה 1</th>
             </tr>
           </thead>
           <tbody>
             <tr><td class="truth-output-cell">1</td><td>0</td><td>0</td></tr>
-            <tr><td class="truth-output-cell">1</td><td>0</td><td>1</td></tr>
             <tr><td class="truth-output-cell">1</td><td>1</td><td>0</td></tr>
+            <tr><td class="truth-output-cell">1</td><td>0</td><td>1</td></tr>
             <tr><td class="truth-output-cell">0</td><td>1</td><td>1</td></tr>
           </tbody>
         </table>

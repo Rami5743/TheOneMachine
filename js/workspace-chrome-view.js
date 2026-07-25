@@ -15,6 +15,7 @@
 function createWorkspaceChromeView({
   getState,
   genderText,
+  navButton,
   workspaceBuildHelpPromptActive,
   workspaceUnderstoodPromptActive,
   workspaceSkipDisabled
@@ -75,7 +76,7 @@ function createWorkspaceChromeView({
   function renderWorkspaceSkipButton() {
     const state = getState();
     if (state.chapterId === "chapter-5" || state.workspace?.workspaceSession === 2) return "";
-    return `<button class="btn" data-action="skip" ${workspaceSkipDisabled() ? "disabled" : ""}>דלג</button>`;
+    return navButton("skip", "skip-rtl", "דלג", { disabled: workspaceSkipDisabled() });
   }
 
   function renderWorkspaceUnderstoodPrompt() {

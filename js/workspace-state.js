@@ -49,8 +49,22 @@ function createWorkspaceState({
     if (type === "splitter") {
       base.outputs = Number.isInteger(component.outputs) ? Math.min(16, Math.max(2, component.outputs)) : 4;
       base.mirrored = Boolean(component.mirrored);
-      // The fixed bus width per output (null = not yet determined by wiring).
-      base.width = Number.isInteger(component.width) && component.width >= 1 ? component.width : null;
+      const n = base.outputs;
+      const clampW = (w) => (Number.isInteger(w) && w >= 1 ? w : null);
+      // Per-leg widths: legWidths[i] is leg i's bus width (null = not yet fixed by
+      // wiring / inference); singleWidth is the merged side. Legs need NOT be
+      // equal. Legacy data used a single scalar `width` meaning every leg had that
+      // width and the single side was width*outputs — migrate it here.
+      let legWidths = Array.isArray(component.legWidths) ? component.legWidths.slice(0, n).map(clampW) : null;
+      let singleWidth = clampW(component.singleWidth);
+      if (!legWidths) {
+        const legacy = clampW(component.width);
+        legWidths = Array.from({ length: n }, () => legacy);
+        if (singleWidth === null && legacy !== null) singleWidth = legacy * n;
+      }
+      while (legWidths.length < n) legWidths.push(null);
+      base.legWidths = legWidths;
+      base.singleWidth = singleWidth;
     }
     // A dec→bin converter carries the decimal value it emits (persisted so a
     // player's set number survives reloads); both converters carry the fixed bus

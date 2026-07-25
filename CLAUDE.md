@@ -10,6 +10,21 @@ After each logical step check, commit and push your work and then continue to th
 
 I write my requests in Hebrew and often with typos. Use my EXACT Hebrew wording in the app; fix only obvious typos (spelling), never rephrase meaning. Replies can be in Hebrew.
 
+**External actions (anything I must do outside the code).** Whenever completing a task requires an action from ME in some external service or tool — running SQL in a dashboard, clicking through a console, configuring a provider, setting a secret, flipping a setting, uploading a file, etc. — give me **explicit, click-by-click** instructions in this exact style (Hebrew), naming every UI element AND where it is located:
+
+```
+כנס ללינק: <הלינק המדויק>
+שם תלחץ על "<שם הכפתור/הקישור>" שנמצא <המיקום המדויק>.
+אחר כך תלחץ על "<...>" שנמצא <...>.
+...
+הדבק את הטקסט הבא לתיבת <שם התיבה> שנמצאת <...>:
+<הטקסט>
+ואז תלחץ על "<...>" שנמצא <...>.
+לבסוף תראה <סימן ההצלחה> שנמצא <...>.
+```
+
+Never assume I know where things are — every step names the element and its location. Also **document the same instructions in the appropriate repo file** (a dedicated setup doc, or the header of the relevant file) so they are not lost, and commit it.
+
 ---
 
 ## Project

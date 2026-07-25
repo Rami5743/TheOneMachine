@@ -32,6 +32,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "gate-DMux") return "gate-dmux.svg";
     if (type === "bus") return "bus.svg";
     if (type === "splitter") return "splitter.svg";
+    if (type === "gate-ALU0") return "gate-alu0.svg";
+    if (type === "gate-ALU1") return "gate-alu1.svg";
+    if (type === "gate-ALU2") return "gate-alu2.svg";
+    if (type === "gate-ALU3") return "gate-alu3.svg";
+    if (type === "gate-ALU4") return "gate-alu4.svg";
     return "";
   }
 
@@ -143,6 +148,75 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The Inc gate (chapter 2.6): a "+1" box with ONE bus input on the left and
+  // ONE bus output on the right (output = input + 1). Same box/pin styling as
+  // addNGateMarkup, but a single symmetric input/output and a "+1" label.
+  function incGateMarkup(width) {
+    const edge = 44;
+    const bodyW = edge * 2;
+    const bodyH = 88;
+    const inX = -62;
+    const outX = 66;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // A "+1" mark inside the box.
+    s += `<text class="arith-gate-pin-letter" x="0" y="9" text-anchor="middle">+1</text>`;
+    s += busPin(inX, -edge, 0);
+    s += busPin(edge, outX, 0);
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The ALU0 gate (chapter 2.6): a box labelled "ALU" with two width-16 number
+  // buses on the left, a single-bit control cable poking out the TOP, and one
+  // width-16 output bus on the right (control selects AND vs ADD).
+  // The ALU-family gate symbol (chapter 2.6): the classic ALU shape — a tall,
+  // notched left edge where the operands enter (a chevron pointing right), the
+  // top and bottom sloping in, and a short right edge for the result. `inputYs`
+  // lists the operand terminal heights (2 for ALU0/ALU1, 3 for ALU2/ALU3); an
+  // operand at the notch height reaches the chevron tip like an extra leg.
+  // `opts.tall` makes the body taller so three operands fit.
+  function aluShapeMarkup(width, label, inputYs, opts) {
+    opts = opts || {};
+    const hw = 46;
+    const hh = opts.tall ? 54 : 40;   // tall left (input) edge half-height
+    const hhr = opts.tall ? 30 : 20;  // short right (output) edge half-height
+    const nTop = -13, nBot = 13, nTip = -24;  // the chevron notch on the left edge
+    const inX = -62, outX = 66;
+    const text = label || "ALU";
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<path class="usercard-body" d="M ${-hw} ${-hh} L ${hw} ${-hhr} L ${hw} ${hhr} L ${-hw} ${hh} L ${-hw} ${nBot} L ${nTip} 0 L ${-hw} ${nTop} Z" />`;
+    s += `<text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle"${text.length > 3 ? ' style="font-size:16px"' : ''}>${text}</text>`;
+    for (const y of inputYs) s += busPin(inX, Math.abs(y) < nBot ? nTip : -hw, y);
+    s += busPin(hw, outX, 0);   // result bus on the right
+    // The control pokes out of the sloping top edge toward its terminal: a wide
+    // (bus) control is drawn as a bus bar, a single-bit control as a thin cable.
+    const topY = -(hh + hhr) / 2;
+    s += (opts.controlWidth > 1)
+      ? busGateBarV(0, topY + 4, -46)
+      : `<line class="usercard-pin" x1="0" y1="${topY}" x2="0" y2="-46" />`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The PreperNum gate (chapter 2.6): a box labelled "Prep" with a width-16 bus
+  // on the left, a width-2 control bus poking out the TOP, and a width-16 output
+  // bus on the right.
+  function prepGateMarkup(width) {
+    const edge = 44;
+    const bodyW = edge * 2;
+    const bodyH = 76;
+    const inX = -62;
+    const outX = 66;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="5" text-anchor="middle" style="font-size:16px">Prep</text>`;
+    s += busPin(inX, -edge, 0);   // number bus in
+    s += busPin(edge, outX, 0);   // result bus out
+    // The width-2 control bus pokes out of the top edge toward its terminal —
+    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus.
+    s += busGateBarV(0, -bodyH / 2 + 4, -46);
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // Chapter 2.4 multi-bit symbols. Appearance only for now (used in the
   // monologue); their workbench behaviour is not wired up yet.
   function busMarkup() {
@@ -168,19 +242,28 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // y-axis. (The toolbar uses the static splitter.svg — see splitterMarkup.)
   const SPLITTER_OUTPUT_SPACING = 34;
   const SPLITTER_BAR_H = 11;
-  function splitterBoardMarkup(outputs, mirrored, width) {
+  function splitterBoardMarkup(outputs, mirrored, width, legWidths) {
     const n = Math.min(16, Math.max(2, Number(outputs) || 4));
     const spacing = SPLITTER_OUTPUT_SPACING;
-    const legWidth = Number.isInteger(width) ? width : null;
+    // Per-leg widths (legs may differ). Fall back to the legacy uniform `width`
+    // when a legWidths array is not supplied. A leg of width 1 draws as a plain
+    // cable; a wider — or still-undetermined — leg draws as a bus bar.
+    const legs = Array.isArray(legWidths) ? legWidths : null;
+    const legWidthOf = (i) => (legs ? legs[i] : (Number.isInteger(width) ? width : null));
+    // Leg i sits at ((n-1)/2 - i)*spacing — leg 0 at the BOTTOM — matching the pin
+    // geometry (splitterOutputYs in app.js / splitterPin in editor.html). Drawing
+    // it top-down instead would put each leg's bus/cable shape on the opposite leg
+    // from its own pin, which shows once legs have different widths.
     const ys = [];
-    for (let i = 0; i < n; i++) ys.push(Math.round((i - (n - 1) / 2) * spacing));
+    for (let i = 0; i < n; i++) ys.push(Math.round(((n - 1) / 2 - i) * spacing));
     const halfH = ((n - 1) * spacing) / 2;
     const spineTop = -(halfH + 8);
     const spine = `<rect class="splitter-bar" x="-7" y="${spineTop}" width="14" height="${halfH * 2 + 16}" />`;
-    const inputBar = splitterBusBar(-70, -7, 0, SPLITTER_BAR_H);
-    const leg = (y) => (legWidth === 1 ? splitterCableStub(7, 66, y) : splitterBusBar(7, 66, y, SPLITTER_BAR_H));
-    const outputStubs = ys.map(leg).join("");
-    const hit = `<rect class="splitter-hit" x="-74" y="${spineTop - 12}" width="146" height="${halfH * 2 + 40}" fill="transparent" />`;
+    // Pins on both sides are ~half the old length (single 70→38, legs 66→37).
+    const inputBar = splitterBusBar(-38, -7, 0, SPLITTER_BAR_H);
+    const leg = (y, i) => (legWidthOf(i) === 1 ? splitterCableStub(7, 37, y) : splitterBusBar(7, 37, y, SPLITTER_BAR_H));
+    const outputStubs = ys.map((y, i) => leg(y, i)).join("");
+    const hit = `<rect class="splitter-hit" x="-44" y="${spineTop - 12}" width="87" height="${halfH * 2 + 40}" fill="transparent" />`;
     const inner = `${hit}${spine}${inputBar}${outputStubs}`;
     return mirrored ? `<g transform="scale(-1 1)">${inner}</g>` : inner;
   }
@@ -189,7 +272,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The board passes the instance's output count; the toolbar does not, and
     // gets the static reference symbol.
     if (Number.isInteger(options.outputs)) {
-      return splitterBoardMarkup(options.outputs, options.mirrored, options.width);
+      return splitterBoardMarkup(options.outputs, options.mirrored, options.width, options.legWidths);
     }
     return componentSvgImage("splitter.svg", -66, -52, 154, 104);
   }
@@ -225,7 +308,38 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       <line class="splitter-stripe" x1="${b.x1 + 3}" y1="${b.y}" x2="${b.x2 - 3}" y2="${b.y}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />
       ${label}`;
   }
+
+  // A VERTICAL bus bar (for a control pin that pokes out the top of a gate): the
+  // same thick dashed bar as busGateBar but running along y between y1 and y2 at
+  // a fixed x. Used to draw wide control cables (PreperNum, ALU1/2/3) as buses.
+  function busGateBarV(cx, y1, y2) {
+    const half = (11 * K) / 2;
+    const top = Math.min(y1, y2), bot = Math.max(y1, y2);
+    return `
+      <rect class="splitter-bar" x="${cx - half}" y="${top}" width="${11 * K}" height="${bot - top}" />
+      <line class="splitter-stripe" x1="${cx}" y1="${top + 3}" x2="${cx}" y2="${bot - 3}" style="stroke-width:${3 * K};stroke-dasharray:${6 * K} ${3 * K}" />`;
+  }
+  // The ≠0 detector (Neq0_4 / Neq0_16): a box labelled "≠0" with ONE bus input on
+  // the left and a SINGLE-bit cable output on the right (output = 1 iff the bus is
+  // not all-zero). It has no base gate to borrow — an inverter's NOT triangle
+  // would mislabel it — so it gets its own "≠0" box, like Inc's "+1" box. Pins
+  // match the borrowed Not geometry (in at x=-60, out at x=80).
+  function neq0GateMarkup(width, options = {}) {
+    const edge = 30;
+    const bodyW = edge * 2;
+    const bodyH = 64;
+    const inX = -60;
+    const outX = 80;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:22px">&#8800;0</text>`;
+    s += busPin(inX, -edge, 0);   // bus input on the left
+    s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
+    return `<g class="usercard">${s}</g>`;
+  }
   function busGateMarkup(spec, options = {}) {
+    // Neq0 (≠0) is drawn as its own "≠0" box rather than borrowing a gate symbol.
+    if (spec.op === "Neq0") return neq0GateMarkup(spec.width, options);
     const symbol = gateMarkup(taskDefById(spec.op));
     const bars = (BUS_GATE_BARS[spec.op] || []).map((b) => busGateBar(b, spec.width, !options.toolbar)).join("");
     return `<g class="bus-gate">${symbol}${bars}</g>`;
@@ -249,6 +363,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const gateTask = taskDefById(type.slice(5));
       if (gateTask && gateTask.id === "Add4") return addNGateMarkup(4, true);
       if (gateTask && gateTask.id === "Add16") return addNGateMarkup(16, false);
+      if (gateTask && gateTask.id === "Inc") return incGateMarkup(16);
+      // The ALU icons are editable SVG files (assets/components/gate-alu*.svg),
+      // generated from aluShapeMarkup. Edit the file to change the look.
+      if (gateTask && gateTask.id === "ALU0") return componentSvgImage("gate-alu0.svg", -66, -74, 138, 136);
+      if (gateTask && gateTask.id === "PreperNum") return prepGateMarkup(16);
+      if (gateTask && gateTask.id === "ALU1") return componentSvgImage("gate-alu1.svg", -66, -74, 138, 136);
+      // ALU2/ALU3 have three bus inputs; their icon's viewBox is 12px taller at
+      // the top so the topmost "16" width label isn't clipped. The image box
+      // matches the viewBox 1:1 so the body/pins stay put.
+      if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
+      if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
+      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/nz
+      // pins and their captions below them aren't clipped; the image box matches
+      // it 1:1 so the body/pins keep their positions.
+      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 158);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

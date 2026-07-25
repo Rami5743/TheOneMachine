@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -289,22 +289,34 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         }
 
         if (type === "splitter") {
-          const w = Number.isInteger(component.width) ? component.width : null;
-          if (w === null) continue; // untyped splitter: nothing to propagate yet
           const count = splitterCount(component);
+          // Per-leg widths (legs need not be equal). Legacy splitters carry only a
+          // scalar `width` meaning every leg is that width — fall back to it when
+          // no legWidths array is present. Every leg must be determined to route.
+          const legs = Array.isArray(component.legWidths) ? component.legWidths : null;
+          const uniform = Number.isInteger(component.width) ? component.width : null;
+          const legW = Array.from({ length: count }, (_, i) => (legs ? legs[i] : uniform));
+          if (legW.some((w) => !Number.isInteger(w) || w < 1)) continue;
+          const single = legW.reduce((sum, w) => sum + w, 0);
+          // If the single side has a stored width it must equal the leg sum.
+          if (Number.isInteger(component.singleWidth) && component.singleWidth !== single) continue;
           if (component.mirrored) {
-            // Legs are inputs; the single pin outputs their concatenation.
+            // Legs are inputs; the single pin outputs their concatenation (leg 0 =
+            // the low chunk).
             let vec = [];
             for (let i = 0; i < count; i += 1) {
-              vec = vec.concat(fitBits(inputBits(workspace, `${component.id}.leg${i}`, outputs), w));
+              vec = vec.concat(fitBits(inputBits(workspace, `${component.id}.leg${i}`, outputs), legW[i]));
             }
             if (setBits(outputs, `${component.id}.single`, vec)) changed = true;
           } else {
-            // The single pin is the input; each leg outputs one chunk of it.
+            // The single pin is the input; each leg outputs its own chunk, taken
+            // from the running bit offset (leg 0 = the low chunk).
             const inVec = inputBits(workspace, `${component.id}.single`, outputs);
+            let offset = 0;
             for (let i = 0; i < count; i += 1) {
-              const chunk = fitBits(inVec.slice(i * w, i * w + w), w);
+              const chunk = fitBits(inVec.slice(offset, offset + legW[i]), legW[i]);
               if (setBits(outputs, `${component.id}.leg${i}`, chunk)) changed = true;
+              offset += legW[i];
             }
           }
           continue;
@@ -331,6 +343,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           if (bus) {
             const inVecs = Array.from({ length: bus.inputs }, (_, k) => inputBits(workspace, `${component.id}.in${k + 1}`, outputs));
             const outVec = [];
+            if (bus.op === "Neq0") {
+              // ≠0 detector: a single output bit, 1 iff at least one input bit is 1.
+              if (setBits(outputs, `${component.id}.out`, [inVecs[0].some(Boolean)])) changed = true;
+              continue;
+            }
             if (bus.control) {
               // MUX bus gate: the last input is a single shared control bit; the
               // rest are per-bit data buses. output[i] = op(data…[i], control).
@@ -362,11 +379,181 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               return n;
             };
             const carryIn = arith.carry && inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
-            const total = toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
+            // Inc: a single input bus + 1 (no in2, no carry). Adders: in1 + in2 (+ carry-in).
+            const total = arith.inc
+              ? toNum(`${component.id}.in1`) + 1
+              : toNum(`${component.id}.in1`) + toNum(`${component.id}.in2`) + carryIn;
             const sumVec = [];
             for (let i = 0; i < w; i += 1) sumVec.push(Boolean((total >> i) & 1));
             if (setBits(outputs, `${component.id}.out1`, sumVec)) changed = true;
             if (arith.carry && setBits(outputs, `${component.id}.out2`, [Boolean((total >> w) & 1)])) changed = true;
+            continue;
+          }
+          // A placeable ALU gate. Its control input selects which operation runs
+          // on the number bus(es). ALU0 (op "and-add"): a single-bit control (in3)
+          // — 0 → bitwise AND of in1,in2; 1 → add mod 2^N. PreperNum (op
+          // "prepnum"): a 2-bit control (in2) on one number bus (in1) — bit 1
+          // (MSB, the "first" bit) zeroes the input; bit 0 (LSB, the "second" bit)
+          // NOTs the stage-1 result.
+          const alu = typeof aluGateSpec === "function" ? aluGateSpec(type) : null;
+          if (alu) {
+            const w = alu.width;
+            const outVec = [];
+            if (alu.op === "prepnum") {
+              const x = inputBits(workspace, `${component.id}.in1`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in2`, outputs);
+              const zeroBit = ctrl[0]; // LSB (bottom leg) = the "second" bit — stage 1: zero the input
+              const notBit = ctrl[1];  // MSB (top leg) = the "first" bit — stage 2: NOT
+              for (let i = 0; i < w; i += 1) {
+                const stage1 = zeroBit ? false : Boolean(x[i]);
+                outVec.push(notBit ? !stage1 : stage1);
+              }
+            } else if (alu.op === "alu1") {
+              // ALU1: two number buses (in1, in2) + a 6-bit control (in3). The
+              // control splits into three 2-bit chunks (leg0=c0,c1 the bottom
+              // chunk … leg2=c4,c5 the top). c0,c1 prep input1 as a PreperNum
+              // 2-bit sub-control (c0 zeroes, c1 NOTs); c2,c3 prep input2; c4
+              // picks the op (0 AND, 1 ADD); c5 NOTs the whole result.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in3`, outputs);
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
+              const p2 = prep(v2, ctrl[2], ctrl[3]);
+              const opAdd = ctrl[4];
+              const finalNot = ctrl[5];
+              const combined = [];
+              if (opAdd) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              for (let i = 0; i < w; i += 1) outVec.push(finalNot ? !combined[i] : combined[i]);
+            } else if (alu.op === "alu2") {
+              // ALU2: three number buses (in1,in2,in3) + a 7-bit control (in4).
+              // The top control bit c6 selects the second operand (0 → in2,
+              // 1 → in3); the lower six bits c0..c5 are the ALU1 sub-control run
+              // on (in1, chosen operand) — c0,c1 prep in1; c2,c3 prep the operand;
+              // c4 op; c5 final NOT.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in4`, outputs);
+              const op2 = ctrl[6] ? v3 : v2;
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
+              const p2 = prep(op2, ctrl[2], ctrl[3]);
+              const combined = [];
+              if (ctrl[4]) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              for (let i = 0; i < w; i += 1) outVec.push(ctrl[5] ? !combined[i] : combined[i]);
+            } else if (alu.op === "alu3") {
+              // ALU3: three number buses (in1,in2,in3) + a 12-bit control (in4).
+              // If the "first" (top/MSB) control bit c11 is 0 the output is the
+              // 12-bit control zero-extended to width w (top bits 0); otherwise
+              // it is ALU2 run on (in1,in2,in3) with the low 7 control bits.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in4`, outputs);
+              // optionA: the control bits in the low positions, zero above.
+              const optionA = [];
+              for (let i = 0; i < w; i += 1) optionA.push(i < ctrl.length ? Boolean(ctrl[i]) : false);
+              // optionB: ALU2 with the low 7 control bits (c6 selects the operand).
+              const op2 = ctrl[6] ? v3 : v2;
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
+              const p2 = prep(op2, ctrl[2], ctrl[3]);
+              const combined = [];
+              if (ctrl[4]) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              const optionB = [];
+              for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
+              const selector = ctrl[11];
+              for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
+            } else if (alu.op === "alu4") {
+              // ALU4: the ALU3 result (into out1, written below), PLUS two extra
+              // single-bit outputs — ng (out2) = the first/top (MSB) bit of the
+              // result, and nz (out3) = 1 iff the result is non-zero.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
+              const ctrl = inputBits(workspace, `${component.id}.in4`, outputs);
+              const optionA = [];
+              for (let i = 0; i < w; i += 1) optionA.push(i < ctrl.length ? Boolean(ctrl[i]) : false);
+              const op2 = ctrl[6] ? v3 : v2;
+              const prep = (vec, zeroBit, notBit) => {
+                const r = [];
+                for (let i = 0; i < w; i += 1) {
+                  const stage1 = zeroBit ? false : Boolean(vec[i]);
+                  r.push(notBit ? !stage1 : stage1);
+                }
+                return r;
+              };
+              const p1 = prep(v1, ctrl[0], ctrl[1]);
+              const p2 = prep(op2, ctrl[2], ctrl[3]);
+              const combined = [];
+              if (ctrl[4]) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(p1) + toNum(p2);
+                for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+              }
+              const optionB = [];
+              for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
+              const selector = ctrl[11];
+              for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
+              // ng = the first (top/MSB) bit of the result; nz = result is non-zero.
+              if (setBits(outputs, `${component.id}.out2`, [Boolean(outVec[w - 1])])) changed = true;
+              if (setBits(outputs, `${component.id}.out3`, [outVec.some(Boolean)])) changed = true;
+            } else {
+              // and-add (ALU0): in1, in2 number buses + single-bit control in3.
+              const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
+              const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
+              const control = inputBits(workspace, `${component.id}.in3`, outputs)[0] ? 1 : 0;
+              if (control) {
+                const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+                const total = toNum(v1) + toNum(v2);
+                for (let i = 0; i < w; i += 1) outVec.push(Boolean((total >> i) & 1));
+              } else {
+                for (let i = 0; i < w; i += 1) outVec.push(Boolean(v1[i] && v2[i]));
+              }
+            }
+            if (setBits(outputs, `${component.id}.out1`, outVec)) changed = true;
             continue;
           }
           const task = taskDefById(type.slice(5));

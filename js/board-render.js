@@ -109,7 +109,7 @@ function createBoardRender({
     const scaleTransform = scale === 1 ? "" : ` scale(${scale})`;
     return `
       <g class="workspace-component component-${esc(component.type)}${burnedClass}${fixedClass}${solutionHighlightClass}" data-action="workspace-component" data-component-id="${esc(component.id)}" transform="translate(${component.x} ${component.y})${scaleTransform}">
-        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width, ...converterOpts })}
+        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width, legWidths: component.legWidths, ...converterOpts })}
         ${smoking ? charredNandMarkup() : ""}
         ${smoking ? smokeMarkup() : ""}
       </g>`;
