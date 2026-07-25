@@ -2153,6 +2153,19 @@ window.EMBEDDED_SOLUTIONS = {
     ],
     "check": {
       "note": "sum = XOR(a,b), carry = AND(a,b). הבדיקה עצמה היא טבלת אמת (בהגדרת המשימה)."
+    },
+    "harness": {
+      "inputs": {},
+      "outputs": {
+        "outputExt1": {
+          "x": 940,
+          "y": 358
+        },
+        "outputExt2": {
+          "x": 940,
+          "y": 158
+        }
+      }
     }
   },
   "fullAdder": {
@@ -2311,6 +2324,19 @@ window.EMBEDDED_SOLUTIONS = {
     ],
     "check": {
       "note": "שלושה halfAdder-ים. הבדיקה עצמה היא טבלת אמת (בהגדרת המשימה)."
+    },
+    "harness": {
+      "inputs": {},
+      "outputs": {
+        "outputExt1": {
+          "x": 940,
+          "y": 358
+        },
+        "outputExt2": {
+          "x": 940,
+          "y": 158
+        }
+      }
     }
   }
 };

@@ -9909,6 +9909,25 @@
   // The lamp component(s) a task needs on its workbench — one per output. The
   // DMUX's two lamps sit beside its two right-hand outputs.
   function taskLampComponents(taskId) {
+    // JSON-backed cards (halfAdder/fullAdder …) carry the fixed test-lamp spots in
+    // their solution JSON's `harness.outputs`, keyed by the frame's external output
+    // pin (outputExtN → lamp-N). Reading them here keeps the game's pre-placed lamps
+    // and the editor's check view showing the same positions from one source.
+    const doc = (typeof SOLUTION_DOCS !== "undefined") ? SOLUTION_DOCS[taskId] : null;
+    const harnessOut = doc && doc.harness && doc.harness.outputs;
+    if (harnessOut && typeof harnessOut === "object") {
+      const lamps = [];
+      Object.keys(harnessOut).forEach((ref) => {
+        const m = /^outputExt(\d+)$/.exec(ref);
+        const pos = harnessOut[ref];
+        if (!m || !pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return;
+        lamps.push({ id: `lamp-${m[1]}`, type: "lamp", x: pos.x, y: pos.y });
+      });
+      if (lamps.length) {
+        lamps.sort((a, b) => a.id.localeCompare(b.id));
+        return lamps;
+      }
+    }
     const count = taskDefById(taskId)?.outputs || 1;
     if (count > 1) {
       // Arith cards put sum (lamp-1) at the bottom and carry (lamp-2) on top;
@@ -11361,7 +11380,12 @@
       const ref = `task-card-1.${output.ref}`;
       const w = pinWidth(workspace, ref);
       const oOv = outHarness(output.ref);
-      const cy = ovY(oOv, 288 + (idx - (spec.outputs.length - 1) / 2) * 133);
+      // The default (un-overridden) spot for an output's check mechanism sits LEVEL
+      // WITH ITS FRAME PIN — the same rule the solution editor uses to preview it
+      // (harnessElements: y = frame.y + pin.y) — so the game and the editor agree.
+      // A missing pin falls back to the old index-based vertical spread.
+      const outPin = frameDef.pins[output.ref];
+      const cy = ovY(oOv, outPin ? cardY + outPin.y : 288 + (idx - (spec.outputs.length - 1) / 2) * 133);
       if (useConverters && Number.isInteger(w) && w > 1) {
         // A bin→dec converter displaying the numeric result of this output bus.
         const convId = `mb-out-conv-${idx}`;
@@ -11972,19 +11996,30 @@
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const bus = isArithBusTask(task.id);
+    // The card frame and the pre-placed test source are FIXED components: their
+    // spots are authored in the solution JSON (frame.x/y and the `external` source),
+    // so the build shell reads them from there instead of hardcoding — that way the
+    // build board, the solution walkthrough and the editor all agree. Fallbacks keep
+    // the historical positions if a task ever loses its JSON.
+    const doc = (typeof SOLUTION_DOCS !== "undefined") ? SOLUTION_DOCS[task.id] : null;
+    const frameFallbackY = task.id === "Add16" ? 310 : 288;
+    const frameX = doc && doc.frame && Number.isFinite(doc.frame.x) ? doc.frame.x : (bus ? 640 : 500);
+    const frameY = doc && doc.frame && Number.isFinite(doc.frame.y) ? doc.frame.y : (bus ? frameFallbackY : 288);
+    const extSource = doc && Array.isArray(doc.external) ? doc.external.find((c) => c.type === "source") : null;
+    const srcX = extSource && Number.isFinite(extSource.x) ? extSource.x : (bus ? 65 : 80);
+    const srcY = extSource && Number.isFinite(extSource.y) ? extSource.y : (bus ? frameFallbackY : 288);
     const workspace = {
       ...createDefaultWorkspace(),
       components: bus
         ? [
           // Bus adder card (Add4/Add16): no output lamps — the multi-bit check
-          // harness wires its own splitter/lamp fan-out. Add16 sits lower so its
-          // taller frame (four stacked Add4 gates) fits on the board.
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: task.id === "Add16" ? 310 : 288 },
-          { id: "source-1", type: "source", x: 65, y: task.id === "Add16" ? 310 : 288 }
+          // harness wires its own splitter/lamp fan-out.
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: frameX, y: frameY },
+          { id: "source-1", type: "source", x: srcX, y: srcY }
         ]
         : [
-          { id: "source-1", type: "source", x: 80, y: 288 },
-          { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
+          { id: "source-1", type: "source", x: srcX, y: srcY },
+          { id: "task-card-1", type: taskCardComponentType(task.id), x: frameX, y: frameY },
           ...taskLampComponents(task.id)
         ],
       wires: [],
