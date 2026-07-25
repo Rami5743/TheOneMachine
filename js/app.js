@@ -1482,7 +1482,7 @@
   const __taskModeView = createTaskModeView({
     getState: () => state, esc, genderText, adaptGender, taskDefById, busTaskDefById, busCheckDisplayRow, taskInputYs, solutionHighlightConfig,
     isNotTaskWorkspace, workspaceTaskIntroActive, notTestActive,
-    multibitTaskDefById, isMultibitTaskWorkspace, renderMultibitTaskShell
+    multibitTaskDefById, isMultibitTaskWorkspace, renderMultibitTaskShell, multibitCheckDisplayRow
   });
   const renderWorkspaceTaskShell = (...a) => __taskModeView.renderWorkspaceTaskShell(...a);
   const renderWorkspaceTaskIntro = (...a) => __taskModeView.renderWorkspaceTaskIntro(...a);
@@ -6542,7 +6542,32 @@
     fitWorkspaceCanvas();
     const scroll = app.querySelector("[data-workspace-scroll]");
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
+    sizeCheckPanel();
     revealFrozenCheckRow();
+  }
+
+  // While a check row is up, grow the requirements panel to fit the single row —
+  // up to the workbench width. If the row is wider than the whole workbench the
+  // panel caps at that width and the row's [data-check-scroll] wrapper scrolls
+  // horizontally. (An overflow:auto wrapper collapses under a pure-CSS max-content
+  // rule, so the fit is measured and applied here instead.)
+  function sizeCheckPanel() {
+    const panel = app.querySelector(".workspace-task-hint-check-wide");
+    if (!panel) return;
+    const table = panel.querySelector("[data-check-scroll] table");
+    if (!table) return;
+    requestAnimationFrame(() => {
+      if (!table.isConnected) return;
+      const board = app.querySelector("[data-workspace-scroll]");
+      const boardWidth = board ? board.clientWidth : (panel.offsetParent?.clientWidth || 0);
+      if (!boardWidth) return;
+      const cs = window.getComputedStyle(panel);
+      const chrome = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight)
+        + parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+      const maxWidth = boardWidth - 32;                 // 16px breathing room each side
+      const natural = table.scrollWidth + chrome;
+      panel.style.width = `${Math.min(natural, maxWidth)}px`;
+    });
   }
 
   // When a check has failed and the state is frozen (the "הבדיקה נכשלה" notice is
@@ -10221,9 +10246,12 @@
     setState({
       workspace,
       notTest: { active: true, taskId: task.id, rowIndex },
-      // For MUX, temporarily fill the row under test in the scratch table.
+      // Temporarily fill the row under test in the editable scratch table with the
+      // correct values (overriding whatever the learner typed there); it reverts
+      // to their own table as the check moves to the next row.
       ...(task.id === "Mux" ? { muxTable: muxCheckDisplayTable(rowIndex) } : {}),
-      ...(task.id === "DMux" ? { muxTable: dmuxCheckDisplayTable(rowIndex) } : {})
+      ...(task.id === "DMux" ? { muxTable: dmuxCheckDisplayTable(rowIndex) } : {}),
+      ...(isArithTask(task.id) ? { muxTable: arithCheckDisplayTable(task.id, rowIndex) } : {})
     }, false);
 
     notTestTimer = window.setTimeout(() => {
@@ -10352,6 +10380,44 @@
     if (!testCase) return null;
     const buses = caseInputBuses(def, testCase);
     return { inputs: buses, outputs: busTaskExpected(def, buses) };
+  }
+
+  // While a multibit NUMERIC check runs (Add4/Add16/Inc/ALU*/PreperNum), the case
+  // under test as a one-row table: each numeric input shown as a DECIMAL number
+  // plus the expected numeric result. Returns null for the routing/bitwise cards
+  // (Mux4way16/Dmux4way) whose inputs are bit patterns rather than numbers, and
+  // null when no such check is active/frozen.
+  function multibitCheckDisplayRow() {
+    if (!state.notTest?.active && !state.notTest?.result) return null;
+    const taskId = state.notTest?.taskId;
+    if (!multibitTaskDefById(taskId)) return null;
+    const testCase = multibitTaskCases(taskId)[state.notTest?.rowIndex];
+    // Numeric cards always carry a numeric operand `a`; routing cards don't.
+    if (!testCase || typeof testCase.a !== "number") return null;
+    const spec = multibitCaseSpec(taskId, testCase);
+    const bitsToDecimal = (bits) => bits.reduce((n, b, i) => n + (b ? 2 ** i : 0), 0);
+    // The numeric inputs, in a stable right-to-left reading order: the operands
+    // (a, b, d), then carry-in, then the control value — only those this card has.
+    const operandKeys = ["a", "b", "d"].filter((k) => typeof testCase[k] === "number");
+    const inputs = operandKeys.map((k, i) => ({
+      header: operandKeys.length === 1 ? "כניסה" : `כניסה ${i + 1}`,
+      value: testCase[k]
+    }));
+    if (typeof testCase.cin === "number") inputs.push({ header: "נשא נכנס", value: testCase.cin });
+    if (typeof testCase.control === "number") inputs.push({ header: "בקרה", value: testCase.control });
+    // The expected numeric result. Add4 spreads its answer over a sum bus + a
+    // carry bit, so combine them (a+b+cin); every other card has a single result
+    // bus whose decimal value is the answer (its widest output for ALU4, whose
+    // ng/nz are just 1-bit flags).
+    let result;
+    if (taskId === "Add4") {
+      result = testCase.a + testCase.b + testCase.cin;
+    } else {
+      const main = spec.outputs.find((o) => o.expected.length > 1) || spec.outputs[0];
+      result = bitsToDecimal(main.expected);
+    }
+    const resultHeader = (taskId === "Add4" || taskId === "Add16") ? "סכום" : "תוצאה";
+    return { inputs, result: { header: resultHeader, value: result } };
   }
 
   // Assemble the check circuit for one input case. The learner's circuit inside
@@ -11411,6 +11477,33 @@
       r.carry = withOutputs ? (outs[1] ? 1 : 0) : null;
       return r;
     });
+  }
+
+  // A task-def row as the arith scratch table shows it: the inputs in in1..inN,
+  // then the correct sum/carry. Mirrors muxRowDisplay/dmuxRowDisplay.
+  function arithRowDisplay(taskId, row) {
+    const r = {};
+    arithScratchColumns(taskId).forEach((c) => { r[c] = null; });
+    row.inputs.forEach((value, index) => { r[`in${index + 1}`] = value ? 1 : 0; });
+    const outs = Array.isArray(row.outputs) ? row.outputs : [row.output];
+    r.sum = outs[0] ? 1 : 0;
+    r.carry = outs[1] ? 1 : 0;
+    return r;
+  }
+
+  // The arith scratch table shown mid-check: the learner's own table (from the
+  // pre-check snapshot), with ONLY the row currently under test overwritten with
+  // the correct values — regardless of what the learner had typed there. Because
+  // it always rebuilds from the snapshot, the previous row reverts as the check
+  // moves on. Mirrors muxCheckDisplayTable/dmuxCheckDisplayTable.
+  function arithCheckDisplayTable(taskId, rowIndex) {
+    const count = arithScratchRowCount(taskId);
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === count
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : arithEmptyScratchTable(taskId);
+    const row = taskDefById(taskId)?.rows?.[rowIndex];
+    if (row) snap[rowIndex] = arithRowDisplay(taskId, row);
+    return snap;
   }
 
   // The fullAdder build hints construct the 3-halfAdder circuit one stage at a

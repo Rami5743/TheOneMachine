@@ -2528,6 +2528,18 @@ button { font: inherit; }
   min-width: 100%;
 }
 
+/* During a check the requirements panel widens to fit the single check row
+   (its px width is set by sizeCheckPanel, capped at the workbench width). The
+   multibit panel stacks the text above the row instead of side-by-side, and the
+   row's scroll wrapper fills the widened panel so it can pan when it overflows. */
+.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-multibit.workspace-task-hint-check-wide {
+  flex-direction: column;
+}
+
+.workspace-task-hint-check-wide [data-check-scroll] {
+  width: 100%;
+}
+
 .workspace-task-hint-table th,
 .workspace-task-hint-table td {
   padding: 6px 8px;

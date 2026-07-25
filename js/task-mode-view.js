@@ -24,7 +24,8 @@ function createTaskModeView({
   notTestActive,
   multibitTaskDefById,
   isMultibitTaskWorkspace,
-  renderMultibitTaskShell
+  renderMultibitTaskShell,
+  multibitCheckDisplayRow
 }) {
   function busDefFor() {
     const state = getState();
@@ -102,6 +103,30 @@ function createTaskModeView({
         <table class="workspace-task-hint-table bus-check-table">
           <thead><tr>${outHead}${inHeads}</tr></thead>
           <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
+        </table>
+      </div>`;
+  }
+
+  // The single-row DECIMAL check table for a numeric multibit card (adders / Inc /
+  // ALU): the case's numeric inputs and the expected numeric result, each as a
+  // plain number. row = { inputs:[{header,value}], result:{header,value} }. LTR
+  // DOM == visual left-to-right; read right-to-left as כניסה 1, כניסה 2 …, בקרה,
+  // then the result — so the result is first in the DOM and the inputs run last
+  // to first (matching renderBusCheckRow's ordering).
+  function renderMultibitCheckRow(row) {
+    const cell = (v, isOut) => `<td class="${isOut ? "truth-output-cell" : ""}">${esc(String(v))}</td>`;
+    const outHead = `<th class="truth-output-cell">${esc(row.result.header)}</th>`;
+    const outCell = cell(row.result.value, true);
+    let inHeads = "", inCells = "";
+    for (let j = row.inputs.length - 1; j >= 0; j -= 1) {
+      inHeads += `<th>${esc(row.inputs[j].header)}</th>`;
+      inCells += cell(row.inputs[j].value, false);
+    }
+    return `
+      <div class="workspace-task-hint-scroll" data-check-scroll>
+        <table class="workspace-task-hint-table bus-check-table">
+          <thead><tr>${outHead}${inHeads}</tr></thead>
+          <tbody><tr class="truth-row-active">${outCell}${inCells}</tr></tbody>
         </table>
       </div>`;
   }
@@ -413,10 +438,18 @@ function createTaskModeView({
         .filter(Boolean)
         .map((part) => `<p>${esc(part).replace(/^הערה/, "<strong>הערה</strong>")}</p>`)
         .join("");
+      // Numeric cards (adders/Inc/ALU) show a single-row table for the case under
+      // test, with the inputs as decimal numbers, while a check runs or is frozen.
+      const numericRow = typeof multibitCheckDisplayRow === "function" ? multibitCheckDisplayRow() : null;
+      const numericTable = numericRow ? renderMultibitCheckRow(numericRow) : "";
+      // While the check row is up, let the panel grow to fit it (capped at the
+      // workbench width by CSS).
+      const wideClass = numericTable ? " workspace-task-hint-check-wide" : "";
       return `
-        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit" aria-label="דרישות ${esc(mbDef.label)}">
+        <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit${wideClass}" aria-label="דרישות ${esc(mbDef.label)}">
           ${toggle}
           <div class="mux-hint-text">${paragraphs}</div>
+          ${numericTable}
         </section>`;
     }
     const busDef = busDefFor();
@@ -425,8 +458,9 @@ function createTaskModeView({
       // single-row truth table for the case currently under test.
       const row = typeof busCheckDisplayRow === "function" ? busCheckDisplayRow() : null;
       const table = row ? renderBusCheckRow(busDef, row) : "";
+      const wideClass = table ? " workspace-task-hint-check-wide" : "";
       return `
-        <section class="workspace-task-hint" aria-label="הסבר על ${esc(busDef.label)}">
+        <section class="workspace-task-hint${wideClass}" aria-label="הסבר על ${esc(busDef.label)}">
           <p>${esc(adaptGender(busDef.description || ""))}</p>
           ${table}
         </section>`;
