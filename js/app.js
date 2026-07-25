@@ -6460,8 +6460,29 @@
   // The Nand-presentation connect demo: a looping ghost animation showing a cable
   // drawn from the source pin to a Nand input pin, teaching the wiring gesture. It
   // loops until the learner's first click on the board (dismissed) and re-arms
-  // whenever they leave and return to the presentation (reset in render()).
+  // whenever they leave and return to the presentation, or press the reset button.
   let nandConnectDemoDismissed = false;
+  // When the demo first appeared (perf clock), so a click can't kill it before the
+  // 2s minimum is up, and a pending "remove at the 2s mark" timer.
+  let nandConnectDemoShownAt = 0;
+  let nandConnectDemoDismissTimer = null;
+  const NAND_DEMO_MIN_MS = 2000;
+  const perfNow = () => (typeof performance !== "undefined" && performance.now ? performance.now() : 0);
+
+  // Re-arm the demo so it plays again (leaving the presentation, or pressing reset).
+  function armNandConnectDemo() {
+    nandConnectDemoDismissed = false;
+    nandConnectDemoShownAt = 0;
+    if (nandConnectDemoDismissTimer) { window.clearTimeout(nandConnectDemoDismissTimer); nandConnectDemoDismissTimer = null; }
+  }
+
+  function removeNandConnectDemoNow() {
+    nandConnectDemoDismissed = true;
+    nandConnectDemoShownAt = 0;
+    if (nandConnectDemoDismissTimer) { window.clearTimeout(nandConnectDemoDismissTimer); nandConnectDemoDismissTimer = null; }
+    const el = app.querySelector("[data-nand-connect-demo]");
+    if (el) el.remove();
+  }
 
   function nandConnectDemoActive() {
     const ws = state.workspace;
@@ -6482,6 +6503,9 @@
     const from = terminalPosition(ws, "source-1.out");
     const to = terminalPosition(ws, "nand-1.in1");
     if (!from || !to) return "";
+    // Stamp the moment the demo first appears (once), so the 2s minimum can be
+    // enforced against a too-early click.
+    if (!nandConnectDemoShownAt) nandConnectDemoShownAt = perfNow();
     const dur = "2.4s";                 // one loop; comfortably over the 2s minimum
     const kt = "0;0.5;0.85;1";           // draw → hold → reset
     const fade = "0;1;1;0;0";
@@ -6511,10 +6535,15 @@
   }
 
   function dismissNandConnectDemo() {
-    if (nandConnectDemoDismissed) return;
-    nandConnectDemoDismissed = true;
-    const el = app.querySelector("[data-nand-connect-demo]");
-    if (el) el.remove();
+    if (nandConnectDemoDismissed || nandConnectDemoDismissTimer) return;
+    const elapsed = nandConnectDemoShownAt ? perfNow() - nandConnectDemoShownAt : NAND_DEMO_MIN_MS;
+    if (elapsed < NAND_DEMO_MIN_MS) {
+      // A click before the 2s minimum keeps the demo on screen until the minimum
+      // is up, then removes it — the click still does its own thing meanwhile.
+      nandConnectDemoDismissTimer = window.setTimeout(removeNandConnectDemoNow, NAND_DEMO_MIN_MS - elapsed);
+      return;
+    }
+    removeNandConnectDemoNow();
   }
 
   function renderWorkspace() {
@@ -9158,7 +9187,7 @@
     syncIdleNudge();
     // Re-arm the Nand connect demo whenever we are away from the presentation, so
     // it plays again on the learner's next visit but stays dismissed once clicked.
-    if (!isNandPresentationWorkspace()) nandConnectDemoDismissed = false;
+    if (!isNandPresentationWorkspace() && (nandConnectDemoDismissed || nandConnectDemoShownAt)) armNandConnectDemo();
     // Play the unlock flourishes after this render paints (so the target buttons
     // exist and are laid out). The flying icons live on <body>, so the next
     // render does not wipe them mid-animation.
@@ -9404,6 +9433,8 @@
       };
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
+    // Pressing reset in the Nand presentation replays the connect demo from the top.
+    armNandConnectDemo();
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
   }
 
