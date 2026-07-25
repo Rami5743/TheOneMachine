@@ -4226,7 +4226,7 @@
 
   function solutionHighlightConfig() {
     // The subtraction demo lights up the control leg(s) the current bubble talks
-    // about (the whole control on the 010011 step, then just the NOT-input1 and
+    // about (the whole control on the 110010 step, then just the NOT-input1 and
     // NOT-result legs), so "the pins we're talking about" are visibly marked.
     if (subtractionDemoActive()) return subtractionDemoHighlight();
     if (!state.solutionDialog) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
@@ -6694,7 +6694,7 @@
     const terminals = new Set();
     const wires = new Set();
     if (step === 2) {
-      // "the 010011 control bits" — the whole control path (every wired leg plus
+      // "the 110010 control bits" (shown top-first) — the whole control path (every wired leg plus
       // the merged control cable into the ALU's control pin).
       for (const leg of [1, 4, 5]) { wires.add(legWire(leg)); terminals.add(`ctrl-split.leg${leg}`); }
       wires.add(wireKey("ctrl-split.single", "alu.in3"));
