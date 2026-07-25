@@ -1521,5 +1521,230 @@ window.EMBEDDED_SOLUTIONS = {
         }
       }
     }
+  },
+  "Add16": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Add16",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Add16",
+      "x": 640,
+      "y": 310,
+      "pins": [
+        {
+          "id": "inputExt1",
+          "x": -340,
+          "y": -90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת המספר הראשון חיצונית"
+        },
+        {
+          "id": "inputInt1",
+          "x": -260,
+          "y": -90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת המספר הראשון פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת המספר השני חיצונית"
+        },
+        {
+          "id": "inputInt2",
+          "x": -260,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת המספר השני פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 260,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת הסכום פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת הסכום חיצונית"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 65,
+        "y": 310
+      }
+    ],
+    "components": [
+      {
+        "id": "split-a",
+        "type": "splitter",
+        "x": 430,
+        "y": 200,
+        "mirrored": false,
+        "outputs": 4,
+        "width": 4
+      },
+      {
+        "id": "split-b",
+        "type": "splitter",
+        "x": 430,
+        "y": 420,
+        "mirrored": false,
+        "outputs": 4,
+        "width": 4
+      },
+      {
+        "id": "ad3",
+        "type": "gate-Add4",
+        "x": 640,
+        "y": 100
+      },
+      {
+        "id": "ad2",
+        "type": "gate-Add4",
+        "x": 640,
+        "y": 240
+      },
+      {
+        "id": "ad1",
+        "type": "gate-Add4",
+        "x": 640,
+        "y": 380
+      },
+      {
+        "id": "ad0",
+        "type": "gate-Add4",
+        "x": 640,
+        "y": 520
+      },
+      {
+        "id": "merge",
+        "type": "splitter",
+        "x": 850,
+        "y": 310,
+        "mirrored": true,
+        "outputs": 4,
+        "width": 4
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "split-a.single"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "split-b.single"
+      },
+      {
+        "a": "merge.single",
+        "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "split-a.leg0",
+        "b": "ad0.in1"
+      },
+      {
+        "a": "split-b.leg0",
+        "b": "ad0.in2"
+      },
+      {
+        "a": "ad0.out1",
+        "b": "merge.leg0"
+      },
+      {
+        "a": "split-a.leg1",
+        "b": "ad1.in1"
+      },
+      {
+        "a": "split-b.leg1",
+        "b": "ad1.in2"
+      },
+      {
+        "a": "ad0.out2",
+        "b": "ad1.in3"
+      },
+      {
+        "a": "ad1.out1",
+        "b": "merge.leg1"
+      },
+      {
+        "a": "split-a.leg2",
+        "b": "ad2.in1"
+      },
+      {
+        "a": "split-b.leg2",
+        "b": "ad2.in2"
+      },
+      {
+        "a": "ad1.out2",
+        "b": "ad2.in3"
+      },
+      {
+        "a": "ad2.out1",
+        "b": "merge.leg2"
+      },
+      {
+        "a": "split-a.leg3",
+        "b": "ad3.in1"
+      },
+      {
+        "a": "split-b.leg3",
+        "b": "ad3.in2"
+      },
+      {
+        "a": "ad2.out2",
+        "b": "ad3.in3"
+      },
+      {
+        "a": "ad3.out1",
+        "b": "merge.leg3"
+      }
+    ],
+    "check": {
+      "cases": [
+        {
+          "a": 0,
+          "b": 0
+        },
+        {
+          "a": 1234,
+          "b": 5678
+        },
+        {
+          "a": 4095,
+          "b": 1
+        },
+        {
+          "a": 40000,
+          "b": 25535
+        },
+        {
+          "a": 65535,
+          "b": 1
+        },
+        {
+          "a": 65535,
+          "b": 65535
+        }
+      ],
+      "note": "סכום שני מספרים בני 16 ביט (הנשא ה-17 מושמט)"
+    }
   }
 };

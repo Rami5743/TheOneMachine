@@ -9888,7 +9888,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -9982,6 +9982,9 @@
       // near the middle so the bottom outputs (and their check lamps) fit.
       : taskId === "ALU4" ? 360
       : (taskId === "ALU0" || taskId === "PreperNum" || taskId === "ALU1") ? 360
+      // The tall 2.5 Add16 frame (four Add4 chunks stacked inside) sits a touch
+      // lower so its title clears the top of the board — matching its build.
+      : taskId === "Add16" ? 310
       : 288;
   }
   function workspaceFromSolutionDoc(doc) {
