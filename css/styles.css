@@ -1266,7 +1266,7 @@ button { font: inherit; }
 }
 
 .usercard-bus {
-  stroke: #46545f;
+  stroke: #111;
   stroke-width: 11;
   stroke-linecap: butt;
 }
@@ -1523,10 +1523,10 @@ button { font: inherit; }
 
 /* --- Splitter (2.4) ------------------------------------------------------- */
 .splitter-hit { pointer-events: all; }
-.splitter-bar { fill: #46545f; stroke: none; }
+.splitter-bar { fill: #111; stroke: none; }
 .splitter-stripe { stroke: #d8d8d8; stroke-width: 3; stroke-dasharray: 6 3; stroke-linecap: butt; fill: none; }
 /* A width-1 pin looks like an ordinary cable (matches .wire-line). */
-.splitter-cable { stroke: #46545f; stroke-width: 5; stroke-linecap: round; fill: none; }
+.splitter-cable { stroke: #101010; stroke-width: 5; stroke-linecap: round; fill: none; }
 
 .workspace-splitter-controls-layer { pointer-events: none; }
 .splitter-focus-ring { fill: none; stroke: #ffe37a; stroke-width: 2.5; stroke-dasharray: 7 6; opacity: 0.85; }
@@ -2326,7 +2326,7 @@ button { font: inherit; }
 /* A bus pin on the task frame (chapter 2.4): thick black bar with a light
    dashed line along it, matching the bus wires and splitter pins. */
 .workspace-task-shell-bus {
-  stroke: #46545f;
+  stroke: #111;
   stroke-width: 11;
   stroke-linecap: butt;
 }
