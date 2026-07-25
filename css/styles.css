@@ -2601,6 +2601,32 @@ button { font: inherit; }
   background: #ffe08a;
 }
 
+/* Drag grip pinned to a click-through panel's top-right corner (the requirements
+   panel and the "why the hell" note). It is the only pointer-events:auto surface
+   on those otherwise wire-through panels, so the whole panel can be moved by it. */
+.panel-drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: grab;
+  padding: 0 6px;
+  line-height: 1;
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+  color: rgba(120, 100, 66, 0.85);
+  user-select: none;
+  touch-action: none;
+}
+.panel-drag-handle:hover { color: #ffe08a; }
+.dialog-dragging .panel-drag-handle,
+.panel-drag-handle:active { cursor: grabbing; }
+
+/* On the dark "why the hell" note the grip needs a light tint to read. */
+.workspace-why-note .panel-drag-handle { color: rgba(242, 232, 212, 0.7); }
+.workspace-why-note .panel-drag-handle:hover { color: #ffe08a; }
+
 /* Collapsed requirements panel: a minimal title bar (button + card title). */
 .workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-collapsed {
   display: block;

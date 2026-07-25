@@ -6471,16 +6471,19 @@
     if (!text) return "";
     if (state.solutionDialog || state.cardCreation) return "";
     const title = "למה צריך את זה לעזאזל?";
+    // A grip pinned to the note (its top-right corner) — the note is click-through,
+    // so this is the one pointer-events:auto surface by which it can be dragged.
+    const dragHandle = `<span class="panel-drag-handle" data-drag-handle role="presentation" title="גרירה">⠿</span>`;
     if (state.whyNoteHidden) {
       return `
         <section class="workspace-why-note workspace-why-note-collapsed" aria-label="${esc(title)}">
-          <button class="why-note-toggle" data-action="why-note-toggle" type="button">הצגה</button>
+          <button class="why-note-toggle" data-action="why-note-toggle" type="button">הצגה</button>${dragHandle}
           <span class="why-note-title">${esc(title)}</span>
         </section>`;
     }
     return `
       <section class="workspace-why-note" aria-label="${esc(title)}">
-        <button class="why-note-toggle" data-action="why-note-toggle" type="button">הסתרה</button>
+        <button class="why-note-toggle" data-action="why-note-toggle" type="button">הסתרה</button>${dragHandle}
         <div class="why-note-body">
           <span class="why-note-title">${esc(title)}</span>
           <p class="why-note-text">${esc(adaptGender(text))}</p>
@@ -15210,8 +15213,14 @@
   const DRAGGABLE_DIALOG_CLASSES = [
     "dialog-card", "workspace-build-help-prompt", "workspace-understood-card",
     "workspace-accident-card", "workspace-task-intro-card", "not-test-result-card",
-    "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card"
+    "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card",
+    "workspace-task-hint-mux", "workspace-why-note"
   ];
+
+  // These panels are click-through (pointer-events:none so the board underneath
+  // stays wireable), so they may ONLY be grabbed by their explicit drag handle —
+  // never by a random press on the panel body.
+  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
 
   function draggableDialogElement(event) {
     return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
@@ -15254,6 +15263,8 @@
     if (event.button !== undefined && event.button !== 0) return false;
     const element = draggableDialogElement(event);
     if (!element || dialogDragBlockedByControl(event)) return false;
+    // Click-through panels must be grabbed by their handle, not their body.
+    if (HANDLE_ONLY_DRAG_CLASSES.has(dialogDragKey(element)) && !event.target.closest("[data-drag-handle]")) return false;
 
     const rect = element.getBoundingClientRect();
     element.style.position = "fixed";
