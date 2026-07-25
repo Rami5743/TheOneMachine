@@ -1513,6 +1513,29 @@ button { font: inherit; }
   pointer-events: visiblePainted;
 }
 
+/* The Nand-presentation "how to connect" demo: a looping ghost cable + fingertip
+   drawn from the source pin to a Nand input pin, in a bright gold so it reads on
+   the wooden board. Purely decorative — never intercepts pointer events. */
+.nand-connect-demo { pointer-events: none; }
+.nand-demo-pulse {
+  fill: none;
+  stroke: #ffd35a;
+  stroke-width: 3;
+}
+.nand-demo-cable {
+  stroke: #ffd35a;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 10 7;
+  fill: none;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+}
+.nand-demo-hand {
+  fill: #ffe08a;
+  stroke: #7a5200;
+  stroke-width: 2;
+}
+
 /* The wire (crosshair) cursor shown across a pin's whole grab radius while
    hovering empty board near it (toggled by updateWorkspaceHoverCursor). A
    component's own move cursor and a pin's crosshair still win on their own

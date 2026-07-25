@@ -6457,6 +6457,66 @@
     if (el) el.remove();
   }
 
+  // The Nand-presentation connect demo: a looping ghost animation showing a cable
+  // drawn from the source pin to a Nand input pin, teaching the wiring gesture. It
+  // loops until the learner's first click on the board (dismissed) and re-arms
+  // whenever they leave and return to the presentation (reset in render()).
+  let nandConnectDemoDismissed = false;
+
+  function nandConnectDemoActive() {
+    const ws = state.workspace;
+    return isNandPresentationWorkspace()
+      && !nandConnectDemoDismissed
+      && !!ws
+      && Array.isArray(ws.wires) && ws.wires.length === 0
+      && !Number.isInteger(ws.nandMonologueStep)
+      && ws.unlocked
+      && !ws.accident
+      && !state.cardCreation
+      && !workspaceInteractionLocked();
+  }
+
+  function renderNandConnectDemo() {
+    if (!nandConnectDemoActive()) return "";
+    const ws = state.workspace;
+    const from = terminalPosition(ws, "source-1.out");
+    const to = terminalPosition(ws, "nand-1.in1");
+    if (!from || !to) return "";
+    const dur = "2.4s";                 // one loop; comfortably over the 2s minimum
+    const kt = "0;0.5;0.85;1";           // draw → hold → reset
+    const fade = "0;1;1;0;0";
+    const fadeKt = "0;0.12;0.7;0.9;1";
+    const drawX = `${from.x};${to.x};${to.x};${from.x}`;
+    const drawY = `${from.y};${to.y};${to.y};${from.y}`;
+    const pulse = (cx, cy, begin) => `
+      <circle class="nand-demo-pulse" cx="${cx}" cy="${cy}" r="12">
+        <animate attributeName="r" values="10;22;10" dur="1.2s" begin="${begin}" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.85;0;0.85" dur="1.2s" begin="${begin}" repeatCount="indefinite"/>
+      </circle>`;
+    return `
+      <g class="nand-connect-demo" data-nand-connect-demo pointer-events="none" aria-hidden="true">
+        ${pulse(from.x, from.y, "0s")}
+        ${pulse(to.x, to.y, "0.6s")}
+        <line class="nand-demo-cable" x1="${from.x}" y1="${from.y}" x2="${from.x}" y2="${from.y}">
+          <animate attributeName="x2" values="${drawX}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="y2" values="${drawY}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="${fade}" keyTimes="${fadeKt}" dur="${dur}" repeatCount="indefinite"/>
+        </line>
+        <circle class="nand-demo-hand" cx="${from.x}" cy="${from.y}" r="11">
+          <animate attributeName="cx" values="${drawX}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="cy" values="${drawY}" keyTimes="${kt}" dur="${dur}" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="${fade}" keyTimes="${fadeKt}" dur="${dur}" repeatCount="indefinite"/>
+        </circle>
+      </g>`;
+  }
+
+  function dismissNandConnectDemo() {
+    if (nandConnectDemoDismissed) return;
+    nandConnectDemoDismissed = true;
+    const el = app.querySelector("[data-nand-connect-demo]");
+    if (el) el.remove();
+  }
+
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
     // The whole workspace is re-rendered via innerHTML on every state change
@@ -6490,6 +6550,9 @@
                 </g>
                 <g class="workspace-terminal-layer">
                   ${renderTerminals()}
+                </g>
+                <g class="workspace-nand-demo-layer">
+                  ${renderNandConnectDemo()}
                 </g>
                 <g class="workspace-splitter-labels-layer">
                   ${renderSplitterWidthLabels()}
@@ -9093,6 +9156,9 @@
     syncExplanationUnlocks();
     syncAchievements();
     syncIdleNudge();
+    // Re-arm the Nand connect demo whenever we are away from the presentation, so
+    // it plays again on the learner's next visit but stays dismissed once clicked.
+    if (!isNandPresentationWorkspace()) nandConnectDemoDismissed = false;
     // Play the unlock flourishes after this render paints (so the target buttons
     // exist and are laid out). The flying icons live on <body>, so the next
     // render does not wipe them mid-animation.
@@ -15207,6 +15273,13 @@
     // The learner is starting to build — retire the And requirements arrow.
     if (andArrowActive() && event.target.closest(".workspace-layout")) {
       dismissAndArrow();
+    }
+
+    // The first click on the board retires the Nand connect demo (it keeps
+    // looping until then). Removal only hides the ghost — it never swallows the
+    // click, so the same press can still start a wire.
+    if (nandConnectDemoActive() && event.target.closest(".workspace-layout")) {
+      dismissNandConnectDemo();
     }
 
     const terminal = event.target.closest("[data-action='workspace-terminal']");
