@@ -1513,6 +1513,15 @@ button { font: inherit; }
   pointer-events: visiblePainted;
 }
 
+/* The wire (crosshair) cursor shown across a pin's whole grab radius while
+   hovering empty board near it (toggled by updateWorkspaceHoverCursor). A
+   component's own move cursor and a pin's crosshair still win on their own
+   elements, so this only paints the empty board around a pin. */
+.workspace-board-scroll.workspace-wire-cursor,
+.workspace-board-scroll.workspace-wire-cursor .workspace-canvas {
+  cursor: crosshair;
+}
+
 .workspace-component * {
   pointer-events: visiblePainted;
 }

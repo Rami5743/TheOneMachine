@@ -15192,13 +15192,6 @@
       event.preventDefault();
       return startCableDrag(terminal.dataset.terminalRef, event);
     }
-    // A click that just MISSED a pin still grabs the nearest pin within tolerance
-    // (before component-drag, so wiring near a pin wins over moving the part).
-    const nearTerminalRef = nearestTerminalRefFromEvent(event);
-    if (nearTerminalRef) {
-      event.preventDefault();
-      return startCableDrag(nearTerminalRef, event);
-    }
 
     const toolboxComponent = event.target.closest("[data-action='toolbox-component']");
     if (toolboxComponent) {
@@ -15217,10 +15210,27 @@
     // ghost. Let the event fall through to the click without capturing it here.
     if (event.target.closest("[data-action='converter-digit']")) return;
 
+    // Pressing ON a MOVABLE component's body moves the part — this wins over the
+    // near-pin tolerance below, so a press over the body drags the component even
+    // when it sits within a pin's grab radius. Fixed parts (the card frame, the
+    // pre-placed source/lamp) can't move, so a press near them falls through to
+    // the tolerance and wires their pins instead.
     const component = event.target.closest("[data-action='workspace-component']");
     if (component) {
+      const comp = componentById(state.workspace, component.dataset.componentId);
+      if (comp && !isFixedWorkspaceComponent(comp)) {
+        event.preventDefault();
+        return startComponentDrag(component.dataset.componentId, event);
+      }
+    }
+
+    // A press that just MISSED a pin (on empty board or over a fixed part, but not
+    // over a movable component's body) still grabs the nearest pin within
+    // tolerance, so wiring near a pin stays forgiving.
+    const nearTerminalRef = nearestTerminalRefFromEvent(event);
+    if (nearTerminalRef) {
       event.preventDefault();
-      return startComponentDrag(component.dataset.componentId, event);
+      return startCableDrag(nearTerminalRef, event);
     }
 
     // A pointerdown anywhere else while a splitter is focused (empty board, a
@@ -15232,9 +15242,27 @@
     }
   });
 
+  // While NOT dragging, show the wire (crosshair) cursor everywhere inside a pin's
+  // grab radius — not just over the tiny pin hit-circle — so the enlarged click
+  // tolerance is discoverable. Over a component body the part's own move cursor
+  // wins (matching that a press there drags the part), so the wire cursor is
+  // suppressed there.
+  function updateWorkspaceHoverCursor(event) {
+    const scroll = state.screen === "workspace" ? app.querySelector("[data-workspace-scroll]") : null;
+    if (!scroll) return;
+    // Only a MOVABLE component's body suppresses the wire cursor (its press moves
+    // the part); over a fixed part a press wires its pin, so the wire cursor shows.
+    const compEl = event.target.closest("[data-action='workspace-component']");
+    const comp = compEl && componentById(state.workspace, compEl.dataset.componentId);
+    const overMovable = comp && !isFixedWorkspaceComponent(comp);
+    const nearPin = !overMovable
+      && (event.target.closest("[data-action='workspace-terminal']") || nearestTerminalRefFromEvent(event));
+    scroll.classList.toggle("workspace-wire-cursor", Boolean(nearPin));
+  }
+
   document.addEventListener("pointermove", (event) => {
     if (dialogDragState) return updateDialogDrag(event);
-    if (!dragState) return;
+    if (!dragState) return updateWorkspaceHoverCursor(event);
     if (dragState.kind === "wire") return updateCableDrag(event);
     if (dragState.kind === "component") return updateComponentDrag(event);
     if (dragState.kind === "new-component") return updateToolbarDrag(event);
