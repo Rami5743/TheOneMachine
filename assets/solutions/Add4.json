@@ -1,0 +1,68 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Add4",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Add4",
+    "x": 640,
+    "y": 288,
+    "pins": [
+      { "id": "inputExt1", "x": -340, "y": -140, "w": 4, "dir": "in", "label": "כניסת המספר הראשון חיצונית" },
+      { "id": "inputInt1", "x": -260, "y": -140, "w": 4, "dir": "out", "label": "כניסת המספר הראשון פנימית" },
+      { "id": "inputExt2", "x": -340, "y": 0, "w": 4, "dir": "in", "label": "כניסת המספר השני חיצונית" },
+      { "id": "inputInt2", "x": -260, "y": 0, "w": 4, "dir": "out", "label": "כניסת המספר השני פנימית" },
+      { "id": "inputExt3", "x": -340, "y": 140, "w": 1, "dir": "in", "label": "כניסת הנשיאה חיצונית" },
+      { "id": "inputInt3", "x": -260, "y": 140, "w": 1, "dir": "out", "label": "כניסת הנשיאה פנימית" },
+      { "id": "outputInt1", "x": 260, "y": -90, "w": 1, "dir": "in", "label": "יציאת הנשיאה האחרונה פנימית" },
+      { "id": "outputExt1", "x": 340, "y": -90, "w": 1, "dir": "out", "label": "יציאת הנשיאה האחרונה חיצונית" },
+      { "id": "outputInt2", "x": 260, "y": 90, "w": 4, "dir": "in", "label": "יציאת הסכום פנימית" },
+      { "id": "outputExt2", "x": 340, "y": 90, "w": 4, "dir": "out", "label": "יציאת הסכום חיצונית" }
+    ]
+  },
+  "external": [
+    { "id": "source-1", "type": "source", "x": 65, "y": 288 }
+  ],
+  "components": [
+    { "id": "split-a", "type": "splitter", "x": 451, "y": 173, "mirrored": false, "outputs": 4, "width": 1 },
+    { "id": "split-b", "type": "splitter", "x": 451, "y": 310, "mirrored": false, "outputs": 4, "width": 1 },
+    { "id": "fa0", "type": "gate-fullAdder", "x": 582, "y": 406 },
+    { "id": "fa1", "type": "gate-fullAdder", "x": 602, "y": 323 },
+    { "id": "fa2", "type": "gate-fullAdder", "x": 610, "y": 245 },
+    { "id": "fa3", "type": "gate-fullAdder", "x": 635, "y": 170 },
+    { "id": "merge", "type": "splitter", "x": 796, "y": 328, "mirrored": true, "outputs": 4, "width": 1 }
+  ],
+  "wires": [
+    { "a": "task-card-1.inputInt1", "b": "split-a.single" },
+    { "a": "task-card-1.inputInt2", "b": "split-b.single" },
+    { "a": "merge.single", "b": "task-card-1.outputInt2" },
+    { "a": "fa3.out2", "b": "task-card-1.outputInt1" },
+    { "a": "split-a.leg0", "b": "fa0.in1" },
+    { "a": "split-b.leg0", "b": "fa0.in2" },
+    { "a": "task-card-1.inputInt3", "b": "fa0.in3" },
+    { "a": "fa0.out1", "b": "merge.leg0" },
+    { "a": "split-a.leg1", "b": "fa1.in1" },
+    { "a": "split-b.leg1", "b": "fa1.in2" },
+    { "a": "fa0.out2", "b": "fa1.in3" },
+    { "a": "fa1.out1", "b": "merge.leg1" },
+    { "a": "split-a.leg2", "b": "fa2.in1" },
+    { "a": "split-b.leg2", "b": "fa2.in2" },
+    { "a": "fa1.out2", "b": "fa2.in3" },
+    { "a": "fa2.out1", "b": "merge.leg2" },
+    { "a": "split-a.leg3", "b": "fa3.in1" },
+    { "a": "split-b.leg3", "b": "fa3.in2" },
+    { "a": "fa2.out2", "b": "fa3.in3" },
+    { "a": "fa3.out1", "b": "merge.leg3" }
+  ],
+  "check": {
+    "cases": [
+      { "a": 0, "b": 0, "cin": 0 },
+      { "a": 5, "b": 3, "cin": 0 },
+      { "a": 7, "b": 8, "cin": 0 },
+      { "a": 9, "b": 6, "cin": 1 },
+      { "a": 12, "b": 3, "cin": 1 },
+      { "a": 15, "b": 15, "cin": 1 }
+    ],
+    "note": "סכום שני מספרים בני 4 ביט + נשא נכנס; הנשא היוצא הוא הספרה החמישית"
+  }
+}
