@@ -204,17 +204,11 @@ function createTaskModeView({
     if (task.id === "Mux") return renderMuxTaskShell(task);
     if (task.id === "DMux") return renderDmuxTaskShell(task);
     if (task.outputs === 2 && Array.isArray(task.rows)) return renderArithTaskShell(task);
-    // Each pin stub is tagged with "כניסה"/"יציאה" (with an index when the card
-    // has more than one input) so the learner knows which side is which.
-    const inputLines = taskInputYs(task.inputs).map((y, index) => {
+    // The input pin stubs are drawn unlabelled — the frame's input side is
+    // self-evident (and the "כניסה N" tags cluttered wide cards like Or4Way).
+    const inputLines = taskInputYs(task.inputs).map((y) => {
       const yy = 288 + y;
-      const label = task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`;
-      // The label sits OUTSIDE the frame — centred over the external pin tip
-      // (x≈160), fully left of the frame's left edge (x=200) so it never lands on
-      // the frame outline.
-      return `
-        <line class="workspace-task-shell-pin" x1="160" y1="${yy}" x2="240" y2="${yy}" />
-        <text class="workspace-task-shell-pin-label" x="160" y="${yy - 14}" text-anchor="middle">${label}</text>`;
+      return `<line class="workspace-task-shell-pin" x1="160" y1="${yy}" x2="240" y2="${yy}" />`;
     }).join("");
     return `
       <g class="workspace-task-shell" aria-hidden="true">
@@ -497,8 +491,11 @@ function createTaskModeView({
     }
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
     const solutionTruthRows = solutionHighlightConfig().truthRows;
+    // Compact input headers ("כ1"…"כ4" for a multi-input card) so a wide truth
+    // table — e.g. Or4Way's five columns — fits the requirements panel without
+    // widening it (which would cover the card) or side-scrolling.
     const inputHeaders = Array.from({ length: task.inputs }, (_, index) =>
-      `<th>${task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`}</th>`
+      `<th>${task.inputs === 1 ? "כניסה" : `כ${index + 1}`}</th>`
     ).join("");
     const rows = task.rows.map((row, index) => `
       <tr class="${activeRow === index ? "truth-row-active" : ""} ${solutionTruthRows.has(index) ? "truth-row-solution-highlight" : ""}">
