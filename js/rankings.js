@@ -1,22 +1,43 @@
-// rankings.js — the "דירוגי יעילות" (efficiency rankings) screen: a table with
-// one row per built-in card. Columns: card name | the player's recursive Nand
-// count for their build | the player's rank among registered users | the current
-// record (lowest count anywhere). Lower is better; ranks 1/2/3 show as medals.
+// rankings.js — the "דירוגים" screen. One page, two tabs:
+//   • "דירוגי יעילות" (default) — ranks by the TOTAL recursive Nand count of the
+//     player's build (fewer = more efficient).
+//   • "דירוגי מהירות" — ranks by the SERIAL Nand count: the most Nands in series
+//     on any input→output path (the critical-path depth; fewer = faster).
+// Each tab is a table with one row per built-in card: card name | the metric's
+// count | the player's rank among registered users | the current record.
+// Clicking a card opens its records page, which mirrors the same two tabs and
+// opens on the tab you came from.
 //
-// Loaded BEFORE app.js. createRankings(deps) -> { RANKING_CARD_IDS,
-//   renderRankingsScreen }
-//   deps: getState, esc, adaptGender, topbar, isRegistered, leaderboardFor
-//
-// The Nand count itself is stored per card in state.cardNandCounts (written by
-// app.js at task completion). Cross-user data (rank, record) comes from
-// leaderboardFor(cardId) — { rank, record, registered } — which app.js fills
-// from the cloud once the leaderboard backend exists; until then it returns null
-// and those cells show a placeholder.
+// Loaded BEFORE app.js. createRankings(deps) -> { rankingCards,
+//   renderRankingsScreen, renderCardRecordsScreen }.
+//   Counts come from state.cardNandCounts (efficiency) and state.cardSerialCounts
+//   (speed), written by app.js. Cross-user rank/record come from
+//   leaderboardFor(cardId, dim) with dim "counts"|"serial".
 
-function createRankings({ getState, esc, adaptGender, topbar, isRegistered, leaderboardFor, leaderboardRows, getNickname }) {
+function createRankings({ getState, esc, adaptGender, topbar, isRegistered, leaderboardFor, leaderboardRows, getNickname, getTab }) {
   const DEFAULT_NICKNAME = "ללא שם";
-  // The buildable cards, in game order. Nand (the given primitive) is not listed
-  // — it is always 1 and nothing to rank.
+
+  // Per-tab configuration: which stored map holds the count, which leaderboard
+  // dimension to rank by, and the wording.
+  const TABS = {
+    efficiency: {
+      key: "efficiency", ldim: "counts", label: "דירוגי יעילות",
+      countHead: "נאנדים",
+      sub: "מספר הנאנדים בבנייה שלך לכל כרטיס — ככל שנמוך יותר, יעיל יותר. לחץ על כרטיס לרשימת השיאים שלו.",
+      recordsSub: "רשימת השיאנים — מספר הנאנדים הנמוך ביותר קודם.",
+      map: "cardNandCounts"
+    },
+    speed: {
+      key: "speed", ldim: "serial", label: "דירוגי מהירות",
+      countHead: "נאנדים בטור",
+      sub: "מספר הנאנדים בטור — הכי הרבה נאנדים במסלול אחד מכניסה ליציאה — ככל שנמוך יותר, מהיר יותר. לחץ על כרטיס לרשימת השיאים שלו.",
+      recordsSub: "רשימת השיאנים — מספר הנאנדים בטור הנמוך ביותר קודם.",
+      map: "cardSerialCounts"
+    }
+  };
+  const activeTab = () => TABS[(typeof getTab === "function" && getTab()) === "speed" ? "speed" : "efficiency"];
+
+  // The buildable cards, in game order. Nand (the given primitive) is not listed.
   function rankingCards() {
     const rows = [];
     const push = (arr) => {
@@ -32,12 +53,11 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     return rows;
   }
 
-  // The player's recursive Nand count for a card, or null when undefined (not
-  // built, or built with a card that has no count).
-  function nandCountFor(cardId) {
-    if (cardId === "Nand") return 1;
-    const counts = getState().cardNandCounts || {};
-    const v = counts[cardId];
+  // The player's count for a card in the active metric, or null when undefined.
+  function countFor(cardId, tab) {
+    if (cardId === "Nand") return 1; // one Nand: 1 total, 1 in series
+    const map = getState()[tab.map] || {};
+    const v = map[cardId];
     return typeof v === "number" && isFinite(v) ? v : null;
   }
 
@@ -51,17 +71,26 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     return `<span class="rank-plain">${rank}</span>`;
   }
 
+  // The two-tab strip. `active` is the current tab key; each button switches tabs.
+  function tabsBar(active) {
+    const btn = (key) => `
+      <button class="rankings-tab${key === active ? " is-active" : ""}" data-action="rankings-tab" data-tab="${key}" type="button">
+        ${esc(TABS[key].label)}
+      </button>`;
+    return `<div class="rankings-tabs" role="tablist">${btn("efficiency")}${btn("speed")}</div>`;
+  }
+
   function renderRankingsScreen(app) {
+    const tab = activeTab();
     const registered = typeof isRegistered === "function" ? Boolean(isRegistered()) : false;
     const rows = rankingCards().map((card) => {
-      const count = nandCountFor(card.id);
+      const count = countFor(card.id, tab);
       const countText = count == null ? `<span class="rank-undef">—</span>` : String(count);
-      const lb = typeof leaderboardFor === "function" ? leaderboardFor(card.id) : null;
+      const lb = typeof leaderboardFor === "function" ? leaderboardFor(card.id, tab.ldim) : null;
       const rank = lb && typeof lb.rank === "number" ? lb.rank : null;
       const record = lb && typeof lb.record === "number" ? lb.record : null;
       const rankHtml = registered ? rankCell(rank) : `<span class="rank-empty" title="זמין למשתמשים רשומים">—</span>`;
       const recordHtml = record == null ? `<span class="rank-empty">—</span>` : String(record);
-      // Each row opens that card's records page (rank/nands/nickname list).
       return `
         <tr class="rankings-row" role="button" tabindex="0" data-action="open-card-records" data-card-id="${esc(card.id)}" data-card-label="${esc(card.label)}">
           <td class="rank-card-name">${esc(card.label)}</td>
@@ -79,15 +108,16 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       ${topbar()}
       <main class="screen menu-screen rankings-screen">
         <section class="menu-card rankings-card">
-          <h1>דירוגי יעילות</h1>
+          <h1>דירוגים</h1>
           ${nicknameHeader()}
-          <p class="rankings-sub">מספר הנאנדים בבנייה שלך לכל כרטיס — ככל שנמוך יותר, יעיל יותר. לחץ על כרטיס לרשימת השיאים שלו.</p>
+          ${tabsBar(tab.key)}
+          <p class="rankings-sub">${esc(tab.sub)}</p>
           <div class="rankings-table-wrap">
             <table class="rankings-table">
               <thead>
                 <tr>
                   <th class="rank-card-name">כרטיס</th>
-                  <th class="rank-count">נאנדים</th>
+                  <th class="rank-count">${esc(tab.countHead)}</th>
                   <th class="rank-rank">דירוג</th>
                   <th class="rank-record">שיא נוכחי</th>
                 </tr>
@@ -103,8 +133,8 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       </main>`;
   }
 
-  // The editable nickname at the top of the page. Never shown in the main table;
-  // it labels the player in the per-card records lists. Default "ללא שם".
+  // The editable nickname (shared across both tabs). Never shown in the main
+  // table; it labels the player in the per-card records lists. Default "ללא שם".
   function nicknameHeader() {
     const nick = typeof getNickname === "function" ? getNickname() : DEFAULT_NICKNAME;
     const state = getState();
@@ -119,13 +149,14 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       </div>`;
   }
 
-  // A single card's records page: the leaderboard for that card — rank, Nand
-  // count and nickname of each record-holder (nicknames ARE shown here).
+  // A single card's records page: the same two tabs, opening on the tab you came
+  // from. Each tab lists that card's record-holders (rank, count, nickname).
   function renderCardRecordsScreen(app) {
+    const tab = activeTab();
     const state = getState();
     const cardId = state.rankingsCardId;
     const card = rankingCards().find((c) => c.id === cardId) || { id: cardId, label: cardId };
-    const rows = (typeof leaderboardRows === "function" ? leaderboardRows(cardId) : null) || [];
+    const rows = (typeof leaderboardRows === "function" ? leaderboardRows(cardId, tab.ldim) : null) || [];
     const body = rows.length
       ? rows.map((r) => `
           <tr>
@@ -139,13 +170,14 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       <main class="screen menu-screen rankings-screen">
         <section class="menu-card rankings-card">
           <h1>שיאי ${esc(card.label)}</h1>
-          <p class="rankings-sub">רשימת השיאנים — מספר הנאנדים הנמוך ביותר קודם.</p>
+          ${tabsBar(tab.key)}
+          <p class="rankings-sub">${esc(tab.recordsSub)}</p>
           <div class="rankings-table-wrap">
             <table class="rankings-table records-table">
               <thead>
                 <tr>
                   <th class="rank-rank">דירוג</th>
-                  <th class="rank-count">נאנדים</th>
+                  <th class="rank-count">${esc(tab.countHead)}</th>
                   <th class="rank-nick">כינוי</th>
                 </tr>
               </thead>
@@ -159,5 +191,5 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       </main>`;
   }
 
-  return { rankingCards, nandCountFor, renderRankingsScreen, renderCardRecordsScreen };
+  return { rankingCards, renderRankingsScreen, renderCardRecordsScreen };
 }

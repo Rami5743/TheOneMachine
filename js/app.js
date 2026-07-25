@@ -1037,11 +1037,20 @@
     // automatically improves every card that is built on top of it — the counts
     // are recomputed recursively from these builds. Keyed by card id (task id).
     cardBuilds: {},
+    // Speed ranking: the SERIAL Nand count — the most Nands in series on any path
+    // from an input to an output (the critical-path depth). Lower is faster. It is
+    // an INDEPENDENT track: cardSerialBuilds keeps the player's shallowest build
+    // per card (which may differ from the most Nand-efficient one in cardBuilds),
+    // and cardSerialCounts is derived from it. Keyed by card id.
+    cardSerialBuilds: {},
+    cardSerialCounts: {},
     // The player's leaderboard nickname (shown only on a card's records page,
     // never in the main table). Default "ללא שם".
     rankingsNickname: "ללא שם",
     // Which card's records page is open (screen "cardRecords").
     rankingsCardId: null,
+    // Active rankings tab: "efficiency" (default) or "speed".
+    rankingsTab: "efficiency",
     // Transient: a nickname validation/uniqueness error to show under the field.
     rankingsNicknameError: null,
     createCardUnlocked: false,
@@ -10740,9 +10749,11 @@
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
-    // Cross-user leaderboard: filled from the cloud once the backend exists.
-    leaderboardFor: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId) : null),
-    leaderboardRows: (cardId) => (typeof APP !== "undefined" && APP && APP.leaderboardRows ? APP.leaderboardRows(cardId) : null)
+    getTab: () => (state.rankingsTab === "speed" ? "speed" : "efficiency"),
+    // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
+    // "serial" = speed). Filled from the cloud once the backend exists.
+    leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
+    leaderboardRows: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardRows ? APP.leaderboardRows(cardId, dim) : null)
   });
   const renderRankingsScreen = (...args) => __rankings.renderRankingsScreen(...args);
   const renderCardRecordsScreen = (...args) => __rankings.renderCardRecordsScreen(...args);
@@ -10935,6 +10946,122 @@
     return total;
   }
 
+  // ---- Speed ranking: the SERIAL Nand count (critical-path depth) -----------
+  // The most Nands in series on any input→output path of a build. We build a
+  // directed graph from the build's wires (direction via terminalDirection) and
+  // take the longest weighted path. To keep it a DAG we split every component
+  // into an input-side node ("<id>#in") and an output-side node ("<id>#out");
+  // only signal-propagating components (Nand, a placed gate/card, a splitter) get
+  // an internal in→out edge, so a card frame — whose "inputs" are sources and
+  // "outputs" are sinks with no path between them — never forms a cycle. Each
+  // component's serial weight sits on its #out node.
+  function serialPropagates(type) {
+    return type === "nand"
+      || (typeof type === "string" && type.startsWith("gate-"))
+      || (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX))
+      || type === "splitter";
+  }
+  function refComponentId(ref) {
+    const dot = String(ref).lastIndexOf(".");
+    return dot > 0 ? String(ref).slice(0, dot) : null;
+  }
+  // longest weighted input→output path over one build. weightOf(type) → the
+  // component's serial contribution (number, or null when undefined). Returns the
+  // depth, or null if any weight was undefined.
+  function longestSerialPath(build, weightOf) {
+    const comps = Array.isArray(build.components) ? build.components : [];
+    const wires = Array.isArray(build.wires) ? build.wires : [];
+    const typeById = new Map(comps.map((c) => [c.id, c.type]));
+    const preds = new Map();
+    const addPred = (node, pred) => {
+      if (!preds.has(node)) preds.set(node, []);
+      preds.get(node).push(pred);
+    };
+    // Internal in→out edge for propagating components.
+    comps.forEach((c) => {
+      if (serialPropagates(c.type)) addPred(`${c.id}#out`, `${c.id}#in`);
+      else { preds.set(`${c.id}#out`, preds.get(`${c.id}#out`) || []); preds.set(`${c.id}#in`, preds.get(`${c.id}#in`) || []); }
+    });
+    // Wire edges: source #out → dest #in.
+    for (const w of wires) {
+      const da = terminalDirection(build, w.a);
+      const db = terminalDirection(build, w.b);
+      let outRef = null, inRef = null;
+      if (da === "out" && db === "in") { outRef = w.a; inRef = w.b; }
+      else if (db === "out" && da === "in") { outRef = w.b; inRef = w.a; }
+      else continue;
+      const oc = refComponentId(outRef), ic = refComponentId(inRef);
+      if (oc && ic) addPred(`${ic}#in`, `${oc}#out`);
+    }
+    let undefinedWeight = false;
+    const memo = new Map();
+    const visiting = new Set();
+    function depth(node) {
+      if (memo.has(node)) return memo.get(node);
+      if (visiting.has(node)) return 0; // cycle guard (shouldn't happen)
+      visiting.add(node);
+      // Weight lives on #out nodes; #in nodes carry 0.
+      let w = 0;
+      if (node.endsWith("#out")) {
+        const type = typeById.get(node.slice(0, -4));
+        const raw = weightOf(type);
+        if (raw === null) { undefinedWeight = true; w = 0; } else w = raw;
+      }
+      let best = 0;
+      for (const p of (preds.get(node) || [])) best = Math.max(best, depth(p));
+      visiting.delete(node);
+      const d = w + best;
+      memo.set(node, d);
+      return d;
+    }
+    let max = 0;
+    comps.forEach((c) => { max = Math.max(max, depth(`${c.id}#out`), depth(`${c.id}#in`)); });
+    return undefinedWeight ? null : max;
+  }
+
+  // Recursive serial depth of a card, resolving each placed gate to the serial
+  // depth of ITS build. (User cards were flattened into the build at record time,
+  // so only Nands / gate-<id> / passives appear here.)
+  function cardSerialWithBuilds(cardKey, builds, memo, stack) {
+    stack = stack || new Set();
+    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (memo.has(cardKey)) return memo.get(cardKey);
+    if (stack.has(cardKey)) return null;
+    const b = builds[cardKey];
+    if (!b || !Array.isArray(b.components)) return null;
+    stack.add(cardKey);
+    const d = longestSerialPath(b, (type) => {
+      if (type === "nand") return 1;
+      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), builds, memo, stack);
+      return 0; // passive (splitter/source/frame/converter …)
+    });
+    stack.delete(cardKey);
+    memo.set(cardKey, d);
+    return d;
+  }
+
+  function recomputeAllCardSerial(serialBuilds) {
+    const source = serialBuilds || state.cardSerialBuilds || {};
+    const memo = new Map();
+    const out = {};
+    for (const cardId of Object.keys(source)) {
+      const d = cardSerialWithBuilds(cardId, source, memo);
+      out[cardId] = (typeof d === "number") ? d : null;
+    }
+    return out;
+  }
+
+  // The serial depth of one explicit build, resolving placed gates against the
+  // CURRENT stored serial builds (used to compare a fresh build to the stored one).
+  function computeBuildSerial(build, serialBuilds) {
+    const memo = new Map();
+    return longestSerialPath(build, (type) => {
+      if (type === "nand") return 1;
+      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), serialBuilds || state.cardSerialBuilds || {}, memo);
+      return 0;
+    });
+  }
+
   // Fill in builds for cards the player already completed before their builds
   // were stored (a completed card can no longer be re-checked). We seed the
   // reference solution as that card's build; a later live rebuild replaces it
@@ -10952,7 +11079,16 @@
       builds[card.id] = { components: clonePlain(ws.components), wires: clonePlain(ws.wires || []) };
       changed = true;
     }
-    if (changed) setState({ cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) }, false);
+    if (!changed) return;
+    // Seed the serial track from the same reference builds (only where empty).
+    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
+    for (const id of Object.keys(builds)) if (!serialBuilds[id]) serialBuilds[id] = builds[id];
+    setState({
+      cardBuilds: builds,
+      cardSerialBuilds: serialBuilds,
+      cardNandCounts: recomputeAllCardCounts(builds),
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+    }, false);
   }
 
   // A user card has no spec check of its own, so we treat it as if it were opened
@@ -10995,20 +11131,36 @@
       components: expandUserCards(clonePlain(ws.components || [])),
       wires: clonePlain(ws.wires || [])
     };
+    // Efficiency track: keep the build with the fewest total Nands.
     const builds = { ...(state.cardBuilds || {}) };
     const prevBuild = builds[taskId];
     const newCount = computeBuildNandCount(newBuild.components);
-    let keep;
     if (newCount === null) {
-      keep = prevBuild || newBuild; // invalid new count → don't lose an existing build
+      builds[taskId] = prevBuild || newBuild; // invalid new count → don't lose an existing build
     } else if (prevBuild) {
       const prevCount = computeBuildNandCount(prevBuild.components);
-      keep = (typeof prevCount === "number" && prevCount <= newCount) ? prevBuild : newBuild;
+      builds[taskId] = (typeof prevCount === "number" && prevCount <= newCount) ? prevBuild : newBuild;
     } else {
-      keep = newBuild;
+      builds[taskId] = newBuild;
     }
-    builds[taskId] = keep;
-    return { cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) };
+    // Speed track: independently keep the build with the shallowest serial depth.
+    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
+    const prevSerialBuild = serialBuilds[taskId];
+    const newSerial = computeBuildSerial(newBuild, serialBuilds);
+    if (newSerial === null) {
+      serialBuilds[taskId] = prevSerialBuild || newBuild;
+    } else if (prevSerialBuild) {
+      const prevSerial = computeBuildSerial(prevSerialBuild, serialBuilds);
+      serialBuilds[taskId] = (typeof prevSerial === "number" && prevSerial <= newSerial) ? prevSerialBuild : newBuild;
+    } else {
+      serialBuilds[taskId] = newBuild;
+    }
+    return {
+      cardBuilds: builds,
+      cardSerialBuilds: serialBuilds,
+      cardNandCounts: recomputeAllCardCounts(builds),
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+    };
   }
 
   function showNotTestResult(result, workspace, taskId, rowIndex) {
@@ -15872,13 +16024,19 @@
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
       backfillCompletedCardCounts(); // seed reference builds for already-completed cards
-      // Recompute from the current builds + user cards so any improvement to a
-      // sub-card (or an edited user card) is reflected in every dependent count.
-      setState({ cardNandCounts: recomputeAllCardCounts() }, false);
+      // Recompute both metrics from the current builds + user cards so any
+      // improvement to a sub-card (or an edited user card) is reflected.
+      setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
       return setState({ screen: "rankings", rankingsNicknameError: null }, false);
     }
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
+    // Switch the efficiency/speed tab on either rankings page.
+    if (action === "rankings-tab") {
+      const tab = button.dataset.tab === "speed" ? "speed" : "efficiency";
+      return setState({ rankingsTab: tab }, false);
+    }
+    // Opening a card's records keeps the current tab (arrive on the tab you came from).
     if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
     if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
     if (action === "rankings-nickname-save") return saveRankingsNickname();
