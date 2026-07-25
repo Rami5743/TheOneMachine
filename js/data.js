@@ -918,6 +918,18 @@ const SCENES = {
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
           { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
+      },
+      {
+        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
+        "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
+        "year": "1943",
+        "read": "מצוין, בנית ALU, זה לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+      },
+      {
+        "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
+        "image": "assets/panels/panel127_chapter_2_6_alu_done_2.svg",
+        "year": "1943",
+        "read": "אתה אולי שאלת את עצמך איך עושים חיסור, זו הרי פעולה לא פחות חשובה מחיבור. הנה תראה משהו מגניב:"
       }
     ]
   }

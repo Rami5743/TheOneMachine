@@ -2343,6 +2343,21 @@
     return storyTarget(chapterById("chapter-9"), 0);
   }
 
+  function allAluTasksCompletedIn(taskIds = completedTaskIds()) {
+    const completed = new Set(Array.isArray(taskIds) ? taskIds : []);
+    const alu = typeof ALU_TASKS !== "undefined" ? ALU_TASKS : [];
+    return alu.length > 0 && alu.every((task) => completed.has(task.id));
+  }
+
+  // The closing 2.6 monologue: von Neumann back in the doorway once every ALU card
+  // is built (panel126/127), reached after the LAST ALU task instead of returning
+  // to the worktable note.
+  function aluDoneMonologueTarget() {
+    const chapter = chapterById("chapter-9");
+    const index = panelIndexByImage(sceneByChapter(chapter), "panel126_chapter_2_6_alu_done_1.svg");
+    return storyTarget(chapter, index >= 0 ? index : 0);
+  }
+
   function taskUnlockRequirement(taskId) {
     if (taskId === "Not") return null;
     if (taskId === "And") return taskCompleted("Not") ? null : "Not";
@@ -12229,6 +12244,23 @@
     // vs-custom) show it every time their solution is closed — both on first
     // completion and when replaying from the note.
     if (isAluTask(taskId)) {
+      // Finishing the LAST ALU card rolls into the closing von Neumann doorway
+      // monologue ("you built an ALU …") instead of returning to the worktable.
+      if (allAluTasksCompletedIn(completedTasks)) {
+        return setState({
+          ...aluDoneMonologueTarget(),
+          taskDialog: null,
+          solutionDialog: null,
+          notTest: null,
+          hintDialog: null,
+          muxTable: null,
+          completedTasks,
+          aluNoteList: false,
+          aluIntroDialog: null,
+          workspace: createDefaultWorkspace(),
+          replayNonce: state.replayNonce + 1
+        }, true);
+      }
       const showAluIntro = aluTaskHasMessage(taskId);
       return setState({
         ...aluWorktableReturnTarget(),
@@ -12334,6 +12366,7 @@
     // ALU cards (2.6): back to the ALU worktable with its note (ALU0 first shows
     // the "what is an ALU" message).
     if (isAluTask(taskId)) {
+      if (allAluTasksCompletedIn(completedTasks)) return setState({ ...aluDoneMonologueTarget(), ...base, aluNoteList: false, aluIntroDialog: null }, true);
       const showAluIntro = aluTaskHasMessage(taskId);
       return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0, taskId } : null }, true);
     }
