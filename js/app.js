@@ -6587,11 +6587,12 @@
     return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
   }
 
-  // Where each of the 16 output lamps sits at the lamps step: a tall column down
-  // the far right, bit 15 (the leading bit VN points at) on top — right where the
-  // speech bubble's tail points — spreading down to bit 0 at the bottom.
+  // Where each of the 16 output lamps sits at the lamps step: a column down the far
+  // right, CENTRED on the output splitter (y=500, legs span 245..755) and evenly
+  // spread, so the top lamp (bit 15, the leading bit VN points at) protrudes above
+  // the splitter and the bottom lamp (bit 0) protrudes the same amount below it.
   function subtractionLampPos(i) {
-    return { x: 850, y: 160 + (15 - i) * 38 };
+    return { x: 850, y: 215 + (15 - i) * 38 };   // centre 500 = splitter centre
   }
 
   // The (inactive) ALU1 workbench the demo drives, built up from the step index:
@@ -6628,7 +6629,10 @@
     // Control 010011 via a merging splitter fed by one source (step 2), along the top.
     if (step >= 2) {
       components.push({ id: "ctrl-src", type: "source", x: 180, y: 150 });
-      components.push({ id: "ctrl-split", type: "splitter", x: 380, y: 150, mirrored: true, outputs: 6, width: 1 });
+      // The merging splitter's single (output) pin sits at centre+38; place the
+      // splitter so that pin lands directly ABOVE the ALU's control pin (alu.in3 is
+      // at the ALU's centre x = 470), so the control cable drops straight down.
+      components.push({ id: "ctrl-split", type: "splitter", x: 432, y: 150, mirrored: true, outputs: 6, width: 1 });
       wires.push({ a: "ctrl-split.single", b: "alu.in3" });
       for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
     }
@@ -6663,6 +6667,9 @@
   function subtractionDemoHighlight() {
     const empty = { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
     if (!subtractionDemoActive()) return empty;
+    // While a step's parts are still gliding in / being wired, hold the highlight
+    // back — it is revealed only once the entrance animation finishes.
+    if (subtractionHighlightHold) return empty;
     const step = state.subtractionDemo.step;
     const legWire = (leg) => wireKey("ctrl-src.out", `ctrl-split.leg${leg}`);
     const terminals = new Set();
@@ -6679,6 +6686,10 @@
       wires.add(legWire(4)); terminals.add("ctrl-split.leg4");   // the ADD operation
     } else if (step === 5) {
       wires.add(legWire(5)); terminals.add("ctrl-split.leg5");   // NOT of the result
+    } else if (step === 10 || step === 11) {
+      // "the leading bit" — the top lamp's cable (out-split.leg15 → olamp15).
+      wires.add(wireKey("out-split.leg15", "olamp15.in"));
+      terminals.add("olamp15.in");
     } else {
       return empty;
     }
@@ -6691,21 +6702,32 @@
   // True while a multi-beat scripted transition (the swap / the lamps fade) is
   // mid-flight, so a stray click or key press can't interrupt it.
   let subtractionDemoBusy = false;
+  // True between a step's render and the end of its entrance animation, so the
+  // control highlight only appears AFTER the splitter has arrived and been wired.
+  let subtractionHighlightHold = false;
 
   // Work out what a forward reveal adds (new components / wires) so it can slide
   // the parts in from the toolbar and then draw their cables. Skipped for backward
   // or jump navigation (those just snap to the final state).
+  // Steps whose bubble highlights a control leg (see subtractionDemoHighlight).
+  const SUBTRACTION_HIGHLIGHT_STEPS = [2, 3, 4, 5];
+
   function planSubtractionSlide(prevStep, nextStep) {
     subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
     const isOpen = prevStep == null;
     if (!isOpen && nextStep !== prevStep + 1) return;
     const sets = subtractionEnterSets(isOpen ? null : prevStep, nextStep);
     if (!sets.enterComps.length && !sets.enterWires.length) return;
     subtractionDemoAnim = { mode: "slide", ...sets };
+    // If this step also highlights (the control step), hold the highlight back so
+    // it appears only AFTER the splitter has slid in and its cables are drawn.
+    if (SUBTRACTION_HIGHLIGHT_STEPS.includes(nextStep)) subtractionHighlightHold = true;
   }
 
   function openSubtractionDemo() {
     subtractionDemoBusy = false;
+    subtractionHighlightHold = false;
     planSubtractionSlide(null, 0);
     setState({
       screen: "workspace",
@@ -6722,7 +6744,7 @@
     const clamped = Math.min(Math.max(step, 0), SUBTRACTION_DEMO_LAST);
     const prevStep = subtractionDemoActive() ? state.subtractionDemo.step : null;
     if (animate) planSubtractionSlide(prevStep, clamped);
-    else subtractionDemoAnim = null;
+    else { subtractionDemoAnim = null; subtractionHighlightHold = false; }
     setState({ subtractionDemo: { step: clamped }, workspace: buildSubtractionDemoWorkspace(clamped) }, false);
   }
 
@@ -6862,6 +6884,14 @@
       (anim.enterComps || []).forEach((id) => subtractionSlideCompFrom(id, -160));
       const delay = (anim.enterComps && anim.enterComps.length) ? 520 : 0;
       window.setTimeout(() => (anim.enterWires || []).forEach((key) => subtractionDrawWire(key)), delay);
+      // Reveal the (held) highlight only after the parts have landed AND their
+      // cables have finished drawing — never all at once.
+      if (subtractionHighlightHold) {
+        window.setTimeout(() => {
+          subtractionHighlightHold = false;
+          if (subtractionDemoActive()) render();
+        }, delay + 620);
+      }
       return;
     }
     if (anim.mode === "move") {
