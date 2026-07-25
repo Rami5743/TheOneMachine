@@ -10418,7 +10418,15 @@
       value: testCase[k]
     }));
     if (typeof testCase.cin === "number") inputs.push({ header: "נשא נכנס", value: testCase.cin });
-    if (typeof testCase.control === "number") inputs.push({ header: "בקרה", value: testCase.control });
+    // The control is NOT a number — each bit selects a sub-operation — so show it
+    // as its binary bit pattern (MSB..LSB), not a decimal. The control input is the
+    // one right after the operands in the spec; its bit width is the card's.
+    if (typeof testCase.control === "number") {
+      const ctrl = spec.inputs[operandKeys.length];
+      const bits = Array.isArray(ctrl && ctrl.bits) ? ctrl.bits : [Boolean(testCase.control & 1)];
+      const bitStr = bits.slice().reverse().map((b) => (b ? 1 : 0)).join("");
+      inputs.push({ header: "בקרה", value: bitStr });
+    }
     // The expected numeric result. Add4 spreads its answer over a sum bus + a
     // carry bit, so combine them (a+b+cin); every other card has a single result
     // bus whose decimal value is the answer (its widest output for ALU4, whose
