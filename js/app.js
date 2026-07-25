@@ -2080,7 +2080,9 @@
   function navButton(action, iconName, label, options = {}) {
     const classes = `btn icon-btn${options.primary ? " btn-primary" : ""}`;
     const disabled = options.disabled ? "disabled" : "";
-    return `<button class="${classes}" data-action="${esc(action)}" aria-label="${esc(label)}" title="${esc(label)}" ${disabled}>${navIcon(iconName)}<span class="visually-hidden">${esc(label)}</span></button>`;
+    // data-tooltip drives a CSS tooltip shown ABOVE the button (so the cursor,
+    // which sits on the button, never covers it — unlike the native title).
+    return `<button class="${classes}" data-action="${esc(action)}" aria-label="${esc(label)}" data-tooltip="${esc(label)}" ${disabled}>${navIcon(iconName)}<span class="visually-hidden">${esc(label)}</span></button>`;
   }
 
   // A button with an icon shown beside its visible text label (top bar / menu).
@@ -2589,7 +2591,8 @@
     const chapter = currentChapter();
     if (chapter?.partId === "part-1" || chapter?.id === "chapter-4") return false;
     if (busesClosingMonologue()) return false;
-    if (aluSkipToNextChapter()) return false;   // 2.6 worktable-on: jumps to 3.1
+    if (aluAtWorktable()) return true;          // 2.6 ALU tasks note: no skip here
+    if (aluSkipToNextChapter()) return false;   // 2.6 after the worktable: jumps to 3.1
     return skipTargetPanelIndex() === state.panelIndex;
   }
 
@@ -6724,6 +6727,10 @@
   // True between a step's render and the end of its entrance animation, so the
   // control highlight only appears AFTER the splitter has arrived and been wired.
   let subtractionHighlightHold = false;
+  // True when the demo was opened as a replay from the explanations menu, so it
+  // returns THERE (not to chapter 3.1) when finished/skipped/backed-out. Kept as a
+  // module var so it survives the per-step subtractionDemo state rebuilds.
+  let subtractionFromExplanations = false;
 
   // Work out what a forward reveal adds (new components / wires) so it can slide
   // the parts in from the toolbar and then draw their cables. Skipped for backward
@@ -6747,6 +6754,7 @@
   function openSubtractionDemo(options = {}) {
     subtractionDemoBusy = false;
     subtractionHighlightHold = false;
+    subtractionFromExplanations = Boolean(options.fromExplanations);
     // Reaching the demo (its first appearance) counts as seeing it → unlock its
     // replay silently; the flourish is announced when it finishes OR is skipped,
     // so an interrupt fires the flourish at that moment instead of never.
@@ -6754,9 +6762,7 @@
     planSubtractionSlide(null, 0);
     setState({
       screen: "workspace",
-      // fromExplanations: opened as a replay from the explanations menu, so it
-      // returns there (not to chapter 3.1) when finished/skipped.
-      subtractionDemo: { step: 0, fromExplanations: Boolean(options.fromExplanations) },
+      subtractionDemo: { step: 0 },
       subtractionDemoLinks: null,
       dialog: null, taskDialog: null, notTest: null, hintDialog: null, solutionDialog: null,
       aluNoteList: false, aluIntroDialog: null, infoDialog: null,
@@ -6786,7 +6792,47 @@
 
   function subtractionDemoBack() {
     if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    // From the FIRST slide, "back" exits: to the explanations menu when the demo
+    // was opened from there, otherwise back to the plot slide that led into it
+    // ("הנה תראה משהו מגניב").
+    if (state.subtractionDemo.step <= 0) {
+      if (subtractionFromExplanations) return returnToExplanationsFromDemo();
+      return exitSubtractionDemoToStory();
+    }
     setSubtractionDemoStep(state.subtractionDemo.step - 1);
+  }
+
+  // Leave the demo back to the explanations menu (a menu-opened replay).
+  function returnToExplanationsFromDemo() {
+    subtractionFromExplanations = false;
+    setState({
+      ...transientUiClearPatch(),
+      screen: "explanations",
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, false);
+  }
+
+  // Leave the demo back to the plot slide that opens it (panel127, the 2.6
+  // "הנה תראה משהו מגניב" teaser) — used by "back" on the demo's first slide.
+  function exitSubtractionDemoToStory() {
+    const chapter = chapterById("chapter-9");
+    const scene = sceneByChapter(chapter);
+    const idx = panelIndexByImage(scene, "panel127_chapter_2_6_alu_done_2.svg");
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: scene.id,
+      panelIndex: idx >= 0 ? idx : Math.max(scene.panels.length - 1, 0),
+      started: true,
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
+      workspace: createDefaultWorkspace(),
+      replayNonce: state.replayNonce + 1
+    }, true);
   }
 
   // Replay the CURRENT step's entrance animation from the top (the circular button).
@@ -6825,19 +6871,9 @@
   // skipping it) unlocks the demo's replay in the explanations menu, with the
   // "new explanation" flourish — so an interrupt/skip fires the flourish right then.
   function finishSubtractionDemo() {
-    const fromExpl = Boolean(state.subtractionDemo?.fromExplanations);
     announceExplanationUnlock("subtraction-demo");
-    if (fromExpl) {
-      // A replay opened from the menu just returns there.
-      return setState({
-        ...transientUiClearPatch(),
-        screen: "explanations",
-        subtractionDemo: null,
-        subtractionDemoLinks: null,
-        workspace: createDefaultWorkspace(),
-        replayNonce: state.replayNonce + 1
-      }, false);
-    }
+    // A replay opened from the menu just returns there.
+    if (subtractionFromExplanations) return returnToExplanationsFromDemo();
     const chapter = chapterById("chapter-10");
     setState({
       ...transientUiClearPatch(),
@@ -7194,7 +7230,7 @@
         ${state.cardCreation ? renderCardCreationControls() : (explanationReplayActive("nand-function") ? renderNandFunctionExplanationControls() : `
         <section class="controls">
           ${subtractionDemoActive() ? `
-            ${navButton("subtraction-demo-prev", "arrow-right", "הקודם", { disabled: state.subtractionDemo.step <= 0 })}
+            ${navButton("subtraction-demo-prev", "arrow-right", "הקודם")}
             ${navButton("subtraction-demo-replay", "restart", "הצג שוב את השקף")}
             ${navButton("subtraction-demo-next", "arrow-left", "המשך", { primary: true })}
             ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
@@ -13932,7 +13968,16 @@
       return;
     }
 
-    if (chapter.id === "chapter-4") return openWorkspace();
+    if (chapter.id === "chapter-4") {
+      // Before the Nand workbench the shortcut opens it (skip the intro story);
+      // AFTER it (the post-experiment slides 80/81) the presentation is done, so
+      // the shortcut moves on to chapter 2.2 instead of re-opening the workbench.
+      if (nandPostWorkbench()) {
+        const nextChapter = CHAPTERS[chapterIndex + 1];
+        if (nextChapter) return openChapter(nextChapter.id);
+      }
+      return openWorkspace();
+    }
 
     // The 2.4 closing monologue leads into chapter 2.5 — skip jumps there.
     if (busesClosingMonologue()) {
@@ -13975,25 +14020,41 @@
   }
 
   // Chapter 2.6 (alu): the opening monologue's "דלג" brings the learner to the
-  // tasks worktable (panel125, where the ALU note is). From the worktable on —
-  // through the closing monologue and the subtraction demo — "דלג" jumps to the
-  // start of chapter 3.1.
+  // tasks worktable (panel125, where the ALU note is). On the worktable slide
+  // itself there is NO skip (that is where the ALU tasks are done). AFTER it —
+  // the closing monologue and the subtraction demo — "דלג" jumps to chapter 3.1.
   function aluWorktablePanelIndex() {
     const scene = currentScene();
     return scene ? panelIndexByImage(scene, "panel125_chapter_2_6_alu_worktable.svg") : -1;
+  }
+  function aluAtWorktable() {
+    if (currentChapter()?.id !== "chapter-9") return false;
+    const wt = aluWorktablePanelIndex();
+    return wt >= 0 && state.panelIndex === wt;
   }
   function aluSkipTarget() {
     if (currentChapter()?.id !== "chapter-9") return null;
     const wt = aluWorktablePanelIndex();
     if (wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex < wt) return wt;
-    return null; // at/after the worktable → a chapter jump (see aluSkipToNextChapter)
+    return null; // at the worktable → no skip; after it → a chapter jump
   }
-  // True for chapter-9 STORY panels at/after the worktable, where "דלג" leaves for
+  // True for chapter-9 STORY panels AFTER the worktable, where "דלג" leaves for
   // chapter 3.1 instead of moving within the scene.
   function aluSkipToNextChapter() {
     if (state.screen !== "story" || currentChapter()?.id !== "chapter-9") return false;
     const wt = aluWorktablePanelIndex();
-    return wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex >= wt;
+    return wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex > wt;
+  }
+
+  // True on chapter-4 (2.1) STORY panels AFTER the Nand-workbench launch panel —
+  // the post-experiment slides (80/81), where the Nand presentation is done, so
+  // "דלג" should move on to 2.2 rather than re-open the workbench.
+  function nandPostWorkbench() {
+    if (state.screen !== "story" || currentChapter()?.id !== "chapter-4") return false;
+    const scene = currentScene();
+    if (!scene) return false;
+    const launch = workspaceLaunchPanelIndex(scene);
+    return Number.isInteger(launch) && Number.isInteger(state.panelIndex) && state.panelIndex > launch;
   }
 
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the

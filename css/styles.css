@@ -3041,7 +3041,33 @@ button { font: inherit; }
   padding: 0;
   display: inline-grid;
   place-items: center;
+  position: relative;
 }
+
+/* Hover tooltip shown ABOVE the icon button — the native `title` appears at the
+   cursor, which sits on the button and covers it, so we roll our own. */
+.icon-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  border-radius: 7px;
+  background: rgba(18, 13, 8, 0.96);
+  color: #f5eecf;
+  border: 1px solid rgba(120, 95, 55, 0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 60;
+}
+.icon-btn[data-tooltip]:hover::after,
+.icon-btn[data-tooltip]:focus-visible::after { opacity: 1; }
 
 .nav-icon {
   width: 26px;
