@@ -4200,6 +4200,10 @@
   }
 
   function solutionHighlightConfig() {
+    // The subtraction demo lights up the control leg(s) the current bubble talks
+    // about (the whole control on the 010011 step, then just the NOT-input1 and
+    // NOT-result legs), so "the pins we're talking about" are visibly marked.
+    if (subtractionDemoActive()) return subtractionDemoHighlight();
     if (!state.solutionDialog) return { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
     const taskId = state.solutionDialog.taskId || "Not";
     const steps = TASK_SOLUTION_STEPS[taskId] || [];
@@ -6640,6 +6644,31 @@
       nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
       workspaceCompleted: false, workspaceSession: 2, taskId: null, freeBuild: true, taskIntroSeen: true
     });
+  }
+
+  // Which control legs/wires the current bubble highlights. Control 010011 wires
+  // legs [1,4,5]: c1 = NOT input1, c4 = the ADD op, c5 = NOT the result.
+  function subtractionDemoHighlight() {
+    const empty = { terminals: new Set(), wires: new Set(), components: new Set(), truthRows: new Set(), truthCols: new Set() };
+    if (!subtractionDemoActive()) return empty;
+    const step = state.subtractionDemo.step;
+    const legWire = (leg) => wireKey("ctrl-src.out", `ctrl-split.leg${leg}`);
+    const terminals = new Set();
+    const wires = new Set();
+    if (step === 2) {
+      // "the 010011 control bits" — the whole control path (every wired leg plus
+      // the merged control cable into the ALU's control pin).
+      for (const leg of [1, 4, 5]) { wires.add(legWire(leg)); terminals.add(`ctrl-split.leg${leg}`); }
+      wires.add(wireKey("ctrl-split.single", "alu.in3"));
+      terminals.add("alu.in3");
+    } else if (step === 3) {
+      wires.add(legWire(1)); terminals.add("ctrl-split.leg1");   // NOT of input 1
+    } else if (step === 4) {
+      wires.add(legWire(5)); terminals.add("ctrl-split.leg5");   // NOT of the result
+    } else {
+      return empty;
+    }
+    return { terminals, wires, components: new Set(), truthRows: new Set(), truthCols: new Set() };
   }
 
   function openSubtractionDemo() {
