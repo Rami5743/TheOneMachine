@@ -1843,8 +1843,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 65,
-        "y": 288
+        "x": 165,
+        "y": 425
       }
     ],
     "components": [
@@ -1893,8 +1893,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "merge",
         "type": "splitter",
-        "x": 796,
-        "y": 328,
+        "x": 815,
+        "y": 380,
         "mirrored": true,
         "outputs": 4,
         "width": 1
@@ -2016,6 +2016,15 @@ window.EMBEDDED_SOLUTIONS = {
         }
       ],
       "note": "סכום שני מספרים בני 4 ביט + נשא נכנס; הנשא היוצא הוא הספרה החמישית"
+    },
+    "harness": {
+      "inputs": {},
+      "outputs": {
+        "outputExt2": {
+          "x": 1130,
+          "y": 375
+        }
+      }
     }
   },
   "halfAdder": {
@@ -2100,18 +2109,6 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "source",
         "x": 80,
         "y": 288
-      },
-      {
-        "id": "lamp-2",
-        "type": "lamp",
-        "x": 940,
-        "y": 158
-      },
-      {
-        "id": "lamp-1",
-        "type": "lamp",
-        "x": 940,
-        "y": 358
       }
     ],
     "components": [
@@ -2256,18 +2253,6 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "source",
         "x": 80,
         "y": 288
-      },
-      {
-        "id": "lamp-2",
-        "type": "lamp",
-        "x": 940,
-        "y": 158
-      },
-      {
-        "id": "lamp-1",
-        "type": "lamp",
-        "x": 940,
-        "y": 358
       }
     ],
     "components": [

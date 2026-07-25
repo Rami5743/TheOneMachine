@@ -21,9 +21,7 @@
     ]
   },
   "external": [
-    { "id": "source-1", "type": "source", "x": 80, "y": 288 },
-    { "id": "lamp-2", "type": "lamp", "x": 940, "y": 158 },
-    { "id": "lamp-1", "type": "lamp", "x": 940, "y": 358 }
+    { "id": "source-1", "type": "source", "x": 80, "y": 288 }
   ],
   "components": [
     { "id": "ha-1", "type": "gate-halfAdder", "x": 330, "y": 200 },
