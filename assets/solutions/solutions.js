@@ -828,7 +828,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt4",
           "x": -215,
-          "y": -320,
+          "y": -275,
           "w": 7,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -836,7 +836,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt4",
           "x": -215,
-          "y": -250,
+          "y": -190,
           "w": 7,
           "dir": "out",
           "label": ""
@@ -863,8 +863,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 65,
-        "y": 40
+        "x": 85,
+        "y": 80
       }
     ],
     "components": [
@@ -984,8 +984,8 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 600
         },
         "inputExt4": {
-          "x": 175,
-          "y": 75
+          "x": 180,
+          "y": 115
         }
       },
       "outputs": {
