@@ -4244,6 +4244,33 @@ object.panel-image.is-pending {
   overflow-y: auto;
 }
 .rankings-card { max-width: 720px; }
+/* Two-tab strip: דירוגי יעילות / דירוגי מהירות. */
+.rankings-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0.6rem 0 0.9rem;
+  border-bottom: 2px solid rgba(70, 50, 25, 0.4);
+}
+.rankings-tab {
+  appearance: none;
+  border: 1px solid rgba(70, 50, 25, 0.4);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: rgba(70, 50, 25, 0.14);
+  color: #cdbb92;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-bottom: -2px;
+}
+.rankings-tab:hover { background: rgba(255, 224, 138, 0.14); }
+.rankings-tab.is-active {
+  background: #2a2118;
+  color: #f3d488;
+  border-color: rgba(70, 50, 25, 0.4);
+  border-bottom: 2px solid #2a2118;
+}
 .rankings-sub {
   margin: -0.3rem 0 1rem;
   color: #cdbb92;
