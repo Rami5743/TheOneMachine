@@ -2147,7 +2147,8 @@ button { font: inherit; }
 .subtraction-demo-speech::after {
   content: "";
   position: absolute;
-  top: 30px;
+  top: 50%;                 /* centre on the bubble's side, whatever its height */
+  transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 15px solid transparent;
@@ -2159,7 +2160,6 @@ button { font: inherit; }
 }
 .subtraction-demo-speech::after {
   right: -15px;
-  top: 33px;
   border-top: 12px solid transparent;
   border-bottom: 12px solid transparent;
   border-left: 16px solid #f7f7f2;
