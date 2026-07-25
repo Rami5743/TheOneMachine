@@ -1466,7 +1466,7 @@
   // keep existing call sites unchanged.
   const __workspaceChromeView = createWorkspaceChromeView({
     getState: () => state,
-    genderText,
+    genderText, navButton,
     workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled
   });
   const renderWorkspaceAccidentModal = (...a) => __workspaceChromeView.renderWorkspaceAccidentModal(...a);
@@ -4035,8 +4035,8 @@
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
-          ${skipLeadsNowhere() ? "" : `<button class="btn" data-action="skip" ${routingFinalPanelActive() ? "disabled" : skipDisabled}>דלג</button>`}
-          ${introChapterActive() ? `<button class="btn btn-skip-intro" data-action="skip-intro" type="button">דלג על המבוא</button>` : ""}
+          ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
+          ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -6325,10 +6325,10 @@
           ${navButton("hint-slides-replay", "restart", "הקרא שוב")}
           ${navButton("hint-slides-next", "arrow-left", "המשך", { primary: true })}
           ${inlineChapterHint
-            ? `<button class="btn" data-action="hint-slides-skip-to-chapter-last" type="button" ${inlineXorHintSkipDisabled() ? "disabled" : ""}>דלג</button>`
+            ? navButton("hint-slides-skip-to-chapter-last", "skip-rtl", "דלג", { disabled: inlineXorHintSkipDisabled() })
             : (explanationReplayActive("truth-table-cards")
               ? `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`
-              : `<button class="btn" data-action="hint-slides-close" type="button">דלג</button>`)}
+              : navButton("hint-slides-close", "skip-rtl", "דלג"))}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
         </section>
       </main>`;
