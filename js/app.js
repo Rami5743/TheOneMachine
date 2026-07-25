@@ -14128,6 +14128,31 @@
     dialogDragState = null;
   }
 
+  // Wiring is forgiving: a click does not have to land exactly on a pin. A click
+  // within TERMINAL_CLICK_TOLERANCE board-units of a pin counts as a click on it,
+  // and when several pins are in range the CLOSEST to the click point wins. The
+  // pin circles are r=12; this widens the effective grab radius well beyond that.
+  const TERMINAL_CLICK_TOLERANCE = 36;
+  function nearestTerminalRef(point, tolerance = TERMINAL_CLICK_TOLERANCE) {
+    if (!point) return null;
+    let bestRef = null;
+    let bestDist = Infinity;
+    app.querySelectorAll("[data-action='workspace-terminal']").forEach((el) => {
+      const cx = Number(el.getAttribute("cx"));
+      const cy = Number(el.getAttribute("cy"));
+      if (!Number.isFinite(cx) || !Number.isFinite(cy)) return;
+      const dist = Math.hypot(point.x - cx, point.y - cy);
+      if (dist <= tolerance && dist < bestDist) {
+        bestDist = dist;
+        bestRef = el.getAttribute("data-terminal-ref");
+      }
+    });
+    return bestRef;
+  }
+  function nearestTerminalRefFromEvent(event, tolerance) {
+    return nearestTerminalRef(boardPointFromEvent(event), tolerance);
+  }
+
   function startCableDrag(ref, event) {
     if (state.screen !== "workspace") return;
     const pos = terminalPosition(state.workspace, ref);
@@ -14174,7 +14199,8 @@
     dragState = null;
 
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-action='workspace-terminal']");
-    const to = target?.dataset.terminalRef || null;
+    // Dropping near a pin (not exactly on it) still connects to the nearest one.
+    const to = target?.dataset.terminalRef || nearestTerminalRefFromEvent(event);
 
     suppressNextClick = true;
     window.setTimeout(() => { suppressNextClick = false; }, 0);
@@ -15051,6 +15077,13 @@
     if (terminal) {
       event.preventDefault();
       return startCableDrag(terminal.dataset.terminalRef, event);
+    }
+    // A click that just MISSED a pin still grabs the nearest pin within tolerance
+    // (before component-drag, so wiring near a pin wins over moving the part).
+    const nearTerminalRef = nearestTerminalRefFromEvent(event);
+    if (nearTerminalRef) {
+      event.preventDefault();
+      return startCableDrag(nearTerminalRef, event);
     }
 
     const toolboxComponent = event.target.closest("[data-action='toolbox-component']");

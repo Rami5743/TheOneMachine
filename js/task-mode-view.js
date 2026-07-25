@@ -176,9 +176,12 @@ function createTaskModeView({
     const inputLines = taskInputYs(task.inputs).map((y, index) => {
       const yy = 288 + y;
       const label = task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`;
+      // The label sits OUTSIDE the frame — centred over the external pin tip
+      // (x≈160), fully left of the frame's left edge (x=200) so it never lands on
+      // the frame outline.
       return `
         <line class="workspace-task-shell-pin" x1="160" y1="${yy}" x2="240" y2="${yy}" />
-        <text class="workspace-task-shell-pin-label" x="205" y="${yy - 14}" text-anchor="middle">${label}</text>`;
+        <text class="workspace-task-shell-pin-label" x="160" y="${yy - 14}" text-anchor="middle">${label}</text>`;
     }).join("");
     return `
       <g class="workspace-task-shell" aria-hidden="true">
@@ -186,7 +189,7 @@ function createTaskModeView({
         <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(task.label)}</text>
         ${inputLines}
         <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
-        <text class="workspace-task-shell-pin-label" x="795" y="274" text-anchor="middle">יציאה</text>
+        <text class="workspace-task-shell-pin-label" x="840" y="274" text-anchor="middle">יציאה</text>
       </g>`;
   }
 
