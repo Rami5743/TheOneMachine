@@ -2000,6 +2000,10 @@
     if (name === "speaker-muted") {
       return `<svg ${common}><path d="M4 9 V15 H8 L13 19 V5 L8 9 Z" /><path d="M17 9 L21 15" /><path d="M21 9 L17 15" /></svg>`;
     }
+    // Skip-to-end (RTL: travel leftward) — two left chevrons meeting an end bar.
+    if (name === "skip-rtl") {
+      return `<svg ${common}><path d="M20 5.5 L13.5 12 L20 18.5" /><path d="M13 5.5 L6.5 12 L13 18.5" /><path d="M5 5.5 V18.5" /></svg>`;
+    }
     // Simple, monochrome line house (Chrome-style) — main menu.
     if (name === "home") {
       return `<svg ${common}><path d="M3.5 11.5 L12 4 L20.5 11.5" /><path d="M6 10 V19.5 H18 V10" /></svg>`;
@@ -2585,6 +2589,7 @@
     const chapter = currentChapter();
     if (chapter?.partId === "part-1" || chapter?.id === "chapter-4") return false;
     if (busesClosingMonologue()) return false;
+    if (aluSkipToNextChapter()) return false;   // 2.6 worktable-on: jumps to 3.1
     return skipTargetPanelIndex() === state.panelIndex;
   }
 
@@ -6764,6 +6769,37 @@
     setSubtractionDemoStep(state.subtractionDemo.step - 1);
   }
 
+  // Replay the CURRENT step's entrance animation from the top (the circular button).
+  function replaySubtractionStep() {
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    const step = state.subtractionDemo.step;
+    if (step === 9) return replaySubtractionSwap();     // re-run the operand swap
+    if (step === 10) return replaySubtractionLamps();   // re-run the converter→lamps fade
+    // Slide/highlight steps: re-plan this step's entrance and re-render so its parts
+    // glide back in, their cables redraw, and (the control step) the highlight
+    // re-reveals afterwards. A step that adds nothing just re-renders harmlessly.
+    planSubtractionSlide(step === 0 ? null : step - 1, step);
+    setState({ subtractionDemo: { step }, workspace: buildSubtractionDemoWorkspace(step) }, false);
+  }
+
+  function replaySubtractionSwap() {
+    subtractionDemoBusy = true;
+    subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
+    // Reset to the pre-swap (unswapped, connected) board, then replay the swap.
+    setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(8) }, false);
+    window.setTimeout(() => { subtractionDemoBusy = false; runSubtractionSwapTransition(); }, 60);
+  }
+
+  function replaySubtractionLamps() {
+    subtractionDemoBusy = true;
+    subtractionDemoAnim = null;
+    subtractionHighlightHold = false;
+    // Reset to the converter-output board, then replay the converter→lamps fade.
+    setState({ subtractionDemo: { step: 10 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
+    window.setTimeout(() => { subtractionDemoBusy = false; runSubtractionLampsTransition(); }, 60);
+  }
+
   // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
   // "we need memory" monologue in the warehouse.
   function finishSubtractionDemo() {
@@ -7106,7 +7142,9 @@
         <section class="controls">
           ${subtractionDemoActive() ? `
             ${navButton("subtraction-demo-prev", "arrow-right", "הקודם", { disabled: state.subtractionDemo.step <= 0 })}
+            ${navButton("subtraction-demo-replay", "restart", "הצג שוב את השקף")}
             ${navButton("subtraction-demo-next", "arrow-left", "המשך", { primary: true })}
+            ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
             ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
           ` : `
           ${navButton("workspace-reset", "restart", "נקה שולחן")}
@@ -13831,6 +13869,10 @@
       if (nextChapter) return openChapter(nextChapter.id);
     }
 
+    // Chapter 2.6 from the tasks worktable on (the note, the closing monologue and
+    // the subtraction demo) — skip jumps to the start of chapter 3.1.
+    if (aluSkipToNextChapter()) return openChapter("chapter-10");
+
     const patch = { panelIndex: skipTargetPanelIndex(), started: true, replayNonce: state.replayNonce + 1, dialog: null };
     // Skipping the 2.4 opening also skips examining the new bus and splitter, so
     // mark them seen — otherwise the worktable's tasks note stays locked behind
@@ -13861,6 +13903,28 @@
     return null;
   }
 
+  // Chapter 2.6 (alu): the opening monologue's "דלג" brings the learner to the
+  // tasks worktable (panel125, where the ALU note is). From the worktable on —
+  // through the closing monologue and the subtraction demo — "דלג" jumps to the
+  // start of chapter 3.1.
+  function aluWorktablePanelIndex() {
+    const scene = currentScene();
+    return scene ? panelIndexByImage(scene, "panel125_chapter_2_6_alu_worktable.svg") : -1;
+  }
+  function aluSkipTarget() {
+    if (currentChapter()?.id !== "chapter-9") return null;
+    const wt = aluWorktablePanelIndex();
+    if (wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex < wt) return wt;
+    return null; // at/after the worktable → a chapter jump (see aluSkipToNextChapter)
+  }
+  // True for chapter-9 STORY panels at/after the worktable, where "דלג" leaves for
+  // chapter 3.1 instead of moving within the scene.
+  function aluSkipToNextChapter() {
+    if (state.screen !== "story" || currentChapter()?.id !== "chapter-9") return false;
+    const wt = aluWorktablePanelIndex();
+    return wt >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex >= wt;
+  }
+
   // Where the "דלג" shortcut lands in the current story scene. In 2.4 that is the
   // worktable — but once PAST that worktable (i.e. inside the von Neumann
   // monologue) it becomes the next-tasks worktable that closes the monologue,
@@ -13872,6 +13936,9 @@
     // Chapter 2.5: milestone-based skip target (see arithSkipTarget).
     const arithTarget = arithSkipTarget();
     if (arithTarget != null) return arithTarget;
+    // Chapter 2.6: the opening monologue skips to the tasks worktable.
+    const aluTarget = aluSkipTarget();
+    if (aluTarget != null) return aluTarget;
     // 2.1 (chapter-4): skip opens the Nand workbench, whose story trigger is the
     // launch panel — that is the point the learner must reach for the shortcut.
     if (currentChapter()?.id === "chapter-4") {
@@ -15769,6 +15836,8 @@
     if (action === "nand-monologue-prev") return previousNandMonologue();
     if (action === "subtraction-demo-next") return advanceSubtractionDemo();
     if (action === "subtraction-demo-prev") return subtractionDemoBack();
+    if (action === "subtraction-demo-replay") return replaySubtractionStep();
+    if (action === "subtraction-demo-skip") return finishSubtractionDemo();
     if (action === "subtraction-demo-teaser") return openSubtractionDemoLinks();
     if (action === "subtraction-demo-links-close") return closeSubtractionDemoLinks();
     if (action === "workspace-reset") return resetWorkspaceCurrentMode();
@@ -15908,6 +15977,9 @@
     // The subtraction demo locks the board but its own controls/teaser must work.
     if (event.target.closest("[data-action='subtraction-demo-next']")) return;
     if (event.target.closest("[data-action='subtraction-demo-prev']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-replay']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-skip']")) return;
+    if (event.target.closest("[data-action='sound']")) return;
     if (event.target.closest("[data-action='subtraction-demo-teaser']")) return;
     if (event.target.closest("[data-action='subtraction-demo-links-close']")) return;
     if (event.target.closest(".subtraction-demo-link")) return;
