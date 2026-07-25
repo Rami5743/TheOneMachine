@@ -6587,11 +6587,11 @@
     return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
   }
 
-  // Where each of the 16 output lamps sits at step 9: one tidy column of small
-  // lamps, in the SAME top-to-bottom order as the splitter's legs (bit 15 = the
-  // leading bit VN points at, on top) so the leg→lamp wires run straight across.
+  // Where each of the 16 output lamps sits at the lamps step: a tall column down
+  // the far right, bit 15 (the leading bit VN points at) on top — right where the
+  // speech bubble's tail points — spreading down to bit 0 at the bottom.
   function subtractionLampPos(i) {
-    return { x: 1010, y: 240 + (15 - i) * 33 };
+    return { x: 850, y: 160 + (15 - i) * 38 };
   }
 
   // The (inactive) ALU1 workbench the demo drives, built up from the step index:
@@ -6603,42 +6603,45 @@
     // The two converters keep their own displayed numbers (conv1 shows 19, conv2
     // shows 7) the WHOLE time — the swap is done by moving them to each other's
     // spot and rewiring, not by changing the digits (see the swap animation).
-    const conv1Y = swapped ? 610 : 350;        // 19 sits low after the swap
-    const conv2Y = swapped ? 350 : 610;        // 7 rises to the top after the swap
+    const conv1Y = swapped ? 620 : 380;        // 19 sits low after the swap
+    const conv2Y = swapped ? 380 : 620;        // 7 rises to the top after the swap
     const conv1In = swapped ? "alu.in2" : "alu.in1";
     const conv2In = swapped ? "alu.in1" : "alu.in2";
+    // Layout follows the desired relative arrangement: the control (source + its
+    // merging splitter) sits along the TOP; the two input converters are stacked on
+    // the LEFT with the ALU vertically between them; the output splitter is just
+    // right of the ALU and the bit-lamp column runs down the far RIGHT.
     // The ALU is drawn bigger than the usual 0.6 gate scale so it reads as the
     // centrepiece; the whole symbol (body AND pins) scales together, so the wires
     // still meet the pins exactly and the pin bus-widths are unchanged.
-    const alu = { id: "alu", type: "gate-ALU1", x: 600, y: 480, scale: 0.95 };
+    const alu = { id: "alu", type: "gate-ALU1", x: 470, y: 500, scale: 0.95 };
     const components = [alu];
     const wires = [];
     // Input 1 (always, from step 0). conv1 always shows 19.
-    components.push({ id: "conv1", type: "converter-out", x: 150, y: conv1Y, value: 19, width: 16 });
+    components.push({ id: "conv1", type: "converter-out", x: 190, y: conv1Y, value: 19, width: 16 });
     wires.push({ a: "conv1.out", b: conv1In });
     // Input 2 (step 1). conv2 always shows 7.
     if (step >= 1) {
-      components.push({ id: "conv2", type: "converter-out", x: 150, y: conv2Y, value: 7, width: 16 });
+      components.push({ id: "conv2", type: "converter-out", x: 190, y: conv2Y, value: 7, width: 16 });
       wires.push({ a: "conv2.out", b: conv2In });
     }
-    // Control 010011 via a merging splitter fed by one source (step 2). Kept on the
-    // upper LEFT so it clears the speech bubble at the top-right.
+    // Control 010011 via a merging splitter fed by one source (step 2), along the top.
     if (step >= 2) {
-      components.push({ id: "ctrl-src", type: "source", x: 250, y: 210 });
-      components.push({ id: "ctrl-split", type: "splitter", x: 410, y: 250, mirrored: true, outputs: 6, width: 1 });
+      components.push({ id: "ctrl-src", type: "source", x: 180, y: 150 });
+      components.push({ id: "ctrl-split", type: "splitter", x: 380, y: 150, mirrored: true, outputs: 6, width: 1 });
       wires.push({ a: "ctrl-split.single", b: "alu.in3" });
       for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
     }
     // Output converter (from step 6) — it shows the weird swapped value at step 9,
     // then at step 10 it is replaced by lamps so the leading bit can be pointed at.
     if (step >= 6 && step < 10) {
-      components.push({ id: "convOut", type: "converter-in", x: 900, y: 480, width: 16 });
+      components.push({ id: "convOut", type: "converter-in", x: 850, y: 500, width: 16 });
       wires.push({ a: "alu.out1", b: "convOut.in" });
     }
     // Step 10: swap the output converter for a splitter + 16 small lamps in one
     // column. leg15 (the TOP lamp) is the leading bit — the one pointed at.
     if (step >= 10) {
-      components.push({ id: "out-split", type: "splitter", x: 810, y: 480, mirrored: false, outputs: 16, width: 1 });
+      components.push({ id: "out-split", type: "splitter", x: 660, y: 500, mirrored: false, outputs: 16, width: 1 });
       wires.push({ a: "alu.out1", b: "out-split.single" });
       for (let i = 0; i < 16; i += 1) {
         const pos = subtractionLampPos(i);
@@ -6901,7 +6904,7 @@
       setState({ subtractionDemo: { step: 9 }, workspace: old }, false);
       window.setTimeout(() => {
         // Beat 2: slide the converters to their swapped spots (still unplugged).
-        subtractionDemoAnim = { mode: "move", moves: [{ id: "conv1", fromY: 350 }, { id: "conv2", fromY: 610 }] };
+        subtractionDemoAnim = { mode: "move", moves: [{ id: "conv1", fromY: 380 }, { id: "conv2", fromY: 620 }] };
         const movedWs = subtractionStripInputWires(buildSubtractionDemoWorkspace(9));
         setState({ subtractionDemo: { step: 9 }, workspace: movedWs }, false);
         window.setTimeout(() => {
