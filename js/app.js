@@ -15214,13 +15214,17 @@
     "dialog-card", "workspace-build-help-prompt", "workspace-understood-card",
     "workspace-accident-card", "workspace-task-intro-card", "not-test-result-card",
     "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card",
-    "workspace-task-hint-mux", "workspace-why-note"
+    "workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"
   ];
 
   // These panels are click-through (pointer-events:none so the board underneath
-  // stays wireable), so they may ONLY be grabbed by their explicit drag handle —
-  // never by a random press on the panel body.
-  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
+  // stays wireable) OR sit over the board, so they may ONLY be grabbed by their
+  // explicit drag handle — never by a random press on the panel body (which would
+  // hijack clicks on the truth table / requirements text underneath the grip).
+  // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
+  // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
+  // still resolves to its own drag key, not the dock one.
+  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"]);
 
   function draggableDialogElement(event) {
     return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
