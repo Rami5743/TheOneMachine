@@ -5,7 +5,7 @@
     .usercard-body { fill:#f4e7cf; stroke:#4a3b28; stroke-width:4; }
     .usercard-pin { stroke:#111; stroke-width:5; stroke-linecap:round; fill:none; }
     .arith-gate-pin-letter { font-family:Arial,sans-serif; font-size:20px; font-weight:800; fill:#2c2113; text-anchor:middle; }
-    .splitter-bar { fill:#3d2a17; stroke:none; }
+    .splitter-bar { fill:#46545f; stroke:none; }
     .splitter-stripe { stroke:#d8d8d8; stroke-width:3; stroke-dasharray:6 3; stroke-linecap:butt; fill:none; }
     .splitter-width-label { fill:#ffe37a; font-family:Arial,sans-serif; font-weight:800; font-size:13px; text-anchor:middle; }
   </style>

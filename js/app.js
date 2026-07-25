@@ -14692,7 +14692,7 @@
       return;
     }
 
-    if (workspaceTaskIntroActive() && !isGlobalNavigationAction(action) && !["workspace-task-intro-ok"].includes(action)) {
+    if (workspaceTaskIntroActive() && !isGlobalNavigationAction(action) && !["workspace-task-intro-ok", "workspace-task-intro-next"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -14890,6 +14890,7 @@
     if (action === "workspace-terminal") return handleWorkspaceTerminal(button.dataset.terminalRef);
     if (action === "workspace-wire") return deleteWireByKey(button.dataset.wireKey);
     if (action === "workspace-accident-ok") return resetWorkspaceAfterAccident();
+    if (action === "workspace-task-intro-next") return withWorkspace((workspace) => { workspace.taskIntroStep = 1; });
     if (action === "workspace-task-intro-ok") return dismissWorkspaceTaskIntro();
     if (action === "check-not-task") return startNotTaskTest();
     if (action === "mux-truth-cell") return handleMuxTruthCell(Number(button.dataset.row), button.dataset.col);
@@ -15244,6 +15245,10 @@
 
       if (workspaceTaskIntroActive()) {
         const actionElement = event.target.closest("[data-action]");
+        if ((event.key === "Enter" || event.key === " ") && actionElement?.dataset.action === "workspace-task-intro-next") {
+          event.preventDefault();
+          return withWorkspace((workspace) => { workspace.taskIntroStep = 1; });
+        }
         if ((event.key === "Enter" || event.key === " ") && actionElement?.dataset.action === "workspace-task-intro-ok") {
           event.preventDefault();
           return dismissWorkspaceTaskIntro();

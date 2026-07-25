@@ -171,14 +171,22 @@ function createTaskModeView({
     if (task.id === "Mux") return renderMuxTaskShell(task);
     if (task.id === "DMux") return renderDmuxTaskShell(task);
     if (task.outputs === 2 && Array.isArray(task.rows)) return renderArithTaskShell(task);
-    const inputLines = taskInputYs(task.inputs).map((y) => `
-        <line class="workspace-task-shell-pin" x1="160" y1="${288 + y}" x2="240" y2="${288 + y}" />`).join("");
+    // Each pin stub is tagged with "כניסה"/"יציאה" (with an index when the card
+    // has more than one input) so the learner knows which side is which.
+    const inputLines = taskInputYs(task.inputs).map((y, index) => {
+      const yy = 288 + y;
+      const label = task.inputs === 1 ? "כניסה" : `כניסה ${index + 1}`;
+      return `
+        <line class="workspace-task-shell-pin" x1="160" y1="${yy}" x2="240" y2="${yy}" />
+        <text class="workspace-task-shell-pin-label" x="205" y="${yy - 14}" text-anchor="middle">${label}</text>`;
+    }).join("");
     return `
       <g class="workspace-task-shell" aria-hidden="true">
         <rect class="workspace-task-shell-frame" x="200" y="100" width="600" height="376" rx="18" />
         <text class="workspace-task-shell-title" x="500" y="90" text-anchor="middle">${esc(task.label)}</text>
         ${inputLines}
         <line class="workspace-task-shell-pin" x1="760" y1="288" x2="840" y2="288" />
+        <text class="workspace-task-shell-pin-label" x="795" y="274" text-anchor="middle">יציאה</text>
       </g>`;
   }
 
@@ -187,11 +195,24 @@ function createTaskModeView({
     if (!workspaceTaskIntroActive()) return "";
     const task = taskDefById(state.workspace?.taskId);
     const label = task?.label || "הכרטיס";
-    // The Not intro shows the card's REQUIREMENTS (description + truth table)
-    // centred on the board with a "הבנתי" button; on click the card flies to the
-    // bottom-right corner and becomes the normal requirements panel (the docking
-    // animation lives in dismissWorkspaceTaskIntro). While it is centred, the
-    // corner panel is hidden (see renderNotTaskHint) so nothing is duplicated.
+    const step = Number(state.workspace?.taskIntroStep) || 0;
+    // Step 1 — WHERE to build: the original "build the card inside the frame"
+    // note. "הבנתי" advances to step 2 (it does NOT dock yet).
+    if (step === 0) {
+      return `
+        <div class="workspace-task-intro-overlay" role="presentation">
+          <section class="workspace-task-intro-card" role="dialog" aria-modal="false" aria-label="הוראות לבניית ${esc(label)}">
+            <p>${genderText("אתה צריך לבנות את הכרטיס בתוך המסגרת. אל תשכח לחבר את הכניסות והיציאה של", "את צריכה לבנות את הכרטיס בתוך המסגרת. אל תשכחי לחבר את הכניסות והיציאה של")} ${esc(label)} ${genderText("לרכיבים שאתה שם בפנים.", "לרכיבים שאת שמה בפנים.")}</p>
+            <div class="workspace-task-intro-actions">
+              <button class="btn btn-primary" data-action="workspace-task-intro-next">הבנתי</button>
+            </div>
+          </section>
+        </div>`;
+    }
+    // Step 2 — WHAT the card must do: the REQUIREMENTS (description + truth
+    // table). "הבנתי" flies the card to the bottom-right corner where it becomes
+    // the normal requirements panel (docking in dismissWorkspaceTaskIntro). The
+    // corner panel stays hidden while centred (see renderNotTaskHint).
     const desc = task ? esc(adaptGender(task.description)) : "";
     let table = "";
     if (task && Array.isArray(task.rows) && task.rows.length) {
