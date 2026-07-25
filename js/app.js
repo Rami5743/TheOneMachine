@@ -9888,7 +9888,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -9975,6 +9975,12 @@
   // its control pin and the check's control splitter fit. Shared so the solution
   // walkthrough sits at the SAME position as the real build.
   const ALU_BUILD_CARD_X = 640;
+  // Where the game places a JSON-backed card's frame on the X axis. The wide
+  // ALU/adder cards sit at 640; the single-bit 2.5 cards (halfAdder/fullAdder)
+  // build at 500 like the simple gates, so their walkthrough must line up there.
+  function buildCardX(taskId) {
+    return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
+  }
   function aluBuildCardY(taskId) {
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
@@ -9992,7 +9998,7 @@
     // same card at (640, aluBuildCardY). Translate the whole solution by that
     // delta so the walkthrough appears at the same spot — same height — as the
     // real task, instead of shifted up/down from it.
-    const gameX = ALU_BUILD_CARD_X;
+    const gameX = buildCardX(doc.task);
     const gameY = aluBuildCardY(doc.task);
     const dx = Number.isFinite(doc.frame.x) ? gameX - doc.frame.x : 0;
     const dy = Number.isFinite(doc.frame.y) ? gameY - doc.frame.y : 0;
