@@ -2708,6 +2708,21 @@ button { font: inherit; }
   min-width: 100%;
 }
 
+/* The plain gate requirements panel (Not / And / Or / Xor / Or4Way …) sizes to
+   its content instead of a fixed 320px, so a wide truth table — e.g. Or4Way's
+   4-input, 16-row, 5-column table — shows all its columns rather than being
+   squeezed. The description text is capped so the panel doesn't over-grow, and
+   the .workspace-task-hint-scroll wrapper still pans sideways if the table is
+   ever wider than the capped panel (very narrow screens). */
+.workspace-task-hint:not(.workspace-task-hint-mux):not(.xor-hint-truth-table) {
+  width: fit-content;
+  min-width: min(300px, calc(100% - 32px));
+  max-width: calc(100% - 32px);
+}
+.workspace-task-hint:not(.workspace-task-hint-mux):not(.xor-hint-truth-table) > p {
+  max-width: min(340px, calc(100vw - 96px));
+}
+
 /* During a check the requirements panel widens to fit the single check row
    (its px width is set by sizeCheckPanel, capped at the workbench width). The
    multibit panel stacks the text above the row instead of side-by-side, and the
