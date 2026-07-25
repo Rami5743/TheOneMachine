@@ -2511,6 +2511,23 @@ button { font: inherit; }
   background: #fff;
 }
 
+/* Horizontal-scroll wrapper for a check truth table (or its single failing row).
+   When the table is wider than the requirements panel — e.g. a 16-bit bus check
+   row — it scrolls sideways instead of squishing its cells, so the frozen
+   failing row stays readable. Narrow tables still fill the panel width. */
+.workspace-task-hint-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workspace-task-hint-scroll > .workspace-task-hint-table {
+  width: max-content;
+  min-width: 100%;
+}
+
 .workspace-task-hint-table th,
 .workspace-task-hint-table td {
   padding: 6px 8px;

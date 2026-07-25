@@ -6542,6 +6542,22 @@
     fitWorkspaceCanvas();
     const scroll = app.querySelector("[data-workspace-scroll]");
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
+    revealFrozenCheckRow();
+  }
+
+  // When a check has failed and the state is frozen (the "הבדיקה נכשלה" notice is
+  // up), make sure the failing truth-table row is actually visible: scroll it
+  // into view inside its (possibly overflowing) requirements panel. The row's
+  // own [data-check-scroll] wrapper already exposes a horizontal scrollbar via
+  // CSS, so an over-wide row (e.g. a 16-bit bus check) can be panned sideways.
+  function revealFrozenCheckRow() {
+    if (state.notTest?.result !== "failure") return;
+    requestAnimationFrame(() => {
+      const activeRow = app.querySelector(".workspace-task-hint .truth-row-active");
+      if (activeRow && typeof activeRow.scrollIntoView === "function") {
+        activeRow.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    });
   }
 
   // Grow the board canvas to fit any content below the visible fold so the
@@ -10161,11 +10177,16 @@
     return { cardBuilds: builds, cardNandCounts: recomputeAllCardCounts(builds) };
   }
 
-  function showNotTestResult(result, workspace, taskId) {
+  function showNotTestResult(result, workspace, taskId, rowIndex) {
     clearNotTestTimer();
     const patch = {
       workspace,
-      notTest: { result, taskId }
+      // Keep the failing row index so the truth-table row (and, for bus/multibit
+      // tasks, the single check row) stays highlighted while the failure notice
+      // is up — the check state is frozen until the learner clicks "אישור".
+      notTest: Number.isInteger(rowIndex)
+        ? { result, taskId, rowIndex }
+        : { result, taskId }
     };
     if (result === "failure") {
       // Remember that this card's test has failed at least once, so a later
@@ -10210,7 +10231,7 @@
       const expected = rowExpectedOutputs(row);
       const pairs = taskOutputLampPairs(task);
       const ok = pairs.every((pair, index) => Boolean(evaluation.lamps.get(pair.lampId)) === Boolean(expected[index]));
-      if (!ok) return showNotTestResult("failure", workspace, task.id);
+      if (!ok) return showNotTestResult("failure", workspace, task.id, rowIndex);
       runNotTestRow(workspace, rowIndex + 1);
     }, 850);
   }
@@ -10428,7 +10449,7 @@
       const evaluation = evaluateWorkspaceBits(workspace);
       const expected = busTaskExpected(def, buses);
       const ok = expected.every((bit, i) => Boolean(evaluation.lamps.get(`bus-out-lamp-${i}`)) === Boolean(bit));
-      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      if (!ok) return showNotTestResult("failure", workspace, def.id, caseIndex);
       // Harness the NEXT case from the pristine learner circuit, not from this
       // already-harnessed workspace — otherwise each case re-wraps the previous
       // harness and duplicate splitters/lamps pile up on the board.
@@ -11011,7 +11032,7 @@
         }
         return chk.expected.every((bit, i) => Boolean(evaluation.lamps.get(chk.lamps[i])) === Boolean(bit));
       });
-      if (!ok) return showNotTestResult("failure", workspace, def.id);
+      if (!ok) return showNotTestResult("failure", workspace, def.id, caseIndex);
       // Re-harness the NEXT case from the pristine learner circuit (see the bus
       // check note), so harnesses don't pile up.
       runMultibitTestCase(baseWorkspace, caseIndex + 1);

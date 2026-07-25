@@ -98,10 +98,12 @@ function createTaskModeView({
       inCells += row.inputs[j].slice().reverse().map((b) => cell(b, false)).join("");
     }
     return `
-      <table class="workspace-task-hint-table bus-check-table">
-        <thead><tr>${outHead}${inHeads}</tr></thead>
-        <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
-      </table>`;
+      <div class="workspace-task-hint-scroll" data-check-scroll>
+        <table class="workspace-task-hint-table bus-check-table">
+          <thead><tr>${outHead}${inHeads}</tr></thead>
+          <tbody><tr class="truth-row-active">${outCells}${inCells}</tr></tbody>
+        </table>
+      </div>`;
   }
   function renderMuxTaskShell(task) {
     // Custom layout: two numbered data inputs on the left, the control input on
@@ -380,7 +382,7 @@ function createTaskModeView({
       <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
         ${toggle}
         <div class="mux-hint-text"><p>${esc(adaptGender(task.description))}</p></div>
-        <div class="mux-hint-table">${scratchTableHtml}</div>
+        <div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${scratchTableHtml}</div>
       </section>`;
   }
 
@@ -467,15 +469,17 @@ function createTaskModeView({
     return `
       <section class="workspace-task-hint" aria-label="הסבר על ${esc(task.label)}">
         <p>${esc(adaptGender(task.description))}</p>
-        <table class="workspace-task-hint-table">
-          <thead>
-            <tr>
-              <th class="truth-output-cell">יציאה</th>
-              ${inputHeaders}
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+        <div class="workspace-task-hint-scroll" data-check-scroll>
+          <table class="workspace-task-hint-table">
+            <thead>
+              <tr>
+                <th class="truth-output-cell">יציאה</th>
+                ${inputHeaders}
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       </section>`;
   }
 
