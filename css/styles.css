@@ -2081,7 +2081,7 @@ button { font: inherit; }
 /* The red enrichment teaser, pinned across the top of the (locked) workbench. */
 .subtraction-demo-teaser {
   position: absolute;
-  top: 12px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 12;
@@ -2103,7 +2103,8 @@ button { font: inherit; }
 .subtraction-demo-teaser:hover,
 .subtraction-demo-teaser:focus-visible { color: #ff8f7c; border-color: #ff6a53; }
 
-/* Von Neumann's speech bubble for the current step, bottom-right of the board. */
+/* Von Neumann's speech bubble for the current step: top of the board, with a
+   small tail pointing to the right side of the screen. Draggable. */
 .subtraction-demo-layer {
   position: absolute;
   inset: 0;
@@ -2112,10 +2113,10 @@ button { font: inherit; }
 }
 .subtraction-demo-speech {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: min(440px, calc(100% - 40px));
-  padding: 16px 20px;
+  right: 44px;
+  top: 16px;
+  width: min(440px, calc(100% - 64px));
+  padding: 14px 20px 14px 34px;
   border: 3px solid #111;
   border-radius: 24px;
   background: #f7f7f2;
@@ -2124,12 +2125,48 @@ button { font: inherit; }
   direction: rtl;
   text-align: right;
   pointer-events: auto;
+  cursor: grab;
   animation: subtraction-demo-pop 0.32s ease-out both;
 }
+.subtraction-demo-speech:active { cursor: grabbing; }
 .subtraction-demo-speech p { margin: 0; font-size: 1rem; line-height: 1.5; direction: rtl; unicode-bidi: plaintext; }
+/* Little drag grip in the (LTR-left) corner of the bubble. */
+.subtraction-demo-grip {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: #9a9a92;
+  letter-spacing: -1px;
+  user-select: none;
+}
+/* The tail: a right-pointing triangle on the bubble's right edge (black border
+   via the ::before, cream fill via the ::after sitting just inside it). */
+.subtraction-demo-speech::before,
+.subtraction-demo-speech::after {
+  content: "";
+  position: absolute;
+  top: 30px;
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+}
+.subtraction-demo-speech::before {
+  right: -21px;
+  border-left: 21px solid #111;
+}
+.subtraction-demo-speech::after {
+  right: -15px;
+  top: 33px;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 16px solid #f7f7f2;
+}
 @keyframes subtraction-demo-pop {
-  from { opacity: 0; transform: translateY(14px) scale(0.97); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 /* Newly-revealed board parts fade/scale in as each step adds them. */
 .subtraction-demo-fresh { animation: subtraction-demo-appear 0.5s ease-out both; }

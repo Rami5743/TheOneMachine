@@ -6577,45 +6577,59 @@
     return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
   }
 
+  // Where each of the 16 output lamps sits at step 9: one tidy column of small
+  // lamps, in the SAME top-to-bottom order as the splitter's legs (bit 15 = the
+  // leading bit VN points at, on top) so the leg→lamp wires run straight across.
+  function subtractionLampPos(i) {
+    return { x: 1010, y: 240 + (15 - i) * 33 };
+  }
+
   // The (inactive) ALU1 workbench the demo drives, built up from the step index:
   // a real ALU1 gate whose converters/control the engine actually evaluates, so
   // the readouts (19, 7, 12; and the swapped 65524) are computed, not faked.
   // control 010011 (c0..c5 = 0,1,0,0,1,1) = NOT input1, ADD, NOT result → a − b.
   function buildSubtractionDemoWorkspace(step) {
     const swapped = step >= 8;                 // step 8 swaps the two operands
-    const v1 = swapped ? 7 : 19;
-    const v2 = swapped ? 19 : 7;
-    const alu = { id: "alu", type: "gate-ALU1", x: 790, y: 440 };
+    // The two converters keep their own displayed numbers (conv1 shows 19, conv2
+    // shows 7) the WHOLE time — the swap is done by moving them to each other's
+    // spot and rewiring, not by changing the digits (see the swap animation).
+    const conv1Y = swapped ? 610 : 350;        // 19 sits low after the swap
+    const conv2Y = swapped ? 350 : 610;        // 7 rises to the top after the swap
+    const conv1In = swapped ? "alu.in2" : "alu.in1";
+    const conv2In = swapped ? "alu.in1" : "alu.in2";
+    const alu = { id: "alu", type: "gate-ALU1", x: 600, y: 480 };
     const components = [alu];
     const wires = [];
-    // Input 1 (always, from step 0).
-    components.push({ id: "conv1", type: "converter-out", x: 300, y: 320, value: v1, width: 16 });
-    wires.push({ a: "conv1.out", b: "alu.in1" });
-    // Input 2 (step 1).
+    // Input 1 (always, from step 0). conv1 always shows 19.
+    components.push({ id: "conv1", type: "converter-out", x: 150, y: conv1Y, value: 19, width: 16 });
+    wires.push({ a: "conv1.out", b: conv1In });
+    // Input 2 (step 1). conv2 always shows 7.
     if (step >= 1) {
-      components.push({ id: "conv2", type: "converter-out", x: 300, y: 570, value: v2, width: 16 });
-      wires.push({ a: "conv2.out", b: "alu.in2" });
+      components.push({ id: "conv2", type: "converter-out", x: 150, y: conv2Y, value: 7, width: 16 });
+      wires.push({ a: "conv2.out", b: conv2In });
     }
-    // Control 010011 via a merging splitter fed by one source (step 2).
+    // Control 010011 via a merging splitter fed by one source (step 2). Kept on the
+    // upper LEFT so it clears the speech bubble at the top-right.
     if (step >= 2) {
-      components.push({ id: "ctrl-src", type: "source", x: 500, y: 120 });
-      components.push({ id: "ctrl-split", type: "splitter", x: 700, y: 160, mirrored: true, outputs: 6, width: 1 });
+      components.push({ id: "ctrl-src", type: "source", x: 250, y: 210 });
+      components.push({ id: "ctrl-split", type: "splitter", x: 410, y: 250, mirrored: true, outputs: 6, width: 1 });
       wires.push({ a: "ctrl-split.single", b: "alu.in3" });
       for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
     }
     // Output converter (from step 5) — it shows the weird swapped value at step 8,
     // then at step 9 it is replaced by lamps so the leading bit can be pointed at.
     if (step >= 5 && step < 9) {
-      components.push({ id: "convOut", type: "converter-in", x: 1160, y: 440, width: 16 });
+      components.push({ id: "convOut", type: "converter-in", x: 900, y: 480, width: 16 });
       wires.push({ a: "alu.out1", b: "convOut.in" });
     }
-    // Step 9: swap the output converter for a splitter + 16 lamps. leg15 (the top
-    // lamp) is the leading bit — the one the script points at.
+    // Step 9: swap the output converter for a splitter + 16 small lamps, spread over
+    // two columns. leg15 (the TOP lamp) is the leading bit — the one pointed at.
     if (step >= 9) {
-      components.push({ id: "out-split", type: "splitter", x: 1000, y: 430, mirrored: false, outputs: 16, width: 1 });
+      components.push({ id: "out-split", type: "splitter", x: 810, y: 480, mirrored: false, outputs: 16, width: 1 });
       wires.push({ a: "alu.out1", b: "out-split.single" });
       for (let i = 0; i < 16; i += 1) {
-        components.push({ id: `olamp${i}`, type: "lamp", x: 1175, y: 430 - (i - 7.5) * 26 });
+        const pos = subtractionLampPos(i);
+        components.push({ id: `olamp${i}`, type: "lamp", x: pos.x, y: pos.y, scale: 0.5 });
         wires.push({ a: `out-split.leg${i}`, b: `olamp${i}.in` });
       }
     }
@@ -6672,6 +6686,30 @@
     }, true);
   }
 
+  // Drag the demo speech bubble around. Its offset is kept in a module var and
+  // reapplied on every re-render, so it stays put as the steps advance. A real
+  // drag sets suppressNextClick so releasing does not also advance a step.
+  function startSubtractionBubbleDrag(event) {
+    const bubble = event.target.closest("[data-subtraction-bubble]");
+    if (!bubble) return;
+    event.preventDefault();
+    const startX = event.clientX, startY = event.clientY;
+    const base = { dx: subtractionBubbleOffset.dx, dy: subtractionBubbleOffset.dy };
+    let moved = false;
+    const onMove = (e) => {
+      if (Math.abs(e.clientX - startX) > 3 || Math.abs(e.clientY - startY) > 3) moved = true;
+      subtractionBubbleOffset = { dx: base.dx + (e.clientX - startX), dy: base.dy + (e.clientY - startY) };
+      bubble.style.transform = `translate(${subtractionBubbleOffset.dx}px, ${subtractionBubbleOffset.dy}px)`;
+    };
+    const onUp = () => {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      if (moved) suppressNextClick = true;
+    };
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onUp);
+  }
+
   // The "still under construction — watch these videos" window, opened ONLY by the
   // red teaser; "חזרה" just returns to the demo where it was.
   function openSubtractionDemoLinks() {
@@ -6682,20 +6720,32 @@
     setState({ subtractionDemoLinks: null }, false);
   }
 
-  // The demo's side speech bubble (current step) plus the red enrichment teaser
-  // pinned at the top. Rendered over the (locked) workbench.
+  // The draggable speech bubble's on-screen offset from its default top-right
+  // anchor, persisted across step re-renders (module-level, not saved state).
+  let subtractionBubbleOffset = { dx: 0, dy: 0 };
+
+  // The demo's speech bubble (current step). The red enrichment teaser is pinned
+  // above it but shows ONLY on the final step. Rendered over the (locked) bench.
   function renderSubtractionDemo() {
     if (!subtractionDemoActive()) return "";
     const step = Math.min(Math.max(state.subtractionDemo.step, 0), SUBTRACTION_DEMO_LAST);
     const text = (typeof SUBTRACTION_DEMO_TEXTS !== "undefined" && SUBTRACTION_DEMO_TEXTS[step]) || "";
     const teaser = (typeof SUBTRACTION_DEMO_TEASER !== "undefined") ? SUBTRACTION_DEMO_TEASER : "";
+    // The teaser sits on the final step only (where the plot hands off to the
+    // "under construction" enrichment window).
+    const teaserHtml = step >= SUBTRACTION_DEMO_LAST
+      ? `<button class="subtraction-demo-teaser" data-action="subtraction-demo-teaser" type="button">
+          <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+          <span>${esc(teaser)}</span>
+        </button>`
+      : "";
+    const off = subtractionBubbleOffset;
+    const style = (off.dx || off.dy) ? ` style="transform:translate(${off.dx}px, ${off.dy}px)"` : "";
     return `
-      <button class="subtraction-demo-teaser" data-action="subtraction-demo-teaser" type="button">
-        <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
-        <span>${esc(teaser)}</span>
-      </button>
+      ${teaserHtml}
       <div class="subtraction-demo-layer" data-subtraction-demo role="presentation">
-        <div class="subtraction-demo-speech">
+        <div class="subtraction-demo-speech" data-subtraction-bubble${style}>
+          <span class="subtraction-demo-grip" data-subtraction-bubble-grip aria-hidden="true">⠿</span>
           <p>${esc(text)}</p>
         </div>
       </div>`;
@@ -15216,6 +15266,19 @@
         return explanationReplayActive("nand-function") ? nextExplanationPanel() : advanceNandMonologue();
       }
 
+      // During the subtraction demo a plain click on the board advances a step,
+      // like "המשך". The bubble (draggable) and teaser live outside the board, so
+      // dragging the bubble or clicking the teaser never reaches here.
+      if (
+        state.screen === "workspace" &&
+        subtractionDemoActive() &&
+        !state.subtractionDemoLinks &&
+        event.target.closest("[data-workspace-board]")
+      ) {
+        event.preventDefault();
+        return advanceSubtractionDemo();
+      }
+
       if (
         state.screen === "story" &&
         !state.dialog &&
@@ -15562,6 +15625,10 @@
     if (event.target.closest("[data-action='subtraction-demo-teaser']")) return;
     if (event.target.closest("[data-action='subtraction-demo-links-close']")) return;
     if (event.target.closest(".subtraction-demo-link")) return;
+    // The demo bubble is draggable even though the board itself is locked.
+    if (subtractionDemoActive() && event.target.closest("[data-subtraction-bubble]")) {
+      return startSubtractionBubbleDrag(event);
+    }
 
     if (workspaceInteractionLocked()) {
       event.preventDefault();
@@ -15939,6 +16006,20 @@
         if (event.key === "ArrowRight") {
           event.preventDefault();
           return previousNandMonologue();
+        }
+        return;
+      }
+
+      // Subtraction demo: the arrow keys / space step between bubbles (RTL, so the
+      // RIGHT arrow goes back and LEFT/space advance), matching the prev/next buttons.
+      if (subtractionDemoActive() && !state.subtractionDemoLinks) {
+        if (event.key === "ArrowLeft" || event.key === " " || event.key === "Enter") {
+          event.preventDefault();
+          return advanceSubtractionDemo();
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          return subtractionDemoBack();
         }
         return;
       }
