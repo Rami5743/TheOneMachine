@@ -127,7 +127,15 @@ const PINS = {
   "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} },
   "gate-Neq0_16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:1} },
-  "gate-Neq0_4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:1} }
+  "gate-Neq0_4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:1} },
+  // 2.5 arithmetic gates (single-bit unless noted) — so their solution wires draw.
+  "gate-And":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, out:{x:66,y:0,w:1} },
+  "gate-Xor":{ in1:{x:-60,y:-23,w:1}, in2:{x:-60,y:23,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Or":{ in1:{x:-58,y:-23,w:1}, in2:{x:-58,y:23,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Not":{ in1:{x:-60,y:0,w:1}, out:{x:80,y:0,w:1} },
+  "gate-halfAdder":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
+  "gate-fullAdder":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
+  "gate-Add4":{ in1:{x:-62,y:-52,w:4}, in2:{x:-62,y:0,w:4}, in3:{x:-62,y:52,w:1}, out2:{x:66,y:-34,w:1}, out1:{x:66,y:34,w:4} }
 };
 function pinOffset(comp, pinId) {
   if (comp.__frame) { const p=(doc.frame.pins||[]).find(pp=>pp.id===pinId); return p?{x:p.x,y:p.y,w:p.w}:null; }
