@@ -11,6 +11,10 @@ const PARTS = [
   {
     "id": "part-2",
     "title": "חלק 2: מכונות חישוב"
+  },
+  {
+    "id": "part-3",
+    "title": "חלק 3: זיכרון"
   }
 ];
 
@@ -68,6 +72,12 @@ const CHAPTERS = [
     "partId": "part-2",
     "title": "2.6 ALU",
     "sceneId": "alu"
+  },
+  {
+    "id": "chapter-10",
+    "partId": "part-3",
+    "title": "3.1 פליפ פלופ",
+    "sceneId": "flipflop"
   }
 ];
 
@@ -930,6 +940,20 @@ const SCENES = {
         "image": "assets/panels/panel127_chapter_2_6_alu_done_2.svg",
         "year": "1943",
         "read": "אתה אולי שאלת את עצמך איך עושים חיסור, זו הרי פעולה לא פחות חשובה מחיבור. הנה תראה משהו מגניב:"
+      }
+    ]
+  },
+  "flipflop": {
+    "id": "flipflop",
+    "type": "story",
+    "chapterId": "chapter-10",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "Chapter 3.1 (part 3, memory) opening: von Neumann back in the warehouse, introducing the need for memory (speech baked into the SVG). Reached after the subtraction demo.",
+        "image": "assets/panels/panel128_chapter_3_1_memory.svg",
+        "year": "1943",
+        "read": "טוב, נפסיק לברבר ונמשיך לעבוד. כדי שהמחשב שלנו יוכל לבצע חישובים מסובכים הוא צריך אפשרות לזכור את מה שהוא עושה. בשביל זה הוא צריך זיכרון. עד עכשיו כל הכרטיסים שבנינו ידעו לבצע חישוב אבל לא ידעו לשמור שום דבר. אנחנו צריכים לבנות כרטיסים שיכולים לשמור משהו. זאת אומרת שחוץ מכניסות ויציאות הם יוכלו להימצא גם במצבים שונים ונוכל להעביר אותם ממצב למצב על ידי שינוי הכניסות."
       }
     ]
   }

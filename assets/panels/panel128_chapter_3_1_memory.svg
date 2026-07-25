@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086" preserveAspectRatio="xMidYMid meet"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+  <defs id="defs1" />
+  <image id="raster-base" x="0" y="0" width="1448" height="1086" preserveAspectRatio="none" href="panel118_chapter_2_5_doorway.jpg" xlink:href="panel118_chapter_2_5_doorway.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble" d="M 544,40 H 1376 Q 1400,40 1400,64 V 588 Q 1400,612 1376,612 H 544 Q 520,612 520,588 V 182 L 400,150 L 520,118 V 64 Q 520,40 544,40 Z"
+       fill="#ffffff" stroke="#000000" stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400"
+       fill="#000000" stroke="none" xml:space="preserve" style="stroke-width:0.907271"><tspan x="960" y="96.00" style="stroke-width:0.907271">טוב, נפסיק לברבר ונמשיך לעבוד. כדי שהמחשב</tspan><tspan x="960" y="146.50" style="stroke-width:0.907271">שלנו יוכל לבצע חישובים מסובכים הוא צריך</tspan><tspan x="960" y="197.00" style="stroke-width:0.907271">אפשרות לזכור את מה שהוא עושה. בשביל זה</tspan><tspan x="960" y="247.50" style="stroke-width:0.907271">הוא צריך זיכרון. עד עכשיו כל הכרטיסים</tspan><tspan x="960" y="298.00" style="stroke-width:0.907271">שבנינו ידעו לבצע חישוב אבל לא ידעו לשמור</tspan><tspan x="960" y="348.50" style="stroke-width:0.907271">שום דבר. אנחנו צריכים לבנות כרטיסים</tspan><tspan x="960" y="399.00" style="stroke-width:0.907271">שיכולים לשמור משהו. זאת אומרת שחוץ</tspan><tspan x="960" y="449.50" style="stroke-width:0.907271">מכניסות ויציאות הם יוכלו להימצא גם</tspan><tspan x="960" y="500.00" style="stroke-width:0.907271">במצבים שונים, ונוכל להעביר אותם ממצב</tspan><tspan x="960" y="550.50" style="stroke-width:0.907271">למצב על ידי שינוי הכניסות.</tspan></text>
+  </g>
+</svg>

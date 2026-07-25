@@ -650,6 +650,34 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     "קוראים לי Nand כי אני עושה ההפך מאחי And. הוא מוציא מתח רק אם בשתי הכניסות שלו יש מתח. המילה And באנגלית אומרת “גם”. ובאמת And מוציא מתח רק אם גם הכניסה הראשונה וגם הכניסה השנייה מקבלות מתח. ה-N בשם שלי זה קיצור של המילה האנגלית Not שאומרת “לא”. לכן אני מוציא מתח רק אם And לא היה מוציא מתח באותו מצב."
   ];
 
+  // The scripted 2.6 "subtraction" demo: von Neumann drives an ALU4 through
+  // 19 − 7 on an inactive workbench, one speech bubble (and one animation) per
+  // "המשך" press. Each entry is the bubble text for that step; the matching
+  // animation/highlight is applied in the app from the step index.
+  const SUBTRACTION_DEMO_TEXTS = [
+    "אנחנו מכניסים מספר לכניסה הראשונה — כיתוב בינרי של מספר שאנחנו רוצים, למשל 19.",
+    "ולכניסה השנייה אנחנו מכניסים כיתוב בינרי של מספר אחר, למשל 7.",
+    "עכשיו נכניס את הביטים 010011 לכניסת הבקרה,",
+    "זה אומר שאנחנו עושים Not לכניסה הראשונה,",
+    "ובסוף עושים NOT לתוצאה.",
+    "עכשיו נחבר את היציאה לממיר כדי לראות מה יצא.",
+    "תראה, יצאה 12 — שזה בדיוק ההפרש 19-7.",
+    "מתברר שהשיטה הזאת תמיד עובדת, זאת אומרת רק אם ההפרש הוא חיובי.",
+    "תראה, אם נחליף את הסדר נקבל משהו מוזר.",
+    "אבל שים לב שהביט המוביל הוא 1.",
+    "זה בעצם די נחמד, ככה אנחנו יכולים לבדוק איזה מספר גדול יותר: פשוט לעשות את ההפרש בשיטה הזאת ולבדוק את הביט המוביל. זו הסיבה שאנחנו רוצים לקבל את הביט המוביל בנפרד."
+  ];
+  // The red enrichment teaser shown above the demo the whole time.
+  const SUBTRACTION_DEMO_TEASER = "ג'ון לא אומר לך את כל האמת. רוצה לדעת למה השיטה הזאת לחיסור עובדת, ואיך מטפלים במספרים שליליים במחשב? לחץ כאן.";
+  // The "still under construction" window reached at the end of the demo (and from
+  // the red teaser): a short note plus two explainer videos.
+  const SUBTRACTION_DEMO_LINKS_TITLE = "חלק זה של המשחק עדיין בבנייה";
+  const SUBTRACTION_DEMO_LINKS_INTRO = "כאן אפשר לשמוע על זה:";
+  const SUBTRACTION_DEMO_LINKS = [
+    { label: "סרטון 1", url: "https://www.youtube.com/watch?v=_ESppTswRyY" },
+    { label: "סרטון 2", url: "https://www.youtube.com/watch?v=s8ORydrdQ1k" }
+  ];
+
   // Chapter 2.4 component monologues, shown when the learner clicks the two new
   // crate hotspots in the 2.4 worktable. Each is a single speech bubble: `intro`
   // text, then the component's schematic symbol inline, then `outro` text.

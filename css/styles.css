@@ -2077,6 +2077,77 @@ button { font: inherit; }
   overflow: visible;
 }
 
+/* ---- Chapter 2.6 subtraction demo ---- */
+/* The red enrichment teaser, pinned across the top of the (locked) workbench. */
+.subtraction-demo-teaser {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100% - 32px);
+  padding: 7px 16px;
+  border: 1px solid rgba(180, 40, 30, 0.55);
+  border-radius: 999px;
+  background: rgba(38, 20, 16, 0.92);
+  color: #ff6a53;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+  text-align: right;
+}
+.subtraction-demo-teaser:hover,
+.subtraction-demo-teaser:focus-visible { color: #ff8f7c; border-color: #ff6a53; }
+
+/* Von Neumann's speech bubble for the current step, bottom-right of the board. */
+.subtraction-demo-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 11;
+}
+.subtraction-demo-speech {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: min(440px, calc(100% - 40px));
+  padding: 16px 20px;
+  border: 3px solid #111;
+  border-radius: 24px;
+  background: #f7f7f2;
+  color: #111;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  text-align: right;
+  pointer-events: auto;
+}
+.subtraction-demo-speech p { margin: 0; font-size: 1rem; line-height: 1.5; }
+
+/* The "still under construction" links list. */
+.subtraction-demo-links-title { margin: 0 0 6px; font-size: 1.25rem; }
+.subtraction-demo-links-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.subtraction-demo-link {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(36, 26, 13, 0.55);
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+}
+.subtraction-demo-link:hover,
+.subtraction-demo-link:focus-visible { background: rgba(255, 208, 122, 0.22); }
+
 .workspace-nand-speech {
   position: absolute;
   width: min(560px, calc(100% - 24px));

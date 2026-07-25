@@ -986,6 +986,11 @@
     aluNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
+    // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
+    // subtraction on an inactive workbench). { step } while running, else null.
+    subtractionDemo: null,
+    // The demo's "still under construction" links window ({ fromEnd } | null).
+    subtractionDemoLinks: null,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1686,7 +1691,8 @@
       Boolean(state.hintDialog) ||
       Boolean(state.hintSlides) ||
       Boolean(state.solutionDialog) ||
-      workspaceNandMonologueActive()
+      workspaceNandMonologueActive() ||
+      subtractionDemoActive()
     );
   }
 
@@ -6561,6 +6567,136 @@
     removeNandConnectDemoNow();
   }
 
+  // ---- Chapter 2.6 scripted "subtraction" demo -----------------------------
+  // Von Neumann drives an ALU4 through 19 − 7 on an INACTIVE workbench. One speech
+  // bubble (and, later, one animation) per "המשך" press. The board is locked; only
+  // the demo's own controls (הקודם/המשך) and the red enrichment teaser work.
+  const SUBTRACTION_DEMO_LAST = (typeof SUBTRACTION_DEMO_TEXTS !== "undefined" ? SUBTRACTION_DEMO_TEXTS.length : 1) - 1;
+
+  function subtractionDemoActive() {
+    return state.screen === "workspace" && state.subtractionDemo && Number.isInteger(state.subtractionDemo.step);
+  }
+
+  // The (inactive) ALU4 workbench the demo drives. The step-by-step converters and
+  // wires are layered in from the step index — for now just the frame and source.
+  function buildSubtractionDemoWorkspace(step) {
+    const components = [
+      { id: "task-card-1", type: "taskCard-ALU4", x: 720, y: 430 },
+      { id: "source-1", type: "source", x: 95, y: 470 }
+    ];
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: "ALU4",
+      taskIntroSeen: true
+    });
+  }
+
+  function openSubtractionDemo() {
+    setState({
+      screen: "workspace",
+      subtractionDemo: { step: 0 },
+      subtractionDemoLinks: null,
+      dialog: null, taskDialog: null, notTest: null, hintDialog: null, solutionDialog: null,
+      aluNoteList: false, aluIntroDialog: null, infoDialog: null,
+      workspace: buildSubtractionDemoWorkspace(0),
+      replayNonce: state.replayNonce + 1
+    }, false);
+  }
+
+  function setSubtractionDemoStep(step) {
+    const clamped = Math.min(Math.max(step, 0), SUBTRACTION_DEMO_LAST);
+    setState({ subtractionDemo: { step: clamped }, workspace: buildSubtractionDemoWorkspace(clamped) }, false);
+  }
+
+  function advanceSubtractionDemo() {
+    if (!subtractionDemoActive()) return;
+    if (state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST) return openSubtractionDemoLinks(true);
+    setSubtractionDemoStep(state.subtractionDemo.step + 1);
+  }
+
+  function subtractionDemoBack() {
+    if (!subtractionDemoActive()) return;
+    setSubtractionDemoStep(state.subtractionDemo.step - 1);
+  }
+
+  // The "still under construction — watch these videos" window, reached at the end
+  // of the demo and from the red teaser. fromEnd: opened by finishing the demo
+  // (its "המשך" then leads into chapter 3.1), vs opened mid-demo by the teaser
+  // (its "חזרה" just returns to the demo).
+  function openSubtractionDemoLinks(fromEnd) {
+    setState({ subtractionDemoLinks: { fromEnd: Boolean(fromEnd) } }, false);
+  }
+
+  function closeSubtractionDemoLinks() {
+    const fromEnd = Boolean(state.subtractionDemoLinks?.fromEnd);
+    if (fromEnd) {
+      // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
+      // "we need memory" monologue in the warehouse.
+      const chapter = chapterById("chapter-10");
+      return setState({
+        ...transientUiClearPatch(),
+        ...storyTarget(chapter, 0),
+        subtractionDemo: null,
+        subtractionDemoLinks: null,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, true);
+    }
+    setState({ subtractionDemoLinks: null }, false);
+  }
+
+  // The demo's side speech bubble (current step) plus the red enrichment teaser
+  // pinned at the top. Rendered over the (locked) workbench.
+  function renderSubtractionDemo() {
+    if (!subtractionDemoActive()) return "";
+    const step = Math.min(Math.max(state.subtractionDemo.step, 0), SUBTRACTION_DEMO_LAST);
+    const text = (typeof SUBTRACTION_DEMO_TEXTS !== "undefined" && SUBTRACTION_DEMO_TEXTS[step]) || "";
+    const teaser = (typeof SUBTRACTION_DEMO_TEASER !== "undefined") ? SUBTRACTION_DEMO_TEASER : "";
+    return `
+      <button class="subtraction-demo-teaser" data-action="subtraction-demo-teaser" type="button">
+        <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+        <span>${esc(teaser)}</span>
+      </button>
+      <div class="subtraction-demo-layer" data-subtraction-demo role="presentation">
+        <div class="subtraction-demo-speech">
+          <p>${esc(text)}</p>
+        </div>
+      </div>`;
+  }
+
+  // The "still under construction — watch these videos" window.
+  function renderSubtractionDemoLinks() {
+    if (!state.subtractionDemoLinks) return "";
+    const title = (typeof SUBTRACTION_DEMO_LINKS_TITLE !== "undefined") ? SUBTRACTION_DEMO_LINKS_TITLE : "";
+    const intro = (typeof SUBTRACTION_DEMO_LINKS_INTRO !== "undefined") ? SUBTRACTION_DEMO_LINKS_INTRO : "";
+    const links = (typeof SUBTRACTION_DEMO_LINKS !== "undefined" ? SUBTRACTION_DEMO_LINKS : [])
+      .map((l) => `<li><a class="subtraction-demo-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`)
+      .join("");
+    return `
+      <div class="pace-dialog-overlay subtraction-demo-links-overlay" role="presentation">
+        <section class="pace-dialog-card subtraction-demo-links-card" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <h2 class="subtraction-demo-links-title">${esc(title)}</h2>
+          <p>${esc(intro)}</p>
+          <ul class="subtraction-demo-links-list">${links}</ul>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="subtraction-demo-links-close" type="button">${state.subtractionDemoLinks.fromEnd ? "המשך" : "חזרה"}</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderWorkspace() {
     const evaluation = workspaceEvaluation();
     // The whole workspace is re-rendered via innerHTML on every state change
@@ -6606,17 +6742,23 @@
                 </g>
               </svg>
               </div>
-              ${renderNotTaskHint()}
-              ${renderWhyNote()}
+              ${subtractionDemoActive() ? "" : renderNotTaskHint()}
+              ${subtractionDemoActive() ? "" : renderWhyNote()}
               ${renderAndArrow()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
+              ${renderSubtractionDemo()}
               ${state.cardCreation ? renderCardCreationOverlays() : ""}
             </div>
           </section>
         </section>
         ${state.cardCreation ? renderCardCreationControls() : (explanationReplayActive("nand-function") ? renderNandFunctionExplanationControls() : `
         <section class="controls">
+          ${subtractionDemoActive() ? `
+            ${navButton("subtraction-demo-prev", "arrow-right", "הקודם", { disabled: state.subtractionDemo.step <= 0 })}
+            ${navButton("subtraction-demo-next", "arrow-left", "המשך", { primary: true })}
+            ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
+          ` : `
           ${navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
             ${navButton("nand-monologue-prev", "arrow-right", "הקודם")}
@@ -6629,8 +6771,10 @@
           ${renderWorkspaceBuildHelpButton()}
           ${renderWorkspaceUnderstoodButton()}
           ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
+          `}
         </section>`)}
       </main>
+      ${renderSubtractionDemoLinks()}
       ${renderWorkspaceUnderstoodPrompt()}
       ${renderWorkspaceBuildHelpPrompt()}
       ${renderWorkspaceTaskIntro()}
@@ -9337,6 +9481,17 @@
       if (nextWorktable >= 0) {
         return setState({ panelIndex: nextWorktable, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
       }
+    }
+
+    // The 2.6 closing monologue's teaser slide ("הנה תראה משהו מגניב:") leads into
+    // the scripted subtraction demo on the workbench (not another story panel).
+    if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
+      return openSubtractionDemo();
+    }
+    // Chapter 3.1 (flip-flop) is where the story currently ends — its last slide's
+    // "המשך" shows a "המשך יבוא" notice instead of falling off into the chapters.
+    if (state.screen === "story" && state.chapterId === "chapter-10" && state.panelIndex >= scene.panels.length - 1) {
+      return setState({ infoDialog: "המשך יבוא..." }, false);
     }
 
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
@@ -15203,6 +15358,10 @@
     if (action === "next") return nextPanel();
     if (action === "prev") return previousPanel();
     if (action === "nand-monologue-prev") return previousNandMonologue();
+    if (action === "subtraction-demo-next") return advanceSubtractionDemo();
+    if (action === "subtraction-demo-prev") return subtractionDemoBack();
+    if (action === "subtraction-demo-teaser") return openSubtractionDemoLinks(state.subtractionDemo && state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST);
+    if (action === "subtraction-demo-links-close") return closeSubtractionDemoLinks();
     if (action === "workspace-reset") return resetWorkspaceCurrentMode();
     if (action === "restart") return restartPanel();
     if (action === "skip") return skipStory();
@@ -15337,6 +15496,12 @@
     if (event.target.closest("[data-action='explanations-return-to-menu']")) return;
     if (event.target.closest("[data-action='sound']")) return;
     if (event.target.closest("[data-action='next']") && workspaceNandMonologueActive()) return;
+    // The subtraction demo locks the board but its own controls/teaser must work.
+    if (event.target.closest("[data-action='subtraction-demo-next']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-prev']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-teaser']")) return;
+    if (event.target.closest("[data-action='subtraction-demo-links-close']")) return;
+    if (event.target.closest(".subtraction-demo-link")) return;
 
     if (workspaceInteractionLocked()) {
       event.preventDefault();
