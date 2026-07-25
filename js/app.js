@@ -15218,13 +15218,14 @@
   ];
 
   // These panels are click-through (pointer-events:none so the board underneath
-  // stays wireable) OR sit over the board, so they may ONLY be grabbed by their
-  // explicit drag handle — never by a random press on the panel body (which would
-  // hijack clicks on the truth table / requirements text underneath the grip).
+  // stays wireable), so their only pointer-events:auto surface is the grip — they
+  // can ONLY be dragged by it. The solid docked gate/bus panel is deliberately NOT
+  // here: it is draggable from anywhere on its body that isn't text or a control
+  // (see dialogDragBlockedByControl).
   // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
   // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
   // still resolves to its own drag key, not the dock one.
-  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"]);
+  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
 
   function draggableDialogElement(event) {
     return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
@@ -15260,7 +15261,15 @@
   }
 
   function dialogDragBlockedByControl(event) {
-    return Boolean(event.target.closest("button, a, input, textarea, select, [role='button']"));
+    if (event.target.closest("button, a, input, textarea, select, [role='button']")) return true;
+    // On a requirements panel a drag starts from the frame/background only — a
+    // press on the description text or the truth table should select/scroll it,
+    // not move the panel. (Other dialogs stay draggable from their whole body.)
+    if (event.target.closest(".workspace-task-hint")
+        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title")) {
+      return true;
+    }
+    return false;
   }
 
   function startDialogDrag(event) {
