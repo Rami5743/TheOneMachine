@@ -9313,15 +9313,29 @@
 
   function resetWorkspaceCurrentMode() {
     const taskId = workspaceTaskId();
-    if (taskId && taskDefById(taskId)) {
+    const isTaskBuild = taskId && (
+      taskDefById(taskId)
+      || (typeof busTaskDefById === "function" && busTaskDefById(taskId))
+      || (typeof multibitTaskDefById === "function" && multibitTaskDefById(taskId))
+    );
+    if (isTaskBuild) {
       const current = normalizeWorkspace(state.workspace);
-      const workspace = standardTaskWorkspace(taskId);
-      workspace.taskIntroSeen = true;
-      // Preserve where this task must return to (e.g. the 2.3 routing worktable);
-      // standardTaskWorkspace does not carry the session-return fields.
-      workspace.sessionReturnChapterId = current.sessionReturnChapterId;
-      workspace.sessionReturnPanelIndex = current.sessionReturnPanelIndex;
-      workspace.exitTargetPanelIndex = current.exitTargetPanelIndex;
+      // "נקה שולחן" clears the learner's work — every wire and every part they
+      // added — but must KEEP the pre-placed scaffolding (the card frame and the
+      // test source/lamps) EXACTLY where it is. Rebuilding from a generic template
+      // used to relocate the frame (e.g. an ALU frame sits lower on the board than
+      // the simple-gate default), which read as "the reset moved the frame".
+      const preplacedIds = new Set(["task-card-1", "source-1", "lamp-1", "lamp-2"]);
+      const components = current.components.filter((c) => componentDef(c.type)?.fixed || preplacedIds.has(c.id));
+      const workspace = {
+        ...current,
+        components,
+        wires: [],
+        selectedTerminal: null,
+        focusedComponentId: null,
+        accident: null,
+        taskIntroSeen: true
+      };
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
