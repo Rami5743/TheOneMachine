@@ -6671,7 +6671,28 @@
     return { terminals, wires, components: new Set(), truthRows: new Set(), truthCols: new Set() };
   }
 
+  // The pending board animation for the current step transition, played once after
+  // the next render paints (see render()'s workspace branch). Reset after playing.
+  let subtractionDemoAnim = null;
+  // True while a multi-beat scripted transition (the swap / the lamps fade) is
+  // mid-flight, so a stray click or key press can't interrupt it.
+  let subtractionDemoBusy = false;
+
+  // Work out what a forward reveal adds (new components / wires) so it can slide
+  // the parts in from the toolbar and then draw their cables. Skipped for backward
+  // or jump navigation (those just snap to the final state).
+  function planSubtractionSlide(prevStep, nextStep) {
+    subtractionDemoAnim = null;
+    const isOpen = prevStep == null;
+    if (!isOpen && nextStep !== prevStep + 1) return;
+    const sets = subtractionEnterSets(isOpen ? null : prevStep, nextStep);
+    if (!sets.enterComps.length && !sets.enterWires.length) return;
+    subtractionDemoAnim = { mode: "slide", ...sets };
+  }
+
   function openSubtractionDemo() {
+    subtractionDemoBusy = false;
+    planSubtractionSlide(null, 0);
     setState({
       screen: "workspace",
       subtractionDemo: { step: 0 },
@@ -6683,21 +6704,27 @@
     }, false);
   }
 
-  function setSubtractionDemoStep(step) {
+  function setSubtractionDemoStep(step, animate) {
     const clamped = Math.min(Math.max(step, 0), SUBTRACTION_DEMO_LAST);
+    const prevStep = subtractionDemoActive() ? state.subtractionDemo.step : null;
+    if (animate) planSubtractionSlide(prevStep, clamped);
+    else subtractionDemoAnim = null;
     setState({ subtractionDemo: { step: clamped }, workspace: buildSubtractionDemoWorkspace(clamped) }, false);
   }
 
   function advanceSubtractionDemo() {
-    if (!subtractionDemoActive()) return;
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
+    const step = state.subtractionDemo.step;
     // Finishing the last bubble rolls straight into chapter 3.1 (the YouTube-links
     // window is reached ONLY via the red teaser, never from "המשך").
-    if (state.subtractionDemo.step >= SUBTRACTION_DEMO_LAST) return finishSubtractionDemo();
-    setSubtractionDemoStep(state.subtractionDemo.step + 1);
+    if (step >= SUBTRACTION_DEMO_LAST) return finishSubtractionDemo();
+    if (step === 7) return runSubtractionSwapTransition();    // 7 → 8: animated operand swap
+    if (step === 8) return runSubtractionLampsTransition();   // 8 → 9: converter → lamps fade
+    setSubtractionDemoStep(step + 1, true);
   }
 
   function subtractionDemoBack() {
-    if (!subtractionDemoActive()) return;
+    if (!subtractionDemoActive() || subtractionDemoBusy) return;
     setSubtractionDemoStep(state.subtractionDemo.step - 1);
   }
 
@@ -6713,6 +6740,181 @@
       workspace: createDefaultWorkspace(),
       replayNonce: state.replayNonce + 1
     }, true);
+  }
+
+  // --- Subtraction demo board animations -----------------------------------
+  // What a step reveals over the one before it: the new components (minus the
+  // ever-present ALU) and the new cables.
+  function subtractionEnterSets(prevStep, nextStep) {
+    const prev = prevStep == null ? { components: [], wires: [] } : buildSubtractionDemoWorkspace(prevStep);
+    const next = buildSubtractionDemoWorkspace(nextStep);
+    const pc = new Set(prev.components.map((c) => c.id));
+    const pw = new Set(prev.wires.map((w) => wireKey(w.a, w.b)));
+    return {
+      enterComps: next.components.filter((c) => !pc.has(c.id) && c.id !== "alu").map((c) => c.id),
+      enterWires: next.wires.map((w) => wireKey(w.a, w.b)).filter((k) => !pw.has(k))
+    };
+  }
+
+  const subtractionBoardRoot = () => app.querySelector("[data-workspace-board]");
+  const subtractionCompEl = (id) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-component-id="${id}"]`); };
+  const subtractionWireEl = (key) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-wire-key="${key}"]`); };
+  function subtractionCompScale(comp) {
+    return Number.isFinite(comp.scale) ? comp.scale : componentRenderScale(comp.type);
+  }
+  // Set an SVG line/path so it looks undrawn (dasharray = its own length, fully
+  // offset), ready to be "drawn" by transitioning the offset back to 0.
+  function subtractionPrimeDraw(line) {
+    let len;
+    if (line.tagName.toLowerCase() === "path") { try { len = line.getTotalLength(); } catch (e) { len = 1400; } }
+    else {
+      const x1 = +line.getAttribute("x1"), y1 = +line.getAttribute("y1");
+      const x2 = +line.getAttribute("x2"), y2 = +line.getAttribute("y2");
+      len = Math.hypot(x2 - x1, y2 - y1) || 1400;
+    }
+    line.style.transition = "none";
+    line.style.strokeDasharray = `${len}`;
+    line.style.strokeDashoffset = `${len}`;
+    return len;
+  }
+  function subtractionHideWire(key) {
+    const g = subtractionWireEl(key);
+    if (g) g.style.opacity = "0";
+  }
+  function subtractionDrawWire(key, duration) {
+    const g = subtractionWireEl(key);
+    if (!g) return;
+    const lines = [...g.querySelectorAll(".wire-line, .wire-bus-stripe")];
+    lines.forEach(subtractionPrimeDraw);
+    g.style.opacity = "1";
+    requestAnimationFrame(() => {
+      lines.forEach((line) => {
+        line.style.transition = `stroke-dashoffset ${duration || 0.45}s ease`;
+        line.style.strokeDashoffset = "0";
+      });
+    });
+  }
+  // The full CSS transform matching a component's board position (a CSS style
+  // transform REPLACES the presentation-attribute transform board-render set, so
+  // it must carry the base translate+scale, not just an offset).
+  function subtractionCompTransform(comp, x, y) {
+    const scale = subtractionCompScale(comp);
+    const tx = Number.isFinite(x) ? x : comp.x;
+    const ty = Number.isFinite(y) ? y : comp.y;
+    return `translate(${tx}px, ${ty}px)${scale !== 1 ? ` scale(${scale})` : ""}`;
+  }
+  // Slide a component in from the toolbar side (off the left edge) to its spot.
+  function subtractionSlideCompFrom(id, fromX, fromY, dur) {
+    const comp = state.workspace.components.find((c) => c.id === id);
+    const el = subtractionCompEl(id);
+    if (!comp || !el) return;
+    el.style.transition = "none";
+    el.style.transform = subtractionCompTransform(comp, Number.isFinite(fromX) ? fromX : comp.x, Number.isFinite(fromY) ? fromY : comp.y);
+    el.style.opacity = "0.35";
+    requestAnimationFrame(() => {
+      el.style.transition = `transform ${dur || 0.55}s cubic-bezier(.22,.61,.36,1), opacity ${dur || 0.5}s ease`;
+      el.style.transform = subtractionCompTransform(comp);
+      el.style.opacity = "1";
+    });
+  }
+
+  // Play whatever animation the last step transition queued, after the render
+  // paints. Runs once, then clears the queue.
+  function playSubtractionDemoAnim() {
+    const anim = subtractionDemoAnim;
+    subtractionDemoAnim = null;
+    if (!anim || !subtractionDemoActive()) return;
+    if (anim.mode === "slide" || anim.mode === "fadeIn") {
+      (anim.enterWires || []).forEach(subtractionHideWire);
+      // A newly-appearing component enters first, then its cable is drawn (or,
+      // for the lamps swap, both simply fade in together).
+      if (anim.mode === "fadeIn") {
+        (anim.enterComps || []).forEach((id) => {
+          const el = subtractionCompEl(id);
+          if (!el) return;
+          el.style.transition = "none";
+          el.style.opacity = "0";
+          requestAnimationFrame(() => { el.style.transition = "opacity 0.5s ease"; el.style.opacity = "1"; });
+        });
+        (anim.enterWires || []).forEach((key) => {
+          const g = subtractionWireEl(key);
+          if (!g) return;
+          g.style.opacity = "0";
+          requestAnimationFrame(() => { g.style.transition = "opacity 0.5s ease"; g.style.opacity = "1"; });
+        });
+        return;
+      }
+      // slide: parts glide in from the left, then the cables draw once they land.
+      (anim.enterComps || []).forEach((id) => subtractionSlideCompFrom(id, -160));
+      const delay = (anim.enterComps && anim.enterComps.length) ? 520 : 0;
+      window.setTimeout(() => (anim.enterWires || []).forEach((key) => subtractionDrawWire(key)), delay);
+      return;
+    }
+    if (anim.mode === "move") {
+      (anim.moves || []).forEach(({ id, fromY }) => {
+        const comp = state.workspace.components.find((c) => c.id === id);
+        const el = subtractionCompEl(id);
+        if (!comp || !el) return;
+        el.style.transition = "none";
+        el.style.transform = subtractionCompTransform(comp, comp.x, fromY);
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 0.6s cubic-bezier(.4,0,.2,1)";
+          el.style.transform = subtractionCompTransform(comp);
+        });
+      });
+    }
+  }
+
+  // Remove the two operand cables from a built demo workspace (used mid-swap so
+  // the output momentarily reads 0 while the converters are being moved).
+  function subtractionStripInputWires(ws) {
+    ws.wires = ws.wires.filter((w) => ![w.a, w.b].some((r) => r === "conv1.out" || r === "conv2.out"));
+    return ws;
+  }
+
+  // 7 → 8. The operand swap, in three visible beats: (1) unplug the two operand
+  // cables — the output resets to 0; (2) slide the converters to each other's
+  // spot, KEEPING their own numbers; (3) plug them back in — the output now shows
+  // the swapped (weird) result.
+  function runSubtractionSwapTransition() {
+    subtractionDemoBusy = true;
+    // Beat 1: fade out the two operand cables on the current (step-7) board.
+    [wireKey("conv1.out", "alu.in1"), wireKey("conv2.out", "alu.in2")].forEach((key) => {
+      const g = subtractionWireEl(key);
+      if (g) { g.style.transition = "opacity 0.28s ease"; g.style.opacity = "0"; }
+    });
+    window.setTimeout(() => {
+      // Now on step 8's bubble, but converters still at the OLD spots, unplugged.
+      subtractionDemoAnim = null;
+      const old = subtractionStripInputWires(buildSubtractionDemoWorkspace(7));
+      setState({ subtractionDemo: { step: 8 }, workspace: old }, false);
+      window.setTimeout(() => {
+        // Beat 2: slide the converters to their swapped spots (still unplugged).
+        subtractionDemoAnim = { mode: "move", moves: [{ id: "conv1", fromY: 350 }, { id: "conv2", fromY: 610 }] };
+        const movedWs = subtractionStripInputWires(buildSubtractionDemoWorkspace(8));
+        setState({ subtractionDemo: { step: 8 }, workspace: movedWs }, false);
+        window.setTimeout(() => {
+          // Beat 3: plug the operands back in — the output shows the new value.
+          subtractionDemoAnim = { mode: "slide", enterComps: [], enterWires: [wireKey("conv1.out", "alu.in2"), wireKey("conv2.out", "alu.in1")] };
+          setState({ subtractionDemo: { step: 8 }, workspace: buildSubtractionDemoWorkspace(8) }, false);
+          window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
+        }, 720);
+      }, 180);
+    }, 300);
+  }
+
+  // 8 → 9. Fade the output converter OUT, then fade the splitter + lamps IN (no
+  // sliding), so the readout "becomes" the 16 bit-lamps.
+  function runSubtractionLampsTransition() {
+    subtractionDemoBusy = true;
+    const convEl = subtractionCompEl("convOut");
+    const convWire = subtractionWireEl(wireKey("alu.out1", "convOut.in"));
+    [convEl, convWire].forEach((el) => { if (el) { el.style.transition = "opacity 0.3s ease"; el.style.opacity = "0"; } });
+    window.setTimeout(() => {
+      subtractionDemoAnim = { mode: "fadeIn", ...subtractionEnterSets(8, 9) };
+      setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
+      window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
+    }, 320);
   }
 
   // Drag the demo speech bubble around. Its offset is kept in a module var and
@@ -9488,6 +9690,9 @@
       }
       if (workspaceNandMonologueActive()) {
         requestAnimationFrame(positionWorkspaceNandMonologue);
+      }
+      if (subtractionDemoActive() && subtractionDemoAnim) {
+        requestAnimationFrame(playSubtractionDemoAnim);
       }
       // Focus the pin-width picker when it opens, so clicking elsewhere blurs it
       // (and closes it via focusout).
@@ -14035,7 +14240,12 @@
     return Number.isInteger(here) && here >= 0 && Number.isInteger(buses) && buses >= 0 && here >= buses;
   }
   function convertersInToolbar() {
-    return isArithTask(state.workspace?.taskId) || (isFreeBuildWorkspace() && state.chapterId === "chapter-8");
+    // The bin/dec converters join the palette on the 2.5 worktable and stay from
+    // there on (chapter-8 = 2.5), so 2.6 builds (and the subtraction demo) keep them.
+    const here = chapterIndexById(state.chapterId);
+    const arith = chapterIndexById("chapter-8");
+    if (Number.isInteger(here) && here >= 0 && Number.isInteger(arith) && arith >= 0 && here >= arith) return true;
+    return isArithTask(state.workspace?.taskId);
   }
 
   // The built-in component types the current build toolbar offers: Nand and the
