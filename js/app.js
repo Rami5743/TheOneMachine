@@ -1832,9 +1832,25 @@
       (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
     );
 
+    const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
+    // A solution walkthrough survives a refresh. Its workspace is interaction-locked
+    // while it plays and is persisted as the clean solution circuit, so restore the
+    // walkthrough pointer instead of dropping the player into an editable copy of it
+    // (which used to revert to "edit mode with problems"). Only restore it when the
+    // workspace it runs on is actually being shown.
+    const restoredSolution = (loaded.solutionDialog && typeof loaded.solutionDialog === "object"
+        && typeof loaded.solutionDialog.taskId === "string"
+        && effectiveScreen === "workspace" && workspaceAllowed)
+      ? {
+          taskId: loaded.solutionDialog.taskId,
+          completeOnClose: loaded.solutionDialog.completeOnClose !== false,
+          step: Number.isInteger(loaded.solutionDialog.step) ? loaded.solutionDialog.step : 0,
+          returnToExplanations: Boolean(loaded.solutionDialog.returnToExplanations)
+        }
+      : null;
     return {
       ...loaded,
-      screen: (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen,
+      screen: effectiveScreen,
       chapterId: chapter.id,
       sceneId: scene.id,
       panelIndex,
@@ -1844,7 +1860,7 @@
       notTest: null,
       hintDialog: null,
       hintSlides: null,
-      solutionDialog: null,
+      solutionDialog: restoredSolution,
       hintState: loaded.hintState && typeof loaded.hintState === "object" ? loaded.hintState : {},
       settings: normalizedSettings(loaded.settings),
       maxChapterReached: Math.max(Number.isInteger(loaded.maxChapterReached) ? loaded.maxChapterReached : 0, chapterIndexById(chapter.id)),
@@ -1855,7 +1871,10 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
+    // persisted so it survives a page refresh (restored + revalidated by
+    // normalizeLoadedState). Every other transient dialog stays cleared on save.
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
