@@ -137,10 +137,21 @@ const PINS = {
   "gate-fullAdder":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
   "gate-Add4":{ in1:{x:-62,y:-52,w:4}, in2:{x:-62,y:0,w:4}, in3:{x:-62,y:52,w:1}, out2:{x:66,y:-34,w:1}, out1:{x:66,y:34,w:4} }
 };
+// The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
+// chapter (see componentRenderScale in app.js). Every solution this editor edits
+// lives in those later chapters, so gate bodies AND their pin offsets render at
+// 0.6 here too — otherwise the editor drew gates at full size while the wires
+// still met the 0.6-scaled pins, so cables landed inside oversized bodies.
+// Splitters, the source and the task-card frame keep scale 1, exactly as the game.
+const GATE_RENDER_SCALE = 0.6;
+function edScale(type){ const t=String(type||""); return (t.startsWith("gate-")||t==="nand") ? GATE_RENDER_SCALE : 1; }
 function pinOffset(comp, pinId) {
   if (comp.__frame) { const p=(doc.frame.pins||[]).find(pp=>pp.id===pinId); return p?{x:p.x,y:p.y,w:p.w}:null; }
   if (comp.type === "splitter") return splitterPin(comp, pinId);
-  const t = PINS[comp.type]; return t && t[pinId] ? t[pinId] : null;
+  const t = PINS[comp.type]; const off = t && t[pinId] ? t[pinId] : null;
+  if (!off) return null;
+  const s = edScale(comp.type);
+  return s===1 ? off : { x: off.x*s, y: off.y*s, w: off.w };
 }
 
 // ---- check mechanisms (the "harness"): the converters / merging splitter /
@@ -248,10 +259,13 @@ function drawHarnessEl(e){
   return g;
 }
 function txt(s){ return document.createTextNode(s==null?"":String(s)); }
-function compBox(c){ if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; return {w:130,h:110}; }
+function compBox(c){ if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; const s=edScale(c.type); return {w:130*s,h:110*s}; }
 function drawComp(c){
   const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width } : {};
-  const g = svgNode(CV.componentMarkup(c.type, opts), c.x, c.y);
+  const s = edScale(c.type);
+  const g = document.createElementNS(NS,"g");
+  g.setAttribute("transform",`translate(${c.x} ${c.y})`+(s!==1?` scale(${s})`:""));
+  g.innerHTML = CV.componentMarkup(c.type, opts);
   g.classList.add("drag-hit");
   g.addEventListener("pointerdown",(ev)=>startDrag(ev,c,false));
   return g;
