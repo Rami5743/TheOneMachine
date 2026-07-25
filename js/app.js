@@ -1715,7 +1715,13 @@
       aluNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
-      wordsBytesDialog: null
+      wordsBytesDialog: null,
+      // The subtraction demo is a workbench-screen mode; leaving it via any topbar
+      // navigation (all of which apply this patch) must end it, so its bubble and
+      // board lock don't bleed onto the next workbench you open (a task build, the
+      // card creator, …).
+      subtractionDemo: null,
+      subtractionDemoLinks: null
     };
   }
 
@@ -6593,7 +6599,7 @@
   // the readouts (19, 7, 12; and the swapped 65524) are computed, not faked.
   // control 010011 (c0..c5 = 0,1,0,0,1,1) = NOT input1, ADD, NOT result → a − b.
   function buildSubtractionDemoWorkspace(step) {
-    const swapped = step >= 8;                 // step 8 swaps the two operands
+    const swapped = step >= 9;                 // step 9 swaps the two operands
     // The two converters keep their own displayed numbers (conv1 shows 19, conv2
     // shows 7) the WHOLE time — the swap is done by moving them to each other's
     // spot and rewiring, not by changing the digits (see the swap animation).
@@ -6601,7 +6607,10 @@
     const conv2Y = swapped ? 350 : 610;        // 7 rises to the top after the swap
     const conv1In = swapped ? "alu.in2" : "alu.in1";
     const conv2In = swapped ? "alu.in1" : "alu.in2";
-    const alu = { id: "alu", type: "gate-ALU1", x: 600, y: 480 };
+    // The ALU is drawn bigger than the usual 0.6 gate scale so it reads as the
+    // centrepiece; the whole symbol (body AND pins) scales together, so the wires
+    // still meet the pins exactly and the pin bus-widths are unchanged.
+    const alu = { id: "alu", type: "gate-ALU1", x: 600, y: 480, scale: 0.95 };
     const components = [alu];
     const wires = [];
     // Input 1 (always, from step 0). conv1 always shows 19.
@@ -6620,15 +6629,15 @@
       wires.push({ a: "ctrl-split.single", b: "alu.in3" });
       for (const leg of [1, 4, 5]) wires.push({ a: "ctrl-src.out", b: `ctrl-split.leg${leg}` });
     }
-    // Output converter (from step 5) — it shows the weird swapped value at step 8,
-    // then at step 9 it is replaced by lamps so the leading bit can be pointed at.
-    if (step >= 5 && step < 9) {
+    // Output converter (from step 6) — it shows the weird swapped value at step 9,
+    // then at step 10 it is replaced by lamps so the leading bit can be pointed at.
+    if (step >= 6 && step < 10) {
       components.push({ id: "convOut", type: "converter-in", x: 900, y: 480, width: 16 });
       wires.push({ a: "alu.out1", b: "convOut.in" });
     }
-    // Step 9: swap the output converter for a splitter + 16 small lamps, spread over
-    // two columns. leg15 (the TOP lamp) is the leading bit — the one pointed at.
-    if (step >= 9) {
+    // Step 10: swap the output converter for a splitter + 16 small lamps in one
+    // column. leg15 (the TOP lamp) is the leading bit — the one pointed at.
+    if (step >= 10) {
       components.push({ id: "out-split", type: "splitter", x: 810, y: 480, mirrored: false, outputs: 16, width: 1 });
       wires.push({ a: "alu.out1", b: "out-split.single" });
       for (let i = 0; i < 16; i += 1) {
@@ -6664,6 +6673,8 @@
     } else if (step === 3) {
       wires.add(legWire(1)); terminals.add("ctrl-split.leg1");   // NOT of input 1
     } else if (step === 4) {
+      wires.add(legWire(4)); terminals.add("ctrl-split.leg4");   // the ADD operation
+    } else if (step === 5) {
       wires.add(legWire(5)); terminals.add("ctrl-split.leg5");   // NOT of the result
     } else {
       return empty;
@@ -6718,8 +6729,8 @@
     // Finishing the last bubble rolls straight into chapter 3.1 (the YouTube-links
     // window is reached ONLY via the red teaser, never from "המשך").
     if (step >= SUBTRACTION_DEMO_LAST) return finishSubtractionDemo();
-    if (step === 7) return runSubtractionSwapTransition();    // 7 → 8: animated operand swap
-    if (step === 8) return runSubtractionLampsTransition();   // 8 → 9: converter → lamps fade
+    if (step === 8) return runSubtractionSwapTransition();    // 8 → 9: animated operand swap
+    if (step === 9) return runSubtractionLampsTransition();   // 9 → 10: converter → lamps fade
     setSubtractionDemoStep(step + 1, true);
   }
 
@@ -6872,38 +6883,38 @@
     return ws;
   }
 
-  // 7 → 8. The operand swap, in three visible beats: (1) unplug the two operand
+  // 8 → 9. The operand swap, in three visible beats: (1) unplug the two operand
   // cables — the output resets to 0; (2) slide the converters to each other's
   // spot, KEEPING their own numbers; (3) plug them back in — the output now shows
   // the swapped (weird) result.
   function runSubtractionSwapTransition() {
     subtractionDemoBusy = true;
-    // Beat 1: fade out the two operand cables on the current (step-7) board.
+    // Beat 1: fade out the two operand cables on the current (step-8) board.
     [wireKey("conv1.out", "alu.in1"), wireKey("conv2.out", "alu.in2")].forEach((key) => {
       const g = subtractionWireEl(key);
       if (g) { g.style.transition = "opacity 0.28s ease"; g.style.opacity = "0"; }
     });
     window.setTimeout(() => {
-      // Now on step 8's bubble, but converters still at the OLD spots, unplugged.
+      // Now on step 9's bubble, but converters still at the OLD spots, unplugged.
       subtractionDemoAnim = null;
-      const old = subtractionStripInputWires(buildSubtractionDemoWorkspace(7));
-      setState({ subtractionDemo: { step: 8 }, workspace: old }, false);
+      const old = subtractionStripInputWires(buildSubtractionDemoWorkspace(8));
+      setState({ subtractionDemo: { step: 9 }, workspace: old }, false);
       window.setTimeout(() => {
         // Beat 2: slide the converters to their swapped spots (still unplugged).
         subtractionDemoAnim = { mode: "move", moves: [{ id: "conv1", fromY: 350 }, { id: "conv2", fromY: 610 }] };
-        const movedWs = subtractionStripInputWires(buildSubtractionDemoWorkspace(8));
-        setState({ subtractionDemo: { step: 8 }, workspace: movedWs }, false);
+        const movedWs = subtractionStripInputWires(buildSubtractionDemoWorkspace(9));
+        setState({ subtractionDemo: { step: 9 }, workspace: movedWs }, false);
         window.setTimeout(() => {
           // Beat 3: plug the operands back in — the output shows the new value.
           subtractionDemoAnim = { mode: "slide", enterComps: [], enterWires: [wireKey("conv1.out", "alu.in2"), wireKey("conv2.out", "alu.in1")] };
-          setState({ subtractionDemo: { step: 8 }, workspace: buildSubtractionDemoWorkspace(8) }, false);
+          setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
           window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
         }, 720);
       }, 180);
     }, 300);
   }
 
-  // 8 → 9. Fade the output converter OUT, then fade the splitter + lamps IN (no
+  // 9 → 10. Fade the output converter OUT, then fade the splitter + lamps IN (no
   // sliding), so the readout "becomes" the 16 bit-lamps.
   function runSubtractionLampsTransition() {
     subtractionDemoBusy = true;
@@ -6911,8 +6922,8 @@
     const convWire = subtractionWireEl(wireKey("alu.out1", "convOut.in"));
     [convEl, convWire].forEach((el) => { if (el) { el.style.transition = "opacity 0.3s ease"; el.style.opacity = "0"; } });
     window.setTimeout(() => {
-      subtractionDemoAnim = { mode: "fadeIn", ...subtractionEnterSets(8, 9) };
-      setState({ subtractionDemo: { step: 9 }, workspace: buildSubtractionDemoWorkspace(9) }, false);
+      subtractionDemoAnim = { mode: "fadeIn", ...subtractionEnterSets(9, 10) };
+      setState({ subtractionDemo: { step: 10 }, workspace: buildSubtractionDemoWorkspace(10) }, false);
       window.setTimeout(() => { subtractionDemoBusy = false; }, 500);
     }, 320);
   }
@@ -7310,6 +7321,8 @@
     const returnPanelIndex = Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : (Number.isInteger(state.panelIndex) ? state.panelIndex : 0);
     setState({
       screen: "workspace",
+      subtractionDemo: null,
+      subtractionDemoLinks: null,
       workspace: createCardBuildWorkspace(returnChapterId, returnPanelIndex),
       cardCreation: {
         name: "כרטיס חדש",
@@ -15472,6 +15485,7 @@
       state.createCardUnlocked &&
       state.screen === "workspace" &&
       !state.cardCreation &&
+      !subtractionDemoActive() &&           // the demo owns board clicks (they advance it)
       !event.target.closest(".topbar")
     ) {
       event.preventDefault();
