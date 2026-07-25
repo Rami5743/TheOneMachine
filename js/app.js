@@ -2418,9 +2418,82 @@
   function hintButtonLabel() {
     const taskId = workspaceTaskId();
     if (solutionAvailable(taskId)) return "רוצה לראות את הפתרון";
-    // Stay on "רוצה רמז" through the first hint; only after the SECOND hint has
-    // been opened (seen >= 2) does it become "רוצה עוד רמז".
-    return hintProgress(taskId).seen < 2 ? "רוצה רמז" : "רוצה עוד רמז";
+    // "רוצה עוד רמז" once the learner has already opened a hint AND a further one
+    // is available to open; otherwise "רוצה רמז". (This never flips prematurely:
+    // right after opening the only unlocked hint, no further one is available, so
+    // it stays "רוצה רמז" until the next hint unlocks.)
+    const progress = hintProgress(taskId);
+    return (progress.seen >= 1 && unlockedHintCount(taskId) > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
+  }
+
+  // ---- 60-second "nudge" timer -------------------------------------------------
+  // When the learner is stuck, gently move things along: in a hinted build task
+  // it unlocks the hint prompt / the next hint / the solution a minute after they
+  // last made progress; in the Nand presentation it pops the "הבנת?" prompt if
+  // they haven't discovered the Nand's behaviour. It is armed only when the
+  // NUDGE CONTEXT changes (a hint opened, a hint unlocked, an observation made) —
+  // not on every render — so it measures real elapsed time, and it re-validates
+  // at fire time so a stale nudge never triggers.
+  const IDLE_NUDGE_MS = 60000;
+  let idleNudgeTimerId = null;
+  let idleNudgeKey = null;
+
+  function clearIdleNudge() {
+    if (idleNudgeTimerId) { window.clearTimeout(idleNudgeTimerId); idleNudgeTimerId = null; }
+  }
+
+  function idleNudgePlan() {
+    if (state.screen !== "workspace") return null;
+    // A modal / walkthrough owns the screen — don't nudge underneath it.
+    if (workspaceAccidentActive() || workspaceBuildHelpPromptActive() || workspaceUnderstoodPromptActive()
+        || workspaceNandMonologueActive() || workspaceTaskIntroActive()
+        || state.solutionDialog || state.cardCreation) {
+      return null;
+    }
+    // (A) Hinted build task: unlock the next hint (or, once all hints are out,
+    // the solution) once the learner has caught up on the hints shown so far.
+    const taskId = workspaceTaskId();
+    if (hintedTaskActive() && taskId && !solutionAvailable(taskId)) {
+      const seen = hintProgress(taskId).seen;
+      const unlocked = unlockedHintCount(taskId);
+      // Only nudge when there is no unread hint already waiting.
+      if (seen >= unlocked) return { key: `hint:${taskId}:${seen}:${unlocked}`, fire: () => unlockNextHintByTime(taskId) };
+      return null;
+    }
+    // (B) Nand presentation: pop the "הבנת?" prompt if the Nand output has not
+    // yet been seen going both 0 and 1.
+    if (isNandPresentationWorkspace()
+        && !state.workspace?.understoodButtonVisible
+        && !(state.workspace?.nandOutputObserved?.zero && state.workspace?.nandOutputObserved?.one)) {
+      return { key: "nand-understood", fire: () => openUnderstoodPrompt() };
+    }
+    return null;
+  }
+
+  function syncIdleNudge() {
+    const plan = idleNudgePlan();
+    if (!plan) { clearIdleNudge(); idleNudgeKey = null; return; }
+    if (plan.key === idleNudgeKey && idleNudgeTimerId) return; // already ticking for this context
+    clearIdleNudge();
+    idleNudgeKey = plan.key;
+    idleNudgeTimerId = window.setTimeout(() => {
+      idleNudgeTimerId = null;
+      const firedKey = idleNudgeKey;
+      idleNudgeKey = null;
+      const current = idleNudgePlan(); // re-validate: fire only if still pending
+      if (current && current.key === firedKey) current.fire();
+    }, IDLE_NUDGE_MS);
+  }
+
+  function unlockNextHintByTime(taskId) {
+    if (!taskId || taskCompleted(taskId)) return;
+    const total = taskHints(taskId).length;
+    const cur = unlockedHintCount(taskId);
+    const seen = hintProgress(taskId).seen;
+    // failures = cur+2 unlocks exactly one more hint; once all hints are out,
+    // total+2 unlocks the solution — the same thresholds a failed check uses.
+    const failures = cur < total ? cur + 2 : total + 2;
+    setState({ hintState: setHintProgress(taskId, { failures, seen }) }, false);
   }
 
   function setHintProgress(taskId, progress) {
@@ -8978,6 +9051,7 @@
   function render() {
     syncExplanationUnlocks();
     syncAchievements();
+    syncIdleNudge();
     // Play the unlock flourishes after this render paints (so the target buttons
     // exist and are laid out). The flying icons live on <body>, so the next
     // render does not wipe them mid-animation.
