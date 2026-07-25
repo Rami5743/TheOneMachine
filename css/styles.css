@@ -2098,8 +2098,10 @@ button { font: inherit; }
   font-weight: 700;
   cursor: pointer;
   pointer-events: auto;
+  direction: rtl;
   text-align: right;
 }
+.subtraction-demo-teaser span { unicode-bidi: plaintext; }
 .subtraction-demo-teaser:hover,
 .subtraction-demo-teaser:focus-visible { color: #ff8f7c; border-color: #ff6a53; }
 

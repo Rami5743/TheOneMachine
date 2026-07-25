@@ -3201,6 +3201,19 @@
       if (!explanationUnlocked("words-bytes")) return;
       return setState({ wordsBytesDialog: { page: 0 } }, false);
     }
+
+    // Replays the scripted subtraction demo on the workbench; when it finishes (or
+    // is skipped) it returns to the explanations menu instead of the plot.
+    if (id === "subtraction-demo") {
+      if (!explanationUnlocked("subtraction-demo")) return;
+      return openSubtractionDemo({ fromExplanations: true });
+    }
+
+    // Opens the "negative numbers" videos window over the menu.
+    if (id === "negative-numbers") {
+      if (!explanationUnlocked("negative-numbers")) return;
+      return setState({ subtractionDemoLinks: { fromExplanations: true } }, false);
+    }
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -3298,8 +3311,8 @@
     // "what is an ALU" message. Sits above Memory.
     {
       title: "ALU",
-      inGame: [{ alu: "ALU0", label: "ALU0" }],
-      enrichment: []
+      inGame: [{ alu: "ALU0", label: "ALU0" }, "subtraction-demo"],
+      enrichment: ["negative-numbers"]
     },
     // Memory: reserved for later (empty for now).
     {
@@ -3385,6 +3398,7 @@
         </section>
         ${renderExplRoutingInfoDialog()}
         ${renderWordsBytesDialog()}
+        ${renderSubtractionDemoLinks()}
       </main>`;
   }
 
@@ -6426,7 +6440,7 @@
           ? c.singleWidth
           : (legMatch && Array.isArray(c.legWidths) ? c.legWidths[Number(legMatch[1])] : null);
         if (!Number.isInteger(w)) return "";
-        return `<text class="splitter-width-label" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
+        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
   }
 
@@ -6730,13 +6744,19 @@
     if (SUBTRACTION_HIGHLIGHT_STEPS.includes(nextStep)) subtractionHighlightHold = true;
   }
 
-  function openSubtractionDemo() {
+  function openSubtractionDemo(options = {}) {
     subtractionDemoBusy = false;
     subtractionHighlightHold = false;
+    // Reaching the demo (its first appearance) counts as seeing it → unlock its
+    // replay silently; the flourish is announced when it finishes OR is skipped,
+    // so an interrupt fires the flourish at that moment instead of never.
+    unlockExplanation("subtraction-demo", { silent: true });
     planSubtractionSlide(null, 0);
     setState({
       screen: "workspace",
-      subtractionDemo: { step: 0 },
+      // fromExplanations: opened as a replay from the explanations menu, so it
+      // returns there (not to chapter 3.1) when finished/skipped.
+      subtractionDemo: { step: 0, fromExplanations: Boolean(options.fromExplanations) },
       subtractionDemoLinks: null,
       dialog: null, taskDialog: null, notTest: null, hintDialog: null, solutionDialog: null,
       aluNoteList: false, aluIntroDialog: null, infoDialog: null,
@@ -6801,8 +6821,23 @@
   }
 
   // Finishing the demo rolls into chapter 3.1 (part 3, memory) — von Neumann's
-  // "we need memory" monologue in the warehouse.
+  // "we need memory" monologue in the warehouse. Seeing it through to the end (or
+  // skipping it) unlocks the demo's replay in the explanations menu, with the
+  // "new explanation" flourish — so an interrupt/skip fires the flourish right then.
   function finishSubtractionDemo() {
+    const fromExpl = Boolean(state.subtractionDemo?.fromExplanations);
+    announceExplanationUnlock("subtraction-demo");
+    if (fromExpl) {
+      // A replay opened from the menu just returns there.
+      return setState({
+        ...transientUiClearPatch(),
+        screen: "explanations",
+        subtractionDemo: null,
+        subtractionDemoLinks: null,
+        workspace: createDefaultWorkspace(),
+        replayNonce: state.replayNonce + 1
+      }, false);
+    }
     const chapter = chapterById("chapter-10");
     setState({
       ...transientUiClearPatch(),
@@ -6831,6 +6866,8 @@
   const subtractionBoardRoot = () => app.querySelector("[data-workspace-board]");
   const subtractionCompEl = (id) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-component-id="${id}"]`); };
   const subtractionWireEl = (key) => { const r = subtractionBoardRoot(); return r && r.querySelector(`[data-wire-key="${key}"]`); };
+  const subtractionLabelEls = (id) => { const r = subtractionBoardRoot(); return r ? [...r.querySelectorAll(`[data-splitter-id="${id}"]`)] : []; };
+  const subtractionEnteringSplitters = (ids) => (ids || []).filter((id) => ((state.workspace.components.find((c) => c.id === id) || {}).type === "splitter"));
   function subtractionCompScale(comp) {
     return Number.isFinite(comp.scale) ? comp.scale : componentRenderScale(comp.type);
   }
@@ -6914,12 +6951,24 @@
           g.style.opacity = "0";
           requestAnimationFrame(() => { g.style.transition = "opacity 0.5s ease"; g.style.opacity = "1"; });
         });
+        // The entering splitter's width labels fade in with it.
+        subtractionEnteringSplitters(anim.enterComps).forEach((id) => subtractionLabelEls(id).forEach((t) => {
+          t.style.transition = "none"; t.style.opacity = "0";
+          requestAnimationFrame(() => { t.style.transition = "opacity 0.5s ease"; t.style.opacity = "1"; });
+        }));
         return;
       }
       // slide: parts glide in from the left, then the cables draw once they land.
+      // A splitter's width labels ("1"/"6") float at its final pin spots, so hide
+      // them while it glides in and reveal them only once its cables are drawn.
+      const slideSplitters = subtractionEnteringSplitters(anim.enterComps);
+      slideSplitters.forEach((id) => subtractionLabelEls(id).forEach((t) => { t.style.transition = "none"; t.style.opacity = "0"; }));
       (anim.enterComps || []).forEach((id) => subtractionSlideCompFrom(id, -160));
       const delay = (anim.enterComps && anim.enterComps.length) ? 520 : 0;
       window.setTimeout(() => (anim.enterWires || []).forEach((key) => subtractionDrawWire(key)), delay);
+      if (slideSplitters.length) {
+        window.setTimeout(() => slideSplitters.forEach((id) => subtractionLabelEls(id).forEach((t) => { t.style.transition = "opacity 0.4s ease"; t.style.opacity = "1"; })), delay + 460);
+      }
       // Reveal the (held) highlight only after the parts have landed AND their
       // cables have finished drawing — never all at once.
       if (subtractionHighlightHold) {
@@ -7024,10 +7073,14 @@
   // The "still under construction — watch these videos" window, opened ONLY by the
   // red teaser; "חזרה" just returns to the demo where it was.
   function openSubtractionDemoLinks() {
+    // Opening the "negative numbers" window (from the demo's red teaser) unlocks it
+    // in the explanations menu; the flourish is announced when the window closes.
+    unlockExplanation("negative-numbers", { silent: true });
     setState({ subtractionDemoLinks: {} }, false);
   }
 
   function closeSubtractionDemoLinks() {
+    announceExplanationUnlock("negative-numbers");
     setState({ subtractionDemoLinks: null }, false);
   }
 
