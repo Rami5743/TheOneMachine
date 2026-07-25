@@ -596,10 +596,10 @@
     { id: "arith-binadd", title: "חיבור בינרי" },
     // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
     // "what is an ALU" message. Unlocked at the end of that message.
-    { id: "alu-ALU0", title: "ALU0" },
+    { id: "alu-ALU0", title: "ALU" },
     // The subtraction demo (chapter 2.6): replays von Neumann's scripted 19−7
     // walkthrough. Unlocked once the demo has been seen (finished or skipped).
-    { id: "subtraction-demo", title: "הסבר החיסור" },
+    { id: "subtraction-demo", title: "חיסור" },
     // Enrichment: the "negative numbers" window (the two explainer videos), reached
     // from the demo's red teaser. Unlocked once that window has been opened.
     { id: "negative-numbers", title: "מספרים שליליים" },

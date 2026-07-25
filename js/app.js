@@ -3323,7 +3323,7 @@
     // "what is an ALU" message. Sits above Memory.
     {
       title: "ALU",
-      inGame: [{ alu: "ALU0", label: "ALU0" }, "subtraction-demo"],
+      inGame: [{ alu: "ALU0", label: "ALU" }, "subtraction-demo"],
       enrichment: ["negative-numbers"]
     },
     // Memory: reserved for later (empty for now).
