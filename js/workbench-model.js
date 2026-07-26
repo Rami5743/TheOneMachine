@@ -95,8 +95,19 @@ function createWorkbenchModel({
 
     const inputComponent = componentById(workspace, inputInfo.componentId);
     const outputComponent = componentById(workspace, outputInfo.componentId);
+
+    // A נעץ (nail) routes exactly ONE cable in and ONE cable out. Max-1-in is
+    // already covered by input vacancy above (its `in` pin is an input); here we
+    // cap its `out` pin at a single outgoing wire (output pins otherwise fan out).
+    if (outputComponent?.type === "nail" && wires.some((wire) => otherWireEnd(wire, outputRef))) return false;
+
     const touchesTaskFrame = (component) => component?.type === "notCard" || component?.type === "cardFrame" || String(component?.type || "").startsWith("taskCard-");
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;
+
+    // The clocked (sequential) table deliberately ALLOWS feedback loops — a NAND's
+    // output wired back toward its own input is the whole point there. Skip the
+    // combinational cycle guard, which exists only to keep the untimed engine sane.
+    if (workspace && workspace.clocked === true) return true;
 
     const candidateWires = [...wires, normalizeWire(a, b)];
     return !componentGraphHasPath(workspace, candidateWires, inputRef, outputRef);

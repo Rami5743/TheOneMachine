@@ -353,6 +353,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       return `<g class="converter">${converterMarkup(type === "converter-out" ? "out" : "in", options)}</g>`;
     }
     if (type === "bus") return busMarkup();
+    if (type === "nail") return nailMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
@@ -382,6 +383,25 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       return gateMarkup(gateTask);
     }
     return "";
+  }
+
+  // The נעץ (nail): a thick metallic dot. Purely geometric — the cable enters
+  // one side and leaves the other; the two pins (±9) are covered by this single
+  // dot so it reads as one point. A subtle highlight gives it a pin-head look.
+  function nailMarkup() {
+    return `
+      <g class="nail" aria-hidden="true">
+        <circle cx="0" cy="0" r="16" fill="#4b5563" stroke="#1f2937" stroke-width="2" />
+        <circle cx="0" cy="0" r="16" fill="url(#nail-shine)" />
+        <circle cx="-5" cy="-5" r="4.5" fill="#e5e7eb" opacity="0.75" />
+        <defs>
+          <radialGradient id="nail-shine" cx="0.35" cy="0.32" r="0.75">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
+            <stop offset="0.55" stop-color="#9ca3af" stop-opacity="0.15" />
+            <stop offset="1" stop-color="#111827" stop-opacity="0.35" />
+          </radialGradient>
+        </defs>
+      </g>`;
   }
 
   function smokeMarkup() {

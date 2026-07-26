@@ -83,6 +83,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           }
         }
 
+        if (component.type === "nail") {
+          // A nail is a pure routing pass-through: its output equals its input.
+          const value = inputSignal(workspace, `${component.id}.in`, outputs);
+          const ref = `${component.id}.out`;
+          if (outputs.get(ref) !== value) {
+            outputs.set(ref, value);
+            changed = true;
+          }
+        }
+
         if (component.type.startsWith("gate-")) {
           const task = taskDefById(component.type.slice(5));
           if (task) {
@@ -285,6 +295,13 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const a = inputBits(workspace, `${component.id}.in1`, outputs)[0];
           const b = inputBits(workspace, `${component.id}.in2`, outputs)[0];
           if (setBits(outputs, `${component.id}.out`, [!(a && b)])) changed = true;
+          continue;
+        }
+
+        if (type === "nail") {
+          // Pure routing pass-through: output bits === input bits (any width).
+          const vec = inputBits(workspace, `${component.id}.in`, outputs);
+          if (setBits(outputs, `${component.id}.out`, vec)) changed = true;
           continue;
         }
 

@@ -123,6 +123,10 @@ function createWorkspaceState({
       // survives load/save (this normalizer runs on both) and stays
       // distinguishable from the Nand-presentation workbench.
       freeBuild: Boolean(ws.freeBuild),
+      // The clocked (sequential) table flag. Preserved across load/save like
+      // freeBuild; it enables feedback loops (canAddWire runs on load, below, and
+      // reads this) and offers the נעץ tool.
+      clocked: Boolean(ws.clocked),
       // The component (currently only a splitter) that shows its focus controls
       // — the mirror handle. Validated below against the live components.
       focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null

@@ -40,6 +40,20 @@
       pins: {},
       bounds: { left: 74, right: 74, top: 96, bottom: 96 }
     },
+    nail: {
+      // A "נעץ" (nail) is a purely geometric routing point — a thick dot with no
+      // logic: one cable in, one cable out, and out === in. It exists so cables
+      // can be routed neatly (especially feedback loops in the clocked table).
+      // Its two pins sit a hair apart (±9) so they draw as ONE dot yet keep
+      // distinct hit centres. Max-1-in is free (input vacancy); max-1-out and
+      // loop-tolerance are enforced in canAddWire.
+      label: "נעץ",
+      pins: {
+        in: { x: -9, y: 0, direction: "in", label: "כניסת נעץ" },
+        out: { x: 9, y: 0, direction: "out", label: "יציאת נעץ" }
+      },
+      bounds: { left: 18, right: 18, top: 18, bottom: 18 }
+    },
     notCard: {
       label: "מסגרת Not",
       fixed: true,
@@ -1447,7 +1461,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -1666,6 +1680,13 @@
 
   function isFreeBuildWorkspace() {
     return state.screen === "workspace" && Boolean(state.workspace?.freeBuild);
+  }
+
+  // The clocked (sequential) table — chapter 3.1's "shift table". It runs on a
+  // ticking clock, tolerates feedback loops, and is the only place the נעץ tool
+  // is offered.
+  function isClockedWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.clocked);
   }
 
   function isFixedWorkspaceComponent(component) {

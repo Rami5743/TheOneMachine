@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -60,7 +60,9 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       // splitter, since built gates/cards are already excluded above).
       ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
       // The binary↔decimal converters, on the 2.5 worktable (arith builds).
-      ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
+      ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
+      // The נעץ (routing dot) — only on the clocked (sequential) table.
+      ...(typeof nailAvailable === "function" && nailAvailable() ? [{ type: "nail", label: "נעץ" }] : [])
     ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
