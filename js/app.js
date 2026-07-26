@@ -10570,7 +10570,8 @@
     if (releasingNow) {
       clockedScriptReleased = true;
       clockPrev = new Map();
-      clockTick = 0;
+      // Do NOT reset the tick counter on release — it keeps counting from where the
+      // manual phase left it, now free-running at 1 Hz.
     } else if (!clockedScriptReleased) {
       clockTick += 1; // the still-frozen clock ticks up one on each "הבא"
     }
@@ -16834,9 +16835,11 @@
       if (arrow) arrow.remove();
     }
 
-    // The scripted oscillator locks the table: no dragging or wiring on the board
-    // (buttons still click through — this only suppresses drag initiation).
-    if (clockedScriptActiveNow() && event.target.closest(".workspace-board")) {
+    // The scripted oscillator AND the MUX goal narration lock the whole table —
+    // board wiring/dragging AND palette drags — until the explanation finishes.
+    // Buttons (הבא, חזרה למחסן) still click through: returning here only suppresses
+    // drag initiation, not the click that follows.
+    if ((clockedScriptActiveNow() || muxIntroActive()) && event.target.closest(".workspace-layout")) {
       return;
     }
 
