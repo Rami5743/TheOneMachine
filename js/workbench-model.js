@@ -88,7 +88,10 @@ function createWorkbenchModel({
       const isCard = comp?.type === "notCard" || comp?.type === "cardFrame" || String(comp?.type || "").startsWith("taskCard-");
       const pins = [inputInfo.pinId, outputInfo.pinId];
       const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.some((p) => /^outputInt\d*$/.test(p));
-      if (!isPassthrough) return false;
+      // The clocked table also permits a component's OWN output wired back to its
+      // OWN input — a direct self-feedback loop (a NOT oscillator with no nail).
+      const clockedSelfLoop = Boolean(workspace && workspace.clocked);
+      if (!isPassthrough && !clockedSelfLoop) return false;
     }
 
     if (enforceInputVacancy && wires.some((wire) => otherWireEnd(wire, inputRef))) return false;

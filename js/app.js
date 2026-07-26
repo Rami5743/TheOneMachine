@@ -1413,6 +1413,12 @@
   // The one-time "I laid out נעצים for you" hand-off on the clocked table.
   // Transient (runtime only); reset on each entry, dismissed by "הבנתי".
   let clockedIntroDismissed = false;
+  // Blink detection: when a lamp flips ≥2 times without the player changing the
+  // wiring, von Neumann's "הבנת?" prompt is shown. A 60 s fallback shows it anyway.
+  let clockLampLast = new Map();
+  let clockLampToggles = 0;
+  let clockedUnderstoodTriggered = false;
+  let clockedTimeoutId = null;
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -1439,19 +1445,54 @@
   function clockStep() {
     const ws = state.workspace;
     if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
-    // Pause the clock mid-drag so a re-render can't yank the board out from
-    // under a wire being drawn or a component being moved.
-    if (dragState) return;
+    // Pause the clock mid-drag (a re-render would yank the board out from under a
+    // wire being drawn) and while the "הבנת?" prompt is open (the moment freezes).
+    if (dragState || workspaceUnderstoodPromptActive()) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
     clockTick += 1;
+    detectClockedBlink(r.lamps);
     render();
+  }
+
+  // A lamp that flips ≥2 times (off→on→off …) without the player re-wiring means
+  // they built a working oscillator → show von Neumann's "הבנת?" prompt.
+  function detectClockedBlink(lamps) {
+    if (clockedUnderstoodTriggered) return;
+    let toggled = false;
+    for (const [id, val] of lamps) {
+      if (clockLampLast.has(id) && clockLampLast.get(id) !== val) toggled = true;
+      clockLampLast.set(id, val);
+    }
+    if (toggled && (clockLampToggles += 1) >= 2) triggerClockedUnderstood();
+  }
+
+  function triggerClockedUnderstood() {
+    if (clockedUnderstoodTriggered) return;
+    clockedUnderstoodTriggered = true;
+    clearClockedTimeout();
+    clockedIntroDismissed = true; // clear the entry hand-off if still up
+    openUnderstoodPrompt();
+  }
+
+  function startClockedTimeout() {
+    if (clockedTimeoutId) return;
+    // Whatever the player does, offer the prompt after a minute.
+    clockedTimeoutId = window.setTimeout(() => {
+      clockedTimeoutId = null;
+      if (state.screen === "workspace" && state.workspace?.clocked) triggerClockedUnderstood();
+    }, 60000);
+  }
+
+  function clearClockedTimeout() {
+    if (clockedTimeoutId) { window.clearTimeout(clockedTimeoutId); clockedTimeoutId = null; }
   }
 
   function ensureClockRunning() {
     if (state.screen === "workspace" && state.workspace?.clocked) {
       if (!clockTimer) clockTimer = window.setInterval(clockStep, CLOCK_PERIOD_MS);
+      startClockedTimeout();
     } else if (clockTimer) {
       stopClock();
     }
@@ -1459,8 +1500,12 @@
 
   function stopClock() {
     if (clockTimer) { window.clearInterval(clockTimer); clockTimer = null; }
+    clearClockedTimeout();
     clockPrev = new Map();
     clockTick = 0;
+    clockLampLast = new Map();
+    clockLampToggles = 0;
+    clockedUnderstoodTriggered = false;
   }
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
@@ -10357,10 +10402,19 @@
     workspace.understoodButtonVisible = true;
     workspace.selectedTerminal = null;
     // Unlocked silently — the "new explanation" flourish plays at the END of the
-    // Nand monologue, not here.
-    unlockExplanation("nand-function", { silent: true });
+    // Nand monologue, not here. (Not relevant on the clocked table.)
+    if (!workspace.clocked) unlockExplanation("nand-function", { silent: true });
     setState({ workspace }, false);
     if (fromRect) requestAnimationFrame(() => playUnderstoodSuckAnimation(fromRect));
+  }
+
+  // Phase B — the scripted oscillator continuation. Not yet built; for now both
+  // "הבנת?" answers close the prompt and show a "המשך יבוא" notice.
+  function startClockedScript() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    setState({ workspace, infoDialog: "המשך יבוא..." }, false);
   }
 
   function openUnderstoodPrompt() {
@@ -14579,6 +14633,9 @@
   function toggleWire(a, b) {
     const [na, nb] = resolveNailWireEnds(a, b);
     withWorkspace((workspace) => applyWireToggle(workspace, na, nb));
+    // Changing the wiring restarts blink detection ("without changing the
+    // connections"); moving parts does not reach here, so it doesn't reset.
+    if (state.workspace?.clocked) { clockLampToggles = 0; clockLampLast = new Map(); }
   }
 
   function deleteWireByKey(key) {
@@ -16485,7 +16542,11 @@
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
     if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
     if (action === "understood-play-more") return dismissUnderstoodPrompt();
-    if (action === "understood-yes" || action === "understood-no") return startNandMonologue();
+    if (action === "understood-yes" || action === "understood-no") {
+      // On the clocked table both answers lead into the scripted continuation.
+      if (state.workspace?.clocked) return startClockedScript();
+      return startNandMonologue();
+    }
     if (action === "understood-open") return openUnderstoodPrompt();
     if (action === "exit") return exitApp();
   });
