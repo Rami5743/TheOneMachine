@@ -7776,9 +7776,10 @@
     return [
       { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
       { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
-      // A נעץ OUTSIDE the frame (above the source, left of the control pin) — it is
-      // NOT for the latch itself, but for routing the source up to the control pin.
-      { id: "nail-1", type: "nail", x: 150, y: 240 },
+      // A נעץ OUTSIDE the frame, for routing the source up to the control pin. It is
+      // placed so its wires run straight: directly ABOVE the source output (x=116,
+      // a vertical wire) and level with the control pin (y=160, a horizontal wire).
+      { id: "nail-1", type: "nail", x: 116, y: 160 },
       { id: "source-1", type: "source", x: 70, y: 400 },
       { id: "lamp-1", type: "lamp", x: 920, y: 400 }
     ];
@@ -10799,9 +10800,11 @@
     return [
       { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
       { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
-      // The external נעץ (outside, above the source) routes the single source up to
-      // the control pin; two more נעצים carry the feedback loop.
-      { id: "nail-ctrl", type: "nail", x: 150, y: 240 },
+      // The external נעץ routes the single source up to the control pin, aligned so
+      // its wires are straight: directly above the source output (x=116, vertical)
+      // and level with the control pin (y=160, horizontal). Two more נעצים carry the
+      // feedback loop.
+      { id: "nail-ctrl", type: "nail", x: 116, y: 160 },
       { id: "nail-fb1", type: "nail", x: 640, y: 290 },
       { id: "nail-fb2", type: "nail", x: 400, y: 290 },
       { id: "src", type: "source", x: 70, y: 400 },
