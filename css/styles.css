@@ -1448,6 +1448,18 @@ button { font: inherit; }
   border-left: 21px solid #111;
 }
 
+/* The scripted-oscillator narration bubble reuses the von Neumann bubble but adds
+   the "הבא" step button below the line. */
+.clocked-script-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.clocked-script-next {
+  align-self: flex-start;
+}
+
 /* The arrow that points at the נעץ tool from OUTSIDE the palette (JS positions it
    just to the right of the tool button). It bobs toward the palette. */
 .clocked-nail-arrow {

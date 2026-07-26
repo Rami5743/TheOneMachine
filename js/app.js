@@ -1419,6 +1419,20 @@
   let clockLampToggles = 0;
   let clockedUnderstoodTriggered = false;
   let clockedTimeoutId = null;
+  // Phase B — the scripted oscillator. Once "הבנת?" is answered, a canonical NOT
+  // self-loop is shown, the table locks, and the clock steps through von Neumann's
+  // narration at 1/sec (the "הבא" button also advances). Each line pins the lamp.
+  const CLOCKED_SCRIPT = [
+    { text: "ברגע הראשון אין מתח בכניסה ל-NOT.", on: false },
+    { text: "לכן, תוך זמן קצר מופיע מתח ביציאה ממנו (הנורה נדלקת).", on: true },
+    { text: "המתח עובר לכניסה מיד, ולכן תוך זמן קצר המתח נפסק ביציאה (הנורה כבה).", on: false },
+    { text: "זה גורם לכך ששוב אין מתח בכניסה.", on: false },
+    { text: "וכך הלאה...", on: true }
+  ];
+  let clockedScriptActive = false;
+  let clockedScriptStep = 0;
+  let clockedScriptTimer = null;
+  const CLOCKED_SCRIPT_PERIOD_MS = 1000; // 1 step per second
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -1432,6 +1446,16 @@
   // key off the real, on-board lamp components.
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
+    // While the scripted oscillator plays, the lamp (and the NOT's output) are
+    // pinned by the current narration line — the circuit is a fixed demo, not a
+    // live solve.
+    if (clockedScriptActive && workspace?.clocked) {
+      const on = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].on;
+      const outputs = new Map([["gate-Not-1.out", on]]);
+      const lamps = new Map();
+      for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
+      return { outputs, lamps };
+    }
     // The clocked table renders the CURRENT tick's held snapshot (clockPrev),
     // not a fresh combinational solve — that is what makes feedback loops blink.
     if (workspace?.clocked) {
@@ -1445,9 +1469,9 @@
   function clockStep() {
     const ws = state.workspace;
     if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
-    // Pause the clock mid-drag (a re-render would yank the board out from under a
-    // wire being drawn) and while the "הבנת?" prompt is open (the moment freezes).
-    if (dragState || workspaceUnderstoodPromptActive()) return;
+    // Pause the free 2 Hz clock mid-drag, while the "הבנת?" prompt is open, and
+    // while the scripted oscillator is driving the board itself.
+    if (dragState || workspaceUnderstoodPromptActive() || clockedScriptActive) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
@@ -1501,6 +1525,8 @@
   function stopClock() {
     if (clockTimer) { window.clearInterval(clockTimer); clockTimer = null; }
     clearClockedTimeout();
+    stopClockedScript();
+    clockedScriptStep = 0;
     clockPrev = new Map();
     clockTick = 0;
     clockLampLast = new Map();
@@ -7371,6 +7397,7 @@
               ${renderAndArrow()}
               ${renderClockDisplay()}
               ${renderClockedIntro()}
+              ${renderClockedScript()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7662,7 +7689,7 @@
   // The visible clock: a pulsing dot + a tick counter that runs at 2/sec, so the
   // player can feel the sequential rhythm driving the loops. Clocked table only.
   function renderClockDisplay() {
-    if (!(state.screen === "workspace" && state.workspace?.clocked)) return "";
+    if (!(state.screen === "workspace" && state.workspace?.clocked) || clockedScriptActive) return "";
     return `
       <div class="clock-display" aria-label="שעון המכונה" role="status">
         <span class="clock-count">${clockTick}</span>
@@ -10408,13 +10435,60 @@
     if (fromRect) requestAnimationFrame(() => playUnderstoodSuckAnimation(fromRect));
   }
 
-  // Phase B — the scripted oscillator continuation. Not yet built; for now both
-  // "הבנת?" answers close the prompt and show a "המשך יבוא" notice.
+  // Phase B — enter the scripted oscillator. Replace the board with a canonical
+  // NOT self-loop + lamp, lock the table, and start stepping the narration.
   function startClockedScript() {
+    clearClockedTimeout();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.understoodPromptShown = false;
     workspace.understoodButtonVisible = false;
-    setState({ workspace, infoDialog: "המשך יבוא..." }, false);
+    workspace.selectedTerminal = null;
+    workspace.components = [
+      { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
+      { id: "lamp-1", type: "lamp", x: 720, y: 430 }
+    ];
+    workspace.wires = [
+      { a: "gate-Not-1.out", b: "gate-Not-1.in1" },
+      { a: "gate-Not-1.out", b: "lamp-1.in" }
+    ];
+    clockedScriptActive = true;
+    clockedScriptStep = 0;
+    clockedIntroDismissed = true;
+    if (clockedScriptTimer) window.clearInterval(clockedScriptTimer);
+    clockedScriptTimer = window.setInterval(clockedScriptTick, CLOCKED_SCRIPT_PERIOD_MS);
+    setState({ workspace }, false);
+  }
+
+  function clockedScriptActiveNow() {
+    return clockedScriptActive && state.screen === "workspace" && Boolean(state.workspace?.clocked);
+  }
+
+  // Advance the narration one line. The auto-clock and the "הבא" button both call
+  // this. Past the last line it loops back to line 1 (line 0 is the one-time
+  // initial state) so the lamp keeps blinking "וכך הלאה".
+  function clockedScriptAdvance() {
+    if (!clockedScriptActiveNow()) return;
+    clockedScriptStep = clockedScriptStep >= CLOCKED_SCRIPT.length - 1 ? 1 : clockedScriptStep + 1;
+    render();
+  }
+  function clockedScriptTick() {
+    if (!clockedScriptActiveNow()) { stopClockedScript(); return; }
+    clockedScriptAdvance();
+  }
+  function stopClockedScript() {
+    clockedScriptActive = false;
+    if (clockedScriptTimer) { window.clearInterval(clockedScriptTimer); clockedScriptTimer = null; }
+  }
+
+  // The von Neumann narration bubble + "הבא" button shown while the script runs.
+  function renderClockedScript() {
+    if (!clockedScriptActiveNow()) return "";
+    const line = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)];
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(line.text)}</p>
+        <button class="btn btn-primary clocked-script-next" data-action="clocked-script-next" type="button">הבא</button>
+      </div>`;
   }
 
   function openUnderstoodPrompt() {
@@ -16436,6 +16510,7 @@
     if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
+    if (action === "clocked-script-next") return clockedScriptAdvance();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -16607,6 +16682,12 @@
       const arrow = app.querySelector("[data-clocked-nail-arrow]");
       if (bubble) bubble.remove();
       if (arrow) arrow.remove();
+    }
+
+    // The scripted oscillator locks the table: no dragging or wiring on the board
+    // (buttons still click through — this only suppresses drag initiation).
+    if (clockedScriptActiveNow() && event.target.closest(".workspace-board")) {
+      return;
     }
 
     const terminal = event.target.closest("[data-action='workspace-terminal']");
