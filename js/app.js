@@ -1338,6 +1338,9 @@
     const t = String(type || "");
     // Past chapter 2.2 the schematic shrinks — gates AND the Nand itself.
     if (!t.startsWith("gate-") && t !== "nand") return 1;
+    // The clocked (sequential) table shows components at their ORIGINAL full size
+    // (there is plenty of room and only a couple of parts), so don't shrink there.
+    if (isClockedWorkspace()) return 1;
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 
@@ -1510,7 +1513,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, nailIntroActive: () => isClockedWorkspace() && !clockedIntroDismissed, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -7375,6 +7378,7 @@
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
     sizeCheckPanel();
     revealFrozenCheckRow();
+    positionClockedNailArrow();
   }
 
   // While a check row is up, grow the requirements panel to fit the single row —
@@ -7586,9 +7590,12 @@
   function createClockedWorkspace(returnChapterId, returnPanelIndex) {
     return normalizeWorkspace({
       selectedTerminal: null,
-      // The board opens EMPTY — נעצים (and everything else) are dragged in from
-      // the palette. The intro arrow points at the נעץ tool there.
-      components: [],
+      // The board opens with a NOT gate and a lamp already placed (full size);
+      // the נעצים are dragged in from the palette (the intro arrow points there).
+      components: [
+        { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
+        { id: "lamp-1", type: "lamp", x: 720, y: 430 }
+      ],
       wires: [],
       nextId: 2,
       unlocked: true,
@@ -7617,16 +7624,42 @@
       </div>`;
   }
 
-  // The hand-off bubble shown on first entry to the clocked table: it points at
-  // the pre-placed נעצים and sets the task — loop the NOT's output back to its
-  // input through them. Dismissed by "הבנתי".
+  function clockedIntroActive() {
+    return state.screen === "workspace" && Boolean(state.workspace?.clocked) && !clockedIntroDismissed;
+  }
+
+  // The first-entry hand-off on the clocked table. It is von Neumann speaking, so
+  // it uses his speech bubble — pinned to the RIGHT with a tail pointing right,
+  // exactly like the subtraction-demo bubble. Alongside it, an arrow OUTSIDE the
+  // palette (adjacent to it) points at the נעץ tool; that arrow is positioned in
+  // JS (positionClockedNailArrow) against the live tool button. The whole intro
+  // is dismissed by any click, or ArrowLeft.
   function renderClockedIntro() {
-    if (!(state.screen === "workspace" && state.workspace?.clocked) || clockedIntroDismissed) return "";
+    if (!clockedIntroActive()) return "";
     return `
-      <div class="clocked-intro" role="dialog" aria-label="הנחיה">
-        <p class="clocked-intro-text">גרור <strong>נעצים</strong> מהסרגל (מסומן בחץ) כדי להעביר כבלים בנוחות. חבר את היציאה של ה-NOT בחזרה לכניסה שלו — דרך הנעצים — וראה מה קורה כשהשעון רץ.</p>
-        <button class="btn btn-primary clocked-intro-ok" data-action="clocked-intro-ok" type="button">הבנתי</button>
+      <div class="clocked-intro-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>שמתי לך כאן נעצים כדי שיהיה לך נוח לפרוס את הכבלים.</p>
+      </div>
+      <div class="clocked-nail-arrow" data-clocked-nail-arrow aria-hidden="true">
+        <svg viewBox="0 0 60 24" width="60" height="24"><path d="M58 12 L8 12 M8 12 L20 4 M8 12 L20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>`;
+  }
+
+  // Place the intro arrow just to the RIGHT of the palette (outside it), level
+  // with the נעץ tool, so it points left at the tool without living inside the
+  // clipped palette.
+  function positionClockedNailArrow() {
+    if (!clockedIntroActive()) return;
+    const arrow = app.querySelector("[data-clocked-nail-arrow]");
+    const tool = app.querySelector("[data-component-type='nail']");
+    const board = app.querySelector(".workspace-board");
+    if (!arrow || !tool || !board) return;
+    const t = tool.getBoundingClientRect();
+    const b = board.getBoundingClientRect();
+    const ah = arrow.getBoundingClientRect().height || 24;
+    arrow.style.left = `${Math.max(4, t.right - b.left + 8)}px`;
+    arrow.style.top = `${t.top - b.top + t.height / 2 - ah / 2}px`;
+    arrow.style.visibility = "visible";
   }
 
   function enterClockedTable() {
@@ -16346,7 +16379,6 @@
     if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
-    if (action === "clocked-intro-ok") { clockedIntroDismissed = true; return render(); }
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -16506,6 +16538,16 @@
       dismissNandConnectDemo();
     }
 
+    // Any click on the clocked table dismisses von Neumann's intro (bubble +
+    // arrow) without swallowing the press — the same press can still drag/wire.
+    if (clockedIntroActive() && event.target.closest(".workspace-layout")) {
+      clockedIntroDismissed = true;
+      const bubble = app.querySelector(".clocked-intro-bubble");
+      const arrow = app.querySelector("[data-clocked-nail-arrow]");
+      if (bubble) bubble.remove();
+      if (arrow) arrow.remove();
+    }
+
     const terminal = event.target.closest("[data-action='workspace-terminal']");
     if (terminal) {
       event.preventDefault();
@@ -16619,6 +16661,13 @@
       }
       event.preventDefault();
       return;
+    }
+
+    // ArrowLeft (RTL "forward") dismisses von Neumann's clocked-table intro.
+    if (clockedIntroActive() && event.key === "ArrowLeft") {
+      event.preventDefault();
+      clockedIntroDismissed = true;
+      return render();
     }
 
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {
