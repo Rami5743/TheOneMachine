@@ -1431,8 +1431,7 @@
   ];
   let clockedScriptActive = false;
   let clockedScriptStep = 0;
-  let clockedScriptTimer = null;
-  const CLOCKED_SCRIPT_PERIOD_MS = 1000; // 1 step per second
+  let clockedScriptTimer = null; // retained only so stopClockedScript stays defensive
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -1451,7 +1450,13 @@
     // live solve.
     if (clockedScriptActive && workspace?.clocked) {
       const on = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].on;
-      const outputs = new Map([["gate-Not-1.out", on]]);
+      // Light the NOT's output and the whole loop (through both נעצים) so the
+      // energised cable path reads clearly.
+      const outputs = new Map([
+        ["gate-Not-1.out", on],
+        ["nail-1.out", on],
+        ["nail-2.out", on]
+      ]);
       const lamps = new Map();
       for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
       return { outputs, lamps };
@@ -10443,19 +10448,25 @@
     workspace.understoodPromptShown = false;
     workspace.understoodButtonVisible = false;
     workspace.selectedTerminal = null;
+    // The feedback loop is routed through TWO נעצים (up and over the top) so the
+    // path the cable takes back to the input is obvious.
     workspace.components = [
       { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
-      { id: "lamp-1", type: "lamp", x: 720, y: 430 }
+      { id: "lamp-1", type: "lamp", x: 720, y: 430 },
+      { id: "nail-1", type: "nail", x: 600, y: 250 },
+      { id: "nail-2", type: "nail", x: 300, y: 250 }
     ];
     workspace.wires = [
-      { a: "gate-Not-1.out", b: "gate-Not-1.in1" },
+      { a: "gate-Not-1.out", b: "nail-1.in" },
+      { a: "nail-1.out", b: "nail-2.in" },
+      { a: "nail-2.out", b: "gate-Not-1.in1" },
       { a: "gate-Not-1.out", b: "lamp-1.in" }
     ];
     clockedScriptActive = true;
     clockedScriptStep = 0;
     clockedIntroDismissed = true;
-    if (clockedScriptTimer) window.clearInterval(clockedScriptTimer);
-    clockedScriptTimer = window.setInterval(clockedScriptTick, CLOCKED_SCRIPT_PERIOD_MS);
+    // The scripted clock does NOT run on a timer — it advances one line per "הבא"
+    // press only, so the oscillator freezes between steps.
     setState({ workspace }, false);
   }
 
@@ -10470,10 +10481,6 @@
     if (!clockedScriptActiveNow()) return;
     clockedScriptStep = clockedScriptStep >= CLOCKED_SCRIPT.length - 1 ? 1 : clockedScriptStep + 1;
     render();
-  }
-  function clockedScriptTick() {
-    if (!clockedScriptActiveNow()) { stopClockedScript(); return; }
-    clockedScriptAdvance();
   }
   function stopClockedScript() {
     clockedScriptActive = false;
