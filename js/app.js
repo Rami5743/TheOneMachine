@@ -1850,7 +1850,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -7527,6 +7527,50 @@
     });
   }
 
+  // The clocked (sequential) "shift table" — chapter 3.1. A deliberately minimal
+  // free-build table (only Not / source / lamp / נעץ) that runs on a ticking
+  // clock and, uniquely, tolerates feedback loops. A few נעצים are laid out in
+  // advance (the "שמתי לך כאן נעצים" hand-off) so routing a loop is inviting from
+  // the first moment. Reached from panel130's "המשך".
+  function createClockedWorkspace(returnChapterId, returnPanelIndex) {
+    return normalizeWorkspace({
+      selectedTerminal: null,
+      components: [
+        { id: "nail-1", type: "nail", x: 470, y: 250 },
+        { id: "nail-2", type: "nail", x: 690, y: 250 },
+        { id: "nail-3", type: "nail", x: 690, y: 470 },
+        { id: "nail-4", type: "nail", x: 470, y: 470 }
+      ],
+      wires: [],
+      nextId: 5,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: null,
+      taskIntroSeen: true,
+      freeBuild: true,
+      clocked: true,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex
+    });
+  }
+
+  function enterClockedTable() {
+    const returnChapterId = state.chapterId || "chapter-10";
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : 0;
+    setState({
+      screen: "workspace",
+      dialog: null, taskDialog: null, infoDialog: null, notTest: null,
+      hintDialog: null, solutionDialog: null, aluNoteList: false, aluIntroDialog: null,
+      workspace: createClockedWorkspace(returnChapterId, returnPanelIndex),
+      replayNonce: state.replayNonce + 1
+    }, false);
+  }
+
   function enterCardCreation(options = {}) {
     const ws = state.workspace || {};
     const returnChapterId = ws.sessionReturnChapterId || state.chapterId || "chapter-7";
@@ -10040,10 +10084,10 @@
     if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
       return openSubtractionDemo();
     }
-    // Chapter 3.1 (flip-flop) is where the story currently ends — its last slide's
-    // "המשך" shows a "המשך יבוא" notice instead of falling off into the chapters.
+    // Chapter 3.1 (flip-flop): the last slide's "המשך" ("הנה, תנסה לחבר את ה-NOT
+    // במעגל") hands the player straight into the clocked (sequential) table.
     if (state.screen === "story" && state.chapterId === "chapter-10" && state.panelIndex >= scene.panels.length - 1) {
-      return setState({ infoDialog: "המשך יבוא..." }, false);
+      return enterClockedTable();
     }
 
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();

@@ -46,24 +46,34 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       ? []
       : (typeof savedCardTools === "function" ? savedCardTools() : []);
 
-    const tools = [
-      { type: "nand", label: "Nand" },
-      ...builtGateTools,
-      ...cardTools,
-      { type: "lamp", label: "מנורה" },
-      { type: "source", label: "מקור מתח" },
-      // The splitter is available in every build from chapter 2.4 on (once it is
-      // introduced), plus the free "empty table" and any bus/multibit task build.
-      // NEVER in the minimal Nand-presentation palette, though: splitterAvailable
-      // keys off the CURRENT chapter, so once the learner has reached 2.4 and
-      // later replays the Nand presentation it would otherwise leak in (only the
-      // splitter, since built gates/cards are already excluded above).
-      ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
-      // The binary↔decimal converters, on the 2.5 worktable (arith builds).
-      ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
-      // The נעץ (routing dot) — only on the clocked (sequential) table.
-      ...(typeof nailAvailable === "function" && nailAvailable() ? [{ type: "nail", label: "נעץ" }] : [])
-    ];
+    // The clocked (sequential) table has a deliberately narrow palette: just the
+    // NOT gate, a source, a lamp and the נעץ (routing dot). Nothing else — the
+    // whole point is to explore feedback loops with the simplest possible parts.
+    const clockedMinimal = typeof nailAvailable === "function" && nailAvailable();
+
+    const tools = clockedMinimal
+      ? [
+          { type: gateComponentType("Not"), label: "Not" },
+          { type: "source", label: "מקור מתח" },
+          { type: "lamp", label: "מנורה" },
+          { type: "nail", label: "נעץ" }
+        ]
+      : [
+          { type: "nand", label: "Nand" },
+          ...builtGateTools,
+          ...cardTools,
+          { type: "lamp", label: "מנורה" },
+          { type: "source", label: "מקור מתח" },
+          // The splitter is available in every build from chapter 2.4 on (once it is
+          // introduced), plus the free "empty table" and any bus/multibit task build.
+          // NEVER in the minimal Nand-presentation palette, though: splitterAvailable
+          // keys off the CURRENT chapter, so once the learner has reached 2.4 and
+          // later replays the Nand presentation it would otherwise leak in (only the
+          // splitter, since built gates/cards are already excluded above).
+          ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
+          // The binary↔decimal converters, on the 2.5 worktable (arith builds).
+          ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
+        ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
     // It is an action button (not a draggable component); its click is not wired
