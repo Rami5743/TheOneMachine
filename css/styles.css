@@ -1476,17 +1476,17 @@ g.component-ffCard.ff-materialize .ff-card {
   align-self: flex-start;
 }
 
-/* The red enrichment teaser inside the FF-explanation bubble (second bubble). It
-   flows at the TOP of the bubble (overriding the subtraction-demo teaser's
-   absolute float over the board). */
-.ff-explain-teaser {
-  position: static;
-  transform: none;
-  left: auto;
+/* The red enrichment teaser for the FF explanation is pinned to the TOP-LEFT
+   corner of the board — a standalone element, not part of von Neumann's bubble.
+   The compound selector outranks the base .subtraction-demo-teaser rule so these
+   corner offsets win regardless of source order. */
+.subtraction-demo-teaser.ff-explain-teaser {
+  top: 16px;
+  left: 16px;
+  right: auto;
   bottom: auto;
-  max-width: 100%;
-  align-self: stretch;
-  justify-content: center;
+  transform: none;
+  max-width: min(360px, calc(100% - 32px));
 }
 
 /* The arrow that points at the נעץ tool from OUTSIDE the palette (JS positions it

@@ -10931,8 +10931,8 @@
   let ffExplainActive = false;
   let ffExplainStep = 0;
   const FF_EXPLAIN = [
-    { text: "שים לב, בנינו משהו שיכול לשמור מידע. קוראים למעגל הזה Flip-flop: כשכניסת הבקרה מנותקת מהמתח הוא שומר את המידע. וכשכניסת הבקרה מחוברת למתח אנחנו יכולים לשנות את המידע על ידי הכניסה השנייה. ל-Flip-flop יש 2 מצבים: או שהוא מוציא מתח או שלא. כך שהמידע שהוא שומר זה ביט אחד. בעוד שבכל הכרטיסים עד עכשיו דיברנו רק על הכניסות והיציאות, ב-Flip-flop אנחנו יכולים גם לשנות את המצב שלו. כדי לשנות את המצב שלו אנחנו צריכים לחבר את כניסת הבקרה שלו." },
-    { text: "שים לב, כשאתה יוצר כרטיסים אחרים, אתה יכול להשתמש ב-Flip-flop, אבל אם אתה יוצר מעגל בעצמך, תדאג שתמיד יהיה בו Flip-flop. אחרת יהיה לנו בלגן כי לחלקים שונים של מחשב ייקח זמן שונה לשנות את המצב שלהם והם לא יהיו מתואמים. אני אדאג לזה שמשהו יעבור על כל ה-Flip-flop-ים ויגרום להם לעבוד באופן מתוזמן.", teaser: true }
+    { text: "שים לב, בנינו משהו שיכול לשמור מידע. קוראים למעגל הזה Flip-Flop: כשכניסת הבקרה מנותקת מהמתח הוא שומר את המידע. וכשכניסת הבקרה מחוברת למתח אנחנו יכולים לשנות את המידע על ידי הכניסה השנייה. ל-Flip-Flop יש 2 מצבים: או שהוא מוציא מתח או שלא. כך שהמידע שהוא שומר זה ביט אחד. בעוד שבכל הכרטיסים עד עכשיו דיברנו רק על הכניסות והיציאות, ב-Flip-Flop אנחנו יכולים גם לשנות את המצב שלו. כדי לשנות את המצב שלו אנחנו צריכים לחבר את כניסת הבקרה שלו." },
+    { text: "שים לב, כשאתה יוצר כרטיסים אחרים, אתה יכול להשתמש ב-Flip-Flop, אבל אם אתה יוצר מעגל בעצמך, תדאג שתמיד יהיה בו Flip-Flop. אחרת יהיה לנו בלגן כי לחלקים שונים של מחשב ייקח זמן שונה לשנות את המצב שלהם והם לא יהיו מתואמים. אני אדאג לזה שמשהו יעבור על כל ה-Flip-Flop-ים ויגרום להם לעבוד באופן מתוזמן.", teaser: true }
   ];
   function ffExplainActiveNow() {
     return ffExplainActive && state.screen === "workspace" && Boolean(state.workspace?.clocked);
@@ -10940,6 +10940,8 @@
   function renderFfExplain() {
     if (!ffExplainActiveNow()) return "";
     const line = FF_EXPLAIN[Math.min(ffExplainStep, FF_EXPLAIN.length - 1)];
+    // The red enrichment teaser is pinned to the TOP-LEFT corner of the board
+    // (a separate element, NOT inside von Neumann's bubble).
     const teaserHtml = line.teaser
       ? `<button class="subtraction-demo-teaser ff-explain-teaser" data-action="ff-clock-teaser" type="button">
           <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
@@ -10947,8 +10949,8 @@
         </button>`
       : "";
     return `
+      ${teaserHtml}
       <div class="clocked-intro-bubble clocked-script-bubble ff-explain-bubble" role="dialog" aria-label="דברי פון-נוימן">
-        ${teaserHtml}
         <p>${esc(line.text)}</p>
         <div class="clocked-script-nav">
           ${navButton("ff-explain-prev", "arrow-right", "הקודם", { disabled: ffExplainStep <= 0 })}
@@ -11009,6 +11011,17 @@
       replayNonce: state.replayNonce + 1,
       workspace: createDefaultWorkspace()
     }, true);
+  }
+
+  // Dev fast-forward (Ctrl+Shift+9) through the flip-flop "explanation" phases:
+  // one press jumps to the next scripted beat. Returns true if it handled the key.
+  function secretSkipClockedNarration() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return false;
+    if (ffExplainActiveNow()) { exitFlipflopToWarehouse(); return true; }
+    if (muxDemoActiveNow()) { finishMuxDemo(); return true; }
+    if (state.workspace.muxScene) { startMuxDemo(); return true; }  // mux goal-narration / free-play → controlled demo
+    if (clockedScriptActiveNow()) { startMuxScene(); return true; }  // oscillator narration → MUX scene
+    startClockedScript(); return true;                               // NOT free-play → oscillator narration
   }
   function stopClockedScript() {
     clockedScriptActive = false;
@@ -16707,6 +16720,9 @@
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
       if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
+      // On the clocked table it fast-forwards through the flip-flop explanation
+      // phases (one press per beat) instead of "solving" a (non-existent) task.
+      else if (state.screen === "workspace" && state.workspace?.clocked) secretSkipClockedNarration();
       else secretSolveAndExit();
     }
   });
