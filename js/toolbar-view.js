@@ -54,11 +54,12 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
     const tools = clockedMinimal
       ? [
           { type: gateComponentType("Not"), label: "Not" },
+          // The MUX joins the palette in the flip-flop scene — right after the Not,
+          // before the source/lamp/nail accessories.
+          ...(typeof muxToolAvailable === "function" && muxToolAvailable() ? [{ type: gateComponentType("Mux"), label: "MUX" }] : []),
           { type: "source", label: "מקור מתח" },
           { type: "lamp", label: "מנורה" },
-          { type: "nail", label: "נעץ" },
-          // The MUX joins the palette in the flip-flop scene.
-          ...(typeof muxToolAvailable === "function" && muxToolAvailable() ? [{ type: gateComponentType("Mux"), label: "MUX" }] : [])
+          { type: "nail", label: "נעץ" }
         ]
       : [
           { type: "nand", label: "Nand" },
