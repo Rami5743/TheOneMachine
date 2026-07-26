@@ -10761,10 +10761,10 @@
     { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
     { text: null, control: true, data: false, out: false, hl: HL_DATA_OUT },
     { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
-    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["ctrl-src", "lamp-1", "nail-1"], wires: MUX_FB_WIRES } },
-    { text: null, control: false, data: false, out: true, hl: HL_HOLD },
+    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["ctrl-src", "lamp-1"] } },
+    { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT },
     { text: null, control: false, data: true, out: true, hl: HL_DATA_OUT },
-    { text: null, control: false, data: false, out: true, hl: HL_HOLD }
+    { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT }
   ];
   // The feedback (output → first MUX input, the "hold" path) is routed through the
   // scene's נעץ so it reads clearly, as in the hand-built solution.
