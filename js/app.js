@@ -1404,6 +1404,9 @@
   let clockTimer = null;
   let clockTick = 0;
   const CLOCK_PERIOD_MS = 500; // 2 ticks per second
+  // The one-time "I laid out נעצים for you" hand-off on the clocked table.
+  // Transient (runtime only); reset on each entry, dismissed by "הבנתי".
+  let clockedIntroDismissed = false;
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -7316,6 +7319,7 @@
               ${subtractionDemoActive() ? "" : renderWhyNote()}
               ${renderAndArrow()}
               ${renderClockDisplay()}
+              ${renderClockedIntro()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7615,7 +7619,23 @@
       </div>`;
   }
 
+  // The hand-off bubble shown on first entry to the clocked table: it points at
+  // the pre-placed נעצים and sets the task — loop the NOT's output back to its
+  // input through them. Dismissed by "הבנתי".
+  function renderClockedIntro() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked) || clockedIntroDismissed) return "";
+    return `
+      <div class="clocked-intro" role="dialog" aria-label="הנחיה">
+        <p class="clocked-intro-text">שמתי לך כאן כמה <strong>נעצים</strong> כדי שיהיה לך נוח להעביר כבלים. חבר את היציאה של ה-NOT בחזרה לכניסה שלו — דרך הנעצים — וראה מה קורה כשהשעון רץ.</p>
+        <button class="btn btn-primary clocked-intro-ok" data-action="clocked-intro-ok" type="button">הבנתי</button>
+        <svg viewBox="0 0 24 24" width="46" height="46" class="clocked-intro-arrow" aria-hidden="true">
+          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>`;
+  }
+
   function enterClockedTable() {
+    clockedIntroDismissed = false;
     const returnChapterId = state.chapterId || "chapter-10";
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : 0;
     setState({
@@ -16308,6 +16328,7 @@
     if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
+    if (action === "clocked-intro-ok") { clockedIntroDismissed = true; return render(); }
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();

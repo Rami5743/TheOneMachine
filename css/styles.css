@@ -1415,6 +1415,50 @@ button { font: inherit; }
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* First-entry hand-off on the clocked table: a bubble at top-centre with a
+   downward arrow nudging toward the pre-placed נעצים. */
+.clocked-intro {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 7;
+  max-width: min(560px, 80%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px 12px;
+  border-radius: 14px;
+  background: #fffdf7;
+  color: #1f2937;
+  border: 2px solid #d1a54a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  direction: rtl;
+  text-align: center;
+}
+.clocked-intro-text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.clocked-intro-ok {
+  align-self: center;
+}
+.clocked-intro-arrow {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #d1a54a;
+  animation: clocked-intro-bob 1s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+@keyframes clocked-intro-bob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 8px); }
+}
+
 /* The scrolling viewport for the board canvas. When a task's content (a tall
    card's frame + solution, or a check's harness lamps) is taller than the
    visible board, this scrolls vertically so nothing is stranded off-screen.
