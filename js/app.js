@@ -10607,15 +10607,14 @@
     // Linear: each "הבא" advances one line. Past the last line (the MUX hand-off)
     // it moves on to the MUX scene.
     if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
-    // Pressing "הבא" on the "וכך הלאה" line (index 4) RELEASES the clock: from here
-    // it free-runs at 1 Hz and the lamp is driven by the real engine, not pinned.
-    const releasingNow = !clockedScriptReleased && clockedScriptStep === 4;
     clockedScriptStep += 1;
-    if (releasingNow) {
+    // ARRIVING at the "וכך הלאה" line (index 4) RELEASES the clock: from the start
+    // of that slide it free-runs at 1 Hz and the lamp is driven by the real engine
+    // (not pinned). The tick counter is NOT reset — it keeps counting from where
+    // the manual phase left it.
+    if (!clockedScriptReleased && clockedScriptStep === 4) {
       clockedScriptReleased = true;
       clockPrev = new Map();
-      // Do NOT reset the tick counter on release — it keeps counting from where the
-      // manual phase left it, now free-running at 1 Hz.
     } else if (!clockedScriptReleased) {
       clockTick += 1; // the still-frozen clock ticks up one on each "הבא"
     }
