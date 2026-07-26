@@ -1,16 +1,87 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="panel129_chapter_3_1_feedback.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086"
-     preserveAspectRatio="none" href="panel118c_chapter_2_5_farewell.jpg" xlink:href="panel118c_chapter_2_5_farewell.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 492,40 H 1148 Q 1170,40 1170,62 V 290 Q 1170,312 1148,312 H 492 Q 470,312 470,290 V 306 L 392,346 L 470,290 V 62 Q 470,40 492,40 Z" fill="#ffffff" stroke="#000000"
-       stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="820" y="80" id="tspan1">הדרך לעשות את זה היא לחבר יציאות חזרה</tspan><tspan x="820" y="130.5" id="tspan2">לכניסות, כך שנוצר מעין מעגל. שים לב,</tspan><tspan x="820" y="181" id="tspan3">ה-NANDים ברכיבים השונים לא מגיבים מיד.</tspan><tspan x="820" y="231.5" id="tspan4">אם אתה משנה את הכניסה לוקח זמן מה עד</tspan><tspan x="820" y="282" id="tspan5">שהיציאה משתנה בהתאם.</tspan></text>
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="723.55583"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel118c_chapter_2_5_farewell.jpg"
+     xlink:href="panel118c_chapter_2_5_farewell.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="M 483.45407,40 H 1079.391 c 13.3239,0 19.9857,7.333333 19.9857,22 v 228 c 0,14.66667 -6.6618,22 -19.9857,22 H 483.45407 c -13.32379,0 -19.98569,-7.33333 -19.98569,-22 V 159.42331 l -64.8058,1.35706 64.8058,-28.01718 V 62 c 0,-14.666667 6.6619,-22 19.98569,-22 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.44993"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssccccss" />
+    <text
+       id="bubble-text"
+       text-anchor="middle"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="34px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"
+       x="-38"
+       y="6"><tspan
+         x="782"
+         y="86"
+         id="tspan1">הדרך לעשות את זה היא לחבר יציאות חזרה</tspan><tspan
+         x="782"
+         y="136.5"
+         id="tspan2">לכניסות, כך שנוצר מעין מעגל. שים לב,</tspan><tspan
+         x="782"
+         y="187"
+         id="tspan3">ה-NANDים ברכיבים השונים לא מגיבים מיד.</tspan><tspan
+         x="782"
+         y="237.5"
+         id="tspan4">אם אתה משנה את הכניסה לוקח זמן מה עד</tspan><tspan
+         x="782"
+         y="288"
+         id="tspan5">שהיציאה משתנה בהתאם.</tspan></text>
   </g>
 </svg>

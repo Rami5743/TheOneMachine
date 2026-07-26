@@ -1,0 +1,1436 @@
+// solution-workspaces.js — builders that assemble complete workbench layouts as
+// DATA, extracted from app.js: the reference solution for each task (Not, And,
+// Or, Xor, AND3way, OR4way, including the alternative Nand-based / balanced
+// variants shown at later hint steps), the blank standard task workbench, and
+// the workspaces used while running an automated task test row by row. They are
+// pure: every host helper (normalizer, wire builder, wire ops, task lookups,
+// exit target, and the task-test frame) is INJECTED.
+//
+// Loaded BEFORE app.js. createSolutionWorkspaces(deps) -> { standardTaskWorkspace,
+//   cleanedWorkspaceForTaskTest, workspaceForTaskTestRow, solutionWorkspaceForTask }
+//   deps: normalizeWorkspace, createDefaultWorkspace, normalizeWire, clonePlain,
+//         removeInvalidWires, removeWiresAt, addTestWire, taskDefById,
+//         taskCardComponentType, currentTaskDef, taskCardOutputExtRef,
+//         taskCardInputExtRef, secondWorkspaceExitTarget, TASK_TEST_FRAME
+
+function createSolutionWorkspaces({
+  normalizeWorkspace,
+  createDefaultWorkspace,
+  normalizeWire,
+  clonePlain,
+  removeInvalidWires,
+  removeWiresAt,
+  addTestWire,
+  taskDefById,
+  taskCardComponentType,
+  currentTaskDef,
+  taskCardOutputExtRef,
+  taskCardInputExtRef,
+  taskOutputLampPairs,
+  taskLampComponents,
+  secondWorkspaceExitTarget,
+  TASK_TEST_FRAME,
+  muxSolutionLayout
+}) {
+  function lampComponents(taskId) {
+    if (typeof taskLampComponents === "function") return taskLampComponents(taskId);
+    return [{ id: "lamp-1", type: "lamp", x: 910, y: 258 }];
+  }
+  // Position a MUX-solution component from the (editable) SVG layout when it has
+  // posted, otherwise from the hardcoded fallback coordinates.
+  function muxLayout(key) {
+    return typeof muxSolutionLayout === "function" ? muxSolutionLayout(key) : null;
+  }
+
+  function muxAt(key, id, fallbackX, fallbackY) {
+    const layout = muxLayout(key);
+    const p = layout && layout.components ? layout.components[id] : null;
+    return { x: p && Number.isFinite(p.x) ? p.x : fallbackX, y: p && Number.isFinite(p.y) ? p.y : fallbackY };
+  }
+
+  // The wire list: the netlist the SVG derived from its own (hand-editable) wire
+  // elements when it has posted one, otherwise the hardcoded fallback pairs.
+  function muxWires(key, fallbackPairs) {
+    const layout = muxLayout(key);
+    const conns = layout && Array.isArray(layout.connections) && layout.connections.length
+      ? layout.connections
+      : fallbackPairs;
+    const seen = new Set();
+    const wires = [];
+    conns.forEach(([a, b]) => {
+      const wire = normalizeWire(a, b);
+      const id = `${wire.a}|${wire.b}`;
+      if (seen.has(id)) return;
+      seen.add(id);
+      wires.push(wire);
+    });
+    return wires;
+  }
+  // The MUX card is drawn on a larger frame than the 2.2 cards, so its "keep
+  // components inside the card" test frame is larger too — otherwise gates the
+  // learner legitimately places near the (bigger) card edges get discarded when
+  // the check assembles the test circuit.
+  function taskTestFrame(workspace) {
+    // The MUX and DMUX cards share the larger 2.3 frame.
+    if (workspace?.taskId === "Mux" || workspace?.taskId === "DMux") return { x1: 140, y1: 35, x2: 870, y2: 540 };
+    return TASK_TEST_FRAME;
+  }
+
+  function componentInsideTaskFrame(component, frame) {
+    if (!component) return false;
+    // The card, the source, and any lamp (a card may have several) are always kept.
+    if (component.id === "source-1" || component.id === "task-card-1" || /^lamp-\d+$/.test(component.id)) return true;
+    return component.x >= frame.x1 && component.x <= frame.x2 && component.y >= frame.y1 && component.y <= frame.y2;
+  }
+
+  // The card's output(s) paired with the lamp reading each (one pair for single-
+  // output cards, one per output for the DMUX).
+  function outputLampPairs(task) {
+    if (typeof taskOutputLampPairs === "function") return taskOutputLampPairs(task);
+    return [{ outputRef: taskCardOutputExtRef(), lampId: "lamp-1" }];
+  }
+
+  function cleanedWorkspaceForTaskTest(sourceWorkspace) {
+    const workspace = normalizeWorkspace(clonePlain(sourceWorkspace));
+    const frame = taskTestFrame(workspace);
+    workspace.components = workspace.components.filter((component) => componentInsideTaskFrame(component, frame));
+    workspace.selectedTerminal = null;
+    workspace.accident = null;
+    removeInvalidWires(workspace);
+    outputLampPairs(currentTaskDef(workspace)).forEach((pair) => addTestWire(workspace, pair.outputRef, `${pair.lampId}.in`));
+    return workspace;
+  }
+
+  function workspaceForTaskTestRow(baseWorkspace, row) {
+    const task = currentTaskDef(baseWorkspace);
+    const workspace = normalizeWorkspace(clonePlain(baseWorkspace));
+    workspace.selectedTerminal = null;
+    workspace.accident = null;
+
+    if (task) {
+      for (let index = 0; index < task.inputs; index += 1) {
+        removeWiresAt(workspace, taskCardInputExtRef(index));
+      }
+    }
+
+    outputLampPairs(task).forEach((pair) => {
+      removeWiresAt(workspace, `${pair.lampId}.in`);
+      addTestWire(workspace, pair.outputRef, `${pair.lampId}.in`);
+    });
+
+    if (task) {
+      row.inputs.forEach((value, index) => {
+        if (value) addTestWire(workspace, "source-1.out", taskCardInputExtRef(index));
+      });
+    }
+
+    return workspace;
+  }
+
+  function standardTaskWorkspace(taskId) {
+    const task = taskDefById(taskId);
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "source-1", type: "source", x: (taskId === "Mux" || taskId === "DMux") ? 45 : 80, y: 288 },
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 500, y: 288 },
+        ...lampComponents(taskId)
+      ],
+      wires: [],
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      returnToWorkspaceAfterMonologue: false,
+      taskId,
+      taskIntroSeen: true
+    });
+  }
+
+  function notSolutionWorkspaceFrom() {
+    const workspace = standardTaskWorkspace("Not");
+    workspace.components.push({ id: "nand-1", type: "nand", x: 500, y: 288 });
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "nand-1.in1"),
+      normalizeWire("task-card-1.inputInt1", "nand-1.in2"),
+      normalizeWire("nand-1.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function andSolutionWorkspaceFrom() {
+    const workspace = standardTaskWorkspace("And");
+    workspace.components.push(
+      { id: "nand-1", type: "nand", x: 420, y: 288 },
+      { id: "not-1", type: "gate-Not", x: 640, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "nand-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "nand-1.in2"),
+      normalizeWire("nand-1.out", "not-1.in1"),
+      normalizeWire("not-1.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function orSolutionWorkspaceStandardFrom() {
+    const workspace = standardTaskWorkspace("Or");
+    workspace.components.push(
+      { id: "not-1", type: "gate-Not", x: 340, y: 218 },
+      { id: "not-2", type: "gate-Not", x: 340, y: 358 },
+      { id: "and-1", type: "gate-And", x: 500, y: 288 },
+      { id: "not-3", type: "gate-Not", x: 650, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "not-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "not-2.in1"),
+      normalizeWire("not-1.out", "and-1.in1"),
+      normalizeWire("not-2.out", "and-1.in2"),
+      normalizeWire("and-1.out", "not-3.in1"),
+      normalizeWire("not-3.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function orSolutionWorkspaceNandFrom() {
+    const workspace = standardTaskWorkspace("Or");
+    workspace.components.push(
+      { id: "not-1", type: "gate-Not", x: 340, y: 218 },
+      { id: "not-2", type: "gate-Not", x: 340, y: 358 },
+      { id: "nand-1", type: "nand", x: 580, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "not-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "not-2.in1"),
+      normalizeWire("not-1.out", "nand-1.in1"),
+      normalizeWire("not-2.out", "nand-1.in2"),
+      normalizeWire("nand-1.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function orSolutionWorkspaceFrom(step = 0) {
+    return step >= 7 ? orSolutionWorkspaceNandFrom() : orSolutionWorkspaceStandardFrom();
+  }
+
+  function xorSolutionWorkspaceFirstFrom() {
+    const workspace = standardTaskWorkspace("Xor");
+    workspace.components.push(
+      { id: "or-1", type: "gate-Or", x: 360, y: 218 },
+      { id: "and-raw", type: "gate-And", x: 360, y: 358 },
+      { id: "not-1", type: "gate-Not", x: 520, y: 358 },
+      { id: "and-final", type: "gate-And", x: 690, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "or-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "or-1.in2"),
+      normalizeWire("task-card-1.inputInt1", "and-raw.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-raw.in2"),
+      normalizeWire("and-raw.out", "not-1.in1"),
+      normalizeWire("or-1.out", "and-final.in1"),
+      normalizeWire("not-1.out", "and-final.in2"),
+      normalizeWire("and-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function xorSolutionWorkspaceNandFrom() {
+    const workspace = standardTaskWorkspace("Xor");
+    workspace.components.push(
+      { id: "or-1", type: "gate-Or", x: 360, y: 218 },
+      { id: "nand-1", type: "nand", x: 420, y: 358 },
+      { id: "and-final", type: "gate-And", x: 670, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "or-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "or-1.in2"),
+      normalizeWire("task-card-1.inputInt1", "nand-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "nand-1.in2"),
+      normalizeWire("or-1.out", "and-final.in1"),
+      normalizeWire("nand-1.out", "and-final.in2"),
+      normalizeWire("and-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function xorSolutionWorkspaceCasesFrom() {
+    const workspace = standardTaskWorkspace("Xor");
+    workspace.components.push(
+      { id: "not-a", type: "gate-Not", x: 340, y: 218 },
+      { id: "not-b", type: "gate-Not", x: 340, y: 358 },
+      { id: "and-case1", type: "gate-And", x: 520, y: 218 },
+      { id: "and-case2", type: "gate-And", x: 520, y: 358 },
+      { id: "or-final", type: "gate-Or", x: 670, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "not-a.in1"),
+      normalizeWire("task-card-1.inputInt2", "not-b.in1"),
+      normalizeWire("not-a.out", "and-case1.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-case1.in2"),
+      normalizeWire("task-card-1.inputInt1", "and-case2.in1"),
+      normalizeWire("not-b.out", "and-case2.in2"),
+      normalizeWire("and-case1.out", "or-final.in1"),
+      normalizeWire("and-case2.out", "or-final.in2"),
+      normalizeWire("or-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function xorSolutionWorkspaceFrom(step = 0) {
+    if (step >= 10) return xorSolutionWorkspaceCasesFrom();
+    if (step >= 8) return xorSolutionWorkspaceNandFrom();
+    return xorSolutionWorkspaceFirstFrom();
+  }
+
+  function and3waySolutionWorkspaceFrom() {
+    const workspace = standardTaskWorkspace("AND3way");
+    workspace.components.push(
+      { id: "and-1", type: "gate-And", x: 420, y: 230 },
+      { id: "and-2", type: "gate-And", x: 640, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "and-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-1.in2"),
+      normalizeWire("and-1.out", "and-2.in1"),
+      normalizeWire("task-card-1.inputInt3", "and-2.in2"),
+      normalizeWire("and-2.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function or4waySolutionWorkspaceChainFrom() {
+    const workspace = standardTaskWorkspace("OR4way");
+    workspace.components.push(
+      { id: "or-ab", type: "gate-Or", x: 360, y: 196 },
+      { id: "or-abc", type: "gate-Or", x: 535, y: 270 },
+      { id: "or-final", type: "gate-Or", x: 680, y: 346 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "or-ab.in1"),
+      normalizeWire("task-card-1.inputInt2", "or-ab.in2"),
+      normalizeWire("or-ab.out", "or-abc.in1"),
+      normalizeWire("task-card-1.inputInt3", "or-abc.in2"),
+      normalizeWire("or-abc.out", "or-final.in1"),
+      normalizeWire("task-card-1.inputInt4", "or-final.in2"),
+      normalizeWire("or-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function or4waySolutionWorkspaceBalancedFrom() {
+    const workspace = standardTaskWorkspace("OR4way");
+    workspace.components.push(
+      { id: "or-left", type: "gate-Or", x: 360, y: 220 },
+      { id: "or-right", type: "gate-Or", x: 360, y: 360 },
+      { id: "or-final", type: "gate-Or", x: 620, y: 288 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "or-left.in1"),
+      normalizeWire("task-card-1.inputInt2", "or-left.in2"),
+      normalizeWire("task-card-1.inputInt3", "or-right.in1"),
+      normalizeWire("task-card-1.inputInt4", "or-right.in2"),
+      normalizeWire("or-left.out", "or-final.in1"),
+      normalizeWire("or-right.out", "or-final.in2"),
+      normalizeWire("or-final.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  function or4waySolutionWorkspaceFrom(step = 0) {
+    return step >= 4 ? or4waySolutionWorkspaceBalancedFrom() : or4waySolutionWorkspaceChainFrom();
+  }
+
+  // MUX — the compact solution: (input1 AND NOT control) OR (input2 AND control).
+  function muxCompactSolutionFrom() {
+    const workspace = standardTaskWorkspace("Mux");
+    workspace.components.push(
+      { id: "not-c", type: "gate-Not", ...muxAt("compact", "not-c", 380, 175) },
+      { id: "and-1", type: "gate-And", ...muxAt("compact", "and-1", 500, 240) },
+      { id: "and-2", type: "gate-And", ...muxAt("compact", "and-2", 500, 410) },
+      { id: "or-1", type: "gate-Or", ...muxAt("compact", "or-1", 660, 320) }
+    );
+    workspace.wires = muxWires("compact", [
+      ["task-card-1.inputInt3", "not-c.in1"],
+      // Control signal on the top input (in1) of each AND, data on the bottom
+      // (in2) — matching the SVG layout.
+      ["not-c.out", "and-1.in1"],
+      ["task-card-1.inputInt1", "and-1.in2"],
+      ["task-card-1.inputInt3", "and-2.in1"],
+      ["task-card-1.inputInt2", "and-2.in2"],
+      ["and-1.out", "or-1.in1"],
+      ["and-2.out", "or-1.in2"],
+      ["or-1.out", "task-card-1.outputInt"]
+    ]);
+    return normalizeWorkspace(workspace);
+  }
+
+  // MUX — the generic truth-table (minterm) solution: one AND term per row that
+  // outputs 1, all combined with an OR. The four 1-rows are:
+  //   m1: in1 & ~in2 & ~c   m2: in1 & in2 & ~c
+  //   m3: ~in1 & in2 & c     m4: in1 & in2 & c
+  function muxGenericSolutionFrom() {
+    const workspace = standardTaskWorkspace("Mux");
+    const ands = [
+      { id: "and-m1", type: "gate-AND3way", ...muxAt("generic", "and-m1", 535, 165) },
+      { id: "and-m2", type: "gate-AND3way", ...muxAt("generic", "and-m2", 535, 255) },
+      { id: "and-m3", type: "gate-AND3way", ...muxAt("generic", "and-m3", 535, 345) },
+      { id: "and-m4", type: "gate-AND3way", ...muxAt("generic", "and-m4", 535, 435) }
+    ];
+    workspace.components.push(
+      { id: "not-c", type: "gate-Not", ...muxAt("generic", "not-c", 360, 90) },
+      { id: "not-in1", type: "gate-Not", ...muxAt("generic", "not-in1", 255, 250) },
+      { id: "not-in2", type: "gate-Not", ...muxAt("generic", "not-in2", 255, 360) },
+      ...ands,
+      { id: "or-final", type: "gate-OR4way", ...muxAt("generic", "or-final", 700, 300) }
+    );
+    // AND → OR by vertical position (top AND to the top OR input, and so on), so
+    // the four wires never cross — matching the SVG rather than the label order.
+    const orInputs = ["or-final.in1", "or-final.in2", "or-final.in3", "or-final.in4"];
+    const andToOr = [...ands]
+      .sort((a, b) => a.y - b.y)
+      .map((and, index) => [`${and.id}.out`, orInputs[index]]);
+    workspace.wires = muxWires("generic", [
+      ["task-card-1.inputInt2", "not-in2.in1"],
+      ["task-card-1.inputInt1", "not-in1.in1"],
+      ["task-card-1.inputInt3", "not-c.in1"],
+      // Each AND takes its inputs in a fixed vertical order matching the SVG:
+      // the control signal on top (in1), input-1 in the middle (in2), input-2 at
+      // the bottom (in3). AND is commutative, so this is the same circuit.
+      ["not-c.out", "and-m1.in1"],
+      ["task-card-1.inputInt1", "and-m1.in2"],
+      ["not-in2.out", "and-m1.in3"],
+      ["not-c.out", "and-m2.in1"],
+      ["task-card-1.inputInt1", "and-m2.in2"],
+      ["task-card-1.inputInt2", "and-m2.in3"],
+      ["task-card-1.inputInt3", "and-m3.in1"],
+      ["not-in1.out", "and-m3.in2"],
+      ["task-card-1.inputInt2", "and-m3.in3"],
+      ["task-card-1.inputInt3", "and-m4.in1"],
+      ["task-card-1.inputInt1", "and-m4.in2"],
+      ["task-card-1.inputInt2", "and-m4.in3"],
+      ...andToOr,
+      ["or-final.out", "task-card-1.outputInt"]
+    ]);
+    return normalizeWorkspace(workspace);
+  }
+
+  // Steps 0..5 walk the generic minterm solution; from step 6 ("פתרון נוסף")
+  // the compact solution is shown.
+  function muxSolutionWorkspaceFrom(step = 0) {
+    return step >= 6 ? muxCompactSolutionFrom() : muxGenericSolutionFrom();
+  }
+
+  // DMUX — the simplest solution: out1 = data AND NOT(control); out2 = data AND
+  // control. Control goes on the top input (in1) of each AND, data on the bottom.
+  function dmuxSolutionFrom() {
+    const workspace = standardTaskWorkspace("DMux");
+    workspace.components.push(
+      { id: "not-c", type: "gate-Not", ...muxAt("dmux", "not-c", 400, 120) },
+      { id: "and-1", type: "gate-And", ...muxAt("dmux", "and-1", 560, 188) },
+      { id: "and-2", type: "gate-And", ...muxAt("dmux", "and-2", 560, 388) }
+    );
+    workspace.wires = muxWires("dmux", [
+      ["task-card-1.inputInt2", "not-c.in1"],
+      ["not-c.out", "and-1.in1"],
+      ["task-card-1.inputInt1", "and-1.in2"],
+      ["and-1.out", "task-card-1.outputInt1"],
+      ["task-card-1.inputInt2", "and-2.in1"],
+      ["task-card-1.inputInt1", "and-2.in2"],
+      ["and-2.out", "task-card-1.outputInt2"]
+    ]);
+    return normalizeWorkspace(workspace);
+  }
+
+  // halfAdder (chapter 2.5): sum = Xor(in1,in2) on the top output, carry =
+  // And(in1,in2) on the bottom output.
+  function halfAdderSolutionFrom() {
+    const workspace = standardTaskWorkspace("halfAdder");
+    // And (carry) on top, Xor (sum) on the bottom — matching the card's carry-top
+    // / sum-bottom outputs, so the two wires don't cross.
+    workspace.components.push(
+      { id: "and-1", type: "gate-And", x: 330, y: 200 },
+      { id: "xor-1", type: "gate-Xor", x: 330, y: 380 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "xor-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "xor-1.in2"),
+      normalizeWire("task-card-1.inputInt1", "and-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-1.in2"),
+      normalizeWire("xor-1.out", "task-card-1.outputInt1"),
+      normalizeWire("and-1.out", "task-card-1.outputInt2")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  // fullAdder (chapter 2.5): three halfAdders. HA1 adds the first two inputs;
+  // HA2 adds the third to HA1's sum (its sum is the card's sum); HA3 adds the two
+  // carries (its sum is the card's carry, its own carry is always 0).
+  function fullAdderSolutionFrom() {
+    const workspace = standardTaskWorkspace("fullAdder");
+    workspace.components.push(
+      { id: "ha-1", type: "gate-halfAdder", x: 330, y: 200 },
+      { id: "ha-2", type: "gate-halfAdder", x: 500, y: 320 },
+      { id: "ha-3", type: "gate-halfAdder", x: 690, y: 240 }
+    );
+    workspace.wires = [
+      normalizeWire("task-card-1.inputInt1", "ha-1.in1"),
+      normalizeWire("task-card-1.inputInt2", "ha-1.in2"),
+      normalizeWire("ha-1.out1", "ha-2.in1"),
+      normalizeWire("task-card-1.inputInt3", "ha-2.in2"),
+      normalizeWire("ha-2.out1", "task-card-1.outputInt1"),
+      normalizeWire("ha-1.out2", "ha-3.in1"),
+      normalizeWire("ha-2.out2", "ha-3.in2"),
+      normalizeWire("ha-3.out1", "task-card-1.outputInt2")
+    ];
+    return normalizeWorkspace(workspace);
+  }
+
+  // Add4 (chapter 2.5): a 4-bit ripple-carry adder. Split both number buses into
+  // their 4 bits, add them column by column with a chain of four fullAdders
+  // threading the carry, merge the four sum bits back into the sum bus, and take
+  // the last carry as the leading digit. The splitter's bottom leg is leg0 (the
+  // units bit, LSB) and the top leg is leg3 (the MSB), so the units fullAdder
+  // (fa0) sits at the bottom by the incoming carry and the carry threads UP
+  // fa0->fa1->fa2->fa3; fa3's carry is the leading digit. Layout supplied by the
+  // author (units at the bottom, a slight rightward lean up the significance).
+  function add4SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Add4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 451, y: 173, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 451, y: 310, mirrored: false, outputs: 4, width: 1 },
+      { id: "fa0", type: "gate-fullAdder", x: 582, y: 406 },
+      { id: "fa1", type: "gate-fullAdder", x: 602, y: 323 },
+      { id: "fa2", type: "gate-fullAdder", x: 610, y: 245 },
+      { id: "fa3", type: "gate-fullAdder", x: 635, y: 170 },
+      { id: "merge", type: "splitter", x: 796, y: 328, mirrored: true, outputs: 4, width: 1 }
+    ];
+    // fa0=units (LSB=leg0, bottom), fa3=leading (MSB=leg3, top); the carry threads
+    // upward fa0->fa1->fa2->fa3, and fa3's carry is the leading fifth digit.
+    const cols = [
+      { fa: "fa0", leg: "leg0", carryIn: "task-card-1.inputInt3" },
+      { fa: "fa1", leg: "leg1", carryIn: "fa0.out2" },
+      { fa: "fa2", leg: "leg2", carryIn: "fa1.out2" },
+      { fa: "fa3", leg: "leg3", carryIn: "fa2.out2" }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt2"),
+      normalizeWire("fa3.out2", "task-card-1.outputInt1")
+    ];
+    cols.forEach(({ fa, leg, carryIn }) => {
+      wires.push(normalizeWire(`split-a.${leg}`, `${fa}.in1`));
+      wires.push(normalizeWire(`split-b.${leg}`, `${fa}.in2`));
+      wires.push(normalizeWire(carryIn, `${fa}.in3`));
+      wires.push(normalizeWire(`${fa}.out1`, `merge.${leg}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: "Add4",
+      taskIntroSeen: true
+    });
+  }
+
+  // Add16 (chapter 2.5): a 16-bit adder built from four Add4 cards. Split each
+  // 16-bit number into four 4-bit chunks (a width-4 splitter), add the chunks
+  // column by column with a chain of four Add4 gates threading the carry, merge
+  // the four 4-bit sum chunks back into the 16-bit output, and discard the last
+  // carry (the 17th digit). Units chunk at the bottom (leg0), MSB chunk at the
+  // top (leg3); the first Add4 has no carry-in (its in3 is left unconnected = 0).
+  function add16SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 310 },
+      { id: "task-card-1", type: taskCardComponentType("Add16"), x: 640, y: 310 },
+      { id: "split-a", type: "splitter", x: 430, y: 200, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 420, mirrored: false, outputs: 4, width: 4 },
+      // Four Add4 chunks evenly stacked (140px apart), units (ad0) at the bottom
+      // and the leading chunk (ad3) at the top — inside the tall Add16 frame. The
+      // whole stack (100–520) fits the board so no gate is clamped off-edge, and
+      // the frame sits low enough that its title clears the top of the board.
+      { id: "ad3", type: "gate-Add4", x: 640, y: 100 },
+      { id: "ad2", type: "gate-Add4", x: 640, y: 240 },
+      { id: "ad1", type: "gate-Add4", x: 640, y: 380 },
+      { id: "ad0", type: "gate-Add4", x: 640, y: 520 },
+      { id: "merge", type: "splitter", x: 850, y: 310, mirrored: true, outputs: 4, width: 4 }
+    ];
+    // ad0=units chunk (leg0, bottom), ad3=leading chunk (leg3, top); the carry
+    // threads upward ad0->ad1->ad2->ad3, and ad3's carry (the 17th digit) is
+    // dropped. ad0 has no carry-in (Add16 takes none).
+    const cols = [
+      { ad: "ad0", leg: "leg0", carryIn: null },
+      { ad: "ad1", leg: "leg1", carryIn: "ad0.out2" },
+      { ad: "ad2", leg: "leg2", carryIn: "ad1.out2" },
+      { ad: "ad3", leg: "leg3", carryIn: "ad2.out2" }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt1")
+    ];
+    cols.forEach(({ ad, leg, carryIn }) => {
+      wires.push(normalizeWire(`split-a.${leg}`, `${ad}.in1`));
+      wires.push(normalizeWire(`split-b.${leg}`, `${ad}.in2`));
+      if (carryIn) wires.push(normalizeWire(carryIn, `${ad}.in3`));
+      wires.push(normalizeWire(`${ad}.out1`, `merge.${leg}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: "Add16",
+      taskIntroSeen: true
+    });
+  }
+
+  // Not4 (chapter 2.4): split the input bus into 4 wires, NOT each, merge back.
+  // Built directly (not via standardTaskWorkspace) because bus tasks have no
+  // TASK_DEFS entry and use a bus card with a pre-placed single source.
+  function not4SolutionWorkspaceFrom() {
+    // Aligned with the splitter legs (288 ± 51/17), component 0 at the bottom,
+    // so every split→gate→merge wire is horizontal (no crossing).
+    const notYs = [339, 305, 271, 237];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Not4"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+    notYs.forEach((y, i) => {
+      components.push({ id: `not-${i}`, type: "gate-Not", x: 640, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `not-${i}.in1`));
+      wires.push(normalizeWire(`not-${i}.out`, `merge.leg${i}`));
+    });
+    wires.push(normalizeWire("merge.single", "task-card-1.outputInt"));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Not4", taskIntroSeen: true
+    });
+  }
+
+  // Is0_4: split the 4-bit input into 4 single bits, OR them all together
+  // (Or4way) — 0 iff every bit was 0 — then NOT the result to get 1 iff all-zero.
+  function is0_4SolutionWorkspaceFrom() {
+    const legYs = [339, 305, 271, 237]; // leg0 (bottom) … leg3 (top)
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Is0_4"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 420, y: 288, mirrored: false, outputs: 4, width: 1 },
+      { id: "or4", type: "gate-OR4way", x: 590, y: 288 },
+      { id: "not1", type: "gate-Not", x: 760, y: 288 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-in.single"),
+      normalizeWire("or4.out", "not1.in1"),
+      normalizeWire("not1.out", "task-card-1.outputInt")
+    ];
+    // leg 0 is the BOTTOM leg and Or4way's in1 is its TOP input, so map leg i to
+    // in(4-i) — bottom leg to bottom input — to keep the wires from crossing.
+    legYs.forEach((y, i) => { wires.push(normalizeWire(`split-in.leg${i}`, `or4.in${4 - i}`)); });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Is0_4", taskIntroSeen: true
+    });
+  }
+
+  // Is0_16: split the 16-bit input into four 4-bit nibbles, test each with an
+  // Is0_4, then AND the four results (And3way + And) — 1 iff every nibble is 0.
+  function is0_16SolutionWorkspaceFrom() {
+    const legYs = [339, 305, 271, 237]; // is0-0 (bottom) … is0-3 (top)
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Is0_16"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 380, y: 288, mirrored: false, outputs: 4, width: 4 },
+      // A balanced AND tree keeps the wires from crossing: AND the bottom pair and
+      // the top pair, then AND those two results.
+      { id: "and-lo", type: "gate-And", x: 700, y: 322 },
+      { id: "and-hi", type: "gate-And", x: 700, y: 254 },
+      { id: "and-final", type: "gate-And", x: 840, y: 288 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-in.single"),
+      normalizeWire("is0-1.out", "and-lo.in1"), normalizeWire("is0-0.out", "and-lo.in2"),
+      normalizeWire("is0-3.out", "and-hi.in1"), normalizeWire("is0-2.out", "and-hi.in2"),
+      normalizeWire("and-hi.out", "and-final.in1"), normalizeWire("and-lo.out", "and-final.in2"),
+      normalizeWire("and-final.out", "task-card-1.outputInt")
+    ];
+    legYs.forEach((y, i) => {
+      components.push({ id: `is0-${i}`, type: "gate-Is0_4", x: 540, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `is0-${i}.in1`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Is0_16", taskIntroSeen: true
+    });
+  }
+
+  // Not16: split the 16-bit input into 4 buses of width 4, apply a Not4 to each,
+  // merge the four 4-bit results back into the 16-bit output.
+  function not16SolutionWorkspaceFrom() {
+    // Aligned with the splitter legs, component 0 at the bottom, so every
+    // split→gate→merge wire is horizontal (no crossing).
+    const not4Ys = [339, 305, 271, 237];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Not16"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 450, y: 288, mirrored: false, outputs: 4, width: 4 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 4 }
+    ];
+    const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+    not4Ys.forEach((y, i) => {
+      components.push({ id: `not4-${i}`, type: "gate-Not4", x: 640, y });
+      wires.push(normalizeWire(`split-in.leg${i}`, `not4-${i}.in1`));
+      wires.push(normalizeWire(`not4-${i}.out`, `merge.leg${i}`));
+    });
+    wires.push(normalizeWire("merge.single", "task-card-1.outputInt"));
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Not16", taskIntroSeen: true
+    });
+  }
+
+  // AND4: split each of the two 4-bit inputs into 4 wires, AND the matching
+  // pairs, merge the four results back into the 4-bit output.
+  function and4SolutionWorkspaceFrom() {
+    // Spread out (component 0 at the bottom) so the AND gates don't overlap —
+    // each still sits between its two input legs (top split-a, bottom split-b).
+    const andYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("AND4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    andYs.forEach((y, i) => {
+      components.push({ id: `and-${i}`, type: "gate-And", x: 660, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `and-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `and-${i}.in2`));
+      wires.push(normalizeWire(`and-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "AND4", taskIntroSeen: true
+    });
+  }
+
+  // OR4: split each of the two 4-bit inputs into 4 wires, OR the matching pairs,
+  // merge the four results back into the 4-bit output. (Analogous to AND4.)
+  function or4SolutionWorkspaceFrom() {
+    const orYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("OR4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    orYs.forEach((y, i) => {
+      components.push({ id: `or-${i}`, type: "gate-Or", x: 660, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `or-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `or-${i}.in2`));
+      wires.push(normalizeWire(`or-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "OR4", taskIntroSeen: true
+    });
+  }
+
+  // AND16: split each 16-bit input into 4 buses of width 4, AND the matching
+  // pairs with an AND4, merge the four 4-bit results back into the 16-bit output.
+  function and16SolutionWorkspaceFrom() {
+    const andYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("AND16"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 450, y: 198, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 450, y: 378, mirrored: false, outputs: 4, width: 4 },
+      { id: "merge", type: "splitter", x: 830, y: 288, mirrored: true, outputs: 4, width: 4 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    andYs.forEach((y, i) => {
+      components.push({ id: `and4-${i}`, type: "gate-AND4", x: 660, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `and4-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `and4-${i}.in2`));
+      wires.push(normalizeWire(`and4-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "AND16", taskIntroSeen: true
+    });
+  }
+
+  // MUX4: split each of the two 4-bit data inputs into 4 wires, feed matching
+  // bit-pairs into a single-bit MUX (in1=data-1 bit, in2=data-2 bit), fan the
+  // shared control bit to every MUX's in3, merge the four results into the
+  // 4-bit output. output = control ? data2 : data1, bit by bit.
+  function mux4SolutionWorkspaceFrom() {
+    const muxYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX4"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 430, y: 198, mirrored: false, outputs: 4, width: 1 },
+      { id: "split-b", type: "splitter", x: 430, y: 378, mirrored: false, outputs: 4, width: 1 },
+      { id: "merge", type: "splitter", x: 850, y: 288, mirrored: true, outputs: 4, width: 1 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    muxYs.forEach((y, i) => {
+      components.push({ id: `mux-${i}`, type: "gate-Mux", x: 650, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `mux-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `mux-${i}.in2`));
+      wires.push(normalizeWire("task-card-1.inputInt3", `mux-${i}.in3`));
+      wires.push(normalizeWire(`mux-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "MUX4", taskIntroSeen: true
+    });
+  }
+
+  // MUX16: split each 16-bit data input into 4 buses of width 4, feed matching
+  // bus-pairs into a MUX4, fan the shared control bit to every MUX4's in3, merge
+  // the four 4-bit results into the 16-bit output. (Just like MUX4, using MUX4
+  // in place of MUX.)
+  function mux16SolutionWorkspaceFrom() {
+    const muxYs = [393, 323, 253, 183];
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX16"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 430, y: 198, mirrored: false, outputs: 4, width: 4 },
+      { id: "split-b", type: "splitter", x: 430, y: 378, mirrored: false, outputs: 4, width: 4 },
+      { id: "merge", type: "splitter", x: 850, y: 288, mirrored: true, outputs: 4, width: 4 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    muxYs.forEach((y, i) => {
+      components.push({ id: `mux4-${i}`, type: "gate-MUX4", x: 650, y });
+      wires.push(normalizeWire(`split-a.leg${i}`, `mux4-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `mux4-${i}.in2`));
+      wires.push(normalizeWire("task-card-1.inputInt3", `mux4-${i}.in3`));
+      wires.push(normalizeWire(`mux4-${i}.out`, `merge.leg${i}`));
+    });
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "MUX16", taskIntroSeen: true
+    });
+  }
+
+  // Shared scaffold for a bus-task solution workspace (chapter 2.4).
+  function busSolutionWorkspace(taskId, components, wires) {
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId, taskIntroSeen: true
+    });
+  }
+
+  // y of splitter leg i (leg 0 at the BOTTOM), matching the board convention.
+  function legY(n, i, center = 288, spacing = 34) {
+    return center + ((n - 1) / 2 - i) * spacing;
+  }
+
+  // Not16 — the direct (cumbersome) variant: split the 16-bit input into 16 raw
+  // wires, NOT each one, merge back. Shown as the "additional solution".
+  function not16DirectSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Not16"), x: 640, y: 288 },
+      { id: "split-in", type: "splitter", x: 470, y: 288, mirrored: false, outputs: 16, width: 1 },
+      { id: "merge", type: "splitter", x: 820, y: 288, mirrored: true, outputs: 16, width: 1 }
+    ];
+    const wires = [normalizeWire("task-card-1.inputInt1", "split-in.single")];
+    for (let i = 0; i < 16; i += 1) {
+      components.push({ id: `not-${i}`, type: "gate-Not", x: 645, y: legY(16, i) });
+      wires.push(normalizeWire(`split-in.leg${i}`, `not-${i}.in1`));
+      wires.push(normalizeWire(`not-${i}.out`, `merge.leg${i}`));
+    }
+    wires.push(normalizeWire("merge.single", "task-card-1.outputInt"));
+    return busSolutionWorkspace("Not16", components, wires);
+  }
+
+  // AND16 — the direct (cumbersome) variant: split each 16-bit input into 16 raw
+  // wires, AND matching pairs, merge back.
+  function and16DirectSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("AND16"), x: 640, y: 288 },
+      { id: "split-a", type: "splitter", x: 430, y: 288, mirrored: false, outputs: 16, width: 1 },
+      { id: "split-b", type: "splitter", x: 600, y: 288, mirrored: false, outputs: 16, width: 1 },
+      { id: "merge", type: "splitter", x: 950, y: 288, mirrored: true, outputs: 16, width: 1 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "split-a.single"),
+      normalizeWire("task-card-1.inputInt2", "split-b.single"),
+      normalizeWire("merge.single", "task-card-1.outputInt")
+    ];
+    for (let i = 0; i < 16; i += 1) {
+      components.push({ id: `and-${i}`, type: "gate-And", x: 780, y: legY(16, i) });
+      wires.push(normalizeWire(`split-a.leg${i}`, `and-${i}.in1`));
+      wires.push(normalizeWire(`split-b.leg${i}`, `and-${i}.in2`));
+      wires.push(normalizeWire(`and-${i}.out`, `merge.leg${i}`));
+    }
+    return busSolutionWorkspace("AND16", components, wires);
+  }
+
+  // OR4 — the "original OR" variant (De Morgan): OR = NOT(AND(NOT a, NOT b)), done
+  // per bus with NOT4/AND4. out = NOT4( AND4( NOT4(in1), NOT4(in2) ) ).
+  function or4NotAndSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("OR4"), x: 640, y: 288 },
+      { id: "not-a", type: "gate-Not4", x: 470, y: 198 },
+      { id: "not-b", type: "gate-Not4", x: 470, y: 378 },
+      { id: "and-1", type: "gate-AND4", x: 650, y: 288 },
+      { id: "not-out", type: "gate-Not4", x: 820, y: 288 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "not-a.in1"),
+      normalizeWire("task-card-1.inputInt2", "not-b.in1"),
+      normalizeWire("not-a.out", "and-1.in1"),
+      normalizeWire("not-b.out", "and-1.in2"),
+      normalizeWire("and-1.out", "not-out.in1"),
+      normalizeWire("not-out.out", "task-card-1.outputInt")
+    ];
+    return busSolutionWorkspace("OR4", components, wires);
+  }
+
+  // MUX4 — the "compute" variant, mirroring the single-bit MUX: out =
+  // (data1 AND ~c) OR (data2 AND c), lifted to buses. The single control bit is
+  // duplicated into 4 copies and bundled (ctrl-merge) into a width-4 control
+  // bus; NOT4 gives its inverse; two AND4s gate the data buses; OR4 combines.
+  function mux4NotAndOrSolutionFrom() {
+    // Layout copied from the reference screenshot: the control is bundled into a
+    // width-4 bus at the top-left, NOT4 sits at the top, the two AND4s are
+    // stacked (upper = data1 & ~c, lower = data2 & c) with the control fanning to
+    // both the NOT4 and the lower AND, and OR4 combines them on the right.
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX4"), x: 640, y: 288 },
+      { id: "ctrl-merge", type: "splitter", x: 575, y: 155, mirrored: true, outputs: 4, width: 1 },
+      { id: "not4-c", type: "gate-Not4", x: 700, y: 155 },
+      { id: "and-1", type: "gate-AND4", x: 760, y: 255 },
+      { id: "and-2", type: "gate-AND4", x: 760, y: 390 },
+      { id: "or-1", type: "gate-OR4", x: 840, y: 320 }
+    ];
+    const wires = [
+      // fan the control bit into the four legs of the merging splitter
+      normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg0"),
+      normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg1"),
+      normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg2"),
+      normalizeWire("task-card-1.inputInt3", "ctrl-merge.leg3"),
+      // NOT4 gives ~c; it drives the TOP input of the upper AND (data1 & ~c)
+      normalizeWire("ctrl-merge.single", "not4-c.in1"),
+      normalizeWire("not4-c.out", "and-1.in1"),
+      normalizeWire("task-card-1.inputInt1", "and-1.in2"),
+      // the raw control bus drives the TOP input of the lower AND (data2 & c)
+      normalizeWire("ctrl-merge.single", "and-2.in1"),
+      normalizeWire("task-card-1.inputInt2", "and-2.in2"),
+      // combine
+      normalizeWire("and-1.out", "or-1.in1"),
+      normalizeWire("and-2.out", "or-1.in2"),
+      normalizeWire("or-1.out", "task-card-1.outputInt")
+    ];
+    return busSolutionWorkspace("MUX4", components, wires);
+  }
+
+  // MUX16 — the "original MUX" variant, drawn with AND16/NOT16/OR16 (the same
+  // shape as the MUX4 compute variant, one width up). OR16 is not a real task;
+  // it is drawn here (gate-OR16) to show what the learner will need to build.
+  function mux16NotAndOrSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("MUX16"), x: 640, y: 288 },
+      { id: "ctrl-merge", type: "splitter", x: 460, y: 345, mirrored: true, outputs: 16, width: 1 },
+      { id: "not16-c", type: "gate-Not16", x: 610, y: 165 },
+      { id: "and16-1", type: "gate-AND16", x: 745, y: 225 },
+      { id: "and16-2", type: "gate-AND16", x: 745, y: 400 },
+      { id: "or16-1", type: "gate-OR16", x: 850, y: 315 }
+    ];
+    const wires = [
+      normalizeWire("ctrl-merge.single", "not16-c.in1"),
+      normalizeWire("not16-c.out", "and16-1.in1"),
+      normalizeWire("task-card-1.inputInt1", "and16-1.in2"),
+      normalizeWire("ctrl-merge.single", "and16-2.in1"),
+      normalizeWire("task-card-1.inputInt2", "and16-2.in2"),
+      normalizeWire("and16-1.out", "or16-1.in1"),
+      normalizeWire("and16-2.out", "or16-1.in2"),
+      normalizeWire("or16-1.out", "task-card-1.outputInt")
+    ];
+    // fan the single control bit into all 16 legs of the merging splitter
+    for (let i = 0; i < 16; i += 1) wires.push(normalizeWire("task-card-1.inputInt3", `ctrl-merge.leg${i}`));
+    return busSolutionWorkspace("MUX16", components, wires);
+  }
+
+  // Dmux4way: split the 2-bit control bus; a DMUX tree routes the input — the
+  // first DMUX (control = MSB / "first bit") picks the pair of outputs, and a
+  // second DMUX in each branch (control = LSB) picks within the pair.
+  function dmux4waySolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Dmux4way"), x: 640, y: 288 },
+      { id: "ctrl-split", type: "splitter", x: 545, y: 150, mirrored: false, outputs: 2, width: 1 },
+      { id: "dmux-a", type: "gate-DMux", x: 590, y: 300 },
+      { id: "dmux-b", type: "gate-DMux", x: 775, y: 205 },
+      { id: "dmux-c", type: "gate-DMux", x: 775, y: 395 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "dmux-a.in1"),
+      normalizeWire("ctrl-split.leg1", "dmux-a.in2"),
+      normalizeWire("dmux-a.out1", "dmux-b.in1"),
+      normalizeWire("dmux-a.out2", "dmux-c.in1"),
+      normalizeWire("ctrl-split.leg0", "dmux-b.in2"),
+      normalizeWire("ctrl-split.leg0", "dmux-c.in2"),
+      normalizeWire("dmux-b.out1", "task-card-1.outputInt1"),
+      normalizeWire("dmux-b.out2", "task-card-1.outputInt2"),
+      normalizeWire("dmux-c.out1", "task-card-1.outputInt3"),
+      normalizeWire("dmux-c.out2", "task-card-1.outputInt4")
+    ];
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Dmux4way", taskIntroSeen: true
+    });
+  }
+
+  // Mux4way16: split the 2-bit control bus; a MUX16 tree selects the output —
+  // two first-level MUX16 choose within each pair by the LSB, and a final
+  // MUX16 chooses between the pairs by the MSB ("first bit").
+  function mux4way16SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Mux4way16"), x: 640, y: 288 },
+      { id: "ctrl-split", type: "splitter", x: 520, y: 128, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux-lo", type: "gate-MUX16", x: 630, y: 205 },
+      { id: "mux-hi", type: "gate-MUX16", x: 630, y: 385 },
+      { id: "mux-fin", type: "gate-MUX16", x: 805, y: 295 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt5", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "mux-lo.in1"),
+      normalizeWire("task-card-1.inputInt2", "mux-lo.in2"),
+      normalizeWire("ctrl-split.leg0", "mux-lo.in3"),
+      normalizeWire("task-card-1.inputInt3", "mux-hi.in1"),
+      normalizeWire("task-card-1.inputInt4", "mux-hi.in2"),
+      normalizeWire("ctrl-split.leg0", "mux-hi.in3"),
+      normalizeWire("mux-lo.out", "mux-fin.in1"),
+      normalizeWire("mux-hi.out", "mux-fin.in2"),
+      normalizeWire("ctrl-split.leg1", "mux-fin.in3"),
+      normalizeWire("mux-fin.out", "task-card-1.outputInt")
+    ];
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components, wires, nextId: 2, unlocked: true, helpPromptSeen: true,
+      buildHelpButtonVisible: false, understoodPromptShown: false, understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false }, nandMonologueStep: null,
+      workspaceCompleted: false, workspaceSession: 2,
+      exitTargetPanelIndex: secondWorkspaceExitTarget().panelIndex,
+      taskId: "Mux4way16", taskIntroSeen: true
+    });
+  }
+
+  // A shared workspace wrapper for the 2.6 ALU solution circuits.
+  function aluSolutionWorkspace(taskId, components, wires) {
+    return normalizeWorkspace({
+      ...createDefaultWorkspace(),
+      components,
+      wires,
+      nextId: 2,
+      selectedTerminal: null,
+      accident: null,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId,
+      taskIntroSeen: true
+    });
+  }
+
+  // Inc: input + 1. Build a width-16 bus that represents 1 (two merging splitters
+  // of size 4 — only the units leg of each is driven, from the source), then feed
+  // the input and that "1" bus into Add16.
+  function incSolutionFrom() {
+    // The pre-placed source-1 is the TEST source and stays OUTSIDE the frame (it
+    // drives the input during a check). The constant "1" is part of the card's own
+    // logic, so the solution adds its OWN source INSIDE the frame, feeding the two
+    // size-4 merging splitters that build the "1" bus; that bus and the input go
+    // into Add16. The card sits at the standard position so the check's converters
+    // have room and the whole circuit stays inside the frame.
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 288 },
+      { id: "task-card-1", type: taskCardComponentType("Inc"), x: 640, y: 288 },
+      // The constant-"1" source and its two merging splitters sit along the bottom
+      // of the frame, spaced apart so their legs never overlap each other or the
+      // source. Add16 sits at the card-pin height (y≈300) so the input bus and the
+      // sum bus run straight across instead of diving up to a high adder.
+      { id: "one-source", type: "source", x: 350, y: 400 },
+      { id: "one-split-lo", type: "splitter", x: 490, y: 400, mirrored: true, outputs: 4, width: 1 },
+      { id: "one-split-hi", type: "splitter", x: 660, y: 400, mirrored: true, outputs: 4, width: 4 },
+      { id: "add-1", type: "gate-Add16", x: 770, y: 300 }
+    ];
+    const wires = [
+      normalizeWire("one-source.out", "one-split-lo.leg0"),
+      normalizeWire("one-split-lo.single", "one-split-hi.leg0"),
+      normalizeWire("task-card-1.inputInt1", "add-1.in1"),
+      normalizeWire("one-split-hi.single", "add-1.in2"),
+      normalizeWire("add-1.out1", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("Inc", components, wires);
+  }
+
+  // ALU0: control=0 → AND, control=1 → ADD. Compute both on the two number buses
+  // (AND16 and Add16 in parallel) and let MUX16 pick between them by the control.
+  function alu0SolutionFrom() {
+    // The internal gates sit inside the (cx±300) shell frame: AND16 and Add16 on
+    // the left, MUX16 on the right, the card centred over them.
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 110 },
+      { id: "task-card-1", type: taskCardComponentType("ALU0"), x: 640, y: 360 },
+      { id: "and16", type: "gate-AND16", x: 540, y: 240 },
+      { id: "add16", type: "gate-Add16", x: 540, y: 470 },
+      { id: "mux", type: "gate-MUX16", x: 760, y: 355 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt1", "and16.in1"),
+      normalizeWire("task-card-1.inputInt2", "and16.in2"),
+      normalizeWire("task-card-1.inputInt1", "add16.in1"),
+      normalizeWire("task-card-1.inputInt2", "add16.in2"),
+      normalizeWire("and16.out", "mux.in1"),
+      normalizeWire("add16.out1", "mux.in2"),
+      normalizeWire("task-card-1.inputInt3", "mux.in3"),
+      normalizeWire("mux.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU0", components, wires);
+  }
+
+  // PreperNum: two stages selected by the 2-bit control (layout mirrors the
+  // learner-supplied prepnum.json). Split the control just below the control pin;
+  // MUX16 #1 chooses between the input and a zero-bus (unconnected in2) by the
+  // SECOND bit (leg0/LSB) — stage 1 zeroing; MUX16 #2 chooses between that result
+  // and its NOT (via Not16) by the FIRST bit (leg1/MSB) — stage 2 NOT.
+  function preperNumSolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 50 },
+      { id: "task-card-1", type: taskCardComponentType("PreperNum"), x: 620, y: 300 },
+      { id: "ctrl-split", type: "splitter", x: 500, y: 185, mirrored: false, outputs: 2, width: 1 },
+      { id: "mux1", type: "gate-MUX16", x: 472, y: 302 },
+      { id: "not16", type: "gate-Not16", x: 610, y: 430 },
+      { id: "mux2", type: "gate-MUX16", x: 733, y: 302 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt2", "ctrl-split.single"),
+      normalizeWire("task-card-1.inputInt1", "mux1.in1"),
+      normalizeWire("ctrl-split.leg0", "mux1.in3"),
+      normalizeWire("mux1.out", "not16.in1"),
+      normalizeWire("mux1.out", "mux2.in1"),
+      normalizeWire("not16.out", "mux2.in2"),
+      normalizeWire("ctrl-split.leg1", "mux2.in3"),
+      normalizeWire("mux2.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("PreperNum", components, wires);
+  }
+
+  // ALU1 shared skeleton: the control split into the parts we need, plus a
+  // PreperNum on each of the two numbers and an ALU0 combining them. `finalStage`
+  // returns the extra components/wires that turn ALU0's result into the card
+  // output (either a third PreperNum doing the optional NOT, or a MUX16 variant).
+  function alu1Skeleton(finalStage) {
+    // Mirrors the learner-supplied ALU1.json (control adapted to poke out the
+    // TOP here instead of the side). The 6-bit control splits into three 2-bit
+    // chunks: leg0 (bottom, bits 0,1) preps input1, leg1 (bits 2,3) preps input2,
+    // leg2 (top, bits 4,5) splits again into the op bit (4) and the NOT bit (5).
+    // Layout per the learner's ALU1_3.json (adapted to the control-on-top frame):
+    // pn1 sits level with its number input and directly under ctrl-split's leg0;
+    // pn2 sits lower and further right so its input bus clears pn1; ALU0 is to
+    // the right of both at pn1's height, and the final prep continues to its right.
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 110 },
+      { id: "task-card-1", type: taskCardComponentType("ALU1"), x: 560, y: 360 },
+      { id: "ctrl-split", type: "splitter", x: 410, y: 200, mirrored: false, outputs: 3, width: 2 },
+      { id: "part3-split", type: "splitter", x: 545, y: 150, mirrored: false, outputs: 2, width: 1 },
+      { id: "pn1", type: "gate-PreperNum", x: 450, y: 270 },
+      { id: "pn2", type: "gate-PreperNum", x: 560, y: 450 },
+      { id: "alu0", type: "gate-ALU0", x: 672, y: 270 }
+    ];
+    const wires = [
+      // Control fan-out. leg0 (bottom) = bits 0,1 -> input1 prep; leg1 (mid) =
+      // bits 2,3 -> input2 prep; leg2 (top) = bits 4,5 -> part3 (op + NOT).
+      normalizeWire("task-card-1.inputInt3", "ctrl-split.single"),
+      normalizeWire("ctrl-split.leg0", "pn1.in2"),
+      normalizeWire("ctrl-split.leg1", "pn2.in2"),
+      normalizeWire("ctrl-split.leg2", "part3-split.single"),
+      // Data: prep each number, then ALU0 does the op (bit 4 = part3.leg0).
+      normalizeWire("task-card-1.inputInt1", "pn1.in1"),
+      normalizeWire("task-card-1.inputInt2", "pn2.in1"),
+      normalizeWire("pn1.out1", "alu0.in1"),
+      normalizeWire("pn2.out1", "alu0.in2"),
+      normalizeWire("part3-split.leg0", "alu0.in3")
+    ];
+    const extra = finalStage();
+    components.push(...extra.components);
+    wires.push(...extra.wires);
+    return aluSolutionWorkspace("ALU1", components, wires);
+  }
+
+  // Main ALU1 solution: the final optional NOT is a THIRD PreperNum. Its control
+  // is a 2-bit bus whose bottom bit (zero stage) is left unconnected (=0) and
+  // whose top bit (NOT stage) is control bit 5 — so it never zeroes, and NOTs
+  // exactly when bit 5 says to.
+  function alu1SolutionFrom() {
+    return alu1Skeleton(() => ({
+      components: [
+        { id: "pn3-ctrl", type: "splitter", x: 655, y: 185, mirrored: true, outputs: 2, width: 1 },
+        { id: "pn3", type: "gate-PreperNum", x: 792, y: 270 }
+      ],
+      wires: [
+        // part3.leg1 (bit 5) -> the NOT stage (pn3 control top bit); bottom stays 0.
+        normalizeWire("part3-split.leg1", "pn3-ctrl.leg1"),
+        normalizeWire("pn3-ctrl.single", "pn3.in2"),
+        normalizeWire("alu0.out1", "pn3.in1"),
+        normalizeWire("pn3.out1", "task-card-1.outputInt1")
+      ]
+    }));
+  }
+
+  // Alternative ALU1 solution: instead of the third PreperNum, a MUX16 chooses
+  // between ALU0's result and its NOT (via Not16) by control bit 5.
+  function alu1AltSolutionFrom() {
+    return alu1Skeleton(() => ({
+      components: [
+        { id: "not16", type: "gate-Not16", x: 710, y: 400 },
+        { id: "mux-not", type: "gate-MUX16", x: 812, y: 270 }
+      ],
+      wires: [
+        normalizeWire("alu0.out1", "not16.in1"),
+        normalizeWire("alu0.out1", "mux-not.in1"),
+        normalizeWire("not16.out", "mux-not.in2"),
+        normalizeWire("part3-split.leg1", "mux-not.in3"),
+        normalizeWire("mux-not.out", "task-card-1.outputInt1")
+      ]
+    }));
+  }
+
+  // ALU2: run ALU1 on input1 and a second operand chosen (by the top control
+  // bit) between input2 and input3. Split the 7-bit control into its bits: the
+  // top bit drives a MUX16 that picks the operand; the lower six are merged back
+  // into the 6-bit ALU1 sub-control.
+  function alu2SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 80 },
+      { id: "task-card-1", type: taskCardComponentType("ALU2"), x: 560, y: 360 },
+      { id: "ctrl-split", type: "splitter", x: 430, y: 195, mirrored: false, outputs: 7, width: 1 },
+      { id: "subctrl-merge", type: "splitter", x: 548, y: 235, mirrored: true, outputs: 6, width: 1 },
+      { id: "mux", type: "gate-MUX16", x: 470, y: 468 },
+      { id: "alu1", type: "gate-ALU1", x: 690, y: 360 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt4", "ctrl-split.single"),
+      // The top control bit (leg6) selects the second operand via MUX16.
+      normalizeWire("task-card-1.inputInt2", "mux.in1"),
+      normalizeWire("task-card-1.inputInt3", "mux.in2"),
+      normalizeWire("ctrl-split.leg6", "mux.in3"),
+      // The lower six control bits merge into the ALU1 sub-control bus.
+      normalizeWire("ctrl-split.leg0", "subctrl-merge.leg0"),
+      normalizeWire("ctrl-split.leg1", "subctrl-merge.leg1"),
+      normalizeWire("ctrl-split.leg2", "subctrl-merge.leg2"),
+      normalizeWire("ctrl-split.leg3", "subctrl-merge.leg3"),
+      normalizeWire("ctrl-split.leg4", "subctrl-merge.leg4"),
+      normalizeWire("ctrl-split.leg5", "subctrl-merge.leg5"),
+      // ALU1 on input1 and the chosen operand, with the assembled sub-control.
+      normalizeWire("task-card-1.inputInt1", "alu1.in1"),
+      normalizeWire("mux.out", "alu1.in2"),
+      normalizeWire("subctrl-merge.single", "alu1.in3"),
+      normalizeWire("alu1.out1", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU2", components, wires);
+  }
+
+  // ALU3: the top control bit chooses between two prepared options via MUX16 —
+  // (A) the 12-bit control zero-extended to 16 bits, and (B) the ALU2 result on
+  // the three numbers using the low 7 control bits. Split the control to its
+  // bits, then merge the pieces each option needs.
+  function alu3SolutionFrom() {
+    const components = [
+      { id: "source-1", type: "source", x: 65, y: 80 },
+      { id: "task-card-1", type: taskCardComponentType("ALU3"), x: 560, y: 360 },
+      // Split the 12-bit control into its bits.
+      { id: "ctrl-split", type: "splitter", x: 405, y: 360, mirrored: false, outputs: 12, width: 1 },
+      // Option A: the 12 control bits as the low bits of a 16-bit bus (top 4 legs
+      // left unconnected = 0).
+      { id: "optA-merge", type: "splitter", x: 512, y: 250, mirrored: true, outputs: 16, width: 1 },
+      // Option B's ALU2 control: the low 7 control bits merged back to a 7-bit bus.
+      { id: "alu2-ctrl", type: "splitter", x: 520, y: 545, mirrored: true, outputs: 7, width: 1 },
+      { id: "alu2", type: "gate-ALU2", x: 690, y: 470 },
+      { id: "mux", type: "gate-MUX16", x: 790, y: 335 }
+    ];
+    const wires = [
+      normalizeWire("task-card-1.inputInt4", "ctrl-split.single"),
+      // Option A: low 12 legs -> a 16-bit bus (legs 12..15 stay 0).
+      ...Array.from({ length: 12 }, (_, i) => normalizeWire(`ctrl-split.leg${i}`, `optA-merge.leg${i}`)),
+      normalizeWire("optA-merge.single", "mux.in1"),
+      // Option B: the low 7 control bits -> ALU2 control; ALU2 on the 3 numbers.
+      ...Array.from({ length: 7 }, (_, i) => normalizeWire(`ctrl-split.leg${i}`, `alu2-ctrl.leg${i}`)),
+      normalizeWire("task-card-1.inputInt1", "alu2.in1"),
+      normalizeWire("task-card-1.inputInt2", "alu2.in2"),
+      normalizeWire("task-card-1.inputInt3", "alu2.in3"),
+      normalizeWire("alu2-ctrl.single", "alu2.in4"),
+      normalizeWire("alu2.out1", "mux.in2"),
+      // The top control bit (leg11) selects between the two options.
+      normalizeWire("ctrl-split.leg11", "mux.in3"),
+      normalizeWire("mux.out", "task-card-1.outputInt1")
+    ];
+    return aluSolutionWorkspace("ALU3", components, wires);
+  }
+
+  function solutionWorkspaceForTask(taskId, step = 0) {
+    if (taskId === "halfAdder") return halfAdderSolutionFrom();
+    if (taskId === "fullAdder") return fullAdderSolutionFrom();
+    if (taskId === "Add4") return add4SolutionFrom();
+    if (taskId === "Add16") return add16SolutionFrom();
+    if (taskId === "Inc") return incSolutionFrom();
+    if (taskId === "ALU0") return alu0SolutionFrom();
+    if (taskId === "PreperNum") return preperNumSolutionFrom();
+    if (taskId === "ALU1") return step >= 5 ? alu1AltSolutionFrom() : alu1SolutionFrom();
+    if (taskId === "ALU3") return alu3SolutionFrom();
+    if (taskId === "ALU2") return alu2SolutionFrom();
+    if (taskId === "Dmux4way") return dmux4waySolutionFrom();
+    if (taskId === "Mux4way16") return mux4way16SolutionFrom();
+    if (taskId === "Not4") return not4SolutionWorkspaceFrom();
+    if (taskId === "Is0_4") return is0_4SolutionWorkspaceFrom();
+    if (taskId === "Is0_16") return is0_16SolutionWorkspaceFrom();
+    if (taskId === "Not16") return step >= 3 ? not16DirectSolutionFrom() : not16SolutionWorkspaceFrom();
+    if (taskId === "AND4") return and4SolutionWorkspaceFrom();
+    if (taskId === "OR4") return step >= 3 ? or4NotAndSolutionFrom() : or4SolutionWorkspaceFrom();
+    if (taskId === "AND16") return step >= 3 ? and16DirectSolutionFrom() : and16SolutionWorkspaceFrom();
+    if (taskId === "MUX4") return step >= 3 ? mux4NotAndOrSolutionFrom() : mux4SolutionWorkspaceFrom();
+    if (taskId === "MUX16") return step >= 3 ? mux16NotAndOrSolutionFrom() : mux16SolutionWorkspaceFrom();
+    if (taskId === "Mux") return muxSolutionWorkspaceFrom(step);
+    if (taskId === "DMux") return dmuxSolutionFrom();
+    if (taskId === "Not") return notSolutionWorkspaceFrom();
+    if (taskId === "And") return andSolutionWorkspaceFrom();
+    if (taskId === "Or") return orSolutionWorkspaceFrom(step);
+    if (taskId === "Xor") return xorSolutionWorkspaceFrom(step);
+    if (taskId === "AND3way") return and3waySolutionWorkspaceFrom();
+    if (taskId === "OR4way") return or4waySolutionWorkspaceFrom(step);
+    return standardTaskWorkspace(taskId);
+  }
+
+  return { standardTaskWorkspace, cleanedWorkspaceForTaskTest, workspaceForTaskTestRow, solutionWorkspaceForTask };
+}
