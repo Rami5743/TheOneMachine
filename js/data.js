@@ -954,6 +954,18 @@ const SCENES = {
         "image": "assets/panels/panel128_chapter_3_1_memory.svg",
         "year": "1943",
         "read": "טוב, נפסיק לברבר ונמשיך לעבוד. כדי שהמחשב שלנו יוכל לבצע חישובים מסובכים הוא צריך אפשרות לזכור את מה שהוא עושה. בשביל זה הוא צריך זיכרון. עד עכשיו כל הכרטיסים שבנינו ידעו לבצע חישוב אבל לא ידעו לשמור שום דבר. אנחנו צריכים לבנות כרטיסים שיכולים לשמור משהו. זאת אומרת שחוץ מכניסות ויציאות הם יוכלו להימצא גם במצבים שונים ונוכל להעביר אותם ממצב למצב על ידי שינוי הכניסות."
+      },
+      {
+        "comment": "Chapter 3.1: how to build memory - feedback (connect outputs back to inputs) and the idea that NANDs have propagation delay. Same raster as panel128 (reuses panel118c), fresh baked bubble.",
+        "image": "assets/panels/panel129_chapter_3_1_feedback.svg",
+        "year": "1943",
+        "read": "הדרך לעשות את זה היא לחבר יציאות חזרה לכניסות, כך שנוצר מעין מעגל. שים לב, ה-NANDים ברכיבים השונים לא מגיבים מיד. אם אתה משנה את הכניסה לוקח זמן מה עד שהיציאה משתנה בהתאם."
+      },
+      {
+        "comment": "Chapter 3.1: hand-off to the workbench - try connecting a NOT in a loop. Leads into the clocked (sequential) scenario workbench. Same raster as panel128.",
+        "image": "assets/panels/panel130_chapter_3_1_try_not_loop.svg",
+        "year": "1943",
+        "read": "הנה, תנסה לחבר את ה-NOT במעגל."
       }
     ]
   }
