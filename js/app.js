@@ -1203,7 +1203,7 @@
 
   function effectiveAge() {
     const n = parseInt(state.settings && state.settings.age, 10);
-    return Number.isFinite(n) && n > 0 ? n : 13;
+    return Number.isFinite(n) && n > 0 ? n : 12;
   }
 
   // Gender adaptation. When the player is a girl, texts that ADDRESS the player
@@ -4140,7 +4140,7 @@
             <label class="settings-field">
               <span class="settings-label">גיל</span>
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
-                     data-setting="age" value="${esc(settings.age)}" />
+                     data-setting="age" value="${esc(settings.age)}" placeholder="12" />
             </label>
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הלומדה?</span>
