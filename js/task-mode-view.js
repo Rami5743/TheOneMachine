@@ -461,12 +461,23 @@ function createTaskModeView({
     const busDef = busDefFor();
     if (busDef) {
       // Bus tasks: the requirements text, plus — while a check is running — a
-      // single-row truth table for the case currently under test.
+      // single-row truth table for the case currently under test. Draggable +
+      // collapsible like every other requirements panel.
+      const hidden = Boolean(state.requirementsPanelHidden);
+      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+      if (hidden) {
+        return `
+          <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-collapsed" aria-label="הסבר על ${esc(busDef.label)}">
+            ${toggle}
+            <span class="requirements-title">דרישות כרטיס ה-${esc(busDef.label)}</span>
+          </section>`;
+      }
       const row = typeof busCheckDisplayRow === "function" ? busCheckDisplayRow() : null;
       const table = row ? renderBusCheckRow(busDef, row) : "";
       const wideClass = table ? " workspace-task-hint-check-wide" : "";
       return `
-        <section class="workspace-task-hint${wideClass}" aria-label="הסבר על ${esc(busDef.label)}">
+        <section class="workspace-task-hint workspace-task-hint-dock${wideClass}" aria-label="הסבר על ${esc(busDef.label)}">
+          ${toggle}
           <p>${esc(adaptGender(busDef.description || ""))}</p>
           ${table}
         </section>`;
@@ -506,8 +517,26 @@ function createTaskModeView({
         ${row.inputs.map((value) => `<td>${value ? 1 : 0}</td>`).join("")}
       </tr>`).join("");
 
+    // The docked (bottom-right) gate requirements panel is draggable by its grip
+    // and collapsible by its toggle — same UX as the MUX/multibit panels. The
+    // "-dock" class registers it with the drag system under its own key (so its
+    // remembered spot never collides with the MUX panel's).
+    const hidden = Boolean(state.requirementsPanelHidden);
+    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+    if (hidden) {
+      return `
+        <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-collapsed" aria-label="הסבר על ${esc(task.label)}">
+          ${toggle}
+          <span class="requirements-title">דרישות כרטיס ה-${esc(task.label)}</span>
+        </section>`;
+    }
+    // "-truth" marks a panel whose truth table is ALWAYS shown (gate cards), so it
+    // sizes to fit the table permanently. Bus cards (which show only text until a
+    // check runs) deliberately omit it — they keep a normal width and widen only
+    // during the check.
     return `
-      <section class="workspace-task-hint" aria-label="הסבר על ${esc(task.label)}">
+      <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-truth" aria-label="הסבר על ${esc(task.label)}">
+        ${toggle}
         <p>${esc(adaptGender(task.description))}</p>
         <div class="workspace-task-hint-scroll" data-check-scroll>
           <table class="workspace-task-hint-table">

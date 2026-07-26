@@ -1832,9 +1832,25 @@
       (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
     );
 
+    const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
+    // A solution walkthrough survives a refresh. Its workspace is interaction-locked
+    // while it plays and is persisted as the clean solution circuit, so restore the
+    // walkthrough pointer instead of dropping the player into an editable copy of it
+    // (which used to revert to "edit mode with problems"). Only restore it when the
+    // workspace it runs on is actually being shown.
+    const restoredSolution = (loaded.solutionDialog && typeof loaded.solutionDialog === "object"
+        && typeof loaded.solutionDialog.taskId === "string"
+        && effectiveScreen === "workspace" && workspaceAllowed)
+      ? {
+          taskId: loaded.solutionDialog.taskId,
+          completeOnClose: loaded.solutionDialog.completeOnClose !== false,
+          step: Number.isInteger(loaded.solutionDialog.step) ? loaded.solutionDialog.step : 0,
+          returnToExplanations: Boolean(loaded.solutionDialog.returnToExplanations)
+        }
+      : null;
     return {
       ...loaded,
-      screen: (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen,
+      screen: effectiveScreen,
       chapterId: chapter.id,
       sceneId: scene.id,
       panelIndex,
@@ -1844,7 +1860,7 @@
       notTest: null,
       hintDialog: null,
       hintSlides: null,
-      solutionDialog: null,
+      solutionDialog: restoredSolution,
       hintState: loaded.hintState && typeof loaded.hintState === "object" ? loaded.hintState : {},
       settings: normalizedSettings(loaded.settings),
       maxChapterReached: Math.max(Number.isInteger(loaded.maxChapterReached) ? loaded.maxChapterReached : 0, chapterIndexById(chapter.id)),
@@ -1855,7 +1871,10 @@
   function stateForStorageValue(value) {
     const workspace = normalizeWorkspace(value.workspace);
     workspace.selectedTerminal = null;
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, solutionDialog: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
+    // persisted so it survives a page refresh (restored + revalidated by
+    // normalizeLoadedState). Every other transient dialog stays cleared on save.
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -15214,12 +15233,17 @@
     "dialog-card", "workspace-build-help-prompt", "workspace-understood-card",
     "workspace-accident-card", "workspace-task-intro-card", "not-test-result-card",
     "note-task-card", "hint-card", "hint-slides-card", "solution-card", "bit-card",
-    "workspace-task-hint-mux", "workspace-why-note"
+    "workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"
   ];
 
   // These panels are click-through (pointer-events:none so the board underneath
-  // stays wireable), so they may ONLY be grabbed by their explicit drag handle —
-  // never by a random press on the panel body.
+  // stays wireable), so their only pointer-events:auto surface is the grip — they
+  // can ONLY be dragged by it. The solid docked gate/bus panel is deliberately NOT
+  // here: it is draggable from anywhere on its body that isn't text or a control
+  // (see dialogDragBlockedByControl).
+  // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
+  // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
+  // still resolves to its own drag key, not the dock one.
   const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
 
   function draggableDialogElement(event) {
@@ -15256,7 +15280,15 @@
   }
 
   function dialogDragBlockedByControl(event) {
-    return Boolean(event.target.closest("button, a, input, textarea, select, [role='button']"));
+    if (event.target.closest("button, a, input, textarea, select, [role='button']")) return true;
+    // On a requirements panel a drag starts from the frame/background only — a
+    // press on the description text or the truth table should select/scroll it,
+    // not move the panel. (Other dialogs stay draggable from their whole body.)
+    if (event.target.closest(".workspace-task-hint")
+        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title")) {
+      return true;
+    }
+    return false;
   }
 
   function startDialogDrag(event) {

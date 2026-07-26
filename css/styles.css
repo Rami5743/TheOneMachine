@@ -2627,8 +2627,10 @@ button { font: inherit; }
 .workspace-why-note .panel-drag-handle { color: rgba(242, 232, 212, 0.7); }
 .workspace-why-note .panel-drag-handle:hover { color: #ffe08a; }
 
-/* Collapsed requirements panel: a minimal title bar (button + card title). */
-.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-collapsed {
+/* Collapsed requirements panel: a minimal title bar (button + card title).
+   Applies to both the MUX/multibit panel and the docked gate/bus panel. */
+.workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-collapsed,
+.workspace-task-hint.workspace-task-hint-dock.workspace-task-hint-collapsed {
   display: block;
   width: auto;
   min-width: 0;
@@ -2706,6 +2708,39 @@ button { font: inherit; }
 .workspace-task-hint-scroll > .workspace-task-hint-table {
   width: max-content;
   min-width: 100%;
+}
+
+/* The plain gate requirements panel (Not / And / Or / Xor / Or4Way …) sizes to
+   its content instead of a fixed 320px, so a wide truth table — e.g. Or4Way's
+   4-input, 16-row, 5-column table — shows all its columns rather than being
+   squeezed. The description text is capped so the panel doesn't over-grow, and
+   the .workspace-task-hint-scroll wrapper still pans sideways if the table is
+   ever wider than the capped panel (very narrow screens). */
+/* Every docked (gate/bus) panel leaves room at the top for the hide/show toggle
+   (left) and the drag grip (right). Those two are absolutely positioned on the
+   panel, so a panel that scrolled would scroll them out of reach — instead the
+   panel stays overflow:visible and the TABLE scrolls within a capped height. */
+.workspace-task-hint.workspace-task-hint-dock:not(.workspace-task-hint-collapsed) {
+  padding-top: 40px;
+  overflow: visible;
+  max-height: none;
+}
+.workspace-task-hint-dock .workspace-task-hint-scroll {
+  max-height: min(58vh, 460px);
+  overflow-y: auto;
+}
+
+/* Gate cards (Not / And / Or / Xor / Or4Way …) show their full truth table
+   permanently, so the panel sizes to fit it — e.g. Or4Way's 4-input, 5-column
+   table — instead of the fixed 320px. Bus cards deliberately OMIT "-truth": they
+   keep the default width and widen only during a check (via sizeCheckPanel). */
+.workspace-task-hint-truth:not(.workspace-task-hint-collapsed) {
+  width: fit-content;
+  min-width: min(300px, calc(100% - 32px));
+  max-width: calc(100% - 32px);
+}
+.workspace-task-hint-truth > p {
+  max-width: min(340px, calc(100vw - 96px));
 }
 
 /* During a check the requirements panel widens to fit the single check row

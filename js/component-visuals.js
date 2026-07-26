@@ -497,9 +497,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       s += `<line x1="${-screenW / 2}" y1="${-screenH / 2 + lip}" x2="${screenW / 2}" y2="${-screenH / 2 + lip}" stroke="#00000026" stroke-width="1" />`;
       s += `<line x1="${-screenW / 2}" y1="${screenH / 2 - lip}" x2="${screenW / 2}" y2="${screenH / 2 - lip}" stroke="#ffffff30" stroke-width="1" />`;
       if (clickable) {
+        // Each rotate hit-area covers ONLY its digit glyph (not the gaps, screen
+        // padding or casing), so every non-digit point on the converter falls
+        // through to the component-body drag — the whole part can be moved by
+        // grabbing anywhere that isn't a digit.
         for (let i = 0; i < n; i++) {
           const x0 = dx0 + i * (glyphW + gap);
-          s += `<rect x="${x0 - gap / 2}" y="${-screenH / 2}" width="${glyphW + gap}" height="${screenH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
+          s += `<rect x="${x0}" y="${-glyphH / 2}" width="${glyphW}" height="${glyphH}" fill="transparent" style="cursor:pointer" data-action="converter-digit" data-component-id="${cid}" data-digit-index="${i}" />`;
         }
       }
     } else {
