@@ -1427,7 +1427,11 @@
     { text: "לכן, תוך זמן קצר מופיע מתח ביציאה ממנו (הנורה נדלקת).", on: true },
     { text: "המתח עובר לכניסה מיד, ולכן תוך זמן קצר המתח נפסק ביציאה (הנורה כבה).", on: false },
     { text: "זה גורם לכך ששוב אין מתח בכניסה.", on: false },
-    { text: "וכך הלאה...", on: true }
+    { text: "וכך הלאה...", on: true },
+    // The clock is now stopped — the oscillator is frozen while von Neumann sums up.
+    { text: "זה עדיין לא הזיכרון שאנחנו רוצים לבנות, אבל זה משהו שיכול להיות בשני מצבים שונים: יש מתח ביציאה ואין מתח ביציאה.", on: true },
+    { text: "אבל אין לנו שליטה על המצב, אנחנו לא יכולים לשנות אותו.", on: true },
+    { text: "עכשיו תנסה לעשות תעלולים דומים עם ה-MUX.", on: true }
   ];
   let clockedScriptActive = false;
   let clockedScriptStep = 0;
@@ -10479,8 +10483,20 @@
   // initial state) so the lamp keeps blinking "וכך הלאה".
   function clockedScriptAdvance() {
     if (!clockedScriptActiveNow()) return;
-    clockedScriptStep = clockedScriptStep >= CLOCKED_SCRIPT.length - 1 ? 1 : clockedScriptStep + 1;
+    // Linear: each "הבא" advances one line. Past the last line (the MUX hand-off)
+    // it moves on to the MUX scene.
+    if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
+    clockedScriptStep += 1;
     render();
+  }
+
+  // Phase C — the MUX flip-flop scene. Full scene (frame + source + lamp + MUX +
+  // palette MUX + free clock) is not built yet; for now the hand-off shows a
+  // "המשך יבוא" notice and returns the table to free play.
+  function startMuxScene() {
+    stopClockedScript();
+    clockedScriptStep = 0;
+    setState({ infoDialog: "המשך יבוא..." }, false);
   }
   function stopClockedScript() {
     clockedScriptActive = false;
