@@ -136,6 +136,9 @@ function createWorkspaceState({
       // The MUX flip-flop scene (chapter 3.1, after the NOT oscillator): a clocked
       // free-build with the flip-flop frame + a MUX in the palette.
       muxScene: Boolean(ws.muxScene),
+      // Once the MUX-latch demo has collapsed into a single FF card, that reusable
+      // component joins the clocked palette (labelled "FF"). Preserved like the flags above.
+      ffCardUnlocked: Boolean(ws.ffCardUnlocked),
       // The component (currently only a splitter) that shows its focus controls
       // — the mirror handle. Validated below against the live components.
       focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null

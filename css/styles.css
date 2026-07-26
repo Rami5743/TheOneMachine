@@ -1404,6 +1404,20 @@ button { font: inherit; }
 .nail-drag-handle { fill: transparent; cursor: move; }
 .nail-drag-handle:hover { fill: rgba(255, 255, 255, 0.08); }
 
+/* When the MUX-latch demo collapses into a single FF card, the card grows into
+   place. Animate the INNER .ff-card group (centred on its own box) so the outer
+   <g>'s translate transform is left untouched. */
+g.component-ffCard.ff-materialize .ff-card {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ff-materialize 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes ff-materialize {
+  0%   { transform: scale(0.15); opacity: 0; }
+  60%  { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
 /* First-entry hand-off on the clocked table — von Neumann speaking. Same look as
    the subtraction-demo speech bubble: pinned to the RIGHT, tail pointing right. */
 .clocked-intro-bubble {

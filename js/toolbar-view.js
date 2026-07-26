@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -57,6 +57,9 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           // The MUX joins the palette in the flip-flop scene — right after the Not,
           // before the source/lamp/nail accessories.
           ...(typeof muxToolAvailable === "function" && muxToolAvailable() ? [{ type: gateComponentType("Mux"), label: "MUX" }] : []),
+          // The finished flip-flop card (FF) joins the palette once the MUX-latch
+          // demo has collapsed it into a single reusable component.
+          ...(typeof ffCardAvailable === "function" && ffCardAvailable() ? [{ type: "ffCard", label: "FF" }] : []),
           { type: "source", label: "מקור מתח" },
           { type: "lamp", label: "מנורה" },
           { type: "nail", label: "נעץ" }

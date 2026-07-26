@@ -227,6 +227,9 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         outputs.set(`${component.id}.out`, true);
       } else if (isDelayGate(component.type)) {
         for (const ref of gateOutputRefs(component)) outputs.set(ref, Boolean(prevMap.get(ref)));
+      } else if (component.type === "ffCard") {
+        // A flip-flop card is a memory element: seed its output at the held value.
+        outputs.set(`${component.id}.out`, Boolean(prevMap.get(`${component.id}.out`)));
       }
     }
 
@@ -272,6 +275,12 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         } else {
           next.set(`${component.id}.out`, taskOutput(task.id, inputs));
         }
+      } else if (component.type === "ffCard") {
+        // Latch: control (in2) high → load the data (in1); low → hold the state.
+        const data = inputSignal(workspace, `${component.id}.in1`, outputs);
+        const control = inputSignal(workspace, `${component.id}.in2`, outputs);
+        const prevOut = Boolean(prevMap.get(`${component.id}.out`));
+        next.set(`${component.id}.out`, control ? data : prevOut);
       }
     }
 

@@ -355,6 +355,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "bus") return busMarkup();
     if (type === "nail") return nailMarkup();
     if (type === "flipflopFrame") return flipflopFrameMarkup();
+    if (type === "ffCard") return ffCardMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
@@ -420,6 +421,19 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
         <text class="workspace-task-shell-pin-label" x="340" y="-14" text-anchor="middle">יציאה</text>
         <line class="workspace-task-shell-pin" x1="0" y1="-240" x2="0" y2="-160" />
         <text class="workspace-task-shell-pin-label" x="0" y="-254" text-anchor="middle">בקרה</text>
+      </g>`;
+  }
+
+  // The finished flip-flop card: a rounded box labelled "FF", with short pin stubs
+  // (data left, control top, output right).
+  function ffCardMarkup() {
+    return `
+      <g class="ff-card" aria-hidden="true">
+        <line x1="-66" y1="0" x2="-40" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <line x1="0" y1="-46" x2="0" y2="-30" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <line x1="40" y1="0" x2="66" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <rect x="-40" y="-30" width="80" height="60" rx="10" fill="#f7f7f2" stroke="#111" stroke-width="5" />
+        <text x="0" y="10" text-anchor="middle" font-size="30" font-weight="700" fill="#111" font-family="'Heebo','Noto Sans Hebrew',Arial,sans-serif">FF</text>
       </g>`;
   }
 

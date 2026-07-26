@@ -73,6 +73,18 @@
     // (top) and an output (right). Pass-through pin naming (inputExt/Int,
     // outputExt/Int) is reused so the engine routes it generically; the control is
     // just a second input (inputExt2/inputInt2).
+    // The finished flip-flop as a single reusable component (a latch). Data input
+    // on the left, control on top, state output on the right. Behaves as a latch in
+    // the clocked engine: control=1 writes the data, control=0 holds the state.
+    ffCard: {
+      label: "FF",
+      pins: {
+        in1: { x: -66, y: 0, direction: "in", label: "כניסה" },
+        in2: { x: 0, y: -46, direction: "in", label: "בקרה" },
+        out: { x: 66, y: 0, direction: "out", label: "יציאה" }
+      },
+      bounds: { left: 66, right: 66, top: 50, bottom: 40 }
+    },
     flipflopFrame: {
       label: "מסגרת פליפ-פלופ",
       fixed: true,
@@ -1659,7 +1671,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -10848,10 +10860,41 @@
   }
   function muxDemoAdvance() {
     if (!muxDemoActiveNow()) return;
-    if (muxDemoStep >= MUX_DEMO.length - 1) { muxDemoActive = false; return setState({ infoDialog: "המשך יבוא..." }, false); }
+    if (muxDemoStep >= MUX_DEMO.length - 1) return finishMuxDemo();
     muxDemoStep += 1;
     clockTick += 1;
     applyMuxDemoWires();
+  }
+
+  // End of the demo: the whole latch collapses (animated) into ONE reusable FF
+  // component, and the FF joins the palette.
+  let ffMaterializePending = false;
+  function finishMuxDemo() {
+    muxDemoActive = false;
+    clockTick = 0;
+    clockPrev = new Map();
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.ffCardUnlocked = true;
+    workspace.selectedTerminal = null;
+    workspace.components = [
+      { id: "ff-1", type: "ffCard", x: 500, y: 400 },
+      { id: "source-1", type: "source", x: 150, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 860, y: 400 }
+    ];
+    workspace.wires = [
+      { a: "source-1.out", b: "ff-1.in1" },
+      { a: "ff-1.out", b: "lamp-1.in" }
+    ];
+    ffMaterializePending = true;
+    setState({ workspace, infoDialog: null }, false);
+    requestAnimationFrame(() => {
+      const g = app.querySelector("g.component-ffCard");
+      if (g) {
+        g.classList.add("ff-materialize");
+        g.addEventListener("animationend", () => g.classList.remove("ff-materialize"), { once: true });
+      }
+      ffMaterializePending = false;
+    });
   }
   function muxDemoBack() {
     if (!muxDemoActiveNow() || muxDemoStep <= 0) return;
