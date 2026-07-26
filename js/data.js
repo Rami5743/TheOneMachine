@@ -997,8 +997,8 @@ const SCENES = {
         "year": "1943",
         "read": "",
         "hotspots": [
-          { "ariaLabel": "פתק המשימות", "action": "memory-tasks-note", "left": 18, "top": 65, "width": 15, "height": 15 },
-          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 62, "top": 58, "width": 11, "height": 9 }
+          { "ariaLabel": "פתק המשימות", "action": "memory-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 }
         ]
       }
     ]
