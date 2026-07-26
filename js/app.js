@@ -10577,6 +10577,16 @@
     }
     render();
   }
+  function clockedScriptBack() {
+    if (!clockedScriptActiveNow() || clockedScriptStep <= 0) return;
+    clockedScriptStep -= 1;
+    // Going back returns to the frozen/manual view of that line (un-releases the
+    // clock and re-pins the lamp), with the counter set to that line's index.
+    clockedScriptReleased = false;
+    clockPrev = new Map();
+    clockTick = clockedScriptStep;
+    render();
+  }
 
   // Phase C — the MUX flip-flop scene. A clocked free-build seeded with the
   // flip-flop frame (data left, control top, output right), a MUX in its centre,
@@ -10612,16 +10622,23 @@
   }
   function renderMuxIntro() {
     if (!muxIntroActive()) return "";
-    const last = muxIntroStep >= MUX_GOAL_LINES.length - 1;
     return `
       <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
         <p>${esc(MUX_GOAL_LINES[muxIntroStep])}</p>
-        <button class="btn btn-primary clocked-script-next" data-action="mux-intro-next" type="button">${last ? "קדימה" : "הבא"}</button>
+        <div class="clocked-script-nav">
+          ${navButton("mux-intro-prev", "arrow-right", "הקודם", { disabled: muxIntroStep <= 0 })}
+          ${navButton("mux-intro-next", "arrow-left", "הבא", { primary: true })}
+        </div>
       </div>`;
   }
   function muxIntroAdvance() {
     if (!muxIntroActive()) return;
     muxIntroStep += 1;
+    render();
+  }
+  function muxIntroBack() {
+    if (!muxIntroActive() || muxIntroStep <= 0) return;
+    muxIntroStep -= 1;
     render();
   }
   function stopClockedScript() {
@@ -10637,7 +10654,10 @@
     return `
       <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
         <p>${esc(line.text)}</p>
-        <button class="btn btn-primary clocked-script-next" data-action="clocked-script-next" type="button">הבא</button>
+        <div class="clocked-script-nav">
+          ${navButton("clocked-script-prev", "arrow-right", "הקודם", { disabled: clockedScriptStep <= 0 })}
+          ${navButton("clocked-script-next", "arrow-left", "הבא", { primary: true })}
+        </div>
       </div>`;
   }
 
@@ -16434,6 +16454,18 @@
         return advanceSubtractionDemo();
       }
 
+      // During the clocked script / MUX goal narration a plain click on the board
+      // advances, like "הבא". The prev/next arrows carry a data-action, so they go
+      // through the button branch and never reach here.
+      if (
+        state.screen === "workspace" &&
+        (clockedScriptActiveNow() || muxIntroActive()) &&
+        event.target.closest("[data-workspace-board]")
+      ) {
+        event.preventDefault();
+        return clockedScriptActiveNow() ? clockedScriptAdvance() : muxIntroAdvance();
+      }
+
       if (
         state.screen === "story" &&
         !state.dialog &&
@@ -16661,7 +16693,9 @@
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();
+    if (action === "clocked-script-prev") return clockedScriptBack();
     if (action === "mux-intro-next") return muxIntroAdvance();
+    if (action === "mux-intro-prev") return muxIntroBack();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -16963,6 +16997,16 @@
       event.preventDefault();
       clockedIntroDismissed = true;
       return render();
+    }
+
+    // Keyboard nav for the scripted narration / MUX goal narration: ← next, → back.
+    if (clockedScriptActiveNow()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return clockedScriptAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return clockedScriptBack(); }
+    }
+    if (muxIntroActive()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return muxIntroAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return muxIntroBack(); }
     }
 
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {

@@ -1456,7 +1456,9 @@ button { font: inherit; }
   align-items: flex-start;
   gap: 12px;
 }
-.clocked-script-next {
+.clocked-script-nav {
+  display: flex;
+  gap: 8px;
   align-self: flex-start;
 }
 
