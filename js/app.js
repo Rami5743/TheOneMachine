@@ -76,15 +76,18 @@
     flipflopFrame: {
       label: "מסגרת פליפ-פלופ",
       fixed: true,
+      // Same geometry as the task frames: external pins sit OUTSIDE the 600×376
+      // frame rect (±340), internal pins just inside (±260); the control pokes out
+      // the top. The visual reuses the workspace-task-shell-* look (see markup).
       pins: {
-        inputExt1: { x: -300, y: 0, direction: "in", label: "כניסה" },
-        inputInt1: { x: -220, y: 0, direction: "out", label: "כניסה פנימית" },
-        inputExt2: { x: 0, y: -200, direction: "in", label: "בקרה" },
-        inputInt2: { x: 0, y: -120, direction: "out", label: "בקרה פנימית" },
-        outputInt1: { x: 220, y: 0, direction: "in", label: "יציאה פנימית" },
-        outputExt1: { x: 300, y: 0, direction: "out", label: "יציאה" }
+        inputExt1: { x: -340, y: 0, direction: "in", label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", label: "כניסה פנימית" },
+        inputExt2: { x: 0, y: -240, direction: "in", label: "בקרה" },
+        inputInt2: { x: 0, y: -160, direction: "out", label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", label: "יציאה" }
       },
-      bounds: { left: 300, right: 300, top: 200, bottom: 200 }
+      bounds: { left: 340, right: 340, top: 240, bottom: 200 }
     }
   };
 
@@ -1528,7 +1531,9 @@
   }
 
   function startClockedTimeout() {
-    if (clockedTimeoutId) return;
+    // Only ever arm the 60 s fallback ONCE — after the prompt has been shown (and
+    // the player has responded), it must never pop up on its own again.
+    if (clockedTimeoutId || clockedUnderstoodTriggered) return;
     // Whatever the player does, offer the prompt after a minute.
     clockedTimeoutId = window.setTimeout(() => {
       clockedTimeoutId = null;
@@ -7717,7 +7722,9 @@
   // The visible clock: a pulsing dot + a tick counter that runs at 2/sec, so the
   // player can feel the sequential rhythm driving the loops. Clocked table only.
   function renderClockDisplay() {
-    if (!(state.screen === "workspace" && state.workspace?.clocked) || clockedScriptActive) return "";
+    // Shown on the whole clocked table, INCLUDING the scripted phase — there it
+    // freezes and only ticks up when "הבא" is pressed.
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return "";
     return `
       <div class="clock-display" aria-label="שעון המכונה" role="status">
         <span class="clock-count">${clockTick}</span>
@@ -10487,6 +10494,7 @@
     ];
     clockedScriptActive = true;
     clockedScriptStep = 0;
+    clockTick = 0; // the visible clock restarts for the scripted run
     clockedIntroDismissed = true;
     // The scripted clock does NOT run on a timer — it advances one line per "הבא"
     // press only, so the oscillator freezes between steps.
@@ -10506,6 +10514,7 @@
     // it moves on to the MUX scene.
     if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
     clockedScriptStep += 1;
+    clockTick += 1; // the frozen clock ticks up one on each "הבא"
     render();
   }
 
@@ -10531,10 +10540,10 @@
     workspace.selectedTerminal = null;
     workspace.wires = [];
     workspace.components = [
-      { id: "flipflop-frame-1", type: "flipflopFrame", x: 470, y: 400 },
-      { id: "gate-Mux-1", type: "gate-Mux", x: 470, y: 400 },
-      { id: "source-1", type: "source", x: 120, y: 400 },
-      { id: "lamp-1", type: "lamp", x: 800, y: 400 }
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      { id: "source-1", type: "source", x: 70, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
     ];
     setState({ workspace, infoDialog: null }, false);
   }

@@ -405,15 +405,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       </g>`;
   }
 
-  // The flip-flop building frame: a dashed labelled box (data left, control top,
-  // output right). The MUX the learner wires sits inside it.
+  // The flip-flop building frame. Identical look to the task/card frames — it
+  // reuses the workspace-task-shell-* classes: a rounded frame rect, pin stubs
+  // from each external pin to its internal pin, and the same labels ("כניסה"
+  // left, "יציאה" right, "בקרה" poking out the top). Local coords (the group is
+  // translated to the component's position).
   function flipflopFrameMarkup() {
     return `
-      <g class="flipflop-frame" aria-hidden="true">
-        <rect x="-300" y="-200" width="600" height="400" rx="20" fill="rgba(15,23,42,0.16)" stroke="#e5e7eb" stroke-width="4" stroke-dasharray="12 9" />
-        <text x="-232" y="-10" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">כניסה</text>
-        <text x="232" y="-10" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">יציאה</text>
-        <text x="0" y="-150" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">בקרה</text>
+      <g class="workspace-task-shell" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="-300" y="-188" width="600" height="376" rx="18" />
+        <line class="workspace-task-shell-pin" x1="-340" y1="0" x2="-260" y2="0" />
+        <text class="workspace-task-shell-pin-label" x="-340" y="-14" text-anchor="middle">כניסה</text>
+        <line class="workspace-task-shell-pin" x1="340" y1="0" x2="260" y2="0" />
+        <text class="workspace-task-shell-pin-label" x="340" y="-14" text-anchor="middle">יציאה</text>
+        <line class="workspace-task-shell-pin" x1="0" y1="-240" x2="0" y2="-160" />
+        <text class="workspace-task-shell-pin-label" x="0" y="-254" text-anchor="middle">בקרה</text>
       </g>`;
   }
 
