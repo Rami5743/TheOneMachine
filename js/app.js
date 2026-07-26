@@ -3990,7 +3990,7 @@
     const medalElig = medalEligibilityMap();
     const titleFor = (a, locked) => {
       let t = adaptGender(a.title);
-      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " לשעבר";
+      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " (לשעבר)";
       return t;
     };
     const card = (a, locked) => `
