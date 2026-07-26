@@ -4285,7 +4285,7 @@
     // The Stone-Millis book is the ONLY way forward from the library slide, so it
     // disables המשך (and דלג, below) — the learner must go through the notebook.
     // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
-    const nonBlockingActions = ["binary-booklet"];
+    const nonBlockingActions = ["binary-booklet", "nail-box"];
     const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).

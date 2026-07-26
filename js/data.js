@@ -1000,6 +1000,18 @@ const SCENES = {
           { "ariaLabel": "פתק המשימות", "action": "memory-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
           { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 }
         ]
+      },
+      {
+        "comment": "Reached AFTER both memory cards (Register4, Register) are built (completion-gating wired with the task build). Von Neumann standing in the doorway (reuses panel131's raster): good work, it's past midnight, get some sleep.",
+        "image": "assets/panels/panel136_chapter_3_1_good_work.svg",
+        "year": "1943",
+        "read": "אני רואה שהסתדרת עם הרגיסטרים. עבודה טובה. הספקנו היום הרבה. שוב אחרי חצות. לך לישון. מחר מתחילים לעבוד ב-7:30."
+      },
+      {
+        "comment": "Closing beat: a Los Alamos night exterior (reuses the 2.4 night raster) with a baked 'המשך יבוא...' — the current end of the story.",
+        "image": "assets/panels/panel137_chapter_3_1_night.svg",
+        "year": "1943",
+        "read": ""
       }
     ]
   }
