@@ -718,8 +718,42 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   };
 
   // Chapter 3.1 memory worktable cards, opened (in order) from the tasks note.
-  // No build workspace yet — a tapped card shows the "המשך יבוא..." placeholder.
+  // These are CLOCKED (sequential) cards: the build board runs a 2 Hz clock,
+  // loops are allowed but every loop must contain at least one FF, combinatorial
+  // parts settle instantly and each FF takes one clock. The card is checked by its
+  // MEMORY behaviour (drive the input over several clocks, verify the output given
+  // the history) — not by a truth table. The frame appears with its flip-flops
+  // already inside; the learner wires the splitters and the shared control.
+  // The build workspace + sequential checker + solution walkthroughs are still to
+  // be implemented — until then a tapped card shows "המשך יבוא...".
   const MEMORY_TASKS = [
-    { id: "Register4", label: "Register4", requires: [] },
-    { id: "Register", label: "Register", requires: ["Register4"] }
+    {
+      id: "Register4",
+      label: "Register4",
+      requires: [],
+      inputs: 2,
+      outputs: 1,
+      busWidth: 4,
+      clocked: true,
+      requirements: "ל-Register4 יש 2 כניסות: אחת בס ברוחב 4 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 4. בתוכו יש 4 פליפ-פלופים ששומרים 4 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה. (הכרטיס מופיע כבר עם הפליפ-פלופים בפנים.)",
+      hints: [
+        "אתה תמיד יכול להתחיל מלפצל את הכניסה והיציאה.",
+        "תשאיר את כניסת הבקרה לסוף. קודם כל תטפל בשאר.",
+        "שים לב, אם אנחנו כותבים (זאת אומרת משנים את מה שנשמר בפליפ-פלופים) אנחנו עושים את זה בכל הכרטיס בו-זמנית, כך שכניסת הבקרה של כל הפליפ-פלופים צריכה להיות אותו הדבר."
+      ]
+    },
+    {
+      id: "Register",
+      label: "Register",
+      requires: ["Register4"],
+      inputs: 2,
+      outputs: 1,
+      busWidth: 16,
+      clocked: true,
+      requirements: "ל-Register יש 2 כניסות: אחת בס ברוחב 16 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 16. בתוכו יש 16 פליפ-פלופים ששומרים 16 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה.",
+      hints: [
+        "אתה יכול להשתמש ב-Register4, או לעשות את הכרטיס כמו שעשית את Register4, רק עם 16 פליפ-פלופים במקום 4.",
+        "זכור שכניסת הבקרה של כל הפליפ-פלופים צריכה להיות אותו הדבר."
+      ]
+    }
   ];
