@@ -1482,11 +1482,11 @@
       const on = MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].out;
       const outputs = new Map([
         ["gate-Mux-1.out", on],
-        ["nail-1.out", on],
+        ["nail-fb1.out", on],
+        ["nail-fb2.out", on],
         ["flipflop-frame-1.outputInt1", on],
         ["flipflop-frame-1.outputExt1", on],
-        ["ctrl-src.out", true],
-        ["data-src.out", true]
+        ["src.out", true]
       ]);
       const lamps = new Map();
       for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
@@ -4477,6 +4477,18 @@
   // Per-step highlight for the clocked narrations (NOT oscillator + MUX latch demo)
   // — lights up the part of the circuit the current line talks about.
   function clockedHighlightConfig() {
+    // While the NOT oscillator free-runs ("וכך הלאה"), highlight the cables that
+    // carry voltage RIGHT NOW (dynamic, blinking with the loop) rather than a fixed
+    // part of the circuit.
+    if (clockedScriptActiveNow() && clockedScriptReleased) {
+      const flat = flattenWorkspaceForEval(state.workspace);
+      const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+      const wires = new Set();
+      for (const w of (state.workspace.wires || [])) {
+        if (r.outputs.get(w.a) || r.outputs.get(w.b)) wires.add(wireKey(w.a, w.b));
+      }
+      return { terminals: new Set(), wires, components: new Set(), truthRows: new Set(), truthCols: new Set() };
+    }
     const hl = (muxDemoActiveNow() ? MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].hl
       : CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].hl) || {};
     return {
@@ -7764,8 +7776,9 @@
     return [
       { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
       { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
-      // A נעץ above/left, to route the feedback for the latch (as used in the demo).
-      { id: "nail-1", type: "nail", x: 400, y: 250 },
+      // A נעץ OUTSIDE the frame (above the source, left of the control pin) — it is
+      // NOT for the latch itself, but for routing the source up to the control pin.
+      { id: "nail-1", type: "nail", x: 150, y: 240 },
       { id: "source-1", type: "source", x: 70, y: 400 },
       { id: "lamp-1", type: "lamp", x: 920, y: 400 }
     ];
@@ -10607,16 +10620,19 @@
     // Linear: each "הבא" advances one line. Past the last line (the MUX hand-off)
     // it moves on to the MUX scene.
     if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
+    const wasReleased = clockedScriptReleased;
     clockedScriptStep += 1;
-    // ARRIVING at the "וכך הלאה" line (index 4) RELEASES the clock: from the start
-    // of that slide it free-runs at 1 Hz and the lamp is driven by the real engine
-    // (not pinned). The tick counter is NOT reset — it keeps counting from where
-    // the manual phase left it.
     if (!clockedScriptReleased && clockedScriptStep === 4) {
+      // ARRIVE at "וכך הלאה" → release: free-run at 1 Hz, lamp driven by the engine.
+      // The tick counter is NOT reset — it keeps counting from the manual phase.
       clockedScriptReleased = true;
       clockPrev = new Map();
-    } else if (!clockedScriptReleased) {
-      clockTick += 1; // the still-frozen clock ticks up one on each "הבא"
+    } else if (wasReleased && clockedScriptStep === 5) {
+      // LEAVE "וכך הלאה" → STOP the clock (freeze) but keep the counter; it is reset
+      // only when the flip-flop frame appears (startMuxScene).
+      clockedScriptReleased = false;
+    } else if (!clockedScriptReleased && clockedScriptStep < 4) {
+      clockTick += 1; // the still-frozen manual phase ticks up one on each "הבא"
     }
     render();
   }
@@ -10747,11 +10763,11 @@
   // control disconnected the state is held (the 2nd input is ignored); connecting
   // the control lets the 2nd input write the state; disconnecting it again locks
   // the (now high) state.
-  const MUX_FB_WIRES = [["gate-Mux-1.out", "nail-1.in"], ["nail-1.out", "gate-Mux-1.in1"]];
-  const HL_DATA = { terminals: ["flipflop-frame-1.inputExt1"], components: ["data-src"] };
-  const HL_CONTROL = { terminals: ["flipflop-frame-1.inputExt2"], components: ["ctrl-src"] };
-  const HL_DATA_OUT = { terminals: ["flipflop-frame-1.inputExt1", "flipflop-frame-1.outputExt1"], components: ["data-src", "lamp-1"] };
-  const HL_HOLD = { terminals: ["flipflop-frame-1.outputExt1"], components: ["nail-1", "lamp-1"], wires: MUX_FB_WIRES };
+  const MUX_FB_WIRES = [["gate-Mux-1.out", "nail-fb1.in"], ["nail-fb1.out", "nail-fb2.in"], ["nail-fb2.out", "gate-Mux-1.in1"]];
+  const HL_DATA = { terminals: ["flipflop-frame-1.inputExt1"], components: ["src"] };
+  const HL_CONTROL = { terminals: ["flipflop-frame-1.inputExt2"], components: ["nail-ctrl"] };
+  const HL_DATA_OUT = { terminals: ["flipflop-frame-1.inputExt1", "flipflop-frame-1.outputExt1"], components: ["src", "lamp-1"] };
+  const HL_HOLD = { terminals: ["flipflop-frame-1.outputExt1"], components: ["nail-fb1", "nail-fb2", "lamp-1"], wires: MUX_FB_WIRES };
   const MUX_DEMO = [
     { text: "תראה: אם כניסת הבקרה מנותקת, אנחנו מתעלמים מהכניסה השנייה. מכיוון שהכניסה הראשונה מחוברת ליציאה, המצב נשאר קבוע. בהתחלה אין מתח בשום מקום.", control: false, data: false, out: false, hl: HL_HOLD },
     { text: "גם אם אנחנו מחברים את הכניסה השנייה — זה לא משנה כלום.", control: false, data: true, out: false, hl: HL_DATA },
@@ -10761,19 +10777,20 @@
     { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
     { text: null, control: true, data: false, out: false, hl: HL_DATA_OUT },
     { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
-    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["ctrl-src", "lamp-1"] } },
+    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["nail-ctrl", "lamp-1"] } },
     { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT },
     { text: null, control: false, data: true, out: true, hl: HL_DATA_OUT },
     { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT }
   ];
-  // The feedback (output → first MUX input, the "hold" path) is routed through the
-  // scene's נעץ so it reads clearly, as in the hand-built solution.
+  // The feedback (output → first MUX input, the "hold" path) is routed up and over
+  // through TWO נעצים, so the circular connection reads elegantly.
   const MUX_DEMO_BASE_WIRES = [
     { a: "flipflop-frame-1.inputInt1", b: "gate-Mux-1.in2" },
     { a: "flipflop-frame-1.inputInt2", b: "gate-Mux-1.in3" },
     { a: "gate-Mux-1.out", b: "flipflop-frame-1.outputInt1" },
-    { a: "gate-Mux-1.out", b: "nail-1.in" },
-    { a: "nail-1.out", b: "gate-Mux-1.in1" },
+    { a: "gate-Mux-1.out", b: "nail-fb1.in" },
+    { a: "nail-fb1.out", b: "nail-fb2.in" },
+    { a: "nail-fb2.out", b: "gate-Mux-1.in1" },
     { a: "flipflop-frame-1.outputExt1", b: "lamp-1.in" }
   ];
   let muxDemoActive = false;
@@ -10782,9 +10799,12 @@
     return [
       { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
       { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
-      { id: "nail-1", type: "nail", x: 400, y: 250 },
-      { id: "data-src", type: "source", x: 70, y: 400 },
-      { id: "ctrl-src", type: "source", x: 500, y: 120 },
+      // The external נעץ (outside, above the source) routes the single source up to
+      // the control pin; two more נעצים carry the feedback loop.
+      { id: "nail-ctrl", type: "nail", x: 150, y: 240 },
+      { id: "nail-fb1", type: "nail", x: 640, y: 290 },
+      { id: "nail-fb2", type: "nail", x: 400, y: 290 },
+      { id: "src", type: "source", x: 70, y: 400 },
       { id: "lamp-1", type: "lamp", x: 920, y: 400 }
     ];
   }
@@ -10792,8 +10812,9 @@
     const s = MUX_DEMO[Math.min(step, MUX_DEMO.length - 1)];
     return [
       ...MUX_DEMO_BASE_WIRES,
-      ...(s.control ? [{ a: "ctrl-src.out", b: "flipflop-frame-1.inputExt2" }] : []),
-      ...(s.data ? [{ a: "data-src.out", b: "flipflop-frame-1.inputExt1" }] : [])
+      // One source feeds BOTH ports; the control is routed through the external נעץ.
+      ...(s.data ? [{ a: "src.out", b: "flipflop-frame-1.inputExt1" }] : []),
+      ...(s.control ? [{ a: "src.out", b: "nail-ctrl.in" }, { a: "nail-ctrl.out", b: "flipflop-frame-1.inputExt2" }] : [])
     ];
   }
   function muxDemoActiveNow() {
