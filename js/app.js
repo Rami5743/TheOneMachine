@@ -1475,6 +1475,21 @@
   // key off the real, on-board lamp components.
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
+    // The scripted MUX-latch demo pins the output (and the loop) per narration step.
+    if (muxDemoActive && workspace?.clocked) {
+      const on = MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].out;
+      const outputs = new Map([
+        ["gate-Mux-1.out", on],
+        ["nail-1.out", on],
+        ["flipflop-frame-1.outputInt1", on],
+        ["flipflop-frame-1.outputExt1", on],
+        ["ctrl-src.out", true],
+        ["data-src.out", true]
+      ]);
+      const lamps = new Map();
+      for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
+      return { outputs, lamps };
+    }
     // While the scripted oscillator plays AND the clock is still frozen, the lamp
     // (and the NOT's output) are pinned by the current narration line. Once the
     // clock is released ("וכך הלאה"), fall through to the live clocked engine so it
@@ -1508,7 +1523,7 @@
     // Pause the clock mid-drag, while the "הבנת?" prompt is open, during the MUX
     // goal narration, and during the MANUAL phase of the script (before the clock
     // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
-    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || (clockedScriptActive && !clockedScriptReleased)) return;
+    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
@@ -1582,6 +1597,9 @@
     clearClockedTimeout();
     stopClockedScript();
     clockedScriptStep = 0;
+    muxDemoActive = false;
+    muxDemoStep = 0;
+    muxIntroStep = 0;
     clockPrev = new Map();
     clockTick = 0;
     clockLampLast = new Map();
@@ -7454,6 +7472,7 @@
               ${renderClockedIntro()}
               ${renderClockedScript()}
               ${renderMuxIntro()}
+              ${renderMuxDemo()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7727,6 +7746,8 @@
     return [
       { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
       { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      // A נעץ above/left, to route the feedback for the latch (as used in the demo).
+      { id: "nail-1", type: "nail", x: 400, y: 250 },
       { id: "source-1", type: "source", x: 70, y: 400 },
       { id: "lamp-1", type: "lamp", x: 920, y: 400 }
     ];
@@ -10697,13 +10718,111 @@
     render();
   }
 
-  // Answering the MUX-scene "הבנת?" — the continuation is not built yet, so both
-  // כן/לא just close the prompt with a "המשך יבוא" notice.
+  // Answering the MUX-scene "הבנת?" leads into von Neumann's scripted latch demo
+  // (Phase D): a controlled MUX latch he built. control=1 writes, control=0 locks.
   function finishMuxUnderstood() {
+    startMuxDemo();
+  }
+
+  // --- Phase D: the scripted MUX-latch demo ---------------------------------
+  // A fixed latch von Neumann built. Each step sets whether the CONTROL and DATA
+  // sources are connected, and pins the output. The narration explains: with the
+  // control disconnected the state is held (the 2nd input is ignored); connecting
+  // the control lets the 2nd input write the state; disconnecting it again locks
+  // the (now high) state.
+  const MUX_DEMO = [
+    { text: "תראה: אם כניסת הבקרה מנותקת, אנחנו מתעלמים מהכניסה השנייה. מכיוון שהכניסה הראשונה מחוברת ליציאה, המצב נשאר קבוע. בהתחלה אין מתח בשום מקום.", control: false, data: false, out: false },
+    { text: "גם אם אנחנו מחברים את הכניסה השנייה — זה לא משנה כלום.", control: false, data: true, out: false },
+    { text: null, control: false, data: false, out: false },
+    { text: null, control: false, data: true, out: false },
+    { text: "אם אנחנו מחברים את כניסת הבקרה, אז חשוב מה יש בכניסה השנייה.", control: true, data: false, out: false },
+    { text: null, control: true, data: true, out: true },
+    { text: null, control: true, data: false, out: false },
+    { text: null, control: true, data: true, out: true },
+    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true },
+    { text: null, control: false, data: false, out: true },
+    { text: null, control: false, data: true, out: true },
+    { text: null, control: false, data: false, out: true }
+  ];
+  // The feedback (output → first MUX input, the "hold" path) is routed through the
+  // scene's נעץ so it reads clearly, as in the hand-built solution.
+  const MUX_DEMO_BASE_WIRES = [
+    { a: "flipflop-frame-1.inputInt1", b: "gate-Mux-1.in2" },
+    { a: "flipflop-frame-1.inputInt2", b: "gate-Mux-1.in3" },
+    { a: "gate-Mux-1.out", b: "flipflop-frame-1.outputInt1" },
+    { a: "gate-Mux-1.out", b: "nail-1.in" },
+    { a: "nail-1.out", b: "gate-Mux-1.in1" },
+    { a: "flipflop-frame-1.outputExt1", b: "lamp-1.in" }
+  ];
+  let muxDemoActive = false;
+  let muxDemoStep = 0;
+  function muxDemoComponents() {
+    return [
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      { id: "nail-1", type: "nail", x: 400, y: 250 },
+      { id: "data-src", type: "source", x: 70, y: 400 },
+      { id: "ctrl-src", type: "source", x: 500, y: 120 },
+      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
+    ];
+  }
+  function muxDemoWires(step) {
+    const s = MUX_DEMO[Math.min(step, MUX_DEMO.length - 1)];
+    return [
+      ...MUX_DEMO_BASE_WIRES,
+      ...(s.control ? [{ a: "ctrl-src.out", b: "flipflop-frame-1.inputExt2" }] : []),
+      ...(s.data ? [{ a: "data-src.out", b: "flipflop-frame-1.inputExt1" }] : [])
+    ];
+  }
+  function muxDemoActiveNow() {
+    return muxDemoActive && state.screen === "workspace" && Boolean(state.workspace?.muxScene);
+  }
+  function muxDemoText() {
+    let text = "";
+    for (let i = 0; i <= muxDemoStep && i < MUX_DEMO.length; i += 1) if (MUX_DEMO[i].text) text = MUX_DEMO[i].text;
+    return text;
+  }
+  function startMuxDemo() {
+    muxDemoActive = true;
+    muxDemoStep = 0;
+    muxIntroStep = MUX_GOAL_LINES.length; // ensure the goal narration is closed
+    clockTick = 0;
     const workspace = normalizeWorkspace(state.workspace);
     workspace.understoodPromptShown = false;
     workspace.understoodButtonVisible = false;
-    setState({ workspace, infoDialog: "המשך יבוא..." }, false);
+    workspace.selectedTerminal = null;
+    workspace.components = muxDemoComponents();
+    workspace.wires = muxDemoWires(0);
+    setState({ workspace, infoDialog: null }, false);
+  }
+  function applyMuxDemoWires() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.wires = muxDemoWires(muxDemoStep);
+    setState({ workspace }, false);
+  }
+  function muxDemoAdvance() {
+    if (!muxDemoActiveNow()) return;
+    if (muxDemoStep >= MUX_DEMO.length - 1) { muxDemoActive = false; return setState({ infoDialog: "המשך יבוא..." }, false); }
+    muxDemoStep += 1;
+    clockTick += 1;
+    applyMuxDemoWires();
+  }
+  function muxDemoBack() {
+    if (!muxDemoActiveNow() || muxDemoStep <= 0) return;
+    muxDemoStep -= 1;
+    clockTick = muxDemoStep;
+    applyMuxDemoWires();
+  }
+  function renderMuxDemo() {
+    if (!muxDemoActiveNow()) return "";
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(muxDemoText())}</p>
+        <div class="clocked-script-nav">
+          ${navButton("mux-demo-prev", "arrow-right", "הקודם", { disabled: muxDemoStep <= 0 })}
+          ${navButton("mux-demo-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
   }
   function stopClockedScript() {
     clockedScriptActive = false;
@@ -16523,11 +16642,13 @@
       // through the button branch and never reach here.
       if (
         state.screen === "workspace" &&
-        (clockedScriptActiveNow() || muxIntroActive()) &&
+        (clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow()) &&
         event.target.closest("[data-workspace-board]")
       ) {
         event.preventDefault();
-        return clockedScriptActiveNow() ? clockedScriptAdvance() : muxIntroAdvance();
+        if (clockedScriptActiveNow()) return clockedScriptAdvance();
+        if (muxDemoActiveNow()) return muxDemoAdvance();
+        return muxIntroAdvance();
       }
 
       if (
@@ -16760,6 +16881,8 @@
     if (action === "clocked-script-prev") return clockedScriptBack();
     if (action === "mux-intro-next") return muxIntroAdvance();
     if (action === "mux-intro-prev") return muxIntroBack();
+    if (action === "mux-demo-next") return muxDemoAdvance();
+    if (action === "mux-demo-prev") return muxDemoBack();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -16939,7 +17062,7 @@
     // board wiring/dragging AND palette drags — until the explanation finishes.
     // Buttons (הבא, חזרה למחסן) still click through: returning here only suppresses
     // drag initiation, not the click that follows.
-    if ((clockedScriptActiveNow() || muxIntroActive()) && event.target.closest(".workspace-layout")) {
+    if ((clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow()) && event.target.closest(".workspace-layout")) {
       return;
     }
 
@@ -17073,6 +17196,10 @@
     if (muxIntroActive()) {
       if (event.key === "ArrowLeft") { event.preventDefault(); return muxIntroAdvance(); }
       if (event.key === "ArrowRight") { event.preventDefault(); return muxIntroBack(); }
+    }
+    if (muxDemoActiveNow()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return muxDemoAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return muxDemoBack(); }
     }
 
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {
