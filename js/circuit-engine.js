@@ -192,6 +192,87 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return { outputs, lamps };
   }
 
+  // --- Clocked (sequential) evaluation, chapter 3.1 ------------------------
+  // A synchronous unit-delay model. GATES (nand / gate-*) are the delay
+  // elements: within a tick their output is HELD at last tick's value while
+  // their new value is computed from the inputs they see this tick; that new
+  // value only takes effect next tick. This is what lets feedback loops
+  // oscillate instead of collapsing. NAILS carry NO delay — they are pure
+  // geometric routing, so each tick their signal is propagated to a fixed
+  // point through the held gate/source values (the loops are broken by the
+  // held gate outputs, so this sub-network is acyclic and settles).
+  //
+  // `prev` is the Map of held gate-output signals from the previous tick.
+  // Returns { outputs (this tick's visible signals), lamps, next (the held
+  // gate outputs to feed into the following tick) }.
+  function isDelayGate(type) {
+    return type === "nand" || (typeof type === "string" && type.startsWith("gate-"));
+  }
+  function gateOutputRefs(component) {
+    if (component.type === "nand") return [`${component.id}.out`];
+    const task = taskDefById(component.type.slice(5));
+    const n = (task && task.outputs) || 1;
+    return n > 1
+      ? Array.from({ length: n }, (_, k) => `${component.id}.out${k + 1}`)
+      : [`${component.id}.out`];
+  }
+
+  function evaluateWorkspaceClocked(workspace, prev) {
+    const prevMap = prev instanceof Map ? prev : new Map();
+    const outputs = new Map();
+
+    // Seed: sources are constant; every gate output is held at its prev value.
+    for (const component of workspace.components) {
+      if (component.type === "source") {
+        outputs.set(`${component.id}.out`, true);
+      } else if (isDelayGate(component.type)) {
+        for (const ref of gateOutputRefs(component)) outputs.set(ref, Boolean(prevMap.get(ref)));
+      }
+    }
+
+    // Zero-delay routing: propagate through nails to a fixed point.
+    for (let i = 0; i < workspace.components.length + 2; i += 1) {
+      let changed = false;
+      for (const component of workspace.components) {
+        if (component.type !== "nail") continue;
+        const value = inputSignal(workspace, `${component.id}.in`, outputs);
+        const ref = `${component.id}.out`;
+        if (outputs.get(ref) !== value) { outputs.set(ref, value); changed = true; }
+      }
+      if (!changed) break;
+    }
+
+    // Compute NEXT gate outputs from the inputs they see this tick.
+    const next = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "nand") {
+        const a = inputSignal(workspace, `${component.id}.in1`, outputs);
+        const b = inputSignal(workspace, `${component.id}.in2`, outputs);
+        next.set(`${component.id}.out`, !(a && b));
+      } else if (typeof component.type === "string" && component.type.startsWith("gate-")) {
+        const task = taskDefById(component.type.slice(5));
+        if (!task) continue;
+        const inputs = Array.from({ length: task.inputs }, (_, k) => inputSignal(workspace, `${component.id}.in${k + 1}`, outputs));
+        const n = task.outputs || 1;
+        if (n > 1) {
+          const vals = taskOutputs(task.id, inputs);
+          for (let k = 0; k < n; k += 1) next.set(`${component.id}.out${k + 1}`, Boolean(vals[k]));
+        } else {
+          next.set(`${component.id}.out`, taskOutput(task.id, inputs));
+        }
+      }
+    }
+
+    const lamps = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "lamp") {
+        lamps.set(component.id, inputSignal(workspace, `${component.id}.in`, outputs));
+      }
+    }
+
+    return { outputs, lamps, next };
+  }
+
   // --- Bus-aware evaluation (chapter 2.4) ----------------------------------
   // Like evaluateWorkspace, but every terminal carries a bit-vector (boolean[])
   // instead of a single boolean, so buses and splitters propagate correctly.
@@ -636,5 +717,5 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return { outputs, lamps, converters };
   }
 
-  return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits };
+  return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits, evaluateWorkspaceClocked };
 }

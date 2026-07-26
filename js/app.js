@@ -1396,6 +1396,15 @@
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
   const evaluateWorkspaceBits = (workspace = state.workspace) => __circuitEngine.evaluateWorkspaceBits(workspace);
 
+  // Clocked-table simulation state (chapter 3.1). `clockPrev` holds the delay
+  // elements' outputs between ticks; `clockTimer` runs the 2 Hz clock;
+  // `clockTick` is the visible tick counter. Kept out of localStorage — it is
+  // pure runtime, rebuilt on entry.
+  let clockPrev = new Map();
+  let clockTimer = null;
+  let clockTick = 0;
+  const CLOCK_PERIOD_MS = 500; // 2 ticks per second
+
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
   function workspaceHasBusElements(workspace = state.workspace) {
@@ -1408,8 +1417,42 @@
   // key off the real, on-board lamp components.
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
+    // The clocked table renders the CURRENT tick's held snapshot (clockPrev),
+    // not a fresh combinational solve — that is what makes feedback loops blink.
+    if (workspace?.clocked) {
+      const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+      return { outputs: r.outputs, lamps: r.lamps };
+    }
     return workspaceHasBusElements(flat) ? evaluateWorkspaceBits(flat) : evaluateWorkspace(flat);
   };
+
+  // --- The 2 Hz clock that drives the sequential table --------------------
+  function clockStep() {
+    const ws = state.workspace;
+    if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
+    // Pause the clock mid-drag so a re-render can't yank the board out from
+    // under a wire being drawn or a component being moved.
+    if (dragState) return;
+    const flat = flattenWorkspaceForEval(ws);
+    const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+    clockPrev = r.next;
+    clockTick += 1;
+    render();
+  }
+
+  function ensureClockRunning() {
+    if (state.screen === "workspace" && state.workspace?.clocked) {
+      if (!clockTimer) clockTimer = window.setInterval(clockStep, CLOCK_PERIOD_MS);
+    } else if (clockTimer) {
+      stopClock();
+    }
+  }
+
+  function stopClock() {
+    if (clockTimer) { window.clearInterval(clockTimer); clockTimer = null; }
+    clockPrev = new Map();
+    clockTick = 0;
+  }
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
@@ -9937,6 +9980,8 @@
     syncExplanationUnlocks();
     syncAchievements();
     syncIdleNudge();
+    // Start/stop the 2 Hz clock as the clocked table is entered/left.
+    ensureClockRunning();
     // Re-arm the Nand connect demo whenever we are away from the presentation, so
     // it plays again on the learner's next visit but stays dismissed once clicked.
     if (!isNandPresentationWorkspace() && (nandConnectDemoDismissed || nandConnectDemoShownAt)) armNandConnectDemo();
