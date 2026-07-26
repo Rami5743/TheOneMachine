@@ -67,6 +67,24 @@
         outputExt: { x: 340, y: 0, direction: "out", label: "יציאת Not חיצונית" }
       },
       bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+    },
+    // The flip-flop building frame (chapter 3.1 MUX scene). Like the card-build
+    // frame, but with THREE labelled ports — a data input (left), a control input
+    // (top) and an output (right). Pass-through pin naming (inputExt/Int,
+    // outputExt/Int) is reused so the engine routes it generically; the control is
+    // just a second input (inputExt2/inputInt2).
+    flipflopFrame: {
+      label: "מסגרת פליפ-פלופ",
+      fixed: true,
+      pins: {
+        inputExt1: { x: -300, y: 0, direction: "in", label: "כניסה" },
+        inputInt1: { x: -220, y: 0, direction: "out", label: "כניסה פנימית" },
+        inputExt2: { x: 0, y: -200, direction: "in", label: "בקרה" },
+        inputInt2: { x: 0, y: -120, direction: "out", label: "בקרה פנימית" },
+        outputInt1: { x: 220, y: 0, direction: "in", label: "יציאה פנימית" },
+        outputExt1: { x: 300, y: 0, direction: "out", label: "יציאה" }
+      },
+      bounds: { left: 300, right: 300, top: 200, bottom: 200 }
     }
   };
 
@@ -1480,7 +1498,7 @@
     if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
     // Pause the free 2 Hz clock mid-drag, while the "הבנת?" prompt is open, and
     // while the scripted oscillator is driving the board itself.
-    if (dragState || workspaceUnderstoodPromptActive() || clockedScriptActive) return;
+    if (dragState || workspaceUnderstoodPromptActive() || clockedScriptActive || muxIntroActive()) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
@@ -1593,7 +1611,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -7407,6 +7425,7 @@
               ${renderClockDisplay()}
               ${renderClockedIntro()}
               ${renderClockedScript()}
+              ${renderMuxIntro()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7706,7 +7725,7 @@
   }
 
   function clockedIntroActive() {
-    return state.screen === "workspace" && Boolean(state.workspace?.clocked) && !clockedIntroDismissed;
+    return state.screen === "workspace" && Boolean(state.workspace?.clocked) && !state.workspace?.muxScene && !clockedIntroDismissed;
   }
 
   // The first-entry hand-off on the clocked table. It is von Neumann speaking, so
@@ -10490,13 +10509,52 @@
     render();
   }
 
-  // Phase C — the MUX flip-flop scene. Full scene (frame + source + lamp + MUX +
-  // palette MUX + free clock) is not built yet; for now the hand-off shows a
-  // "המשך יבוא" notice and returns the table to free play.
+  // Phase C — the MUX flip-flop scene. A clocked free-build seeded with the
+  // flip-flop frame (data left, control top, output right), a MUX in its centre,
+  // and an unwired source (left) + lamp (right). The MUX joins the palette. Von
+  // Neumann's goal narration plays first, then the learner wires freely.
+  const MUX_GOAL_LINES = [
+    "המטרה שלנו היא ליצור משהו ששומר על המצב שלו, אלא אם כן אנחנו \"אומרים\" לו לשנות את המצב, ואז המצב משתנה לפי מה שכתוב בכניסה.",
+    "אנחנו \"אומרים לו\" לשנות את המצב באמצעות כניסת הבקרה.",
+    "המצב עצמו זה מה שנותנת היציאה."
+  ];
+  let muxIntroStep = 0;
+
   function startMuxScene() {
     stopClockedScript();
     clockedScriptStep = 0;
-    setState({ infoDialog: "המשך יבוא..." }, false);
+    muxIntroStep = 0;
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.muxScene = true;
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    workspace.selectedTerminal = null;
+    workspace.wires = [];
+    workspace.components = [
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 470, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 470, y: 400 },
+      { id: "source-1", type: "source", x: 120, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 800, y: 400 }
+    ];
+    setState({ workspace, infoDialog: null }, false);
+  }
+
+  function muxIntroActive() {
+    return state.screen === "workspace" && Boolean(state.workspace?.muxScene) && muxIntroStep < MUX_GOAL_LINES.length;
+  }
+  function renderMuxIntro() {
+    if (!muxIntroActive()) return "";
+    const last = muxIntroStep >= MUX_GOAL_LINES.length - 1;
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(MUX_GOAL_LINES[muxIntroStep])}</p>
+        <button class="btn btn-primary clocked-script-next" data-action="mux-intro-next" type="button">${last ? "קדימה" : "הבא"}</button>
+      </div>`;
+  }
+  function muxIntroAdvance() {
+    if (!muxIntroActive()) return;
+    muxIntroStep += 1;
+    render();
   }
   function stopClockedScript() {
     clockedScriptActive = false;
@@ -16534,6 +16592,7 @@
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();
+    if (action === "mux-intro-next") return muxIntroAdvance();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();

@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -56,7 +56,9 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           { type: gateComponentType("Not"), label: "Not" },
           { type: "source", label: "מקור מתח" },
           { type: "lamp", label: "מנורה" },
-          { type: "nail", label: "נעץ" }
+          { type: "nail", label: "נעץ" },
+          // The MUX joins the palette in the flip-flop scene.
+          ...(typeof muxToolAvailable === "function" && muxToolAvailable() ? [{ type: gateComponentType("Mux"), label: "MUX" }] : [])
         ]
       : [
           { type: "nand", label: "Nand" },

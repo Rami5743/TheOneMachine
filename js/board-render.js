@@ -106,7 +106,9 @@ function createBoardRender({
   }
 
   function renderComponent(component, evaluation, workspace) {
-    if (componentDef(component.type)?.fixed) return "";
+    // Fixed frames are normally drawn by the task-shell path, not here — EXCEPT
+    // the flip-flop frame, which is a plain board component and must draw itself.
+    if (componentDef(component.type)?.fixed && component.type !== "flipflopFrame") return "";
     const lampOn = component.type === "lamp" ? evaluation.lamps.get(component.id) : false;
     const isConverter = component.type === "converter-in" || component.type === "converter-out";
     const converterOpts = isConverter

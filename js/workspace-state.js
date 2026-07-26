@@ -133,6 +133,9 @@ function createWorkspaceState({
       // freeBuild; it enables feedback loops (canAddWire runs on load, below, and
       // reads this) and offers the נעץ tool.
       clocked: Boolean(ws.clocked),
+      // The MUX flip-flop scene (chapter 3.1, after the NOT oscillator): a clocked
+      // free-build with the flip-flop frame + a MUX in the palette.
+      muxScene: Boolean(ws.muxScene),
       // The component (currently only a splitter) that shows its focus controls
       // — the mirror handle. Validated below against the live components.
       focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null

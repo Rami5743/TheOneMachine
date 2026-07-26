@@ -230,14 +230,26 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
       }
     }
 
-    // Zero-delay routing: propagate through nails to a fixed point.
+    // Zero-delay routing: propagate through nails AND flip-flop frames to a fixed
+    // point. A frame is a pure pass-through — its internal input pins mirror its
+    // external inputs, and its external output mirrors its internal output.
+    const pass = (id, fromPin, toPin) => {
+      const v = inputSignal(workspace, `${id}.${fromPin}`, outputs);
+      const ref = `${id}.${toPin}`;
+      if (outputs.get(ref) === v) return false;
+      outputs.set(ref, v);
+      return true;
+    };
     for (let i = 0; i < workspace.components.length + 2; i += 1) {
       let changed = false;
       for (const component of workspace.components) {
-        if (component.type !== "nail") continue;
-        const value = inputSignal(workspace, `${component.id}.in`, outputs);
-        const ref = `${component.id}.out`;
-        if (outputs.get(ref) !== value) { outputs.set(ref, value); changed = true; }
+        if (component.type === "nail") {
+          if (pass(component.id, "in", "out")) changed = true;
+        } else if (component.type === "flipflopFrame") {
+          if (pass(component.id, "inputExt1", "inputInt1")) changed = true;
+          if (pass(component.id, "inputExt2", "inputInt2")) changed = true;
+          if (pass(component.id, "outputInt1", "outputExt1")) changed = true;
+        }
       }
       if (!changed) break;
     }

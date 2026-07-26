@@ -354,6 +354,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     }
     if (type === "bus") return busMarkup();
     if (type === "nail") return nailMarkup();
+    if (type === "flipflopFrame") return flipflopFrameMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
@@ -401,6 +402,18 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
             <stop offset="1" stop-color="#111827" stop-opacity="0.35" />
           </radialGradient>
         </defs>
+      </g>`;
+  }
+
+  // The flip-flop building frame: a dashed labelled box (data left, control top,
+  // output right). The MUX the learner wires sits inside it.
+  function flipflopFrameMarkup() {
+    return `
+      <g class="flipflop-frame" aria-hidden="true">
+        <rect x="-300" y="-200" width="600" height="400" rx="20" fill="rgba(15,23,42,0.16)" stroke="#e5e7eb" stroke-width="4" stroke-dasharray="12 9" />
+        <text x="-232" y="-10" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">כניסה</text>
+        <text x="232" y="-10" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">יציאה</text>
+        <text x="0" y="-150" fill="#e5e7eb" font-size="26" font-weight="600" text-anchor="middle">בקרה</text>
       </g>`;
   }
 
