@@ -1041,6 +1041,8 @@
     subtractionDemo: null,
     // The demo's "still under construction" links window ({ fromEnd } | null).
     subtractionDemoLinks: null,
+    // The flip-flop "clocking" enrichment window (from the FF-explanation teaser).
+    ffClockLinks: null,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1537,7 +1539,7 @@
     // Pause the clock mid-drag, while the "הבנת?" prompt is open, during the MUX
     // goal narration, and during the MANUAL phase of the script (before the clock
     // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
-    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || (clockedScriptActive && !clockedScriptReleased)) return;
+    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || ffExplainActive || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
@@ -1614,6 +1616,8 @@
     muxDemoActive = false;
     muxDemoStep = 0;
     muxIntroStep = 0;
+    ffExplainActive = false;
+    ffExplainStep = 0;
     clockPrev = new Map();
     clockTick = 0;
     clockLampLast = new Map();
@@ -1932,7 +1936,8 @@
       Boolean(state.hintSlides) ||
       Boolean(state.solutionDialog) ||
       workspaceNandMonologueActive() ||
-      subtractionDemoActive()
+      subtractionDemoActive() ||
+      ffExplainActiveNow()
     );
   }
 
@@ -1961,7 +1966,8 @@
       // board lock don't bleed onto the next workbench you open (a task build, the
       // card creator, …).
       subtractionDemo: null,
-      subtractionDemoLinks: null
+      subtractionDemoLinks: null,
+      ffClockLinks: null
     };
   }
 
@@ -7515,6 +7521,7 @@
               ${renderClockedScript()}
               ${renderMuxIntro()}
               ${renderMuxDemo()}
+              ${renderFfExplain()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7547,6 +7554,7 @@
         </section>`)}
       </main>
       ${renderSubtractionDemoLinks()}
+      ${renderFfClockLinks()}
       ${renderWorkspaceUnderstoodPrompt()}
       ${renderWorkspaceBuildHelpPrompt()}
       ${renderWorkspaceTaskIntro()}
@@ -10399,9 +10407,11 @@
     if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
       return openSubtractionDemo();
     }
-    // Chapter 3.1 (flip-flop): the last slide's "המשך" ("הנה, תנסה לחבר את ה-NOT
-    // במעגל") hands the player straight into the clocked (sequential) table.
-    if (state.screen === "story" && state.chapterId === "chapter-10" && state.panelIndex >= scene.panels.length - 1) {
+    // Chapter 3.1 (flip-flop): panel130's "המשך" ("הנה, תנסה לחבר את ה-NOT
+    // במעגל") hands the player straight into the clocked (sequential) table. Keyed
+    // to panel130 specifically — the warehouse "more memory" panels (131–134) come
+    // AFTER the table (reached from finishMuxDemo) and must NOT re-enter it.
+    if (state.screen === "story" && state.chapterId === "chapter-10" && String(currentPanel()?.image || "").includes("panel130")) {
       return enterClockedTable();
     }
 
@@ -10867,7 +10877,8 @@
   }
 
   // End of the demo: the whole latch collapses (animated) into ONE reusable FF
-  // component, and the FF joins the palette.
+  // component (the source and lamp disappear — just the finished card is left),
+  // the FF joins the palette, and von Neumann's closing FF-explanation begins.
   let ffMaterializePending = false;
   function finishMuxDemo() {
     muxDemoActive = false;
@@ -10877,15 +10888,13 @@
     workspace.ffCardUnlocked = true;
     workspace.selectedTerminal = null;
     workspace.components = [
-      { id: "ff-1", type: "ffCard", x: 500, y: 400 },
-      { id: "source-1", type: "source", x: 150, y: 400 },
-      { id: "lamp-1", type: "lamp", x: 860, y: 400 }
+      { id: "ff-1", type: "ffCard", x: 500, y: 400 }
     ];
-    workspace.wires = [
-      { a: "source-1.out", b: "ff-1.in1" },
-      { a: "ff-1.out", b: "lamp-1.in" }
-    ];
+    workspace.wires = [];
     ffMaterializePending = true;
+    // Roll straight into the two-bubble FF explanation (table locked, clock idle).
+    ffExplainActive = true;
+    ffExplainStep = 0;
     setState({ workspace, infoDialog: null }, false);
     requestAnimationFrame(() => {
       const g = app.querySelector("g.component-ffCard");
@@ -10912,6 +10921,94 @@
           ${navButton("mux-demo-next", "arrow-left", "הבא", { primary: true })}
         </div>
       </div>`;
+  }
+
+  // Phase E — after the latch collapses into a single FF, von Neumann explains
+  // what a flip-flop is (bubble 1) and why every self-built circuit needs one so
+  // the machine can be clocked (bubble 2). Bubble 2 carries the red enrichment
+  // teaser → the "clocking" videos window. The table is locked (the clock idles)
+  // for the whole explanation; "הבא" past the last bubble exits to the warehouse.
+  let ffExplainActive = false;
+  let ffExplainStep = 0;
+  const FF_EXPLAIN = [
+    { text: "שים לב, בנינו משהו שיכול לשמור מידע. קוראים למעגל הזה Flip-flop: כשכניסת הבקרה מנותקת מהמתח הוא שומר את המידע. וכשכניסת הבקרה מחוברת למתח אנחנו יכולים לשנות את המידע על ידי הכניסה השנייה. ל-Flip-flop יש 2 מצבים: או שהוא מוציא מתח או שלא. כך שהמידע שהוא שומר זה ביט אחד. בעוד שבכל הכרטיסים עד עכשיו דיברנו רק על הכניסות והיציאות, ב-Flip-flop אנחנו יכולים גם לשנות את המצב שלו. כדי לשנות את המצב שלו אנחנו צריכים לחבר את כניסת הבקרה שלו." },
+    { text: "שים לב, כשאתה יוצר כרטיסים אחרים, אתה יכול להשתמש ב-Flip-flop, אבל אם אתה יוצר מעגל בעצמך, תדאג שתמיד יהיה בו Flip-flop. אחרת יהיה לנו בלגן כי לחלקים שונים של מחשב ייקח זמן שונה לשנות את המצב שלהם והם לא יהיו מתואמים. אני אדאג לזה שמשהו יעבור על כל ה-Flip-flop-ים ויגרום להם לעבוד באופן מתוזמן.", teaser: true }
+  ];
+  function ffExplainActiveNow() {
+    return ffExplainActive && state.screen === "workspace" && Boolean(state.workspace?.clocked);
+  }
+  function renderFfExplain() {
+    if (!ffExplainActiveNow()) return "";
+    const line = FF_EXPLAIN[Math.min(ffExplainStep, FF_EXPLAIN.length - 1)];
+    const teaserHtml = line.teaser
+      ? `<button class="subtraction-demo-teaser ff-explain-teaser" data-action="ff-clock-teaser" type="button">
+          <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+          <span>ג'ון לא אמר לך את כל האמת. רוצה לדעת איך גורמים לזה שבמחשב הכל יהיה מתוזמן, לחץ כאן.</span>
+        </button>`
+      : "";
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble ff-explain-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        ${teaserHtml}
+        <p>${esc(line.text)}</p>
+        <div class="clocked-script-nav">
+          ${navButton("ff-explain-prev", "arrow-right", "הקודם", { disabled: ffExplainStep <= 0 })}
+          ${navButton("ff-explain-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
+  }
+  function ffExplainAdvance() {
+    if (!ffExplainActiveNow()) return;
+    if (ffExplainStep >= FF_EXPLAIN.length - 1) return exitFlipflopToWarehouse();
+    ffExplainStep += 1;
+    render();
+  }
+  function ffExplainBack() {
+    if (!ffExplainActiveNow() || ffExplainStep <= 0) return;
+    ffExplainStep -= 1;
+    render();
+  }
+  function openFfClockLinks() {
+    setState({ ffClockLinks: {} }, false);
+  }
+  function closeFfClockLinks() {
+    setState({ ffClockLinks: null }, false);
+  }
+  function renderFfClockLinks() {
+    if (!state.ffClockLinks) return "";
+    const title = (typeof FF_CLOCK_LINKS_TITLE !== "undefined") ? FF_CLOCK_LINKS_TITLE : "";
+    const intro = (typeof FF_CLOCK_LINKS_INTRO !== "undefined") ? FF_CLOCK_LINKS_INTRO : "";
+    const links = (typeof FF_CLOCK_LINKS !== "undefined" ? FF_CLOCK_LINKS : [])
+      .map((l) => `<li><a class="subtraction-demo-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`)
+      .join("");
+    return `
+      <div class="pace-dialog-overlay subtraction-demo-links-overlay" role="presentation">
+        <section class="pace-dialog-card subtraction-demo-links-card" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <h2 class="subtraction-demo-links-title">${esc(title)}</h2>
+          <p>${esc(intro)}</p>
+          <ul class="subtraction-demo-links-list">${links}</ul>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="ff-clock-links-close" type="button">חזרה</button>
+          </div>
+        </section>
+      </div>`;
+  }
+  // Leaving the clocked table for the warehouse "we need much more memory" beat.
+  function exitFlipflopToWarehouse() {
+    ffExplainActive = false;
+    ffExplainStep = 0;
+    stopClock();
+    const scene = SCENES["flipflop"];
+    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel131"));
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: "chapter-10",
+      sceneId: "flipflop",
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      workspace: createDefaultWorkspace()
+    }, true);
   }
   function stopClockedScript() {
     clockedScriptActive = false;
@@ -16731,12 +16828,14 @@
       // through the button branch and never reach here.
       if (
         state.screen === "workspace" &&
-        (clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow()) &&
+        (clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow() || ffExplainActiveNow()) &&
+        !state.ffClockLinks &&
         event.target.closest("[data-workspace-board]")
       ) {
         event.preventDefault();
         if (clockedScriptActiveNow()) return clockedScriptAdvance();
         if (muxDemoActiveNow()) return muxDemoAdvance();
+        if (ffExplainActiveNow()) return ffExplainAdvance();
         return muxIntroAdvance();
       }
 
@@ -16972,6 +17071,10 @@
     if (action === "mux-intro-prev") return muxIntroBack();
     if (action === "mux-demo-next") return muxDemoAdvance();
     if (action === "mux-demo-prev") return muxDemoBack();
+    if (action === "ff-explain-next") return ffExplainAdvance();
+    if (action === "ff-explain-prev") return ffExplainBack();
+    if (action === "ff-clock-teaser") return openFfClockLinks();
+    if (action === "ff-clock-links-close") return closeFfClockLinks();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -17289,6 +17392,10 @@
     if (muxDemoActiveNow()) {
       if (event.key === "ArrowLeft") { event.preventDefault(); return muxDemoAdvance(); }
       if (event.key === "ArrowRight") { event.preventDefault(); return muxDemoBack(); }
+    }
+    if (ffExplainActiveNow() && !state.ffClockLinks) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return ffExplainAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return ffExplainBack(); }
     }
 
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {

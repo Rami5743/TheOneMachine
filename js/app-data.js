@@ -685,6 +685,17 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     { label: "סרטון 2", url: "https://www.youtube.com/watch?v=s8ORydrdQ1k" }
   ];
 
+  // The flip-flop "clocking" enrichment window, reached from the red teaser on the
+  // second FF-explanation bubble (after the latch collapses into a single FF).
+  // Three explainer videos on how a computer keeps everything synchronised (a clock).
+  const FF_CLOCK_LINKS_TITLE = "חלק זה של המשחק עדיין בבנייה";
+  const FF_CLOCK_LINKS_INTRO = "כאן אפשר לשמוע איך גורמים לזה שבמחשב הכל יהיה מתוזמן:";
+  const FF_CLOCK_LINKS = [
+    { label: "סרטון 1", url: "https://www.youtube.com/watch?v=YmwfwfqoNmo" },
+    { label: "סרטון 2", url: "https://www.youtube.com/watch?v=H6DjiE7TlzA" },
+    { label: "סרטון 3", url: "https://www.youtube.com/watch?v=DFyrkfkBMTE&t=437s" }
+  ];
+
   // Chapter 2.4 component monologues, shown when the learner clicks the two new
   // crate hotspots in the 2.4 worktable. Each is a single speech bubble: `intro`
   // text, then the component's schematic symbol inline, then `outro` text.

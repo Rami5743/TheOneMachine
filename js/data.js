@@ -966,6 +966,30 @@ const SCENES = {
         "image": "assets/panels/panel130_chapter_3_1_try_not_loop.svg",
         "year": "1943",
         "read": "הנה, תנסה לחבר את ה-NOT במעגל."
+      },
+      {
+        "comment": "Chapter 3.1 warehouse epilogue (reached AFTER the clocked table collapses the MUX-latch into a single FF card, via finishMuxDemo → exitFlipflopToWarehouse). Von Neumann in the doorway looking at the FF on the worktable: one bit of memory is not enough.",
+        "image": "assets/panels/panel131_chapter_3_1_more_memory.svg",
+        "year": "1943",
+        "read": "טוב, יש לנו המון עבודה. לא יספיק לנו ליצור זיכרון של ביט אחד. צריך הרבה יותר זיכרון."
+      },
+      {
+        "comment": "Wordless beat: von Neumann leans over the worktable and lays down a card (a 16-bit register) next to the flip-flop.",
+        "image": "assets/panels/panel132_chapter_3_1_place_card.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
+        "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
+        "year": "1943",
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+      },
+      {
+        "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
+        "image": "assets/panels/panel134_chapter_3_1_back_to_work.svg",
+        "year": "1943",
+        "read": "אני חוזר לעבודה. סוף סוף לא צריך לחכות המון זמן לחישובים."
       }
     ]
   }

@@ -1476,6 +1476,19 @@ g.component-ffCard.ff-materialize .ff-card {
   align-self: flex-start;
 }
 
+/* The red enrichment teaser inside the FF-explanation bubble (second bubble). It
+   flows at the TOP of the bubble (overriding the subtraction-demo teaser's
+   absolute float over the board). */
+.ff-explain-teaser {
+  position: static;
+  transform: none;
+  left: auto;
+  bottom: auto;
+  max-width: 100%;
+  align-self: stretch;
+  justify-content: center;
+}
+
 /* The arrow that points at the נעץ tool from OUTSIDE the palette (JS positions it
    just to the right of the tool button). It bobs toward the palette. */
 .clocked-nail-arrow {
