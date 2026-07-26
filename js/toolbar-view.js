@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, nailIntroActive, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -89,14 +89,21 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
         </button>`
       : "";
 
+    // On first entry to the clocked table an arrow points at the נעץ tool.
+    const highlightNail = typeof nailIntroActive === "function" && nailIntroActive();
+
     return `
       <aside class="workspace-toolbox" aria-label="סרגל כלים">
         <div class="toolbox-list">
-          ${tools.map((tool) => `
-            <button class="toolbox-component" data-action="toolbox-component" data-component-type="${esc(tool.type)}" type="button" aria-label="גרור ${esc(tool.label)} לשולחן">
+          ${tools.map((tool) => {
+            const isNailIntro = highlightNail && tool.type === "nail";
+            return `
+            <button class="toolbox-component${isNailIntro ? " toolbox-component-nail-intro" : ""}" data-action="toolbox-component" data-component-type="${esc(tool.type)}" type="button" aria-label="גרור ${esc(tool.label)} לשולחן">
               ${toolbarIcon(tool.type)}
               <span>${esc(tool.label)}</span>
-            </button>`).join("")}
+              ${isNailIntro ? `<svg class="toolbox-nail-arrow" viewBox="0 0 24 24" width="40" height="40" aria-hidden="true"><path d="M21 12 L5 12 M5 12 L11 6 M5 12 L11 18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ""}
+            </button>`;
+          }).join("")}
         </div>
         ${createCardButton}
         <div class="toolbox-trash" data-trash aria-label="פח זבל">

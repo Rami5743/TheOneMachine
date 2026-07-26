@@ -83,12 +83,18 @@ function createWorkspaceState({
     const ws = workspace && typeof workspace === "object" ? workspace : fallback;
 
     const usedIds = new Set();
-    const sourceComponents = Array.isArray(ws.components) && ws.components.length ? ws.components : cloneDefaultComponents();
+    // The clocked (sequential) table legitimately opens EMPTY — the learner drags
+    // every part in from the palette — so it must NOT get the default
+    // source/lamp/nand seeded into it the way other empty workspaces do.
+    const allowEmpty = Boolean(ws && ws.clocked);
+    const sourceComponents = Array.isArray(ws.components) && ws.components.length
+      ? ws.components
+      : (allowEmpty ? [] : cloneDefaultComponents());
     const components = sourceComponents
       .map((component, index) => normalizeComponent(component, usedIds, index))
       .filter(Boolean);
 
-    if (!components.length) components.push(...cloneDefaultComponents());
+    if (!components.length && !allowEmpty) components.push(...cloneDefaultComponents());
 
     const observed = ws.nandOutputObserved && typeof ws.nandOutputObserved === "object"
       ? ws.nandOutputObserved

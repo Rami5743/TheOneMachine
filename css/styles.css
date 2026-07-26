@@ -1374,46 +1374,35 @@ button { font: inherit; }
   place-items: stretch;
 }
 
-/* The clocked (sequential) table's visible clock — a pulsing dot plus a tick
-   counter that runs at 2/sec, pinned to the top-left of the board. */
+/* The clocked (sequential) table's visible clock — just the running tick number,
+   pinned to the top-left of the board. */
 .clock-display {
   position: absolute;
   top: 12px;
   left: 12px;
   z-index: 6;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(17, 24, 39, 0.72);
-  color: #f3f4f6;
-  font-size: 14px;
-  font-weight: 600;
-  direction: rtl;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
-.clock-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #4b5563;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15) inset;
-  transition: background 120ms ease, box-shadow 120ms ease;
-}
-.clock-dot-on {
-  background: #f59e0b;
-  box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.7);
-}
 .clock-count {
-  min-width: 2.2em;
+  display: inline-block;
+  min-width: 2.4em;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  padding: 1px 8px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12);
+  font-size: 20px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: rgba(17, 24, 39, 0.72);
+  color: #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* נעץ interaction zones. The connect ring is the wire-drawing area AROUND the
+   dot (crosshair); the drag handle covers the dot itself and takes priority
+   (move cursor). Both are transparent — the dot's own art shows through. */
+.nail-connect { cursor: crosshair; }
+.nail-drag-handle { fill: transparent; cursor: move; }
+.nail-drag-handle:hover { fill: rgba(255, 255, 255, 0.08); }
 
 /* First-entry hand-off on the clocked table: a bubble at top-centre with a
    downward arrow nudging toward the pre-placed נעצים. */
@@ -1445,18 +1434,29 @@ button { font: inherit; }
 .clocked-intro-ok {
   align-self: center;
 }
-.clocked-intro-arrow {
-  position: absolute;
-  bottom: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #d1a54a;
-  animation: clocked-intro-bob 1s ease-in-out infinite;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+
+/* The נעץ tool in the palette, spotlighted on first entry, with an arrow that
+   bobs toward it (points from the board side into the button). */
+.toolbox-component-nail-intro {
+  position: relative;
+  border-color: #d1a54a !important;
+  box-shadow: 0 0 0 3px rgba(209, 165, 74, 0.55), 0 0 16px 2px rgba(245, 158, 11, 0.45);
 }
-@keyframes clocked-intro-bob {
-  0%, 100% { transform: translate(-50%, 0); }
-  50% { transform: translate(-50%, 8px); }
+.toolbox-nail-arrow {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 34px;
+  height: 34px;
+  transform: translateY(-50%);
+  color: #f59e0b;
+  animation: toolbox-nail-bob 1s ease-in-out infinite;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+@keyframes toolbox-nail-bob {
+  0%, 100% { transform: translate(0, -50%); }
+  50% { transform: translate(-6px, -50%); }
 }
 
 /* The scrolling viewport for the board canvas. When a task's content (a tall

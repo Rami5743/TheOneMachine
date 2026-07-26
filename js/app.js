@@ -48,9 +48,12 @@
       // distinct hit centres. Max-1-in is free (input vacancy); max-1-out and
       // loop-tolerance are enforced in canAddWire.
       label: "נעץ",
+      // Both pins sit at the dot's centre. The board exposes a single connection
+      // RING around the nail (renderTerminals special-cases it) and resolves
+      // in/out from the other wire end's direction; the centre is a drag handle.
       pins: {
-        in: { x: -9, y: 0, direction: "in", label: "כניסת נעץ" },
-        out: { x: 9, y: 0, direction: "out", label: "יציאת נעץ" }
+        in: { x: 0, y: 0, direction: "in", label: "כניסת נעץ" },
+        out: { x: 0, y: 0, direction: "out", label: "יציאת נעץ" }
       },
       bounds: { left: 18, right: 18, top: 18, bottom: 18 }
     },
@@ -1507,7 +1510,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, nailIntroActive: () => isClockedWorkspace() && !clockedIntroDismissed, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -7583,14 +7586,11 @@
   function createClockedWorkspace(returnChapterId, returnPanelIndex) {
     return normalizeWorkspace({
       selectedTerminal: null,
-      components: [
-        { id: "nail-1", type: "nail", x: 470, y: 250 },
-        { id: "nail-2", type: "nail", x: 690, y: 250 },
-        { id: "nail-3", type: "nail", x: 690, y: 470 },
-        { id: "nail-4", type: "nail", x: 470, y: 470 }
-      ],
+      // The board opens EMPTY — נעצים (and everything else) are dragged in from
+      // the palette. The intro arrow points at the נעץ tool there.
+      components: [],
       wires: [],
-      nextId: 5,
+      nextId: 2,
       unlocked: true,
       helpPromptSeen: true,
       buildHelpButtonVisible: false,
@@ -7613,8 +7613,6 @@
     if (!(state.screen === "workspace" && state.workspace?.clocked)) return "";
     return `
       <div class="clock-display" aria-label="שעון המכונה" role="status">
-        <span class="clock-dot${clockTick % 2 === 0 ? " clock-dot-on" : ""}" aria-hidden="true"></span>
-        <span class="clock-rate">2 פעימות בשנייה</span>
         <span class="clock-count">${clockTick}</span>
       </div>`;
   }
@@ -7626,11 +7624,8 @@
     if (!(state.screen === "workspace" && state.workspace?.clocked) || clockedIntroDismissed) return "";
     return `
       <div class="clocked-intro" role="dialog" aria-label="הנחיה">
-        <p class="clocked-intro-text">שמתי לך כאן כמה <strong>נעצים</strong> כדי שיהיה לך נוח להעביר כבלים. חבר את היציאה של ה-NOT בחזרה לכניסה שלו — דרך הנעצים — וראה מה קורה כשהשעון רץ.</p>
+        <p class="clocked-intro-text">גרור <strong>נעצים</strong> מהסרגל (מסומן בחץ) כדי להעביר כבלים בנוחות. חבר את היציאה של ה-NOT בחזרה לכניסה שלו — דרך הנעצים — וראה מה קורה כשהשעון רץ.</p>
         <button class="btn btn-primary clocked-intro-ok" data-action="clocked-intro-ok" type="button">הבנתי</button>
-        <svg viewBox="0 0 24 24" width="46" height="46" class="clocked-intro-arrow" aria-hidden="true">
-          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
       </div>`;
   }
 
@@ -14526,8 +14521,31 @@
     setState({ workspace }, false);
   }
 
+  // The נעץ exposes a single connection ring, so a wire end landing on it arrives
+  // as `${id}.in` regardless of role. Resolve it to the pin the connection needs:
+  // if the OTHER end is an output, the nail is the input (and vice-versa); for a
+  // nail↔nail wire fall back to argument order (from = out, to = in).
+  function resolveNailWireEnds(a, b) {
+    const ws = state.workspace;
+    const fix = (self, other, selfIsFrom) => {
+      const s = splitTerminalRef(self);
+      if (!s || componentById(ws, s.componentId)?.type !== "nail") return self;
+      const o = splitTerminalRef(other);
+      const otherIsNail = o && componentById(ws, o.componentId)?.type === "nail";
+      let pin;
+      if (otherIsNail) pin = selfIsFrom ? "out" : "in";
+      else {
+        const dir = terminalDirection(ws, other);
+        pin = dir === "out" ? "in" : dir === "in" ? "out" : (selfIsFrom ? "out" : "in");
+      }
+      return `${s.componentId}.${pin}`;
+    };
+    return [fix(a, b, true), fix(b, a, false)];
+  }
+
   function toggleWire(a, b) {
-    withWorkspace((workspace) => applyWireToggle(workspace, a, b));
+    const [na, nb] = resolveNailWireEnds(a, b);
+    withWorkspace((workspace) => applyWireToggle(workspace, na, nb));
   }
 
   function deleteWireByKey(key) {
