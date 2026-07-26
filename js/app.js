@@ -1443,16 +1443,18 @@
   // Phase B — the scripted oscillator. Once "הבנת?" is answered, a canonical NOT
   // self-loop is shown, the table locks, and the clock steps through von Neumann's
   // narration at 1/sec (the "הבא" button also advances). Each line pins the lamp.
+  // The NOT oscillator's feedback path (out → nail → nail → back to the input).
+  const NOT_FB_WIRES = [["gate-Not-1.out", "nail-1.in"], ["nail-1.out", "nail-2.in"], ["nail-2.out", "gate-Not-1.in1"]];
   const CLOCKED_SCRIPT = [
-    { text: "ברגע הראשון אין מתח בכניסה ל-NOT.", on: false },
-    { text: "לכן, תוך זמן קצר מופיע מתח ביציאה ממנו (הנורה נדלקת).", on: true },
-    { text: "המתח עובר לכניסה מיד, ולכן תוך זמן קצר המתח נפסק ביציאה (הנורה כבה).", on: false },
-    { text: "זה גורם לכך ששוב אין מתח בכניסה.", on: false },
-    { text: "וכך הלאה...", on: true },
+    { text: "ברגע הראשון אין מתח בכניסה ל-NOT.", on: false, hl: { terminals: ["gate-Not-1.in1"] } },
+    { text: "לכן, תוך זמן קצר מופיע מתח ביציאה ממנו (הנורה נדלקת).", on: true, hl: { terminals: ["gate-Not-1.out"], components: ["lamp-1"], wires: [["gate-Not-1.out", "lamp-1.in"]] } },
+    { text: "המתח עובר לכניסה מיד, ולכן תוך זמן קצר המתח נפסק ביציאה (הנורה כבה).", on: false, hl: { terminals: ["gate-Not-1.in1", "gate-Not-1.out"], wires: NOT_FB_WIRES } },
+    { text: "זה גורם לכך ששוב אין מתח בכניסה.", on: false, hl: { terminals: ["gate-Not-1.in1"] } },
+    { text: "וכך הלאה...", on: true, hl: { terminals: ["gate-Not-1.in1", "gate-Not-1.out"], components: ["nail-1", "nail-2"], wires: NOT_FB_WIRES } },
     // The clock is now stopped — the oscillator is frozen while von Neumann sums up.
-    { text: "זה עדיין לא הזיכרון שאנחנו רוצים לבנות, אבל זה משהו שיכול להיות בשני מצבים שונים: יש מתח ביציאה ואין מתח ביציאה.", on: true },
-    { text: "אבל אין לנו שליטה על המצב, אנחנו לא יכולים לשנות אותו.", on: true },
-    { text: "עכשיו תנסה לעשות תעלולים דומים עם ה-MUX.", on: true }
+    { text: "זה עדיין לא הזיכרון שאנחנו רוצים לבנות, אבל זה משהו שיכול להיות בשני מצבים שונים: יש מתח ביציאה ואין מתח ביציאה.", on: true, hl: { terminals: ["gate-Not-1.out"], components: ["lamp-1"] } },
+    { text: "אבל אין לנו שליטה על המצב, אנחנו לא יכולים לשנות אותו.", on: true, hl: {} },
+    { text: "עכשיו תנסה לעשות תעלולים דומים עם ה-MUX.", on: true, hl: {} }
   ];
   let clockedScriptActive = false;
   let clockedScriptStep = 0;
@@ -4472,7 +4474,23 @@
     return `מנורות דולקות: ${onCount} מתוך ${lamps.length}`;
   }
 
+  // Per-step highlight for the clocked narrations (NOT oscillator + MUX latch demo)
+  // — lights up the part of the circuit the current line talks about.
+  function clockedHighlightConfig() {
+    const hl = (muxDemoActiveNow() ? MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].hl
+      : CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].hl) || {};
+    return {
+      terminals: new Set(hl.terminals || []),
+      wires: new Set((hl.wires || []).map(([a, b]) => wireKey(a, b))),
+      components: new Set(hl.components || []),
+      truthRows: new Set(),
+      truthCols: new Set()
+    };
+  }
+
   function solutionHighlightConfig() {
+    // The clocked narrations highlight the part of the circuit under discussion.
+    if (clockedScriptActiveNow() || muxDemoActiveNow()) return clockedHighlightConfig();
     // The subtraction demo lights up the control leg(s) the current bubble talks
     // about (the whole control on the 110010 step, then just the NOT-input1 and
     // NOT-result legs), so "the pins we're talking about" are visibly marked.
@@ -10730,19 +10748,24 @@
   // control disconnected the state is held (the 2nd input is ignored); connecting
   // the control lets the 2nd input write the state; disconnecting it again locks
   // the (now high) state.
+  const MUX_FB_WIRES = [["gate-Mux-1.out", "nail-1.in"], ["nail-1.out", "gate-Mux-1.in1"]];
+  const HL_DATA = { terminals: ["flipflop-frame-1.inputExt1"], components: ["data-src"] };
+  const HL_CONTROL = { terminals: ["flipflop-frame-1.inputExt2"], components: ["ctrl-src"] };
+  const HL_DATA_OUT = { terminals: ["flipflop-frame-1.inputExt1", "flipflop-frame-1.outputExt1"], components: ["data-src", "lamp-1"] };
+  const HL_HOLD = { terminals: ["flipflop-frame-1.outputExt1"], components: ["nail-1", "lamp-1"], wires: MUX_FB_WIRES };
   const MUX_DEMO = [
-    { text: "תראה: אם כניסת הבקרה מנותקת, אנחנו מתעלמים מהכניסה השנייה. מכיוון שהכניסה הראשונה מחוברת ליציאה, המצב נשאר קבוע. בהתחלה אין מתח בשום מקום.", control: false, data: false, out: false },
-    { text: "גם אם אנחנו מחברים את הכניסה השנייה — זה לא משנה כלום.", control: false, data: true, out: false },
-    { text: null, control: false, data: false, out: false },
-    { text: null, control: false, data: true, out: false },
-    { text: "אם אנחנו מחברים את כניסת הבקרה, אז חשוב מה יש בכניסה השנייה.", control: true, data: false, out: false },
-    { text: null, control: true, data: true, out: true },
-    { text: null, control: true, data: false, out: false },
-    { text: null, control: true, data: true, out: true },
-    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true },
-    { text: null, control: false, data: false, out: true },
-    { text: null, control: false, data: true, out: true },
-    { text: null, control: false, data: false, out: true }
+    { text: "תראה: אם כניסת הבקרה מנותקת, אנחנו מתעלמים מהכניסה השנייה. מכיוון שהכניסה הראשונה מחוברת ליציאה, המצב נשאר קבוע. בהתחלה אין מתח בשום מקום.", control: false, data: false, out: false, hl: HL_HOLD },
+    { text: "גם אם אנחנו מחברים את הכניסה השנייה — זה לא משנה כלום.", control: false, data: true, out: false, hl: HL_DATA },
+    { text: null, control: false, data: false, out: false, hl: HL_DATA },
+    { text: null, control: false, data: true, out: false, hl: HL_DATA },
+    { text: "אם אנחנו מחברים את כניסת הבקרה, אז חשוב מה יש בכניסה השנייה.", control: true, data: false, out: false, hl: HL_CONTROL },
+    { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
+    { text: null, control: true, data: false, out: false, hl: HL_DATA_OUT },
+    { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
+    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["ctrl-src", "lamp-1", "nail-1"], wires: MUX_FB_WIRES } },
+    { text: null, control: false, data: false, out: true, hl: HL_HOLD },
+    { text: null, control: false, data: true, out: true, hl: HL_DATA_OUT },
+    { text: null, control: false, data: false, out: true, hl: HL_HOLD }
   ];
   // The feedback (output → first MUX input, the "hold" path) is routed through the
   // scene's נעץ so it reads clearly, as in the hand-built solution.
