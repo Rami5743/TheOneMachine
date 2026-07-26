@@ -7617,7 +7617,9 @@
             ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
             ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
           ` : `
-          ${navButton("workspace-reset", "restart", "נקה שולחן")}
+          ${state.solutionDialog
+            ? navButton("solution-reread", "restart", "הקרא מחדש")
+            : navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
             ${navButton("nand-monologue-prev", "arrow-right", "הקודם")}
             ${navButton("next", "arrow-left", "המשך", { primary: true })}
