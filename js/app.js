@@ -7692,15 +7692,29 @@
   // clock and, uniquely, tolerates feedback loops. A few נעצים are laid out in
   // advance (the "שמתי לך כאן נעצים" hand-off) so routing a loop is inviting from
   // the first moment. Reached from panel130's "המשך".
+  // The initial scaffolding for each clocked scene — reused by scene entry AND by
+  // "נקה שולחן" so a reset restores exactly the starting board.
+  function clockedNotSceneComponents() {
+    return [
+      { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
+      { id: "lamp-1", type: "lamp", x: 720, y: 430 }
+    ];
+  }
+  function muxSceneComponents() {
+    return [
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      { id: "source-1", type: "source", x: 70, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
+    ];
+  }
+
   function createClockedWorkspace(returnChapterId, returnPanelIndex) {
     return normalizeWorkspace({
       selectedTerminal: null,
       // The board opens with a NOT gate and a lamp already placed (full size);
       // the נעצים are dragged in from the palette (the intro arrow points there).
-      components: [
-        { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
-        { id: "lamp-1", type: "lamp", x: 720, y: 430 }
-      ],
+      components: clockedNotSceneComponents(),
       wires: [],
       nextId: 2,
       unlocked: true,
@@ -10412,6 +10426,23 @@
       };
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
+    // The clocked table (NOT oscillator OR MUX scene): "נקה שולחן" restores the
+    // scene's starting board — it must NOT throw the player into the Nand demo.
+    if (state.workspace?.clocked) {
+      const current = normalizeWorkspace(state.workspace);
+      const components = current.muxScene ? muxSceneComponents() : clockedNotSceneComponents();
+      const workspace = { ...current, components, wires: [], selectedTerminal: null, focusedComponentId: null, accident: null };
+      return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
+    }
+    // Only the actual Nand presentation replays the connect demo. Any OTHER free
+    // board just clears the learner's work (keeping fixed scaffolding) in place —
+    // never teleporting to the Nand presentation.
+    if (!isNandPresentationWorkspace()) {
+      const current = normalizeWorkspace(state.workspace);
+      const components = current.components.filter((c) => componentDef(c.type)?.fixed);
+      const workspace = { ...current, components, wires: [], selectedTerminal: null, focusedComponentId: null, accident: null };
+      return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
+    }
     // Pressing reset in the Nand presentation replays the connect demo from the top.
     armNandConnectDemo();
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
@@ -10539,12 +10570,7 @@
     workspace.understoodButtonVisible = false;
     workspace.selectedTerminal = null;
     workspace.wires = [];
-    workspace.components = [
-      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
-      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
-      { id: "source-1", type: "source", x: 70, y: 400 },
-      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
-    ];
+    workspace.components = muxSceneComponents();
     setState({ workspace, infoDialog: null }, false);
   }
 
