@@ -1034,6 +1034,8 @@
     arithNoteList: false,
     // The 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 → ALU3).
     aluNoteList: false,
+    // The 3.1 memory worktable note (Register4 → Register).
+    memoryNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -1958,6 +1960,7 @@
       busesNoteList: false,
       arithNoteList: false,
       aluNoteList: false,
+      memoryNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -4131,7 +4134,9 @@
   // sentences ("...אני נראה כך:" [symbol] "..."). Opened from the two new 2.4
   // crate hotspots. Appearance/text only — no workbench behaviour yet.
   function componentMonologueData(kind) {
-    return kind === "splitter" ? SPLITTER_MONOLOGUE : BUS_MONOLOGUE;
+    if (kind === "splitter") return SPLITTER_MONOLOGUE;
+    if (kind === "nail") return (typeof NAIL_MONOLOGUE !== "undefined" ? NAIL_MONOLOGUE : BUS_MONOLOGUE);
+    return BUS_MONOLOGUE;
   }
 
   function componentMonologueSymbol(kind) {
@@ -4140,15 +4145,21 @@
 
   function renderComponentMonologue() {
     if (!state.componentMonologue) return "";
-    const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
+    const k = state.componentMonologue.kind;
+    const kind = (k === "splitter" || k === "nail") ? k : "bus";
     const data = componentMonologueData(kind);
-    const label = kind === "splitter" ? "מפצל" : "בס";
+    const label = kind === "splitter" ? "מפצל" : (kind === "nail" ? "נעץ" : "בס");
+    // The נעץ has no standalone asset file — draw its on-table symbol inline (like
+    // the converter dialog), reusing the board component markup.
+    const symbol = kind === "nail"
+      ? `<svg class="component-monologue-symbol component-monologue-nail" viewBox="-30 -30 60 60" width="90" height="90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(label)}">${componentMarkup("nail", { toolbar: true })}</svg>`
+      : `<img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />`;
     return `
       <div class="bit-overlay" role="presentation">
         <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="${esc(label)}">
           <div class="component-monologue-body">
             <p>${esc(adaptGender(data.intro))}</p>
-            <img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />
+            ${symbol}
             <p>${esc(adaptGender(data.outro))}</p>
           </div>
           <div class="bit-actions">
@@ -4320,6 +4331,7 @@
       ${renderBusesNoteList()}
       ${renderArithNoteList()}
       ${renderAluNoteList()}
+      ${renderMemoryNoteList()}
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -13123,6 +13135,10 @@
   // equipment; once both the bus and the splitter have been examined the 2.4
   // note unlocks its task list.
   function openComponentMonologue(kind) {
+    // The נעץ monologue (3.1 memory worktable) is standalone — it is NOT part of
+    // the 2.4 bus/splitter "examine all the equipment" gate, so it doesn't touch
+    // busesEquipmentSeen.
+    if (kind === "nail") return setState({ componentMonologue: { kind: "nail" } }, false);
     const k = kind === "splitter" ? "splitter" : "bus";
     const seen = Array.isArray(state.busesEquipmentSeen) ? state.busesEquipmentSeen : [];
     const nextSeen = seen.includes(k) ? seen : [...seen, k];
@@ -13852,6 +13868,76 @@
           </div>
         </section>
         ${renderNoteClearDialog()}
+      </div>`;
+  }
+
+  // ---- Chapter 3.1 memory worktable note (Register4 → Register). Mirrors the ALU
+  // note: `requires` is a LIST (all prerequisites must be completed). Neither card
+  // has a build workspace yet, so a tapped-but-unlocked card shows "המשך יבוא...".
+  function memoryTaskDefById(id) {
+    return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).find((task) => task.id === id) || null;
+  }
+
+  function memoryTaskUnlocked(id) {
+    const def = memoryTaskDefById(id);
+    if (!def) return false;
+    const reqs = Array.isArray(def.requires) ? def.requires : (def.requires ? [def.requires] : []);
+    return reqs.every((req) => taskCompleted(req));
+  }
+
+  function memoryTaskLockedMessage(id) {
+    const def = memoryTaskDefById(id);
+    const reqs = def && Array.isArray(def.requires) ? def.requires : [];
+    const missing = reqs.filter((req) => !taskCompleted(req)).map((req) => memoryTaskDefById(req)?.label || req);
+    if (!missing.length) return "";
+    return missing.length === 1
+      ? `קודם צריך לבנות את ${missing[0]}`
+      : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
+  }
+
+  // Which memory cards have a real build workspace so far (none yet).
+  function memoryTaskImplemented() {
+    return false;
+  }
+
+  function openMemoryNote() {
+    return setState({ memoryNoteList: true });
+  }
+
+  function handleMemoryNoteTask(id) {
+    const task = memoryTaskDefById(id);
+    if (!task) return;
+    if (!memoryTaskUnlocked(task.id)) {
+      return setState({ infoDialog: memoryTaskLockedMessage(task.id) });
+    }
+    if (!memoryTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+  }
+
+  function renderMemoryNoteList() {
+    if (!state.memoryNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !memoryTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="memory-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="memory-note-close">סגור</button>
+          </div>
+        </section>
       </div>`;
   }
 
@@ -17025,7 +17111,11 @@
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
+    if (action === "nail-box") return openComponentMonologue("nail");
     if (action === "component-monologue-ok") return closeComponentMonologue();
+    if (action === "memory-tasks-note") return openMemoryNote();
+    if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
+    if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");
     if (action === "arith-converter-out") return openConverterInfo("out");
     if (action === "converter-info-ok") return closeConverterInfo();

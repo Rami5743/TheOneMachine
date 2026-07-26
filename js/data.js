@@ -983,13 +983,23 @@ const SCENES = {
         "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
         "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
         "year": "1943",
-        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
       },
       {
         "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
         "image": "assets/panels/panel134_chapter_3_1_back_to_work.svg",
         "year": "1943",
         "read": "אני חוזר לעבודה. סוף סוף לא צריך לחכות המון זמן לחישובים."
+      },
+      {
+        "comment": "Chapter 3.1 memory worktable: the tasks note opens the memory-card list (Register4 → Register), and the נעץ (nail) box has its own optional monologue. Click-zones are FALLBACK percentages until the real worktable art + a hotspot-carrying SVG are dropped in (see README_chapter_3_1_epilogue.md).",
+        "image": "assets/panels/panel135_chapter_3_1_memory_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "memory-tasks-note", "left": 18, "top": 65, "width": 15, "height": 15 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 62, "top": 58, "width": 11, "height": 9 }
+        ]
       }
     ]
   }

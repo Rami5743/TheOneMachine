@@ -708,3 +708,18 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     intro: "שלום, אני מפצל. אני נועדתי כדי לפצל בסים. על שולחן העבודה אני נראה כך:",
     outro: "יש לי שני צדדים. לצד אחד מחברים בס, ומהצד השני יוצאים מספר כבלים או בסים. אפשר לשנות את מספר הבסים (או הכבלים), והם לא חייבים להיות שווים – כל רגל יכולה להיות ברוחב משלה, כל עוד יחד הם מסתכמים לרוחב הבס שנכנס. אם הופכים אותי אפשר להשתמש בי לכיוון השני – אני מחבר כמה בסים (או כבלים בודדים) לבס אחד רחב יותר."
   };
+
+  // The נעץ (routing nail) self-introduction, shown from the nail-box hotspot on
+  // the 3.1 memory worktable. Same shape as the bus/splitter monologues: intro,
+  // its on-table symbol, then outro.
+  const NAIL_MONOLOGUE = {
+    intro: "שלום, אנחנו נעצים. על שולחן העבודה אנחנו נראים כך:",
+    outro: "אנחנו יכולים לעזור לך לפרוס את הכבלים. אל תפרוס שני כבלים על נעץ אחד, שלא יהיה בלגן."
+  };
+
+  // Chapter 3.1 memory worktable cards, opened (in order) from the tasks note.
+  // No build workspace yet — a tapped card shows the "המשך יבוא..." placeholder.
+  const MEMORY_TASKS = [
+    { id: "Register4", label: "Register4", requires: [] },
+    { id: "Register", label: "Register", requires: ["Register4"] }
+  ];
