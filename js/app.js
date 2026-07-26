@@ -1513,7 +1513,12 @@
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
     clockTick += 1;
-    detectClockedBlink(r.lamps);
+    // NOT scene → blink detection; MUX scene → working-latch detection.
+    if (ws.muxScene) {
+      if (!clockedUnderstoodTriggered && detectMuxLatch(flat)) return triggerClockedUnderstood();
+    } else {
+      detectClockedBlink(r.lamps);
+    }
     render();
   }
 
@@ -10607,6 +10612,12 @@
     // the goal narration, then free-runs at 2 Hz once the learner plays).
     clockTick = 0;
     clockPrev = new Map();
+    // Re-arm the "הבנת?" detection for THIS scene: it fires when a working latch is
+    // built, or after a minute regardless.
+    clockedUnderstoodTriggered = false;
+    clockLampToggles = 0;
+    clockLampLast = new Map();
+    clearClockedTimeout();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.muxScene = true;
     workspace.understoodPromptShown = false;
@@ -10615,6 +10626,50 @@
     workspace.wires = [];
     workspace.components = muxSceneComponents();
     setState({ workspace, infoDialog: null }, false);
+  }
+
+  // Real-time check that the learner has built a working MUX latch. We take their
+  // internal circuit, drive the frame's data + control ports ourselves, run the
+  // clocked engine, and verify latch behaviour: one control value LOADS (output
+  // follows data) and the other HOLDS (output keeps its value regardless of data).
+  // Up to ~5 clocks are allowed for the output to settle. Both hold-polarities and
+  // both data-input wirings are accepted (we just try both).
+  function detectMuxLatch(baseWorkspace) {
+    const frameId = "flipflop-frame-1";
+    if (!baseWorkspace.components.some((c) => c.id === frameId)) return false;
+    if (!baseWorkspace.components.some((c) => String(c.type).startsWith("gate-Mux"))) return false;
+    const drop = new Set(baseWorkspace.components.filter((c) => c.type === "source" || c.type === "lamp").map((c) => c.id));
+    const extPins = new Set([`${frameId}.inputExt1`, `${frameId}.inputExt2`, `${frameId}.outputExt1`]);
+    const baseComps = baseWorkspace.components.filter((c) => !drop.has(c.id));
+    const baseWires = baseWorkspace.wires.filter((w) => {
+      const ca = String(w.a).split(".")[0], cb = String(w.b).split(".")[0];
+      if (drop.has(ca) || drop.has(cb)) return false;
+      if (extPins.has(w.a) || extPins.has(w.b)) return false;
+      return true;
+    });
+    const outRef = `${frameId}.outputExt1`;
+    const SETTLE = 6; // give the output up to ~5 clocks (plus one) to settle
+    const runVec = (prev, data, control) => {
+      const comps = [...baseComps];
+      const wires = [...baseWires];
+      if (data) { comps.push({ id: "__td", type: "source", x: 0, y: 0 }); wires.push({ a: "__td.out", b: `${frameId}.inputExt1` }); }
+      if (control) { comps.push({ id: "__tc", type: "source", x: 0, y: 0 }); wires.push({ a: "__tc.out", b: `${frameId}.inputExt2` }); }
+      const ws = { ...baseWorkspace, components: comps, wires };
+      let p = prev, out = false;
+      for (let i = 0; i < SETTLE; i += 1) { const r = __circuitEngine.evaluateWorkspaceClocked(ws, p); p = r.next; out = Boolean(r.outputs.get(outRef)); }
+      return { out, prev: p };
+    };
+    for (const H of [false, true]) {         // H = the "hold" control value
+      const L = !H;                          // L = the "load" control value
+      let prev = new Map();
+      let ok = true;
+      let r = runVec(prev, true, L); prev = r.prev; if (r.out !== true) ok = false;   // load 1
+      r = runVec(prev, false, H); prev = r.prev; if (r.out !== true) ok = false;      // hold (data 0) → stays 1
+      r = runVec(prev, false, L); prev = r.prev; if (r.out !== false) ok = false;     // load 0
+      r = runVec(prev, true, H); prev = r.prev; if (r.out !== false) ok = false;      // hold (data 1) → stays 0
+      if (ok) return true;
+    }
+    return false;
   }
 
   function muxIntroActive() {
@@ -10640,6 +10695,15 @@
     if (!muxIntroActive() || muxIntroStep <= 0) return;
     muxIntroStep -= 1;
     render();
+  }
+
+  // Answering the MUX-scene "הבנת?" — the continuation is not built yet, so both
+  // כן/לא just close the prompt with a "המשך יבוא" notice.
+  function finishMuxUnderstood() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    setState({ workspace, infoDialog: "המשך יבוא..." }, false);
   }
   function stopClockedScript() {
     clockedScriptActive = false;
@@ -16803,7 +16867,9 @@
     if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
     if (action === "understood-play-more") return dismissUnderstoodPrompt();
     if (action === "understood-yes" || action === "understood-no") {
-      // On the clocked table both answers lead into the scripted continuation.
+      // In the MUX scene the continuation isn't built yet — just close with a
+      // "המשך יבוא" notice. In the NOT scene both answers start the script.
+      if (state.workspace?.muxScene) return finishMuxUnderstood();
       if (state.workspace?.clocked) return startClockedScript();
       return startNandMonologue();
     }
