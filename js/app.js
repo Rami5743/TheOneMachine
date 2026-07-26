@@ -7315,6 +7315,7 @@
               ${subtractionDemoActive() ? "" : renderNotTaskHint()}
               ${subtractionDemoActive() ? "" : renderWhyNote()}
               ${renderAndArrow()}
+              ${renderClockDisplay()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7600,6 +7601,18 @@
       sessionReturnChapterId: returnChapterId,
       sessionReturnPanelIndex: returnPanelIndex
     });
+  }
+
+  // The visible clock: a pulsing dot + a tick counter that runs at 2/sec, so the
+  // player can feel the sequential rhythm driving the loops. Clocked table only.
+  function renderClockDisplay() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return "";
+    return `
+      <div class="clock-display" aria-label="שעון המכונה" role="status">
+        <span class="clock-dot${clockTick % 2 === 0 ? " clock-dot-on" : ""}" aria-hidden="true"></span>
+        <span class="clock-rate">2 פעימות בשנייה</span>
+        <span class="clock-count">${clockTick}</span>
+      </div>`;
   }
 
   function enterClockedTable() {

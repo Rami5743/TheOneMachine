@@ -1374,6 +1374,47 @@ button { font: inherit; }
   place-items: stretch;
 }
 
+/* The clocked (sequential) table's visible clock — a pulsing dot plus a tick
+   counter that runs at 2/sec, pinned to the top-left of the board. */
+.clock-display {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.72);
+  color: #f3f4f6;
+  font-size: 14px;
+  font-weight: 600;
+  direction: rtl;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+.clock-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4b5563;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15) inset;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+.clock-dot-on {
+  background: #f59e0b;
+  box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.7);
+}
+.clock-count {
+  min-width: 2.2em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* The scrolling viewport for the board canvas. When a task's content (a tall
    card's frame + solution, or a check's harness lamps) is taller than the
    visible board, this scrolls vertically so nothing is stranded off-screen.
