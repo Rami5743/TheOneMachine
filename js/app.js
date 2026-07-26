@@ -1457,6 +1457,11 @@
   let clockedScriptActive = false;
   let clockedScriptStep = 0;
   let clockedScriptTimer = null; // retained only so stopClockedScript stays defensive
+  // Once the learner presses "הבא" on the "וכך הלאה" line the scripted clock is
+  // RELEASED to free-run at 1 Hz (the oscillator blinks on its own); before that
+  // it is frozen and steps one line per press.
+  let clockedScriptReleased = false;
+  let clockTimerPeriod = null;
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -1470,10 +1475,11 @@
   // key off the real, on-board lamp components.
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
-    // While the scripted oscillator plays, the lamp (and the NOT's output) are
-    // pinned by the current narration line — the circuit is a fixed demo, not a
-    // live solve.
-    if (clockedScriptActive && workspace?.clocked) {
+    // While the scripted oscillator plays AND the clock is still frozen, the lamp
+    // (and the NOT's output) are pinned by the current narration line. Once the
+    // clock is released ("וכך הלאה"), fall through to the live clocked engine so it
+    // blinks on its own.
+    if (clockedScriptActive && !clockedScriptReleased && workspace?.clocked) {
       const on = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].on;
       // Light the NOT's output and the whole loop (through both נעצים) so the
       // energised cable path reads clearly.
@@ -1499,9 +1505,10 @@
   function clockStep() {
     const ws = state.workspace;
     if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
-    // Pause the free 2 Hz clock mid-drag, while the "הבנת?" prompt is open, and
-    // while the scripted oscillator is driving the board itself.
-    if (dragState || workspaceUnderstoodPromptActive() || clockedScriptActive || muxIntroActive()) return;
+    // Pause the clock mid-drag, while the "הבנת?" prompt is open, during the MUX
+    // goal narration, and during the MANUAL phase of the script (before the clock
+    // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
+    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
     const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
@@ -1545,9 +1552,19 @@
     if (clockedTimeoutId) { window.clearTimeout(clockedTimeoutId); clockedTimeoutId = null; }
   }
 
+  // The released scripted clock runs at 1 Hz; everywhere else the clock is 2 Hz.
+  function currentClockPeriodMs() {
+    return (clockedScriptActive && clockedScriptReleased) ? 1000 : CLOCK_PERIOD_MS;
+  }
+
   function ensureClockRunning() {
     if (state.screen === "workspace" && state.workspace?.clocked) {
-      if (!clockTimer) clockTimer = window.setInterval(clockStep, CLOCK_PERIOD_MS);
+      const period = currentClockPeriodMs();
+      if (!clockTimer || clockTimerPeriod !== period) {
+        if (clockTimer) window.clearInterval(clockTimer);
+        clockTimer = window.setInterval(clockStep, period);
+        clockTimerPeriod = period;
+      }
       startClockedTimeout();
     } else if (clockTimer) {
       stopClock();
@@ -1556,6 +1573,7 @@
 
   function stopClock() {
     if (clockTimer) { window.clearInterval(clockTimer); clockTimer = null; }
+    clockTimerPeriod = null;
     clearClockedTimeout();
     stopClockedScript();
     clockedScriptStep = 0;
@@ -10524,6 +10542,7 @@
       { a: "gate-Not-1.out", b: "lamp-1.in" }
     ];
     clockedScriptActive = true;
+    clockedScriptReleased = false;
     clockedScriptStep = 0;
     clockTick = 0; // the visible clock restarts for the scripted run
     clockedIntroDismissed = true;
@@ -10544,8 +10563,17 @@
     // Linear: each "הבא" advances one line. Past the last line (the MUX hand-off)
     // it moves on to the MUX scene.
     if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
+    // Pressing "הבא" on the "וכך הלאה" line (index 4) RELEASES the clock: from here
+    // it free-runs at 1 Hz and the lamp is driven by the real engine, not pinned.
+    const releasingNow = !clockedScriptReleased && clockedScriptStep === 4;
     clockedScriptStep += 1;
-    clockTick += 1; // the frozen clock ticks up one on each "הבא"
+    if (releasingNow) {
+      clockedScriptReleased = true;
+      clockPrev = new Map();
+      clockTick = 0;
+    } else if (!clockedScriptReleased) {
+      clockTick += 1; // the still-frozen clock ticks up one on each "הבא"
+    }
     render();
   }
 
@@ -10564,6 +10592,10 @@
     stopClockedScript();
     clockedScriptStep = 0;
     muxIntroStep = 0;
+    // The frame appears → reset the clock and freeze it (it stays frozen through
+    // the goal narration, then free-runs at 2 Hz once the learner plays).
+    clockTick = 0;
+    clockPrev = new Map();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.muxScene = true;
     workspace.understoodPromptShown = false;
@@ -10593,6 +10625,7 @@
   }
   function stopClockedScript() {
     clockedScriptActive = false;
+    clockedScriptReleased = false;
     if (clockedScriptTimer) { window.clearInterval(clockedScriptTimer); clockedScriptTimer = null; }
   }
 
