@@ -688,6 +688,22 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 50 }
   };
 
+  // The finished 16-bit register, once built: the same memory element on a wider
+  // bus, so it can be reused as a card anywhere the palette offers it.
+  WORKSPACE_COMPONENT_DEFS["gate-Register"] = {
+    label: "Register",
+    taskId: "Register",
+    gate: true,
+    memoryGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
+      in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+  };
+
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
   // control bus on TOP, and a width-16 output on the right. Two-stage operation
   // selected by the control (first bit zeroes the input, second bit NOTs it).
@@ -1575,6 +1591,34 @@
   // is used whenever the expanded workspace has buses/cards (it handles single
   // bits too); lamp ids are preserved by the flattening, so lamp results still
   // key off the real, on-board lamp components.
+  // --- Part 3 (זיכרון) onward: EVERY workbench is sequential ------------------
+  // From chapter 3.1 on the learner has flip-flops and registers, so every table —
+  // free build, a task build, the card designer — runs the 2 Hz clock and is
+  // simulated over time (memory elements hold their value between ticks) rather
+  // than solved combinationally. Derived from the chapter so it applies to
+  // workspaces created before this rule existed (and to saved games).
+  const SEQUENTIAL_ERA_CHAPTER = "chapter-10";
+  function inSequentialEra(chapterId = state.chapterId) {
+    const here = chapterIndexById(chapterId);
+    const from = chapterIndexById(SEQUENTIAL_ERA_CHAPTER);
+    return Number.isInteger(here) && Number.isInteger(from) && here >= from;
+  }
+  // Is THIS workbench clocked? Either it was opened as one of the 3.1 clocked
+  // scenes / memory builds, or we are simply in the sequential era.
+  function workspaceClockedNow(workspace = state.workspace) {
+    if (!workspace) return false;
+    return Boolean(workspace.clocked) || (state.screen === "workspace" && inSequentialEra());
+  }
+  // Should it be simulated with the BUS engine carrying memory? Everything in the
+  // sequential era except the single-bit NOT/MUX scenes of 3.1, which have their
+  // own hand-tuned single-bit clocked engine.
+  function workspaceBusClockedNow(workspace = state.workspace) {
+    if (!workspace) return false;
+    if (workspace.busClocked) return true;
+    if (workspace.clocked) return false; // the 3.1 scenes: single-bit clocked engine
+    return state.screen === "workspace" && inSequentialEra();
+  }
+
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
     // The scripted MUX-latch demo pins the output (and the loop) per narration step.
@@ -1610,13 +1654,13 @@
       return { outputs, lamps };
     }
     // The clocked table renders the CURRENT tick's held snapshot (clockPrev),
-    // not a fresh combinational solve — that is what makes feedback loops blink.
-    // A memory build (busClocked) uses the bus engine so buses/splitters draw too.
-    if (workspace?.busClocked) {
+    // not a fresh combinational solve — that is what makes feedback loops blink
+    // and memory hold. The bus engine is used wherever buses/splitters may appear.
+    if (workspaceBusClockedNow(workspace)) {
       const r = __circuitEngine.evaluateWorkspaceBits(flat, clockPrev);
       return { outputs: r.outputs, lamps: r.lamps, converters: r.converters };
     }
-    if (workspace?.clocked) {
+    if (workspaceClockedNow(workspace)) {
       const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
       return { outputs: r.outputs, lamps: r.lamps };
     }
@@ -1648,7 +1692,7 @@
   }
   function clockStep() {
     const ws = state.workspace;
-    if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
+    if (!ws || !workspaceClockedNow(ws) || state.screen !== "workspace") return stopClock();
     // Pause the clock mid-drag, while any dialog is open, during the MUX goal
     // narration, and during the MANUAL phase of the script (before the clock is
     // released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
@@ -1656,14 +1700,15 @@
     const flat = flattenWorkspaceForEval(ws);
     // A clocked BUS build (memory cards) carries flip-flop memory through the bus
     // engine; the NOT/MUX scenes use the single-bit clocked engine.
-    const r = ws.busClocked
+    const busClocked = workspaceBusClockedNow(ws);
+    const r = busClocked
       ? __circuitEngine.evaluateWorkspaceBits(flat, clockPrev)
       : __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
     clockTick += 1;
     // NOT scene → blink detection; MUX scene → working-latch detection. A memory
     // build has neither (it is checked on demand via the בדיקה button).
-    if (!ws.busClocked) {
+    if (!busClocked) {
       if (ws.muxScene) {
         if (!clockedUnderstoodTriggered && !clockedUnderstoodResolved && detectMuxLatch(flat)) return triggerClockedUnderstood();
       } else {
@@ -1740,7 +1785,7 @@
   }
 
   function ensureClockRunning() {
-    if (state.screen === "workspace" && state.workspace?.clocked) {
+    if (state.screen === "workspace" && workspaceClockedNow()) {
       const period = currentClockPeriodMs();
       if (!clockTimer || clockTimerPeriod !== period) {
         if (clockTimer) window.clearInterval(clockTimer);
@@ -1821,7 +1866,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -8163,8 +8208,9 @@
   // player can feel the sequential rhythm driving the loops. Clocked table only.
   function renderClockDisplay() {
     // Shown on the whole clocked table, INCLUDING the scripted phase — there it
-    // freezes and only ticks up when "הבא" is pressed.
-    if (!(state.screen === "workspace" && state.workspace?.clocked)) return "";
+    // freezes and only ticks up when "הבא" is pressed. From part 3 on that is
+    // every workbench (free build, task build, card designer).
+    if (!(state.screen === "workspace" && workspaceClockedNow())) return "";
     return `
       <div class="clock-display" aria-label="שעון המכונה" role="status">
         <span class="clock-count">${clockTick}</span>

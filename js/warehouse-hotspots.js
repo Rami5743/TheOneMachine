@@ -307,7 +307,7 @@
     // could have built by now — including the "create new card" tool, enabled
     // here regardless of whether it was unlocked in this playthrough. cardIntroDone
     // is set too so enabling it does not re-arm the one-time scripted card intro.
-    if (kind === "binary-workshop" || kind === "alu-worktable") {
+    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable") {
       state.createCardUnlocked = true;
       state.cardIntroDone = true;
       state.cardIntroPending = false;
@@ -373,7 +373,7 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we

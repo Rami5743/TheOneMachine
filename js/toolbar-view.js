@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -93,7 +93,11 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           // splitter, since built gates/cards are already excluded above).
           ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
           // The binary↔decimal converters, on the 2.5 worktable (arith builds).
-          ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
+          ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
+          // From part 3 (זיכרון) on, every build is sequential: the flip-flop and the
+          // נעץ join the ordinary palette too (free build, task build, card designer).
+          // The Register cards arrive through builtGateTools, under the usual rules.
+          ...(!isNandPresentationWorkspace() && (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable()) ? [{ type: "ffCard", label: "FF" }, { type: "nail", label: "נעץ" }] : [])
         ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
