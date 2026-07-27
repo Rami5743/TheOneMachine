@@ -2367,16 +2367,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt2",
-          "x": 0,
-          "y": -260,
+          "x": -260,
+          "y": -330,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה חיצונית"
         },
         {
           "id": "inputInt2",
-          "x": 0,
-          "y": -160,
+          "x": -260,
+          "y": -230,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -2397,7 +2397,9 @@ window.EMBEDDED_SOLUTIONS = {
           "dir": "out",
           "label": "יציאת המידע חיצונית"
         }
-      ]
+      ],
+      "frameW": 600,
+      "frameH": 560
     },
     "external": [
       {
@@ -2421,25 +2423,25 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "ff-1",
         "type": "ffCard",
         "x": 640,
-        "y": 310
+        "y": 600
       },
       {
         "id": "ff-2",
         "type": "ffCard",
         "x": 640,
-        "y": 390
+        "y": 490
       },
       {
         "id": "ff-3",
         "type": "ffCard",
         "x": 640,
-        "y": 470
+        "y": 380
       },
       {
         "id": "ff-4",
         "type": "ffCard",
         "x": 640,
-        "y": 550
+        "y": 270
       },
       {
         "id": "merge-out",
@@ -2541,16 +2543,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt2",
-          "x": 0,
-          "y": -260,
+          "x": -260,
+          "y": -330,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה חיצונית"
         },
         {
           "id": "inputInt2",
-          "x": 0,
-          "y": -160,
+          "x": -260,
+          "y": -230,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -2571,7 +2573,9 @@ window.EMBEDDED_SOLUTIONS = {
           "dir": "out",
           "label": "יציאת המידע חיצונית"
         }
-      ]
+      ],
+      "frameW": 600,
+      "frameH": 560
     },
     "external": [
       {
@@ -2595,25 +2599,25 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "reg-1",
         "type": "gate-Register4",
         "x": 640,
-        "y": 310
+        "y": 600
       },
       {
         "id": "reg-2",
         "type": "gate-Register4",
         "x": 640,
-        "y": 390
+        "y": 490
       },
       {
         "id": "reg-3",
         "type": "gate-Register4",
         "x": 640,
-        "y": 470
+        "y": 380
       },
       {
         "id": "reg-4",
         "type": "gate-Register4",
         "x": 640,
-        "y": 550
+        "y": 270
       },
       {
         "id": "merge-out",

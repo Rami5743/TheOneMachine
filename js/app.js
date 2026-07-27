@@ -116,15 +116,15 @@
       pins: {
         inputExt1: { x: -340, y: 0, direction: "in", width: 4, label: "כניסה" },
         inputInt1: { x: -260, y: 0, direction: "out", width: 4, label: "כניסה פנימית" },
-        // The control STRADDLES the frame's top edge (the frame is 420 tall, so its
-        // top edge is at y=-210): the external tip sits above it and the internal
-        // connection point below it — half out, half in.
-        inputExt2: { x: 0, y: -260, direction: "in", width: 1, label: "בקרה" },
-        inputInt2: { x: 0, y: -160, direction: "out", width: 1, label: "בקרה פנימית" },
+        // The control sits near the LEFT of the frame's top edge (like the other
+        // cards' control) and STRADDLES it: with a 560-tall frame the top edge is at
+        // y=-280, so the external tip is above it and the internal point below it.
+        inputExt2: { x: -260, y: -330, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: -260, y: -230, direction: "out", width: 1, label: "בקרה פנימית" },
         outputInt1: { x: 260, y: 0, direction: "in", width: 4, label: "יציאה פנימית" },
         outputExt1: { x: 340, y: 0, direction: "out", width: 4, label: "יציאה" }
       },
-      bounds: { left: 340, right: 340, top: 260, bottom: 240 }
+      bounds: { left: 340, right: 340, top: 330, bottom: 300 }
     },
     "taskCard-Register": {
       label: "מסגרת Register",
@@ -136,15 +136,15 @@
       pins: {
         inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסה" },
         inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסה פנימית" },
-        // The control STRADDLES the frame's top edge (the frame is 420 tall, so its
-        // top edge is at y=-210): the external tip sits above it and the internal
-        // connection point below it — half out, half in.
-        inputExt2: { x: 0, y: -260, direction: "in", width: 1, label: "בקרה" },
-        inputInt2: { x: 0, y: -160, direction: "out", width: 1, label: "בקרה פנימית" },
+        // The control sits near the LEFT of the frame's top edge (like the other
+        // cards' control) and STRADDLES it: with a 560-tall frame the top edge is at
+        // y=-280, so the external tip is above it and the internal point below it.
+        inputExt2: { x: -260, y: -330, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: -260, y: -230, direction: "out", width: 1, label: "בקרה פנימית" },
         outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאה" }
       },
-      bounds: { left: 340, right: 340, top: 260, bottom: 240 }
+      bounds: { left: 340, right: 340, top: 330, bottom: 300 }
     }
   };
 
@@ -1674,6 +1674,10 @@
   function startClockedTimeout() {
     // Only ever arm the 60 s fallback ONCE — after the prompt has been shown (and
     // the player has responded), it must never pop up on its own again.
+    // Never on a memory-card build (busClocked) or any task build: the prompt
+    // belongs to the free NOT/MUX scenes only. (Module state resets on reload, so
+    // this must be derived from the workspace, not from a flag.)
+    if (state.workspace?.busClocked || workspaceTaskId()) return;
     if (clockedTimeoutId || clockedUnderstoodTriggered || clockedUnderstoodResolved) return;
     // Whatever the player does, offer the prompt after a minute.
     clockedTimeoutId = window.setTimeout(() => {
@@ -1944,8 +1948,10 @@
         // control (e.g. ALU0's op-select) is a plain cable, no label.
         const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
         // The label sits BESIDE the pin (not above it), so a control that straddles
-        // the frame's top edge doesn't collide with the card title above.
-        const labelY = ay + (iy - ay) / 2;
+        // the frame's top edge doesn't collide with the card title above. Keep it in
+        // the OUTSIDE portion of the stub (above the frame edge) so it never sits on
+        // the frame line itself.
+        const labelY = ay + (iy - ay) * 0.25;
         stubs += (w > 1)
           ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
@@ -4832,7 +4838,7 @@
         }
       },
       {
-        text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. בקרה=1 → כולם טוענים את הכניסה; בקרה=0 → כולם שומרים.",
+        text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. כשהבקרה 1 כולם טוענים את הכניסה, וכשהיא 0 כולם שומרים.",
         highlight: {
           components: ["ff-1", "ff-2", "ff-3", "ff-4"],
           terminals: ["task-card-1.inputInt2", "ff-1.in2", "ff-2.in2", "ff-3.in2", "ff-4.in2"],
@@ -8066,7 +8072,16 @@
   }
 
   function clockedIntroActive() {
-    return state.screen === "workspace" && Boolean(state.workspace?.clocked) && !state.workspace?.muxScene && !clockedIntroDismissed;
+    // Only the NOT scene's FIRST entry shows von Neumann's nail hand-off. It must
+    // never appear on a memory-card build (busClocked) — those are task builds, and
+    // clockedIntroDismissed is module state that resets on every page reload, so
+    // without this guard a refresh mid-build would pop the bubble back up.
+    return state.screen === "workspace"
+      && Boolean(state.workspace?.clocked)
+      && !state.workspace?.busClocked
+      && !workspaceTaskId()
+      && !state.workspace?.muxScene
+      && !clockedIntroDismissed;
   }
 
   // The first-entry hand-off on the clocked table. It is von Neumann speaking, so
@@ -14318,7 +14333,9 @@
   // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
   function memoryPreplacedComponents(taskId, cardX, cardY) {
     if (taskId !== "Register4") return [];
-    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY - 120 + i * 80 }));
+    // Bit 0 at the BOTTOM (matching the splitter's leg order, so no cable crosses),
+    // spaced out and sitting clear of the control pin at the top of the frame.
+    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY + 170 - i * 110 }));
   }
 
   function openMemoryTaskWorkspace(taskId) {
@@ -14408,8 +14425,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="memory-note-close">סגור</button>
+            ${noteClearProgressButton("memory")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -15258,6 +15277,7 @@
     if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
     if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
     if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
+    if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     return [];
   }
 
