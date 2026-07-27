@@ -2740,7 +2740,10 @@
 
   function solutionAvailable(taskId = workspaceTaskId()) {
     const hints = taskHints(taskId);
-    return Boolean(taskId) && hints.length > 0 && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
+    // Only offer the "solution" button when a walkthrough actually exists — a task
+    // with hints but no walkthrough (e.g. the memory cards) must not offer one.
+    return Boolean(taskId) && hints.length > 0 && taskHasSolutionWalkthrough(taskId)
+      && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
   }
 
   function hintState() {
