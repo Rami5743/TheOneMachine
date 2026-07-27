@@ -70,11 +70,18 @@ function createWorkspaceChromeView({
     if (state.solutionDialog?.returnToExplanations) {
       return `<button class="btn" data-action="solution-ok" type="button">חזרה לתפריט ההסברים</button>`;
     }
+    // An explanation replayed on the workbench (the memory explanations) belongs
+    // to the menu, not to the story — so it never offers "חזרה למחסן".
+    if (state.explanationReplay) {
+      return `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`;
+    }
     return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
   }
 
   function renderWorkspaceSkipButton() {
     const state = getState();
+    // A replayed explanation has no story to skip past.
+    if (state.explanationReplay) return "";
     if (state.chapterId === "chapter-5" || state.workspace?.workspaceSession === 2) return "";
     return navButton("skip", "skip-rtl", "דלג", { disabled: workspaceSkipDisabled() });
   }

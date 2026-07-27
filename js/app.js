@@ -11173,7 +11173,7 @@
       <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
         <p>${esc(MUX_GOAL_LINES[muxIntroStep])}</p>
         <div class="clocked-script-nav">
-          ${navButton("mux-intro-prev", "arrow-right", "הקודם", { disabled: muxIntroStep <= 0 })}
+          ${navButton("mux-intro-prev", "arrow-right", "הקודם", { disabled: muxIntroStep <= 0 && !explanationReplayActive("flipflop-what") })}
           ${navButton("mux-intro-next", "arrow-left", "הבא", { primary: true })}
         </div>
       </div>`;
@@ -11189,7 +11189,12 @@
     render();
   }
   function muxIntroBack() {
-    if (!muxIntroActive() || muxIntroStep <= 0) return;
+    if (!muxIntroActive()) return;
+    // In a replay, "back" off the FIRST slide leaves the explanation.
+    if (muxIntroStep <= 0) {
+      if (explanationReplayActive("flipflop-what")) return returnToExplanationsMenuFromReplay();
+      return;
+    }
     muxIntroStep -= 1;
     render();
   }
@@ -11328,7 +11333,12 @@
     });
   }
   function muxDemoBack() {
-    if (!muxDemoActiveNow() || muxDemoStep <= 0) return;
+    if (!muxDemoActiveNow()) return;
+    // In a replay, "back" off the FIRST slide leaves the explanation.
+    if (muxDemoStep <= 0) {
+      if (explanationReplayActive("flipflop-how")) return returnToExplanationsMenuFromReplay();
+      return;
+    }
     muxDemoStep -= 1;
     clockTick = muxDemoStep;
     applyMuxDemoWires();
@@ -11339,7 +11349,7 @@
       <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
         <p>${esc(muxDemoText())}</p>
         <div class="clocked-script-nav">
-          ${navButton("mux-demo-prev", "arrow-right", "הקודם", { disabled: muxDemoStep <= 0 })}
+          ${navButton("mux-demo-prev", "arrow-right", "הקודם", { disabled: muxDemoStep <= 0 && !explanationReplayActive("flipflop-how") })}
           ${navButton("mux-demo-next", "arrow-left", "הבא", { primary: true })}
         </div>
       </div>`;
