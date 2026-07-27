@@ -4785,6 +4785,106 @@
         }
       }
     ],
+    Register4: [
+      {
+        text: "כרטיס זיכרון בנוי מפליפ-פלופים — כל פליפ-פלופ שומר ביט אחד. הכניסה שלנו היא בס ברוחב 4, אז נתחיל מלפצל אותה ל-4 כבלים בודדים, כל אחד לפליפ-פלופ אחר.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "כל אחת מ-4 הרגליים של המפצל נכנסת לכניסת המידע של פליפ-פלופ אחר. עכשיו כל ביט של המספר מגיע לפליפ-פלופ שישמור אותו.",
+        highlight: {
+          components: ["split-in", "ff-1", "ff-2", "ff-3", "ff-4"],
+          terminals: ["ff-1.in1", "ff-2.in1", "ff-3.in1", "ff-4.in1"],
+          wires: [
+            wireKey("split-in.leg0", "ff-1.in1"),
+            wireKey("split-in.leg1", "ff-2.in1"),
+            wireKey("split-in.leg2", "ff-3.in1"),
+            wireKey("split-in.leg3", "ff-4.in1")
+          ]
+        }
+      },
+      {
+        text: "היציאות של 4 הפליפ-פלופים מתאחדות בחזרה לבס אחד ברוחב 4 (מפצל הפוך), וזאת היציאה של הכרטיס. שים לב: הכרטיס מוציא תמיד את מה ששמור בפליפ-פלופים — לא את מה שנכנס אליו.",
+        highlight: {
+          components: ["ff-1", "ff-2", "ff-3", "ff-4", "merge-out"],
+          terminals: ["merge-out.single", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("ff-1.out", "merge-out.leg0"),
+            wireKey("ff-2.out", "merge-out.leg1"),
+            wireKey("ff-3.out", "merge-out.leg2"),
+            wireKey("ff-4.out", "merge-out.leg3"),
+            wireKey("merge-out.single", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. בקרה=1 → כולם טוענים את הכניסה; בקרה=0 → כולם שומרים.",
+        highlight: {
+          components: ["ff-1", "ff-2", "ff-3", "ff-4"],
+          terminals: ["task-card-1.inputInt2", "ff-1.in2", "ff-2.in2", "ff-3.in2", "ff-4.in2"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "ff-1.in2"),
+            wireKey("task-card-1.inputInt2", "ff-2.in2"),
+            wireKey("task-card-1.inputInt2", "ff-3.in2"),
+            wireKey("task-card-1.inputInt2", "ff-4.in2")
+          ]
+        }
+      }
+    ],
+    Register: [
+      {
+        text: "אפשר לבנות את Register בדיוק כמו את Register4, רק עם 16 פליפ-פלופים. אבל יש דרך קצרה: כבר בנינו כרטיס ששומר 4 ביטים — נשתמש בו. מפצלים את בס הכניסה (16) לארבעה בסים ברוחב 4.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "כל בס ברוחב 4 נכנס ל-Register4 משלו. ארבעה כרטיסי Register4 שומרים יחד 4×4 = 16 ביטים.",
+        highlight: {
+          components: ["split-in", "reg-1", "reg-2", "reg-3", "reg-4"],
+          terminals: ["reg-1.in1", "reg-2.in1", "reg-3.in1", "reg-4.in1"],
+          wires: [
+            wireKey("split-in.leg0", "reg-1.in1"),
+            wireKey("split-in.leg1", "reg-2.in1"),
+            wireKey("split-in.leg2", "reg-3.in1"),
+            wireKey("split-in.leg3", "reg-4.in1")
+          ]
+        }
+      },
+      {
+        text: "היציאות של ארבעת הכרטיסים מתאחדות חזרה לבס אחד ברוחב 16 — היציאה של הכרטיס.",
+        highlight: {
+          components: ["reg-1", "reg-2", "reg-3", "reg-4", "merge-out"],
+          terminals: ["merge-out.single", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("reg-1.out", "merge-out.leg0"),
+            wireKey("reg-2.out", "merge-out.leg1"),
+            wireKey("reg-3.out", "merge-out.leg2"),
+            wireKey("reg-4.out", "merge-out.leg3"),
+            wireKey("merge-out.single", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "וכמו קודם — כניסת הבקרה של כל ארבעת ה-Register4 היא אותה כניסה: כניסת הבקרה של הכרטיס. כך כל 16 הביטים נכתבים בבת אחת, ואף חלק לא נשאר מאחור.",
+        highlight: {
+          components: ["reg-1", "reg-2", "reg-3", "reg-4"],
+          terminals: ["task-card-1.inputInt2", "reg-1.in2", "reg-2.in2", "reg-3.in2", "reg-4.in2"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "reg-1.in2"),
+            wireKey("task-card-1.inputInt2", "reg-2.in2"),
+            wireKey("task-card-1.inputInt2", "reg-3.in2"),
+            wireKey("task-card-1.inputInt2", "reg-4.in2")
+          ]
+        }
+      }
+    ],
     Add4: [
       {
         text: "כמו בחיבור ארוך בעמודות — קודם מפצלים כל אחד משני המספרים ל-4 הספרות שלו בעזרת מפצל, כדי לעבוד על כל עמודה (ספרה) בנפרד. עובדים מלמטה למעלה: ספרת האחדות למטה, הספרה המשמעותית ביותר למעלה.",
@@ -11558,7 +11658,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -12560,6 +12660,10 @@
   // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
   // matching the requirement text.
   function multibitTaskCases(taskId) {
+    // Memory cards are CLOCKED — they are checked by runMemoryTest (a sequence of
+    // drives over several ticks), never by combinational cases, so they legitimately
+    // carry no check.cases in their JSON.
+    if (isMemoryTask(taskId)) return [];
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -14235,6 +14339,27 @@
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
+
+    // Memory cards (3.1): back to the memory worktable with its note reopened.
+    // Once BOTH are built, roll into the "good work" ending instead. They are
+    // multibit-shaped, so this must come before the bus/multibit branch below.
+    if (isMemoryTask(taskId)) {
+      const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+      const common = {
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      };
+      if (allMemoryDone) {
+        const scene = SCENES["flipflop"];
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        return setState({
+          screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+          panelIndex: idx >= 0 ? idx : scene.panels.length - 1, started: true,
+          memoryNoteList: false, ...common
+        }, true);
+      }
+      return setState({ ...memoryWorktableReturnTarget(), memoryNoteList: true, ...common }, true);
+    }
 
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
     // with the note reopened (so the next task unlocks). ALU bus cards (Inc …)
