@@ -14731,6 +14731,23 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
+    // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
+    // done, roll into the "good work" ending — same as finishing them for real.
+    // Checked FIRST: they are multibit-shaped, so they would otherwise fall into
+    // the chapter-2.4 bus branch below.
+    if (isMemoryTask(taskId)) {
+      const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+      if (allMemoryDone) {
+        const scene = SCENES["flipflop"];
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        return setState({
+          screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+          panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+          started: true, ...base, memoryNoteList: false
+        }, true);
+      }
+      return setState({ ...memoryWorktableReturnTarget(), ...base, memoryNoteList: true }, true);
+    }
     if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
@@ -17398,9 +17415,11 @@
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
       if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
-      // On the clocked table it fast-forwards through the flip-flop explanation
-      // phases (one press per beat) instead of "solving" a (non-existent) task.
-      else if (state.screen === "workspace" && state.workspace?.clocked) secretSkipClockedNarration();
+      // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
+      // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
+      // real task, so it takes the normal secret-solve path instead — otherwise it
+      // would drop the learner into the NOT oscillator script mid-build.
+      else if (state.screen === "workspace" && state.workspace?.clocked && !state.workspace?.busClocked && !workspaceTaskId()) secretSkipClockedNarration();
       else secretSolveAndExit();
     }
   });
