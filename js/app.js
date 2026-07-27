@@ -1624,13 +1624,35 @@
   };
 
   // --- The 2 Hz clock that drives the sequential table --------------------
+  // A clock tick re-renders the whole screen (app.innerHTML), which REPLACES every
+  // node. If that happens between a button's pointerdown and its pointerup, the
+  // browser fires no click at all on that button — so clicks would intermittently
+  // do nothing while the clock runs. These two guards keep the board live without
+  // ever eating a click: never re-render while a pointer is held down, and stop
+  // the clock entirely while any dialog/overlay is open.
+  let pointerHeld = false;
+  function clockPausedForUi() {
+    return pointerHeld
+      || dragState
+      || workspaceUnderstoodPromptActive()
+      || notTestActive()
+      || workspaceTaskIntroActive()
+      || workspaceBuildHelpPromptActive()
+      || Boolean(state.hintDialog) || Boolean(state.hintSlides)
+      || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
+      || Boolean(state.taskDialog) || Boolean(state.dialog)
+      || Boolean(state.memoryNoteList) || Boolean(state.aluNoteList)
+      || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
+      || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
+      || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
+  }
   function clockStep() {
     const ws = state.workspace;
     if (!ws || !ws.clocked || state.screen !== "workspace") return stopClock();
-    // Pause the clock mid-drag, while the "הבנת?" prompt is open, during the MUX
-    // goal narration, and during the MANUAL phase of the script (before the clock
-    // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
-    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || ffExplainActive || notTestActive() || (clockedScriptActive && !clockedScriptReleased)) return;
+    // Pause the clock mid-drag, while any dialog is open, during the MUX goal
+    // narration, and during the MANUAL phase of the script (before the clock is
+    // released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
+    if (clockPausedForUi() || muxIntroActive() || muxDemoActive || ffExplainActive || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
     // A clocked BUS build (memory cards) carries flip-flop memory through the bus
     // engine; the NOT/MUX scenes use the single-bit clocked engine.
@@ -1648,7 +1670,29 @@
         detectClockedBlink(r.lamps);
       }
     }
-    render();
+    renderClockTick();
+  }
+
+  // A clock tick must NOT rebuild the whole screen: a full render() replaces every
+  // node, so any button the learner is about to press (בדיקה, רוצה רמז, …) is
+  // detached mid-click and the click is swallowed. Only the board's live layers and
+  // the tick counter actually change between ticks, so refresh just those in place
+  // and leave the toolbar, the controls and any open dialog untouched.
+  function renderClockTick() {
+    const svg = app.querySelector("[data-workspace-svg]");
+    const counter = app.querySelector(".clock-count");
+    if (!svg) return render();
+    const evaluation = workspaceEvaluation();
+    const wireLayer = svg.querySelector(".workspace-wire-layer");
+    const componentLayer = svg.querySelector(".workspace-component-layer");
+    const terminalLayer = svg.querySelector(".workspace-terminal-layer");
+    if (!wireLayer || !componentLayer || !terminalLayer) return render();
+    // The draft wire is only used mid-drag, and ticks are skipped while dragging.
+    wireLayer.innerHTML = `${renderWires()}
+      <line id="workspace-draft-wire" class="wire-line wire-line-draft" x1="0" y1="0" x2="0" y2="0" hidden />`;
+    componentLayer.innerHTML = state.workspace.components.map((component) => renderComponent(component, evaluation)).join("");
+    terminalLayer.innerHTML = renderTerminals();
+    if (counter) counter.textContent = String(clockTick);
   }
 
   // A lamp that flips ≥2 times (off→on→off …) without the player re-wiring means
@@ -4840,13 +4884,20 @@
       {
         text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. כשהבקרה 1 כולם טוענים את הכניסה, וכשהיא 0 כולם שומרים.",
         highlight: {
-          components: ["ff-1", "ff-2", "ff-3", "ff-4"],
+          // The control runs out of the frame pin and down a spine of נעצים, so
+          // every segment is a straight horizontal/vertical line.
+          components: ["ff-1", "ff-2", "ff-3", "ff-4", "nail-c0", "nail-c1", "nail-c2", "nail-c3", "nail-c4"],
           terminals: ["task-card-1.inputInt2", "ff-1.in2", "ff-2.in2", "ff-3.in2", "ff-4.in2"],
           wires: [
-            wireKey("task-card-1.inputInt2", "ff-1.in2"),
-            wireKey("task-card-1.inputInt2", "ff-2.in2"),
-            wireKey("task-card-1.inputInt2", "ff-3.in2"),
-            wireKey("task-card-1.inputInt2", "ff-4.in2")
+            wireKey("task-card-1.inputInt2", "nail-c0.in"),
+            wireKey("nail-c0.out", "nail-c1.in"),
+            wireKey("nail-c1.out", "nail-c2.in"),
+            wireKey("nail-c2.out", "nail-c3.in"),
+            wireKey("nail-c3.out", "nail-c4.in"),
+            wireKey("nail-c1.out", "ff-4.in2"),
+            wireKey("nail-c2.out", "ff-3.in2"),
+            wireKey("nail-c3.out", "ff-2.in2"),
+            wireKey("nail-c4.out", "ff-1.in2")
           ]
         }
       }
@@ -4890,13 +4941,18 @@
       {
         text: "וכמו קודם — כניסת הבקרה של כל ארבעת ה-Register4 היא אותה כניסה: כניסת הבקרה של הכרטיס. כך כל 16 הביטים נכתבים בבת אחת, ואף חלק לא נשאר מאחור.",
         highlight: {
-          components: ["reg-1", "reg-2", "reg-3", "reg-4"],
+          components: ["reg-1", "reg-2", "reg-3", "reg-4", "nail-c0", "nail-c1", "nail-c2", "nail-c3", "nail-c4"],
           terminals: ["task-card-1.inputInt2", "reg-1.in2", "reg-2.in2", "reg-3.in2", "reg-4.in2"],
           wires: [
-            wireKey("task-card-1.inputInt2", "reg-1.in2"),
-            wireKey("task-card-1.inputInt2", "reg-2.in2"),
-            wireKey("task-card-1.inputInt2", "reg-3.in2"),
-            wireKey("task-card-1.inputInt2", "reg-4.in2")
+            wireKey("task-card-1.inputInt2", "nail-c0.in"),
+            wireKey("nail-c0.out", "nail-c1.in"),
+            wireKey("nail-c1.out", "nail-c2.in"),
+            wireKey("nail-c2.out", "nail-c3.in"),
+            wireKey("nail-c3.out", "nail-c4.in"),
+            wireKey("nail-c1.out", "reg-4.in2"),
+            wireKey("nail-c2.out", "reg-3.in2"),
+            wireKey("nail-c3.out", "reg-2.in2"),
+            wireKey("nail-c4.out", "reg-1.in2")
           ]
         }
       }
@@ -11789,6 +11845,10 @@
       // The tall 2.5 Add16 frame (four Add4 chunks stacked inside) sits a touch
       // lower so its title clears the top of the board — matching its build.
       : taskId === "Add16" ? 310
+      // The 3.1 memory cards: the SAME y their build uses (openMemoryTaskWorkspace),
+      // so the walkthrough's frame sits exactly where the learner's frame sat and
+      // never appears to jump up when the solution opens.
+      : (taskId === "Register4" || taskId === "Register") ? MEMORY_BUILD_CARD_Y
       : 288;
   }
   function workspaceFromSolutionDoc(doc) {
@@ -14331,6 +14391,9 @@
   // Register4's 4 flip-flops appear already inside its frame (per the spec); the
   // learner wires the splitters + the shared control. Register's frame is empty
   // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
+  // Where a memory card's frame sits on the build board. Shared with the solution
+  // walkthrough (aluBuildCardY) so the frame never moves between the two.
+  const MEMORY_BUILD_CARD_Y = 430;
   function memoryPreplacedComponents(taskId, cardX, cardY) {
     if (taskId !== "Register4") return [];
     // Bit 0 at the BOTTOM (matching the splitter's leg order, so no cable crosses),
@@ -14345,7 +14408,7 @@
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const cardX = 640;
-    const cardY = 430;
+    const cardY = MEMORY_BUILD_CARD_Y;
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
@@ -17828,6 +17891,15 @@
     if (action === "understood-open") return openUnderstoodPrompt();
     if (action === "exit") return exitApp();
   });
+
+  // Hold the clock's re-render for the duration of every pointer press, so a click
+  // can never straddle an innerHTML swap (which would swallow it). Registered in
+  // the CAPTURE phase so it is set before any handler below can return early.
+  document.addEventListener("pointerdown", () => { pointerHeld = true; }, true);
+  const releasePointerHold = () => { pointerHeld = false; };
+  window.addEventListener("pointerup", releasePointerHold, true);
+  window.addEventListener("pointercancel", releasePointerHold, true);
+  window.addEventListener("blur", releasePointerHold);
 
   document.addEventListener("pointerdown", (event) => {
     if (workspaceNandMonologueActive() && event.target.closest("[data-nand-speech]")) {
