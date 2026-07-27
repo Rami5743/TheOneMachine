@@ -380,10 +380,23 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return null;
   }
 
-  function evaluateWorkspaceBits(workspace) {
+  // `prev` (optional): a Map of held ffCard output vectors from the previous tick.
+  // When supplied, this becomes a CLOCKED bus evaluation — flip-flops behave as
+  // memory (their output is held from prev this tick, and a `next` map of the
+  // following tick's states is returned). Everything else (buses, splitters,
+  // card frames) settles combinationally as usual. Chapters 2.4-2.6 pass no prev,
+  // so the ffCard branches are inert there.
+  function evaluateWorkspaceBits(workspace, prev) {
+    const prevMap = prev instanceof Map ? prev : null;
     const outputs = new Map();
     for (const component of workspace.components) {
       if (component.type === "source") outputs.set(`${component.id}.out`, [true]);
+      else if (prevMap && component.type === "ffCard") {
+        // A flip-flop holds its previous output (single bit) this tick, like a
+        // source — so the combinational solve below routes it, and it is NOT
+        // recomputed during iteration (ffCard is not a handled type there).
+        outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || [false], 1));
+      }
     }
 
     for (let iter = 0; iter < workspace.components.length + 4; iter += 1) {
@@ -718,6 +731,20 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
       if (!changed) break;
     }
 
+    // Clocked bus mode: compute each flip-flop's NEXT output from the data (in1)
+    // and control (in2) bits it sees this tick — control high loads the data,
+    // control low holds the previous value.
+    const next = new Map();
+    if (prevMap) {
+      for (const component of workspace.components) {
+        if (component.type !== "ffCard") continue;
+        const data = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
+        const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+        const prevOut = Boolean((prevMap.get(`${component.id}.out`) || [false])[0]);
+        next.set(`${component.id}.out`, [control ? data : prevOut]);
+      }
+    }
+
     const lamps = new Map();
     const converters = new Map();
     for (const component of workspace.components) {
@@ -735,7 +762,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
       }
     }
 
-    return { outputs, lamps, converters };
+    return { outputs, lamps, converters, next };
   }
 
   return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits, evaluateWorkspaceClocked };
