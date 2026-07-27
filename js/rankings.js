@@ -1,8 +1,10 @@
-// rankings.js — the "דירוגים" screen. One page, two tabs:
+// rankings.js — the "דירוגים" screen. One page, three tabs:
 //   • "דירוגי יעילות" (default) — ranks by the TOTAL recursive Nand count of the
 //     player's build (fewer = more efficient).
 //   • "דירוגי מהירות" — ranks by the SERIAL Nand count: the most Nands in series
 //     on any input→output path (the critical-path depth; fewer = faster).
+//   • "מהירות תכנון" — ranks by DESIGN TIME (seconds): how long the player spent
+//     designing the card, plus the creation time of each distinct user card used.
 // Each tab is a table with one row per built-in card: card name | the metric's
 // count | the player's rank among registered users | the current record.
 // Clicking a card opens its records page, which mirrors the same two tabs and
@@ -33,9 +35,29 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       sub: "מספר הנאנדים בטור — הכי הרבה נאנדים במסלול אחד מכניסה ליציאה — ככל שנמוך יותר כך הכרטיס מהיר יותר. לחץ על כרטיס לרשימת השיאים שלו.",
       recordsSub: "רשימת השיאנים — מספר הנאנדים בטור הנמוך ביותר קודם.",
       map: "cardSerialCounts"
+    },
+    design: {
+      key: "design", ldim: "design", label: "מהירות תכנון",
+      countHead: "זמן תכנון",
+      sub: "כמה זמן לקח לך לתכנן את הכרטיס — ככל שמהר יותר, טוב יותר. שימוש בכרטיס מעיצוב אישי מוסיף פעם אחת את זמן ההכנה שלו. לחץ על כרטיס לרשימת השיאים שלו.",
+      recordsSub: "רשימת השיאנים — זמן התכנון הקצר ביותר קודם.",
+      map: "cardDesignCounts",
+      format: formatTime
     }
   };
-  const activeTab = () => TABS[(typeof getTab === "function" && getTab()) === "speed" ? "speed" : "efficiency"];
+  const TAB_ORDER = ["efficiency", "speed", "design"];
+  const activeTab = () => TABS[TAB_ORDER.includes(typeof getTab === "function" && getTab()) ? getTab() : "efficiency"];
+
+  // Seconds → m:ss (or h:mm:ss). Used only by the design tab; other tabs render
+  // their count as a plain number.
+  function formatTime(sec) {
+    if (typeof sec !== "number" || !isFinite(sec)) return "—";
+    const s = Math.max(0, Math.round(sec));
+    const m = Math.floor(s / 60), r = s % 60;
+    if (m >= 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+    return `${m}:${String(r).padStart(2, "0")}`;
+  }
+  const fmt = (tab, v) => (tab.format ? tab.format(v) : String(v));
 
   // The buildable cards, in game order. Nand (the given primitive) is not listed.
   function rankingCards() {
@@ -77,7 +99,7 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       <button class="rankings-tab${key === active ? " is-active" : ""}" data-action="rankings-tab" data-tab="${key}" type="button">
         ${esc(TABS[key].label)}
       </button>`;
-    return `<div class="rankings-tabs" role="tablist">${btn("efficiency")}${btn("speed")}</div>`;
+    return `<div class="rankings-tabs" role="tablist">${TAB_ORDER.map(btn).join("")}</div>`;
   }
 
   function renderRankingsScreen(app) {
@@ -85,12 +107,12 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     const registered = typeof isRegistered === "function" ? Boolean(isRegistered()) : false;
     const rows = rankingCards().map((card) => {
       const count = countFor(card.id, tab);
-      const countText = count == null ? `<span class="rank-undef">—</span>` : String(count);
+      const countText = count == null ? `<span class="rank-undef">—</span>` : esc(fmt(tab, count));
       const lb = typeof leaderboardFor === "function" ? leaderboardFor(card.id, tab.ldim) : null;
       const rank = lb && typeof lb.rank === "number" ? lb.rank : null;
       const record = lb && typeof lb.record === "number" ? lb.record : null;
       const rankHtml = registered ? rankCell(rank) : `<span class="rank-empty" title="זמין למשתמשים רשומים">—</span>`;
-      const recordHtml = record == null ? `<span class="rank-empty">—</span>` : String(record);
+      const recordHtml = record == null ? `<span class="rank-empty">—</span>` : esc(fmt(tab, record));
       return `
         <tr class="rankings-row" role="button" tabindex="0" data-action="open-card-records" data-card-id="${esc(card.id)}" data-card-label="${esc(card.label)}">
           <td class="rank-card-name">${esc(card.label)}</td>
@@ -161,7 +183,7 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       ? rows.map((r) => `
           <tr>
             <td class="rank-rank">${rankCell(r.rank)}</td>
-            <td class="rank-count">${typeof r.count === "number" ? r.count : "—"}</td>
+            <td class="rank-count">${typeof r.count === "number" ? esc(fmt(tab, r.count)) : "—"}</td>
             <td class="rank-nick">${esc(r.nickname || DEFAULT_NICKNAME)}</td>
           </tr>`).join("")
       : `<tr><td colspan="3" class="rankings-empty-row">אין עדיין שיאים לכרטיס זה.</td></tr>`;
