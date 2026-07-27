@@ -1591,7 +1591,7 @@
     // Pause the clock mid-drag, while the "הבנת?" prompt is open, during the MUX
     // goal narration, and during the MANUAL phase of the script (before the clock
     // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
-    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || ffExplainActive || (clockedScriptActive && !clockedScriptReleased)) return;
+    if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || ffExplainActive || notTestActive() || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
     // A clocked BUS build (memory cards) carries flip-flop memory through the bus
     // engine; the NOT/MUX scenes use the single-bit clocked engine.
@@ -12178,6 +12178,10 @@
 
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
+    // Memory cards (Register4/Register) are CLOCKED — checked by their memory
+    // behaviour over several clocks, not a combinational truth table. This must be
+    // tested before the multibit branch (they are multibit-shaped too).
+    if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
@@ -12185,6 +12189,69 @@
     muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
     const testWorkspace = cleanedWorkspaceForTaskTest(state.workspace);
     runNotTestRow(testWorkspace, 0);
+  }
+
+  // --- Chapter 3.1 memory-card check (Register4 / Register) ------------------
+  // No truth table: drive the data bus + control over several clocks and verify
+  // the output reflects the STORED value given the history (control=1 loads,
+  // control=0 holds). Values are chosen to exercise both load and hold.
+  function isMemoryTaskWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(memoryTaskDefById(state.workspace?.taskId));
+  }
+  function isMemoryTask(id) {
+    return Boolean(typeof MEMORY_TASKS !== "undefined" && MEMORY_TASKS.some((t) => t.id === id));
+  }
+  function memoryTestSpec(taskId) {
+    // Values isolate each bit position (powers of two) so a mis-routed bit fails,
+    // interleaved with control=0 holds so the memory behaviour is exercised too.
+    if (taskId === "Register") {
+      return { width: 16, steps: [
+        { d: 1, c: 1 }, { d: 256, c: 1 }, { d: 256, c: 0 }, { d: 32768, c: 1 },
+        { d: 43690, c: 1 }, { d: 12345, c: 0 }, { d: 21845, c: 1 }
+      ] };
+    }
+    return { width: 4, steps: [
+      { d: 1, c: 1 }, { d: 2, c: 1 }, { d: 2, c: 0 }, { d: 4, c: 1 },
+      { d: 8, c: 1 }, { d: 1, c: 0 }, { d: 11, c: 1 }
+    ] };
+  }
+  // The learner's build + temporary drivers: a dec→bin source on the data bus, a
+  // bin→dec reader on the output bus, and (when control=1) a source on the control.
+  function memoryHarnessWorkspace(base, data, control) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    ws.components = ws.components.filter((c) => !["reg-drive", "reg-read", "reg-ctrl"].includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^reg-(drive|read|ctrl)\./.test(w.a) && !/^reg-(drive|read|ctrl)\./.test(w.b));
+    ws.components.push({ id: "reg-drive", type: "converter-out", value: data, x: 120, y: 700 });
+    ws.components.push({ id: "reg-read", type: "converter-in", x: 1160, y: 700 });
+    ws.components.push({ id: "reg-ctrl", type: "source", x: 640, y: 60 });
+    ws.wires.push({ a: "reg-drive.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "reg-read.in" });
+    if (control) ws.wires.push({ a: "reg-ctrl.out", b: "task-card-1.inputExt2" });
+    return ws;
+  }
+  function runMemoryTest(base, taskId) {
+    const spec = memoryTestSpec(taskId);
+    let prev = new Map(); // flip-flop states carried between steps (this IS the memory)
+    let stored = 0;
+    const SETTLE = 6;
+    for (let i = 0; i < spec.steps.length; i += 1) {
+      const step = spec.steps[i];
+      const flat = flattenWorkspaceForEval(memoryHarnessWorkspace(base, step.d, step.c));
+      for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
+      if (step.c) stored = step.d;
+      const info = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters.get("reg-read");
+      const got = info ? Number(info.value) : -1;
+      if (got !== stored) return { ok: false, index: i, expected: stored, got };
+    }
+    return { ok: true };
+  }
+  function startMemoryTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const taskId = state.workspace.taskId;
+    const result = runMemoryTest(state.workspace, taskId);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
   }
 
   // --- Chapter 2.4 bus-task check ------------------------------------------
@@ -13063,6 +13130,29 @@
         ? [...completedTaskIds(), taskId]
         : completedTaskIds();
 
+      // Memory cards (chapter 3.1): complete and return to the memory worktable,
+      // reopening the note. Once BOTH are built, roll into the "good work" ending.
+      if (isMemoryTask(taskId)) {
+        const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+        if (allMemoryDone) {
+          const scene = SCENES["flipflop"];
+          const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+          return setState({
+            screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+            panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+            started: true, taskDialog: null, notTest: null, muxTable: null,
+            completedTasks, memoryNoteList: false,
+            workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+          }, true);
+        }
+        return setState({
+          ...memoryWorktableReturnTarget(),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks, memoryNoteList: true,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       // Arith cards with no solution walkthrough yet: complete and return to the
       // 2.5 worktable. All done -> roll into chapter 2.6 (the ALU opening);
       // otherwise reopen the note so the next card unlocks.
@@ -13128,6 +13218,13 @@
   // from, so completing / leaving a card lands back on the note.
   function arithWorktableReturnTarget() {
     const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-8");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  // Return to the 3.1 memory worktable (panel135) a Register build was opened from.
+  function memoryWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-10");
     const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
     return storyTarget(returnChapter, returnPanelIndex);
   }
