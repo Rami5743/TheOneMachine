@@ -729,8 +729,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // MEMORY behaviour (drive the input over several clocks, verify the output given
   // the history) — not by a truth table. The frame appears with its flip-flops
   // already inside; the learner wires the splitters and the shared control.
-  // The build workspace + sequential checker + solution walkthroughs are still to
-  // be implemented — until then a tapped card shows "המשך יבוא...".
+  // (That last fact is a property of the build, not a requirement, so it is NOT
+  // part of the requirements text the learner reads.)
   const MEMORY_TASKS = [
     {
       id: "Register4",
@@ -740,7 +740,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       outputs: 1,
       busWidth: 4,
       clocked: true,
-      requirements: "ל-Register4 יש 2 כניסות: אחת בס ברוחב 4 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 4. בתוכו יש 4 פליפ-פלופים ששומרים 4 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה. (הכרטיס מופיע כבר עם הפליפ-פלופים בפנים.)",
+      requirements: "ל-Register4 יש 2 כניסות: אחת בס ברוחב 4 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 4. בתוכו יש 4 פליפ-פלופים ששומרים 4 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה.",
       hints: [
         { kind: "text", title: "רמז 1", text: "אתה תמיד יכול להתחיל מלפצל את הכניסה והיציאה." },
         { kind: "text", title: "רמז 2", text: "תשאיר את כניסת הבקרה לסוף. קודם כל תטפל בשאר." },
