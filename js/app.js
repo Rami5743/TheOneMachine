@@ -2219,7 +2219,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -2720,7 +2720,7 @@
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-10", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-11", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -11286,13 +11286,15 @@
     ffExplainActive = false;
     ffExplainStep = 0;
     stopClock();
-    const scene = SCENES["flipflop"];
+    // The FF explanation ends chapter 3.1 and opens chapter 3.2 (רגיסטרים),
+    // whose first slide is panel131 ("we need much more memory").
+    const scene = SCENES["registers"];
     const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel131"));
     setState({
       ...transientUiClearPatch(),
       screen: "story",
-      chapterId: "chapter-10",
-      sceneId: "flipflop",
+      chapterId: "chapter-11",
+      sceneId: "registers",
       panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
       started: true,
       replayNonce: state.replayNonce + 1,
@@ -13445,10 +13447,10 @@
       if (isMemoryTask(taskId)) {
         const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
         if (allMemoryDone) {
-          const scene = SCENES["flipflop"];
+          const scene = SCENES["registers"];
           const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
           return setState({
-            screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+            screen: "story", chapterId: "chapter-11", sceneId: "registers",
             panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
             started: true, taskDialog: null, notTest: null, muxTable: null,
             completedTasks, memoryNoteList: false,
@@ -13532,9 +13534,9 @@
     return storyTarget(returnChapter, returnPanelIndex);
   }
 
-  // Return to the 3.1 memory worktable (panel135) a Register build was opened from.
+  // Return to the 3.2 memory worktable (panel135) a Register build was opened from.
   function memoryWorktableReturnTarget() {
-    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-10");
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-11");
     const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
     return storyTarget(returnChapter, returnPanelIndex);
   }
@@ -14393,7 +14395,7 @@
   function openMemoryTaskWorkspace(taskId) {
     const task = memoryTaskDefById(taskId);
     if (!task) return;
-    const chapter = chapterById("chapter-10");
+    const chapter = chapterById("chapter-11");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const cardX = 640;
@@ -14527,10 +14529,10 @@
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       };
       if (allMemoryDone) {
-        const scene = SCENES["flipflop"];
+        const scene = SCENES["registers"];
         const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
         return setState({
-          screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+          screen: "story", chapterId: "chapter-11", sceneId: "registers",
           panelIndex: idx >= 0 ? idx : scene.panels.length - 1, started: true,
           memoryNoteList: false, ...common
         }, true);
@@ -14727,10 +14729,10 @@
     if (isMemoryTask(taskId)) {
       const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
       if (allMemoryDone) {
-        const scene = SCENES["flipflop"];
+        const scene = SCENES["registers"];
         const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
         return setState({
-          screen: "story", chapterId: "chapter-10", sceneId: "flipflop",
+          screen: "story", chapterId: "chapter-11", sceneId: "registers",
           panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
           started: true, ...base, memoryNoteList: false
         }, true);

@@ -78,6 +78,12 @@ const CHAPTERS = [
     "partId": "part-3",
     "title": "3.1 פליפ פלופ",
     "sceneId": "flipflop"
+  },
+  {
+    "id": "chapter-11",
+    "partId": "part-3",
+    "title": "3.2 רגיסטרים",
+    "sceneId": "registers"
   }
 ];
 
@@ -967,6 +973,14 @@ const SCENES = {
         "year": "1943",
         "read": "הנה, תנסה לחבר את ה-NOT במעגל."
       },
+    ]
+  },
+  "registers": {
+    "id": "registers",
+    "type": "story",
+    "chapterId": "chapter-11",
+    "year": "1943",
+    "panels": [
       {
         "comment": "Chapter 3.1 warehouse epilogue (reached AFTER the clocked table collapses the MUX-latch into a single FF card, via finishMuxDemo → exitFlipflopToWarehouse). Von Neumann in the doorway looking at the FF on the worktable: one bit of memory is not enough.",
         "image": "assets/panels/panel131_chapter_3_1_more_memory.svg",

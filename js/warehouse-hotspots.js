@@ -84,7 +84,7 @@
     // The 2.6 ALU worktable — same room and click-zones as panel119, but its own
     // kind so the free-build table returns to the ALU worktable (not the 2.5 one).
     if (stem === "panel125_chapter_2_6_alu_worktable") return "alu-worktable";
-    // The 3.1 memory worktable — same room and click-zones as panel125, with its
+    // The 3.2 memory worktable — same room and click-zones as panel125, with its
     // own kind so the free-build table returns here (and its note is the memory one).
     if (stem === "panel135_chapter_3_1_memory_worktable") return "memory-worktable";
     return null;
@@ -257,9 +257,10 @@
     // The 2.6 ALU worktable table opens a free workbench in chapter 2.6 (all cards
     // built through 2.5 available). Return goes to the current panel (panel125).
     "alu-worktable": { chapterId: "chapter-9", sceneId: "alu", panelIndex: 5 },
-    // The 3.1 memory worktable table opens a free workbench in chapter 3.1 (every
-    // card through 2.6 plus the FF/נעץ). Return goes to the worktable (panel135).
-    "memory-worktable": { chapterId: "chapter-10", sceneId: "flipflop", panelIndex: 7 }
+    // The 3.2 memory worktable table opens a free workbench in chapter 3.2 (every
+    // card through 3.1 plus the FF/נעץ). Return goes to the worktable (panel135,
+    // the 5th slide of the registers scene).
+    "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
