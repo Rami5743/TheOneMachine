@@ -78,6 +78,12 @@ const CHAPTERS = [
     "partId": "part-3",
     "title": "3.1 פליפ פלופ",
     "sceneId": "flipflop"
+  },
+  {
+    "id": "chapter-11",
+    "partId": "part-3",
+    "title": "3.2 רגיסטרים",
+    "sceneId": "registers"
   }
 ];
 
@@ -954,6 +960,78 @@ const SCENES = {
         "image": "assets/panels/panel128_chapter_3_1_memory.svg",
         "year": "1943",
         "read": "טוב, נפסיק לברבר ונמשיך לעבוד. כדי שהמחשב שלנו יוכל לבצע חישובים מסובכים הוא צריך אפשרות לזכור את מה שהוא עושה. בשביל זה הוא צריך זיכרון. עד עכשיו כל הכרטיסים שבנינו ידעו לבצע חישוב אבל לא ידעו לשמור שום דבר. אנחנו צריכים לבנות כרטיסים שיכולים לשמור משהו. זאת אומרת שחוץ מכניסות ויציאות הם יוכלו להימצא גם במצבים שונים ונוכל להעביר אותם ממצב למצב על ידי שינוי הכניסות."
+      },
+      {
+        "comment": "Chapter 3.1: how to build memory - feedback (connect outputs back to inputs) and the idea that NANDs have propagation delay. Same raster as panel128 (reuses panel118c), fresh baked bubble.",
+        "image": "assets/panels/panel129_chapter_3_1_feedback.svg",
+        "year": "1943",
+        "read": "הדרך לעשות את זה היא לחבר יציאות חזרה לכניסות, כך שנוצר מעין מעגל. שים לב, ה-NANDים ברכיבים השונים לא מגיבים מיד. אם אתה משנה את הכניסה לוקח זמן מה עד שהיציאה משתנה בהתאם."
+      },
+      {
+        "comment": "Chapter 3.1: hand-off to the workbench - try connecting a NOT in a loop. Leads into the clocked (sequential) scenario workbench. Same raster as panel128.",
+        "image": "assets/panels/panel130_chapter_3_1_try_not_loop.svg",
+        "year": "1943",
+        "read": "הנה, תנסה לחבר את ה-NOT במעגל."
+      },
+    ]
+  },
+  "registers": {
+    "id": "registers",
+    "type": "story",
+    "chapterId": "chapter-11",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "Chapter 3.1 warehouse epilogue (reached AFTER the clocked table collapses the MUX-latch into a single FF card, via finishMuxDemo → exitFlipflopToWarehouse). Von Neumann in the doorway looking at the FF on the worktable: one bit of memory is not enough.",
+        "image": "assets/panels/panel131_chapter_3_1_more_memory.svg",
+        "year": "1943",
+        "read": "טוב, יש לנו המון עבודה. לא יספיק לנו ליצור זיכרון של ביט אחד. צריך הרבה יותר זיכרון."
+      },
+      {
+        "comment": "Wordless beat: von Neumann leans over the worktable and lays down a card (a 16-bit register) next to the flip-flop.",
+        "image": "assets/panels/panel132_chapter_3_1_place_card.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
+        "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
+        "year": "1943",
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+      },
+      {
+        "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
+        "image": "assets/panels/panel134_chapter_3_1_back_to_work.svg",
+        "year": "1943",
+        "read": "אני חוזר לעבודה. סוף סוף לא צריך לחכות המון זמן לחישובים."
+      },
+      {
+        "comment": "Chapter 3.2 memory worktable: the tasks note opens the memory-card list (Register4 → Register), and the נעץ (nail) box has its own optional monologue. The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape) and is posted to the app; the percentages below are only the fallback used until that message arrives.",
+        "image": "assets/panels/panel135_chapter_3_1_memory_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "memory-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
+      },
+      {
+        "comment": "Reached AFTER both memory cards (Register4, Register) are built (completion-gating wired with the task build). Von Neumann standing in the doorway (reuses panel131's raster): good work, it's past midnight, get some sleep.",
+        "image": "assets/panels/panel136_chapter_3_1_good_work.svg",
+        "year": "1943",
+        "read": "אני רואה שהסתדרת עם הרגיסטרים. עבודה טובה. הספקנו היום הרבה. שוב אחרי חצות. לך לישון. מחר מתחילים לעבוד ב-7:30."
+      },
+      {
+        "comment": "Closing beat: a Los Alamos night exterior (reuses the 2.4 night raster) with a baked 'המשך יבוא...' — the current end of the story.",
+        "image": "assets/panels/panel137_chapter_3_1_night.svg",
+        "year": "1943",
+        "read": ""
       }
     ]
   }

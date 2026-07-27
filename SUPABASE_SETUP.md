@@ -1,6 +1,6 @@
 # הגדרת Supabase — טבלת הדירוגים (rankings)
 
-מסמך זה מסביר איך להריץ את ה-SQL שמכין את טבלת הדירוגים (יעילות + מהירות) בענן.
+מסמך זה מסביר איך להריץ את ה-SQL שמכין את טבלת הדירוגים (יעילות + מהירות + מהירות תכנון) בענן.
 צריך לעשות את זה פעם אחת, וגם שוב בכל פעם שמתווספת עמודה חדשה (המסמך יעודכן).
 
 הקובץ המלא נמצא ב-`supabase-rankings.sql` שבשורש הפרויקט.
@@ -30,9 +30,11 @@ create table if not exists public.rankings (
   nickname   text not null default 'ללא שם',
   counts     jsonb not null default '{}'::jsonb,
   serial     jsonb not null default '{}'::jsonb,
+  design     jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 alter table public.rankings add column if not exists serial jsonb not null default '{}'::jsonb;
+alter table public.rankings add column if not exists design jsonb not null default '{}'::jsonb;
 alter table public.rankings enable row level security;
 create policy "rankings read all" on public.rankings for select using (true);
 create policy "rankings insert own" on public.rankings for insert with check (auth.uid() = user_id);

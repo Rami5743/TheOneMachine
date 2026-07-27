@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -76,6 +76,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const a = inputSignal(workspace, `${component.id}.in1`, outputs);
           const b = inputSignal(workspace, `${component.id}.in2`, outputs);
           const value = !(a && b);
+          const ref = `${component.id}.out`;
+          if (outputs.get(ref) !== value) {
+            outputs.set(ref, value);
+            changed = true;
+          }
+        }
+
+        if (component.type === "nail") {
+          // A nail is a pure routing pass-through: its output equals its input.
+          const value = inputSignal(workspace, `${component.id}.in`, outputs);
           const ref = `${component.id}.out`;
           if (outputs.get(ref) !== value) {
             outputs.set(ref, value);
@@ -182,6 +192,108 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return { outputs, lamps };
   }
 
+  // --- Clocked (sequential) evaluation, chapter 3.1 ------------------------
+  // A synchronous unit-delay model. GATES (nand / gate-*) are the delay
+  // elements: within a tick their output is HELD at last tick's value while
+  // their new value is computed from the inputs they see this tick; that new
+  // value only takes effect next tick. This is what lets feedback loops
+  // oscillate instead of collapsing. NAILS carry NO delay — they are pure
+  // geometric routing, so each tick their signal is propagated to a fixed
+  // point through the held gate/source values (the loops are broken by the
+  // held gate outputs, so this sub-network is acyclic and settles).
+  //
+  // `prev` is the Map of held gate-output signals from the previous tick.
+  // Returns { outputs (this tick's visible signals), lamps, next (the held
+  // gate outputs to feed into the following tick) }.
+  function isDelayGate(type) {
+    return type === "nand" || (typeof type === "string" && type.startsWith("gate-"));
+  }
+  function gateOutputRefs(component) {
+    if (component.type === "nand") return [`${component.id}.out`];
+    const task = taskDefById(component.type.slice(5));
+    const n = (task && task.outputs) || 1;
+    return n > 1
+      ? Array.from({ length: n }, (_, k) => `${component.id}.out${k + 1}`)
+      : [`${component.id}.out`];
+  }
+
+  function evaluateWorkspaceClocked(workspace, prev) {
+    const prevMap = prev instanceof Map ? prev : new Map();
+    const outputs = new Map();
+
+    // Seed: sources are constant; every gate output is held at its prev value.
+    for (const component of workspace.components) {
+      if (component.type === "source") {
+        outputs.set(`${component.id}.out`, true);
+      } else if (isDelayGate(component.type)) {
+        for (const ref of gateOutputRefs(component)) outputs.set(ref, Boolean(prevMap.get(ref)));
+      } else if (component.type === "ffCard") {
+        // A flip-flop card is a memory element: seed its output at the held value.
+        outputs.set(`${component.id}.out`, Boolean(prevMap.get(`${component.id}.out`)));
+      }
+    }
+
+    // Zero-delay routing: propagate through nails AND flip-flop frames to a fixed
+    // point. A frame is a pure pass-through — its internal input pins mirror its
+    // external inputs, and its external output mirrors its internal output.
+    const pass = (id, fromPin, toPin) => {
+      const v = inputSignal(workspace, `${id}.${fromPin}`, outputs);
+      const ref = `${id}.${toPin}`;
+      if (outputs.get(ref) === v) return false;
+      outputs.set(ref, v);
+      return true;
+    };
+    for (let i = 0; i < workspace.components.length + 2; i += 1) {
+      let changed = false;
+      for (const component of workspace.components) {
+        if (component.type === "nail") {
+          if (pass(component.id, "in", "out")) changed = true;
+        } else if (component.type === "flipflopFrame") {
+          if (pass(component.id, "inputExt1", "inputInt1")) changed = true;
+          if (pass(component.id, "inputExt2", "inputInt2")) changed = true;
+          if (pass(component.id, "outputInt1", "outputExt1")) changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+
+    // Compute NEXT gate outputs from the inputs they see this tick.
+    const next = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "nand") {
+        const a = inputSignal(workspace, `${component.id}.in1`, outputs);
+        const b = inputSignal(workspace, `${component.id}.in2`, outputs);
+        next.set(`${component.id}.out`, !(a && b));
+      } else if (typeof component.type === "string" && component.type.startsWith("gate-")) {
+        const task = taskDefById(component.type.slice(5));
+        if (!task) continue;
+        const inputs = Array.from({ length: task.inputs }, (_, k) => inputSignal(workspace, `${component.id}.in${k + 1}`, outputs));
+        const n = task.outputs || 1;
+        if (n > 1) {
+          const vals = taskOutputs(task.id, inputs);
+          for (let k = 0; k < n; k += 1) next.set(`${component.id}.out${k + 1}`, Boolean(vals[k]));
+        } else {
+          next.set(`${component.id}.out`, taskOutput(task.id, inputs));
+        }
+      } else if (component.type === "ffCard") {
+        // Latch: control (in2) high → load the data (in1); low → hold the state.
+        const data = inputSignal(workspace, `${component.id}.in1`, outputs);
+        const control = inputSignal(workspace, `${component.id}.in2`, outputs);
+        const prevOut = Boolean(prevMap.get(`${component.id}.out`));
+        next.set(`${component.id}.out`, control ? data : prevOut);
+      }
+    }
+
+    const lamps = new Map();
+    for (const component of workspace.components) {
+      if (component.type === "lamp") {
+        lamps.set(component.id, inputSignal(workspace, `${component.id}.in`, outputs));
+      }
+    }
+
+    return { outputs, lamps, next };
+  }
+
   // --- Bus-aware evaluation (chapter 2.4) ----------------------------------
   // Like evaluateWorkspace, but every terminal carries a bit-vector (boolean[])
   // instead of a single boolean, so buses and splitters propagate correctly.
@@ -268,10 +380,27 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return null;
   }
 
-  function evaluateWorkspaceBits(workspace) {
+  // `prev` (optional): a Map of held ffCard output vectors from the previous tick.
+  // When supplied, this becomes a CLOCKED bus evaluation — flip-flops behave as
+  // memory (their output is held from prev this tick, and a `next` map of the
+  // following tick's states is returned). Everything else (buses, splitters,
+  // card frames) settles combinationally as usual. Chapters 2.4-2.6 pass no prev,
+  // so the ffCard branches are inert there.
+  function evaluateWorkspaceBits(workspace, prev) {
+    const prevMap = prev instanceof Map ? prev : null;
     const outputs = new Map();
     for (const component of workspace.components) {
       if (component.type === "source") outputs.set(`${component.id}.out`, [true]);
+      else if (prevMap && component.type === "ffCard") {
+        // A flip-flop holds its previous output (single bit) this tick, like a
+        // source — so the combinational solve below routes it, and it is NOT
+        // recomputed during iteration (ffCard is not a handled type there).
+        outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || [false], 1));
+      } else if (prevMap && typeof memoryGateSpec === "function" && memoryGateSpec(component.type)) {
+        // A placeable MEMORY gate (gate-Register4) holds its stored bus this tick.
+        const spec = memoryGateSpec(component.type);
+        outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || zeroBits(spec.width), spec.width));
+      }
     }
 
     for (let iter = 0; iter < workspace.components.length + 4; iter += 1) {
@@ -285,6 +414,15 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const a = inputBits(workspace, `${component.id}.in1`, outputs)[0];
           const b = inputBits(workspace, `${component.id}.in2`, outputs)[0];
           if (setBits(outputs, `${component.id}.out`, [!(a && b)])) changed = true;
+          continue;
+        }
+
+        if (type === "nail") {
+          // Pure routing pass-through: output bits === input bits, at whatever
+          // width arrives. rawInputBits (not inputBits) so a bus is carried whole
+          // instead of being cut down to the nail's own nominal pin width.
+          const vec = rawInputBits(workspace, `${component.id}.in`, outputs);
+          if (setBits(outputs, `${component.id}.out`, vec)) changed = true;
           continue;
         }
 
@@ -337,6 +475,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         if (type === "converter-in") continue; // a display sink — no output
 
         if (type.startsWith("gate-")) {
+          // A placeable MEMORY gate (gate-Register4) is sequential: its output is
+          // the value it holds (seeded from prev above) and is recomputed only in
+          // the next-state pass, never during this combinational settle.
+          if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) continue;
           // A placeable bus gate (gate-Not4 …): apply the op componentwise over
           // the whole input bus.
           const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
@@ -599,6 +741,30 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
       if (!changed) break;
     }
 
+    // Clocked bus mode: compute each flip-flop's NEXT output from the data (in1)
+    // and control (in2) bits it sees this tick — control high loads the data,
+    // control low holds the previous value.
+    const next = new Map();
+    if (prevMap) {
+      for (const component of workspace.components) {
+        if (component.type === "ffCard") {
+          const data = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const prevOut = Boolean((prevMap.get(`${component.id}.out`) || [false])[0]);
+          next.set(`${component.id}.out`, [control ? data : prevOut]);
+          continue;
+        }
+        // A placeable memory gate (gate-Register4) stores a whole bus the same way.
+        const memSpec = typeof memoryGateSpec === "function" ? memoryGateSpec(component.type) : null;
+        if (memSpec) {
+          const data = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), memSpec.width);
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const prevOut = fitBits(prevMap.get(`${component.id}.out`) || zeroBits(memSpec.width), memSpec.width);
+          next.set(`${component.id}.out`, control ? data : prevOut);
+        }
+      }
+    }
+
     const lamps = new Map();
     const converters = new Map();
     for (const component of workspace.components) {
@@ -616,8 +782,8 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
       }
     }
 
-    return { outputs, lamps, converters };
+    return { outputs, lamps, converters, next };
   }
 
-  return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits };
+  return { connectedOutputRefs, inputSignal, evaluateWorkspace, evaluateWorkspaceBits, evaluateWorkspaceClocked };
 }

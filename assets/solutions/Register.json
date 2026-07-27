@@ -1,0 +1,176 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Register",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Register",
+    "x": 640,
+    "y": 430,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת המידע חיצונית"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת המידע פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -260,
+        "y": -330,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת הבקרה חיצונית"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": -230,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת הבקרה פנימית"
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": 0,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת המידע פנימית"
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": 0,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת המידע חיצונית"
+      }
+    ],
+    "frameW": 600,
+    "frameH": 560
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 140
+    }
+  ],
+  "components": [
+    {
+      "id": "split-in",
+      "type": "splitter",
+      "x": 450,
+      "y": 430,
+      "mirrored": false,
+      "outputs": 4,
+      "width": 4
+    },
+    {
+      "id": "reg-1",
+      "type": "gate-Register4",
+      "x": 640,
+      "y": 600
+    },
+    {
+      "id": "reg-2",
+      "type": "gate-Register4",
+      "x": 640,
+      "y": 490
+    },
+    {
+      "id": "reg-3",
+      "type": "gate-Register4",
+      "x": 640,
+      "y": 380
+    },
+    {
+      "id": "reg-4",
+      "type": "gate-Register4",
+      "x": 640,
+      "y": 270
+    },
+    {
+      "id": "merge-out",
+      "type": "splitter",
+      "x": 840,
+      "y": 430,
+      "mirrored": true,
+      "outputs": 4,
+      "width": 4
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "split-in.single"
+    },
+    {
+      "a": "split-in.leg0",
+      "b": "reg-1.in1"
+    },
+    {
+      "a": "split-in.leg1",
+      "b": "reg-2.in1"
+    },
+    {
+      "a": "split-in.leg2",
+      "b": "reg-3.in1"
+    },
+    {
+      "a": "split-in.leg3",
+      "b": "reg-4.in1"
+    },
+    {
+      "a": "reg-1.out",
+      "b": "merge-out.leg0"
+    },
+    {
+      "a": "reg-2.out",
+      "b": "merge-out.leg1"
+    },
+    {
+      "a": "reg-3.out",
+      "b": "merge-out.leg2"
+    },
+    {
+      "a": "reg-4.out",
+      "b": "merge-out.leg3"
+    },
+    {
+      "a": "merge-out.single",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "reg-1.in2"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "reg-2.in2"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "reg-3.in2"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "reg-4.in2"
+    }
+  ],
+  "check": {
+    "note": "כרטיס מתוזמן: אין טבלת אמת. מזינים ערכים לאורך כמה פעימות שעון ובודקים שהיציאה משקפת את הערך השמור (בקרה=1 כותב, בקרה=0 שומר)."
+  }
+}

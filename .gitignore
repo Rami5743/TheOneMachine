@@ -2,3 +2,4 @@ node_modules/
 package.json
 package-lock.json
 scratch_*
+scratchpad_*

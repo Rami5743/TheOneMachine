@@ -83,12 +83,18 @@ function createWorkspaceState({
     const ws = workspace && typeof workspace === "object" ? workspace : fallback;
 
     const usedIds = new Set();
-    const sourceComponents = Array.isArray(ws.components) && ws.components.length ? ws.components : cloneDefaultComponents();
+    // The clocked (sequential) table legitimately opens EMPTY — the learner drags
+    // every part in from the palette — so it must NOT get the default
+    // source/lamp/nand seeded into it the way other empty workspaces do.
+    const allowEmpty = Boolean(ws && ws.clocked);
+    const sourceComponents = Array.isArray(ws.components) && ws.components.length
+      ? ws.components
+      : (allowEmpty ? [] : cloneDefaultComponents());
     const components = sourceComponents
       .map((component, index) => normalizeComponent(component, usedIds, index))
       .filter(Boolean);
 
-    if (!components.length) components.push(...cloneDefaultComponents());
+    if (!components.length && !allowEmpty) components.push(...cloneDefaultComponents());
 
     const observed = ws.nandOutputObserved && typeof ws.nandOutputObserved === "object"
       ? ws.nandOutputObserved
@@ -123,6 +129,19 @@ function createWorkspaceState({
       // survives load/save (this normalizer runs on both) and stays
       // distinguishable from the Nand-presentation workbench.
       freeBuild: Boolean(ws.freeBuild),
+      // The clocked (sequential) table flag. Preserved across load/save like
+      // freeBuild; it enables feedback loops (canAddWire runs on load, below, and
+      // reads this) and offers the נעץ tool.
+      clocked: Boolean(ws.clocked),
+      // A clocked BUS build (the memory cards Register4/Register): the clock runs
+      // and evaluation goes through the bus engine so flip-flops carry bus memory.
+      busClocked: Boolean(ws.busClocked),
+      // The MUX flip-flop scene (chapter 3.1, after the NOT oscillator): a clocked
+      // free-build with the flip-flop frame + a MUX in the palette.
+      muxScene: Boolean(ws.muxScene),
+      // Once the MUX-latch demo has collapsed into a single FF card, that reusable
+      // component joins the clocked palette (labelled "FF"). Preserved like the flags above.
+      ffCardUnlocked: Boolean(ws.ffCardUnlocked),
       // The component (currently only a splitter) that shows its focus controls
       // — the mirror handle. Validated below against the live components.
       focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null

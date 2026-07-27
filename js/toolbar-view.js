@@ -7,12 +7,12 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, isMemoryCardType, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
         <g transform="scale(0.78)">
-          ${componentMarkup(type, { lampOn: false, toolbar: true })}
+          ${componentMarkup(type, { lampOn: false, toolbar: true, renderScale: 0.78 })}
         </g>
       </svg>`;
   }
@@ -33,12 +33,21 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
     // only the Nand, the voltage source and the lamp. Elsewhere (the task-card
     // build and the free "empty table") the learner may also reuse every gate
     // they have already built.
-    const builtGateTools = isNandPresentationWorkspace()
+    const allGateTools = isNandPresentationWorkspace()
       ? []
       : toolbarGateToolIds()
           .map((taskId) => taskDefById(taskId) || (busTaskDefById ? busTaskDefById(taskId) : null))
           .filter(Boolean)
           .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
+    // The memory cards are pulled OUT of the built-gate run so they can sit with
+    // the FF, after every older card but before the accessories.
+    const isMemoryTool = (tool) => typeof isMemoryCardType === "function" && isMemoryCardType(tool.type);
+    const builtGateTools = allGateTools.filter((t) => !isMemoryTool(t));
+    const memoryCardTools = allGateTools.filter(isMemoryTool);
+    // FF first, then the registers (Register4, Register) in their build order.
+    const sequentialCards = (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable())
+      ? [{ type: "ffCard", label: "FF" }, ...memoryCardTools]
+      : memoryCardTools;
 
     // User-built cards join the palette (as generic-icon tools) wherever the
     // learner is free to build — the same places the built gates appear.
@@ -46,22 +55,62 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
       ? []
       : (typeof savedCardTools === "function" ? savedCardTools() : []);
 
-    const tools = [
-      { type: "nand", label: "Nand" },
-      ...builtGateTools,
-      ...cardTools,
-      { type: "lamp", label: "מנורה" },
-      { type: "source", label: "מקור מתח" },
-      // The splitter is available in every build from chapter 2.4 on (once it is
-      // introduced), plus the free "empty table" and any bus/multibit task build.
-      // NEVER in the minimal Nand-presentation palette, though: splitterAvailable
-      // keys off the CURRENT chapter, so once the learner has reached 2.4 and
-      // later replays the Nand presentation it would otherwise leak in (only the
-      // splitter, since built gates/cards are already excluded above).
-      ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
-      // The binary↔decimal converters, on the 2.5 worktable (arith builds).
-      ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : [])
-    ];
+    // The clocked (sequential) table has a deliberately narrow palette: just the
+    // NOT gate, a source, a lamp and the נעץ (routing dot). Nothing else — the
+    // whole point is to explore feedback loops with the simplest possible parts.
+    // The memory-card build (Register4 / Register) is clocked too, but gets the
+    // FULL palette — every previously-built tool + the splitter — PLUS the נעץ and
+    // the FF, so the learner can build a sequential card from anything.
+    const memoryBuild = typeof memoryBuildAvailable === "function" && memoryBuildAvailable();
+    const clockedMinimal = !memoryBuild && typeof nailAvailable === "function" && nailAvailable();
+
+    const tools = memoryBuild
+      ? [
+          { type: "nand", label: "Nand" },
+          ...builtGateTools,
+          ...cardTools,
+          // Same order as everywhere else: the sequential cards, then accessories.
+          { type: "ffCard", label: "FF" },
+          ...memoryCardTools,
+          { type: "lamp", label: "מנורה" },
+          { type: "source", label: "מקור מתח" },
+          { type: "splitter", label: "מפצל" },
+          { type: "nail", label: "נעץ" }
+        ]
+      : clockedMinimal
+      ? [
+          { type: gateComponentType("Not"), label: "Not" },
+          // The MUX joins the palette in the flip-flop scene — right after the Not,
+          // before the source/lamp/nail accessories.
+          ...(typeof muxToolAvailable === "function" && muxToolAvailable() ? [{ type: gateComponentType("Mux"), label: "MUX" }] : []),
+          // The finished flip-flop card (FF) joins the palette once the MUX-latch
+          // demo has collapsed it into a single reusable component.
+          ...(typeof ffCardAvailable === "function" && ffCardAvailable() ? [{ type: "ffCard", label: "FF" }] : []),
+          { type: "source", label: "מקור מתח" },
+          { type: "lamp", label: "מנורה" },
+          { type: "nail", label: "נעץ" }
+        ]
+      : [
+          { type: "nand", label: "Nand" },
+          ...builtGateTools,
+          ...cardTools,
+          // The sequential cards (FF, Register4, Register) come AFTER every older
+          // card and BEFORE the accessories below.
+          ...sequentialCards,
+          { type: "lamp", label: "מנורה" },
+          { type: "source", label: "מקור מתח" },
+          // The splitter is available in every build from chapter 2.4 on (once it is
+          // introduced), plus the free "empty table" and any bus/multibit task build.
+          // NEVER in the minimal Nand-presentation palette, though: splitterAvailable
+          // keys off the CURRENT chapter, so once the learner has reached 2.4 and
+          // later replays the Nand presentation it would otherwise leak in (only the
+          // splitter, since built gates/cards are already excluded above).
+          ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
+          // The binary↔decimal converters, on the 2.5 worktable (arith builds).
+          ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
+          // The נעץ is an accessory, so it closes the row from part 3 on.
+          ...(!isNandPresentationWorkspace() && (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable()) ? [{ type: "nail", label: "נעץ" }] : [])
+        ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.
     // It is an action button (not a draggable component); its click is not wired

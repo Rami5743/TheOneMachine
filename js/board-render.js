@@ -71,6 +71,17 @@ function createBoardRender({
   function renderTerminals(workspace) {
     const highlight = solutionHighlightConfig();
     return workspace.components.map((component) => {
+      // The נעץ is special: its CONNECTION zone is a ring AROUND the dot, while
+      // the dot itself is a drag handle that takes priority. We render one wide
+      // connect ring (a single terminal — in/out is resolved from the other wire
+      // end when the wire is made) with a drag handle circle ON TOP at the centre,
+      // so a press on the dot moves it and a press on the ring starts a wire.
+      if (component.type === "nail") {
+        const ref = `${component.id}.in`;
+        const selected = (workspace.selectedTerminal === ref || workspace.selectedTerminal === `${component.id}.out`) ? " terminal-selected" : "";
+        return `<circle class="terminal-hit nail-connect${selected}" data-action="workspace-terminal" data-terminal-ref="${esc(ref)}" aria-label="חיבור כבל לנעץ" role="button" tabindex="0" cx="${component.x}" cy="${component.y}" r="30"></circle>`
+          + `<circle class="nail-drag-handle" data-action="workspace-component" data-component-id="${esc(component.id)}" aria-label="הזזת נעץ" cx="${component.x}" cy="${component.y}" r="17"></circle>`;
+      }
       return Object.entries(pinsFor(component)).map(([pinId, pin]) => {
         const ref = `${component.id}.${pinId}`;
         const selected = workspace.selectedTerminal === ref ? " terminal-selected" : "";
@@ -95,7 +106,9 @@ function createBoardRender({
   }
 
   function renderComponent(component, evaluation, workspace) {
-    if (componentDef(component.type)?.fixed) return "";
+    // Fixed frames are normally drawn by the task-shell path, not here — EXCEPT
+    // the flip-flop frame, which is a plain board component and must draw itself.
+    if (componentDef(component.type)?.fixed && component.type !== "flipflopFrame") return "";
     const lampOn = component.type === "lamp" ? evaluation.lamps.get(component.id) : false;
     const isConverter = component.type === "converter-in" || component.type === "converter-out";
     const converterOpts = isConverter
@@ -109,7 +122,7 @@ function createBoardRender({
     const scaleTransform = scale === 1 ? "" : ` scale(${scale})`;
     return `
       <g class="workspace-component component-${esc(component.type)}${burnedClass}${fixedClass}${solutionHighlightClass}" data-action="workspace-component" data-component-id="${esc(component.id)}" transform="translate(${component.x} ${component.y})${scaleTransform}">
-        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width, legWidths: component.legWidths, ...converterOpts })}
+        ${componentMarkup(component.type, { lampOn, outputs: component.outputs, mirrored: component.mirrored, width: component.width, legWidths: component.legWidths, renderScale: scale, ...converterOpts })}
         ${smoking ? charredNandMarkup() : ""}
         ${smoking ? smokeMarkup() : ""}
       </g>`;

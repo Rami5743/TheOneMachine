@@ -594,6 +594,11 @@
     { id: "arith-bin2dec", title: "המרה מכתיב בינרי לכתיב עשרוני" },
     { id: "arith-dec2bin", title: "המרה מכתיב עשרוני לכתיב בינרי" },
     { id: "arith-binadd", title: "חיבור בינרי" },
+    // Memory (chapter 3.1): the flip-flop goal narration, the MUX-latch demo, and
+    // the "how a computer is clocked" enrichment videos.
+    { id: "flipflop-what", title: "מה זה פליפ-פלופ" },
+    { id: "flipflop-how", title: "איך עושים פליפ-פלופ" },
+    { id: "clocking", title: "איך מתזמנים את הפעולה של המחשב" },
     // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
     // "what is an ALU" message. Unlocked at the end of that message.
     { id: "alu-ALU0", title: "ALU" },
@@ -685,6 +690,17 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     { label: "סרטון 2", url: "https://www.youtube.com/watch?v=s8ORydrdQ1k" }
   ];
 
+  // The flip-flop "clocking" enrichment window, reached from the red teaser on the
+  // second FF-explanation bubble (after the latch collapses into a single FF).
+  // Three explainer videos on how a computer keeps everything synchronised (a clock).
+  const FF_CLOCK_LINKS_TITLE = "חלק זה של המשחק עדיין בבנייה";
+  const FF_CLOCK_LINKS_INTRO = "כאן אפשר לשמוע איך גורמים לזה שבמחשב הכל יהיה מתוזמן:";
+  const FF_CLOCK_LINKS = [
+    { label: "סרטון 1", url: "https://www.youtube.com/watch?v=YmwfwfqoNmo" },
+    { label: "סרטון 2", url: "https://www.youtube.com/watch?v=H6DjiE7TlzA" },
+    { label: "סרטון 3", url: "https://www.youtube.com/watch?v=DFyrkfkBMTE&t=437s" }
+  ];
+
   // Chapter 2.4 component monologues, shown when the learner clicks the two new
   // crate hotspots in the 2.4 worktable. Each is a single speech bubble: `intro`
   // text, then the component's schematic symbol inline, then `outro` text.
@@ -697,3 +713,52 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     intro: "שלום, אני מפצל. אני נועדתי כדי לפצל בסים. על שולחן העבודה אני נראה כך:",
     outro: "יש לי שני צדדים. לצד אחד מחברים בס, ומהצד השני יוצאים מספר כבלים או בסים. אפשר לשנות את מספר הבסים (או הכבלים), והם לא חייבים להיות שווים – כל רגל יכולה להיות ברוחב משלה, כל עוד יחד הם מסתכמים לרוחב הבס שנכנס. אם הופכים אותי אפשר להשתמש בי לכיוון השני – אני מחבר כמה בסים (או כבלים בודדים) לבס אחד רחב יותר."
   };
+
+  // The נעץ (routing nail) self-introduction, shown from the nail-box hotspot on
+  // the 3.1 memory worktable. Same shape as the bus/splitter monologues: intro,
+  // its on-table symbol, then outro.
+  const NAIL_MONOLOGUE = {
+    intro: "שלום, אנחנו נעצים. על שולחן העבודה אנחנו נראים כך:",
+    outro: "אנחנו יכולים לעזור לך לפרוס את הכבלים. אל תפרוס שני כבלים על נעץ אחד, שלא יהיה בלגן."
+  };
+
+  // Chapter 3.1 memory worktable cards, opened (in order) from the tasks note.
+  // These are CLOCKED (sequential) cards: the build board runs a 2 Hz clock,
+  // loops are allowed but every loop must contain at least one FF, combinatorial
+  // parts settle instantly and each FF takes one clock. The card is checked by its
+  // MEMORY behaviour (drive the input over several clocks, verify the output given
+  // the history) — not by a truth table. The frame appears with its flip-flops
+  // already inside; the learner wires the splitters and the shared control.
+  // (That last fact is a property of the build, not a requirement, so it is NOT
+  // part of the requirements text the learner reads.)
+  const MEMORY_TASKS = [
+    {
+      id: "Register4",
+      label: "Register4",
+      requires: [],
+      inputs: 2,
+      outputs: 1,
+      busWidth: 4,
+      clocked: true,
+      requirements: "ל-Register4 יש 2 כניסות: אחת בס ברוחב 4 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 4. בתוכו יש 4 פליפ-פלופים ששומרים 4 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "אתה תמיד יכול להתחיל מלפצל את הכניסה והיציאה." },
+        { kind: "text", title: "רמז 2", text: "תשאיר את כניסת הבקרה לסוף. קודם כל תטפל בשאר." },
+        { kind: "text", title: "רמז 3", text: "שים לב, אם אנחנו כותבים (זאת אומרת משנים את מה שנשמר בפליפ-פלופים) אנחנו עושים את זה בכל הכרטיס בו-זמנית, כך שכניסת הבקרה של כל הפליפ-פלופים צריכה להיות אותו הדבר." }
+      ]
+    },
+    {
+      id: "Register",
+      label: "Register",
+      requires: ["Register4"],
+      inputs: 2,
+      outputs: 1,
+      busWidth: 16,
+      clocked: true,
+      requirements: "ל-Register יש 2 כניסות: אחת בס ברוחב 16 והשנייה כניסה בודדת שהיא כניסת הבקרה. ויציאה אחת שהיא בס ברוחב 16. בתוכו יש 16 פליפ-פלופים ששומרים 16 ביטים. הוא מוציא את המידע השמור בפליפ-פלופים. אם כניסת הבקרה היא 0 אז המידע לא משתנה, ואם היא 1 אז המידע השמור בפליפ-פלופים משתנה בהתאם לכניסה.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-Register4, או לעשות את הכרטיס כמו שעשית את Register4, רק עם 16 פליפ-פלופים במקום 4." },
+        { kind: "text", title: "רמז 2", text: "זכור שכניסת הבקרה של כל הפליפ-פלופים צריכה להיות אותו הדבר." }
+      ]
+    }
+  ];

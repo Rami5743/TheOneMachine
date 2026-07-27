@@ -40,6 +40,23 @@
       pins: {},
       bounds: { left: 74, right: 74, top: 96, bottom: 96 }
     },
+    nail: {
+      // A "נעץ" (nail) is a purely geometric routing point — a thick dot with no
+      // logic: one cable in, one cable out, and out === in. It exists so cables
+      // can be routed neatly (especially feedback loops in the clocked table).
+      // Its two pins sit a hair apart (±9) so they draw as ONE dot yet keep
+      // distinct hit centres. Max-1-in is free (input vacancy); max-1-out and
+      // loop-tolerance are enforced in canAddWire.
+      label: "נעץ",
+      // Both pins sit at the dot's centre. The board exposes a single connection
+      // RING around the nail (renderTerminals special-cases it) and resolves
+      // in/out from the other wire end's direction; the centre is a drag handle.
+      pins: {
+        in: { x: 0, y: 0, direction: "in", label: "כניסת נעץ" },
+        out: { x: 0, y: 0, direction: "out", label: "יציאת נעץ" }
+      },
+      bounds: { left: 18, right: 18, top: 18, bottom: 18 }
+    },
     notCard: {
       label: "מסגרת Not",
       fixed: true,
@@ -50,6 +67,84 @@
         outputExt: { x: 340, y: 0, direction: "out", label: "יציאת Not חיצונית" }
       },
       bounds: { left: 340, right: 340, top: 190, bottom: 190 }
+    },
+    // The flip-flop building frame (chapter 3.1 MUX scene). Like the card-build
+    // frame, but with THREE labelled ports — a data input (left), a control input
+    // (top) and an output (right). Pass-through pin naming (inputExt/Int,
+    // outputExt/Int) is reused so the engine routes it generically; the control is
+    // just a second input (inputExt2/inputInt2).
+    // The finished flip-flop as a single reusable component (a latch). Data input
+    // on the left, control on top, state output on the right. Behaves as a latch in
+    // the clocked engine: control=1 writes the data, control=0 holds the state.
+    ffCard: {
+      label: "FF",
+      pins: {
+        in1: { x: -66, y: 0, direction: "in", label: "כניסה" },
+        in2: { x: 0, y: -46, direction: "in", label: "בקרה" },
+        out: { x: 66, y: 0, direction: "out", label: "יציאה" }
+      },
+      bounds: { left: 66, right: 66, top: 50, bottom: 40 }
+    },
+    flipflopFrame: {
+      label: "מסגרת פליפ-פלופ",
+      fixed: true,
+      // Same geometry as the task frames: external pins sit OUTSIDE the 600×376
+      // frame rect (±340), internal pins just inside (±260); the control pokes out
+      // the top. The visual reuses the workspace-task-shell-* look (see markup).
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", label: "כניסה פנימית" },
+        inputExt2: { x: 0, y: -240, direction: "in", label: "בקרה" },
+        inputInt2: { x: 0, y: -160, direction: "out", label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", label: "יציאה" }
+      },
+      bounds: { left: 340, right: 340, top: 240, bottom: 200 }
+    },
+    // Chapter 3.1 memory-card build frames (clocked bus builds). Data bus in on the
+    // left, a single control poking out the top, data bus out on the right — same
+    // Ext/Int pass-through naming as the other task cards so the bus engine routes
+    // them. Register4's frame is tall enough to hold its 4 pre-placed flip-flops;
+    // Register's frame is empty (the learner fills it with Register4s or FFs).
+    "taskCard-Register4": {
+      label: "מסגרת Register4",
+      fixed: true,
+      taskId: "Register4",
+      busWidth: 4,
+      busTask: true,
+      routingMultibit: true,
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", width: 4, label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", width: 4, label: "כניסה פנימית" },
+        // The control sits near the LEFT of the frame's top edge (like the other
+        // cards' control) and STRADDLES it: with a 560-tall frame the top edge is at
+        // y=-280, so the external tip is above it and the internal point below it.
+        inputExt2: { x: -260, y: -330, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: -260, y: -230, direction: "out", width: 1, label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", width: 4, label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", width: 4, label: "יציאה" }
+      },
+      bounds: { left: 340, right: 340, top: 330, bottom: 300 }
+    },
+    "taskCard-Register": {
+      label: "מסגרת Register",
+      fixed: true,
+      taskId: "Register",
+      busWidth: 16,
+      busTask: true,
+      routingMultibit: true,
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסה פנימית" },
+        // The control sits near the LEFT of the frame's top edge (like the other
+        // cards' control) and STRADDLES it: with a 560-tall frame the top edge is at
+        // y=-280, so the external tip is above it and the internal point below it.
+        inputExt2: { x: -260, y: -330, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: -260, y: -230, direction: "out", width: 1, label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאה" }
+      },
+      bounds: { left: 340, right: 340, top: 330, bottom: 300 }
     }
   };
 
@@ -61,6 +156,10 @@
       || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
+      // The memory cards (Register4/Register) — so their placeable gate resolves a
+      // label in the toolbar. Their behaviour is sequential and is handled by
+      // memoryGateSpec in the engine, never by taskOutput.
+      || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || null;
   }
 
@@ -570,6 +669,41 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
+  // gate-Register4: the placeable card earned by completing Register4. A width-4
+  // data bus in, a single-bit control on top, a width-4 bus out. UNLIKE every
+  // other placeable gate this one is SEQUENTIAL — it stores 4 bits (control=1
+  // loads the data, control=0 holds), so the clocked bus engine treats it as a
+  // memory element (see the memoryGateSpec branch in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-Register4"] = {
+    label: "Register4",
+    taskId: "Register4",
+    gate: true,
+    memoryGate: true,
+    busWidth: 4,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
+      in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 66, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+  };
+
+  // The finished 16-bit register, once built: the same memory element on a wider
+  // bus, so it can be reused as a card anywhere the palette offers it.
+  WORKSPACE_COMPONENT_DEFS["gate-Register"] = {
+    label: "Register",
+    taskId: "Register",
+    gate: true,
+    memoryGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
+      in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+  };
+
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
   // control bus on TOP, and a width-16 output on the right. Two-stage operation
   // selected by the control (first bit zeroes the input, second bit NOTs it).
@@ -984,6 +1118,8 @@
     arithNoteList: false,
     // The 2.6 ALU worktable note (Inc / ALU0 / PreperNum → ALU1 → ALU2 → ALU3).
     aluNoteList: false,
+    // The 3.1 memory worktable note (Register4 → Register).
+    memoryNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -991,6 +1127,8 @@
     subtractionDemo: null,
     // The demo's "still under construction" links window ({ fromEnd } | null).
     subtractionDemoLinks: null,
+    // The flip-flop "clocking" enrichment window (from the FF-explanation teaser).
+    ffClockLinks: null,
     // The "create new card" tool, introduced at the end of the MUX16 walkthrough.
     // createCardUnlocked persists (the tool stays in the palette). cardIntroPending
     // drives the one-time scripted moment right after MUX16: the "new card" speech
@@ -1044,6 +1182,16 @@
     // and cardSerialCounts is derived from it. Keyed by card id.
     cardSerialBuilds: {},
     cardSerialCounts: {},
+    // Design-speed ranking: wall-clock time (ms) the player spent designing.
+    //   taskDesignMs[taskId]      — active time building that card in its task
+    //   userCardDesignMs[type]    — active time creating/editing that user card
+    //                               (summed across all edit sessions)
+    // cardDesignCounts[taskId] = frozen best (fastest) design time in SECONDS at
+    // completion = the task time + the creation time of each DISTINCT user card in
+    // the build (added once per card, transitively). Regular cards add nothing.
+    taskDesignMs: {},
+    userCardDesignMs: {},
+    cardDesignCounts: {},
     // The player's leaderboard nickname (shown only on a card's records page,
     // never in the main table). Default "ללא שם".
     rankingsNickname: "ללא שם",
@@ -1110,7 +1258,7 @@
 
   function effectiveAge() {
     const n = parseInt(state.settings && state.settings.age, 10);
-    return Number.isFinite(n) && n > 0 ? n : 13;
+    return Number.isFinite(n) && n > 0 ? n : 12;
   }
 
   // Gender adaptation. When the player is a girl, texts that ADDRESS the player
@@ -1301,7 +1449,7 @@
   const __workbenchModel = createWorkbenchModel({
     terminalDirection, terminalExists, splitTerminalRef, componentById,
     componentGraphHasPath, normalizeWire, isNandOutputRef,
-    wireWidthLegal
+    wireWidthLegal, isMemoryComponentType
   });
   const canAddWire = (...args) => __workbenchModel.canAddWire(...args);
   const inputRefOf = (...args) => __workbenchModel.inputRefOf(...args);
@@ -1321,6 +1469,9 @@
     const t = String(type || "");
     // Past chapter 2.2 the schematic shrinks — gates AND the Nand itself.
     if (!t.startsWith("gate-") && t !== "nand") return 1;
+    // The clocked (sequential) table shows components at their ORIGINAL full size
+    // (there is plenty of room and only a couple of parts), so don't shrink there.
+    if (isClockedWorkspace()) return 1;
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 
@@ -1376,11 +1527,59 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
   const evaluateWorkspaceBits = (workspace = state.workspace) => __circuitEngine.evaluateWorkspaceBits(workspace);
+
+  // Clocked-table simulation state (chapter 3.1). `clockPrev` holds the delay
+  // elements' outputs between ticks; `clockTimer` runs the 2 Hz clock;
+  // `clockTick` is the visible tick counter. Kept out of localStorage — it is
+  // pure runtime, rebuilt on entry.
+  let clockPrev = new Map();
+  let clockTimer = null;
+  let clockTick = 0;
+  const CLOCK_PERIOD_MS = 500; // 2 ticks per second
+  // The one-time "I laid out נעצים for you" hand-off on the clocked table.
+  // Transient (runtime only); reset on each entry, dismissed by "הבנתי".
+  let clockedIntroDismissed = false;
+  // Blink detection: when a lamp flips ≥2 times without the player changing the
+  // wiring, von Neumann's "הבנת?" prompt is shown. A 60 s fallback shows it anyway.
+  let clockLampLast = new Map();
+  let clockLampToggles = 0;
+  let clockedUnderstoodTriggered = false;
+  // Once the player has RESPONDED to the "הבנת?" prompt in the current clocked
+  // phase, it must never auto-appear again (neither the 60 s fallback nor the
+  // blink/latch detector may re-open it). Unlike clockedUnderstoodTriggered this
+  // survives clock restarts; it is reset only when a fresh phase legitimately
+  // wants a new prompt (enterClockedTable, startMuxScene).
+  let clockedUnderstoodResolved = false;
+  let clockedTimeoutId = null;
+  // Phase B — the scripted oscillator. Once "הבנת?" is answered, a canonical NOT
+  // self-loop is shown, the table locks, and the clock steps through von Neumann's
+  // narration at 1/sec (the "הבא" button also advances). Each line pins the lamp.
+  // The NOT oscillator's feedback path (out → nail → nail → back to the input).
+  const NOT_FB_WIRES = [["gate-Not-1.out", "nail-1.in"], ["nail-1.out", "nail-2.in"], ["nail-2.out", "gate-Not-1.in1"]];
+  const CLOCKED_SCRIPT = [
+    { text: "ברגע הראשון אין מתח בכניסה ל-NOT.", on: false, hl: { terminals: ["gate-Not-1.in1"] } },
+    { text: "לכן, תוך זמן קצר מופיע מתח ביציאה ממנו (הנורה נדלקת).", on: true, hl: { terminals: ["gate-Not-1.out"], components: ["lamp-1"], wires: [["gate-Not-1.out", "lamp-1.in"]] } },
+    { text: "המתח עובר לכניסה מיד, ולכן תוך זמן קצר המתח נפסק ביציאה (הנורה כבה).", on: false, hl: { terminals: ["gate-Not-1.in1", "gate-Not-1.out"], wires: NOT_FB_WIRES } },
+    { text: "זה גורם לכך ששוב אין מתח בכניסה.", on: false, hl: { terminals: ["gate-Not-1.in1"] } },
+    { text: "וכך הלאה...", on: true, hl: { terminals: ["gate-Not-1.in1", "gate-Not-1.out"], components: ["nail-1", "nail-2"], wires: NOT_FB_WIRES } },
+    // The clock is now stopped — the oscillator is frozen while von Neumann sums up.
+    { text: "זה עדיין לא הזיכרון שאנחנו רוצים לבנות, אבל זה משהו שיכול להיות בשני מצבים שונים: יש מתח ביציאה ואין מתח ביציאה.", on: true, hl: { terminals: ["gate-Not-1.out"], components: ["lamp-1"] } },
+    { text: "אבל אין לנו שליטה על המצב, אנחנו לא יכולים לשנות אותו.", on: true, hl: {} },
+    { text: "עכשיו תנסה לעשות תעלולים דומים עם ה-MUX.", on: true, hl: {} }
+  ];
+  let clockedScriptActive = false;
+  let clockedScriptStep = 0;
+  let clockedScriptTimer = null; // retained only so stopClockedScript stays defensive
+  // Once the learner presses "הבא" on the "וכך הלאה" line the scripted clock is
+  // RELEASED to free-run at 1 Hz (the oscillator blinks on its own); before that
+  // it is frozen and steps one line per press.
+  let clockedScriptReleased = false;
+  let clockTimerPeriod = null;
 
   // A workspace with splitters or bus gates must be simulated by the bus-aware
   // engine (so its lamps light up); everything else uses the single-bit engine.
@@ -1392,10 +1591,230 @@
   // is used whenever the expanded workspace has buses/cards (it handles single
   // bits too); lamp ids are preserved by the flattening, so lamp results still
   // key off the real, on-board lamp components.
+  // --- Part 3 (זיכרון) onward: EVERY workbench is sequential ------------------
+  // From chapter 3.1 on the learner has flip-flops and registers, so every table —
+  // free build, a task build, the card designer — runs the 2 Hz clock and is
+  // simulated over time (memory elements hold their value between ticks) rather
+  // than solved combinationally. Derived from the chapter so it applies to
+  // workspaces created before this rule existed (and to saved games).
+  const SEQUENTIAL_ERA_CHAPTER = "chapter-10";
+  function inSequentialEra(chapterId = state.chapterId) {
+    const here = chapterIndexById(chapterId);
+    const from = chapterIndexById(SEQUENTIAL_ERA_CHAPTER);
+    return Number.isInteger(here) && Number.isInteger(from) && here >= from;
+  }
+  // Is THIS workbench clocked? Either it was opened as one of the 3.1 clocked
+  // scenes / memory builds, or we are simply in the sequential era.
+  function workspaceClockedNow(workspace = state.workspace) {
+    if (!workspace) return false;
+    return Boolean(workspace.clocked) || (state.screen === "workspace" && inSequentialEra());
+  }
+  // Should it be simulated with the BUS engine carrying memory? Everything in the
+  // sequential era except the single-bit NOT/MUX scenes of 3.1, which have their
+  // own hand-tuned single-bit clocked engine.
+  function workspaceBusClockedNow(workspace = state.workspace) {
+    if (!workspace) return false;
+    if (workspace.busClocked) return true;
+    if (workspace.clocked) return false; // the 3.1 scenes: single-bit clocked engine
+    return state.screen === "workspace" && inSequentialEra();
+  }
+
   const workspaceEvaluation = (workspace = state.workspace) => {
     const flat = flattenWorkspaceForEval(workspace);
+    // The scripted MUX-latch demo pins the output (and the loop) per narration step.
+    if (muxDemoActive && workspace?.clocked) {
+      const on = MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].out;
+      const outputs = new Map([
+        ["gate-Mux-1.out", on],
+        ["nail-fb1.out", on],
+        ["nail-fb2.out", on],
+        ["flipflop-frame-1.outputInt1", on],
+        ["flipflop-frame-1.outputExt1", on],
+        ["src.out", true]
+      ]);
+      const lamps = new Map();
+      for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
+      return { outputs, lamps };
+    }
+    // While the scripted oscillator plays AND the clock is still frozen, the lamp
+    // (and the NOT's output) are pinned by the current narration line. Once the
+    // clock is released ("וכך הלאה"), fall through to the live clocked engine so it
+    // blinks on its own.
+    if (clockedScriptActive && !clockedScriptReleased && workspace?.clocked) {
+      const on = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].on;
+      // Light the NOT's output and the whole loop (through both נעצים) so the
+      // energised cable path reads clearly.
+      const outputs = new Map([
+        ["gate-Not-1.out", on],
+        ["nail-1.out", on],
+        ["nail-2.out", on]
+      ]);
+      const lamps = new Map();
+      for (const c of flat.components) if (c.type === "lamp") lamps.set(c.id, on);
+      return { outputs, lamps };
+    }
+    // The clocked table renders the CURRENT tick's held snapshot (clockPrev),
+    // not a fresh combinational solve — that is what makes feedback loops blink
+    // and memory hold. The bus engine is used wherever buses/splitters may appear.
+    if (workspaceBusClockedNow(workspace)) {
+      const r = __circuitEngine.evaluateWorkspaceBits(flat, clockPrev);
+      return { outputs: r.outputs, lamps: r.lamps, converters: r.converters };
+    }
+    if (workspaceClockedNow(workspace)) {
+      const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+      return { outputs: r.outputs, lamps: r.lamps };
+    }
     return workspaceHasBusElements(flat) ? evaluateWorkspaceBits(flat) : evaluateWorkspace(flat);
   };
+
+  // --- The 2 Hz clock that drives the sequential table --------------------
+  // A clock tick re-renders the whole screen (app.innerHTML), which REPLACES every
+  // node. If that happens between a button's pointerdown and its pointerup, the
+  // browser fires no click at all on that button — so clicks would intermittently
+  // do nothing while the clock runs. These two guards keep the board live without
+  // ever eating a click: never re-render while a pointer is held down, and stop
+  // the clock entirely while any dialog/overlay is open.
+  let pointerHeld = false;
+  function clockPausedForUi() {
+    return pointerHeld
+      || dragState
+      || workspaceUnderstoodPromptActive()
+      || notTestActive()
+      || workspaceTaskIntroActive()
+      || workspaceBuildHelpPromptActive()
+      || Boolean(state.hintDialog) || Boolean(state.hintSlides)
+      || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
+      || Boolean(state.taskDialog) || Boolean(state.dialog)
+      || Boolean(state.memoryNoteList) || Boolean(state.aluNoteList)
+      || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
+      || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
+      || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
+  }
+  function clockStep() {
+    const ws = state.workspace;
+    if (!ws || !workspaceClockedNow(ws) || state.screen !== "workspace") return stopClock();
+    // Pause the clock mid-drag, while any dialog is open, during the MUX goal
+    // narration, and during the MANUAL phase of the script (before the clock is
+    // released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
+    if (clockPausedForUi() || muxIntroActive() || muxDemoActive || ffExplainActive || (clockedScriptActive && !clockedScriptReleased)) return;
+    const flat = flattenWorkspaceForEval(ws);
+    // A clocked BUS build (memory cards) carries flip-flop memory through the bus
+    // engine; the NOT/MUX scenes use the single-bit clocked engine.
+    const busClocked = workspaceBusClockedNow(ws);
+    const r = busClocked
+      ? __circuitEngine.evaluateWorkspaceBits(flat, clockPrev)
+      : __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+    clockPrev = r.next;
+    clockTick += 1;
+    // NOT scene → blink detection; MUX scene → working-latch detection. A memory
+    // build has neither (it is checked on demand via the בדיקה button).
+    if (!busClocked) {
+      if (ws.muxScene) {
+        if (!clockedUnderstoodTriggered && !clockedUnderstoodResolved && detectMuxLatch(flat)) return triggerClockedUnderstood();
+      } else {
+        detectClockedBlink(r.lamps);
+      }
+    }
+    renderClockTick();
+  }
+
+  // A clock tick must NOT rebuild the whole screen: a full render() replaces every
+  // node, so any button the learner is about to press (בדיקה, רוצה רמז, …) is
+  // detached mid-click and the click is swallowed. Only the board's live layers and
+  // the tick counter actually change between ticks, so refresh just those in place
+  // and leave the toolbar, the controls and any open dialog untouched.
+  function renderClockTick() {
+    const svg = app.querySelector("[data-workspace-svg]");
+    const counter = app.querySelector(".clock-count");
+    if (!svg) return render();
+    const evaluation = workspaceEvaluation();
+    const wireLayer = svg.querySelector(".workspace-wire-layer");
+    const componentLayer = svg.querySelector(".workspace-component-layer");
+    const terminalLayer = svg.querySelector(".workspace-terminal-layer");
+    if (!wireLayer || !componentLayer || !terminalLayer) return render();
+    // The draft wire is only used mid-drag, and ticks are skipped while dragging.
+    wireLayer.innerHTML = `${renderWires()}
+      <line id="workspace-draft-wire" class="wire-line wire-line-draft" x1="0" y1="0" x2="0" y2="0" hidden />`;
+    componentLayer.innerHTML = state.workspace.components.map((component) => renderComponent(component, evaluation)).join("");
+    terminalLayer.innerHTML = renderTerminals();
+    if (counter) counter.textContent = String(clockTick);
+  }
+
+  // A lamp that flips ≥2 times (off→on→off …) without the player re-wiring means
+  // they built a working oscillator → show von Neumann's "הבנת?" prompt.
+  function detectClockedBlink(lamps) {
+    if (clockedUnderstoodTriggered || clockedUnderstoodResolved) return;
+    let toggled = false;
+    for (const [id, val] of lamps) {
+      if (clockLampLast.has(id) && clockLampLast.get(id) !== val) toggled = true;
+      clockLampLast.set(id, val);
+    }
+    if (toggled && (clockLampToggles += 1) >= 2) triggerClockedUnderstood();
+  }
+
+  function triggerClockedUnderstood() {
+    if (clockedUnderstoodTriggered) return;
+    clockedUnderstoodTriggered = true;
+    clearClockedTimeout();
+    clockedIntroDismissed = true; // clear the entry hand-off if still up
+    openUnderstoodPrompt();
+  }
+
+  function startClockedTimeout() {
+    // Only ever arm the 60 s fallback ONCE — after the prompt has been shown (and
+    // the player has responded), it must never pop up on its own again.
+    // Never on a memory-card build (busClocked) or any task build: the prompt
+    // belongs to the free NOT/MUX scenes only. (Module state resets on reload, so
+    // this must be derived from the workspace, not from a flag.)
+    if (state.workspace?.busClocked || workspaceTaskId()) return;
+    if (clockedTimeoutId || clockedUnderstoodTriggered || clockedUnderstoodResolved) return;
+    // Whatever the player does, offer the prompt after a minute.
+    clockedTimeoutId = window.setTimeout(() => {
+      clockedTimeoutId = null;
+      if (state.screen === "workspace" && state.workspace?.clocked) triggerClockedUnderstood();
+    }, 60000);
+  }
+
+  function clearClockedTimeout() {
+    if (clockedTimeoutId) { window.clearTimeout(clockedTimeoutId); clockedTimeoutId = null; }
+  }
+
+  // The released scripted clock runs at 1 Hz; everywhere else the clock is 2 Hz.
+  function currentClockPeriodMs() {
+    return (clockedScriptActive && clockedScriptReleased) ? 1000 : CLOCK_PERIOD_MS;
+  }
+
+  function ensureClockRunning() {
+    if (state.screen === "workspace" && workspaceClockedNow()) {
+      const period = currentClockPeriodMs();
+      if (!clockTimer || clockTimerPeriod !== period) {
+        if (clockTimer) window.clearInterval(clockTimer);
+        clockTimer = window.setInterval(clockStep, period);
+        clockTimerPeriod = period;
+      }
+      startClockedTimeout();
+    } else if (clockTimer) {
+      stopClock();
+    }
+  }
+
+  function stopClock() {
+    if (clockTimer) { window.clearInterval(clockTimer); clockTimer = null; }
+    clockTimerPeriod = null;
+    clearClockedTimeout();
+    stopClockedScript();
+    clockedScriptStep = 0;
+    muxDemoActive = false;
+    muxDemoStep = 0;
+    muxIntroStep = 0;
+    ffExplainActive = false;
+    ffExplainStep = 0;
+    clockPrev = new Map();
+    clockTick = 0;
+    clockLampLast = new Map();
+    clockLampToggles = 0;
+    clockedUnderstoodTriggered = false;
+  }
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
@@ -1447,7 +1866,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean(typeof memoryGateSpec === "function" && memoryGateSpec(type)), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -1560,6 +1979,7 @@
     return MULTIBIT_TASKS.find((task) => task.id === id)
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -1616,13 +2036,18 @@
         // control (2-bit MUX select) is a bus with a width label; a single-bit
         // control (e.g. ALU0's op-select) is a plain cable, no label.
         const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
+        // The label sits BESIDE the pin (not above it), so a control that straddles
+        // the frame's top edge doesn't collide with the card title above. Keep it in
+        // the OUTSIDE portion of the stub (above the frame edge) so it never sits on
+        // the frame line itself.
+        const labelY = ay + (iy - ay) * 0.25;
         stubs += (w > 1)
           ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
-             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
-             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>`;
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
       } else if (pin.y > 150) {
         // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
@@ -1668,6 +2093,13 @@
     return state.screen === "workspace" && Boolean(state.workspace?.freeBuild);
   }
 
+  // The clocked (sequential) table — chapter 3.1's "shift table". It runs on a
+  // ticking clock, tolerates feedback loops, and is the only place the נעץ tool
+  // is offered.
+  function isClockedWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.clocked);
+  }
+
   function isFixedWorkspaceComponent(component) {
     if (!component) return false;
     if (componentDef(component.type)?.fixed) return true;
@@ -1701,7 +2133,8 @@
       Boolean(state.hintSlides) ||
       Boolean(state.solutionDialog) ||
       workspaceNandMonologueActive() ||
-      subtractionDemoActive()
+      subtractionDemoActive() ||
+      ffExplainActiveNow()
     );
   }
 
@@ -1722,6 +2155,7 @@
       busesNoteList: false,
       arithNoteList: false,
       aluNoteList: false,
+      memoryNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -1730,7 +2164,8 @@
       // board lock don't bleed onto the next workbench you open (a task build, the
       // card creator, …).
       subtractionDemo: null,
-      subtractionDemoLinks: null
+      subtractionDemoLinks: null,
+      ffClockLinks: null
     };
   }
 
@@ -1829,7 +2264,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -2329,7 +2764,8 @@
     { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-11", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -2423,7 +2859,13 @@
   // TASK_HINTS moved to js/app-data.js
 
   function taskHints(taskId = null) {
-    return taskId ? (TASK_HINTS[taskId] || []) : [];
+    if (!taskId) return [];
+    if (TASK_HINTS[taskId]) return TASK_HINTS[taskId];
+    // Fall back to a task def's own inline `hints` (the memory cards carry theirs
+    // inline in MEMORY_TASKS rather than in the TASK_HINTS map).
+    const memDef = (typeof MEMORY_TASKS !== "undefined") ? MEMORY_TASKS.find((t) => t.id === taskId) : null;
+    if (memDef && Array.isArray(memDef.hints)) return memDef.hints;
+    return [];
   }
 
   function taskHasHints(taskId = null) {
@@ -2436,7 +2878,10 @@
 
   function solutionAvailable(taskId = workspaceTaskId()) {
     const hints = taskHints(taskId);
-    return Boolean(taskId) && hints.length > 0 && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
+    // Only offer the "solution" button when a walkthrough actually exists — a task
+    // with hints but no walkthrough (e.g. the memory cards) must not offer one.
+    return Boolean(taskId) && hints.length > 0 && taskHasSolutionWalkthrough(taskId)
+      && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
   }
 
   function hintState() {
@@ -3245,6 +3690,59 @@
       if (!explanationUnlocked("negative-numbers")) return;
       return setState({ subtractionDemoLinks: { fromExplanations: true } }, false);
     }
+
+    // --- Memory (chapter 3.1) ---------------------------------------------
+    // "מה זה פליפ-פלופ": von Neumann's three goal slides over the flip-flop frame.
+    // "איך עושים פליפ-פלופ": his scripted MUX-latch demo, ending on the
+    // "שים לב, בנינו משהו שיכול לשמור מידע" bubble (the first FF-explanation slide).
+    if (id === "flipflop-what" || id === "flipflop-how") {
+      if (!explanationUnlocked(id)) return;
+      return startFlipflopExplanation(id);
+    }
+
+    // Opens the "how a computer is clocked" videos window over the menu.
+    if (id === "clocking") {
+      if (!explanationUnlocked("clocking")) return;
+      return setState({ ffClockLinks: { fromExplanations: true } }, false);
+    }
+  }
+
+  // Replay a memory explanation on a throwaway clocked table: the flip-flop scene
+  // is rebuilt from scratch (so the menu never inherits a half-played board), then
+  // either the goal narration or the latch demo runs. Both end by returning to the
+  // explanations menu instead of handing the table over to the learner.
+  function startFlipflopExplanation(id) {
+    stopClock();
+    const chapter = chapterById("chapter-10");
+    const workspace = normalizeWorkspace({
+      ...createClockedWorkspace(state.chapterId, Number.isInteger(state.panelIndex) ? state.panelIndex : 0),
+      muxScene: true,
+      components: muxSceneComponents(),
+      wires: []
+    });
+    setState({
+      ...transientUiClearPatch(),
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      explanationReplay: { id },
+      workspace
+    }, false);
+    // Module-level phase state, set AFTER the workspace is in place.
+    clockedUnderstoodResolved = true;   // the "הבנת?" prompt never applies to a replay
+    clockedUnderstoodTriggered = true;
+    clearClockedTimeout();
+    clockTick = 0;
+    clockPrev = new Map();
+    if (id === "flipflop-what") {
+      muxIntroStep = 0;                 // the three goal slides
+      muxDemoActive = false;
+    } else {
+      startMuxDemo();                   // the 12-step latch demo
+    }
+    render();
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -3345,11 +3843,12 @@
       inGame: [{ alu: "ALU0", label: "ALU" }, "subtraction-demo"],
       enrichment: ["negative-numbers"]
     },
-    // Memory: reserved for later (empty for now).
+    // Memory (chapter 3.1): what a flip-flop is (the goal narration), how one is
+    // made (the MUX-latch demo), and the clocking enrichment videos.
     {
       title: "זיכרון",
-      inGame: [],
-      enrichment: []
+      inGame: ["flipflop-what", "flipflop-how"],
+      enrichment: ["clocking"]
     },
     // Processor: currently holds the "מילים ובתים" enrichment reading.
     {
@@ -3430,6 +3929,7 @@
         ${renderExplRoutingInfoDialog()}
         ${renderWordsBytesDialog()}
         ${renderSubtractionDemoLinks()}
+        ${renderFfClockLinks()}
       </main>`;
   }
 
@@ -3683,7 +4183,7 @@
     const medalElig = medalEligibilityMap();
     const titleFor = (a, locked) => {
       let t = adaptGender(a.title);
-      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " לשעבר";
+      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " (לשעבר)";
       return t;
     };
     const card = (a, locked) => `
@@ -3833,7 +4333,7 @@
             <label class="settings-field">
               <span class="settings-label">גיל</span>
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
-                     data-setting="age" value="${esc(settings.age)}" />
+                     data-setting="age" value="${esc(settings.age)}" placeholder="12" />
             </label>
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הלומדה?</span>
@@ -3894,7 +4394,9 @@
   // sentences ("...אני נראה כך:" [symbol] "..."). Opened from the two new 2.4
   // crate hotspots. Appearance/text only — no workbench behaviour yet.
   function componentMonologueData(kind) {
-    return kind === "splitter" ? SPLITTER_MONOLOGUE : BUS_MONOLOGUE;
+    if (kind === "splitter") return SPLITTER_MONOLOGUE;
+    if (kind === "nail") return (typeof NAIL_MONOLOGUE !== "undefined" ? NAIL_MONOLOGUE : BUS_MONOLOGUE);
+    return BUS_MONOLOGUE;
   }
 
   function componentMonologueSymbol(kind) {
@@ -3903,15 +4405,21 @@
 
   function renderComponentMonologue() {
     if (!state.componentMonologue) return "";
-    const kind = state.componentMonologue.kind === "splitter" ? "splitter" : "bus";
+    const k = state.componentMonologue.kind;
+    const kind = (k === "splitter" || k === "nail") ? k : "bus";
     const data = componentMonologueData(kind);
-    const label = kind === "splitter" ? "מפצל" : "בס";
+    const label = kind === "splitter" ? "מפצל" : (kind === "nail" ? "נעץ" : "בס");
+    // The נעץ has no standalone asset file — draw its on-table symbol inline (like
+    // the converter dialog), reusing the board component markup.
+    const symbol = kind === "nail"
+      ? `<svg class="component-monologue-symbol component-monologue-nail" viewBox="-30 -30 60 60" width="90" height="90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(label)}">${componentMarkup("nail", { toolbar: true })}</svg>`
+      : `<img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />`;
     return `
       <div class="bit-overlay" role="presentation">
         <section class="bit-card component-monologue-card" role="dialog" aria-modal="false" aria-label="${esc(label)}">
           <div class="component-monologue-body">
             <p>${esc(adaptGender(data.intro))}</p>
-            <img class="component-monologue-symbol" src="${esc(componentMonologueSymbol(kind))}" alt="${esc(label)}" />
+            ${symbol}
             <p>${esc(adaptGender(data.outro))}</p>
           </div>
           <div class="bit-actions">
@@ -4037,7 +4545,7 @@
     // The Stone-Millis book is the ONLY way forward from the library slide, so it
     // disables המשך (and דלג, below) — the learner must go through the notebook.
     // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
-    const nonBlockingActions = ["binary-booklet"];
+    const nonBlockingActions = ["binary-booklet", "nail-box"];
     const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
@@ -4083,6 +4591,7 @@
       ${renderBusesNoteList()}
       ${renderArithNoteList()}
       ${renderAluNoteList()}
+      ${renderMemoryNoteList()}
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -4154,9 +4663,33 @@
   // (output -> card -> input) and wrongly reject legitimate reconvergent wiring
   // (e.g. one NOT feeding several ANDs that all feed one OR). So the card's
   // input side and output side are kept as separate graph nodes.
+  // Does this component STORE state (so it breaks a combinational path)? The
+  // flip-flop and the register cards do; so does any user card built around one,
+  // checked recursively through the saved cards' own circuits.
+  function isMemoryComponentType(type, seen = new Set()) {
+    if (!type || seen.has(type)) return false;
+    if (type === "ffCard") return true;
+    if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) return true;
+    if (!String(type).startsWith("usercard-")) return false;
+    seen.add(type);
+    const card = typeof savedCardByType === "function" ? savedCardByType(type) : null;
+    const parts = card?.logic?.components || [];
+    return parts.some((c) => isMemoryComponentType(c.type, seen));
+  }
+
   function componentGraphHasPath(workspace, wires, fromRef, toRef) {
     const cardNode = (info) => {
       const comp = componentById(workspace, info.componentId);
+      // A MEMORY component (flip-flop / register, or a user card built around one)
+      // breaks the combinational path: what comes out this tick is the value it
+      // stored on a PREVIOUS tick, not a function of what is going in right now.
+      // So its input and output sides are separate graph nodes — which makes a
+      // loop THROUGH a flip-flop legal (that is how sequential circuits are built)
+      // while a purely combinational loop is still rejected.
+      if (comp && isMemoryComponentType(comp.type)) {
+        const dir = terminalDirection(workspace, `${info.componentId}.${info.pinId}`);
+        return `${info.componentId}$${dir === "out" ? "out" : "in"}`;
+      }
       // A card frame passes each internal input straight to the workspace and
       // takes each internal output back from it, so its input and output sides
       // must be SEPARATE graph nodes — otherwise a path "some output -> card
@@ -4255,7 +4788,35 @@
     return `מנורות דולקות: ${onCount} מתוך ${lamps.length}`;
   }
 
+  // Per-step highlight for the clocked narrations (NOT oscillator + MUX latch demo)
+  // — lights up the part of the circuit the current line talks about.
+  function clockedHighlightConfig() {
+    // While the NOT oscillator free-runs ("וכך הלאה"), highlight the cables that
+    // carry voltage RIGHT NOW (dynamic, blinking with the loop) rather than a fixed
+    // part of the circuit.
+    if (clockedScriptActiveNow() && clockedScriptReleased) {
+      const flat = flattenWorkspaceForEval(state.workspace);
+      const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+      const wires = new Set();
+      for (const w of (state.workspace.wires || [])) {
+        if (r.outputs.get(w.a) || r.outputs.get(w.b)) wires.add(wireKey(w.a, w.b));
+      }
+      return { terminals: new Set(), wires, components: new Set(), truthRows: new Set(), truthCols: new Set() };
+    }
+    const hl = (muxDemoActiveNow() ? MUX_DEMO[Math.min(muxDemoStep, MUX_DEMO.length - 1)].hl
+      : CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)].hl) || {};
+    return {
+      terminals: new Set(hl.terminals || []),
+      wires: new Set((hl.wires || []).map(([a, b]) => wireKey(a, b))),
+      components: new Set(hl.components || []),
+      truthRows: new Set(),
+      truthCols: new Set()
+    };
+  }
+
   function solutionHighlightConfig() {
+    // The clocked narrations highlight the part of the circuit under discussion.
+    if (clockedScriptActiveNow() || muxDemoActiveNow()) return clockedHighlightConfig();
     // The subtraction demo lights up the control leg(s) the current bubble talks
     // about (the whole control on the 110010 step, then just the NOT-input1 and
     // NOT-result legs), so "the pins we're talking about" are visibly marked.
@@ -4405,6 +4966,107 @@
           truthCols: ["carry"],
           terminals: ["ha-3.out2", "task-card-1.outputInt2"],
           wires: [wireKey("ha-3.out1", "task-card-1.outputInt2")]
+        }
+      }
+    ],
+    Register4: [
+      {
+        text: "כרטיס זיכרון בנוי מפליפ-פלופים — כל פליפ-פלופ שומר ביט אחד. הכניסה שלנו היא בס ברוחב 4, אז נתחיל מלפצל אותה ל-4 כבלים בודדים, כל אחד לפליפ-פלופ אחר.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "כל אחת מ-4 הרגליים של המפצל נכנסת לכניסת המידע של פליפ-פלופ אחר. עכשיו כל ביט של המספר מגיע לפליפ-פלופ שישמור אותו.",
+        highlight: {
+          components: ["split-in", "ff-1", "ff-2", "ff-3", "ff-4"],
+          terminals: ["ff-1.in1", "ff-2.in1", "ff-3.in1", "ff-4.in1"],
+          wires: [
+            wireKey("split-in.leg0", "ff-1.in1"),
+            wireKey("split-in.leg1", "ff-2.in1"),
+            wireKey("split-in.leg2", "ff-3.in1"),
+            wireKey("split-in.leg3", "ff-4.in1")
+          ]
+        }
+      },
+      {
+        text: "היציאות של 4 הפליפ-פלופים מתאחדות בחזרה לבס אחד ברוחב 4 (מפצל הפוך), וזאת היציאה של הכרטיס. שים לב: הכרטיס מוציא תמיד את מה ששמור בפליפ-פלופים — לא את מה שנכנס אליו.",
+        highlight: {
+          components: ["ff-1", "ff-2", "ff-3", "ff-4", "merge-out"],
+          terminals: ["merge-out.single", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("ff-1.out", "merge-out.leg0"),
+            wireKey("ff-2.out", "merge-out.leg1"),
+            wireKey("ff-3.out", "merge-out.leg2"),
+            wireKey("ff-4.out", "merge-out.leg3"),
+            wireKey("merge-out.single", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. כשהבקרה 1 כולם טוענים את הכניסה, וכשהיא 0 כולם שומרים.",
+        highlight: {
+          // One direct cable from the card's control pin to each flip-flop's control.
+          components: ["ff-1", "ff-2", "ff-3", "ff-4"],
+          terminals: ["task-card-1.inputInt2", "ff-1.in2", "ff-2.in2", "ff-3.in2", "ff-4.in2"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "ff-1.in2"),
+            wireKey("task-card-1.inputInt2", "ff-2.in2"),
+            wireKey("task-card-1.inputInt2", "ff-3.in2"),
+            wireKey("task-card-1.inputInt2", "ff-4.in2")
+          ]
+        }
+      }
+    ],
+    Register: [
+      {
+        text: "אפשר לבנות את Register בדיוק כמו את Register4, רק עם 16 פליפ-פלופים. אבל יש דרך קצרה: כבר בנינו כרטיס ששומר 4 ביטים — נשתמש בו. מפצלים את בס הכניסה (16) לארבעה בסים ברוחב 4.",
+        highlight: {
+          components: ["split-in"],
+          terminals: ["task-card-1.inputInt1", "split-in.single"],
+          wires: [wireKey("task-card-1.inputInt1", "split-in.single")]
+        }
+      },
+      {
+        text: "כל בס ברוחב 4 נכנס ל-Register4 משלו. ארבעה כרטיסי Register4 שומרים יחד 4×4 = 16 ביטים.",
+        highlight: {
+          components: ["split-in", "reg-1", "reg-2", "reg-3", "reg-4"],
+          terminals: ["reg-1.in1", "reg-2.in1", "reg-3.in1", "reg-4.in1"],
+          wires: [
+            wireKey("split-in.leg0", "reg-1.in1"),
+            wireKey("split-in.leg1", "reg-2.in1"),
+            wireKey("split-in.leg2", "reg-3.in1"),
+            wireKey("split-in.leg3", "reg-4.in1")
+          ]
+        }
+      },
+      {
+        text: "היציאות של ארבעת הכרטיסים מתאחדות חזרה לבס אחד ברוחב 16 — היציאה של הכרטיס.",
+        highlight: {
+          components: ["reg-1", "reg-2", "reg-3", "reg-4", "merge-out"],
+          terminals: ["merge-out.single", "task-card-1.outputInt1"],
+          wires: [
+            wireKey("reg-1.out", "merge-out.leg0"),
+            wireKey("reg-2.out", "merge-out.leg1"),
+            wireKey("reg-3.out", "merge-out.leg2"),
+            wireKey("reg-4.out", "merge-out.leg3"),
+            wireKey("merge-out.single", "task-card-1.outputInt1")
+          ]
+        }
+      },
+      {
+        text: "וכמו קודם — כניסת הבקרה של כל ארבעת ה-Register4 היא אותה כניסה: כניסת הבקרה של הכרטיס. כך כל 16 הביטים נכתבים בבת אחת, ואף חלק לא נשאר מאחור.",
+        highlight: {
+          components: ["reg-1", "reg-2", "reg-3", "reg-4"],
+          terminals: ["task-card-1.inputInt2", "reg-1.in2", "reg-2.in2", "reg-3.in2", "reg-4.in2"],
+          wires: [
+            wireKey("task-card-1.inputInt2", "reg-1.in2"),
+            wireKey("task-card-1.inputInt2", "reg-2.in2"),
+            wireKey("task-card-1.inputInt2", "reg-3.in2"),
+            wireKey("task-card-1.inputInt2", "reg-4.in2")
+          ]
         }
       }
     ],
@@ -7251,6 +7913,12 @@
               ${subtractionDemoActive() ? "" : renderNotTaskHint()}
               ${subtractionDemoActive() ? "" : renderWhyNote()}
               ${renderAndArrow()}
+              ${renderClockDisplay()}
+              ${renderClockedIntro()}
+              ${renderClockedScript()}
+              ${renderMuxIntro()}
+              ${renderMuxDemo()}
+              ${renderFfExplain()}
               ${renderSolutionDialog()}
               ${renderWorkspaceNandMonologue()}
               ${renderSubtractionDemo()}
@@ -7267,7 +7935,9 @@
             ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
             ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
           ` : `
-          ${navButton("workspace-reset", "restart", "נקה שולחן")}
+          ${state.solutionDialog
+            ? navButton("solution-reread", "restart", "הקרא מחדש")
+            : navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
             ${navButton("nand-monologue-prev", "arrow-right", "הקודם")}
             ${navButton("next", "arrow-left", "המשך", { primary: true })}
@@ -7283,6 +7953,7 @@
         </section>`)}
       </main>
       ${renderSubtractionDemoLinks()}
+      ${renderFfClockLinks()}
       ${renderWorkspaceUnderstoodPrompt()}
       ${renderWorkspaceBuildHelpPrompt()}
       ${renderWorkspaceTaskIntro()}
@@ -7303,6 +7974,7 @@
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
     sizeCheckPanel();
     revealFrozenCheckRow();
+    positionClockedNailArrow();
   }
 
   // While a check row is up, grow the requirements panel to fit the single row —
@@ -7504,6 +8176,130 @@
       sessionReturnChapterId: returnChapterId,
       sessionReturnPanelIndex: returnPanelIndex
     });
+  }
+
+  // The clocked (sequential) "shift table" — chapter 3.1. A deliberately minimal
+  // free-build table (only Not / source / lamp / נעץ) that runs on a ticking
+  // clock and, uniquely, tolerates feedback loops. A few נעצים are laid out in
+  // advance (the "שמתי לך כאן נעצים" hand-off) so routing a loop is inviting from
+  // the first moment. Reached from panel130's "המשך".
+  // The initial scaffolding for each clocked scene — reused by scene entry AND by
+  // "נקה שולחן" so a reset restores exactly the starting board.
+  function clockedNotSceneComponents() {
+    return [
+      { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
+      { id: "lamp-1", type: "lamp", x: 720, y: 430 }
+    ];
+  }
+  function muxSceneComponents() {
+    return [
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      // A נעץ OUTSIDE the frame, for routing the source up to the control pin. It is
+      // placed so its wires run straight: directly ABOVE the source output (x=116,
+      // a vertical wire) and level with the control pin (y=160, a horizontal wire).
+      { id: "nail-1", type: "nail", x: 116, y: 160 },
+      { id: "source-1", type: "source", x: 70, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
+    ];
+  }
+
+  function createClockedWorkspace(returnChapterId, returnPanelIndex) {
+    return normalizeWorkspace({
+      selectedTerminal: null,
+      // The board opens with a NOT gate and a lamp already placed (full size);
+      // the נעצים are dragged in from the palette (the intro arrow points there).
+      components: clockedNotSceneComponents(),
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      taskId: null,
+      taskIntroSeen: true,
+      freeBuild: true,
+      clocked: true,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex
+    });
+  }
+
+  // The visible clock: a pulsing dot + a tick counter that runs at 2/sec, so the
+  // player can feel the sequential rhythm driving the loops. Clocked table only.
+  function renderClockDisplay() {
+    // Shown on the whole clocked table, INCLUDING the scripted phase — there it
+    // freezes and only ticks up when "הבא" is pressed. From part 3 on that is
+    // every workbench (free build, task build, card designer).
+    if (!(state.screen === "workspace" && workspaceClockedNow())) return "";
+    return `
+      <div class="clock-display" aria-label="שעון המכונה" role="status">
+        <span class="clock-count">${clockTick}</span>
+      </div>`;
+  }
+
+  function clockedIntroActive() {
+    // Only the NOT scene's FIRST entry shows von Neumann's nail hand-off. It must
+    // never appear on a memory-card build (busClocked) — those are task builds, and
+    // clockedIntroDismissed is module state that resets on every page reload, so
+    // without this guard a refresh mid-build would pop the bubble back up.
+    return state.screen === "workspace"
+      && Boolean(state.workspace?.clocked)
+      && !state.workspace?.busClocked
+      && !workspaceTaskId()
+      && !state.workspace?.muxScene
+      && !clockedIntroDismissed;
+  }
+
+  // The first-entry hand-off on the clocked table. It is von Neumann speaking, so
+  // it uses his speech bubble — pinned to the RIGHT with a tail pointing right,
+  // exactly like the subtraction-demo bubble. Alongside it, an arrow OUTSIDE the
+  // palette (adjacent to it) points at the נעץ tool; that arrow is positioned in
+  // JS (positionClockedNailArrow) against the live tool button. The whole intro
+  // is dismissed by any click, or ArrowLeft.
+  function renderClockedIntro() {
+    if (!clockedIntroActive()) return "";
+    return `
+      <div class="clocked-intro-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>שמתי לך כאן נעצים כדי שיהיה לך נוח לפרוס את הכבלים.</p>
+      </div>
+      <div class="clocked-nail-arrow" data-clocked-nail-arrow aria-hidden="true">
+        <svg viewBox="0 0 60 24" width="60" height="24"><path d="M58 12 L8 12 M8 12 L20 4 M8 12 L20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
+  }
+
+  // Place the intro arrow just to the RIGHT of the palette (outside it), level
+  // with the נעץ tool, so it points left at the tool without living inside the
+  // clipped palette.
+  function positionClockedNailArrow() {
+    if (!clockedIntroActive()) return;
+    const arrow = app.querySelector("[data-clocked-nail-arrow]");
+    const tool = app.querySelector("[data-component-type='nail']");
+    const board = app.querySelector(".workspace-board");
+    if (!arrow || !tool || !board) return;
+    const t = tool.getBoundingClientRect();
+    const b = board.getBoundingClientRect();
+    const ah = arrow.getBoundingClientRect().height || 24;
+    arrow.style.left = `${Math.max(4, t.right - b.left + 8)}px`;
+    arrow.style.top = `${t.top - b.top + t.height / 2 - ah / 2}px`;
+    arrow.style.visibility = "visible";
+  }
+
+  function enterClockedTable() {
+    clockedIntroDismissed = false;
+    clockedUnderstoodResolved = false;
+    const returnChapterId = state.chapterId || "chapter-10";
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : 0;
+    setState({
+      screen: "workspace",
+      dialog: null, taskDialog: null, infoDialog: null, notTest: null,
+      hintDialog: null, solutionDialog: null, aluNoteList: false, aluIntroDialog: null,
+      workspace: createClockedWorkspace(returnChapterId, returnPanelIndex),
+      replayNonce: state.replayNonce + 1
+    }, false);
   }
 
   function enterCardCreation(options = {}) {
@@ -9872,6 +10668,9 @@
     syncExplanationUnlocks();
     syncAchievements();
     syncIdleNudge();
+    tickDesignClock(); // accrue design time into the active context
+    // Start/stop the 2 Hz clock as the clocked table is entered/left.
+    ensureClockRunning();
     // Re-arm the Nand connect demo whenever we are away from the presentation, so
     // it plays again on the learner's next visit but stays dismissed once clicked.
     if (!isNandPresentationWorkspace() && (nandConnectDemoDismissed || nandConnectDemoShownAt)) armNandConnectDemo();
@@ -10019,10 +10818,12 @@
     if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
       return openSubtractionDemo();
     }
-    // Chapter 3.1 (flip-flop) is where the story currently ends — its last slide's
-    // "המשך" shows a "המשך יבוא" notice instead of falling off into the chapters.
-    if (state.screen === "story" && state.chapterId === "chapter-10" && state.panelIndex >= scene.panels.length - 1) {
-      return setState({ infoDialog: "המשך יבוא..." }, false);
+    // Chapter 3.1 (flip-flop): panel130's "המשך" ("הנה, תנסה לחבר את ה-NOT
+    // במעגל") hands the player straight into the clocked (sequential) table. Keyed
+    // to panel130 specifically — the warehouse "more memory" panels (131–134) come
+    // AFTER the table (reached from finishMuxDemo) and must NOT re-enter it.
+    if (state.screen === "story" && state.chapterId === "chapter-10" && String(currentPanel()?.image || "").includes("panel130")) {
+      return enterClockedTable();
     }
 
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
@@ -10134,6 +10935,23 @@
       };
       return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
     }
+    // The clocked table (NOT oscillator OR MUX scene): "נקה שולחן" restores the
+    // scene's starting board — it must NOT throw the player into the Nand demo.
+    if (state.workspace?.clocked) {
+      const current = normalizeWorkspace(state.workspace);
+      const components = current.muxScene ? muxSceneComponents() : clockedNotSceneComponents();
+      const workspace = { ...current, components, wires: [], selectedTerminal: null, focusedComponentId: null, accident: null };
+      return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
+    }
+    // Only the actual Nand presentation replays the connect demo. Any OTHER free
+    // board just clears the learner's work (keeping fixed scaffolding) in place —
+    // never teleporting to the Nand presentation.
+    if (!isNandPresentationWorkspace()) {
+      const current = normalizeWorkspace(state.workspace);
+      const components = current.components.filter((c) => componentDef(c.type)?.fixed);
+      const workspace = { ...current, components, wires: [], selectedTerminal: null, focusedComponentId: null, accident: null };
+      return setState({ workspace, notTest: null, hintDialog: null, solutionDialog: null }, false);
+    }
     // Pressing reset in the Nand presentation replays the connect demo from the top.
     armNandConnectDemo();
     return setState({ workspace: freshWorkspacePreservingHelp(), notTest: null }, false);
@@ -10186,10 +11004,487 @@
     workspace.understoodButtonVisible = true;
     workspace.selectedTerminal = null;
     // Unlocked silently — the "new explanation" flourish plays at the END of the
-    // Nand monologue, not here.
-    unlockExplanation("nand-function", { silent: true });
+    // Nand monologue, not here. (Not relevant on the clocked table.)
+    if (!workspace.clocked) unlockExplanation("nand-function", { silent: true });
     setState({ workspace }, false);
     if (fromRect) requestAnimationFrame(() => playUnderstoodSuckAnimation(fromRect));
+  }
+
+  // Phase B — enter the scripted oscillator. Replace the board with a canonical
+  // NOT self-loop + lamp, lock the table, and start stepping the narration.
+  function startClockedScript() {
+    clearClockedTimeout();
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    workspace.selectedTerminal = null;
+    // The feedback loop is routed through TWO נעצים (up and over the top) so the
+    // path the cable takes back to the input is obvious.
+    workspace.components = [
+      { id: "gate-Not-1", type: "gate-Not", x: 440, y: 430 },
+      { id: "lamp-1", type: "lamp", x: 720, y: 430 },
+      { id: "nail-1", type: "nail", x: 600, y: 250 },
+      { id: "nail-2", type: "nail", x: 300, y: 250 }
+    ];
+    workspace.wires = [
+      { a: "gate-Not-1.out", b: "nail-1.in" },
+      { a: "nail-1.out", b: "nail-2.in" },
+      { a: "nail-2.out", b: "gate-Not-1.in1" },
+      { a: "gate-Not-1.out", b: "lamp-1.in" }
+    ];
+    clockedScriptActive = true;
+    clockedScriptReleased = false;
+    clockedScriptStep = 0;
+    clockTick = 0; // the visible clock restarts for the scripted run
+    clockedIntroDismissed = true;
+    // The scripted clock does NOT run on a timer — it advances one line per "הבא"
+    // press only, so the oscillator freezes between steps.
+    setState({ workspace }, false);
+  }
+
+  function clockedScriptActiveNow() {
+    return clockedScriptActive && state.screen === "workspace" && Boolean(state.workspace?.clocked);
+  }
+
+  // Advance the narration one line. The auto-clock and the "הבא" button both call
+  // this. Past the last line it loops back to line 1 (line 0 is the one-time
+  // initial state) so the lamp keeps blinking "וכך הלאה".
+  function clockedScriptAdvance() {
+    if (!clockedScriptActiveNow()) return;
+    // Linear: each "הבא" advances one line. Past the last line (the MUX hand-off)
+    // it moves on to the MUX scene.
+    if (clockedScriptStep >= CLOCKED_SCRIPT.length - 1) return startMuxScene();
+    const wasReleased = clockedScriptReleased;
+    clockedScriptStep += 1;
+    if (!clockedScriptReleased && clockedScriptStep === 4) {
+      // ARRIVE at "וכך הלאה" → release: free-run at 1 Hz, lamp driven by the engine.
+      // The tick counter is NOT reset — it keeps counting from the manual phase.
+      clockedScriptReleased = true;
+      clockPrev = new Map();
+    } else if (wasReleased && clockedScriptStep === 5) {
+      // LEAVE "וכך הלאה" → STOP the clock (freeze) but keep the counter; it is reset
+      // only when the flip-flop frame appears (startMuxScene).
+      clockedScriptReleased = false;
+    } else if (!clockedScriptReleased && clockedScriptStep < 4) {
+      clockTick += 1; // the still-frozen manual phase ticks up one on each "הבא"
+    }
+    render();
+  }
+  function clockedScriptBack() {
+    if (!clockedScriptActiveNow() || clockedScriptStep <= 0) return;
+    clockedScriptStep -= 1;
+    // Going back returns to the frozen/manual view of that line (un-releases the
+    // clock and re-pins the lamp), with the counter set to that line's index.
+    clockedScriptReleased = false;
+    clockPrev = new Map();
+    clockTick = clockedScriptStep;
+    render();
+  }
+
+  // Phase C — the MUX flip-flop scene. A clocked free-build seeded with the
+  // flip-flop frame (data left, control top, output right), a MUX in its centre,
+  // and an unwired source (left) + lamp (right). The MUX joins the palette. Von
+  // Neumann's goal narration plays first, then the learner wires freely.
+  const MUX_GOAL_LINES = [
+    "המטרה שלנו היא ליצור משהו ששומר על המצב שלו, אלא אם כן אנחנו \"אומרים\" לו לשנות את המצב, ואז המצב משתנה לפי מה שכתוב בכניסה.",
+    "אנחנו \"אומרים לו\" לשנות את המצב באמצעות כניסת הבקרה.",
+    "המצב עצמו זה מה שנותנת היציאה."
+  ];
+  let muxIntroStep = 0;
+
+  function startMuxScene() {
+    stopClockedScript();
+    clockedScriptStep = 0;
+    muxIntroStep = 0;
+    // The frame appears → reset the clock and freeze it (it stays frozen through
+    // the goal narration, then free-runs at 2 Hz once the learner plays).
+    clockTick = 0;
+    clockPrev = new Map();
+    // Re-arm the "הבנת?" detection for THIS scene: it fires when a working latch is
+    // built, or after a minute regardless.
+    clockedUnderstoodTriggered = false;
+    clockedUnderstoodResolved = false;
+    clockLampToggles = 0;
+    clockLampLast = new Map();
+    clearClockedTimeout();
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.muxScene = true;
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    workspace.selectedTerminal = null;
+    workspace.wires = [];
+    workspace.components = muxSceneComponents();
+    // Reaching the goal narration unlocks "מה זה פליפ-פלופ" in the menu; the
+    // flourish plays when the narration is done (see muxIntroAdvance's hand-off).
+    unlockExplanation("flipflop-what", { silent: true });
+    setState({ workspace, infoDialog: null }, false);
+  }
+
+  // Real-time check that the learner has built a working MUX latch. We take their
+  // internal circuit, drive the frame's data + control ports ourselves, run the
+  // clocked engine, and verify latch behaviour: one control value LOADS (output
+  // follows data) and the other HOLDS (output keeps its value regardless of data).
+  // Up to ~5 clocks are allowed for the output to settle. Both hold-polarities and
+  // both data-input wirings are accepted (we just try both).
+  function detectMuxLatch(baseWorkspace) {
+    const frameId = "flipflop-frame-1";
+    if (!baseWorkspace.components.some((c) => c.id === frameId)) return false;
+    if (!baseWorkspace.components.some((c) => String(c.type).startsWith("gate-Mux"))) return false;
+    const drop = new Set(baseWorkspace.components.filter((c) => c.type === "source" || c.type === "lamp").map((c) => c.id));
+    const extPins = new Set([`${frameId}.inputExt1`, `${frameId}.inputExt2`, `${frameId}.outputExt1`]);
+    const baseComps = baseWorkspace.components.filter((c) => !drop.has(c.id));
+    const baseWires = baseWorkspace.wires.filter((w) => {
+      const ca = String(w.a).split(".")[0], cb = String(w.b).split(".")[0];
+      if (drop.has(ca) || drop.has(cb)) return false;
+      if (extPins.has(w.a) || extPins.has(w.b)) return false;
+      return true;
+    });
+    const outRef = `${frameId}.outputExt1`;
+    const SETTLE = 6; // give the output up to ~5 clocks (plus one) to settle
+    const runVec = (prev, data, control) => {
+      const comps = [...baseComps];
+      const wires = [...baseWires];
+      if (data) { comps.push({ id: "__td", type: "source", x: 0, y: 0 }); wires.push({ a: "__td.out", b: `${frameId}.inputExt1` }); }
+      if (control) { comps.push({ id: "__tc", type: "source", x: 0, y: 0 }); wires.push({ a: "__tc.out", b: `${frameId}.inputExt2` }); }
+      const ws = { ...baseWorkspace, components: comps, wires };
+      let p = prev, out = false;
+      for (let i = 0; i < SETTLE; i += 1) { const r = __circuitEngine.evaluateWorkspaceClocked(ws, p); p = r.next; out = Boolean(r.outputs.get(outRef)); }
+      return { out, prev: p };
+    };
+    for (const H of [false, true]) {         // H = the "hold" control value
+      const L = !H;                          // L = the "load" control value
+      let prev = new Map();
+      let ok = true;
+      let r = runVec(prev, true, L); prev = r.prev; if (r.out !== true) ok = false;   // load 1
+      r = runVec(prev, false, H); prev = r.prev; if (r.out !== true) ok = false;      // hold (data 0) → stays 1
+      r = runVec(prev, false, L); prev = r.prev; if (r.out !== false) ok = false;     // load 0
+      r = runVec(prev, true, H); prev = r.prev; if (r.out !== false) ok = false;      // hold (data 1) → stays 0
+      if (ok) return true;
+    }
+    return false;
+  }
+
+  function muxIntroActive() {
+    return state.screen === "workspace" && Boolean(state.workspace?.muxScene) && muxIntroStep < MUX_GOAL_LINES.length;
+  }
+  function renderMuxIntro() {
+    if (!muxIntroActive()) return "";
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(MUX_GOAL_LINES[muxIntroStep])}</p>
+        <div class="clocked-script-nav">
+          ${navButton("mux-intro-prev", "arrow-right", "הקודם", { disabled: muxIntroStep <= 0 && !explanationReplayActive("flipflop-what") })}
+          ${navButton("mux-intro-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
+  }
+  function muxIntroAdvance() {
+    if (!muxIntroActive()) return;
+    // "מה זה פליפ-פלופ" replay: the three goal slides ARE the whole explanation —
+    // past the last one it goes back to the menu instead of freeing the table.
+    if (explanationReplayActive("flipflop-what") && muxIntroStep >= MUX_GOAL_LINES.length - 1) {
+      return returnToExplanationsMenuFromReplay();
+    }
+    muxIntroStep += 1;
+    render();
+  }
+  function muxIntroBack() {
+    if (!muxIntroActive()) return;
+    // In a replay, "back" off the FIRST slide leaves the explanation.
+    if (muxIntroStep <= 0) {
+      if (explanationReplayActive("flipflop-what")) return returnToExplanationsMenuFromReplay();
+      return;
+    }
+    muxIntroStep -= 1;
+    render();
+  }
+
+  // Answering the MUX-scene "הבנת?" leads into von Neumann's scripted latch demo
+  // (Phase D): a controlled MUX latch he built. control=1 writes, control=0 locks.
+  function finishMuxUnderstood() {
+    startMuxDemo();
+  }
+
+  // --- Phase D: the scripted MUX-latch demo ---------------------------------
+  // A fixed latch von Neumann built. Each step sets whether the CONTROL and DATA
+  // sources are connected, and pins the output. The narration explains: with the
+  // control disconnected the state is held (the 2nd input is ignored); connecting
+  // the control lets the 2nd input write the state; disconnecting it again locks
+  // the (now high) state.
+  const MUX_FB_WIRES = [["gate-Mux-1.out", "nail-fb1.in"], ["nail-fb1.out", "nail-fb2.in"], ["nail-fb2.out", "gate-Mux-1.in1"]];
+  const HL_DATA = { terminals: ["flipflop-frame-1.inputExt1"], components: ["src"] };
+  const HL_CONTROL = { terminals: ["flipflop-frame-1.inputExt2"], components: ["nail-ctrl"] };
+  const HL_DATA_OUT = { terminals: ["flipflop-frame-1.inputExt1", "flipflop-frame-1.outputExt1"], components: ["src", "lamp-1"] };
+  const HL_HOLD = { terminals: ["flipflop-frame-1.outputExt1"], components: ["nail-fb1", "nail-fb2", "lamp-1"], wires: MUX_FB_WIRES };
+  const MUX_DEMO = [
+    { text: "תראה: אם כניסת הבקרה מנותקת, אנחנו מתעלמים מהכניסה השנייה. מכיוון שהכניסה הראשונה מחוברת ליציאה, המצב נשאר קבוע. בהתחלה אין מתח בשום מקום.", control: false, data: false, out: false, hl: HL_HOLD },
+    { text: "גם אם אנחנו מחברים את הכניסה השנייה — זה לא משנה כלום.", control: false, data: true, out: false, hl: HL_DATA },
+    { text: null, control: false, data: false, out: false, hl: HL_DATA },
+    { text: null, control: false, data: true, out: false, hl: HL_DATA },
+    { text: "אם אנחנו מחברים את כניסת הבקרה, אז חשוב מה יש בכניסה השנייה.", control: true, data: false, out: false, hl: HL_CONTROL },
+    { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
+    { text: null, control: true, data: false, out: false, hl: HL_DATA_OUT },
+    { text: null, control: true, data: true, out: true, hl: HL_DATA_OUT },
+    { text: "עכשיו אם ננתק את כניסת הבקרה — עדיין יישאר מתח ביציאה. ושוב, אם נשנה את הכניסה השנייה זה לא ישנה כלום.", control: false, data: true, out: true, hl: { terminals: ["flipflop-frame-1.inputExt2", "flipflop-frame-1.outputExt1"], components: ["nail-ctrl", "lamp-1"] } },
+    { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT },
+    { text: null, control: false, data: true, out: true, hl: HL_DATA_OUT },
+    { text: null, control: false, data: false, out: true, hl: HL_DATA_OUT }
+  ];
+  // The feedback (output → first MUX input, the "hold" path) is routed up and over
+  // through TWO נעצים, so the circular connection reads elegantly.
+  const MUX_DEMO_BASE_WIRES = [
+    { a: "flipflop-frame-1.inputInt1", b: "gate-Mux-1.in2" },
+    { a: "flipflop-frame-1.inputInt2", b: "gate-Mux-1.in3" },
+    { a: "gate-Mux-1.out", b: "flipflop-frame-1.outputInt1" },
+    { a: "gate-Mux-1.out", b: "nail-fb1.in" },
+    { a: "nail-fb1.out", b: "nail-fb2.in" },
+    { a: "nail-fb2.out", b: "gate-Mux-1.in1" },
+    { a: "flipflop-frame-1.outputExt1", b: "lamp-1.in" }
+  ];
+  let muxDemoActive = false;
+  let muxDemoStep = 0;
+  function muxDemoComponents() {
+    return [
+      { id: "flipflop-frame-1", type: "flipflopFrame", x: 500, y: 400 },
+      { id: "gate-Mux-1", type: "gate-Mux", x: 500, y: 400 },
+      // The external נעץ routes the single source up to the control pin, aligned so
+      // its wires are straight: directly above the source output (x=116, vertical)
+      // and level with the control pin (y=160, horizontal). Two more נעצים carry the
+      // feedback loop.
+      { id: "nail-ctrl", type: "nail", x: 116, y: 160 },
+      { id: "nail-fb1", type: "nail", x: 640, y: 290 },
+      { id: "nail-fb2", type: "nail", x: 400, y: 290 },
+      { id: "src", type: "source", x: 70, y: 400 },
+      { id: "lamp-1", type: "lamp", x: 920, y: 400 }
+    ];
+  }
+  function muxDemoWires(step) {
+    const s = MUX_DEMO[Math.min(step, MUX_DEMO.length - 1)];
+    return [
+      ...MUX_DEMO_BASE_WIRES,
+      // One source feeds BOTH ports; the control is routed through the external נעץ.
+      ...(s.data ? [{ a: "src.out", b: "flipflop-frame-1.inputExt1" }] : []),
+      ...(s.control ? [{ a: "src.out", b: "nail-ctrl.in" }, { a: "nail-ctrl.out", b: "flipflop-frame-1.inputExt2" }] : [])
+    ];
+  }
+  function muxDemoActiveNow() {
+    return muxDemoActive && state.screen === "workspace" && Boolean(state.workspace?.muxScene);
+  }
+  function muxDemoText() {
+    let text = "";
+    for (let i = 0; i <= muxDemoStep && i < MUX_DEMO.length; i += 1) if (MUX_DEMO[i].text) text = MUX_DEMO[i].text;
+    return text;
+  }
+  function startMuxDemo() {
+    // Seeing von Neumann's latch demo unlocks "איך עושים פליפ-פלופ" in the menu.
+    unlockExplanation("flipflop-how", { silent: true });
+    muxDemoActive = true;
+    muxDemoStep = 0;
+    muxIntroStep = MUX_GOAL_LINES.length; // ensure the goal narration is closed
+    clockTick = 0;
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.understoodPromptShown = false;
+    workspace.understoodButtonVisible = false;
+    workspace.selectedTerminal = null;
+    workspace.components = muxDemoComponents();
+    workspace.wires = muxDemoWires(0);
+    setState({ workspace, infoDialog: null }, false);
+  }
+  function applyMuxDemoWires() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.wires = muxDemoWires(muxDemoStep);
+    setState({ workspace }, false);
+  }
+  function muxDemoAdvance() {
+    if (!muxDemoActiveNow()) return;
+    if (muxDemoStep >= MUX_DEMO.length - 1) return finishMuxDemo();
+    muxDemoStep += 1;
+    clockTick += 1;
+    applyMuxDemoWires();
+  }
+
+  // End of the demo: the whole latch collapses (animated) into ONE reusable FF
+  // component (the source and lamp disappear — just the finished card is left),
+  // the FF joins the palette, and von Neumann's closing FF-explanation begins.
+  let ffMaterializePending = false;
+  function finishMuxDemo() {
+    muxDemoActive = false;
+    clockTick = 0;
+    clockPrev = new Map();
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.ffCardUnlocked = true;
+    workspace.selectedTerminal = null;
+    workspace.components = [
+      { id: "ff-1", type: "ffCard", x: 500, y: 400 }
+    ];
+    workspace.wires = [];
+    ffMaterializePending = true;
+    // Roll straight into the two-bubble FF explanation (table locked, clock idle).
+    ffExplainActive = true;
+    ffExplainStep = 0;
+    setState({ workspace, infoDialog: null }, false);
+    requestAnimationFrame(() => {
+      const g = app.querySelector("g.component-ffCard");
+      if (g) {
+        g.classList.add("ff-materialize");
+        g.addEventListener("animationend", () => g.classList.remove("ff-materialize"), { once: true });
+      }
+      ffMaterializePending = false;
+    });
+  }
+  function muxDemoBack() {
+    if (!muxDemoActiveNow()) return;
+    // In a replay, "back" off the FIRST slide leaves the explanation.
+    if (muxDemoStep <= 0) {
+      if (explanationReplayActive("flipflop-how")) return returnToExplanationsMenuFromReplay();
+      return;
+    }
+    muxDemoStep -= 1;
+    clockTick = muxDemoStep;
+    applyMuxDemoWires();
+  }
+  function renderMuxDemo() {
+    if (!muxDemoActiveNow()) return "";
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(muxDemoText())}</p>
+        <div class="clocked-script-nav">
+          ${navButton("mux-demo-prev", "arrow-right", "הקודם", { disabled: muxDemoStep <= 0 && !explanationReplayActive("flipflop-how") })}
+          ${navButton("mux-demo-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
+  }
+
+  // Phase E — after the latch collapses into a single FF, von Neumann explains
+  // what a flip-flop is (bubble 1) and why every self-built circuit needs one so
+  // the machine can be clocked (bubble 2). Bubble 2 carries the red enrichment
+  // teaser → the "clocking" videos window. The table is locked (the clock idles)
+  // for the whole explanation; "הבא" past the last bubble exits to the warehouse.
+  let ffExplainActive = false;
+  let ffExplainStep = 0;
+  const FF_EXPLAIN = [
+    { text: "שים לב, בנינו משהו שיכול לשמור מידע. קוראים למעגל הזה Flip-Flop: כשכניסת הבקרה מנותקת מהמתח הוא שומר את המידע. וכשכניסת הבקרה מחוברת למתח אנחנו יכולים לשנות את המידע על ידי הכניסה השנייה. ל-Flip-Flop יש 2 מצבים: או שהוא מוציא מתח או שלא. כך שהמידע שהוא שומר זה ביט אחד. בעוד שבכל הכרטיסים עד עכשיו דיברנו רק על הכניסות והיציאות, ב-Flip-Flop אנחנו יכולים גם לשנות את המצב שלו. כדי לשנות את המצב שלו אנחנו צריכים לחבר את כניסת הבקרה שלו." },
+    { text: "שים לב, כשאתה יוצר כרטיסים אחרים, אתה יכול להשתמש ב-Flip-Flop, אבל אם אתה יוצר מעגל בעצמך, תדאג שתמיד יהיה בו Flip-Flop. אחרת יהיה לנו בלגן כי לחלקים שונים של מחשב ייקח זמן שונה לשנות את המצב שלהם והם לא יהיו מתואמים. אני אדאג לזה שמשהו יעבור על כל ה-Flip-Flop-ים ויגרום להם לעבוד באופן מתוזמן.", teaser: true }
+  ];
+  function ffExplainActiveNow() {
+    return ffExplainActive && state.screen === "workspace" && Boolean(state.workspace?.clocked);
+  }
+  function renderFfExplain() {
+    if (!ffExplainActiveNow()) return "";
+    const line = FF_EXPLAIN[Math.min(ffExplainStep, FF_EXPLAIN.length - 1)];
+    // The red enrichment teaser is pinned to the TOP-LEFT corner of the board
+    // (a separate element, NOT inside von Neumann's bubble).
+    const teaserHtml = line.teaser
+      ? `<button class="subtraction-demo-teaser ff-explain-teaser" data-action="ff-clock-teaser" type="button">
+          <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+          <span>ג'ון לא אמר לך את כל האמת. רוצה לדעת איך גורמים לזה שבמחשב הכל יהיה מתוזמן, לחץ כאן.</span>
+        </button>`
+      : "";
+    return `
+      ${teaserHtml}
+      <div class="clocked-intro-bubble clocked-script-bubble ff-explain-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(line.text)}</p>
+        <div class="clocked-script-nav">
+          ${navButton("ff-explain-prev", "arrow-right", "הקודם", { disabled: ffExplainStep <= 0 })}
+          ${navButton("ff-explain-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
+  }
+  function ffExplainAdvance() {
+    if (!ffExplainActiveNow()) return;
+    // "איך עושים פליפ-פלופ" replay ends ON the first FF bubble ("שים לב, בנינו
+    // משהו שיכול לשמור מידע") — that slide closes the explanation.
+    if (explanationReplayActive("flipflop-how")) return returnToExplanationsMenuFromReplay();
+    if (ffExplainStep >= FF_EXPLAIN.length - 1) return exitFlipflopToWarehouse();
+    ffExplainStep += 1;
+    render();
+  }
+  function ffExplainBack() {
+    if (!ffExplainActiveNow() || ffExplainStep <= 0) return;
+    ffExplainStep -= 1;
+    render();
+  }
+  function openFfClockLinks() {
+    // Opening the "clocking" window (from the red teaser) unlocks it in the
+    // explanations menu; the flourish plays when the window closes.
+    unlockExplanation("clocking", { silent: true });
+    setState({ ffClockLinks: {} }, false);
+  }
+  function closeFfClockLinks() {
+    // Opened FROM the menu → go straight back to it; otherwise announce the unlock
+    // and drop back onto the board.
+    if (state.ffClockLinks?.fromExplanations) return setState({ ffClockLinks: null, screen: "explanations" }, false);
+    announceExplanationUnlock("clocking");
+    setState({ ffClockLinks: null }, false);
+  }
+  function renderFfClockLinks() {
+    if (!state.ffClockLinks) return "";
+    const title = (typeof FF_CLOCK_LINKS_TITLE !== "undefined") ? FF_CLOCK_LINKS_TITLE : "";
+    const intro = (typeof FF_CLOCK_LINKS_INTRO !== "undefined") ? FF_CLOCK_LINKS_INTRO : "";
+    const links = (typeof FF_CLOCK_LINKS !== "undefined" ? FF_CLOCK_LINKS : [])
+      .map((l) => `<li><a class="subtraction-demo-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`)
+      .join("");
+    return `
+      <div class="pace-dialog-overlay subtraction-demo-links-overlay" role="presentation">
+        <section class="pace-dialog-card subtraction-demo-links-card" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+          <h2 class="subtraction-demo-links-title">${esc(title)}</h2>
+          <p>${esc(intro)}</p>
+          <ul class="subtraction-demo-links-list">${links}</ul>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="ff-clock-links-close" type="button">חזרה</button>
+          </div>
+        </section>
+      </div>`;
+  }
+  // Leaving the clocked table for the warehouse "we need much more memory" beat.
+  function exitFlipflopToWarehouse() {
+    ffExplainActive = false;
+    ffExplainStep = 0;
+    stopClock();
+    // The FF explanation ends chapter 3.1 and opens chapter 3.2 (רגיסטרים),
+    // whose first slide is panel131 ("we need much more memory").
+    const scene = SCENES["registers"];
+    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel131"));
+    setState({
+      ...transientUiClearPatch(),
+      screen: "story",
+      chapterId: "chapter-11",
+      sceneId: "registers",
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      workspace: createDefaultWorkspace()
+    }, true);
+  }
+
+  // Dev fast-forward (Ctrl+Shift+9) through the flip-flop "explanation" phases:
+  // one press jumps to the next scripted beat. Returns true if it handled the key.
+  function secretSkipClockedNarration() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return false;
+    if (ffExplainActiveNow()) { exitFlipflopToWarehouse(); return true; }
+    if (muxDemoActiveNow()) { finishMuxDemo(); return true; }
+    if (state.workspace.muxScene) { startMuxDemo(); return true; }  // mux goal-narration / free-play → controlled demo
+    if (clockedScriptActiveNow()) { startMuxScene(); return true; }  // oscillator narration → MUX scene
+    startClockedScript(); return true;                               // NOT free-play → oscillator narration
+  }
+  function stopClockedScript() {
+    clockedScriptActive = false;
+    clockedScriptReleased = false;
+    if (clockedScriptTimer) { window.clearInterval(clockedScriptTimer); clockedScriptTimer = null; }
+  }
+
+  // The von Neumann narration bubble + "הבא" button shown while the script runs.
+  function renderClockedScript() {
+    if (!clockedScriptActiveNow()) return "";
+    const line = CLOCKED_SCRIPT[Math.min(clockedScriptStep, CLOCKED_SCRIPT.length - 1)];
+    return `
+      <div class="clocked-intro-bubble clocked-script-bubble" role="dialog" aria-label="דברי פון-נוימן">
+        <p>${esc(line.text)}</p>
+        <div class="clocked-script-nav">
+          ${navButton("clocked-script-prev", "arrow-right", "הקודם", { disabled: clockedScriptStep <= 0 })}
+          ${navButton("clocked-script-next", "arrow-left", "הבא", { primary: true })}
+        </div>
+      </div>`;
   }
 
   function openUnderstoodPrompt() {
@@ -10593,7 +11888,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -10696,6 +11991,10 @@
       // The tall 2.5 Add16 frame (four Add4 chunks stacked inside) sits a touch
       // lower so its title clears the top of the board — matching its build.
       : taskId === "Add16" ? 310
+      // The 3.1 memory cards: the SAME y their build uses (openMemoryTaskWorkspace),
+      // so the walkthrough's frame sits exactly where the learner's frame sat and
+      // never appears to jump up when the solution opens.
+      : (taskId === "Register4" || taskId === "Register") ? MEMORY_BUILD_CARD_Y
       : 288;
   }
   function workspaceFromSolutionDoc(doc) {
@@ -10771,7 +12070,7 @@
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
-    getTab: () => (state.rankingsTab === "speed" ? "speed" : "efficiency"),
+    getTab: () => (state.rankingsTab === "speed" || state.rankingsTab === "design" ? state.rankingsTab : "efficiency"),
     // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
     // "serial" = speed). Filled from the cloud once the backend exists.
     leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
@@ -11146,6 +12445,90 @@
   // circuit) when available. User cards are inlined (see expandUserCards) so the
   // record is frozen against later user-card edits; regular sub-cards stay live,
   // so improving them still flows through automatically.
+  // ---- Design-speed clock: wall-clock time spent designing -------------------
+  // We accumulate the active time the player spends (a) building each card in its
+  // task and (b) creating/editing each user card. The design time of a completed
+  // task card = its task time + the creation time of every DISTINCT user card in
+  // the build (added once each, transitively; regular cards add nothing).
+  let designClock = { key: null, at: 0, paused: false };
+
+  // The thing being designed right now, or null. A user card in the editor wins;
+  // otherwise the (not-yet-completed) task being built on the workbench.
+  function currentDesignKey() {
+    if (state.cardCreation) {
+      const type = state.cardCreation.editingType
+        || (SAVED_CARD_PREFIX + (state.nextSavedCardId || ((state.savedCards || []).length + 1)));
+      return "user:" + type;
+    }
+    const tid = workspaceTaskId();
+    if (tid && isNotTaskWorkspace() && !notTestActive() && !state.solutionDialog
+        && !workspaceTaskIntroActive() && !taskCompleted(tid)) {
+      return "task:" + tid;
+    }
+    return null;
+  }
+
+  function accrueDesign(key, ms, persist) {
+    if (!key || !(ms > 0)) return;
+    const bucket = key.startsWith("user:") ? "userCardDesignMs" : "taskDesignMs";
+    const id = key.slice(5);
+    const m = state[bucket] || (state[bucket] = {});
+    m[id] = (m[id] || 0) + ms;
+    if (persist) saveState();
+  }
+
+  // Called every render. Accrues the time since the last tick into the active
+  // design context (in-memory), persisting when the context changes. A single gap
+  // longer than 30 minutes is ignored (idle / left open). Paused while the tab is
+  // hidden (see the visibilitychange handler).
+  function tickDesignClock() {
+    const now = Date.now();
+    const key = currentDesignKey();
+    if (!designClock.paused && designClock.key && designClock.at) {
+      const elapsed = now - designClock.at;
+      if (elapsed > 0 && elapsed < 30 * 60 * 1000) accrueDesign(designClock.key, elapsed, key !== designClock.key);
+    }
+    designClock.key = key;
+    designClock.at = now;
+  }
+
+  // Flush the current segment immediately (used right before freezing a card's
+  // design time at completion).
+  function flushDesignNow() {
+    const now = Date.now();
+    if (!designClock.paused && designClock.key && designClock.at) {
+      const elapsed = now - designClock.at;
+      if (elapsed > 0 && elapsed < 30 * 60 * 1000) accrueDesign(designClock.key, elapsed, true);
+    }
+    designClock.at = now;
+  }
+
+  // Every user card used in a component list, transitively (a user card's own
+  // logic may use more user cards). Distinct set.
+  function distinctUserCardsUsed(components, acc) {
+    acc = acc || new Set();
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const t = comp && comp.type;
+      if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX) && !acc.has(t)) {
+        acc.add(t);
+        const card = (state.savedCards || []).find((c) => c.type === t);
+        if (card && card.logic) distinctUserCardsUsed(card.logic.components, acc);
+      }
+    }
+    return acc;
+  }
+
+  // Design time (seconds) for a just-passed task: the task's build time plus the
+  // creation time of each distinct user card in its build. Null when no time was
+  // recorded at all (e.g. an old completion or a dev-solve).
+  function computeDesignSeconds(taskId, rawComponents) {
+    let totalMs = (state.taskDesignMs || {})[taskId] || 0;
+    const ucm = state.userCardDesignMs || {};
+    distinctUserCardsUsed(rawComponents).forEach((uc) => { totalMs += ucm[uc] || 0; });
+    if (totalMs <= 0) return null;
+    return Math.max(1, Math.round(totalMs / 1000));
+  }
+
   function recordCardNandCount(taskId, buildWorkspace) {
     if (!taskId) return null;
     const ws = buildWorkspace || {};
@@ -11177,11 +12560,19 @@
     } else {
       serialBuilds[taskId] = newBuild;
     }
+    // Design-speed track: keep the fastest (lowest) design time in seconds.
+    const designCounts = { ...(state.cardDesignCounts || {}) };
+    const designSec = computeDesignSeconds(taskId, ws.components);
+    if (designSec !== null) {
+      const prevDesign = designCounts[taskId];
+      designCounts[taskId] = (typeof prevDesign === "number") ? Math.min(prevDesign, designSec) : designSec;
+    }
     return {
       cardBuilds: builds,
       cardSerialBuilds: serialBuilds,
       cardNandCounts: recomputeAllCardCounts(builds),
-      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds),
+      cardDesignCounts: designCounts
     };
   }
 
@@ -11213,6 +12604,7 @@
     // pre-harness snapshot of their own circuit) and recompute all counts so any
     // dependent card improves too.
     if (result === "success" && taskId) {
+      flushDesignNow(); // freeze the final build-time segment before recording
       Object.assign(patch, recordCardNandCount(taskId, notTestSnapshot || workspace));
     }
     setState(patch, false);
@@ -11249,6 +12641,10 @@
 
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
+    // Memory cards (Register4/Register) are CLOCKED — checked by their memory
+    // behaviour over several clocks, not a combinational truth table. This must be
+    // tested before the multibit branch (they are multibit-shaped too).
+    if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
@@ -11256,6 +12652,69 @@
     muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
     const testWorkspace = cleanedWorkspaceForTaskTest(state.workspace);
     runNotTestRow(testWorkspace, 0);
+  }
+
+  // --- Chapter 3.1 memory-card check (Register4 / Register) ------------------
+  // No truth table: drive the data bus + control over several clocks and verify
+  // the output reflects the STORED value given the history (control=1 loads,
+  // control=0 holds). Values are chosen to exercise both load and hold.
+  function isMemoryTaskWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(memoryTaskDefById(state.workspace?.taskId));
+  }
+  function isMemoryTask(id) {
+    return Boolean(typeof MEMORY_TASKS !== "undefined" && MEMORY_TASKS.some((t) => t.id === id));
+  }
+  function memoryTestSpec(taskId) {
+    // Values isolate each bit position (powers of two) so a mis-routed bit fails,
+    // interleaved with control=0 holds so the memory behaviour is exercised too.
+    if (taskId === "Register") {
+      return { width: 16, steps: [
+        { d: 1, c: 1 }, { d: 256, c: 1 }, { d: 256, c: 0 }, { d: 32768, c: 1 },
+        { d: 43690, c: 1 }, { d: 12345, c: 0 }, { d: 21845, c: 1 }
+      ] };
+    }
+    return { width: 4, steps: [
+      { d: 1, c: 1 }, { d: 2, c: 1 }, { d: 2, c: 0 }, { d: 4, c: 1 },
+      { d: 8, c: 1 }, { d: 1, c: 0 }, { d: 11, c: 1 }
+    ] };
+  }
+  // The learner's build + temporary drivers: a dec→bin source on the data bus, a
+  // bin→dec reader on the output bus, and (when control=1) a source on the control.
+  function memoryHarnessWorkspace(base, data, control) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    ws.components = ws.components.filter((c) => !["reg-drive", "reg-read", "reg-ctrl"].includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^reg-(drive|read|ctrl)\./.test(w.a) && !/^reg-(drive|read|ctrl)\./.test(w.b));
+    ws.components.push({ id: "reg-drive", type: "converter-out", value: data, x: 120, y: 700 });
+    ws.components.push({ id: "reg-read", type: "converter-in", x: 1160, y: 700 });
+    ws.components.push({ id: "reg-ctrl", type: "source", x: 640, y: 60 });
+    ws.wires.push({ a: "reg-drive.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "reg-read.in" });
+    if (control) ws.wires.push({ a: "reg-ctrl.out", b: "task-card-1.inputExt2" });
+    return ws;
+  }
+  function runMemoryTest(base, taskId) {
+    const spec = memoryTestSpec(taskId);
+    let prev = new Map(); // flip-flop states carried between steps (this IS the memory)
+    let stored = 0;
+    const SETTLE = 6;
+    for (let i = 0; i < spec.steps.length; i += 1) {
+      const step = spec.steps[i];
+      const flat = flattenWorkspaceForEval(memoryHarnessWorkspace(base, step.d, step.c));
+      for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
+      if (step.c) stored = step.d;
+      const info = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters.get("reg-read");
+      const got = info ? Number(info.value) : -1;
+      if (got !== stored) return { ok: false, index: i, expected: stored, got };
+    }
+    return { ok: true };
+  }
+  function startMemoryTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const taskId = state.workspace.taskId;
+    const result = runMemoryTest(state.workspace, taskId);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
   }
 
   // --- Chapter 2.4 bus-task check ------------------------------------------
@@ -11528,6 +12987,10 @@
   // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
   // matching the requirement text.
   function multibitTaskCases(taskId) {
+    // Memory cards are CLOCKED — they are checked by runMemoryTest (a sequence of
+    // drives over several ticks), never by combinational cases, so they legitimately
+    // carry no check.cases in their JSON.
+    if (isMemoryTask(taskId)) return [];
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -12134,6 +13597,29 @@
         ? [...completedTaskIds(), taskId]
         : completedTaskIds();
 
+      // Memory cards (chapter 3.1): complete and return to the memory worktable,
+      // reopening the note. Once BOTH are built, roll into the "good work" ending.
+      if (isMemoryTask(taskId)) {
+        const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+        if (allMemoryDone) {
+          const scene = SCENES["registers"];
+          const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+          return setState({
+            screen: "story", chapterId: "chapter-11", sceneId: "registers",
+            panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+            started: true, taskDialog: null, notTest: null, muxTable: null,
+            completedTasks, memoryNoteList: false,
+            workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+          }, true);
+        }
+        return setState({
+          ...memoryWorktableReturnTarget(),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks, memoryNoteList: true,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       // Arith cards with no solution walkthrough yet: complete and return to the
       // 2.5 worktable. All done -> roll into chapter 2.6 (the ALU opening);
       // otherwise reopen the note so the next card unlocks.
@@ -12199,6 +13685,13 @@
   // from, so completing / leaving a card lands back on the note.
   function arithWorktableReturnTarget() {
     const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-8");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  // Return to the 3.2 memory worktable (panel135) a Register build was opened from.
+  function memoryWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-11");
     const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
     return storyTarget(returnChapter, returnPanelIndex);
   }
@@ -12272,6 +13765,10 @@
   // equipment; once both the bus and the splitter have been examined the 2.4
   // note unlocks its task list.
   function openComponentMonologue(kind) {
+    // The נעץ monologue (3.1 memory worktable) is standalone — it is NOT part of
+    // the 2.4 bus/splitter "examine all the equipment" gate, so it doesn't touch
+    // busesEquipmentSeen.
+    if (kind === "nail") return setState({ componentMonologue: { kind: "nail" } }, false);
     const k = kind === "splitter" ? "splitter" : "bus";
     const seen = Array.isArray(state.busesEquipmentSeen) ? state.busesEquipmentSeen : [];
     const nextSeen = seen.includes(k) ? seen : [...seen, k];
@@ -13004,6 +14501,146 @@
       </div>`;
   }
 
+  // ---- Chapter 3.1 memory worktable note (Register4 → Register). Mirrors the ALU
+  // note: `requires` is a LIST (all prerequisites must be completed). Neither card
+  // has a build workspace yet, so a tapped-but-unlocked card shows "המשך יבוא...".
+  function memoryTaskDefById(id) {
+    return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).find((task) => task.id === id) || null;
+  }
+
+  function memoryTaskUnlocked(id) {
+    const def = memoryTaskDefById(id);
+    if (!def) return false;
+    const reqs = Array.isArray(def.requires) ? def.requires : (def.requires ? [def.requires] : []);
+    return reqs.every((req) => taskCompleted(req));
+  }
+
+  function memoryTaskLockedMessage(id) {
+    const def = memoryTaskDefById(id);
+    const reqs = def && Array.isArray(def.requires) ? def.requires : [];
+    const missing = reqs.filter((req) => !taskCompleted(req)).map((req) => memoryTaskDefById(req)?.label || req);
+    if (!missing.length) return "";
+    return missing.length === 1
+      ? `קודם צריך לבנות את ${missing[0]}`
+      : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
+  }
+
+  // Which memory cards have a real build workspace so far.
+  function memoryTaskImplemented(id) {
+    return ["Register4", "Register"].includes(id);
+  }
+
+  function openMemoryNote() {
+    return setState({ memoryNoteList: true });
+  }
+
+  // Register4's 4 flip-flops appear already inside its frame (per the spec); the
+  // learner wires the splitters + the shared control. Register's frame is empty
+  // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
+  // Where a memory card's frame sits on the build board. Shared with the solution
+  // walkthrough (aluBuildCardY) so the frame never moves between the two.
+  const MEMORY_BUILD_CARD_Y = 430;
+  function memoryPreplacedComponents(taskId, cardX, cardY) {
+    if (taskId !== "Register4") return [];
+    // Bit 0 at the BOTTOM (matching the splitter's leg order, so no cable crosses),
+    // spaced out and sitting clear of the control pin at the top of the frame.
+    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY + 170 - i * 110 }));
+  }
+
+  function openMemoryTaskWorkspace(taskId) {
+    const task = memoryTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-11");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const cardX = 640;
+    const cardY = MEMORY_BUILD_CARD_Y;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        ...memoryPreplacedComponents(task.id, cardX, cardY),
+        // A test voltage source, up near the control input, for free experimenting.
+        { id: "source-1", type: "source", x: 90, y: 140 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Clocked BUS build: the 2 Hz clock runs and the bus engine carries memory.
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  function handleMemoryNoteTask(id) {
+    const task = memoryTaskDefById(id);
+    if (!task) return;
+    if (!memoryTaskUnlocked(task.id)) {
+      return setState({ infoDialog: memoryTaskLockedMessage(task.id) });
+    }
+    if (!memoryTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openMemoryTaskWorkspace(task.id);
+  }
+
+  function renderMemoryNoteList() {
+    if (!state.memoryNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !memoryTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="memory-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="memory-note-close">סגור</button>
+            ${noteClearProgressButton("memory")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
     // A gate solution opened from the explanations menu just goes back there,
@@ -13036,6 +14673,27 @@
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
+
+    // Memory cards (3.1): back to the memory worktable with its note reopened.
+    // Once BOTH are built, roll into the "good work" ending instead. They are
+    // multibit-shaped, so this must come before the bus/multibit branch below.
+    if (isMemoryTask(taskId)) {
+      const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+      const common = {
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      };
+      if (allMemoryDone) {
+        const scene = SCENES["registers"];
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        return setState({
+          screen: "story", chapterId: "chapter-11", sceneId: "registers",
+          panelIndex: idx >= 0 ? idx : scene.panels.length - 1, started: true,
+          memoryNoteList: false, ...common
+        }, true);
+      }
+      return setState({ ...memoryWorktableReturnTarget(), memoryNoteList: true, ...common }, true);
+    }
 
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
     // with the note reopened (so the next task unlocks). ALU bus cards (Inc …)
@@ -13219,6 +14877,23 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
+    // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
+    // done, roll into the "good work" ending — same as finishing them for real.
+    // Checked FIRST: they are multibit-shaped, so they would otherwise fall into
+    // the chapter-2.4 bus branch below.
+    if (isMemoryTask(taskId)) {
+      const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
+      if (allMemoryDone) {
+        const scene = SCENES["registers"];
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        return setState({
+          screen: "story", chapterId: "chapter-11", sceneId: "registers",
+          panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+          started: true, ...base, memoryNoteList: false
+        }, true);
+      }
+      return setState({ ...memoryWorktableReturnTarget(), ...base, memoryNoteList: true }, true);
+    }
     if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
@@ -13828,6 +15503,7 @@
     if (kind === "multibit") return MULTIBIT_TASKS.map((t) => t.id);
     if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
     if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
+    if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     return [];
   }
 
@@ -14383,8 +16059,34 @@
     setState({ workspace }, false);
   }
 
+  // The נעץ exposes a single connection ring, so a wire end landing on it arrives
+  // as `${id}.in` regardless of role. Resolve it to the pin the connection needs:
+  // if the OTHER end is an output, the nail is the input (and vice-versa); for a
+  // nail↔nail wire fall back to argument order (from = out, to = in).
+  function resolveNailWireEnds(a, b) {
+    const ws = state.workspace;
+    const fix = (self, other, selfIsFrom) => {
+      const s = splitTerminalRef(self);
+      if (!s || componentById(ws, s.componentId)?.type !== "nail") return self;
+      const o = splitTerminalRef(other);
+      const otherIsNail = o && componentById(ws, o.componentId)?.type === "nail";
+      let pin;
+      if (otherIsNail) pin = selfIsFrom ? "out" : "in";
+      else {
+        const dir = terminalDirection(ws, other);
+        pin = dir === "out" ? "in" : dir === "in" ? "out" : (selfIsFrom ? "out" : "in");
+      }
+      return `${s.componentId}.${pin}`;
+    };
+    return [fix(a, b, true), fix(b, a, false)];
+  }
+
   function toggleWire(a, b) {
-    withWorkspace((workspace) => applyWireToggle(workspace, a, b));
+    const [na, nb] = resolveNailWireEnds(a, b);
+    withWorkspace((workspace) => applyWireToggle(workspace, na, nb));
+    // Changing the wiring restarts blink detection ("without changing the
+    // connections"); moving parts does not reach here, so it doesn't reset.
+    if (state.workspace?.clocked) { clockLampToggles = 0; clockLampLast = new Map(); }
   }
 
   function deleteWireByKey(key) {
@@ -14870,6 +16572,15 @@
     return { width: def.busWidth, op: def.aluOp || "and-add" };
   }
 
+  // A placeable MEMORY gate (gate-Register4): a width-N data bus (in1) held under
+  // a single-bit control (in2) — control=1 loads, control=0 holds. Sequential, so
+  // it only carries state in the clocked bus evaluation.
+  function memoryGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.memoryGate) return null;
+    return { width: def.busWidth };
+  }
+
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
   // undefined (null) until a connection fixes its width; a leg pin is then that
   // width and the single pin is width * output-count.
@@ -14882,6 +16593,20 @@
     // the width of a still-undetermined bus (e.g. dec→bin driving a bin→dec).
     if (info.component.type === "converter-in" || info.component.type === "converter-out") {
       return Number.isInteger(info.component.width) && info.component.width >= 1 ? info.component.width : null;
+    }
+    // A נעץ is pure geometry: it carries whatever it is wired to, single cable or
+    // bus alike. Its width is therefore whatever the OTHER end of its cables says
+    // (null = undetermined, which wireWidthLegal accepts for any bus).
+    if (info.component.type === "nail") {
+      for (const wire of workspace?.wires || []) {
+        for (const [end, other] of [[wire.a, wire.b], [wire.b, wire.a]]) {
+          if (!String(end).startsWith(`${info.component.id}.`)) continue;
+          if (String(other).startsWith(`${info.component.id}.`)) continue;
+          const w = pinWidth(workspace, other);
+          if (Number.isInteger(w)) return w;
+        }
+      }
+      return null;
     }
     if (info.component.type !== "splitter") {
       // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
@@ -15726,6 +17451,13 @@
     setState({ rankingsNicknameError: "הכינוי הזה כבר תפוס. בחר כינוי אחר." }, false);
   });
 
+  // Pause the design-speed clock while the tab is hidden, so "away" time (another
+  // tab, minimised) is not counted as design time.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { flushDesignNow(); designClock.paused = true; }
+    else { designClock.paused = false; designClock.at = Date.now(); }
+  });
+
   // Load a whole-progress file picked from the main menu.
   document.addEventListener("change", (event) => {
     const fileInput = event.target.closest("[data-progress-file-input]");
@@ -15843,6 +17575,11 @@
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
       if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
+      // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
+      // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
+      // real task, so it takes the normal secret-solve path instead — otherwise it
+      // would drop the learner into the NOT oscillator script mid-build.
+      else if (state.screen === "workspace" && state.workspace?.clocked && !state.workspace?.busClocked && !workspaceTaskId()) secretSkipClockedNarration();
       else secretSolveAndExit();
     }
   });
@@ -15959,6 +17696,22 @@
         return advanceSubtractionDemo();
       }
 
+      // During the clocked script / MUX goal narration a plain click on the board
+      // advances, like "הבא". The prev/next arrows carry a data-action, so they go
+      // through the button branch and never reach here.
+      if (
+        state.screen === "workspace" &&
+        (clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow() || ffExplainActiveNow()) &&
+        !state.ffClockLinks &&
+        event.target.closest("[data-workspace-board]")
+      ) {
+        event.preventDefault();
+        if (clockedScriptActiveNow()) return clockedScriptAdvance();
+        if (muxDemoActiveNow()) return muxDemoAdvance();
+        if (ffExplainActiveNow()) return ffExplainAdvance();
+        return muxIntroAdvance();
+      }
+
       if (
         state.screen === "story" &&
         !state.dialog &&
@@ -16071,12 +17824,14 @@
       // improvement to a sub-card (or an edited user card) is reflected.
       setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
-      return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+      // Entering from the achievements menu always lands on the efficiency tab.
+      return setState({ screen: "rankings", rankingsTab: "efficiency", rankingsNicknameError: null }, false);
     }
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
     // Switch the efficiency/speed tab on either rankings page.
     if (action === "rankings-tab") {
-      const tab = button.dataset.tab === "speed" ? "speed" : "efficiency";
+      const t = button.dataset.tab;
+      const tab = (t === "speed" || t === "design") ? t : "efficiency";
       return setState({ rankingsTab: tab }, false);
     }
     // Opening a card's records keeps the current tab (arrive on the tab you came from).
@@ -16129,7 +17884,11 @@
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);
     if (action === "buses-crate-right") return openComponentMonologue("bus");
     if (action === "buses-crate-left") return openComponentMonologue("splitter");
+    if (action === "nail-box") return openComponentMonologue("nail");
     if (action === "component-monologue-ok") return closeComponentMonologue();
+    if (action === "memory-tasks-note") return openMemoryNote();
+    if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
+    if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");
     if (action === "arith-converter-out") return openConverterInfo("out");
     if (action === "converter-info-ok") return closeConverterInfo();
@@ -16185,6 +17944,16 @@
     if (action === "skip-intro") return skipIntro();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
+    if (action === "clocked-script-next") return clockedScriptAdvance();
+    if (action === "clocked-script-prev") return clockedScriptBack();
+    if (action === "mux-intro-next") return muxIntroAdvance();
+    if (action === "mux-intro-prev") return muxIntroBack();
+    if (action === "mux-demo-next") return muxDemoAdvance();
+    if (action === "mux-demo-prev") return muxDemoBack();
+    if (action === "ff-explain-next") return ffExplainAdvance();
+    if (action === "ff-explain-prev") return ffExplainBack();
+    if (action === "ff-clock-teaser") return openFfClockLinks();
+    if (action === "ff-clock-links-close") return closeFfClockLinks();
     if (action === "xor-table-help-open") return openXorTableHelpFromStory();
     if (action === "bit-info-open") return openBitDialog(false);
     if (action === "bit-dialog-next") return advanceBitDialog();
@@ -16290,11 +18059,27 @@
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
     if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
-    if (action === "understood-play-more") return dismissUnderstoodPrompt();
-    if (action === "understood-yes" || action === "understood-no") return startNandMonologue();
+    if (action === "understood-play-more") { clockedUnderstoodResolved = true; return dismissUnderstoodPrompt(); }
+    if (action === "understood-yes" || action === "understood-no") {
+      clockedUnderstoodResolved = true;
+      // In the MUX scene the continuation isn't built yet — just close with a
+      // "המשך יבוא" notice. In the NOT scene both answers start the script.
+      if (state.workspace?.muxScene) return finishMuxUnderstood();
+      if (state.workspace?.clocked) return startClockedScript();
+      return startNandMonologue();
+    }
     if (action === "understood-open") return openUnderstoodPrompt();
     if (action === "exit") return exitApp();
   });
+
+  // Hold the clock's re-render for the duration of every pointer press, so a click
+  // can never straddle an innerHTML swap (which would swallow it). Registered in
+  // the CAPTURE phase so it is set before any handler below can return early.
+  document.addEventListener("pointerdown", () => { pointerHeld = true; }, true);
+  const releasePointerHold = () => { pointerHeld = false; };
+  window.addEventListener("pointerup", releasePointerHold, true);
+  window.addEventListener("pointercancel", releasePointerHold, true);
+  window.addEventListener("blur", releasePointerHold);
 
   document.addEventListener("pointerdown", (event) => {
     if (workspaceNandMonologueActive() && event.target.closest("[data-nand-speech]")) {
@@ -16342,6 +18127,24 @@
     // click, so the same press can still start a wire.
     if (nandConnectDemoActive() && event.target.closest(".workspace-layout")) {
       dismissNandConnectDemo();
+    }
+
+    // Any click on the clocked table dismisses von Neumann's intro (bubble +
+    // arrow) without swallowing the press — the same press can still drag/wire.
+    if (clockedIntroActive() && event.target.closest(".workspace-layout")) {
+      clockedIntroDismissed = true;
+      const bubble = app.querySelector(".clocked-intro-bubble");
+      const arrow = app.querySelector("[data-clocked-nail-arrow]");
+      if (bubble) bubble.remove();
+      if (arrow) arrow.remove();
+    }
+
+    // The scripted oscillator AND the MUX goal narration lock the whole table —
+    // board wiring/dragging AND palette drags — until the explanation finishes.
+    // Buttons (הבא, חזרה למחסן) still click through: returning here only suppresses
+    // drag initiation, not the click that follows.
+    if ((clockedScriptActiveNow() || muxIntroActive() || muxDemoActiveNow()) && event.target.closest(".workspace-layout")) {
+      return;
     }
 
     const terminal = event.target.closest("[data-action='workspace-terminal']");
@@ -16457,6 +18260,31 @@
       }
       event.preventDefault();
       return;
+    }
+
+    // ArrowLeft (RTL "forward") dismisses von Neumann's clocked-table intro.
+    if (clockedIntroActive() && event.key === "ArrowLeft") {
+      event.preventDefault();
+      clockedIntroDismissed = true;
+      return render();
+    }
+
+    // Keyboard nav for the scripted narration / MUX goal narration: ← next, → back.
+    if (clockedScriptActiveNow()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return clockedScriptAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return clockedScriptBack(); }
+    }
+    if (muxIntroActive()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return muxIntroAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return muxIntroBack(); }
+    }
+    if (muxDemoActiveNow()) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return muxDemoAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return muxDemoBack(); }
+    }
+    if (ffExplainActiveNow() && !state.ffClockLinks) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); return ffExplainAdvance(); }
+      if (event.key === "ArrowRight") { event.preventDefault(); return ffExplainBack(); }
     }
 
     if (state.screen === "nandBuildHelp" && explanationReplayActive("build-nand")) {

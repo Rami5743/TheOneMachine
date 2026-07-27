@@ -295,8 +295,19 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // shrink the bars below normal bus thickness — so the bar/stripe/label sizes
   // are pre-divided by that scale to come out the same thickness as a real bus.
   const BUS_GATE_SCALE = 0.6;
-  const K = 1 / BUS_GATE_SCALE;
+  // A bus bar must look EXACTLY as thick wherever it is drawn. The bar lives
+  // inside the component's own <g>, which the board may scale (0.6 past chapter
+  // 2.2, but 1 on a clocked table, and 0.78 in the toolbar). Pre-dividing by a
+  // fixed 0.6 therefore made the bar 1.67x too fat wherever the component was NOT
+  // shrunk — which is why the registers and the bus NOTs looked heavier. So the
+  // compensation tracks the scale the caller is actually rendering at.
+  let busScale = BUS_GATE_SCALE;
+  const k = () => 1 / (busScale || BUS_GATE_SCALE);
+  function setBusRenderScale(scale) {
+    busScale = (Number.isFinite(scale) && scale > 0) ? scale : BUS_GATE_SCALE;
+  }
   function busGateBar(b, width, showLabel) {
+    const K = k();
     const half = (11 * K) / 2;
     // The width number is omitted in the toolbar icon (too small to read, and
     // the tool already has a text label beneath it).
@@ -313,6 +324,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // same thick dashed bar as busGateBar but running along y between y1 and y2 at
   // a fixed x. Used to draw wide control cables (PreperNum, ALU1/2/3) as buses.
   function busGateBarV(cx, y1, y2) {
+    const K = k();
     const half = (11 * K) / 2;
     const top = Math.min(y1, y2), bot = Math.max(y1, y2);
     return `
@@ -337,6 +349,20 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
     return `<g class="usercard">${s}</g>`;
   }
+  // The placeable memory card (gate-Register4): a labelled box with a bus data
+  // input on the left, a single-bit control stub on top and a bus output right.
+  function registerGateMarkup(width, options = {}) {
+    const edge = 40;
+    const bodyH = 76;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">Reg4</text>`;
+    s += busPin(-62, -edge, 0);                  // data bus in (left)
+    s += busPin(edge, 66, 0);                    // stored bus out (right)
+    s += `<line class="usercard-pin" x1="0" y1="-46" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    return `<g class="usercard">${s}</g>`;
+  }
+
   function busGateMarkup(spec, options = {}) {
     // Neq0 (≠0) is drawn as its own "≠0" box rather than borrowing a gate symbol.
     if (spec.op === "Neq0") return neq0GateMarkup(spec.width, options);
@@ -346,6 +372,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   }
 
   function componentMarkup(type, options = {}) {
+    // Every bus bar this call draws compensates for the scale the caller renders
+    // at, so a bus reads the same thickness on the board and in the palette.
+    setBusRenderScale(options.renderScale);
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
@@ -353,9 +382,18 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       return `<g class="converter">${converterMarkup(type === "converter-out" ? "out" : "in", options)}</g>`;
     }
     if (type === "bus") return busMarkup();
+    if (type === "nail") return nailMarkup();
+    if (type === "flipflopFrame") return flipflopFrameMarkup();
+    if (type === "ffCard") return ffCardMarkup();
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
+      // The placeable memory cards: their own labelled box with a data bus in, a
+      // control stub on top and a data bus out. Without an entry here the card
+      // falls through to gateMarkup, which has no symbol file for it and returns
+      // an EMPTY string — an invisible component on the board and in the palette.
+      if (type === "gate-Register4") return registerGateMarkup(4, options);
+      if (type === "gate-Register") return registerGateMarkup(16, options);
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
@@ -382,6 +420,56 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       return gateMarkup(gateTask);
     }
     return "";
+  }
+
+  // The נעץ (nail): a thick metallic dot. Purely geometric — the cable enters
+  // one side and leaves the other; the two pins (±9) are covered by this single
+  // dot so it reads as one point. A subtle highlight gives it a pin-head look.
+  function nailMarkup() {
+    return `
+      <g class="nail" aria-hidden="true">
+        <circle cx="0" cy="0" r="16" fill="#4b5563" stroke="#1f2937" stroke-width="2" />
+        <circle cx="0" cy="0" r="16" fill="url(#nail-shine)" />
+        <circle cx="-5" cy="-5" r="4.5" fill="#e5e7eb" opacity="0.75" />
+        <defs>
+          <radialGradient id="nail-shine" cx="0.35" cy="0.32" r="0.75">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.55" />
+            <stop offset="0.55" stop-color="#9ca3af" stop-opacity="0.15" />
+            <stop offset="1" stop-color="#111827" stop-opacity="0.35" />
+          </radialGradient>
+        </defs>
+      </g>`;
+  }
+
+  // The flip-flop building frame. Identical look to the task/card frames — it
+  // reuses the workspace-task-shell-* classes: a rounded frame rect, pin stubs
+  // from each external pin to its internal pin, and the same labels ("כניסה"
+  // left, "יציאה" right, "בקרה" poking out the top). Local coords (the group is
+  // translated to the component's position).
+  function flipflopFrameMarkup() {
+    return `
+      <g class="workspace-task-shell" aria-hidden="true">
+        <rect class="workspace-task-shell-frame" x="-300" y="-188" width="600" height="376" rx="18" />
+        <line class="workspace-task-shell-pin" x1="-340" y1="0" x2="-260" y2="0" />
+        <text class="workspace-task-shell-pin-label" x="-340" y="-14" text-anchor="middle">כניסה</text>
+        <line class="workspace-task-shell-pin" x1="340" y1="0" x2="260" y2="0" />
+        <text class="workspace-task-shell-pin-label" x="340" y="-14" text-anchor="middle">יציאה</text>
+        <line class="workspace-task-shell-pin" x1="0" y1="-240" x2="0" y2="-160" />
+        <text class="workspace-task-shell-pin-label" x="0" y="-254" text-anchor="middle">בקרה</text>
+      </g>`;
+  }
+
+  // The finished flip-flop card: a rounded box labelled "FF", with short pin stubs
+  // (data left, control top, output right).
+  function ffCardMarkup() {
+    return `
+      <g class="ff-card" aria-hidden="true">
+        <line x1="-66" y1="0" x2="-40" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <line x1="0" y1="-46" x2="0" y2="-30" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <line x1="40" y1="0" x2="66" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
+        <rect x="-40" y="-30" width="80" height="60" rx="10" fill="#f7f7f2" stroke="#111" stroke-width="5" />
+        <text x="0" y="10" text-anchor="middle" font-size="30" font-weight="700" fill="#111" font-family="'Heebo','Noto Sans Hebrew',Arial,sans-serif">FF</text>
+      </g>`;
   }
 
   function smokeMarkup() {

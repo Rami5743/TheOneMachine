@@ -21,7 +21,8 @@ function createWorkbenchModel({
   componentGraphHasPath,
   normalizeWire,
   isNandOutputRef,
-  wireWidthLegal
+  wireWidthLegal,
+  isMemoryComponentType
 }) {
   function inputRefOf(workspace, a, b) {
     const da = terminalDirection(workspace, a);
@@ -88,15 +89,36 @@ function createWorkbenchModel({
       const isCard = comp?.type === "notCard" || comp?.type === "cardFrame" || String(comp?.type || "").startsWith("taskCard-");
       const pins = [inputInfo.pinId, outputInfo.pinId];
       const isPassthrough = isCard && pins.some((p) => /^inputInt\d*$/.test(p)) && pins.some((p) => /^outputInt\d*$/.test(p));
-      if (!isPassthrough) return false;
+      // The clocked table also permits a component's OWN output wired back to its
+      // OWN input — a direct self-feedback loop (a NOT oscillator with no nail).
+      // A MEMORY component (flip-flop / register) may always do this: its output
+      // is last tick's stored value, so feeding it back is a legitimate hold.
+      // Same split as the cycle guard below: free-for-all in the 3.1 sandbox
+      // scenes, memory-only once the flip-flop exists.
+      const clockedSelfLoop = Boolean(workspace && workspace.clocked && !workspace.busClocked);
+      const memorySelfLoop = typeof isMemoryComponentType === "function" && isMemoryComponentType(comp?.type);
+      if (!isPassthrough && !clockedSelfLoop && !memorySelfLoop) return false;
     }
 
     if (enforceInputVacancy && wires.some((wire) => otherWireEnd(wire, inputRef))) return false;
 
     const inputComponent = componentById(workspace, inputInfo.componentId);
     const outputComponent = componentById(workspace, outputInfo.componentId);
+
+    // A נעץ (nail) routes exactly ONE cable in and ONE cable out. Max-1-in is
+    // already covered by input vacancy above (its `in` pin is an input); here we
+    // cap its `out` pin at a single outgoing wire (output pins otherwise fan out).
+    if (outputComponent?.type === "nail" && wires.some((wire) => otherWireEnd(wire, outputRef))) return false;
+
     const touchesTaskFrame = (component) => component?.type === "notCard" || component?.type === "cardFrame" || String(component?.type || "").startsWith("taskCard-");
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;
+
+    // The 3.1 SANDBOX scenes (the NOT oscillator and the MUX-latch scene) exist to
+    // discover feedback with plain gates, so there every loop is allowed. Once the
+    // flip-flop exists — the memory builds (busClocked) and every part-3 table —
+    // the rule tightens: a loop is legal only if it runs through a memory element,
+    // which the cycle check below enforces by treating memory as a path break.
+    if (workspace && workspace.clocked === true && !workspace.busClocked) return true;
 
     const candidateWires = [...wires, normalizeWire(a, b)];
     return !componentGraphHasPath(workspace, candidateWires, inputRef, outputRef);
