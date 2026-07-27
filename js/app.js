@@ -1166,6 +1166,16 @@
     // and cardSerialCounts is derived from it. Keyed by card id.
     cardSerialBuilds: {},
     cardSerialCounts: {},
+    // Design-speed ranking: wall-clock time (ms) the player spent designing.
+    //   taskDesignMs[taskId]      — active time building that card in its task
+    //   userCardDesignMs[type]    — active time creating/editing that user card
+    //                               (summed across all edit sessions)
+    // cardDesignCounts[taskId] = frozen best (fastest) design time in SECONDS at
+    // completion = the task time + the creation time of each DISTINCT user card in
+    // the build (added once per card, transitively). Regular cards add nothing.
+    taskDesignMs: {},
+    userCardDesignMs: {},
+    cardDesignCounts: {},
     // The player's leaderboard nickname (shown only on a card's records page,
     // never in the main table). Default "ללא שם".
     rankingsNickname: "ללא שם",
@@ -1232,7 +1242,7 @@
 
   function effectiveAge() {
     const n = parseInt(state.settings && state.settings.age, 10);
-    return Number.isFinite(n) && n > 0 ? n : 13;
+    return Number.isFinite(n) && n > 0 ? n : 12;
   }
 
   // Gender adaptation. When the player is a girl, texts that ADDRESS the player
@@ -4023,7 +4033,7 @@
     const medalElig = medalEligibilityMap();
     const titleFor = (a, locked) => {
       let t = adaptGender(a.title);
-      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " לשעבר";
+      if (!locked && medalElig && __medals.isMedalId(a.id) && medalElig[a.id] === false) t += " (לשעבר)";
       return t;
     };
     const card = (a, locked) => `
@@ -4173,7 +4183,7 @@
             <label class="settings-field">
               <span class="settings-label">גיל</span>
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
-                     data-setting="age" value="${esc(settings.age)}" />
+                     data-setting="age" value="${esc(settings.age)}" placeholder="12" />
             </label>
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הלומדה?</span>
@@ -7750,7 +7760,9 @@
             ${navButton("subtraction-demo-skip", "skip-rtl", "דלג לפרק הבא")}
             ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
           ` : `
-          ${navButton("workspace-reset", "restart", "נקה שולחן")}
+          ${state.solutionDialog
+            ? navButton("solution-reread", "restart", "הקרא מחדש")
+            : navButton("workspace-reset", "restart", "נקה שולחן")}
           ${workspaceNandMonologueActive() ? `
             ${navButton("nand-monologue-prev", "arrow-right", "הקודם")}
             ${navButton("next", "arrow-left", "המשך", { primary: true })}
@@ -10471,6 +10483,7 @@
     syncExplanationUnlocks();
     syncAchievements();
     syncIdleNudge();
+    tickDesignClock(); // accrue design time into the active context
     // Start/stop the 2 Hz clock as the clocked table is entered/left.
     ensureClockRunning();
     // Re-arm the Nand connect demo whenever we are away from the presentation, so
@@ -11836,7 +11849,7 @@
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
-    getTab: () => (state.rankingsTab === "speed" ? "speed" : "efficiency"),
+    getTab: () => (state.rankingsTab === "speed" || state.rankingsTab === "design" ? state.rankingsTab : "efficiency"),
     // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
     // "serial" = speed). Filled from the cloud once the backend exists.
     leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
@@ -12211,6 +12224,90 @@
   // circuit) when available. User cards are inlined (see expandUserCards) so the
   // record is frozen against later user-card edits; regular sub-cards stay live,
   // so improving them still flows through automatically.
+  // ---- Design-speed clock: wall-clock time spent designing -------------------
+  // We accumulate the active time the player spends (a) building each card in its
+  // task and (b) creating/editing each user card. The design time of a completed
+  // task card = its task time + the creation time of every DISTINCT user card in
+  // the build (added once each, transitively; regular cards add nothing).
+  let designClock = { key: null, at: 0, paused: false };
+
+  // The thing being designed right now, or null. A user card in the editor wins;
+  // otherwise the (not-yet-completed) task being built on the workbench.
+  function currentDesignKey() {
+    if (state.cardCreation) {
+      const type = state.cardCreation.editingType
+        || (SAVED_CARD_PREFIX + (state.nextSavedCardId || ((state.savedCards || []).length + 1)));
+      return "user:" + type;
+    }
+    const tid = workspaceTaskId();
+    if (tid && isNotTaskWorkspace() && !notTestActive() && !state.solutionDialog
+        && !workspaceTaskIntroActive() && !taskCompleted(tid)) {
+      return "task:" + tid;
+    }
+    return null;
+  }
+
+  function accrueDesign(key, ms, persist) {
+    if (!key || !(ms > 0)) return;
+    const bucket = key.startsWith("user:") ? "userCardDesignMs" : "taskDesignMs";
+    const id = key.slice(5);
+    const m = state[bucket] || (state[bucket] = {});
+    m[id] = (m[id] || 0) + ms;
+    if (persist) saveState();
+  }
+
+  // Called every render. Accrues the time since the last tick into the active
+  // design context (in-memory), persisting when the context changes. A single gap
+  // longer than 30 minutes is ignored (idle / left open). Paused while the tab is
+  // hidden (see the visibilitychange handler).
+  function tickDesignClock() {
+    const now = Date.now();
+    const key = currentDesignKey();
+    if (!designClock.paused && designClock.key && designClock.at) {
+      const elapsed = now - designClock.at;
+      if (elapsed > 0 && elapsed < 30 * 60 * 1000) accrueDesign(designClock.key, elapsed, key !== designClock.key);
+    }
+    designClock.key = key;
+    designClock.at = now;
+  }
+
+  // Flush the current segment immediately (used right before freezing a card's
+  // design time at completion).
+  function flushDesignNow() {
+    const now = Date.now();
+    if (!designClock.paused && designClock.key && designClock.at) {
+      const elapsed = now - designClock.at;
+      if (elapsed > 0 && elapsed < 30 * 60 * 1000) accrueDesign(designClock.key, elapsed, true);
+    }
+    designClock.at = now;
+  }
+
+  // Every user card used in a component list, transitively (a user card's own
+  // logic may use more user cards). Distinct set.
+  function distinctUserCardsUsed(components, acc) {
+    acc = acc || new Set();
+    for (const comp of (Array.isArray(components) ? components : [])) {
+      const t = comp && comp.type;
+      if (typeof t === "string" && t.startsWith(SAVED_CARD_PREFIX) && !acc.has(t)) {
+        acc.add(t);
+        const card = (state.savedCards || []).find((c) => c.type === t);
+        if (card && card.logic) distinctUserCardsUsed(card.logic.components, acc);
+      }
+    }
+    return acc;
+  }
+
+  // Design time (seconds) for a just-passed task: the task's build time plus the
+  // creation time of each distinct user card in its build. Null when no time was
+  // recorded at all (e.g. an old completion or a dev-solve).
+  function computeDesignSeconds(taskId, rawComponents) {
+    let totalMs = (state.taskDesignMs || {})[taskId] || 0;
+    const ucm = state.userCardDesignMs || {};
+    distinctUserCardsUsed(rawComponents).forEach((uc) => { totalMs += ucm[uc] || 0; });
+    if (totalMs <= 0) return null;
+    return Math.max(1, Math.round(totalMs / 1000));
+  }
+
   function recordCardNandCount(taskId, buildWorkspace) {
     if (!taskId) return null;
     const ws = buildWorkspace || {};
@@ -12242,11 +12339,19 @@
     } else {
       serialBuilds[taskId] = newBuild;
     }
+    // Design-speed track: keep the fastest (lowest) design time in seconds.
+    const designCounts = { ...(state.cardDesignCounts || {}) };
+    const designSec = computeDesignSeconds(taskId, ws.components);
+    if (designSec !== null) {
+      const prevDesign = designCounts[taskId];
+      designCounts[taskId] = (typeof prevDesign === "number") ? Math.min(prevDesign, designSec) : designSec;
+    }
     return {
       cardBuilds: builds,
       cardSerialBuilds: serialBuilds,
       cardNandCounts: recomputeAllCardCounts(builds),
-      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
+      cardSerialCounts: recomputeAllCardSerial(serialBuilds),
+      cardDesignCounts: designCounts
     };
   }
 
@@ -12278,6 +12383,7 @@
     // pre-harness snapshot of their own circuit) and recompute all counts so any
     // dependent card improves too.
     if (result === "success" && taskId) {
+      flushDesignNow(); // freeze the final build-time segment before recording
       Object.assign(patch, recordCardNandCount(taskId, notTestSnapshot || workspace));
     }
     setState(patch, false);
@@ -17085,6 +17191,13 @@
     setState({ rankingsNicknameError: "הכינוי הזה כבר תפוס. בחר כינוי אחר." }, false);
   });
 
+  // Pause the design-speed clock while the tab is hidden, so "away" time (another
+  // tab, minimised) is not counted as design time.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { flushDesignNow(); designClock.paused = true; }
+    else { designClock.paused = false; designClock.at = Date.now(); }
+  });
+
   // Load a whole-progress file picked from the main menu.
   document.addEventListener("change", (event) => {
     const fileInput = event.target.closest("[data-progress-file-input]");
@@ -17454,7 +17567,8 @@
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
     // Switch the efficiency/speed tab on either rankings page.
     if (action === "rankings-tab") {
-      const tab = button.dataset.tab === "speed" ? "speed" : "efficiency";
+      const t = button.dataset.tab;
+      const tab = (t === "speed" || t === "design") ? t : "efficiency";
       return setState({ rankingsTab: tab }, false);
     }
     // Opening a card's records keeps the current tab (arrive on the tab you came from).

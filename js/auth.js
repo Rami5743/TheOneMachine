@@ -260,7 +260,7 @@
   async function fetchLeaderboard() {
     if (!sb) return;
     // `counts` = efficiency (total Nands), `serial` = speed (serial Nands).
-    var res = await sb.from(LB_TABLE).select("nickname,counts,serial");
+    var res = await sb.from(LB_TABLE).select("nickname,counts,serial,design");
     if (res.error) { console.warn("[leaderboard] read failed:", res.error.message); return; }
     lbRows = Array.isArray(res.data) ? res.data : [];
     try { window.dispatchEvent(new CustomEvent("tom:leaderboard")); } catch (e) { /* ignore */ }
@@ -270,7 +270,7 @@
     if (!sb || !currentUser) return;
     var s = myState();
     var res = await sb.from(LB_TABLE).upsert(
-      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, updated_at: new Date().toISOString() },
+      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, design: s.cardDesignCounts || {}, updated_at: new Date().toISOString() },
       { onConflict: "user_id" }
     );
     if (res.error) console.warn("[leaderboard] write failed:", res.error.message);
@@ -285,8 +285,8 @@
   window.addEventListener("tom:statesaved", scheduleRankingsPush);
 
   // The jsonb column and my-state map for a leaderboard dimension.
-  function dimColumn(dim) { return dim === "serial" ? "serial" : "counts"; }
-  function dimStateMap(dim) { return dim === "serial" ? "cardSerialCounts" : "cardNandCounts"; }
+  function dimColumn(dim) { return dim === "serial" ? "serial" : (dim === "design" ? "design" : "counts"); }
+  function dimStateMap(dim) { return dim === "serial" ? "cardSerialCounts" : (dim === "design" ? "cardDesignCounts" : "cardNandCounts"); }
 
   // Every user's (nickname, count) for a card that has a numeric count in the
   // given dimension, ranked ascending with ties sharing a rank (1, 2, 2, 4 …).
@@ -328,7 +328,7 @@
     APP.setNickname = async function (nick) {
       if (!sb || !currentUser) return; // local-only when signed out (no cross-user uniqueness)
       var res = await sb.from(LB_TABLE).upsert(
-        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), serial: (myState().cardSerialCounts || {}), updated_at: new Date().toISOString() },
+        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), serial: (myState().cardSerialCounts || {}), design: (myState().cardDesignCounts || {}), updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
       if (res.error) {
