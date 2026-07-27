@@ -1482,11 +1482,12 @@ g.component-ffCard.ff-materialize .ff-card {
    corner offsets win regardless of source order. */
 .subtraction-demo-teaser.ff-explain-teaser {
   top: 16px;
-  left: 16px;
+  /* Shifted right so it clears the clock counter pill (top-left, ~70px wide). */
+  left: 96px;
   right: auto;
   bottom: auto;
   transform: none;
-  max-width: min(360px, calc(100% - 32px));
+  max-width: min(340px, calc(100% - 112px));
 }
 
 /* The arrow that points at the נעץ tool from OUTSIDE the palette (JS positions it

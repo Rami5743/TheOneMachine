@@ -1455,6 +1455,12 @@
   let clockLampLast = new Map();
   let clockLampToggles = 0;
   let clockedUnderstoodTriggered = false;
+  // Once the player has RESPONDED to the "הבנת?" prompt in the current clocked
+  // phase, it must never auto-appear again (neither the 60 s fallback nor the
+  // blink/latch detector may re-open it). Unlike clockedUnderstoodTriggered this
+  // survives clock restarts; it is reset only when a fresh phase legitimately
+  // wants a new prompt (enterClockedTable, startMuxScene).
+  let clockedUnderstoodResolved = false;
   let clockedTimeoutId = null;
   // Phase B — the scripted oscillator. Once "הבנת?" is answered, a canonical NOT
   // self-loop is shown, the table locks, and the clock steps through von Neumann's
@@ -1548,7 +1554,7 @@
     clockTick += 1;
     // NOT scene → blink detection; MUX scene → working-latch detection.
     if (ws.muxScene) {
-      if (!clockedUnderstoodTriggered && detectMuxLatch(flat)) return triggerClockedUnderstood();
+      if (!clockedUnderstoodTriggered && !clockedUnderstoodResolved && detectMuxLatch(flat)) return triggerClockedUnderstood();
     } else {
       detectClockedBlink(r.lamps);
     }
@@ -1558,7 +1564,7 @@
   // A lamp that flips ≥2 times (off→on→off …) without the player re-wiring means
   // they built a working oscillator → show von Neumann's "הבנת?" prompt.
   function detectClockedBlink(lamps) {
-    if (clockedUnderstoodTriggered) return;
+    if (clockedUnderstoodTriggered || clockedUnderstoodResolved) return;
     let toggled = false;
     for (const [id, val] of lamps) {
       if (clockLampLast.has(id) && clockLampLast.get(id) !== val) toggled = true;
@@ -1578,7 +1584,7 @@
   function startClockedTimeout() {
     // Only ever arm the 60 s fallback ONCE — after the prompt has been shown (and
     // the player has responded), it must never pop up on its own again.
-    if (clockedTimeoutId || clockedUnderstoodTriggered) return;
+    if (clockedTimeoutId || clockedUnderstoodTriggered || clockedUnderstoodResolved) return;
     // Whatever the player does, offer the prompt after a minute.
     clockedTimeoutId = window.setTimeout(() => {
       clockedTimeoutId = null;
@@ -7893,6 +7899,7 @@
 
   function enterClockedTable() {
     clockedIntroDismissed = false;
+    clockedUnderstoodResolved = false;
     const returnChapterId = state.chapterId || "chapter-10";
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : 0;
     setState({
@@ -10704,6 +10711,7 @@
     // Re-arm the "הבנת?" detection for THIS scene: it fires when a working latch is
     // built, or after a minute regardless.
     clockedUnderstoodTriggered = false;
+    clockedUnderstoodResolved = false;
     clockLampToggles = 0;
     clockLampLast = new Map();
     clearClockedTimeout();
@@ -17286,8 +17294,9 @@
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
     if (action === "back-to-workspace") return backToWorkspaceFromNandBuildHelp();
     if (action === "build-help-back-to-game") return exitWorkbenchAfterBuildTeaser();
-    if (action === "understood-play-more") return dismissUnderstoodPrompt();
+    if (action === "understood-play-more") { clockedUnderstoodResolved = true; return dismissUnderstoodPrompt(); }
     if (action === "understood-yes" || action === "understood-no") {
+      clockedUnderstoodResolved = true;
       // In the MUX scene the continuation isn't built yet — just close with a
       // "המשך יבוא" notice. In the NOT scene both answers start the script.
       if (state.workspace?.muxScene) return finishMuxUnderstood();
