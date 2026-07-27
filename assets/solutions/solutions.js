@@ -2451,36 +2451,6 @@ window.EMBEDDED_SOLUTIONS = {
         "mirrored": true,
         "outputs": 4,
         "width": 1
-      },
-      {
-        "id": "nail-c0",
-        "type": "nail",
-        "x": 470,
-        "y": 200
-      },
-      {
-        "id": "nail-c1",
-        "type": "nail",
-        "x": 470,
-        "y": 224
-      },
-      {
-        "id": "nail-c2",
-        "type": "nail",
-        "x": 470,
-        "y": 334
-      },
-      {
-        "id": "nail-c3",
-        "type": "nail",
-        "x": 470,
-        "y": 444
-      },
-      {
-        "id": "nail-c4",
-        "type": "nail",
-        "x": 470,
-        "y": 554
       }
     ],
     "wires": [
@@ -2526,39 +2496,19 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "task-card-1.inputInt2",
-        "b": "nail-c0.in"
+        "b": "ff-1.in2"
       },
       {
-        "a": "nail-c0.out",
-        "b": "nail-c1.in"
-      },
-      {
-        "a": "nail-c1.out",
-        "b": "nail-c2.in"
-      },
-      {
-        "a": "nail-c2.out",
-        "b": "nail-c3.in"
-      },
-      {
-        "a": "nail-c3.out",
-        "b": "nail-c4.in"
-      },
-      {
-        "a": "nail-c1.out",
-        "b": "ff-4.in2"
-      },
-      {
-        "a": "nail-c2.out",
-        "b": "ff-3.in2"
-      },
-      {
-        "a": "nail-c3.out",
+        "a": "task-card-1.inputInt2",
         "b": "ff-2.in2"
       },
       {
-        "a": "nail-c4.out",
-        "b": "ff-1.in2"
+        "a": "task-card-1.inputInt2",
+        "b": "ff-3.in2"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "ff-4.in2"
       }
     ],
     "check": {
@@ -2677,36 +2627,6 @@ window.EMBEDDED_SOLUTIONS = {
         "mirrored": true,
         "outputs": 4,
         "width": 4
-      },
-      {
-        "id": "nail-c0",
-        "type": "nail",
-        "x": 470,
-        "y": 200
-      },
-      {
-        "id": "nail-c1",
-        "type": "nail",
-        "x": 470,
-        "y": 224
-      },
-      {
-        "id": "nail-c2",
-        "type": "nail",
-        "x": 470,
-        "y": 334
-      },
-      {
-        "id": "nail-c3",
-        "type": "nail",
-        "x": 470,
-        "y": 444
-      },
-      {
-        "id": "nail-c4",
-        "type": "nail",
-        "x": 470,
-        "y": 554
       }
     ],
     "wires": [
@@ -2752,39 +2672,19 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "task-card-1.inputInt2",
-        "b": "nail-c0.in"
+        "b": "reg-1.in2"
       },
       {
-        "a": "nail-c0.out",
-        "b": "nail-c1.in"
-      },
-      {
-        "a": "nail-c1.out",
-        "b": "nail-c2.in"
-      },
-      {
-        "a": "nail-c2.out",
-        "b": "nail-c3.in"
-      },
-      {
-        "a": "nail-c3.out",
-        "b": "nail-c4.in"
-      },
-      {
-        "a": "nail-c1.out",
-        "b": "reg-4.in2"
-      },
-      {
-        "a": "nail-c2.out",
-        "b": "reg-3.in2"
-      },
-      {
-        "a": "nail-c3.out",
+        "a": "task-card-1.inputInt2",
         "b": "reg-2.in2"
       },
       {
-        "a": "nail-c4.out",
-        "b": "reg-1.in2"
+        "a": "task-card-1.inputInt2",
+        "b": "reg-3.in2"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "reg-4.in2"
       }
     ],
     "check": {

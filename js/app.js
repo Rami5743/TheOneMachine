@@ -4884,20 +4884,14 @@
       {
         text: "ולבסוף הבקרה. כשאנחנו כותבים — אנחנו כותבים את כל הכרטיס בבת אחת, ולכן כניסת הבקרה של כל ארבעת הפליפ-פלופים היא אותה כניסה בדיוק: כניסת הבקרה של הכרטיס. כשהבקרה 1 כולם טוענים את הכניסה, וכשהיא 0 כולם שומרים.",
         highlight: {
-          // The control runs out of the frame pin and down a spine of נעצים, so
-          // every segment is a straight horizontal/vertical line.
-          components: ["ff-1", "ff-2", "ff-3", "ff-4", "nail-c0", "nail-c1", "nail-c2", "nail-c3", "nail-c4"],
+          // One direct cable from the card's control pin to each flip-flop's control.
+          components: ["ff-1", "ff-2", "ff-3", "ff-4"],
           terminals: ["task-card-1.inputInt2", "ff-1.in2", "ff-2.in2", "ff-3.in2", "ff-4.in2"],
           wires: [
-            wireKey("task-card-1.inputInt2", "nail-c0.in"),
-            wireKey("nail-c0.out", "nail-c1.in"),
-            wireKey("nail-c1.out", "nail-c2.in"),
-            wireKey("nail-c2.out", "nail-c3.in"),
-            wireKey("nail-c3.out", "nail-c4.in"),
-            wireKey("nail-c1.out", "ff-4.in2"),
-            wireKey("nail-c2.out", "ff-3.in2"),
-            wireKey("nail-c3.out", "ff-2.in2"),
-            wireKey("nail-c4.out", "ff-1.in2")
+            wireKey("task-card-1.inputInt2", "ff-1.in2"),
+            wireKey("task-card-1.inputInt2", "ff-2.in2"),
+            wireKey("task-card-1.inputInt2", "ff-3.in2"),
+            wireKey("task-card-1.inputInt2", "ff-4.in2")
           ]
         }
       }
@@ -4941,18 +4935,13 @@
       {
         text: "וכמו קודם — כניסת הבקרה של כל ארבעת ה-Register4 היא אותה כניסה: כניסת הבקרה של הכרטיס. כך כל 16 הביטים נכתבים בבת אחת, ואף חלק לא נשאר מאחור.",
         highlight: {
-          components: ["reg-1", "reg-2", "reg-3", "reg-4", "nail-c0", "nail-c1", "nail-c2", "nail-c3", "nail-c4"],
+          components: ["reg-1", "reg-2", "reg-3", "reg-4"],
           terminals: ["task-card-1.inputInt2", "reg-1.in2", "reg-2.in2", "reg-3.in2", "reg-4.in2"],
           wires: [
-            wireKey("task-card-1.inputInt2", "nail-c0.in"),
-            wireKey("nail-c0.out", "nail-c1.in"),
-            wireKey("nail-c1.out", "nail-c2.in"),
-            wireKey("nail-c2.out", "nail-c3.in"),
-            wireKey("nail-c3.out", "nail-c4.in"),
-            wireKey("nail-c1.out", "reg-4.in2"),
-            wireKey("nail-c2.out", "reg-3.in2"),
-            wireKey("nail-c3.out", "reg-2.in2"),
-            wireKey("nail-c4.out", "reg-1.in2")
+            wireKey("task-card-1.inputInt2", "reg-1.in2"),
+            wireKey("task-card-1.inputInt2", "reg-2.in2"),
+            wireKey("task-card-1.inputInt2", "reg-3.in2"),
+            wireKey("task-card-1.inputInt2", "reg-4.in2")
           ]
         }
       }
