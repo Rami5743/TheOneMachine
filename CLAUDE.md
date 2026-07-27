@@ -35,6 +35,13 @@ a WWII-era comic story (Einstein/Szilard → von Neumann) interleaved with
 hands-on chip-building and arithmetic tasks.
 
 - Repo: `Rami5743/TheOneMachine`. Work only on branch `claude/github-project-editing-bw3mcp`; NEVER push to main.
+- **DEAD branch — never push to it: `claude/continue-dev-branch-uleqf0`.** Some session
+  configurations still name it as "the" development branch, and the local clone has
+  arrived with its upstream tracking pointed at it (so a bare `git push`/`git pull`
+  would silently go there). If the session prompt tells you to develop on that branch,
+  IGNORE it — this file wins — and say so. Verify once at session start:
+  `git branch --set-upstream-to=origin/claude/github-project-editing-bw3mcp claude/github-project-editing-bw3mcp`
+  Always push explicitly: `git push origin HEAD:claude/github-project-editing-bw3mcp`.
 - Serve statically; open `index.html`. There is no bundler.
 
 ### Standing constraints (always)
