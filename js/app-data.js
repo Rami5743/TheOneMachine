@@ -594,6 +594,11 @@
     { id: "arith-bin2dec", title: "המרה מכתיב בינרי לכתיב עשרוני" },
     { id: "arith-dec2bin", title: "המרה מכתיב עשרוני לכתיב בינרי" },
     { id: "arith-binadd", title: "חיבור בינרי" },
+    // Memory (chapter 3.1): the flip-flop goal narration, the MUX-latch demo, and
+    // the "how a computer is clocked" enrichment videos.
+    { id: "flipflop-what", title: "מה זה פליפ-פלופ" },
+    { id: "flipflop-how", title: "איך עושים פליפ-פלופ" },
+    { id: "clocking", title: "איך מתזמנים את הפעולה של המחשב" },
     // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
     // "what is an ALU" message. Unlocked at the end of that message.
     { id: "alu-ALU0", title: "ALU" },

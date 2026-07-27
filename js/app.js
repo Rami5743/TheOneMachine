@@ -3645,6 +3645,59 @@
       if (!explanationUnlocked("negative-numbers")) return;
       return setState({ subtractionDemoLinks: { fromExplanations: true } }, false);
     }
+
+    // --- Memory (chapter 3.1) ---------------------------------------------
+    // "מה זה פליפ-פלופ": von Neumann's three goal slides over the flip-flop frame.
+    // "איך עושים פליפ-פלופ": his scripted MUX-latch demo, ending on the
+    // "שים לב, בנינו משהו שיכול לשמור מידע" bubble (the first FF-explanation slide).
+    if (id === "flipflop-what" || id === "flipflop-how") {
+      if (!explanationUnlocked(id)) return;
+      return startFlipflopExplanation(id);
+    }
+
+    // Opens the "how a computer is clocked" videos window over the menu.
+    if (id === "clocking") {
+      if (!explanationUnlocked("clocking")) return;
+      return setState({ ffClockLinks: { fromExplanations: true } }, false);
+    }
+  }
+
+  // Replay a memory explanation on a throwaway clocked table: the flip-flop scene
+  // is rebuilt from scratch (so the menu never inherits a half-played board), then
+  // either the goal narration or the latch demo runs. Both end by returning to the
+  // explanations menu instead of handing the table over to the learner.
+  function startFlipflopExplanation(id) {
+    stopClock();
+    const chapter = chapterById("chapter-10");
+    const workspace = normalizeWorkspace({
+      ...createClockedWorkspace(state.chapterId, Number.isInteger(state.panelIndex) ? state.panelIndex : 0),
+      muxScene: true,
+      components: muxSceneComponents(),
+      wires: []
+    });
+    setState({
+      ...transientUiClearPatch(),
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      explanationReplay: { id },
+      workspace
+    }, false);
+    // Module-level phase state, set AFTER the workspace is in place.
+    clockedUnderstoodResolved = true;   // the "הבנת?" prompt never applies to a replay
+    clockedUnderstoodTriggered = true;
+    clearClockedTimeout();
+    clockTick = 0;
+    clockPrev = new Map();
+    if (id === "flipflop-what") {
+      muxIntroStep = 0;                 // the three goal slides
+      muxDemoActive = false;
+    } else {
+      startMuxDemo();                   // the 12-step latch demo
+    }
+    render();
   }
 
   function returnToExplanationsMenuFromReplay() {
@@ -3745,11 +3798,12 @@
       inGame: [{ alu: "ALU0", label: "ALU" }, "subtraction-demo"],
       enrichment: ["negative-numbers"]
     },
-    // Memory: reserved for later (empty for now).
+    // Memory (chapter 3.1): what a flip-flop is (the goal narration), how one is
+    // made (the MUX-latch demo), and the clocking enrichment videos.
     {
       title: "זיכרון",
-      inGame: [],
-      enrichment: []
+      inGame: ["flipflop-what", "flipflop-how"],
+      enrichment: ["clocking"]
     },
     // Processor: currently holds the "מילים ובתים" enrichment reading.
     {
@@ -3830,6 +3884,7 @@
         ${renderExplRoutingInfoDialog()}
         ${renderWordsBytesDialog()}
         ${renderSubtractionDemoLinks()}
+        ${renderFfClockLinks()}
       </main>`;
   }
 
@@ -10989,6 +11044,9 @@
     workspace.selectedTerminal = null;
     workspace.wires = [];
     workspace.components = muxSceneComponents();
+    // Reaching the goal narration unlocks "מה זה פליפ-פלופ" in the menu; the
+    // flourish plays when the narration is done (see muxIntroAdvance's hand-off).
+    unlockExplanation("flipflop-what", { silent: true });
     setState({ workspace, infoDialog: null }, false);
   }
 
@@ -11052,6 +11110,11 @@
   }
   function muxIntroAdvance() {
     if (!muxIntroActive()) return;
+    // "מה זה פליפ-פלופ" replay: the three goal slides ARE the whole explanation —
+    // past the last one it goes back to the menu instead of freeing the table.
+    if (explanationReplayActive("flipflop-what") && muxIntroStep >= MUX_GOAL_LINES.length - 1) {
+      return returnToExplanationsMenuFromReplay();
+    }
     muxIntroStep += 1;
     render();
   }
@@ -11138,6 +11201,8 @@
     return text;
   }
   function startMuxDemo() {
+    // Seeing von Neumann's latch demo unlocks "איך עושים פליפ-פלופ" in the menu.
+    unlockExplanation("flipflop-how", { silent: true });
     muxDemoActive = true;
     muxDemoStep = 0;
     muxIntroStep = MUX_GOAL_LINES.length; // ensure the goal narration is closed
@@ -11247,6 +11312,9 @@
   }
   function ffExplainAdvance() {
     if (!ffExplainActiveNow()) return;
+    // "איך עושים פליפ-פלופ" replay ends ON the first FF bubble ("שים לב, בנינו
+    // משהו שיכול לשמור מידע") — that slide closes the explanation.
+    if (explanationReplayActive("flipflop-how")) return returnToExplanationsMenuFromReplay();
     if (ffExplainStep >= FF_EXPLAIN.length - 1) return exitFlipflopToWarehouse();
     ffExplainStep += 1;
     render();
@@ -11257,9 +11325,16 @@
     render();
   }
   function openFfClockLinks() {
+    // Opening the "clocking" window (from the red teaser) unlocks it in the
+    // explanations menu; the flourish plays when the window closes.
+    unlockExplanation("clocking", { silent: true });
     setState({ ffClockLinks: {} }, false);
   }
   function closeFfClockLinks() {
+    // Opened FROM the menu → go straight back to it; otherwise announce the unlock
+    // and drop back onto the board.
+    if (state.ffClockLinks?.fromExplanations) return setState({ ffClockLinks: null, screen: "explanations" }, false);
+    announceExplanationUnlock("clocking");
     setState({ ffClockLinks: null }, false);
   }
   function renderFfClockLinks() {
