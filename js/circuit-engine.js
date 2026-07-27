@@ -418,8 +418,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         }
 
         if (type === "nail") {
-          // Pure routing pass-through: output bits === input bits (any width).
-          const vec = inputBits(workspace, `${component.id}.in`, outputs);
+          // Pure routing pass-through: output bits === input bits, at whatever
+          // width arrives. rawInputBits (not inputBits) so a bus is carried whole
+          // instead of being cut down to the nail's own nominal pin width.
+          const vec = rawInputBits(workspace, `${component.id}.in`, outputs);
           if (setBits(outputs, `${component.id}.out`, vec)) changed = true;
           continue;
         }

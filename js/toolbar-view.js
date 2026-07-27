@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, isMemoryCardType, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -33,12 +33,21 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
     // only the Nand, the voltage source and the lamp. Elsewhere (the task-card
     // build and the free "empty table") the learner may also reuse every gate
     // they have already built.
-    const builtGateTools = isNandPresentationWorkspace()
+    const allGateTools = isNandPresentationWorkspace()
       ? []
       : toolbarGateToolIds()
           .map((taskId) => taskDefById(taskId) || (busTaskDefById ? busTaskDefById(taskId) : null))
           .filter(Boolean)
           .map((task) => ({ type: gateComponentType(task.id), label: task.label }));
+    // The memory cards are pulled OUT of the built-gate run so they can sit with
+    // the FF, after every older card but before the accessories.
+    const isMemoryTool = (tool) => typeof isMemoryCardType === "function" && isMemoryCardType(tool.type);
+    const builtGateTools = allGateTools.filter((t) => !isMemoryTool(t));
+    const memoryCardTools = allGateTools.filter(isMemoryTool);
+    // FF first, then the registers (Register4, Register) in their build order.
+    const sequentialCards = (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable())
+      ? [{ type: "ffCard", label: "FF" }, ...memoryCardTools]
+      : memoryCardTools;
 
     // User-built cards join the palette (as generic-icon tools) wherever the
     // learner is free to build — the same places the built gates appear.
@@ -60,10 +69,12 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           { type: "nand", label: "Nand" },
           ...builtGateTools,
           ...cardTools,
+          // Same order as everywhere else: the sequential cards, then accessories.
+          { type: "ffCard", label: "FF" },
+          ...memoryCardTools,
           { type: "lamp", label: "מנורה" },
           { type: "source", label: "מקור מתח" },
           { type: "splitter", label: "מפצל" },
-          { type: "ffCard", label: "FF" },
           { type: "nail", label: "נעץ" }
         ]
       : clockedMinimal
@@ -83,6 +94,9 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           { type: "nand", label: "Nand" },
           ...builtGateTools,
           ...cardTools,
+          // The sequential cards (FF, Register4, Register) come AFTER every older
+          // card and BEFORE the accessories below.
+          ...sequentialCards,
           { type: "lamp", label: "מנורה" },
           { type: "source", label: "מקור מתח" },
           // The splitter is available in every build from chapter 2.4 on (once it is
@@ -94,10 +108,8 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           ...(!isNandPresentationWorkspace() && ((splitterAvailable && splitterAvailable()) || (isFreeBuildWorkspace && isFreeBuildWorkspace()) || (isBusTaskWorkspace && isBusTaskWorkspace()) || (isMultibitTaskWorkspace && isMultibitTaskWorkspace())) ? [{ type: "splitter", label: "מפצל" }] : []),
           // The binary↔decimal converters, on the 2.5 worktable (arith builds).
           ...(!isNandPresentationWorkspace() && (typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
-          // From part 3 (זיכרון) on, every build is sequential: the flip-flop and the
-          // נעץ join the ordinary palette too (free build, task build, card designer).
-          // The Register cards arrive through builtGateTools, under the usual rules.
-          ...(!isNandPresentationWorkspace() && (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable()) ? [{ type: "ffCard", label: "FF" }, { type: "nail", label: "נעץ" }] : [])
+          // The נעץ is an accessory, so it closes the row from part 3 on.
+          ...(!isNandPresentationWorkspace() && (typeof sequentialToolsAvailable === "function" && sequentialToolsAvailable()) ? [{ type: "nail", label: "נעץ" }] : [])
         ];
 
     // The "create new card" tool, unlocked at the end of the MUX16 walkthrough.

@@ -373,9 +373,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
-      // The placeable memory card (gate-Register4): its own labelled box with a
-      // data bus in, a control stub on top and a data bus out.
+      // The placeable memory cards: their own labelled box with a data bus in, a
+      // control stub on top and a data bus out. Without an entry here the card
+      // falls through to gateMarkup, which has no symbol file for it and returns
+      // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
+      if (type === "gate-Register") return registerGateMarkup(16, options);
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;

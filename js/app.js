@@ -1449,7 +1449,7 @@
   const __workbenchModel = createWorkbenchModel({
     terminalDirection, terminalExists, splitTerminalRef, componentById,
     componentGraphHasPath, normalizeWire, isNandOutputRef,
-    wireWidthLegal
+    wireWidthLegal, isMemoryComponentType
   });
   const canAddWire = (...args) => __workbenchModel.canAddWire(...args);
   const inputRefOf = (...args) => __workbenchModel.inputRefOf(...args);
@@ -1866,7 +1866,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean(typeof memoryGateSpec === "function" && memoryGateSpec(type)), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -4663,9 +4663,33 @@
   // (output -> card -> input) and wrongly reject legitimate reconvergent wiring
   // (e.g. one NOT feeding several ANDs that all feed one OR). So the card's
   // input side and output side are kept as separate graph nodes.
+  // Does this component STORE state (so it breaks a combinational path)? The
+  // flip-flop and the register cards do; so does any user card built around one,
+  // checked recursively through the saved cards' own circuits.
+  function isMemoryComponentType(type, seen = new Set()) {
+    if (!type || seen.has(type)) return false;
+    if (type === "ffCard") return true;
+    if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) return true;
+    if (!String(type).startsWith("usercard-")) return false;
+    seen.add(type);
+    const card = typeof savedCardByType === "function" ? savedCardByType(type) : null;
+    const parts = card?.logic?.components || [];
+    return parts.some((c) => isMemoryComponentType(c.type, seen));
+  }
+
   function componentGraphHasPath(workspace, wires, fromRef, toRef) {
     const cardNode = (info) => {
       const comp = componentById(workspace, info.componentId);
+      // A MEMORY component (flip-flop / register, or a user card built around one)
+      // breaks the combinational path: what comes out this tick is the value it
+      // stored on a PREVIOUS tick, not a function of what is going in right now.
+      // So its input and output sides are separate graph nodes — which makes a
+      // loop THROUGH a flip-flop legal (that is how sequential circuits are built)
+      // while a purely combinational loop is still rejected.
+      if (comp && isMemoryComponentType(comp.type)) {
+        const dir = terminalDirection(workspace, `${info.componentId}.${info.pinId}`);
+        return `${info.componentId}$${dir === "out" ? "out" : "in"}`;
+      }
       // A card frame passes each internal input straight to the workspace and
       // takes each internal output back from it, so its input and output sides
       // must be SEPARATE graph nodes — otherwise a path "some output -> card
@@ -16559,6 +16583,20 @@
     // the width of a still-undetermined bus (e.g. dec→bin driving a bin→dec).
     if (info.component.type === "converter-in" || info.component.type === "converter-out") {
       return Number.isInteger(info.component.width) && info.component.width >= 1 ? info.component.width : null;
+    }
+    // A נעץ is pure geometry: it carries whatever it is wired to, single cable or
+    // bus alike. Its width is therefore whatever the OTHER end of its cables says
+    // (null = undetermined, which wireWidthLegal accepts for any bus).
+    if (info.component.type === "nail") {
+      for (const wire of workspace?.wires || []) {
+        for (const [end, other] of [[wire.a, wire.b], [wire.b, wire.a]]) {
+          if (!String(end).startsWith(`${info.component.id}.`)) continue;
+          if (String(other).startsWith(`${info.component.id}.`)) continue;
+          const w = pinWidth(workspace, other);
+          if (Number.isInteger(w)) return w;
+        }
+      }
+      return null;
     }
     if (info.component.type !== "splitter") {
       // A per-pin width wins (e.g. the MUX control pin is 1 bit on a width-4
