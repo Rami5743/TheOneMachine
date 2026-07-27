@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -396,6 +396,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         // source — so the combinational solve below routes it, and it is NOT
         // recomputed during iteration (ffCard is not a handled type there).
         outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || [false], 1));
+      } else if (prevMap && typeof memoryGateSpec === "function" && memoryGateSpec(component.type)) {
+        // A placeable MEMORY gate (gate-Register4) holds its stored bus this tick.
+        const spec = memoryGateSpec(component.type);
+        outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || zeroBits(spec.width), spec.width));
       }
     }
 
@@ -469,6 +473,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         if (type === "converter-in") continue; // a display sink — no output
 
         if (type.startsWith("gate-")) {
+          // A placeable MEMORY gate (gate-Register4) is sequential: its output is
+          // the value it holds (seeded from prev above) and is recomputed only in
+          // the next-state pass, never during this combinational settle.
+          if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) continue;
           // A placeable bus gate (gate-Not4 …): apply the op componentwise over
           // the whole input bus.
           const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
@@ -737,11 +745,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     const next = new Map();
     if (prevMap) {
       for (const component of workspace.components) {
-        if (component.type !== "ffCard") continue;
-        const data = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
-        const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
-        const prevOut = Boolean((prevMap.get(`${component.id}.out`) || [false])[0]);
-        next.set(`${component.id}.out`, [control ? data : prevOut]);
+        if (component.type === "ffCard") {
+          const data = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const prevOut = Boolean((prevMap.get(`${component.id}.out`) || [false])[0]);
+          next.set(`${component.id}.out`, [control ? data : prevOut]);
+          continue;
+        }
+        // A placeable memory gate (gate-Register4) stores a whole bus the same way.
+        const memSpec = typeof memoryGateSpec === "function" ? memoryGateSpec(component.type) : null;
+        if (memSpec) {
+          const data = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), memSpec.width);
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const prevOut = fitBits(prevMap.get(`${component.id}.out`) || zeroBits(memSpec.width), memSpec.width);
+          next.set(`${component.id}.out`, control ? data : prevOut);
+        }
       }
     }
 

@@ -337,6 +337,20 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
     return `<g class="usercard">${s}</g>`;
   }
+  // The placeable memory card (gate-Register4): a labelled box with a bus data
+  // input on the left, a single-bit control stub on top and a bus output right.
+  function registerGateMarkup(width, options = {}) {
+    const edge = 40;
+    const bodyH = 76;
+    const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">Reg4</text>`;
+    s += busPin(-62, -edge, 0);                  // data bus in (left)
+    s += busPin(edge, 66, 0);                    // stored bus out (right)
+    s += `<line class="usercard-pin" x1="0" y1="-46" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    return `<g class="usercard">${s}</g>`;
+  }
+
   function busGateMarkup(spec, options = {}) {
     // Neq0 (≠0) is drawn as its own "≠0" box rather than borrowing a gate symbol.
     if (spec.op === "Neq0") return neq0GateMarkup(spec.width, options);
@@ -359,6 +373,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (type === "splitter") return splitterMarkup(options);
     if (type.startsWith("usercard-")) return typeof savedCardMarkup === "function" ? savedCardMarkup(type, options) : "";
     if (type.startsWith("gate-")) {
+      // The placeable memory card (gate-Register4): its own labelled box with a
+      // data bus in, a control stub on top and a data bus out.
+      if (type === "gate-Register4") return registerGateMarkup(4, options);
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;

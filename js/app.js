@@ -116,12 +116,15 @@
       pins: {
         inputExt1: { x: -340, y: 0, direction: "in", width: 4, label: "כניסה" },
         inputInt1: { x: -260, y: 0, direction: "out", width: 4, label: "כניסה פנימית" },
-        inputExt2: { x: 0, y: -300, direction: "in", width: 1, label: "בקרה" },
-        inputInt2: { x: 0, y: -220, direction: "out", width: 1, label: "בקרה פנימית" },
+        // The control STRADDLES the frame's top edge (the frame is 420 tall, so its
+        // top edge is at y=-210): the external tip sits above it and the internal
+        // connection point below it — half out, half in.
+        inputExt2: { x: 0, y: -260, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: 0, y: -160, direction: "out", width: 1, label: "בקרה פנימית" },
         outputInt1: { x: 260, y: 0, direction: "in", width: 4, label: "יציאה פנימית" },
         outputExt1: { x: 340, y: 0, direction: "out", width: 4, label: "יציאה" }
       },
-      bounds: { left: 340, right: 340, top: 300, bottom: 260 }
+      bounds: { left: 340, right: 340, top: 260, bottom: 240 }
     },
     "taskCard-Register": {
       label: "מסגרת Register",
@@ -133,12 +136,15 @@
       pins: {
         inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסה" },
         inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסה פנימית" },
-        inputExt2: { x: 0, y: -300, direction: "in", width: 1, label: "בקרה" },
-        inputInt2: { x: 0, y: -220, direction: "out", width: 1, label: "בקרה פנימית" },
+        // The control STRADDLES the frame's top edge (the frame is 420 tall, so its
+        // top edge is at y=-210): the external tip sits above it and the internal
+        // connection point below it — half out, half in.
+        inputExt2: { x: 0, y: -260, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: 0, y: -160, direction: "out", width: 1, label: "בקרה פנימית" },
         outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאה" }
       },
-      bounds: { left: 340, right: 340, top: 300, bottom: 260 }
+      bounds: { left: 340, right: 340, top: 260, bottom: 240 }
     }
   };
 
@@ -150,6 +156,10 @@
       || ROUTING_TASK_DEFS.find((task) => task.id === taskId && Number.isInteger(task.inputs))
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
+      // The memory cards (Register4/Register) — so their placeable gate resolves a
+      // label in the toolbar. Their behaviour is sequential and is handled by
+      // memoryGateSpec in the engine, never by taskOutput.
+      || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
       || null;
   }
 
@@ -657,6 +667,25 @@
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+  };
+
+  // gate-Register4: the placeable card earned by completing Register4. A width-4
+  // data bus in, a single-bit control on top, a width-4 bus out. UNLIKE every
+  // other placeable gate this one is SEQUENTIAL — it stores 4 bits (control=1
+  // loads the data, control=0 holds), so the clocked bus engine treats it as a
+  // memory element (see the memoryGateSpec branch in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-Register4"] = {
+    label: "Register4",
+    taskId: "Register4",
+    gate: true,
+    memoryGate: true,
+    busWidth: 4,
+    pins: {
+      in1: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
+      in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 66, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
+    },
+    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
   };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
@@ -1472,7 +1501,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -1904,13 +1933,16 @@
         // control (2-bit MUX select) is a bus with a width label; a single-bit
         // control (e.g. ALU0's op-select) is a plain cable, no label.
         const iy = cy + (internalPin ? internalPin.y : pin.y + 70);
+        // The label sits BESIDE the pin (not above it), so a control that straddles
+        // the frame's top edge doesn't collide with the card title above.
+        const labelY = ay + (iy - ay) / 2;
         stubs += (w > 1)
           ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
-             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
-             <text class="workspace-task-shell-pin-label" x="${ax}" y="${ay - 14}" text-anchor="middle">בקרה</text>`;
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
       } else if (pin.y > 150) {
         // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
@@ -2627,7 +2659,8 @@
     { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    { chapter: "chapter-10", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -14075,7 +14108,7 @@
   // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
   function memoryPreplacedComponents(taskId, cardX, cardY) {
     if (taskId !== "Register4") return [];
-    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY - 150 + i * 100 }));
+    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY - 120 + i * 80 }));
   }
 
   function openMemoryTaskWorkspace(taskId) {
@@ -16060,6 +16093,15 @@
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.aluGate) return null;
     return { width: def.busWidth, op: def.aluOp || "and-add" };
+  }
+
+  // A placeable MEMORY gate (gate-Register4): a width-N data bus (in1) held under
+  // a single-bit control (in2) — control=1 loads, control=0 holds. Sequential, so
+  // it only carries state in the clocked bus evaluation.
+  function memoryGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.memoryGate) return null;
+    return { width: def.busWidth };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
