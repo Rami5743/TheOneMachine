@@ -295,8 +295,19 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // shrink the bars below normal bus thickness — so the bar/stripe/label sizes
   // are pre-divided by that scale to come out the same thickness as a real bus.
   const BUS_GATE_SCALE = 0.6;
-  const K = 1 / BUS_GATE_SCALE;
+  // A bus bar must look EXACTLY as thick wherever it is drawn. The bar lives
+  // inside the component's own <g>, which the board may scale (0.6 past chapter
+  // 2.2, but 1 on a clocked table, and 0.78 in the toolbar). Pre-dividing by a
+  // fixed 0.6 therefore made the bar 1.67x too fat wherever the component was NOT
+  // shrunk — which is why the registers and the bus NOTs looked heavier. So the
+  // compensation tracks the scale the caller is actually rendering at.
+  let busScale = BUS_GATE_SCALE;
+  const k = () => 1 / (busScale || BUS_GATE_SCALE);
+  function setBusRenderScale(scale) {
+    busScale = (Number.isFinite(scale) && scale > 0) ? scale : BUS_GATE_SCALE;
+  }
   function busGateBar(b, width, showLabel) {
+    const K = k();
     const half = (11 * K) / 2;
     // The width number is omitted in the toolbar icon (too small to read, and
     // the tool already has a text label beneath it).
@@ -313,6 +324,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // same thick dashed bar as busGateBar but running along y between y1 and y2 at
   // a fixed x. Used to draw wide control cables (PreperNum, ALU1/2/3) as buses.
   function busGateBarV(cx, y1, y2) {
+    const K = k();
     const half = (11 * K) / 2;
     const top = Math.min(y1, y2), bot = Math.max(y1, y2);
     return `
@@ -360,6 +372,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   }
 
   function componentMarkup(type, options = {}) {
+    // Every bus bar this call draws compensates for the scale the caller renders
+    // at, so a bus reads the same thickness on the board and in the palette.
+    setBusRenderScale(options.renderScale);
     if (type === "source") return sourceMarkup();
     if (type === "nand") return nandMarkup();
     if (type === "lamp") return lampMarkup(Boolean(options.lampOn));
