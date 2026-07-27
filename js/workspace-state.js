@@ -133,6 +133,9 @@ function createWorkspaceState({
       // freeBuild; it enables feedback loops (canAddWire runs on load, below, and
       // reads this) and offers the נעץ tool.
       clocked: Boolean(ws.clocked),
+      // A clocked BUS build (the memory cards Register4/Register): the clock runs
+      // and evaluation goes through the bus engine so flip-flops carry bus memory.
+      busClocked: Boolean(ws.busClocked),
       // The MUX flip-flop scene (chapter 3.1, after the NOT oscillator): a clocked
       // free-build with the flip-flop frame + a MUX in the palette.
       muxScene: Boolean(ws.muxScene),

@@ -100,6 +100,45 @@
         outputExt1: { x: 340, y: 0, direction: "out", label: "יציאה" }
       },
       bounds: { left: 340, right: 340, top: 240, bottom: 200 }
+    },
+    // Chapter 3.1 memory-card build frames (clocked bus builds). Data bus in on the
+    // left, a single control poking out the top, data bus out on the right — same
+    // Ext/Int pass-through naming as the other task cards so the bus engine routes
+    // them. Register4's frame is tall enough to hold its 4 pre-placed flip-flops;
+    // Register's frame is empty (the learner fills it with Register4s or FFs).
+    "taskCard-Register4": {
+      label: "מסגרת Register4",
+      fixed: true,
+      taskId: "Register4",
+      busWidth: 4,
+      busTask: true,
+      routingMultibit: true,
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", width: 4, label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", width: 4, label: "כניסה פנימית" },
+        inputExt2: { x: 0, y: -300, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: 0, y: -220, direction: "out", width: 1, label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", width: 4, label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", width: 4, label: "יציאה" }
+      },
+      bounds: { left: 340, right: 340, top: 300, bottom: 260 }
+    },
+    "taskCard-Register": {
+      label: "מסגרת Register",
+      fixed: true,
+      taskId: "Register",
+      busWidth: 16,
+      busTask: true,
+      routingMultibit: true,
+      pins: {
+        inputExt1: { x: -340, y: 0, direction: "in", width: 16, label: "כניסה" },
+        inputInt1: { x: -260, y: 0, direction: "out", width: 16, label: "כניסה פנימית" },
+        inputExt2: { x: 0, y: -300, direction: "in", width: 1, label: "בקרה" },
+        inputInt2: { x: 0, y: -220, direction: "out", width: 1, label: "בקרה פנימית" },
+        outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+        outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאה" }
+      },
+      bounds: { left: 340, right: 340, top: 300, bottom: 260 }
     }
   };
 
@@ -1533,6 +1572,11 @@
     }
     // The clocked table renders the CURRENT tick's held snapshot (clockPrev),
     // not a fresh combinational solve — that is what makes feedback loops blink.
+    // A memory build (busClocked) uses the bus engine so buses/splitters draw too.
+    if (workspace?.busClocked) {
+      const r = __circuitEngine.evaluateWorkspaceBits(flat, clockPrev);
+      return { outputs: r.outputs, lamps: r.lamps, converters: r.converters };
+    }
     if (workspace?.clocked) {
       const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
       return { outputs: r.outputs, lamps: r.lamps };
@@ -1549,14 +1593,21 @@
     // is released on "וכך הלאה"). Once released, it runs (at 1 Hz — see the rate).
     if (dragState || workspaceUnderstoodPromptActive() || muxIntroActive() || muxDemoActive || ffExplainActive || (clockedScriptActive && !clockedScriptReleased)) return;
     const flat = flattenWorkspaceForEval(ws);
-    const r = __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
+    // A clocked BUS build (memory cards) carries flip-flop memory through the bus
+    // engine; the NOT/MUX scenes use the single-bit clocked engine.
+    const r = ws.busClocked
+      ? __circuitEngine.evaluateWorkspaceBits(flat, clockPrev)
+      : __circuitEngine.evaluateWorkspaceClocked(flat, clockPrev);
     clockPrev = r.next;
     clockTick += 1;
-    // NOT scene → blink detection; MUX scene → working-latch detection.
-    if (ws.muxScene) {
-      if (!clockedUnderstoodTriggered && !clockedUnderstoodResolved && detectMuxLatch(flat)) return triggerClockedUnderstood();
-    } else {
-      detectClockedBlink(r.lamps);
+    // NOT scene → blink detection; MUX scene → working-latch detection. A memory
+    // build has neither (it is checked on demand via the בדיקה button).
+    if (!ws.busClocked) {
+      if (ws.muxScene) {
+        if (!clockedUnderstoodTriggered && !clockedUnderstoodResolved && detectMuxLatch(flat)) return triggerClockedUnderstood();
+      } else {
+        detectClockedBlink(r.lamps);
+      }
     }
     render();
   }
@@ -1683,7 +1734,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -1796,6 +1847,7 @@
     return MULTIBIT_TASKS.find((task) => task.id === id)
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -2669,7 +2721,13 @@
   // TASK_HINTS moved to js/app-data.js
 
   function taskHints(taskId = null) {
-    return taskId ? (TASK_HINTS[taskId] || []) : [];
+    if (!taskId) return [];
+    if (TASK_HINTS[taskId]) return TASK_HINTS[taskId];
+    // Fall back to a task def's own inline `hints` (the memory cards carry theirs
+    // inline in MEMORY_TASKS rather than in the TASK_HINTS map).
+    const memDef = (typeof MEMORY_TASKS !== "undefined") ? MEMORY_TASKS.find((t) => t.id === taskId) : null;
+    if (memDef && Array.isArray(memDef.hints)) return memDef.hints;
+    return [];
   }
 
   function taskHasHints(taskId = null) {
@@ -13903,13 +13961,72 @@
       : `קודם צריך לבנות את ${missing.slice(0, -1).join(", ")} ו-${missing[missing.length - 1]}`;
   }
 
-  // Which memory cards have a real build workspace so far (none yet).
-  function memoryTaskImplemented() {
-    return false;
+  // Which memory cards have a real build workspace so far.
+  function memoryTaskImplemented(id) {
+    return ["Register4", "Register"].includes(id);
   }
 
   function openMemoryNote() {
     return setState({ memoryNoteList: true });
+  }
+
+  // Register4's 4 flip-flops appear already inside its frame (per the spec); the
+  // learner wires the splitters + the shared control. Register's frame is empty
+  // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
+  function memoryPreplacedComponents(taskId, cardX, cardY) {
+    if (taskId !== "Register4") return [];
+    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY - 150 + i * 100 }));
+  }
+
+  function openMemoryTaskWorkspace(taskId) {
+    const task = memoryTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-10");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const cardX = 640;
+    const cardY = 430;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        ...memoryPreplacedComponents(task.id, cardX, cardY),
+        // A test voltage source, up near the control input, for free experimenting.
+        { id: "source-1", type: "source", x: 90, y: 140 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Clocked BUS build: the 2 Hz clock runs and the bus engine carries memory.
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
   }
 
   function handleMemoryNoteTask(id) {
@@ -13921,6 +14038,10 @@
     if (!memoryTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
     }
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openMemoryTaskWorkspace(task.id);
   }
 
   function renderMemoryNoteList() {

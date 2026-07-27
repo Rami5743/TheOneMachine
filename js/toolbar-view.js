@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -49,9 +49,24 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
     // The clocked (sequential) table has a deliberately narrow palette: just the
     // NOT gate, a source, a lamp and the נעץ (routing dot). Nothing else — the
     // whole point is to explore feedback loops with the simplest possible parts.
-    const clockedMinimal = typeof nailAvailable === "function" && nailAvailable();
+    // The memory-card build (Register4 / Register) is clocked too, but gets the
+    // FULL palette — every previously-built tool + the splitter — PLUS the נעץ and
+    // the FF, so the learner can build a sequential card from anything.
+    const memoryBuild = typeof memoryBuildAvailable === "function" && memoryBuildAvailable();
+    const clockedMinimal = !memoryBuild && typeof nailAvailable === "function" && nailAvailable();
 
-    const tools = clockedMinimal
+    const tools = memoryBuild
+      ? [
+          { type: "nand", label: "Nand" },
+          ...builtGateTools,
+          ...cardTools,
+          { type: "lamp", label: "מנורה" },
+          { type: "source", label: "מקור מתח" },
+          { type: "splitter", label: "מפצל" },
+          { type: "ffCard", label: "FF" },
+          { type: "nail", label: "נעץ" }
+        ]
+      : clockedMinimal
       ? [
           { type: gateComponentType("Not"), label: "Not" },
           // The MUX joins the palette in the flip-flop scene — right after the Not,
