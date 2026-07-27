@@ -93,7 +93,9 @@ function createWorkbenchModel({
       // OWN input — a direct self-feedback loop (a NOT oscillator with no nail).
       // A MEMORY component (flip-flop / register) may always do this: its output
       // is last tick's stored value, so feeding it back is a legitimate hold.
-      const clockedSelfLoop = Boolean(workspace && workspace.clocked);
+      // Same split as the cycle guard below: free-for-all in the 3.1 sandbox
+      // scenes, memory-only once the flip-flop exists.
+      const clockedSelfLoop = Boolean(workspace && workspace.clocked && !workspace.busClocked);
       const memorySelfLoop = typeof isMemoryComponentType === "function" && isMemoryComponentType(comp?.type);
       if (!isPassthrough && !clockedSelfLoop && !memorySelfLoop) return false;
     }
@@ -111,10 +113,12 @@ function createWorkbenchModel({
     const touchesTaskFrame = (component) => component?.type === "notCard" || component?.type === "cardFrame" || String(component?.type || "").startsWith("taskCard-");
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;
 
-    // The clocked (sequential) table deliberately ALLOWS feedback loops — a NAND's
-    // output wired back toward its own input is the whole point there. Skip the
-    // combinational cycle guard, which exists only to keep the untimed engine sane.
-    if (workspace && workspace.clocked === true) return true;
+    // The 3.1 SANDBOX scenes (the NOT oscillator and the MUX-latch scene) exist to
+    // discover feedback with plain gates, so there every loop is allowed. Once the
+    // flip-flop exists — the memory builds (busClocked) and every part-3 table —
+    // the rule tightens: a loop is legal only if it runs through a memory element,
+    // which the cycle check below enforces by treating memory as a path break.
+    if (workspace && workspace.clocked === true && !workspace.busClocked) return true;
 
     const candidateWires = [...wires, normalizeWire(a, b)];
     return !componentGraphHasPath(workspace, candidateWires, inputRef, outputRef);
