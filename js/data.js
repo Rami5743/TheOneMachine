@@ -1006,7 +1006,7 @@ const SCENES = {
         "read": "אני חוזר לעבודה. סוף סוף לא צריך לחכות המון זמן לחישובים."
       },
       {
-        "comment": "Chapter 3.1 memory worktable: the tasks note opens the memory-card list (Register4 → Register), and the נעץ (nail) box has its own optional monologue. Click-zones are FALLBACK percentages until the real worktable art + a hotspot-carrying SVG are dropped in (see README_chapter_3_1_epilogue.md).",
+        "comment": "Chapter 3.2 memory worktable: the tasks note opens the memory-card list (Register4 → Register), and the נעץ (nail) box has its own optional monologue. The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape) and is posted to the app; the percentages below are only the fallback used until that message arrives.",
         "image": "assets/panels/panel135_chapter_3_1_memory_worktable.svg",
         "year": "1943",
         "read": "",

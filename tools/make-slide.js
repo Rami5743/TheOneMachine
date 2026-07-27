@@ -3,20 +3,31 @@
 // convention (viewBox 1448x1086, embedded same-basename .jpg, text baked as SVG
 // <text> inside a "Text bubble" layer). Usage:
 //   node tools/make-slide.js <outSvgPath> <jpgBasename> "<line1>|<line2>|..."
-// The bubble sits upper-centre with a tail pointing down-left (toward a speaker
-// at lower-left, matching panel118c/panel128).
+//
+// The geometry below is taken VERBATIM from the hand-corrected reference slide
+// (panel136_chapter_3_1_good_work.svg): a 621-wide bubble centred at x=774, with
+// soft cubic corners and a SLIM tail on the left edge pointing left toward the
+// speaker. Do not "improve" these numbers — the earlier generated bubbles were
+// rejected precisely because their tail was oversized and mis-shaped.
 const fs = require("fs");
 
 const FONT = "'Noto Sans Hebrew', Arial, sans-serif";
 const FS = 34;            // font size
 const LH = 50.5;          // line height
-const PAD_X = 46;         // horizontal padding inside the bubble
-const PAD_TOP = 40;       // from bubble top to first baseline
-const PAD_BOT = 30;       // from last baseline to bubble bottom
-const CX = 820;           // bubble centre x
-const BW = 700;           // bubble width
-const R = 22;             // corner radius
+const PAD_TOP = 40;       // from bubble top to the first baseline
+const PAD_BOT = 30;       // from the last baseline to the bubble bottom
 const TOP = 40;           // bubble top y
+const CX = 774;           // text centre x
+const LEFT = 463.17169;   // bubble left edge
+const RIGHT = 1084;       // bubble right edge
+const RX = 19.51169;      // corner: horizontal radius
+const RY = 22;            // corner: vertical radius
+// The tail, anchored to the TOP of the bubble so it keeps its place no matter how
+// many lines the bubble holds (offsets measured off the reference slide).
+const TAIL_UPPER = 61.21; // upper base point, relative to TOP
+const TAIL_LOWER = 83.23; // lower base point, relative to TOP
+const TAIL_DX = 45.52867; // how far the tip sticks out to the left
+const TAIL_TIP = 89.92;   // tip y, relative to TOP
 
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -25,26 +36,34 @@ function esc(s) {
 function build(jpg, lines) {
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
-  const left = CX - BW / 2, right = CX + BW / 2;
-  // Rounded-rectangle body with a triangular tail on the lower-left edge,
-  // pointing down-left toward the speaker.
-  const tailTopY = Math.min(bottom - R, TOP + PAD_TOP + (n - 1) * LH + 8);
-  const tailBotY = Math.min(tailTopY + 64, bottom - 6);
-  const tailTipX = left - 78, tailTipY = tailBotY + 40;
+  const tailUpperY = TOP + TAIL_UPPER;
+  const tailLowerY = TOP + TAIL_LOWER;
+  const tipX = LEFT - TAIL_DX;
+  const tipY = TOP + TAIL_TIP;
+  const r = (v) => Number(v.toFixed(5));
+  // Rounded rectangle with soft cubic corners; the left edge is interrupted by the
+  // slim tail between tailLowerY and tailUpperY.
   const path =
-    `M ${left + R},${TOP} ` +
-    `H ${right - R} Q ${right},${TOP} ${right},${TOP + R} ` +
-    `V ${bottom - R} Q ${right},${bottom} ${right - R},${bottom} ` +
-    `H ${left + R} Q ${left},${bottom} ${left},${bottom - R} ` +
-    `V ${tailBotY} L ${tailTipX},${tailTipY} L ${left},${tailTopY} ` +
-    `V ${TOP + R} Q ${left},${TOP} ${left + R},${TOP} Z`;
+    `M ${r(LEFT + RX)},${TOP} ` +
+    `H ${r(RIGHT - RX)} ` +
+    `C ${r(RIGHT - RX + 13.0078)},${TOP} ${RIGHT},${r(TOP + 7.333333)} ${RIGHT},${r(TOP + RY)} ` +
+    `V ${r(bottom - RY)} ` +
+    `C ${RIGHT},${r(bottom - RY + 14.66667)} ${r(RIGHT - 6.5039)},${r(bottom)} ${r(RIGHT - RX)},${r(bottom)} ` +
+    `H ${r(LEFT + RX)} ` +
+    `C ${r(LEFT + RX - 13.0078)},${r(bottom)} ${LEFT},${r(bottom - 7.33333)} ${LEFT},${r(bottom - RY)} ` +
+    `V ${r(tailLowerY)} ` +
+    `L ${r(tipX)},${r(tipY)} ` +
+    `L ${LEFT},${r(tailUpperY)} ` +
+    `V ${r(TOP + RY)} ` +
+    `C ${LEFT},${r(TOP + RY - 14.666667)} ${r(LEFT + 6.50389)},${TOP} ${r(LEFT + RX)},${TOP} Z`;
   const tspans = lines.map((ln, i) =>
-    `<tspan x="${CX}" y="${TOP + PAD_TOP + i * LH}" id="tspan${i + 1}">${esc(ln)}</tspan>`
+    `<tspan x="${CX}" y="${r(TOP + PAD_TOP + i * LH)}" id="tspan${i + 1}">${esc(ln)}</tspan>`
   ).join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
