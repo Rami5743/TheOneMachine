@@ -17824,7 +17824,8 @@
       // improvement to a sub-card (or an edited user card) is reflected.
       setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
-      return setState({ screen: "rankings", rankingsNicknameError: null }, false);
+      // Entering from the achievements menu always lands on the efficiency tab.
+      return setState({ screen: "rankings", rankingsTab: "efficiency", rankingsNicknameError: null }, false);
     }
     if (action === "rankings-back") return setState({ screen: "achievements" }, false);
     // Switch the efficiency/speed tab on either rankings page.
