@@ -12,7 +12,7 @@
 // createComponentVisuals(deps) -> { componentSvgFilenameForType, componentMarkup,
 //                                   smokeMarkup, charredNandMarkup }
 
-function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup }) {
+function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, savedCardMarkup }) {
   function componentSvgImage(filename, x, y, width, height) {
     const href = `assets/components/${filename}`;
     return `<image class="component-svg" href="${esc(href)}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>`;
@@ -356,10 +356,28 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 76;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">Reg4</text>`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">${width === 16 ? "Reg" : "Reg4"}</text>`;
     s += busPin(-62, -edge, 0);                  // data bus in (left)
     s += busPin(edge, 66, 0);                    // stored bus out (right)
     s += `<line class="usercard-pin" x1="0" y1="-46" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // A placeable RAM card (gate-RAM4 …): a wider labelled box than the register —
+  // the name has to fit up to "RAM1024" — with the data bus in on the upper left,
+  // the address bus in on the lower left, the control stub on top and the data bus
+  // out on the right. The address bar is drawn at ITS width, so the card shows at
+  // a glance how many address lines it takes.
+  function ramGateMarkup(spec, label, options = {}) {
+    const edge = 52;
+    const bodyH = 86;
+    const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:16px">${esc(label)}</text>`;
+    s += bar(-74, -edge, -24, spec.width);       // data bus in (upper left)
+    s += bar(-74, -edge, 24, spec.addressWidth); // address bus in (lower left)
+    s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
+    s += `<line class="usercard-pin" x1="0" y1="-56" x2="0" y2="${-bodyH / 2}" />`; // control (top)
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -394,6 +412,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The placeable RAM cards (3.3), drawn from their own spec.
+      const ram = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
+      if (ram) return ramGateMarkup(ram, type.slice(5), options);
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;

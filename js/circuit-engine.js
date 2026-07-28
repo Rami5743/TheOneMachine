@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -322,6 +322,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return true;
   }
 
+  // A bit vector read as an unsigned index (bit 0 = units), used for a RAM gate's
+  // address bus. Sized to `width` first so a shorter/longer vector can't address
+  // outside the bank.
+  function bitsToIndex(vec, width) {
+    const bits = fitBits(Array.isArray(vec) ? vec : [], width);
+    let n = 0;
+    for (let i = 0; i < width; i += 1) if (bits[i]) n += 2 ** i;
+    return n;
+  }
+
   function fitBits(vec, width) {
     if (vec.length === width) return vec;
     if (vec.length > width) return vec.slice(0, width);
@@ -475,6 +485,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         if (type === "converter-in") continue; // a display sink — no output
 
         if (type.startsWith("gate-")) {
+          // A placeable RAM gate (gate-RAM4 …) is sequential for WRITING only:
+          // reading is combinational, so its output is recomputed here from the
+          // address it sees this tick and the bank it carried in from `prev`.
+          const ramHere = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
+          if (ramHere) {
+            const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), ramHere.addressWidth);
+            const cell = prevMap ? prevMap.get(`${component.id}.cell${addr}`) : null;
+            if (setBits(outputs, `${component.id}.out`, fitBits(cell || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            continue;
+          }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is
           // the value it holds (seeded from prev above) and is recomputed only in
           // the next-state pass, never during this combinational settle.
@@ -752,6 +772,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
           const prevOut = Boolean((prevMap.get(`${component.id}.out`) || [false])[0]);
           next.set(`${component.id}.out`, [control ? data : prevOut]);
+          continue;
+        }
+        // A placeable RAM gate carries its WHOLE bank forward (state lost from
+        // `next` is state forgotten), writing only the addressed cell.
+        const ramSpec = typeof ramGateSpec === "function" ? ramGateSpec(component.type) : null;
+        if (ramSpec) {
+          const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), ramSpec.addressWidth);
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const data = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), ramSpec.width);
+          for (let cell = 0; cell < ramSpec.slots; cell += 1) {
+            const key = `${component.id}.cell${cell}`;
+            const held = prevMap.get(key);
+            if (held) next.set(key, held);
+          }
+          if (control) next.set(`${component.id}.cell${addr}`, data);
           continue;
         }
         // A placeable memory gate (gate-Register4) stores a whole bus the same way.

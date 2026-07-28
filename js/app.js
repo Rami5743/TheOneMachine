@@ -160,6 +160,9 @@
       // label in the toolbar. Their behaviour is sequential and is handled by
       // memoryGateSpec in the engine, never by taskOutput.
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === taskId && Number.isInteger(task.inputs)) : null)
+      // The RAM cards (3.3) — same story: their behaviour is sequential and
+      // address-driven (ramGateSpec in the engine), never taskOutput.
+      || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === taskId) : null)
       || null;
   }
 
@@ -703,6 +706,68 @@
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 50 }
   };
+
+  // ---- Chapter 3.3 RAM cards (RAM4 → RAM1024) --------------------------------
+  // Every size has the SAME shape: a width-16 data bus in (left, upper), an
+  // address bus in (left, lower) whose width grows with the size, a single-wire
+  // control poking out the top, and a width-16 data bus out (right). Only the
+  // address width and the four cards the frame arrives with change between them,
+  // so both the build frame and the finished card are generated from RAM_TASKS.
+  //
+  // The frame is much larger than the older cards: it has to hold four memory
+  // cards PLUS the address routing (DMux chain on the control, MUX16 chain on the
+  // output), so it declares its own frameSize instead of the 600×420 default.
+  const RAM_FRAME_SIZE = { w: 1000, h: 760 };
+  for (const ramTask of (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [])) {
+    const aw = ramTask.addressWidth;
+    WORKSPACE_COMPONENT_DEFS[`taskCard-${ramTask.id}`] = {
+      label: `מסגרת ${ramTask.label}`,
+      fixed: true,
+      taskId: ramTask.id,
+      busWidth: 16,
+      busTask: true,
+      routingMultibit: true,
+      frameSize: { ...RAM_FRAME_SIZE },
+      pins: {
+        // The two left-hand buses stay inside ±150 of the centre line: past that
+        // the frame shell reads a pin as poking out of the top (a control) or the
+        // bottom, and would draw it as a vertical stub.
+        inputExt1: { x: -560, y: -110, direction: "in", width: 16, label: "כניסת הדאטה" },
+        inputInt1: { x: -440, y: -110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+        // The control straddles the frame's top edge (at y = -380), like every
+        // other card's control, so both its outside tip and the internal point the
+        // learner wires to are visible.
+        inputExt2: { x: -380, y: -450, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: -380, y: -310, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        inputExt3: { x: -560, y: 110, direction: "in", width: aw, label: "כניסת הכתובת" },
+        inputInt3: { x: -440, y: 110, direction: "out", width: aw, label: "כניסת הכתובת פנימית" },
+        outputInt1: { x: 440, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+        outputExt1: { x: 560, y: 0, direction: "out", width: 16, label: "יציאה" }
+      },
+      bounds: { left: 560, right: 560, top: 450, bottom: 380 }
+    };
+
+    // The finished card. Like gate-Register it is SEQUENTIAL, but it holds a whole
+    // BANK of values and the address picks which one is read/written — reading is
+    // combinational (the addressed cell shows up immediately), only the write
+    // waits for the clock. See the ramGateSpec branch in circuit-engine.js.
+    WORKSPACE_COMPONENT_DEFS[`gate-${ramTask.id}`] = {
+      label: ramTask.label,
+      taskId: ramTask.id,
+      gate: true,
+      ramGate: true,
+      busWidth: 16,
+      addressWidth: aw,
+      slots: ramTask.slots,
+      pins: {
+        in1: { x: -74, y: -24, direction: "in", width: 16, label: "כניסת הדאטה" },
+        in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
+        in3: { x: -74, y: 24, direction: "in", width: aw, label: "כניסת הכתובת" },
+        out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+      },
+      bounds: { left: 76, right: 96, top: 72, bottom: 56 }
+    };
+  }
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
   // control bus on TOP, and a width-16 output on the right. Two-stage operation
@@ -1528,7 +1593,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -1860,7 +1925,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, savedCardMarkup });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
@@ -1908,7 +1973,7 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean(typeof memoryGateSpec === "function" && memoryGateSpec(type)), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -2022,6 +2087,7 @@
       || (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === id) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -2052,10 +2118,12 @@
     const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3" || def.id === "ALU4";
     // The frame size comes from the task's solution JSON when present (see
     // solutionFrameSize), else the built-in default.
-    const jsonSize = solutionFrameSize(def.id);
+    // A frame may also declare its own size (the RAM frames, which have to hold
+    // four memory cards plus their address routing).
+    const jsonSize = solutionFrameSize(def.id) || (frameDef.frameSize || null);
     const frameW = jsonSize ? jsonSize.w : 600;
     const frameH = jsonSize ? jsonSize.h : (tall ? 540 : 420);
-    const frameLeft = cx - 300;
+    const frameLeft = cx - frameW / 2;
     const frameTop = cy - frameH / 2;
     // A horizontal stub from the external tip (x1) all the way to the internal
     // connection point (x2), so BOTH the external pin and the internal pin the
@@ -2950,6 +3018,8 @@
     // inline in MEMORY_TASKS rather than in the TASK_HINTS map).
     const memDef = (typeof MEMORY_TASKS !== "undefined") ? MEMORY_TASKS.find((t) => t.id === taskId) : null;
     if (memDef && Array.isArray(memDef.hints)) return memDef.hints;
+    const ramDef = (typeof RAM_TASKS !== "undefined") ? RAM_TASKS.find((t) => t.id === taskId) : null;
+    if (ramDef && Array.isArray(ramDef.hints)) return ramDef.hints;
     return [];
   }
 
@@ -12754,6 +12824,9 @@
     // Memory cards (Register4/Register) are CLOCKED — checked by their memory
     // behaviour over several clocks, not a combinational truth table. This must be
     // tested before the multibit branch (they are multibit-shaped too).
+    // RAM cards (3.3) are clocked AND addressed — their own harness. Tested before
+    // the memory/multibit branches (they are multibit-shaped too).
+    if (isRamTaskWorkspace()) return startRamTaskTest();
     if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
@@ -12824,6 +12897,94 @@
     notTestSnapshot = clonePlain(state.workspace);
     const taskId = state.workspace.taskId;
     const result = runMemoryTest(state.workspace, taskId);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
+  }
+
+  // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
+  // Same idea as the memory check, one dimension wider: write a distinct value to
+  // each of several addresses, then read them all back. Which address maps to
+  // which register is the learner's own choice (the requirements say so), so the
+  // check never assumes an order — it only requires that reading an address gives
+  // back what was last written THERE, and that writing one address leaves the
+  // others alone.
+  function isRamTaskWorkspace() {
+    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(ramTaskDefById(state.workspace?.taskId));
+  }
+
+  // The addresses the check exercises: the first four and the last four of the
+  // bank (all four for RAM4), so both the low address bits and the high ones have
+  // to be routed correctly. Distinct, in a fixed order.
+  function ramTestAddresses(taskId) {
+    const slots = ramTaskDefById(taskId)?.slots || 4;
+    const picks = [0, 1, 2, 3, slots - 4, slots - 3, slots - 2, slots - 1];
+    return [...new Set(picks.filter((a) => a >= 0 && a < slots))];
+  }
+
+  // Values with bits spread over the whole 16-bit word, so a mis-routed data bit
+  // fails. One per address, cycled if there are more addresses than values.
+  const RAM_TEST_VALUES = [1, 2, 4, 256, 32768, 43690, 21845, 65535, 4660, 39321];
+
+  // The learner's build + temporary drivers: a dec→bin source on the data bus,
+  // another on the address bus, a bin→dec reader on the output bus, and (when
+  // writing) a source on the control.
+  function ramHarnessWorkspace(base, data, address, control) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl"];
+    ws.components = ws.components.filter((c) => !temp.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "ram-drive", type: "converter-out", value: data, x: 90, y: 400 });
+    ws.components.push({ id: "ram-addr", type: "converter-out", value: address, x: 90, y: 720 });
+    ws.components.push({ id: "ram-read", type: "converter-in", x: 1560, y: 560 });
+    ws.components.push({ id: "ram-ctrl", type: "source", x: 360, y: 40 });
+    ws.wires.push({ a: "ram-drive.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "ram-addr.out", b: "task-card-1.inputExt3" });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "ram-read.in" });
+    if (control) ws.wires.push({ a: "ram-ctrl.out", b: "task-card-1.inputExt2" });
+    return ws;
+  }
+
+  function runRamTest(base, taskId) {
+    const addresses = ramTestAddresses(taskId);
+    // Write a distinct value to every address, then read them all back with the
+    // control low — so a build that writes to more than one register at a time,
+    // or reads the wrong one, is caught.
+    const steps = [];
+    const expectedAt = new Map();
+    addresses.forEach((a, i) => {
+      const d = RAM_TEST_VALUES[i % RAM_TEST_VALUES.length];
+      steps.push({ a, d, c: 1 });
+      expectedAt.set(a, d);
+    });
+    for (const a of addresses) steps.push({ a, d: 0, c: 0 });
+    // Overwrite the middle address and re-read it and its neighbour, so holding
+    // one value while another changes is checked too.
+    const mid = addresses[Math.floor(addresses.length / 2)];
+    steps.push({ a: mid, d: 60000, c: 1 });
+    steps.push({ a: mid, d: 0, c: 0 });
+    steps.push({ a: addresses[0], d: 0, c: 0 });
+
+    let prev = new Map(); // the stored bank, carried between steps — this IS the memory
+    const stored = new Map();
+    const SETTLE = 8;
+    for (let i = 0; i < steps.length; i += 1) {
+      const step = steps[i];
+      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c));
+      for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
+      if (step.c) stored.set(step.a, step.d);
+      const expected = stored.has(step.a) ? stored.get(step.a) : 0;
+      const info = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters.get("ram-read");
+      const got = info ? Number(info.value) : -1;
+      if (got !== expected) return { ok: false, index: i, expected, got };
+    }
+    return { ok: true };
+  }
+
+  function startRamTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const taskId = state.workspace.taskId;
+    const result = runRamTest(state.workspace, taskId);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
   }
 
@@ -13707,6 +13868,17 @@
         ? [...completedTaskIds(), taskId]
         : completedTaskIds();
 
+      // RAM cards (chapter 3.3): complete and return to the 3.3 worktable. Checked
+      // before the memory/bus branches — a RAM card is multibit-shaped too.
+      if (isRamTask(taskId)) {
+        return setState({
+          ...ramCompletionPatch(completedTasks),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       // Memory cards (chapter 3.1): complete and return to the memory worktable,
       // reopening the note. Once BOTH are built, roll into the "good work" ending.
       if (isMemoryTask(taskId)) {
@@ -13797,6 +13969,18 @@
     const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-8");
     const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
     return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  // Where a finished RAM card lands: the 3.3 worktable with its note reopened, so
+  // the next size unlocks. Once all five are built there is no further beat yet,
+  // so the worktable says "המשך יבוא..." rather than leaving the player stranded.
+  function ramCompletionPatch(completedTasks) {
+    const allRamDone = ramTaskDefs().every((t) => completedTasks.includes(t.id));
+    return {
+      ...ramWorktableReturnTarget(),
+      ramNoteList: !allRamDone,
+      infoDialog: allRamDone ? "המשך יבוא..." : null
+    };
   }
 
   // Return to the 3.2 memory worktable (panel135) a Register build was opened from.
@@ -14710,8 +14894,9 @@
   }
 
   // --- Chapter 3.3 RAM note ---------------------------------------------------
-  // The 3.3 worktable note (RAM4 → RAM1024). The cards are strictly ordered and
-  // none is built yet, so every entry answers with "המשך יבוא...".
+  // The 3.3 worktable note (RAM4 → RAM1024). The cards are strictly ordered:
+  // each size is built out of four of the previous one, and its frame arrives with
+  // those four cards already inside.
   function ramTaskDefs() {
     return typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [];
   }
@@ -14738,11 +14923,98 @@
     return setState({ ramNoteList: true });
   }
 
+  function isRamTask(id) {
+    return Boolean(ramTaskDefById(id));
+  }
+
+  // Which four cards a RAM frame arrives holding: four Registers for RAM4, four
+  // of the previous RAM size for every wider one.
+  function ramInnerCardType(taskId) {
+    const def = ramTaskDefById(taskId);
+    const prev = def && Array.isArray(def.requires) ? def.requires[0] : null;
+    return gateComponentType(prev || "Register");
+  }
+
+  // Frame centred at (RAM_BUILD_CARD_X, RAM_BUILD_CARD_Y); the four cards sit in a
+  // column just left of centre, leaving the right half of the frame free for the
+  // output MUX chain and the left edge for the address/control routing.
+  const RAM_BUILD_CARD_X = 620;
+  const RAM_BUILD_CARD_Y = 470;
+  function ramPreplacedComponents(taskId, cardX, cardY) {
+    const type = ramInnerCardType(taskId);
+    return [0, 1, 2, 3].map((i) => ({ id: `mem-${i + 1}`, type, x: cardX - 40, y: cardY - 255 + i * 170 }));
+  }
+
+  function openRamTaskWorkspace(taskId) {
+    const task = ramTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-12");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const cardX = RAM_BUILD_CARD_X;
+    const cardY = RAM_BUILD_CARD_Y;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        ...ramPreplacedComponents(task.id, cardX, cardY),
+        // A test voltage source, up near the control input, for free experimenting.
+        { id: "source-1", type: "source", x: 90, y: 90 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Clocked BUS build, like the 3.1 memory cards.
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      ramNoteList: false,
+      requirementsPanelHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the 3.3 worktable a RAM build was opened from, so completing or
+  // leaving a card lands on the note again.
+  function ramWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-12");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
+      ? state.workspace.sessionReturnPanelIndex
+      : (sceneByChapter(returnChapter)?.panels.length || 1) - 1;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
   function handleRamNoteTask(id) {
     const task = ramTaskDefById(id);
     if (!task) return;
     if (!ramTaskUnlocked(task.id)) return setState({ infoDialog: ramTaskLockedMessage(task.id) });
-    return setState({ infoDialog: "המשך יבוא..." });
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openRamTaskWorkspace(task.id);
   }
 
   function renderRamNoteList() {
@@ -14846,6 +15118,15 @@
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
+
+    // RAM cards (3.3): back to the 3.3 worktable with its note reopened.
+    if (isRamTask(taskId)) {
+      return setState({
+        ...ramCompletionPatch(completedTasks),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
 
     // Memory cards (3.1): back to the memory worktable with its note reopened.
     // Once BOTH are built, roll into the "good work" ending instead. They are
@@ -15050,6 +15331,11 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
+    // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
+    // the same reason as the memory cards below.
+    if (isRamTask(taskId)) {
+      return setState({ ...ramCompletionPatch(completedTasks), ...base }, true);
+    }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
     // Checked FIRST: they are multibit-shaped, so they would otherwise fall into
@@ -16755,6 +17041,16 @@
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.memoryGate) return null;
     return { width: def.busWidth };
+  }
+
+  // A placeable RAM gate (gate-RAM4 …): a BANK of `slots` width-N values. The
+  // address bus (in3) picks the cell; reading it is combinational (the addressed
+  // cell appears on the output right away) while writing waits for the clock —
+  // control (in2) high stores the data bus (in1) into the addressed cell.
+  function ramGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.ramGate) return null;
+    return { width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are

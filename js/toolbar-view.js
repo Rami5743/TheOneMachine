@@ -75,6 +75,9 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
           { type: "lamp", label: "מנורה" },
           { type: "source", label: "מקור מתח" },
           { type: "splitter", label: "מפצל" },
+          // The converters come along here too: a RAM build needs a way to dial an
+          // address (and a value) by hand while experimenting.
+          ...((typeof convertersAvailable === "function" && convertersAvailable()) ? [{ type: "converter-out", label: "ממיר לבינרי" }, { type: "converter-in", label: "ממיר לעשרוני" }] : []),
           { type: "nail", label: "נעץ" }
         ]
       : clockedMinimal
