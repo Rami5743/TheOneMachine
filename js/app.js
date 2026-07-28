@@ -11115,7 +11115,7 @@
     workspace.wires = [];
     workspace.components = muxSceneComponents();
     // Reaching the goal narration unlocks "מה זה פליפ-פלופ" in the menu; the
-    // flourish plays when the narration is done (see muxIntroAdvance's hand-off).
+    // flourish plays when the narration is done (muxIntroAdvance announces it).
     unlockExplanation("flipflop-what", { silent: true });
     setState({ workspace, infoDialog: null }, false);
   }
@@ -11186,6 +11186,9 @@
       return returnToExplanationsMenuFromReplay();
     }
     muxIntroStep += 1;
+    // Past the last goal slide the narration is done and the table is free — the
+    // natural finish point, so the "new explanation" flourish plays here.
+    if (muxIntroStep >= MUX_GOAL_LINES.length) announceExplanationUnlock("flipflop-what");
     render();
   }
   function muxIntroBack() {
@@ -11308,6 +11311,8 @@
   // the FF joins the palette, and von Neumann's closing FF-explanation begins.
   let ffMaterializePending = false;
   function finishMuxDemo() {
+    // The demo is over — its natural finish point, so the flourish plays here.
+    announceExplanationUnlock("flipflop-how");
     muxDemoActive = false;
     clockTick = 0;
     clockPrev = new Map();
