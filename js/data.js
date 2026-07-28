@@ -1028,10 +1028,44 @@ const SCENES = {
         "read": "אני רואה שהסתדרת עם הרגיסטרים. עבודה טובה. הספקנו היום הרבה. שוב אחרי חצות. לך לישון. מחר מתחילים לעבוד ב-7:30."
       },
       {
-        "comment": "Closing beat: a Los Alamos night exterior (reuses the 2.4 night raster) with a baked 'המשך יבוא...' — the current end of the story.",
+        "comment": "The night that passes between the register cards and the RAM briefing: a Los Alamos night exterior (reuses the 2.4 night raster).",
         "image": "assets/panels/panel137_chapter_3_1_night.svg",
         "year": "1943",
         "read": ""
+      },
+      {
+        "comment": "Chapter 3.2 RAM beat, next morning. Von Neumann back in the doorway (reuses panel131's raster).",
+        "image": "assets/panels/panel138_chapter_3_2_ram_intro.svg",
+        "year": "1943",
+        "read": "אני מקווה שישנת טוב. יש לנו המון עבודה."
+      },
+      {
+        "comment": "The RAM briefing itself — a wide bubble on the same doorway raster: 1000 registers, one written at a time, the two inputs plus control, and the MUX that picks which register is active.",
+        "image": "assets/panels/panel139_chapter_3_2_ram_brief.svg",
+        "year": "1943",
+        "read": "אנחנו נרצה שלמחשב שלנו יהיה זיכרון הרבה יותר גדול מרגיסטר אחד. 1000 רגיסטרים אמורים להספיק בינתיים. זה לא מעשי לכתוב בו זמנית ל-1000 רגיסטרים. לכן בכל רגע נכתוב רק לרגיסטר אחד. לזיכרון שלנו יהיו 2 כניסות. אחת אומרת מה אנחנו רוצים לכתוב לתוכו והשנייה אומרת לאיזה רגיסטר אנחנו רוצים לכתוב. כמובן יש גם את כניסת הבקרה שאומרת האם אנחנו רוצים לכתוב. כמו שאתה יודע, אי אפשר לשנות את החיבורים בזמן פעולת המחשב, כך שהכניסות צריכות להיות מחוברות לכל הרגיסטרים, אבל אנחנו יכולים להשתמש ב-MUX כדי לגרום רק לרגיסטר אחד להיות פעיל. תתחיל עם זיכרונות קטנים, ותעבור בהדרגתיות ליותר גדולים."
+      },
+      {
+        "comment": "Wordless beat: von Neumann lays the new tasks note on the worktable (reuses the 2.6 handover raster).",
+        "image": "assets/panels/panel140_chapter_3_2_ram_handover.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Chapter 3.2 RAM worktable: the same click-zones as panel135, but the tasks note opens the RAM list (RAM4 → RAM1024). None of those is implemented yet, so a tapped card answers 'המשך יבוא...'. The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback used until that message arrives.",
+        "image": "assets/panels/panel141_chapter_3_2_ram_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "ram-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
       }
     ]
   }

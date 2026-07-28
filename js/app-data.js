@@ -762,3 +762,14 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       ]
     }
   ];
+
+  // Chapter 3.2 RAM cards, opened from the second worktable note. Strictly in
+  // order — each one is built out of the previous size — and none is implemented
+  // yet, so a tapped card shows "המשך יבוא...".
+  const RAM_TASKS = [
+    { id: "RAM4", label: "RAM4", requires: [] },
+    { id: "RAM16", label: "RAM16", requires: ["RAM4"] },
+    { id: "RAM64", label: "RAM64", requires: ["RAM16"] },
+    { id: "RAM256", label: "RAM256", requires: ["RAM64"] },
+    { id: "RAM1024", label: "RAM1024", requires: ["RAM256"] }
+  ];

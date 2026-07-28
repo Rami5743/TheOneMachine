@@ -87,6 +87,9 @@
     // The 3.2 memory worktable — same room and click-zones as panel125, with its
     // own kind so the free-build table returns here (and its note is the memory one).
     if (stem === "panel135_chapter_3_1_memory_worktable") return "memory-worktable";
+    // The 3.2 RAM worktable — the same room again, its own kind so the free-build
+    // table returns here and its note is the RAM one.
+    if (stem === "panel141_chapter_3_2_ram_worktable") return "ram-worktable";
     return null;
   }
 
@@ -260,7 +263,10 @@
     // The 3.2 memory worktable table opens a free workbench in chapter 3.2 (every
     // card through 3.1 plus the FF/נעץ). Return goes to the worktable (panel135,
     // the 5th slide of the registers scene).
-    "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 }
+    "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 },
+    // The 3.2 RAM worktable is the last slide of the registers scene; resolved by
+    // image below so inserting slides cannot make this index go stale.
+    "ram-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 10 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
@@ -307,7 +313,7 @@
     // could have built by now — including the "create new card" tool, enabled
     // here regardless of whether it was unlocked in this playthrough. cardIntroDone
     // is set too so enabling it does not re-arm the one-time scripted card intro.
-    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable") {
+    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable") {
       state.createCardUnlocked = true;
       state.cardIntroDone = true;
       state.cardIntroPending = false;
@@ -373,7 +379,7 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we

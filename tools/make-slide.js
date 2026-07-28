@@ -17,9 +17,11 @@ const LH = 50.5;          // line height
 const PAD_TOP = 40;       // from bubble top to the first baseline
 const PAD_BOT = 30;       // from the last baseline to the bubble bottom
 const TOP = 40;           // bubble top y
-const CX = 774;           // text centre x
-const LEFT = 463.17169;   // bubble left edge
-const RIGHT = 1084;       // bubble right edge
+// Defaults are the reference slide's narrow bubble. A wide speech (the RAM
+// briefing) needs more room, so left/right can be overridden on the command
+// line; the text centre follows them.
+const DEF_LEFT = 463.17169;   // bubble left edge
+const DEF_RIGHT = 1084;       // bubble right edge
 const RX = 19.51169;      // corner: horizontal radius
 const RY = 22;            // corner: vertical radius
 // The tail, anchored to the TOP of the bubble so it keeps its place no matter how
@@ -33,7 +35,8 @@ function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function build(jpg, lines) {
+function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT) {
+  const CX = (LEFT + RIGHT) / 2;
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
   const tailUpperY = TOP + TAIL_UPPER;
@@ -79,11 +82,11 @@ function build(jpg, lines) {
 `;
 }
 
-const [outPath, jpg, linesArg] = process.argv.slice(2);
+const [outPath, jpg, linesArg, leftArg, rightArg] = process.argv.slice(2);
 if (!outPath || !jpg || !linesArg) {
-  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..."');
+  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right]');
   process.exit(1);
 }
 const lines = linesArg.split("|");
-fs.writeFileSync(outPath, build(jpg, lines));
+fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined));
 console.log("wrote", outPath, "(" + lines.length + " lines)");

@@ -1120,6 +1120,7 @@
     aluNoteList: false,
     // The 3.1 memory worktable note (Register4 → Register).
     memoryNoteList: false,
+    ramNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -1685,7 +1686,7 @@
       || Boolean(state.hintDialog) || Boolean(state.hintSlides)
       || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
       || Boolean(state.taskDialog) || Boolean(state.dialog)
-      || Boolean(state.memoryNoteList) || Boolean(state.aluNoteList)
+      || Boolean(state.memoryNoteList) || Boolean(state.ramNoteList) || Boolean(state.aluNoteList)
       || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
       || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
       || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
@@ -2197,6 +2198,7 @@
       arithNoteList: false,
       aluNoteList: false,
       memoryNoteList: false,
+    ramNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -4678,6 +4680,7 @@
       ${renderArithNoteList()}
       ${renderAluNoteList()}
       ${renderMemoryNoteList()}
+      ${renderRamNoteList()}
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -14698,10 +14701,73 @@
       dialog: null,
       taskDialog: null,
       memoryNoteList: false,
+    ramNoteList: false,
       requirementsPanelHidden: false,
       muxTable: null,
       workspace
     }, false);
+  }
+
+  // --- Chapter 3.2 RAM note ---------------------------------------------------
+  // The second worktable note (RAM4 → RAM1024). The cards are strictly ordered and
+  // none is built yet, so every entry answers with "המשך יבוא...".
+  function ramTaskDefs() {
+    return typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [];
+  }
+
+  function ramTaskDefById(id) {
+    return ramTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  function ramTaskUnlocked(id) {
+    const def = ramTaskDefById(id);
+    if (!def) return false;
+    return (def.requires || []).every((req) => taskCompleted(req));
+  }
+
+  function ramTaskLockedMessage(id) {
+    const def = ramTaskDefById(id);
+    const missing = (def?.requires || []).filter((req) => !taskCompleted(req))
+      .map((req) => ramTaskDefById(req)?.label || req);
+    if (!missing.length) return "המשך יבוא...";
+    return `\u05e6\u05e8\u05d9\u05da \u05dc\u05d1\u05e0\u05d5\u05ea \u05e7\u05d5\u05d3\u05dd \u05d0\u05ea ${missing.join(", ")}.`;
+  }
+
+  function openRamNote() {
+    return setState({ ramNoteList: true });
+  }
+
+  function handleRamNoteTask(id) {
+    const task = ramTaskDefById(id);
+    if (!task) return;
+    if (!ramTaskUnlocked(task.id)) return setState({ infoDialog: ramTaskLockedMessage(task.id) });
+    return setState({ infoDialog: "המשך יבוא..." });
+  }
+
+  function renderRamNoteList() {
+    if (!state.ramNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${ramTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !ramTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "\u2713" : ""}</span>
+              <button class="note-task-button" data-action="ram-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="\u05e8\u05e9\u05d9\u05de\u05ea \u05de\u05e9\u05d9\u05de\u05d5\u05ea">
+          <h2>\u05de\u05e9\u05d9\u05de\u05d5\u05ea</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="ram-note-close">\u05e1\u05d2\u05d5\u05e8</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function handleMemoryNoteTask(id) {
@@ -17996,6 +18062,9 @@
     if (action === "nail-box") return openComponentMonologue("nail");
     if (action === "component-monologue-ok") return closeComponentMonologue();
     if (action === "memory-tasks-note") return openMemoryNote();
+    if (action === "ram-tasks-note") return openRamNote();
+    if (action === "ram-note-task") return handleRamNoteTask(button.dataset.taskId);
+    if (action === "ram-note-close") return setState({ ramNoteList: false });
     if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
     if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");
