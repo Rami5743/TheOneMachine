@@ -1814,6 +1814,47 @@
     clockLampLast = new Map();
     clockLampToggles = 0;
     clockedUnderstoodTriggered = false;
+    clockedNarrationRestored = false;
+  }
+
+  // The clocked table's scripted narration (oscillator script → MUX goal slides →
+  // latch demo → FF explanation) runs on module variables, and so does the "הבנת?"
+  // resolution. A page refresh wipes them, which used to rewind the learner to the
+  // goal slides — or strand them on a table with nothing left to advance. The
+  // position is mirrored into the saved workspace on every render and restored
+  // once when the table is entered.
+  let clockedNarrationRestored = false;
+
+  function clockedNarrationSnapshot() {
+    const snap = { understoodResolved: Boolean(clockedUnderstoodResolved) };
+    if (ffExplainActive) { snap.phase = "ffExplain"; snap.step = ffExplainStep; }
+    else if (muxDemoActive) { snap.phase = "muxDemo"; snap.step = muxDemoStep; }
+    else if (state.workspace?.muxScene && muxIntroStep < MUX_GOAL_LINES.length) { snap.phase = "muxIntro"; snap.step = muxIntroStep; }
+    else if (clockedScriptActive) { snap.phase = "script"; snap.step = clockedScriptStep; snap.released = clockedScriptReleased; }
+    return snap;
+  }
+
+  function syncClockedNarration() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return;
+    const snap = clockedNarrationSnapshot();
+    if (JSON.stringify(state.workspace.narration) === JSON.stringify(snap)) return;
+    state.workspace.narration = snap;
+    saveState();
+  }
+
+  function restoreClockedNarration() {
+    if (!(state.screen === "workspace" && state.workspace?.clocked)) return;
+    if (clockedNarrationRestored) return;
+    clockedNarrationRestored = true;
+    const snap = state.workspace.narration;
+    if (!snap) return;
+    if (snap.understoodResolved) clockedUnderstoodResolved = true;
+    // Past the goal slides, muxIntroStep has to be parked at the end or its bubble
+    // renders on top of the beat we are actually restoring.
+    if (snap.phase === "ffExplain") { ffExplainActive = true; ffExplainStep = snap.step || 0; muxIntroStep = MUX_GOAL_LINES.length; }
+    else if (snap.phase === "muxDemo") { muxDemoActive = true; muxDemoStep = snap.step || 0; muxIntroStep = MUX_GOAL_LINES.length; }
+    else if (snap.phase === "muxIntro") { muxIntroStep = snap.step || 0; }
+    else if (snap.phase === "script") { clockedScriptActive = true; clockedScriptStep = snap.step || 0; clockedScriptReleased = Boolean(snap.released); }
   }
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
@@ -2167,6 +2208,14 @@
       subtractionDemoLinks: null,
       ffClockLinks: null
     };
+  }
+
+  // Leaving for another screen through the topbar abandons an explanation that was
+  // being replayed. The flag drives the workbench chrome (the return button, the
+  // hidden skip) and the in-explanation branches of the narration, so leaving it
+  // set makes the app behave as if the explanation were still running.
+  function leaveExplanationPatch() {
+    return { explanationReplay: null };
   }
 
   function isGlobalNavigationAction(action) {
@@ -3516,6 +3565,7 @@
 
     setState({
       ...transientUiClearPatch(),
+      ...leaveExplanationPatch(),
       screen: "explanations",
       explanationsReturnTo: returnTo
     }, false);
@@ -10669,8 +10719,12 @@
     syncAchievements();
     syncIdleNudge();
     tickDesignClock(); // accrue design time into the active context
-    // Start/stop the 2 Hz clock as the clocked table is entered/left.
+    // Put the scripted narration back where the learner left it (after a refresh
+    // the module variables are gone), then start/stop the 2 Hz clock as the
+    // clocked table is entered/left, then record the current beat.
+    restoreClockedNarration();
     ensureClockRunning();
+    syncClockedNarration();
     // Re-arm the Nand connect demo whenever we are away from the presentation, so
     // it plays again on the learner's next visit but stays dismissed once clicked.
     if (!isNandPresentationWorkspace() && (nandConnectDemoDismissed || nandConnectDemoShownAt)) armNandConnectDemo();
@@ -11281,6 +11335,12 @@
   function startMuxDemo() {
     // Seeing von Neumann's latch demo unlocks "איך עושים פליפ-פלופ" in the menu.
     unlockExplanation("flipflop-how", { silent: true });
+    // The demo is past the "הבנת?" moment however it was reached — answering the
+    // prompt is one route here, the dev skip is another. Without this the 60 s
+    // fallback stays armed and the prompt pops up mid-demo or mid-explanation.
+    clockedUnderstoodResolved = true;
+    clockedUnderstoodTriggered = true;
+    clearClockedTimeout();
     muxDemoActive = true;
     muxDemoStep = 0;
     muxIntroStep = MUX_GOAL_LINES.length; // ensure the goal narration is closed
@@ -11443,6 +11503,11 @@
   }
   // Leaving the clocked table for the warehouse "we need much more memory" beat.
   function exitFlipflopToWarehouse() {
+    // The clocking teaser is optional, but reaching the end of the explanation
+    // means the learner has been offered it — so it joins the menu either way,
+    // whether they opened it or walked past it.
+    unlockExplanation("clocking", { silent: true });
+    announceExplanationUnlock("clocking");
     ffExplainActive = false;
     ffExplainStep = 0;
     stopClock();
@@ -17819,10 +17884,10 @@
       return;
     }
 
-    if (action === "menu") return setState({ ...transientUiClearPatch(), screen: "menu" });
-    if (action === "chapters") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "chapters" });
-    if (action === "about") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "about" });
-    if (action === "achievements") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "achievements" });
+    if (action === "menu") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), screen: "menu" });
+    if (action === "chapters") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "chapters" });
+    if (action === "about") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "about" });
+    if (action === "achievements") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
       backfillCompletedCardCounts(); // seed reference builds for already-completed cards
       // Recompute both metrics from the current builds + user cards so any
@@ -17843,7 +17908,7 @@
     if (action === "open-card-records") return setState({ screen: "cardRecords", rankingsCardId: button.dataset.cardId || null }, false);
     if (action === "card-records-back") return setState({ screen: "rankings", rankingsCardId: null }, false);
     if (action === "rankings-nickname-save") return saveRankingsNickname();
-    if (action === "settings") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "settings" });
+    if (action === "settings") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
       const target = IN_GAME_SCREENS.includes(state.pageReturn) ? state.pageReturn : "menu";
@@ -18040,7 +18105,7 @@
     if (action === "card-discard-exit") return discardCardAndExit();
     if (action === "my-cards") {
       if (!myCardsEnabled()) return;
-      return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "myCards" });
+      return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "myCards" });
     }
     if (action === "my-cards-new") return enterCardCreation({ returnScreen: "myCards" });
     if (action === "my-cards-load") { app.querySelector("[data-card-file-input]")?.click(); return; }
