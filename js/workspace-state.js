@@ -142,6 +142,11 @@ function createWorkspaceState({
       // Once the MUX-latch demo has collapsed into a single FF card, that reusable
       // component joins the clocked palette (labelled "FF"). Preserved like the flags above.
       ffCardUnlocked: Boolean(ws.ffCardUnlocked),
+      // Where the clocked table's scripted narration stands (which beat, which
+      // step, and whether the "הבנת?" prompt was already answered). The narration
+      // itself runs on module variables, which a page refresh wipes — keeping the
+      // position here is what lets it resume instead of rewinding the learner.
+      narration: (ws.narration && typeof ws.narration === "object") ? { ...ws.narration } : null,
       // The component (currently only a splitter) that shows its focus controls
       // — the mirror handle. Validated below against the live components.
       focusedComponentId: typeof ws.focusedComponentId === "string" ? ws.focusedComponentId : null
