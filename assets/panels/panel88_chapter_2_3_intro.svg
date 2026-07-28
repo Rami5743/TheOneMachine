@@ -60,22 +60,14 @@
      id="path1"
      sodipodi:nodetypes="csssssssssssssccc" />
   <text
-     class="bubble-text"
-     x="726"
-     y="136"
-     font-size="34px"
-     id="text1"
-     text-anchor="middle"
-     dominant-baseline="middle"
-     direction="rtl"
-     unicode-bidi="plaintext"
-     font-family="'Noto Sans Hebrew', Arial, sans-serif"
-     font-weight="400"
-     fill="#000000"
-     stroke="none"
      xml:space="preserve"
-     style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="726"
-   y="136"
-   id="tspan1">מצוין. עבודה טובה.</tspan></text>
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.2000;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="726.00000"
+     y="145.11861"
+     id="text1"
+     ><tspan
+       sodipodi:role="line"
+       id="text1-line1"
+       x="726.00000"
+       y="145.11861">מצוין. עבודה טובה.</tspan></text>
 </svg>

@@ -57,28 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaccacaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:26px;line-height:1.1538;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="911.63641"
+     y="536.45663"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="911.63641"
-       y="529.48358"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="26px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="911.63641"
-   y="529.48358"
-   id="tspan1">אבל אתה לא צריך</tspan><tspan
-   x="911.63641"
-   y="559.48358"
-   id="tspan2">לדאוג לזה,</tspan><tspan
-   x="911.63641"
-   y="589.48358"
-   id="tspan3">לג'ון יש אנשים שמטפלים בזה.</tspan></text>
+       y="536.45663">אבל אתה לא צריך</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="911.63641"
+       y="566.45663">לדאוג לזה,</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="911.63641"
+       y="596.45663">לג'ון יש אנשים שמטפלים בזה.</tspan></text>
   </g>
 </svg>

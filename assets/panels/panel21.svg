@@ -57,24 +57,19 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaacacacaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="706.69"
-       y="398.20001"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34.05px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"> <tspan
-   x="706.69"
-   y="374.91"
-   id="tspan1">במה אני יכולה</tspan> <tspan
-   x="706.69"
-   y="421.5"
-   id="tspan2">לעזור לפרופסור ספרול?</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34.05px;line-height:1.3683;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="706.69000"
+     y="384.04202"
+     id="bubble-text"
+     > <tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="706.69000"
+       y="384.04202">במה אני יכולה</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="706.69000"
+       y="430.63202">לעזור לפרופסור ספרול?</tspan></text>
   </g>
 </svg>

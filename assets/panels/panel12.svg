@@ -57,31 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaccaccacaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:28.5168px;line-height:1.1791;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="163.24313"
+     y="106.48302"
+     id="bubble-text"
+     > <tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="163.24313"
-       y="132.45924"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="28.5168px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="stroke-width:1.28977"> <tspan
-   x="163.24313"
-   y="98.834976"
-   id="tspan1"
-   style="stroke-width:1.28977">הם עובדים על זה.</tspan> <tspan
-   x="163.24313"
-   y="132.45924"
-   id="tspan2"
-   style="stroke-width:1.28977">אנחנו צריכים לעשות</tspan> <tspan
-   x="163.24313"
-   y="166.0706"
-   id="tspan3"
-   style="stroke-width:1.28977">את זה לפניהם.</tspan></text>
+       y="106.48302">הם עובדים על זה.</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="163.24313"
+       y="140.10728">אנחנו צריכים לעשות</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="163.24313"
+       y="173.71864">את זה לפניהם.</tspan></text>
   </g>
 </svg>

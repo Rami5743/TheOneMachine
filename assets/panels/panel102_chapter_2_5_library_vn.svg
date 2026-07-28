@@ -56,27 +56,23 @@
        stroke-linecap="round"
        sodipodi:nodetypes="ssssscccssss" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="46px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       y="82"
-       x="-18"><tspan
-         x="839"
-         y="212"
-         id="tline1">אני מקווה שעברת על החומר</tspan><tspan
-         x="839"
-         y="279"
-         id="tline2">כמו שצריך. בוא, יש לנו</tspan><tspan
-         x="839"
-         y="346"
-         id="tline3">הרבה עבודה.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:46px;line-height:1.4565;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="839.00000"
+     y="224.33694"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="839.00000"
+       y="224.33694">אני מקווה שעברת על החומר</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="839.00000"
+       y="291.33694">כמו שצריך. בוא, יש לנו</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="839.00000"
+       y="358.33694">הרבה עבודה.</tspan></text>
   </g>
 </svg>

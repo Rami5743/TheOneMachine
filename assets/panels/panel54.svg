@@ -57,25 +57,19 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaacaacaacaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="480.5"
-       y="190"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="32px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="480.5"
-   y="190"
-   id="tspan1">יכול היה להיות יותר טוב.</tspan><tspan
-   x="480.5"
-   y="232"
-   id="tspan2">אני קורס בעבודה.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:32px;line-height:1.3125;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="480.50000"
+     y="198.58222"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="480.50000"
+       y="198.58222">יכול היה להיות יותר טוב.</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="480.50000"
+       y="240.58222">אני קורס בעבודה.</tspan></text>
   </g>
 </svg>

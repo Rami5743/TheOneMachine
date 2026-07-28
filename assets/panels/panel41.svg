@@ -57,30 +57,27 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaacscacaaaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="593"
-       y="137"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-         x="593"
-         y="137"
-         id="tspan1">אתה תוכל כמובן</tspan><tspan
-         x="593"
-         y="178"
-         id="tspan2">לסרב, אבל לא תוכל</tspan><tspan
-         x="593"
-         y="219"
-         id="tspan3">לדבר על זה</tspan><tspan
-         x="593"
-         y="260"
-         id="tspan4">עם איש.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.2059;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="593.00000"
+     y="146.11861"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="593.00000"
+       y="146.11861">אתה תוכל כמובן</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="593.00000"
+       y="187.11861">לסרב, אבל לא תוכל</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="593.00000"
+       y="228.11861">לדבר על זה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="593.00000"
+       y="269.11861">עם איש.</tspan></text>
   </g>
 </svg>

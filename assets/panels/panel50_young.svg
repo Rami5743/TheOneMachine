@@ -57,27 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaacaccaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="980"
-       y="122.39999"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"> <tspan
-   x="980"
-   y="129.60001"
-   id="tspan1">לעזאזל עם רוזוולט, לעזאזל עם</tspan> <tspan
-   x="980"
-   y="199.45"
-   id="tspan2">איינשטיין, לעזאזל עם סילארד,</tspan> <tspan
-   x="980"
-   y="266.20001"
-   id="tspan3">ולעזאזל איתי.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:40px;line-height:1.7462;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="980.00000"
+     y="140.32778"
+     id="bubble-text"
+     > <tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="980.00000"
+       y="140.32778">לעזאזל עם רוזוולט, לעזאזל עם</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="980.00000"
+       y="210.17777">איינשטיין, לעזאזל עם סילארד,</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="980.00000"
+       y="276.92778">ולעזאזל איתי.</tspan></text>
   </g>
 </svg>

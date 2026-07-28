@@ -57,43 +57,42 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="caaaaaaaacacacaaaaaaaccaaaaaacc" />
     <text
-       id="bubble-text"
-       x="557.00"
-       y="88.00"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="Noto Sans Hebrew, Arial, sans-serif"
-       font-size="34"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve">
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.1471;font-family:Noto Sans Hebrew, Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="557.00000"
+     y="97.11861"
+     id="bubble-text"
+     >
 <tspan
-   x="557.00"
-   y="88.00"
-   id="tspan1">אני לא יכול להגיד את</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="557.00000"
+       y="97.11861">אני לא יכול להגיד את</tspan>
 <tspan
-   x="557.00"
-   y="127.00"
-   id="tspan2">זה בטלפון, אתה תקבל</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="557.00000"
+       y="136.11861">זה בטלפון, אתה תקבל</tspan>
 <tspan
-   x="557.00"
-   y="166.00"
-   id="tspan3">את כל הפרטים עם שליח,</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="557.00000"
+       y="175.11861">את כל הפרטים עם שליח,</tspan>
 <tspan
-   x="557.00"
-   y="205.00"
-   id="tspan4">אבל אתה צריך להתחייב</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="557.00000"
+       y="214.11861">אבל אתה צריך להתחייב</tspan>
 <tspan
-   x="557.00"
-   y="244.00"
-   id="tspan5">לשמור על סודיות</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line5"
+       x="557.00000"
+       y="253.11861">לשמור על סודיות</tspan>
 <tspan
-   x="557.00"
-   y="283.00"
-   id="tspan6">מוחלטת.</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line6"
+       x="557.00000"
+       y="292.11861">מוחלטת.</tspan>
 </text>
   </g>
 </svg>

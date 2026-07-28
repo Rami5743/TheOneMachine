@@ -57,31 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaacaccaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:43.7542px;line-height:1.3900;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="437.66779"
+     y="189.36669"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="437.66779"
-       y="169.7563"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="43.7542px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="stroke-width:1.09386"><tspan
-         x="437.66779"
-         y="177.63206"
-         id="tspan1"
-         style="stroke-width:1.09386">אה... כן.. הם.. הם פשוט</tspan><tspan
-         x="437.66779"
-         y="238.45044"
-         id="tspan2"
-         style="stroke-width:1.09386">רוצים שאני אנתח תוצאות של</tspan><tspan
-         x="437.66779"
-         y="303.06448"
-         id="tspan3"
-         style="stroke-width:1.09386">ניסוי מוזר במזג האוויר.</tspan></text>
+       y="189.36669">אה... כן.. הם.. הם פשוט</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="437.66779"
+       y="250.18507">רוצים שאני אנתח תוצאות של</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="437.66779"
+       y="314.79911">ניסוי מוזר במזג האוויר.</tspan></text>
   </g>
 </svg>

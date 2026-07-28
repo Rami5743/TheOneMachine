@@ -57,28 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaaacaaacaaaaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="493.5"
-       y="159"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="37px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="493.5"
-   y="159"
-   id="tspan1">עד סוף המלחמה,</tspan><tspan
-   x="493.5"
-   y="201"
-   id="tspan2">או עד סוף הפרויקט,</tspan><tspan
-   x="493.5"
-   y="243"
-   id="tspan3">המוקדם מביניהם.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:37px;line-height:1.1351;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="493.50000"
+     y="168.92319"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="493.50000"
+       y="168.92319">עד סוף המלחמה,</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="493.50000"
+       y="210.92319">או עד סוף הפרויקט,</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="493.50000"
+       y="252.92319">המוקדם מביניהם.</tspan></text>
   </g>
 </svg>

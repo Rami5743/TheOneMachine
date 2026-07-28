@@ -57,27 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="ccaaaaaaaccacacaaaaaaaaaaaaaaaaaccc" />
     <text
-       id="bubble-text"
-       x="584"
-       y="154"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-   x="584"
-   y="154"
-   id="tspan1">שלום, פרופסור</tspan><tspan
-   x="584"
-   y="200"
-   id="tspan2">אופנהיימר, מדבר</tspan><tspan
-   x="584"
-   y="246"
-   id="tspan3">הנשיא רוזוולט.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:38px;line-height:1.2105;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="584.00000"
+     y="164.19138"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="584.00000"
+       y="164.19138">שלום, פרופסור</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="584.00000"
+       y="210.19138">אופנהיימר, מדבר</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="584.00000"
+       y="256.19138">הנשיא רוזוולט.</tspan></text>
   </g>
 </svg>

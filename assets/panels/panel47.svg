@@ -57,21 +57,15 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaccccaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="381.5"
-       y="302.12"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-   x="381.5"
-   y="302.12"
-   id="tspan1">מה לעזאזל?!</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.2000;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="381.50000"
+     y="311.23861"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="381.50000"
+       y="311.23861">מה לעזאזל?!</tspan></text>
   </g>
 </svg>

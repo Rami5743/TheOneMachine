@@ -57,27 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaccacaccaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:35.4px;line-height:1.1751;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="785.85999"
+     y="155.20409"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="785.85999"
-       y="187.31"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="35.4px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-         x="785.85999"
-         y="145.71001"
-         id="tspan1">פרופסור אופנהיימר,</tspan><tspan
-         x="785.85999"
-         y="187.31"
-         id="tspan2">נשיא ארה״ב רוצה</tspan><tspan
-         x="785.85999"
-         y="228.89999"
-         id="tspan3">לדבר איתך.</tspan></text>
+       y="155.20409">פרופסור אופנהיימר,</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="785.85999"
+       y="196.80408">נשיא ארה״ב רוצה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="785.85999"
+       y="238.39407">לדבר איתך.</tspan></text>
   </g>
 </svg>

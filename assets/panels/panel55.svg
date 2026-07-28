@@ -57,22 +57,15 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaaaaaaacaacaaacaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="933"
-       y="213"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="933"
-   y="213"
-   id="tspan1">על מה אתה עובד?</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:38px;line-height:1.2000;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="933.00000"
+     y="223.19138"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="933.00000"
+       y="223.19138">על מה אתה עובד?</tspan></text>
   </g>
 </svg>

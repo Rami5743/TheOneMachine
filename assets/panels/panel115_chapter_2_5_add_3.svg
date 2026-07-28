@@ -56,26 +56,23 @@
        stroke-linecap="round"
        sodipodi:nodetypes="sssssccsscccss" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       x="228"
-       y="31.283951"><tspan
-         x="952"
-         y="136.28395"
-         id="tline1">אחרי שהוא יהיה מוכן יהיה אפשר לבנות כרטיס שמחבר</tspan><tspan
-         x="952"
-         y="194.28395"
-         id="tline2">מספרים רב ספרתיים (במקרה שלנו 16 ספרתיים בכתיבה</tspan><tspan
-         x="952"
-         y="252.28395"
-         id="tline3">בינרית).</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:40px;line-height:1.4500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="952.00000"
+     y="136.28395"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="952.00000"
+       y="136.28395">אחרי שהוא יהיה מוכן יהיה אפשר לבנות כרטיס שמחבר</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="952.00000"
+       y="194.28395">מספרים רב ספרתיים (במקרה שלנו 16 ספרתיים בכתיבה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="952.00000"
+       y="252.28395">בינרית).</tspan></text>
   </g>
 </svg>
