@@ -816,7 +816,7 @@ const SCENES = {
       {
         "image": "assets/panels/panel111_chapter_2_5_bits_4.svg",
         "year": "1943",
-        "read": "נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה בערך 1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם 15 ביטים אפשר לייצג בערך 32,000 מספרים, שזה עוד לא מספיק לנו. אבל עם 16 ביטים אפשר לייצג 64,000 מספרים שזה כבר סבבה לבינתיים.",
+        "read": "נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה בערך 1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם 15 ביטים אפשר לייצג בערך 32,000 מספרים, שזה עוד לא מספיק לנו. אבל עם 16 ביטים אפשר לייצג 64,000 מספרים שזה כבר סבבה בינתיים.",
         "unlocksExplanation": "words-bytes",
         "cornerLink": { "text": "ג'ון לא אמר לך את כל האמת. רוצה לדעת את האמת? לחץ כאן", "action": "open-words-bytes" }
       },
@@ -896,7 +896,7 @@ const SCENES = {
         "comment": "Chapter 2.6 (ALU) opening: von Neumann speech over the reused 2.5 farewell room. Speech is baked into each SVG; read is the TTS narration.",
         "image": "assets/panels/panel120_chapter_2_6_alu_1.svg",
         "year": "1943",
-        "read": "מצוין. עבודה טובה. עכשיו יש לנו מכונה שמחברת מספרים. אנחנו נצטרך עוד מכונות שעושות עוד חישובים. אנחנו רוצים לבנות מכונה אחת שתעשה את כל החישובים שנצטרך. היא תקבל את מספרים שאליהם אנחנו רוצים לעשות את החישוב ובס נוסף שיגיד לה איזה חישוב לעשות."
+        "read": "מצוין. עבודה טובה. עכשיו יש לנו מכונה שמחברת מספרים. אנחנו נצטרך עוד מכונות שעושות עוד חישובים. אנחנו רוצים לבנות מכונה אחת שתעשה את כל החישובים שנצטרך. היא תקבל את המספרים שעליהם אנחנו רוצים לעשות את החישוב ובס נוסף שיגיד לה איזה חישוב לעשות."
       },
       {
         "image": "assets/panels/panel121_chapter_2_6_alu_2.svg",
@@ -939,7 +939,7 @@ const SCENES = {
         "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
         "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
         "year": "1943",
-        "read": "מצוין, בנית ALU, זה לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
       },
       {
         "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
@@ -997,7 +997,7 @@ const SCENES = {
         "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
         "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
         "year": "1943",
-        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרנו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
       },
       {
         "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
