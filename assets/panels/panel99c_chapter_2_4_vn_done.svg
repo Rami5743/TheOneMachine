@@ -52,22 +52,18 @@
      stroke-linecap="round"
      sodipodi:nodetypes="ssssssscccsss" />
   <text
-     id="bubble-text"
-     text-anchor="middle"
-     dominant-baseline="middle"
-     direction="rtl"
-     unicode-bidi="plaintext"
-     font-family="'Noto Sans Hebrew', Arial, sans-serif"
-     font-size="46px"
-     font-weight="400"
-     fill="#000000"
-     stroke="none"
      xml:space="preserve"
-     x="-98"><tspan
-       x="670"
-       y="155"
-       id="tspan1">אהה, גמרת הכול...</tspan><tspan
-       x="670"
-       y="217"
-       id="tspan2">טוב, עבודה טובה.</tspan></text>
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:46px;line-height:1.3478;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="670.00000"
+     y="167.33694"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="670.00000"
+       y="167.33694">אהה, גמרת הכול...</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="670.00000"
+       y="229.33694">טוב, עבודה טובה.</tspan></text>
 </svg>

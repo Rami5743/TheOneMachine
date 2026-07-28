@@ -57,24 +57,19 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaacaccacaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:33.08px;line-height:1.3156;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="649.58002"
+     y="327.22188"
+     id="bubble-text"
+     > <tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="649.58002"
-       y="340.10999"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="33.08px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"> <tspan
-   x="649.58002"
-   y="318.35001"
-   id="tspan1">אהה... אה, סליחה.</tspan> <tspan
-   x="649.58002"
-   y="361.87"
-   id="tspan2">במה אני יכולה לעזור?</tspan></text>
+       y="327.22188">אהה... אה, סליחה.</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="649.58002"
+       y="370.74187">במה אני יכולה לעזור?</tspan></text>
   </g>
 </svg>

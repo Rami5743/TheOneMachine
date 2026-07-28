@@ -13,9 +13,36 @@
     <path id="speech-bubble" d="m 543.21677,24.53150 h 800.52203 c 12.4792,0 22.5953,10.481415 22.5953,22.595380 V 349.05233 c 0,12.92948 -22.5953,22.5954 -22.5953,22.5954 H 543.21677 c -12.47908,0 -22.59538,-10.48142 -22.59538,-22.5954 V 203.09988 L 412.23521,166.14354 520.62139,174.5712 V 47.126884 c 0,-12.929479 22.5954,-22.595380 22.59538,-22.595380 z"
        fill="#ffffff" stroke="#000000" stroke-width="3.44993"
        stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="36.2908px"
-       font-weight="400" fill="#000000" stroke="none" xml:space="preserve"
-       style="stroke-width:0.907271" y="4"><tspan x="945.19293" y="63.94368" style="stroke-width:0.907271">הנה המשימות שלך. אני צריך לחזור לעבודה.</tspan><tspan x="945.19293" y="116.56541" style="stroke-width:0.907271">סוף-סוף חזרו התוצאות של החישוב שביקשתי, ואני</tspan><tspan x="945.19293" y="169.18714" style="stroke-width:0.907271">יכול להמשיך לעבוד על ניתוח של תנועת הגזים</tspan><tspan x="945.19293" y="221.80887" style="stroke-width:0.907271">בפיצוץ. זה פיצוץ רגיל, אבל אנחנו צריכים לדעת</tspan><tspan x="945.19293" y="274.43060" style="stroke-width:0.907271">לכוון אותו במדויק כדי לגרום ל.... טוב לא</tspan><tspan x="945.19293" y="327.05233" style="stroke-width:0.907271">משנה....</tspan></text>
+    <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.2908px;line-height:1.4500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="945.19293"
+     y="63.94368"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="945.19293"
+       y="63.94368">הנה המשימות שלך. אני צריך לחזור לעבודה.</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="945.19293"
+       y="116.56541">סוף-סוף חזרו התוצאות של החישוב שביקשתי, ואני</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="945.19293"
+       y="169.18714">יכול להמשיך לעבוד על ניתוח של תנועת הגזים</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="945.19293"
+       y="221.80887">בפיצוץ. זה פיצוץ רגיל, אבל אנחנו צריכים לדעת</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line5"
+       x="945.19293"
+       y="274.43060">לכוון אותו במדויק כדי לגרום ל.... טוב לא</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line6"
+       x="945.19293"
+       y="327.05233">משנה....</tspan></text>
   </g>
 </svg>

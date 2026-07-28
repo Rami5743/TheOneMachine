@@ -56,25 +56,23 @@
        stroke-linecap="round"
        sodipodi:nodetypes="ssssssccccss" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       x="-46"><tspan
-         x="774"
-         y="80"
-         id="tspan1">אני רואה שהסתדרת עם הרגיסטרים. עבודה</tspan><tspan
-         x="774"
-         y="130.5"
-         id="tspan2">טובה. הספקנו היום הרבה. שוב אחרי חצות.</tspan><tspan
-         x="774"
-         y="181"
-         id="tspan3">לך לישון. מחר מתחילים לעבוד ב-7:30.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="774.00000"
+     y="80.00000"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="774.00000"
+       y="80.00000">אני רואה שהסתדרת עם הרגיסטרים. עבודה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="774.00000"
+       y="130.50000">טובה. הספקנו היום הרבה. שוב אחרי חצות.</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="774.00000"
+       y="181.00000">לך לישון. מחר מתחילים לעבוד ב-7:30.</tspan></text>
   </g>
 </svg>

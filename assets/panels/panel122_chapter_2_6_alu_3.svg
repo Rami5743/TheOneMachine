@@ -56,29 +56,23 @@
        stroke-linecap="round"
        sodipodi:nodetypes="cssscsccccssc" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="36.2908px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="stroke-width:0.907271"
-       y="4"><tspan
-         x="945.19293"
-         y="63.94368"
-         style="stroke-width:0.907271"
-         id="tspan1">נקרא לה ALU ראשי תיבות באנגלית של &quot;יחידה</tspan><tspan
-         x="945.19293"
-         y="116.56541"
-         style="stroke-width:0.907271"
-         id="tspan2">לוגית אריתמטית&quot;. היא תוכל לעשות פעולות</tspan><tspan
-         x="945.19293"
-         y="169.18714"
-         style="stroke-width:0.907271"
-         id="tspan3">אריתמטיות כמו חיבור ופעולות לוגיות כמו AND.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.2908px;line-height:1.4500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="945.19293"
+     y="63.94368"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="945.19293"
+       y="63.94368">נקרא לה ALU ראשי תיבות באנגלית של &quot;יחידה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="945.19293"
+       y="116.56541">לוגית אריתמטית&quot;. היא תוכל לעשות פעולות</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="945.19293"
+       y="169.18714">אריתמטיות כמו חיבור ופעולות לוגיות כמו AND.</tspan></text>
   </g>
 </svg>

@@ -57,27 +57,22 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaacaccacaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="1258.00"
-       y="244.06"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="Noto Sans Hebrew, Arial, sans-serif"
-       font-size="42"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve">
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:42px;line-height:1.1786;font-family:Noto Sans Hebrew, Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="1258.00000"
+     y="255.32416"
+     id="bubble-text"
+     >
 <tspan
-   x="1258.00"
-   y="244.06"
-   id="tspan1">כן,</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="1258.00000"
+       y="255.32416">כן,</tspan>
 <tspan
-   x="1258.00"
-   y="293.56"
-   id="tspan2">אדוני הנשיא.</tspan>
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="1258.00000"
+       y="304.82416">אדוני הנשיא.</tspan>
 </text>
   </g>
 </svg>

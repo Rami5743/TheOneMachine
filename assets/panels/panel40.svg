@@ -57,23 +57,15 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaaaaaaacaaccaccaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:65.3172px;line-height:1.2000;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="899.14093"
+     y="286.75186"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="899.14093"
-       y="269.23416"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="65.3172px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="stroke-width:1.48448"><tspan
-   x="899.14093"
-   y="269.23416"
-   id="tspan1"
-   style="stroke-width:1.48448">אמ...</tspan></text>
+       y="286.75186">אמ...</tspan></text>
   </g>
 </svg>

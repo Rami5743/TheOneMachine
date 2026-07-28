@@ -56,24 +56,19 @@
        stroke-linecap="round"
        sodipodi:nodetypes="ssssssscccss" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       x="-234"
-       y="-36"><tspan
-         x="796"
-         y="121"
-         id="tline1">יש לך כאן ציוד</tspan><tspan
-         x="796"
-         y="187"
-         id="tline2">שיעזור לך עם זה</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:40px;line-height:1.6500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="796.00000"
+     y="131.72777"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="796.00000"
+       y="131.72777">יש לך כאן ציוד</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="796.00000"
+       y="197.72777">שיעזור לך עם זה</tspan></text>
   </g>
 </svg>

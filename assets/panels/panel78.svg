@@ -57,25 +57,19 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaacacacaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="918"
-       y="533"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none"><tspan
-   x="918"
-   y="533"
-   id="tspan1">טוב, האמת היא שאני גם</tspan><tspan
-   x="918"
-   y="575"
-   id="tspan2">צריך חיבור קבוע למקור מתח.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.2353;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="918.00000"
+     y="542.11861"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="918.00000"
+       y="542.11861">טוב, האמת היא שאני גם</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="918.00000"
+       y="584.11861">צריך חיבור קבוע למקור מתח.</tspan></text>
   </g>
 </svg>

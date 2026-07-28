@@ -57,31 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaacccaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="1085.2764"
-       y="191.40121"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="47.4832px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none;stroke-width:1.18707"><tspan
-   x="1085.2764"
-   y="191.40121"
-   id="tspan1"
-   style="stroke-width:1.18707">אל תדאגי, זה בטח יהיה</tspan><tspan
-   x="1085.2764"
-   y="247.19385"
-   id="tspan2"
-   style="stroke-width:1.18707">עוד המון שנים, אז לא</tspan><tspan
-   x="1085.2764"
-   y="302.98648"
-   id="tspan3"
-   style="stroke-width:1.18707">יפטרו אותם כל כך מהר.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:47.4832px;line-height:1.1750;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="1085.27640"
+     y="204.13593"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="1085.27640"
+       y="204.13593">אל תדאגי, זה בטח יהיה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="1085.27640"
+       y="259.92857">עוד המון שנים, אז לא</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="1085.27640"
+       y="315.72120">יפטרו אותם כל כך מהר.</tspan></text>
   </g>
 </svg>

@@ -57,35 +57,27 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaacaccaaaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:38.8322px;line-height:1.1667;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="731.60028"
+     y="85.70762"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
        x="731.60028"
-       y="75.293045"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38.8322px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="font-weight:400;font-family:'Noto Sans Hebrew', Arial, sans-serif;direction:rtl;dominant-baseline:middle;text-anchor:middle;fill:#000000;stroke:none;stroke-width:1.07867"><tspan
-   x="731.60028"
-   y="75.293045"
-   id="tspan1"
-   style="stroke-width:1.07867">מצוין. זה המחסן שלנו.</tspan><tspan
-   x="731.60028"
-   y="120.59734"
-   id="tspan2"
-   style="stroke-width:1.07867">תתחילי להכיר את הציוד.</tspan><tspan
-   x="731.60028"
-   y="165.90163"
-   id="tspan3"
-   style="stroke-width:1.07867">אני צריך לרוץ לפגישה</tspan><tspan
-   x="731.60028"
-   y="211.20592"
-   id="tspan4"
-   style="stroke-width:1.07867">עם רוברט.</tspan></text>
+       y="85.70762">מצוין. זה המחסן שלנו.</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="731.60028"
+       y="131.01192">תתחילי להכיר את הציוד.</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="731.60028"
+       y="176.31621">אני צריך לרוץ לפגישה</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="731.60028"
+       y="221.62050">עם רוברט.</tspan></text>
   </g>
 </svg>

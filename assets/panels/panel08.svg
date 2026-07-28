@@ -57,30 +57,27 @@
        stroke-linecap="butt"
        stroke-miterlimit="10" />
     <text
-       id="bubble-text"
-       x="237"
-       y="146"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="34px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-         x="237"
-         y="82.760002"
-         id="tspan1">אז זהו,</tspan><tspan
-         x="237"
-         y="124.92"
-         id="tspan2">שלא באתי</tspan><tspan
-         x="237"
-         y="167.08"
-         id="tspan3">לדבר על ייצור</tspan><tspan
-         x="237"
-         y="209.24001"
-         id="tspan4">חשמל.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.2400;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="237.00000"
+     y="91.87861"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="237.00000"
+       y="91.87861">אז זהו,</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="237.00000"
+       y="134.03861">שלא באתי</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="237.00000"
+       y="176.19861">לדבר על ייצור</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="237.00000"
+       y="218.35862">חשמל.</tspan></text>
   </g>
 </svg>

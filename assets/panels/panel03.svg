@@ -57,24 +57,19 @@
        stroke-linecap="butt"
        stroke-miterlimit="10" />
     <text
-       id="bubble-text"
-       x="1048"
-       y="258"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="41px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan
-   x="1048"
-   y="232.99001"
-   id="tspan1">אנחנו</tspan><tspan
-   x="1048"
-   y="283.01001"
-   id="tspan2">מדברים...</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:41px;line-height:1.2200;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="1048.00000"
+     y="243.98598"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="1048.00000"
+       y="243.98598">אנחנו</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="1048.00000"
+       y="294.00598">מדברים...</tspan></text>
   </g>
 </svg>

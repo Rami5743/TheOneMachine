@@ -57,27 +57,19 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaaaaaacacacaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="1062.7834"
-       y="225.56747"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="30.3008px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       style="stroke-width:1.18363"><tspan
-         x="1062.7834"
-         y="207.20943"
-         id="tspan1"
-         style="stroke-width:1.18363">אתה צודק...</tspan><tspan
-         x="1062.7834"
-         y="243.92551"
-         id="tspan2"
-         style="stroke-width:1.18363">אז מה אתה מציע?</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:30.3008px;line-height:1.2117;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="1062.78340"
+     y="215.33593"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="1062.78340"
+       y="215.33593">אתה צודק...</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="1062.78340"
+       y="252.05201">אז מה אתה מציע?</tspan></text>
   </g>
 </svg>

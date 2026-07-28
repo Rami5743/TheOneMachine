@@ -26,20 +26,23 @@
           stroke-miterlimit="10"
           sodipodi:nodetypes="aaaaaaaaaacacacaaaaaaaaaaaaa"
           />
-  <text id="bubble-text"
-        x="666.48" y="388.93"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        direction="rtl"
-        unicode-bidi="plaintext"
-        font-family="Noto Sans Hebrew, Arial, sans-serif"
-        font-size="36.73"
-        font-weight="400"
-        fill="#000000"
-        stroke="none"
-        xml:space="preserve">
-<tspan x="666.48" y="361.39">לפרופסור ספרול,</tspan>
-<tspan x="666.48" y="416.47">נשיא האוניברסיטה.</tspan>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.73px;line-height:1.4996;font-family:Noto Sans Hebrew, Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="666.48000"
+     y="371.24078"
+     id="bubble-text"
+     >
+<tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="666.48000"
+       y="371.24078">לפרופסור ספרול,</tspan>
+<tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="666.48000"
+       y="426.32078">נשיא האוניברסיטה.</tspan>
 </text>
   </g>
 </svg>

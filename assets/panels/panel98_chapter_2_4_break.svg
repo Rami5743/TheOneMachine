@@ -56,30 +56,27 @@
        stroke-linecap="round"
        sodipodi:nodetypes="ssssssscccss" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"
-       x="-168"
-       y="-8"><tspan
-         x="832"
-         y="133"
-         id="tline1">טוב אני צריך הפסקה. השיחה עם</tspan><tspan
-         x="832"
-         y="199"
-         id="tline2">דיק הרגה אותי. הוא באמת טיפוס</tspan><tspan
-         x="832"
-         y="265"
-         id="tline3">בלתי נסבל. ממש מוכשר אבל</tspan><tspan
-         x="832"
-         y="331"
-         id="tline4">בלתי נסבל. אתה תמשיך לעבוד.</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:40px;line-height:1.6500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="832.00000"
+     y="143.72777"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="832.00000"
+       y="143.72777">טוב אני צריך הפסקה. השיחה עם</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="832.00000"
+       y="209.72777">דיק הרגה אותי. הוא באמת טיפוס</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="832.00000"
+       y="275.72777">בלתי נסבל. ממש מוכשר אבל</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line4"
+       x="832.00000"
+       y="341.72777">בלתי נסבל. אתה תמשיך לעבוד.</tspan></text>
   </g>
 </svg>

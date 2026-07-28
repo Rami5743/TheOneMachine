@@ -57,27 +57,23 @@
        stroke-miterlimit="10"
        sodipodi:nodetypes="aaaaaacccaaaaaaaaaaaaaaaaaaaa" />
     <text
-       id="bubble-text"
-       x="460"
-       y="664"
-       text-anchor="middle"
-       dominant-baseline="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="38px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"> <tspan
-   x="460"
-   y="618"
-   id="tspan1">מדברים מהבית הלבן.</tspan> <tspan
-   x="460"
-   y="663"
-   id="tspan2">האם אתה יכול</tspan> <tspan
-   x="460"
-   y="708"
-   id="tspan3">לדבר עם הנשיא?</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:38px;line-height:1.1842;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="460.00000"
+     y="628.19138"
+     id="bubble-text"
+     > <tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="460.00000"
+       y="628.19138">מדברים מהבית הלבן.</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="460.00000"
+       y="673.19138">האם אתה יכול</tspan> <tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="460.00000"
+       y="718.19138">לדבר עם הנשיא?</tspan></text>
   </g>
 </svg>

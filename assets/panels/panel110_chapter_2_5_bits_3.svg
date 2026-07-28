@@ -50,15 +50,23 @@
        stroke-linejoin="round"
        stroke-linecap="round" />
     <text
-       id="bubble-text"
-       text-anchor="middle"
-       direction="rtl"
-       unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif"
-       font-size="40px"
-       font-weight="400"
-       fill="#000000"
-       stroke="none"
-       xml:space="preserve"><tspan x="954.5" y="136.284" id="tline1">זה ממש לא מספיק לנו. אנחנו צריכים לפעמים מספרים</tspan><tspan x="954.5" y="194.284" id="tline2">בגודל של עשרות אלפים. אני מניח שמספרים עד 50,000</tspan><tspan x="954.5" y="252.284" id="tline3">יספיקו לנו. כמה ביטים נצטרך בשביל זה?</tspan></text>
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:40px;line-height:1.4500;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="954.50000"
+     y="136.28400"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="954.50000"
+       y="136.28400">זה ממש לא מספיק לנו. אנחנו צריכים לפעמים מספרים</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="954.50000"
+       y="194.28400">בגודל של עשרות אלפים. אני מניח שמספרים עד 50,000</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="954.50000"
+       y="252.28400">יספיקו לנו. כמה ביטים נצטרך בשביל זה?</tspan></text>
   </g>
 </svg>
