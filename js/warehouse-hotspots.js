@@ -87,9 +87,9 @@
     // The 3.2 memory worktable — same room and click-zones as panel125, with its
     // own kind so the free-build table returns here (and its note is the memory one).
     if (stem === "panel135_chapter_3_1_memory_worktable") return "memory-worktable";
-    // The 3.2 RAM worktable — the same room again, its own kind so the free-build
+    // The 3.3 RAM worktable — the same room again, its own kind so the free-build
     // table returns here and its note is the RAM one.
-    if (stem === "panel141_chapter_3_2_ram_worktable") return "ram-worktable";
+    if (stem === "panel141_chapter_3_3_ram_worktable") return "ram-worktable";
     return null;
   }
 
@@ -264,9 +264,8 @@
     // card through 3.1 plus the FF/נעץ). Return goes to the worktable (panel135,
     // the 5th slide of the registers scene).
     "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 },
-    // The 3.2 RAM worktable is the last slide of the registers scene; resolved by
-    // image below so inserting slides cannot make this index go stale.
-    "ram-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 10 }
+    // The 3.3 RAM worktable is the last slide of its own scene.
+    "ram-worktable": { chapterId: "chapter-12", sceneId: "ram", panelIndex: 3 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann

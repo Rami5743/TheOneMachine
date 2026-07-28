@@ -763,7 +763,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
-  // Chapter 3.2 RAM cards, opened from the second worktable note. Strictly in
+  // Chapter 3.3 RAM cards, opened from the second worktable note. Strictly in
   // order — each one is built out of the previous size — and none is implemented
   // yet, so a tapped card shows "המשך יבוא...".
   const RAM_TASKS = [
