@@ -2210,11 +2210,44 @@
     };
   }
 
+  // Which explanation the learner is inside right now — a replay from the menu, or
+  // one of the beats of the flip-flop scene, which IS the first showing of those
+  // explanations.
+  function explanationInProgressIds() {
+    const ids = [];
+    if (state.explanationReplay?.id) ids.push(state.explanationReplay.id);
+    if (state.screen === "workspace" && state.workspace?.clocked) {
+      if (ffExplainActive) {
+        ids.push("flipflop-how");
+        // the clocking teaser sits on the last FF bubble
+        if (ffExplainStep >= FF_EXPLAIN.length - 1) ids.push("clocking");
+      } else if (muxDemoActive) {
+        ids.push("flipflop-how");
+      } else if (state.workspace.muxScene && muxIntroStep < MUX_GOAL_LINES.length) {
+        ids.push("flipflop-what");
+      }
+    }
+    if (state.ffClockLinks) ids.push("clocking");
+    return ids;
+  }
+
+  // Walking out of an explanation part-way — the topbar, "חזרה למחסן" — still means
+  // it was offered, so it joins the menu and its flourish plays now rather than
+  // never. announceExplanationUnlock fires at most once per id, so one that has
+  // already flourished is left alone.
+  function abandonExplanationInProgress() {
+    for (const id of explanationInProgressIds()) {
+      unlockExplanation(id, { silent: true });
+      announceExplanationUnlock(id);
+    }
+  }
+
   // Leaving for another screen through the topbar abandons an explanation that was
   // being replayed. The flag drives the workbench chrome (the return button, the
   // hidden skip) and the in-explanation branches of the narration, so leaving it
   // set makes the app behave as if the explanation were still running.
   function leaveExplanationPatch() {
+    abandonExplanationInProgress();
     return { explanationReplay: null };
   }
 
@@ -3796,6 +3829,9 @@
   }
 
   function returnToExplanationsMenuFromReplay() {
+    // Reached the end of the replay or stepped back out of it — either way the
+    // explanation has been experienced, so it flourishes if it never has.
+    abandonExplanationInProgress();
     setState({
       ...transientUiClearPatch(),
       screen: "explanations",
@@ -15398,6 +15434,9 @@
   }
 
   function returnToWorkspaceWarehouse() {
+    // Walking out of the workbench mid-explanation still counts as having been
+    // offered it — the flourish plays now instead of never.
+    abandonExplanationInProgress();
     const workspace = normalizeWorkspace(state.workspace);
     workspace.selectedTerminal = null;
     return setState({
