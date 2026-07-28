@@ -9809,7 +9809,7 @@
 
     if (shorten) {
       return [
-        `נזכיר בקצרה איך ממירים את @[${value}] לבינארי.`,
+        `נזכיר בקצרה איך ממירים את @[${value}] לבינרי.`,
         `*שיטה א׳ (חזקות של 2):* @[${decompSteps[decompSteps.length - 1]}]. סימון החזקות שמופיעות נותן @[${value} = ${bin}₂].`,
         `*שיטה ב׳ (זוגיות וחלוקה):* ` + halveRows.map((r) => `@[${r.n}]${r.n % 2 === 0 ? "→0" : "→1"}`).join("  ,  ") + `. קוראים את הביטים מלמטה למעלה: *@[${bin}₂]*.`
       ].join("\n\n");
@@ -9832,7 +9832,7 @@
     ].join("\n\n");
 
     return [
-      `נראה איך ממירים את @[${value}] מעשרוני לכתיב בינארי. יש שתי דרכים:`,
+      `נראה איך ממירים את @[${value}] מעשרוני לכתיב בינרי. יש שתי דרכים:`,
       method1,
       method2
     ].join("\n\n");
@@ -9847,8 +9847,8 @@
   function binTaskPrompt(nb) {
     if (nb.stage === "binadd") return "חבר את שני המספרים הבינריים:";
     return nb.stage === "bin2dec"
-      ? "מהו הערך העשרוני של המספר הבינארי הבא?"
-      : "כתוב את המספר הבא בכתיב בינארי:";
+      ? "מהו הערך העשרוני של המספר הבינרי הבא?"
+      : "כתוב את המספר הבא בכתיב בינרי:";
   }
 
   // ---- interactions ------------------------------------------------------
@@ -10117,7 +10117,7 @@
     // ===== First presentation (first time only): the chain of equalities. =====
     if (firstTime) {
       steps.push({
-        html: '<p>יש שתי דרכים להמיר מספר עשרוני לכתיב בינארי:</p>'
+        html: '<p>יש שתי דרכים להמיר מספר עשרוני לכתיב בינרי:</p>'
           + '<ol class="bin-methods"><li>להתחיל מהספרה המשמעותית ביותר.</li><li>להתחיל מהספרה הכי פחות משמעותית (ספרת האחדות).</li></ol>'
           + '<p>השיטה השנייה קלה יותר לביצוע אך מסובכת יותר להבנה.</p>',
         cells: {}, highlight: []
@@ -10660,7 +10660,7 @@
     const clean = binClean(nb);
     const label = clean ? "המשך" : "תרגיל נוסף";
     const actions = `<button class="btn btn-primary" data-action="binbk-walk-finish" type="button">${esc(label)}</button>`;
-    const title = nb.stage === "bin2dec" ? "המרה לעשרוני" : "המרה לבינארי";
+    const title = nb.stage === "bin2dec" ? "המרה לעשרוני" : "המרה לבינרי";
     return notebookWindow(nb, title, `<div class="bin-walkthrough">${body}</div>`, actions);
   }
 
