@@ -72,22 +72,22 @@
          x="943.15399"
          y="135.17786"
          id="tline1"
-         style="stroke-width:0.961525">נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה</tspan><tspan
+         style="stroke-width:0.961525">נכון. עם 10 ביטים אפשר לייצג 1024 מספרים שזה בערך</tspan><tspan
          x="943.15399"
          y="190.94632"
          id="tline2"
-         style="stroke-width:0.961525">בערך 1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם</tspan><tspan
+         style="stroke-width:0.961525">1000. לאחר מכן כל ביט מכפיל פי-2, לכן עם 15 ביטים</tspan><tspan
          x="943.15399"
          y="246.7148"
          id="tline3"
-         style="stroke-width:0.961525">15 ביטים אפשר לייצג בערך 32,000 מספרים, שזה</tspan><tspan
+         style="stroke-width:0.961525">אפשר לייצג בערך 32,000 מספרים, שזה עוד לא מספיק לנו.</tspan><tspan
          x="943.15399"
          y="302.48328"
          id="tline4"
-         style="stroke-width:0.961525">עוד לא מספיק לנו. אבל עם 16 ביטים אפשר לייצג</tspan><tspan
+         style="stroke-width:0.961525">אבל עם 16 ביטים אפשר לייצג 64,000 מספרים שזה כבר</tspan><tspan
          x="943.15399"
          y="358.25174"
          id="tline5"
-         style="stroke-width:0.961525">64,000 מספרים שזה כבר סבבה בינתיים.</tspan></text>
+         style="stroke-width:0.961525">סבבה בינתיים.</tspan></text>
   </g>
 </svg>
