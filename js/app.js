@@ -786,7 +786,11 @@
         outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
-      bounds: { left: 460, right: 460, top: 370, bottom: 300 }
+      // `top` covers the CONTROL TIP (150 above the frame's own top edge) plus its
+      // label — otherwise the card can sit high enough to push the control off the
+      // top of the board, and a wire to a frame pin above y=60 gets routed
+      // up-and-over instead of running straight.
+      bounds: { left: 460, right: 460, top: 480, bottom: 300 }
     };
 
     // The finished card. Like gate-Register it is SEQUENTIAL, but it holds a whole
@@ -12448,6 +12452,7 @@
   // ALU/adder cards sit at 640; the single-bit 2.5 cards (halfAdder/fullAdder)
   // build at 500 like the simple gates, so their walkthrough must line up there.
   function buildCardX(taskId) {
+    if (isRamTask(taskId)) return RAM_BUILD_CARD_X;
     return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
   }
   function aluBuildCardY(taskId) {
@@ -12464,6 +12469,10 @@
       // so the walkthrough's frame sits exactly where the learner's frame sat and
       // never appears to jump up when the solution opens.
       : (taskId === "Register4" || taskId === "Register") ? MEMORY_BUILD_CARD_Y
+      // The 3.3 RAM cards, likewise: the SAME y their build uses, so the tall
+      // frame does not jump up (and off the top of the board) when the solution
+      // opens over it.
+      : isRamTask(taskId) ? RAM_BUILD_CARD_Y
       : 288;
   }
   function workspaceFromSolutionDoc(doc) {
@@ -15222,7 +15231,7 @@
   // Sitting right of centre, it leaves the left of the board free for the
   // converters that dial a value and an address by hand.
   const RAM_BUILD_CARD_X = 780;
-  const RAM_BUILD_CARD_Y = 430;
+  const RAM_BUILD_CARD_Y = 490;
 
   function openRamTaskWorkspace(taskId) {
     const task = ramTaskDefById(taskId);

@@ -2699,7 +2699,7 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-Ram4",
       "x": 780,
-      "y": 430,
+      "y": 490,
       "frameW": 800,
       "frameH": 600,
       "pins": [
@@ -2782,37 +2782,37 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Register",
         "x": 820,
-        "y": 190
+        "y": 250
       },
       {
         "id": "mem-2",
         "type": "gate-Register",
         "x": 820,
-        "y": 350
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-Register",
         "x": 820,
-        "y": 510
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Register",
         "x": 820,
-        "y": 670
+        "y": 730
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 650,
-        "y": 230
+        "x": 630,
+        "y": 490
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 1010,
-        "y": 430
+        "x": 1030,
+        "y": 490
       }
     ],
     "wires": [
@@ -2893,7 +2893,7 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-Ram16",
       "x": 780,
-      "y": 430,
+      "y": 490,
       "frameW": 800,
       "frameH": 600,
       "pins": [
@@ -2976,31 +2976,31 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Ram4",
         "x": 820,
-        "y": 190
+        "y": 250
       },
       {
         "id": "mem-2",
         "type": "gate-Ram4",
         "x": 820,
-        "y": 350
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-Ram4",
         "x": 820,
-        "y": 510
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Ram4",
         "x": 820,
-        "y": 670
+        "y": 730
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 530,
-        "y": 340,
+        "y": 400,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3012,14 +3012,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 650,
-        "y": 230
+        "x": 630,
+        "y": 490
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 1010,
-        "y": 430
+        "x": 1030,
+        "y": 490
       }
     ],
     "wires": [
@@ -3120,7 +3120,7 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-Ram64",
       "x": 780,
-      "y": 430,
+      "y": 490,
       "frameW": 800,
       "frameH": 600,
       "pins": [
@@ -3203,31 +3203,31 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Ram16",
         "x": 820,
-        "y": 190
+        "y": 250
       },
       {
         "id": "mem-2",
         "type": "gate-Ram16",
         "x": 820,
-        "y": 350
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-Ram16",
         "x": 820,
-        "y": 510
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Ram16",
         "x": 820,
-        "y": 670
+        "y": 730
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 530,
-        "y": 340,
+        "y": 400,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3239,14 +3239,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 650,
-        "y": 230
+        "x": 630,
+        "y": 490
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 1010,
-        "y": 430
+        "x": 1030,
+        "y": 490
       }
     ],
     "wires": [
@@ -3347,7 +3347,7 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-Ram256",
       "x": 780,
-      "y": 430,
+      "y": 490,
       "frameW": 800,
       "frameH": 600,
       "pins": [
@@ -3430,31 +3430,31 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Ram64",
         "x": 820,
-        "y": 190
+        "y": 250
       },
       {
         "id": "mem-2",
         "type": "gate-Ram64",
         "x": 820,
-        "y": 350
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-Ram64",
         "x": 820,
-        "y": 510
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Ram64",
         "x": 820,
-        "y": 670
+        "y": 730
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 530,
-        "y": 340,
+        "y": 400,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3466,14 +3466,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 650,
-        "y": 230
+        "x": 630,
+        "y": 490
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 1010,
-        "y": 430
+        "x": 1030,
+        "y": 490
       }
     ],
     "wires": [
@@ -3574,7 +3574,7 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-Ram1024",
       "x": 780,
-      "y": 430,
+      "y": 490,
       "frameW": 800,
       "frameH": 600,
       "pins": [
@@ -3657,31 +3657,31 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Ram256",
         "x": 820,
-        "y": 190
+        "y": 250
       },
       {
         "id": "mem-2",
         "type": "gate-Ram256",
         "x": 820,
-        "y": 350
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-Ram256",
         "x": 820,
-        "y": 510
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Ram256",
         "x": 820,
-        "y": 670
+        "y": 730
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 530,
-        "y": 340,
+        "y": 400,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3693,14 +3693,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 650,
-        "y": 230
+        "x": 630,
+        "y": 490
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 1010,
-        "y": 430
+        "x": 1030,
+        "y": 490
       }
     ],
     "wires": [
