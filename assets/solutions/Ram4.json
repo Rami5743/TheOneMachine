@@ -89,25 +89,25 @@
       "id": "mem-1",
       "type": "gate-Register",
       "x": 740,
-      "y": 345
+      "y": 365
     },
     {
       "id": "mem-2",
       "type": "gate-Register",
-      "x": 740,
+      "x": 705,
       "y": 460
     },
     {
       "id": "mem-3",
       "type": "gate-Register",
-      "x": 740,
+      "x": 660,
       "y": 575
     },
     {
       "id": "mem-4",
       "type": "gate-Register",
-      "x": 740,
-      "y": 690
+      "x": 580,
+      "y": 685
     },
     {
       "id": "write-dmux",
@@ -130,7 +130,7 @@
     {
       "id": "addr-nail-2",
       "type": "nail",
-      "x": 320,
+      "x": 350,
       "y": 299
     },
     {

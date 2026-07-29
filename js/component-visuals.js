@@ -432,9 +432,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       ? "M-30 -60 L30 -22 L30 22 L-30 60 Z"
       : "M-30 -22 L30 -42 L30 42 L-30 22 Z";
     s += `<path class="wide-routing-body" d="${body}" />`;
+    // Just "MUX" / "DMUX" on the card, like the plain ones — the 4-way part is
+    // told by the four pins and the 2-bit control, not by the name.
     s += `<text class="wide-routing-label" x="${mux ? -2 : 2}" y="0">${mux ? "MUX" : "DMUX"}</text>`;
-    if (mux) s += `<text class="wide-routing-label wide-routing-label-small" x="-2" y="18">4x16</text>`;
-    else s += `<text class="wide-routing-label wide-routing-label-small" x="2" y="17">4Way</text>`;
     return `<g class="bus-gate">${s}</g>`;
   }
 
