@@ -207,13 +207,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const inX = -62;
     const outX = 66;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="5" text-anchor="middle" style="font-size:16px">Prep</text>`;
-    s += busPin(inX, -edge, 0);   // number bus in
-    s += busPin(edge, outX, 0);   // result bus out
+    // Pins FIRST, body over them, so a pin stops at the body's edge instead of
+    // running into it.
+    let s = busPin(inX, -edge, 0);   // number bus in
+    s += busPin(edge, outX, 0);      // result bus out
     // The width-2 control bus pokes out of the top edge toward its terminal —
-    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus.
+    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus, with its
+    // width labelled to the right of the bar like every other bus.
     s += busGateBarV(0, -bodyH / 2 + 4, -46);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // The control's width label goes AFTER the body, to the right of the stub, so
+    // the body cannot swallow it.
+    const ctrlFont = 13 * k();
+    s += `<text class="splitter-width-label" x="14" y="${-46 + Math.round(ctrlFont * 0.7)}" text-anchor="start" style="font-size:${ctrlFont}px">2</text>`;
+    const prepFont = labelFontSize("Prep", bodyW, 16);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(prepFont)}" text-anchor="middle" style="font-size:${prepFont}px">Prep</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -312,6 +320,20 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // the scale the caller renders at. Without this a pin thins out on the small
   // version while the bus bar next to it stays put.
   const pinStroke = () => 5 * k();
+
+  // A card's NAME should stay the size it reads at, even when the card itself is
+  // drawn small (0.6 past the simple-gate chapter) — shrinking the box shouldn't
+  // shrink the writing on it. So the font compensates for the render scale, but
+  // only as far as the name still sits comfortably inside the body: "Ram1024" on a
+  // 104-wide card cannot take the full compensation, so it takes what fits.
+  // (Arial bold runs at roughly 0.62 em per character.)
+  function labelFontSize(text, boxWidth, baseSize) {
+    const wanted = baseSize * k();
+    const room = (boxWidth - 14) / (0.62 * Math.max(1, String(text).length));
+    return Math.max(baseSize, Math.min(wanted, room));
+  }
+  // A label's baseline, so it stays vertically centred as its size changes.
+  const labelBaseline = (fontSize) => Math.round(fontSize * 0.35);
   function pinLine(x1, y1, x2, y2, cls = "usercard-pin") {
     return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke-width:${pinStroke()}" />`;
   }
@@ -366,7 +388,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 76;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">${width === 16 ? "Reg" : "Reg4"}</text>`;
+    const regName = width === 16 ? "Reg" : "Reg4";
+    const regFont = labelFontSize(regName, edge * 2, 17);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(regFont)}" text-anchor="middle" style="font-size:${regFont}px">${regName}</text>`;
     s += busPin(-62, -edge, 0);                  // data bus in (left)
     s += busPin(edge, 66, 0);                    // stored bus out (right)
     s += pinLine(0, -46, 0, -bodyH / 2);         // control (top)
@@ -384,7 +408,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 86;
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:16px">${esc(label)}</text>`;
+    const ramFont = labelFontSize(label, edge * 2, 16);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(ramFont)}" text-anchor="middle" style="font-size:${ramFont}px">${esc(label)}</text>`;
     s += bar(-74, -edge, -24, spec.addressWidth); // address bus in (upper left)
     s += bar(-74, -edge, 24, spec.width);         // data bus in (lower left)
     s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
@@ -411,8 +436,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const label = !options.toolbar;
     let s = "";
     if (mux) {
-      // Four data buses in on the wide left side, one bus out on the right.
-      MUX4_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, label); });
+      // Four data buses in on the wide left side, one bus out on the right. Their
+      // width labels go BESIDE the bars rather than above them — four bars this
+      // close together leave no room above each one.
+      const wfont = 13 * k();
+      MUX4_PIN_YS.forEach((y) => {
+        s += busGateBar({ x1: -62, x2: -30, y }, spec.width, false);
+        if (label) s += `<text class="splitter-width-label" x="-68" y="${y + Math.round(wfont * 0.35)}" text-anchor="end" style="font-size:${wfont}px">${spec.width}</text>`;
+      });
       s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, label);
     } else {
       // One cable in on the left, four out on the wide right side.
@@ -422,16 +453,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The 2-bit control bus enters the top and runs a little INTO the body, which
     // is drawn over it. The MUX's body is taller (its left side was stretched), so
     // its control starts higher to leave the same length of visible stub as the
-    // plain MUX has. The width label sits beside the middle of that stub.
+    // plain MUX has.
     const ctrlTip = mux ? -60 : -46;
     const ctrlEnd = mux ? -38 : -28;
     s += busGateBarV(0, ctrlTip, ctrlEnd);
-    if (label) s += `<text class="splitter-width-label" x="15" y="${Math.round((ctrlTip + ctrlEnd) / 2) + 4}">2</text>`;
-    // The body last, so it covers where the pins meet it.
+    // The body next, so it covers where the pins meet it...
     const body = mux
       ? "M-30 -60 L30 -22 L30 22 L-30 60 Z"
       : "M-30 -22 L30 -42 L30 42 L-30 22 Z";
     s += `<path class="wide-routing-body" d="${body}" />`;
+    // ...and the control's width label AFTER it, beside the visible part of the
+    // stub, so the body can never swallow it.
+    if (label) {
+      const cfont = 13 * k();
+      s += `<text class="splitter-width-label" x="14" y="${ctrlTip + Math.round(cfont * 0.7)}" text-anchor="start" style="font-size:${cfont}px">2</text>`;
+    }
     // Just "MUX" / "DMUX" on the card, like the plain ones — the 4-way part is
     // told by the four pins and the 2-bit control, not by the name.
     s += `<text class="wide-routing-label" x="${mux ? -2 : 2}" y="0">${mux ? "MUX" : "DMUX"}</text>`;
@@ -549,7 +585,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
         ${pinLine(0, -46, 0, -30)}
         ${pinLine(40, 0, 66, 0)}
         <rect class="usercard-body" x="-40" y="-30" width="80" height="60" rx="10" />
-        <text class="arith-gate-pin-letter" x="0" y="9" text-anchor="middle" style="font-size:26px">FF</text>
+        <text class="arith-gate-pin-letter" x="0" y="${labelBaseline(labelFontSize("FF", 80, 26))}" text-anchor="middle" style="font-size:${labelFontSize("FF", 80, 26)}px">FF</text>
       </g>`;
   }
 

@@ -747,7 +747,8 @@
       in5: { x: 0, y: -60, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
       out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
     },
-    bounds: { left: 64, right: 84, top: 76, bottom: 76 }
+    // `left` leaves room for the four width labels, which sit beside the bars.
+    bounds: { left: 96, right: 84, top: 76, bottom: 76 }
   };
 
   // ---- Chapter 3.3 RAM cards (Ram4 → Ram1024) --------------------------------
@@ -1583,16 +1584,11 @@
   const GATE_RENDER_SCALE = 0.6;
   function componentRenderScale(type) {
     const t = String(type || "");
-    // Past chapter 2.2 the schematic shrinks — gates AND the Nand itself.
     if (!t.startsWith("gate-") && t !== "nand") return 1;
-    // The clocked (sequential) table shows components at their ORIGINAL full size
-    // (there is plenty of room and only a couple of parts), so don't shrink there.
-    if (isClockedWorkspace()) return 1;
-    // A sequential card (3.1 memory, 3.3 RAM) is BUILT on such a table, so it must
-    // look the same size in its solution walkthrough — which runs on an ordinary
-    // workspace — as it does on the table the learner built it on.
-    const here = state.workspace?.taskId;
-    if (here && (isMemoryTask(here) || isRamTask(here))) return 1;
+    // The schematic shrinks part-way through part 2 (past the simple-gate chapter)
+    // and STAYS shrunk from there on — every later table, every solution
+    // walkthrough, the clocked tables of part 3 included. A card must not change
+    // size under the learner from one screen to the next.
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 

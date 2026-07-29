@@ -1251,7 +1251,9 @@ button { font: inherit; }
 /* A user-built card, drawn as a generic chip on the board and in the toolbar. */
 .usercard-body {
   fill: #f4e7cf;
-  stroke: #4a3b28;
+  /* Black, like the schematic symbols in assets/components — a card's border must
+     not change colour depending on which family drew it. */
+  stroke: #111;
   stroke-width: 4;
 }
 
