@@ -787,9 +787,9 @@
         // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
-        // Directly above the DMux4Way the solution puts inside this card, so the
-        // control drops straight in (the two layouts place it at slightly
-        // different x, hence the per-card value).
+        // Near the DMux4Way the solution puts inside this card. Its value comes
+        // from the hand-made solutions (RAM_TASKS.controlPinX), so the build frame
+        // and the walkthrough always agree.
         inputExt2: { x: ctrlX, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
         inputInt2: { x: ctrlX, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
         outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
@@ -15304,14 +15304,16 @@
     return gateComponentType(prev || "Register");
   }
 
-  // Where those four sit inside the frame — the same column the walkthrough uses,
-  // so the "place them for me" hint leads straight into the solution's picture.
+  // Where those four sit inside the frame: EXACTLY where the solution walkthrough
+  // puts them (the spots travel with the card, in RAM_TASKS.innerCardSpots), so
+  // the "place them for me" hint hands the learner the start of that very picture.
   function ramInnerCardPlacement(taskId) {
     const type = ramInnerCardType(taskId);
+    const spots = ramTaskDefById(taskId)?.innerCardSpots;
     return [0, 1, 2, 3].map((i) => ({
       id: `mem-${i + 1}`, type,
-      x: RAM_BUILD_CARD_X + 80,
-      y: RAM_BUILD_CARD_Y - 145 + i * 115
+      x: Array.isArray(spots?.[i]) ? spots[i][0] : RAM_BUILD_CARD_X + 80,
+      y: Array.isArray(spots?.[i]) ? spots[i][1] : RAM_BUILD_CARD_Y - 145 + i * 115
     }));
   }
 

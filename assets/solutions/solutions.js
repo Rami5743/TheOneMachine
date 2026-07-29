@@ -2737,7 +2737,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt2",
-          "x": -242,
+          "x": -217,
           "y": -370,
           "w": 1,
           "dir": "in",
@@ -2745,7 +2745,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt2",
-          "x": -242,
+          "x": -217,
           "y": -230,
           "w": 1,
           "dir": "out",
@@ -2824,7 +2824,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 355,
-        "y": 309
+        "y": 330
       },
       {
         "id": "addr-nail-3",
@@ -3048,7 +3048,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 259
+        "y": 280
       },
       {
         "id": "addr-nail-3",
@@ -3305,7 +3305,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 259
+        "y": 280
       },
       {
         "id": "addr-nail-3",
@@ -3562,7 +3562,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 259
+        "y": 280
       },
       {
         "id": "addr-nail-3",
@@ -3819,7 +3819,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 259
+        "y": 280
       },
       {
         "id": "addr-nail-3",
