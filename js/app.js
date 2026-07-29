@@ -724,10 +724,10 @@
     pins: {
       in1: { x: -62, y: 0, direction: "in", width: 1, label: "כניסת DMux4Way" },
       in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה של DMux4Way" },
-      out1: { x: 66, y: -45, direction: "out", width: 1, label: "יציאת DMux4Way 1" },
-      out2: { x: 66, y: -15, direction: "out", width: 1, label: "יציאת DMux4Way 2" },
-      out3: { x: 66, y: 15, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
-      out4: { x: 66, y: 45, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
+      out1: { x: 66, y: -30, direction: "out", width: 1, label: "יציאת DMux4Way 1" },
+      out2: { x: 66, y: -10, direction: "out", width: 1, label: "יציאת DMux4Way 2" },
+      out3: { x: 66, y: 10, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
+      out4: { x: 66, y: 30, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
@@ -740,14 +740,14 @@
     busWidth: 16,
     // Same geometry as the plain MUX, with four data buses in place of two.
     pins: {
-      in1: { x: -62, y: -45, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
-      in2: { x: -62, y: -15, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
-      in3: { x: -62, y: 15, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
-      in4: { x: -62, y: 45, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
-      in5: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
+      in1: { x: -62, y: -48, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
+      in2: { x: -62, y: -16, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
+      in3: { x: -62, y: 16, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
+      in4: { x: -62, y: 48, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
+      in5: { x: 0, y: -60, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
       out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 64, right: 84, top: 76, bottom: 76 }
   };
 
   // ---- Chapter 3.3 RAM cards (Ram4 → Ram1024) --------------------------------
@@ -808,10 +808,11 @@
       busWidth: 16,
       addressWidth: aw,
       slots: ramTask.slots,
+      // The address sits ABOVE the data, exactly as it does on the build frame.
       pins: {
-        in1: { x: -74, y: -24, direction: "in", width: 16, label: "כניסת הדאטה" },
+        in3: { x: -74, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
+        in1: { x: -74, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
         in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
-        in3: { x: -74, y: 24, direction: "in", width: aw, label: "כניסת הכתובת" },
         out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
       },
       bounds: { left: 76, right: 96, top: 72, bottom: 56 }
@@ -1587,6 +1588,11 @@
     // The clocked (sequential) table shows components at their ORIGINAL full size
     // (there is plenty of room and only a couple of parts), so don't shrink there.
     if (isClockedWorkspace()) return 1;
+    // A sequential card (3.1 memory, 3.3 RAM) is BUILT on such a table, so it must
+    // look the same size in its solution walkthrough — which runs on an ordinary
+    // workspace — as it does on the table the learner built it on.
+    const here = state.workspace?.taskId;
+    if (here && (isMemoryTask(here) || isRamTask(here))) return 1;
     return isPastSimpleGatesChapter() ? GATE_RENDER_SCALE : 1;
   }
 

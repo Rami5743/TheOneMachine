@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>עורך פתרונות — המכונה האחת</title>
 <!-- Reuse the game's own component styling + markup so the editor looks identical -->
-<link rel="stylesheet" href="css/styles.css?v=v162-teaser-shift-1" />
-<script src="js/component-visuals.js?v=v104-wide-mux-shape-1"></script>
+<link rel="stylesheet" href="css/styles.css?v=v163-wide-routing-1" />
+<script src="js/component-visuals.js?v=v106-ram-pin-order-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
 <script src="assets/solutions/solutions.js?v=v24-ram-layout-1"></script>
 <style>
@@ -154,16 +154,16 @@ const PINS = {
   "gate-Register4":{ in1:{x:-62,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
   "gate-Register":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   // 3.3 RAM: data in (upper left), address in (lower left), control on top.
-  "gate-Ram4":{ in1:{x:-74,y:-24,w:16}, in2:{x:0,y:-56,w:1}, in3:{x:-74,y:24,w:2}, out:{x:78,y:0,w:16} },
-  "gate-Ram16":{ in1:{x:-74,y:-24,w:16}, in2:{x:0,y:-56,w:1}, in3:{x:-74,y:24,w:4}, out:{x:78,y:0,w:16} },
-  "gate-Ram64":{ in1:{x:-74,y:-24,w:16}, in2:{x:0,y:-56,w:1}, in3:{x:-74,y:24,w:6}, out:{x:78,y:0,w:16} },
-  "gate-Ram256":{ in1:{x:-74,y:-24,w:16}, in2:{x:0,y:-56,w:1}, in3:{x:-74,y:24,w:8}, out:{x:78,y:0,w:16} },
-  "gate-Ram1024":{ in1:{x:-74,y:-24,w:16}, in2:{x:0,y:-56,w:1}, in3:{x:-74,y:24,w:10}, out:{x:78,y:0,w:16} },
+  "gate-Ram4":{ in3:{x:-74,y:-24,w:2}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-Ram16":{ in3:{x:-74,y:-24,w:4}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-Ram64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-Ram256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-Ram1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
   "gate-Dmux4way":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:2},
-    out1:{x:66,y:-45,w:1}, out2:{x:66,y:-15,w:1}, out3:{x:66,y:15,w:1}, out4:{x:66,y:45,w:1} },
-  "gate-Mux4way16":{ in1:{x:-62,y:-45,w:16}, in2:{x:-62,y:-15,w:16}, in3:{x:-62,y:15,w:16}, in4:{x:-62,y:45,w:16},
-    in5:{x:0,y:-46,w:2}, out:{x:66,y:0,w:16} }
+    out1:{x:66,y:-30,w:1}, out2:{x:66,y:-10,w:1}, out3:{x:66,y:10,w:1}, out4:{x:66,y:30,w:1} },
+  "gate-Mux4way16":{ in1:{x:-62,y:-48,w:16}, in2:{x:-62,y:-16,w:16}, in3:{x:-62,y:16,w:16}, in4:{x:-62,y:48,w:16},
+    in5:{x:0,y:-60,w:2}, out:{x:66,y:0,w:16} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
@@ -172,7 +172,16 @@ const PINS = {
 // still met the 0.6-scaled pins, so cables landed inside oversized bodies.
 // Splitters, the source and the task-card frame keep scale 1, exactly as the game.
 const GATE_RENDER_SCALE = 0.6;
-function edScale(type){ const t=String(type||""); return (t.startsWith("gate-")||t==="nand") ? GATE_RENDER_SCALE : 1; }
+// ...EXCEPT the sequential cards (3.1 memory, 3.3 RAM): they are built on a
+// clocked table, which never shrinks, so the game draws them full size — and this
+// editor has to match the workbench.
+const FULL_SIZE_TASK = /^(Register4|Register|Ram\d+)$/;
+function edScale(type){
+  const t=String(type||"");
+  if (!(t.startsWith("gate-")||t==="nand")) return 1;
+  if (typeof doc === "object" && doc && FULL_SIZE_TASK.test(String(doc.task||""))) return 1;
+  return GATE_RENDER_SCALE;
+}
 function pinOffset(comp, pinId) {
   if (comp.__frame) { const p=(doc.frame.pins||[]).find(pp=>pp.id===pinId); return p?{x:p.x,y:p.y,w:p.w}:null; }
   if (comp.type === "splitter") return splitterPin(comp, pinId);

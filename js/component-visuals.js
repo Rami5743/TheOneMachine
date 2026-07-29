@@ -374,45 +374,68 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   }
 
   // A placeable RAM card (gate-Ram4 …): a wider labelled box than the register —
-  // the name has to fit up to "Ram1024" — with the data bus in on the upper left,
-  // the address bus in on the lower left, the control stub on top and the data bus
-  // out on the right. The address bar is drawn at ITS width, so the card shows at
-  // a glance how many address lines it takes.
+  // the name has to fit up to "Ram1024" — with the address bus in on the upper left,
+  // the address bus in on the UPPER left and the data bus below it (the same order
+  // as the build frame), the control stub on top and the data bus out on the
+  // right. The address bar is drawn at ITS width, so the card shows at a glance
+  // how many address lines it takes.
   function ramGateMarkup(spec, label, options = {}) {
     const edge = 52;
     const bodyH = 86;
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:16px">${esc(label)}</text>`;
-    s += bar(-74, -edge, -24, spec.width);       // data bus in (upper left)
-    s += bar(-74, -edge, 24, spec.addressWidth); // address bus in (lower left)
+    s += bar(-74, -edge, -24, spec.addressWidth); // address bus in (upper left)
+    s += bar(-74, -edge, 24, spec.width);         // data bus in (lower left)
     s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
     s += pinLine(0, -56, 0, -bodyH / 2);         // control (top)
     return `<g class="usercard">${s}</g>`;
   }
 
-  // The finished wide-routing cards (DMux4Way / Mux4Way16): the SAME trapezoid
-  // symbol and the same size as the plain MUX / DMUX they generalise — only the
-  // fanning side carries four pins instead of two, bunched closer together to fit
-  // the same body, and the control on top is a 2-bit bus rather than one wire.
-  const WIDE_ROUTING_PIN_YS = [-45, -15, 15, 45];
+  // The finished wide-routing cards (DMux4Way / Mux4Way16). Same trapezoid and
+  // very nearly the same size as the plain MUX / DMUX they generalise, but drawn
+  // HERE rather than borrowed from the symbol file: that file draws its own two
+  // pin stubs, which would show through beside the four these cards need.
+  //
+  // Order matters — the pins are drawn FIRST and the body over them, so a pin
+  // stops at the body's edge instead of running into it.
+  //
+  // The MUX takes its four buses on the wide LEFT side, so that side is stretched
+  // (±60 instead of ±42) to hold them and their width labels; the DMUX fans out on
+  // the wide RIGHT side, and its four are single cables, so they only need
+  // bunching (±30/±10) and the body keeps the plain DMUX's size.
+  const MUX4_PIN_YS = [-48, -16, 16, 48];
+  const DMUX4_PIN_YS = [-30, -10, 10, 30];
   function wideRoutingGateMarkup(spec, options = {}) {
     const mux = spec.kind === "mux4way16";
-    const symbol = gateMarkup({ id: mux ? "Mux" : "DMux" });
+    const label = !options.toolbar;
     let s = "";
     if (mux) {
-      // Four data buses in on the left, one bus out on the right.
-      WIDE_ROUTING_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, false); });
-      s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, !options.toolbar);
+      // Four data buses in on the wide left side, one bus out on the right.
+      MUX4_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, label); });
+      s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, label);
     } else {
-      // One cable in on the left, four out on the right.
+      // One cable in on the left, four out on the wide right side.
       s += pinLine(-62, 0, -30, 0);
-      WIDE_ROUTING_PIN_YS.forEach((y) => { s += pinLine(30, y, 66, y); });
+      DMUX4_PIN_YS.forEach((y) => { s += pinLine(30, y, 66, y); });
     }
-    // The 2-bit control bus enters the top, over the symbol's own thin stub.
-    s += busGateBarV(0, -46, -26);
-    if (!options.toolbar) s += `<text class="splitter-width-label" x="22" y="-48">2</text>`;
-    return `<g class="bus-gate">${symbol}${s}</g>`;
+    // The 2-bit control bus enters the top and runs a little INTO the body, which
+    // is drawn over it. The MUX's body is taller (its left side was stretched), so
+    // its control starts higher to leave the same length of visible stub as the
+    // plain MUX has. The width label sits beside the middle of that stub.
+    const ctrlTip = mux ? -60 : -46;
+    const ctrlEnd = mux ? -38 : -28;
+    s += busGateBarV(0, ctrlTip, ctrlEnd);
+    if (label) s += `<text class="splitter-width-label" x="15" y="${Math.round((ctrlTip + ctrlEnd) / 2) + 4}">2</text>`;
+    // The body last, so it covers where the pins meet it.
+    const body = mux
+      ? "M-30 -60 L30 -22 L30 22 L-30 60 Z"
+      : "M-30 -22 L30 -42 L30 42 L-30 22 Z";
+    s += `<path class="wide-routing-body" d="${body}" />`;
+    s += `<text class="wide-routing-label" x="${mux ? -2 : 2}" y="0">${mux ? "MUX" : "DMUX"}</text>`;
+    if (mux) s += `<text class="wide-routing-label wide-routing-label-small" x="-2" y="18">4x16</text>`;
+    else s += `<text class="wide-routing-label wide-routing-label-small" x="2" y="17">4Way</text>`;
+    return `<g class="bus-gate">${s}</g>`;
   }
 
   function busGateMarkup(spec, options = {}) {

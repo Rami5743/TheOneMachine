@@ -1687,6 +1687,16 @@ g.component-ffCard.ff-materialize .ff-card {
   pointer-events: none;
 }
 
+/* The wide-routing cards (DMux4Way / Mux4Way16) are drawn in code rather than
+   borrowed from a symbol file, so their trapezoid body and label live here — the
+   same look as the plain MUX/DMUX symbols in assets/components. */
+.wide-routing-body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+.wide-routing-label {
+  fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 13px;
+  dominant-baseline: middle; text-anchor: middle;
+}
+.wide-routing-label-small { font-size: 10px; font-weight: 800; }
+
 /* --- Splitter (2.4) ------------------------------------------------------- */
 .splitter-hit { pointer-events: all; }
 .splitter-bar { fill: #111; stroke: none; }
