@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -485,7 +485,24 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         if (type === "converter-in") continue; // a display sink — no output
 
         if (type.startsWith("gate-")) {
-          // A placeable RAM gate (gate-RAM4 …) is sequential for WRITING only:
+          // A placeable WIDE-ROUTING gate (gate-Dmux4way / gate-Mux4way16): the
+          // 2-bit control bus (low wire = the 1s) picks one of four.
+          const wide = typeof wideRoutingGateSpec === "function" ? wideRoutingGateSpec(type) : null;
+          if (wide && wide.kind === "mux4way16") {
+            const sel = bitsToIndex(inputBits(workspace, `${component.id}.in5`, outputs), 2);
+            const vec = fitBits(inputBits(workspace, `${component.id}.in${sel + 1}`, outputs), wide.width);
+            if (setBits(outputs, `${component.id}.out`, vec)) changed = true;
+            continue;
+          }
+          if (wide && wide.kind === "dmux4way") {
+            const sel = bitsToIndex(inputBits(workspace, `${component.id}.in2`, outputs), 2);
+            const data = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
+            for (let k = 0; k < 4; k += 1) {
+              if (setBits(outputs, `${component.id}.out${k + 1}`, [k === sel && data])) changed = true;
+            }
+            continue;
+          }
+          // A placeable RAM gate (gate-Ram4 …) is sequential for WRITING only:
           // reading is combinational, so its output is recomputed here from the
           // address it sees this tick and the bank it carried in from `prev`.
           const ramHere = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;

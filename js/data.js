@@ -1064,7 +1064,7 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "Chapter 3.3 RAM worktable: the same click-zones as panel135, but the tasks note opens the RAM list (RAM4 → RAM1024). None of those is implemented yet, so a tapped card answers 'המשך יבוא...'. The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback used until that message arrives.",
+        "comment": "Chapter 3.3 RAM worktable: the same click-zones as panel135, but the tasks note opens the RAM list (Ram4 → Ram1024). None of those is implemented yet, so a tapped card answers 'המשך יבוא...'. The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback used until that message arrives.",
         "image": "assets/panels/panel141_chapter_3_3_ram_worktable.svg",
         "year": "1943",
         "read": "",

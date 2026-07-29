@@ -707,7 +707,47 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 50 }
   };
 
-  // ---- Chapter 3.3 RAM cards (RAM4 → RAM1024) --------------------------------
+  // ---- The finished wide-routing cards (2.4): DMux4Way & Mux4Way16 ----------
+  // Until now these two were buildable but never became cards, so a later build
+  // had to re-assemble them out of plain DMux/MUX16 every time. Both take a 2-bit
+  // control bus on TOP that picks one of four: the DMux4Way routes its single
+  // input to one of four outputs (the rest 0), the Mux4Way16 passes one of four
+  // 16-bit buses to its output. The control value v is read as v&1 on the low
+  // wire and v>>1 on the high one — the same order the cards' own check uses.
+  WORKSPACE_COMPONENT_DEFS["gate-Dmux4way"] = {
+    label: "DMux4Way",
+    taskId: "Dmux4way",
+    gate: true,
+    wideRoutingGate: "dmux4way",
+    pins: {
+      in1: { x: -74, y: 0, direction: "in", width: 1, label: "כניסת DMux4Way" },
+      in2: { x: 0, y: -104, direction: "in", width: 2, label: "כניסת הבקרה של DMux4Way" },
+      out1: { x: 78, y: -60, direction: "out", width: 1, label: "יציאת DMux4Way 1" },
+      out2: { x: 78, y: -20, direction: "out", width: 1, label: "יציאת DMux4Way 2" },
+      out3: { x: 78, y: 20, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
+      out4: { x: 78, y: 60, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
+    },
+    bounds: { left: 76, right: 96, top: 118, bottom: 86 }
+  };
+
+  WORKSPACE_COMPONENT_DEFS["gate-Mux4way16"] = {
+    label: "Mux4Way16",
+    taskId: "Mux4way16",
+    gate: true,
+    wideRoutingGate: "mux4way16",
+    busWidth: 16,
+    pins: {
+      in1: { x: -74, y: -60, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
+      in2: { x: -74, y: -20, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
+      in3: { x: -74, y: 20, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
+      in4: { x: -74, y: 60, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
+      in5: { x: 0, y: -104, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
+      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
+    },
+    bounds: { left: 76, right: 96, top: 118, bottom: 86 }
+  };
+
+  // ---- Chapter 3.3 RAM cards (Ram4 → Ram1024) --------------------------------
   // Every size has the SAME shape: a width-16 data bus in (left, upper), an
   // address bus in (left, lower) whose width grows with the size, a single-wire
   // control poking out the top, and a width-16 data bus out (right). Only the
@@ -1595,7 +1635,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -1927,7 +1967,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, savedCardMarkup });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
@@ -1975,7 +2015,10 @@
 
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
-  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+  const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById,
+    // The palette names a tool from its task def; the wide-routing cards (2.4)
+    // live in MULTIBIT_TASKS, so the lookup falls through to there as well.
+    busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -2925,6 +2968,8 @@
     { chapter: "chapter-5", ids: () => TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-6", ids: () => ROUTING_TASK_DEFS.map((t) => t.id) },
     { chapter: "chapter-7", ids: () => BUS_TASK_DEFS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The wide-routing cards belong to the same 2.4 note as the bus cards.
+    { chapter: "chapter-7", ids: () => MULTIBIT_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-11", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
@@ -5237,6 +5282,240 @@
             wireKey("task-card-1.inputInt2", "reg-3.in2"),
             wireKey("task-card-1.inputInt2", "reg-4.in2")
           ]
+        }
+      }
+    ],
+    Ram4: [
+      {
+        text: "כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
+        }
+      },
+      {
+        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. בס הכתובת משמש בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
+        highlight: {
+          components: ["write-dmux"],
+          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
+          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("task-card-1.inputInt3", "write-dmux.in2")]
+        }
+      },
+      {
+        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של רגיסטר אחר. כך, כשהבקרה 1, נכתב רק הרגיסטר שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
+        highlight: {
+          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
+          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
+        }
+      },
+      {
+        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
+        highlight: {
+          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
+          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("task-card-1.inputInt3", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    Ram16: [
+      {
+        text: "ה-Ram16 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram4 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (4 ביטים) לשניים: 2 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3", "addr-split.single"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+        }
+      },
+      {
+        text: "2 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram4 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
+          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
+        }
+      },
+      {
+        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
+        }
+      },
+      {
+        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
+        highlight: {
+          components: ["write-dmux"],
+          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
+          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
+        }
+      },
+      {
+        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
+        highlight: {
+          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
+          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
+        }
+      },
+      {
+        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
+        highlight: {
+          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
+          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    Ram64: [
+      {
+        text: "ה-Ram64 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram16 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (6 ביטים) לשניים: 4 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3", "addr-split.single"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+        }
+      },
+      {
+        text: "4 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram16 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
+          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
+        }
+      },
+      {
+        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
+        }
+      },
+      {
+        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
+        highlight: {
+          components: ["write-dmux"],
+          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
+          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
+        }
+      },
+      {
+        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
+        highlight: {
+          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
+          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
+        }
+      },
+      {
+        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
+        highlight: {
+          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
+          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    Ram256: [
+      {
+        text: "ה-Ram256 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram64 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (8 ביטים) לשניים: 6 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3", "addr-split.single"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+        }
+      },
+      {
+        text: "6 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram64 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
+          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
+        }
+      },
+      {
+        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
+        }
+      },
+      {
+        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
+        highlight: {
+          components: ["write-dmux"],
+          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
+          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
+        }
+      },
+      {
+        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
+        highlight: {
+          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
+          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
+        }
+      },
+      {
+        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
+        highlight: {
+          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
+          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    Ram1024: [
+      {
+        text: "ה-Ram1024 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram256 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (10 ביטים) לשניים: 8 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3", "addr-split.single"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+        }
+      },
+      {
+        text: "8 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram256 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
+          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
+        }
+      },
+      {
+        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
+        }
+      },
+      {
+        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
+        highlight: {
+          components: ["write-dmux"],
+          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
+          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
+        }
+      },
+      {
+        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
+        highlight: {
+          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
+          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
+        }
+      },
+      {
+        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
+        highlight: {
+          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
+          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
         }
       }
     ],
@@ -12078,7 +12357,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "Ram4", "Ram16", "Ram64", "Ram256", "Ram1024"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -12910,7 +13189,7 @@
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
   }
 
-  // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
+  // --- Chapter 3.3 RAM check (Ram4 … Ram1024) --------------------------------
   // Same idea as the memory check, one dimension wider: write a distinct value to
   // each of several addresses, then read them all back. Which address maps to
   // which register is the learner's own choice (the requirements say so), so the
@@ -12922,7 +13201,7 @@
   }
 
   // The addresses the check exercises: the first four and the last four of the
-  // bank (all four for RAM4), so both the low address bits and the high ones have
+  // bank (all four for Ram4), so both the low address bits and the high ones have
   // to be routed correctly. Distinct, in a fixed order.
   function ramTestAddresses(taskId) {
     const slots = ramTaskDefById(taskId)?.slots || 4;
@@ -13268,10 +13547,10 @@
   // so "01" (v=1) selects the second output/input, "10" (v=2) the third, etc.,
   // matching the requirement text.
   function multibitTaskCases(taskId) {
-    // Memory cards are CLOCKED — they are checked by runMemoryTest (a sequence of
-    // drives over several ticks), never by combinational cases, so they legitimately
-    // carry no check.cases in their JSON.
-    if (isMemoryTask(taskId)) return [];
+      // Memory and RAM cards are CLOCKED — they are checked by runMemoryTest /
+    // runRamTest (a sequence of drives over several ticks), never by combinational
+    // cases, so they legitimately carry no check.cases in their JSON.
+    if (isMemoryTask(taskId) || isRamTask(taskId)) return [];
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -14010,7 +14289,14 @@
     const multibit = Boolean(multibitTaskDefById(taskId));
     const arith = isArithTask(taskId);
     const alu = isAluTask(taskId);
-    const chapter = alu ? chapterById("chapter-9")
+    // The memory cards (3.1) and the RAM cards (3.3) are multibit-shaped, so they
+    // must be matched BEFORE the bus/multibit branch or they would replay under
+    // the 2.4 chapter heading.
+    const ram = isRamTask(taskId);
+    const memory = isMemoryTask(taskId);
+    const chapter = ram ? chapterById("chapter-12")
+      : memory ? chapterById("chapter-11")
+      : alu ? chapterById("chapter-9")
       : arith ? chapterById("chapter-8")
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
@@ -14897,7 +15183,7 @@
   }
 
   // --- Chapter 3.3 RAM note ---------------------------------------------------
-  // The 3.3 worktable note (RAM4 → RAM1024). The cards are strictly ordered:
+  // The 3.3 worktable note (Ram4 → Ram1024). The cards are strictly ordered:
   // each size is built out of four of the previous one, and its frame arrives with
   // those four cards already inside.
   function ramTaskDefs() {
@@ -17036,7 +17322,16 @@
     return { width: def.busWidth };
   }
 
-  // A placeable RAM gate (gate-RAM4 …): a BANK of `slots` width-N values. The
+  // A placeable WIDE-ROUTING gate (gate-Dmux4way / gate-Mux4way16): a 2-bit
+  // control bus picks one of four. Combinational; the behaviour lives in the
+  // wide-routing branch of circuit-engine.js, keyed on the kind.
+  function wideRoutingGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.wideRoutingGate) return null;
+    return { kind: def.wideRoutingGate, width: def.busWidth || 1 };
+  }
+
+  // A placeable RAM gate (gate-Ram4 …): a BANK of `slots` width-N values. The
   // address bus (in3) picks the cell; reading it is combinational (the addressed
   // cell appears on the output right away) while writing waits for the clock —
   // control (in2) high stores the data bus (in1) into the addressed cell.

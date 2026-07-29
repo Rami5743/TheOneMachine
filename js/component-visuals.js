@@ -12,7 +12,7 @@
 // createComponentVisuals(deps) -> { componentSvgFilenameForType, componentMarkup,
 //                                   smokeMarkup, charredNandMarkup }
 
-function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, savedCardMarkup }) {
+function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup }) {
   function componentSvgImage(filename, x, y, width, height) {
     const href = `assets/components/${filename}`;
     return `<image class="component-svg" href="${esc(href)}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>`;
@@ -363,8 +363,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // A placeable RAM card (gate-RAM4 …): a wider labelled box than the register —
-  // the name has to fit up to "RAM1024" — with the data bus in on the upper left,
+  // A placeable RAM card (gate-Ram4 …): a wider labelled box than the register —
+  // the name has to fit up to "Ram1024" — with the data bus in on the upper left,
   // the address bus in on the lower left, the control stub on top and the data bus
   // out on the right. The address bar is drawn at ITS width, so the card shows at
   // a glance how many address lines it takes.
@@ -378,6 +378,32 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += bar(-74, -edge, 24, spec.addressWidth); // address bus in (lower left)
     s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
     s += `<line class="usercard-pin" x1="0" y1="-56" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The finished wide-routing cards (DMux4Way / Mux4Way16): a labelled box with
+  // the 2-bit control stub on top, and four pins on whichever side does the
+  // fanning — inputs for the MUX, outputs for the DMUX.
+  function wideRoutingGateMarkup(spec, label, options = {}) {
+    const edge = 46;
+    const bodyH = 156;
+    const mux = spec.kind === "mux4way16";
+    const bar = (x1, x2, y, width) => (width > 1
+      ? busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar)
+      : `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`);
+    // The name is split over two lines — "Mux4Way16" is far too long for a box
+    // this narrow on one.
+    const [line1, line2] = mux ? ["Mux4Way", "16"] : ["DMux", "4Way"];
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="-4" text-anchor="middle" style="font-size:15px">${esc(line1)}</text>`;
+    s += `<text class="arith-gate-pin-letter" x="0" y="16" text-anchor="middle" style="font-size:15px">${esc(line2)}</text>`;
+    for (const y of [-60, -20, 20, 60]) {
+      s += mux ? bar(-74, -edge, y, spec.width) : bar(edge, 78, y, 1);
+    }
+    s += mux ? bar(edge, 78, 0, spec.width) : bar(-74, -edge, 0, 1);
+    // The 2-bit control bus enters the top.
+    s += busGateBarV(0, -104, -bodyH / 2);
+    if (!options.toolbar) s += `<text class="splitter-width-label" x="24" y="-92">2</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -412,6 +438,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The finished wide-routing cards (2.4).
+      const wide = typeof wideRoutingGateSpec === "function" ? wideRoutingGateSpec(type) : null;
+      if (wide) return wideRoutingGateMarkup(wide, type === "gate-Mux4way16" ? "Mux4Way16" : "DMux4Way", options);
       // The placeable RAM cards (3.3), drawn from their own spec.
       const ram = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
       if (ram) return ramGateMarkup(ram, type.slice(5), options);

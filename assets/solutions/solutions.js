@@ -2690,5 +2690,1107 @@ window.EMBEDDED_SOLUTIONS = {
     "check": {
       "note": "כרטיס מתוזמן: אין טבלת אמת. מזינים ערכים לאורך כמה פעימות שעון ובודקים שהיציאה משקפת את הערך השמור (בקרה=1 כותב, בקרה=0 שומר)."
     }
+  },
+  "Ram4": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Ram4",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Ram4",
+      "x": 780,
+      "y": 430,
+      "frameW": 800,
+      "frameH": 600,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -90,
+          "w": 2,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -90,
+          "w": 2,
+          "dir": "out",
+          "label": "כניסת הכתובת פנימית"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הדאטה פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -300,
+          "y": -370,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -300,
+          "y": -230,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת הבקרה פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאה פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 110,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Register",
+        "x": 820,
+        "y": 190
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Register",
+        "x": 820,
+        "y": 350
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Register",
+        "x": 820,
+        "y": 510
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Register",
+        "x": 820,
+        "y": 670
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 650,
+        "y": 230
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 1010,
+        "y": 430
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
+    }
+  },
+  "Ram16": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Ram16",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Ram16",
+      "x": 780,
+      "y": 430,
+      "frameW": 800,
+      "frameH": 600,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -90,
+          "w": 4,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -90,
+          "w": 4,
+          "dir": "out",
+          "label": "כניסת הכתובת פנימית"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הדאטה פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -300,
+          "y": -370,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -300,
+          "y": -230,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת הבקרה פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאה פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 110,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Ram4",
+        "x": 820,
+        "y": 190
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Ram4",
+        "x": 820,
+        "y": 350
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Ram4",
+        "x": 820,
+        "y": 510
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Ram4",
+        "x": 820,
+        "y": 670
+      },
+      {
+        "id": "addr-split",
+        "type": "splitter",
+        "x": 530,
+        "y": 340,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          2,
+          2
+        ],
+        "singleWidth": 4
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 650,
+        "y": 230
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 1010,
+        "y": 430
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-split.single"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-1.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-2.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-3.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-4.in3"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
+    }
+  },
+  "Ram64": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Ram64",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Ram64",
+      "x": 780,
+      "y": 430,
+      "frameW": 800,
+      "frameH": 600,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -90,
+          "w": 6,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -90,
+          "w": 6,
+          "dir": "out",
+          "label": "כניסת הכתובת פנימית"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הדאטה פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -300,
+          "y": -370,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -300,
+          "y": -230,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת הבקרה פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאה פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 110,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Ram16",
+        "x": 820,
+        "y": 190
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Ram16",
+        "x": 820,
+        "y": 350
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Ram16",
+        "x": 820,
+        "y": 510
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Ram16",
+        "x": 820,
+        "y": 670
+      },
+      {
+        "id": "addr-split",
+        "type": "splitter",
+        "x": 530,
+        "y": 340,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          4,
+          2
+        ],
+        "singleWidth": 6
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 650,
+        "y": 230
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 1010,
+        "y": 430
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-split.single"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-1.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-2.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-3.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-4.in3"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
+    }
+  },
+  "Ram256": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Ram256",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Ram256",
+      "x": 780,
+      "y": 430,
+      "frameW": 800,
+      "frameH": 600,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -90,
+          "w": 8,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -90,
+          "w": 8,
+          "dir": "out",
+          "label": "כניסת הכתובת פנימית"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הדאטה פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -300,
+          "y": -370,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -300,
+          "y": -230,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת הבקרה פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאה פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 110,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Ram64",
+        "x": 820,
+        "y": 190
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Ram64",
+        "x": 820,
+        "y": 350
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Ram64",
+        "x": 820,
+        "y": 510
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Ram64",
+        "x": 820,
+        "y": 670
+      },
+      {
+        "id": "addr-split",
+        "type": "splitter",
+        "x": 530,
+        "y": 340,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          6,
+          2
+        ],
+        "singleWidth": 8
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 650,
+        "y": 230
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 1010,
+        "y": 430
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-split.single"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-1.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-2.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-3.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-4.in3"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
+    }
+  },
+  "Ram1024": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Ram1024",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Ram1024",
+      "x": 780,
+      "y": 430,
+      "frameW": 800,
+      "frameH": 600,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -90,
+          "w": 10,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -90,
+          "w": 10,
+          "dir": "out",
+          "label": "כניסת הכתובת פנימית"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 90,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 90,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הדאטה פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -300,
+          "y": -370,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -300,
+          "y": -230,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת הבקרה פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאה פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 110,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Ram256",
+        "x": 820,
+        "y": 190
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Ram256",
+        "x": 820,
+        "y": 350
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Ram256",
+        "x": 820,
+        "y": 510
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Ram256",
+        "x": 820,
+        "y": 670
+      },
+      {
+        "id": "addr-split",
+        "type": "splitter",
+        "x": 530,
+        "y": 340,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          8,
+          2
+        ],
+        "singleWidth": 10
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 650,
+        "y": 230
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 1010,
+        "y": 430
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-split.single"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "addr-split.leg1",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-1.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-2.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-3.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "addr-split.leg0",
+        "b": "mem-4.in3"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
+    }
   }
 };
