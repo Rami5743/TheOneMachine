@@ -2699,14 +2699,14 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-RAM4",
       "x": 660,
-      "y": 490,
+      "y": 440,
       "frameW": 800,
-      "frameH": 600,
+      "frameH": 560,
       "pins": [
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -90,
+          "y": -70,
           "w": 2,
           "dir": "in",
           "label": "כניסת הכתובת"
@@ -2714,7 +2714,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -90,
+          "y": -70,
           "w": 2,
           "dir": "out",
           "label": "כניסת הכתובת פנימית"
@@ -2722,7 +2722,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -460,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "in",
           "label": "כניסת הדאטה"
@@ -2730,7 +2730,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt1",
           "x": -340,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "out",
           "label": "כניסת הדאטה פנימית"
@@ -2738,7 +2738,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt2",
           "x": -217,
-          "y": -370,
+          "y": -350,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -2746,7 +2746,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt2",
           "x": -217,
-          "y": -230,
+          "y": -210,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -2754,7 +2754,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 340,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "in",
           "label": "יציאה פנימית"
@@ -2762,7 +2762,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 460,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "out",
           "label": "יציאה"
@@ -2782,55 +2782,55 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-Register",
         "x": 740,
-        "y": 365
+        "y": 335
       },
       {
         "id": "mem-2",
         "type": "gate-Register",
         "x": 695,
-        "y": 460
+        "y": 430
       },
       {
         "id": "mem-3",
         "type": "gate-Register",
         "x": 630,
-        "y": 570
+        "y": 540
       },
       {
         "id": "mem-4",
         "type": "gate-Register",
         "x": 525,
-        "y": 675
+        "y": 645
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 355
+        "y": 325
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
         "x": 905,
-        "y": 490
+        "y": 460
       },
       {
         "id": "addr-nail-1",
         "type": "nail",
         "x": 320,
-        "y": 210
+        "y": 180
       },
       {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 355,
-        "y": 330
+        "y": 300
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
-        "y": 210
+        "y": 180
       }
     ],
     "wires": [
@@ -2923,14 +2923,14 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-RAM16",
       "x": 660,
-      "y": 490,
+      "y": 440,
       "frameW": 800,
-      "frameH": 600,
+      "frameH": 560,
       "pins": [
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -90,
+          "y": -70,
           "w": 4,
           "dir": "in",
           "label": "כניסת הכתובת"
@@ -2938,7 +2938,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -90,
+          "y": -70,
           "w": 4,
           "dir": "out",
           "label": "כניסת הכתובת פנימית"
@@ -2946,7 +2946,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -460,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "in",
           "label": "כניסת הדאטה"
@@ -2954,7 +2954,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt1",
           "x": -340,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "out",
           "label": "כניסת הדאטה פנימית"
@@ -2962,7 +2962,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt2",
           "x": -217,
-          "y": -370,
+          "y": -350,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -2970,7 +2970,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt2",
           "x": -217,
-          "y": -230,
+          "y": -210,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -2978,7 +2978,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 340,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "in",
           "label": "יציאה פנימית"
@@ -2986,7 +2986,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 460,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "out",
           "label": "יציאה"
@@ -3006,61 +3006,61 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-RAM4",
         "x": 740,
-        "y": 320
+        "y": 290
       },
       {
         "id": "mem-2",
         "type": "gate-RAM4",
         "x": 720,
-        "y": 440
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-RAM4",
         "x": 650,
-        "y": 555
+        "y": 525
       },
       {
         "id": "mem-4",
         "type": "gate-RAM4",
         "x": 530,
-        "y": 650
+        "y": 620
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 305
+        "y": 275
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
         "x": 910,
-        "y": 490
+        "y": 460
       },
       {
         "id": "addr-nail-1",
         "type": "nail",
         "x": 350,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 280
+        "y": 250
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 310,
-        "y": 465,
+        "y": 435,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3180,14 +3180,14 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-RAM64",
       "x": 660,
-      "y": 490,
+      "y": 440,
       "frameW": 800,
-      "frameH": 600,
+      "frameH": 560,
       "pins": [
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -90,
+          "y": -70,
           "w": 6,
           "dir": "in",
           "label": "כניסת הכתובת"
@@ -3195,7 +3195,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -90,
+          "y": -70,
           "w": 6,
           "dir": "out",
           "label": "כניסת הכתובת פנימית"
@@ -3203,7 +3203,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -460,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "in",
           "label": "כניסת הדאטה"
@@ -3211,7 +3211,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt1",
           "x": -340,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "out",
           "label": "כניסת הדאטה פנימית"
@@ -3219,7 +3219,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt2",
           "x": -217,
-          "y": -370,
+          "y": -350,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -3227,7 +3227,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt2",
           "x": -217,
-          "y": -230,
+          "y": -210,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -3235,7 +3235,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 340,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "in",
           "label": "יציאה פנימית"
@@ -3243,7 +3243,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 460,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "out",
           "label": "יציאה"
@@ -3263,61 +3263,61 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-RAM16",
         "x": 740,
-        "y": 320
+        "y": 290
       },
       {
         "id": "mem-2",
         "type": "gate-RAM16",
         "x": 720,
-        "y": 440
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-RAM16",
         "x": 650,
-        "y": 555
+        "y": 525
       },
       {
         "id": "mem-4",
         "type": "gate-RAM16",
         "x": 530,
-        "y": 650
+        "y": 620
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 305
+        "y": 275
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
         "x": 910,
-        "y": 490
+        "y": 460
       },
       {
         "id": "addr-nail-1",
         "type": "nail",
         "x": 350,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 280
+        "y": 250
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 310,
-        "y": 465,
+        "y": 435,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3437,14 +3437,14 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-RAM256",
       "x": 660,
-      "y": 490,
+      "y": 440,
       "frameW": 800,
-      "frameH": 600,
+      "frameH": 560,
       "pins": [
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -90,
+          "y": -70,
           "w": 8,
           "dir": "in",
           "label": "כניסת הכתובת"
@@ -3452,7 +3452,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -90,
+          "y": -70,
           "w": 8,
           "dir": "out",
           "label": "כניסת הכתובת פנימית"
@@ -3460,7 +3460,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -460,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "in",
           "label": "כניסת הדאטה"
@@ -3468,7 +3468,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt1",
           "x": -340,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "out",
           "label": "כניסת הדאטה פנימית"
@@ -3476,7 +3476,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt2",
           "x": -217,
-          "y": -370,
+          "y": -350,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -3484,7 +3484,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt2",
           "x": -217,
-          "y": -230,
+          "y": -210,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -3492,7 +3492,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 340,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "in",
           "label": "יציאה פנימית"
@@ -3500,7 +3500,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 460,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "out",
           "label": "יציאה"
@@ -3520,61 +3520,61 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-RAM64",
         "x": 740,
-        "y": 320
+        "y": 290
       },
       {
         "id": "mem-2",
         "type": "gate-RAM64",
         "x": 720,
-        "y": 440
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-RAM64",
         "x": 650,
-        "y": 555
+        "y": 525
       },
       {
         "id": "mem-4",
         "type": "gate-RAM64",
         "x": 530,
-        "y": 650
+        "y": 620
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 305
+        "y": 275
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
         "x": 910,
-        "y": 490
+        "y": 460
       },
       {
         "id": "addr-nail-1",
         "type": "nail",
         "x": 350,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 280
+        "y": 250
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 310,
-        "y": 465,
+        "y": 435,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -3694,14 +3694,14 @@ window.EMBEDDED_SOLUTIONS = {
       "id": "task-card-1",
       "type": "taskCard-RAM1024",
       "x": 660,
-      "y": 490,
+      "y": 440,
       "frameW": 800,
-      "frameH": 600,
+      "frameH": 560,
       "pins": [
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -90,
+          "y": -70,
           "w": 10,
           "dir": "in",
           "label": "כניסת הכתובת"
@@ -3709,7 +3709,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -90,
+          "y": -70,
           "w": 10,
           "dir": "out",
           "label": "כניסת הכתובת פנימית"
@@ -3717,7 +3717,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt1",
           "x": -460,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "in",
           "label": "כניסת הדאטה"
@@ -3725,7 +3725,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt1",
           "x": -340,
-          "y": 90,
+          "y": 110,
           "w": 16,
           "dir": "out",
           "label": "כניסת הדאטה פנימית"
@@ -3733,7 +3733,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt2",
           "x": -217,
-          "y": -370,
+          "y": -350,
           "w": 1,
           "dir": "in",
           "label": "כניסת הבקרה"
@@ -3741,7 +3741,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt2",
           "x": -217,
-          "y": -230,
+          "y": -210,
           "w": 1,
           "dir": "out",
           "label": "כניסת הבקרה פנימית"
@@ -3749,7 +3749,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 340,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "in",
           "label": "יציאה פנימית"
@@ -3757,7 +3757,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 460,
-          "y": 0,
+          "y": 20,
           "w": 16,
           "dir": "out",
           "label": "יציאה"
@@ -3777,61 +3777,61 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-1",
         "type": "gate-RAM256",
         "x": 740,
-        "y": 320
+        "y": 290
       },
       {
         "id": "mem-2",
         "type": "gate-RAM256",
         "x": 720,
-        "y": 440
+        "y": 410
       },
       {
         "id": "mem-3",
         "type": "gate-RAM256",
         "x": 650,
-        "y": 555
+        "y": 525
       },
       {
         "id": "mem-4",
         "type": "gate-RAM256",
         "x": 530,
-        "y": 650
+        "y": 620
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 305
+        "y": 275
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
         "x": 910,
-        "y": 490
+        "y": 460
       },
       {
         "id": "addr-nail-1",
         "type": "nail",
         "x": 350,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-nail-2",
         "type": "nail",
         "x": 390,
-        "y": 280
+        "y": 250
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
-        "y": 225
+        "y": 195
       },
       {
         "id": "addr-split",
         "type": "splitter",
         "x": 310,
-        "y": 465,
+        "y": 435,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [

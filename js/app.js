@@ -762,7 +762,7 @@
   // The frame is much larger than the older cards: it has to hold four memory
   // cards PLUS the address routing (DMux chain on the control, MUX16 chain on the
   // output), so it declares its own frameSize instead of the 600×420 default.
-  const RAM_FRAME_SIZE = { w: 800, h: 600 };
+  const RAM_FRAME_SIZE = { w: 800, h: 560 };
   for (const ramTask of (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [])) {
     const aw = ramTask.addressWidth;
     const ctrlX = Number.isFinite(ramTask.controlPinX) ? ramTask.controlPinX : -217;
@@ -780,26 +780,26 @@
         // as poking out of the top (a control) or the bottom and would draw it as
         // a vertical stub. Each carries a caption, so which bus is which is
         // readable off the frame itself.
-        inputExt3: { x: -460, y: -90, direction: "in", width: aw, label: "כניסת הכתובת", caption: "כתובת" },
-        inputInt3: { x: -340, y: -90, direction: "out", width: aw, label: "כניסת הכתובת פנימית" },
-        inputExt1: { x: -460, y: 90, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
-        inputInt1: { x: -340, y: 90, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+        inputExt3: { x: -460, y: -70, direction: "in", width: aw, label: "כניסת הכתובת", caption: "כתובת" },
+        inputInt3: { x: -340, y: -70, direction: "out", width: aw, label: "כניסת הכתובת פנימית" },
+        inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+        inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
         // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
         // Near the DMux4Way the solution puts inside this card. Its value comes
         // from the hand-made solutions (RAM_TASKS.controlPinX), so the build frame
         // and the walkthrough always agree.
-        inputExt2: { x: ctrlX, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
-        inputInt2: { x: ctrlX, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-        outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
-        outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
+        inputExt2: { x: ctrlX, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: ctrlX, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        outputInt1: { x: 340, y: 20, direction: "in", width: 16, label: "יציאה פנימית" },
+        outputExt1: { x: 460, y: 20, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
       // `top` covers the CONTROL TIP (150 above the frame's own top edge) plus its
       // label — otherwise the card can sit high enough to push the control off the
       // top of the board, and a wire to a frame pin above y=60 gets routed
       // up-and-over instead of running straight.
-      bounds: { left: 460, right: 460, top: 480, bottom: 300 }
+      bounds: { left: 460, right: 460, top: 460, bottom: 280 }
     };
 
     // The finished card. Like gate-Register it is SEQUENTIAL, but it holds a whole
@@ -15201,7 +15201,7 @@
   // Sitting right of centre, it leaves the left of the board free for the
   // converters that dial a value and an address by hand.
   const RAM_BUILD_CARD_X = 660;
-  const RAM_BUILD_CARD_Y = 490;
+  const RAM_BUILD_CARD_Y = 440;
 
   function openRamTaskWorkspace(taskId) {
     const task = ramTaskDefById(taskId);
