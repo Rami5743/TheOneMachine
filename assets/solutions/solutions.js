@@ -2787,20 +2787,20 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-2",
         "type": "gate-Register",
-        "x": 705,
+        "x": 695,
         "y": 460
       },
       {
         "id": "mem-3",
         "type": "gate-Register",
-        "x": 660,
-        "y": 575
+        "x": 630,
+        "y": 570
       },
       {
         "id": "mem-4",
         "type": "gate-Register",
-        "x": 580,
-        "y": 685
+        "x": 525,
+        "y": 675
       },
       {
         "id": "write-dmux",
@@ -2811,7 +2811,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 900,
+        "x": 905,
         "y": 490
       },
       {
@@ -2829,7 +2829,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 900,
+        "x": 905,
         "y": 210
       }
     ],
@@ -3005,31 +3005,31 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-1",
         "type": "gate-RAM4",
-        "x": 765,
-        "y": 315
+        "x": 740,
+        "y": 320
       },
       {
         "id": "mem-2",
         "type": "gate-RAM4",
-        "x": 730,
-        "y": 430
+        "x": 720,
+        "y": 440
       },
       {
         "id": "mem-3",
         "type": "gate-RAM4",
-        "x": 675,
-        "y": 560
+        "x": 650,
+        "y": 555
       },
       {
         "id": "mem-4",
         "type": "gate-RAM4",
-        "x": 575,
-        "y": 670
+        "x": 530,
+        "y": 650
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 505,
+        "x": 480,
         "y": 305
       },
       {
@@ -3053,7 +3053,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 910,
+        "x": 905,
         "y": 225
       },
       {
@@ -3262,31 +3262,31 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-1",
         "type": "gate-RAM16",
-        "x": 765,
-        "y": 315
+        "x": 740,
+        "y": 320
       },
       {
         "id": "mem-2",
         "type": "gate-RAM16",
-        "x": 730,
-        "y": 430
+        "x": 720,
+        "y": 440
       },
       {
         "id": "mem-3",
         "type": "gate-RAM16",
-        "x": 675,
-        "y": 560
+        "x": 650,
+        "y": 555
       },
       {
         "id": "mem-4",
         "type": "gate-RAM16",
-        "x": 575,
-        "y": 670
+        "x": 530,
+        "y": 650
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 505,
+        "x": 480,
         "y": 305
       },
       {
@@ -3310,7 +3310,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 910,
+        "x": 905,
         "y": 225
       },
       {
@@ -3519,31 +3519,31 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-1",
         "type": "gate-RAM64",
-        "x": 765,
-        "y": 315
+        "x": 740,
+        "y": 320
       },
       {
         "id": "mem-2",
         "type": "gate-RAM64",
-        "x": 730,
-        "y": 430
+        "x": 720,
+        "y": 440
       },
       {
         "id": "mem-3",
         "type": "gate-RAM64",
-        "x": 675,
-        "y": 560
+        "x": 650,
+        "y": 555
       },
       {
         "id": "mem-4",
         "type": "gate-RAM64",
-        "x": 575,
-        "y": 670
+        "x": 530,
+        "y": 650
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 505,
+        "x": 480,
         "y": 305
       },
       {
@@ -3567,7 +3567,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 910,
+        "x": 905,
         "y": 225
       },
       {
@@ -3776,31 +3776,31 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-1",
         "type": "gate-RAM256",
-        "x": 765,
-        "y": 315
+        "x": 740,
+        "y": 320
       },
       {
         "id": "mem-2",
         "type": "gate-RAM256",
-        "x": 730,
-        "y": 430
+        "x": 720,
+        "y": 440
       },
       {
         "id": "mem-3",
         "type": "gate-RAM256",
-        "x": 675,
-        "y": 560
+        "x": 650,
+        "y": 555
       },
       {
         "id": "mem-4",
         "type": "gate-RAM256",
-        "x": 575,
-        "y": 670
+        "x": 530,
+        "y": 650
       },
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 505,
+        "x": 480,
         "y": 305
       },
       {
@@ -3824,7 +3824,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 910,
+        "x": 905,
         "y": 225
       },
       {

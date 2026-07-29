@@ -94,20 +94,20 @@
     {
       "id": "mem-2",
       "type": "gate-Register",
-      "x": 705,
+      "x": 695,
       "y": 460
     },
     {
       "id": "mem-3",
       "type": "gate-Register",
-      "x": 660,
-      "y": 575
+      "x": 630,
+      "y": 570
     },
     {
       "id": "mem-4",
       "type": "gate-Register",
-      "x": 580,
-      "y": 685
+      "x": 525,
+      "y": 675
     },
     {
       "id": "write-dmux",
@@ -118,7 +118,7 @@
     {
       "id": "read-mux",
       "type": "gate-Mux4way16",
-      "x": 900,
+      "x": 905,
       "y": 490
     },
     {
@@ -136,7 +136,7 @@
     {
       "id": "addr-nail-3",
       "type": "nail",
-      "x": 900,
+      "x": 905,
       "y": 210
     }
   ],
