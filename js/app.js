@@ -784,8 +784,8 @@
         // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
-        inputExt2: { x: -162, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
-        inputInt2: { x: -162, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        inputExt2: { x: -217, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: -217, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
         outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
@@ -15263,8 +15263,8 @@
     const type = ramInnerCardType(taskId);
     return [0, 1, 2, 3].map((i) => ({
       id: `mem-${i + 1}`, type,
-      x: RAM_BUILD_CARD_X + 60,
-      y: RAM_BUILD_CARD_Y - 180 + i * 120
+      x: RAM_BUILD_CARD_X + 80,
+      y: RAM_BUILD_CARD_Y - 145 + i * 115
     }));
   }
 
