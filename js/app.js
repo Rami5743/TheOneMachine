@@ -1605,6 +1605,9 @@
     if (has(TASK_DEFS)) return "simple";
     if (has(ROUTING_TASK_DEFS)) return "routing";
     if (has(typeof MULTIBIT_TASKS !== "undefined" ? MULTIBIT_TASKS : null)) return "routing";
+    // Mux4/Mux16 are built in the bus chapter, but what they DO is routing — so
+    // they sit with the other Mux/DMux cards, not with the bus gates.
+    if (id === "MUX4" || id === "MUX16") return "routing";
     if (has(BUS_TASK_DEFS)) return "buses";
     if (has(typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : null)) return "arith";
     if (has(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : null)) return "alu";
