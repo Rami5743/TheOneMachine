@@ -324,7 +324,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // A card's NAME should stay the size it reads at, even when the card itself is
   // drawn small (0.6 past the simple-gate chapter) — shrinking the box shouldn't
   // shrink the writing on it. So the font compensates for the render scale, but
-  // only as far as the name still sits comfortably inside the body: "Ram1024" on a
+  // only as far as the name still sits comfortably inside the body: "RAM1024" on a
   // 104-wide card cannot take the full compensation, so it takes what fits.
   // (Arial bold runs at roughly 0.62 em per character.)
   function labelFontSize(text, boxWidth, baseSize) {
@@ -388,7 +388,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 76;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    const regName = width === 16 ? "Reg" : "Reg4";
+    // Both widths just say "Reg" — the 4 or the 16 is already on the pins.
+    const regName = "Reg";
     const regFont = labelFontSize(regName, edge * 2, 17);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(regFont)}" text-anchor="middle" style="font-size:${regFont}px">${regName}</text>`;
     s += busPin(-62, -edge, 0);                  // data bus in (left)
@@ -397,8 +398,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // A placeable RAM card (gate-Ram4 …): a wider labelled box than the register —
-  // the name has to fit up to "Ram1024" — with the address bus in on the upper left,
+  // A placeable RAM card (gate-RAM4 …): a wider labelled box than the register —
+  // the name has to fit up to "RAM1024" — with the address bus in on the upper left,
   // the address bus in on the UPPER left and the data bus below it (the same order
   // as the build frame), the control stub on top and the data bus out on the
   // right. The address bar is drawn at ITS width, so the card shows at a glance
@@ -426,24 +427,20 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // stops at the body's edge instead of running into it.
   //
   // The MUX takes its four buses on the wide LEFT side, so that side is stretched
-  // (±60 instead of ±42) to hold them and their width labels; the DMUX fans out on
+  // (±74 instead of ±42) to hold them far enough apart that each one's width label
+  // fits above it, the way every other bus is labelled; the DMUX fans out on
   // the wide RIGHT side, and its four are single cables, so they only need
   // bunching (±30/±10) and the body keeps the plain DMUX's size.
-  const MUX4_PIN_YS = [-48, -16, 16, 48];
+  const MUX4_PIN_YS = [-60, -20, 20, 60];
   const DMUX4_PIN_YS = [-30, -10, 10, 30];
   function wideRoutingGateMarkup(spec, options = {}) {
     const mux = spec.kind === "mux4way16";
     const label = !options.toolbar;
     let s = "";
     if (mux) {
-      // Four data buses in on the wide left side, one bus out on the right. Their
-      // width labels go BESIDE the bars rather than above them — four bars this
-      // close together leave no room above each one.
-      const wfont = 13 * k();
-      MUX4_PIN_YS.forEach((y) => {
-        s += busGateBar({ x1: -62, x2: -30, y }, spec.width, false);
-        if (label) s += `<text class="splitter-width-label" x="-68" y="${y + Math.round(wfont * 0.35)}" text-anchor="end" style="font-size:${wfont}px">${spec.width}</text>`;
-      });
+      // Four data buses in on the wide left side, one bus out on the right — each
+      // labelled above its own bar, like every other bus on every other card.
+      MUX4_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, label); });
       s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, label);
     } else {
       // One cable in on the left, four out on the wide right side.
@@ -454,19 +451,20 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // is drawn over it. The MUX's body is taller (its left side was stretched), so
     // its control starts higher to leave the same length of visible stub as the
     // plain MUX has.
-    const ctrlTip = mux ? -60 : -46;
-    const ctrlEnd = mux ? -38 : -28;
+    const ctrlTip = mux ? -66 : -46;
+    const ctrlEnd = mux ? -44 : -28;
     s += busGateBarV(0, ctrlTip, ctrlEnd);
     // The body next, so it covers where the pins meet it...
     const body = mux
-      ? "M-30 -60 L30 -22 L30 22 L-30 60 Z"
+      ? "M-30 -74 L30 -22 L30 22 L-30 74 Z"
       : "M-30 -22 L30 -42 L30 42 L-30 22 Z";
     s += `<path class="wide-routing-body" d="${body}" />`;
-    // ...and the control's width label AFTER it, beside the visible part of the
-    // stub, so the body can never swallow it.
+    // ...and the control's width label AFTER it, ABOVE the pin's outer tip. The
+    // body's top edge slopes, so a label level with the stub would sit inside it on
+    // the DMUX however it is layered — sitting above the tip clears it outright.
     if (label) {
       const cfont = 13 * k();
-      s += `<text class="splitter-width-label" x="14" y="${ctrlTip + Math.round(cfont * 0.7)}" text-anchor="start" style="font-size:${cfont}px">2</text>`;
+      s += `<text class="splitter-width-label" x="14" y="${ctrlTip + 2}" text-anchor="start" style="font-size:${cfont}px">2</text>`;
     }
     // Just "MUX" / "DMUX" on the card, like the plain ones — the 4-way part is
     // told by the four pins and the 2-bit control, not by the name.

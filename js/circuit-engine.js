@@ -502,7 +502,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
             continue;
           }
-          // A placeable RAM gate (gate-Ram4 …) is sequential for WRITING only:
+          // A placeable RAM gate (gate-RAM4 …) is sequential for WRITING only:
           // reading is combinational, so its output is recomputed here from the
           // address it sees this tick and the bank it carried in from `prev`.
           const ramHere = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;

@@ -740,18 +740,19 @@
     busWidth: 16,
     // Same geometry as the plain MUX, with four data buses in place of two.
     pins: {
-      in1: { x: -62, y: -48, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
-      in2: { x: -62, y: -16, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
-      in3: { x: -62, y: 16, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
-      in4: { x: -62, y: 48, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
-      in5: { x: 0, y: -60, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
+      in1: { x: -62, y: -60, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
+      in2: { x: -62, y: -20, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
+      in3: { x: -62, y: 20, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
+      in4: { x: -62, y: 60, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
+      in5: { x: 0, y: -66, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
       out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
     },
-    // `left` leaves room for the four width labels, which sit beside the bars.
-    bounds: { left: 96, right: 84, top: 76, bottom: 76 }
+    // Taller than the plain MUX: `top` covers the topmost bus's width label (which
+    // sits above its bar) and the control's, `bottom` the lowest bar.
+    bounds: { left: 64, right: 84, top: 104, bottom: 84 }
   };
 
-  // ---- Chapter 3.3 RAM cards (Ram4 → Ram1024) --------------------------------
+  // ---- Chapter 3.3 RAM cards (RAM4 → RAM1024) --------------------------------
   // Every size has the SAME shape: a width-16 data bus in (left, upper), an
   // address bus in (left, lower) whose width grows with the size, a single-wire
   // control poking out the top, and a width-16 data bus out (right). Only the
@@ -764,6 +765,7 @@
   const RAM_FRAME_SIZE = { w: 800, h: 600 };
   for (const ramTask of (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [])) {
     const aw = ramTask.addressWidth;
+    const ctrlX = Number.isFinite(ramTask.controlPinX) ? ramTask.controlPinX : -217;
     WORKSPACE_COMPONENT_DEFS[`taskCard-${ramTask.id}`] = {
       label: `מסגרת ${ramTask.label}`,
       fixed: true,
@@ -785,8 +787,11 @@
         // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
-        inputExt2: { x: -217, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
-        inputInt2: { x: -217, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        // Directly above the DMux4Way the solution puts inside this card, so the
+        // control drops straight in (the two layouts place it at slightly
+        // different x, hence the per-card value).
+        inputExt2: { x: ctrlX, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: ctrlX, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
         outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
@@ -5340,7 +5345,7 @@
         }
       }
     ],
-    Ram4: [
+    RAM4: [
       {
         text: "כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
         highlight: {
@@ -5374,9 +5379,9 @@
         }
       }
     ],
-    Ram16: [
+    RAM16: [
       {
-        text: "ה-Ram16 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram4 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (4 ביטים) לשניים: 2 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        text: "ה-RAM16 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM4 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (4 ביטים) לשניים: 2 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
         highlight: {
           components: ["addr-split"],
           terminals: ["task-card-1.inputInt3", "addr-split.single"],
@@ -5384,7 +5389,7 @@
         }
       },
       {
-        text: "2 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram4 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        text: "2 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM4 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
         highlight: {
           components: ["mem-1", "mem-2", "mem-3", "mem-4"],
           terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
@@ -5424,9 +5429,9 @@
         }
       }
     ],
-    Ram64: [
+    RAM64: [
       {
-        text: "ה-Ram64 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram16 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (6 ביטים) לשניים: 4 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        text: "ה-RAM64 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM16 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (6 ביטים) לשניים: 4 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
         highlight: {
           components: ["addr-split"],
           terminals: ["task-card-1.inputInt3", "addr-split.single"],
@@ -5434,7 +5439,7 @@
         }
       },
       {
-        text: "4 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram16 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        text: "4 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM16 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
         highlight: {
           components: ["mem-1", "mem-2", "mem-3", "mem-4"],
           terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
@@ -5474,9 +5479,9 @@
         }
       }
     ],
-    Ram256: [
+    RAM256: [
       {
-        text: "ה-Ram256 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram64 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (8 ביטים) לשניים: 6 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        text: "ה-RAM256 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM64 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (8 ביטים) לשניים: 6 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
         highlight: {
           components: ["addr-split"],
           terminals: ["task-card-1.inputInt3", "addr-split.single"],
@@ -5484,7 +5489,7 @@
         }
       },
       {
-        text: "6 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram64 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        text: "6 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM64 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
         highlight: {
           components: ["mem-1", "mem-2", "mem-3", "mem-4"],
           terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
@@ -5524,9 +5529,9 @@
         }
       }
     ],
-    Ram1024: [
+    RAM1024: [
       {
-        text: "ה-Ram1024 בנוי בדיוק כמו ה-Ram4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי Ram256 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (10 ביטים) לשניים: 8 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
+        text: "ה-RAM1024 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM256 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (10 ביטים) לשניים: 8 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
         highlight: {
           components: ["addr-split"],
           terminals: ["task-card-1.inputInt3", "addr-split.single"],
@@ -5534,7 +5539,7 @@
         }
       },
       {
-        text: "8 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-Ram256 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
+        text: "8 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM256 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
         highlight: {
           components: ["mem-1", "mem-2", "mem-3", "mem-4"],
           terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
@@ -12419,7 +12424,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "Ram4", "Ram16", "Ram64", "Ram256", "Ram1024"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -13256,7 +13261,7 @@
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
   }
 
-  // --- Chapter 3.3 RAM check (Ram4 … Ram1024) --------------------------------
+  // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
   // Same idea as the memory check, one dimension wider: write a distinct value to
   // each of several addresses, then read them all back. Which address maps to
   // which register is the learner's own choice (the requirements say so), so the
@@ -13268,7 +13273,7 @@
   }
 
   // The addresses the check exercises: the first four and the last four of the
-  // bank (all four for Ram4), so both the low address bits and the high ones have
+  // bank (all four for RAM4), so both the low address bits and the high ones have
   // to be routed correctly. Distinct, in a fixed order.
   function ramTestAddresses(taskId) {
     const slots = ramTaskDefById(taskId)?.slots || 4;
@@ -15258,7 +15263,7 @@
   }
 
   // --- Chapter 3.3 RAM note ---------------------------------------------------
-  // The 3.3 worktable note (Ram4 → Ram1024). The cards are strictly ordered:
+  // The 3.3 worktable note (RAM4 → RAM1024). The cards are strictly ordered:
   // each size is built out of four of the previous one, and its frame arrives with
   // those four cards already inside.
   function ramTaskDefs() {
@@ -15291,7 +15296,7 @@
     return Boolean(ramTaskDefById(id));
   }
 
-  // Which card a RAM is made of four of: Registers for Ram4, the previous RAM
+  // Which card a RAM is made of four of: Registers for RAM4, the previous RAM
   // size for every wider one.
   function ramInnerCardType(taskId) {
     const def = ramTaskDefById(taskId);
@@ -17448,7 +17453,7 @@
     return { kind: def.wideRoutingGate, width: def.busWidth || 1 };
   }
 
-  // A placeable RAM gate (gate-Ram4 …): a BANK of `slots` width-N values. The
+  // A placeable RAM gate (gate-RAM4 …): a BANK of `slots` width-N values. The
   // address bus (in3) picks the cell; reading it is combinational (the addressed
   // cell appears on the output right away) while writing waits for the clock —
   // control (in2) high stores the data bus (in1) into the addressed cell.

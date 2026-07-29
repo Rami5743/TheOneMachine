@@ -1,10 +1,10 @@
 {
   "format": "theonemachine-solution",
   "version": 1,
-  "task": "Ram16",
+  "task": "RAM64",
   "frame": {
     "id": "task-card-1",
-    "type": "taskCard-Ram16",
+    "type": "taskCard-RAM64",
     "x": 660,
     "y": 490,
     "frameW": 800,
@@ -14,7 +14,7 @@
         "id": "inputExt3",
         "x": -460,
         "y": -90,
-        "w": 4,
+        "w": 6,
         "dir": "in",
         "label": "כניסת הכתובת"
       },
@@ -22,7 +22,7 @@
         "id": "inputInt3",
         "x": -340,
         "y": -90,
-        "w": 4,
+        "w": 6,
         "dir": "out",
         "label": "כניסת הכתובת פנימית"
       },
@@ -87,25 +87,25 @@
   "components": [
     {
       "id": "mem-1",
-      "type": "gate-Ram4",
+      "type": "gate-RAM16",
       "x": 765,
       "y": 315
     },
     {
       "id": "mem-2",
-      "type": "gate-Ram4",
+      "type": "gate-RAM16",
       "x": 730,
       "y": 430
     },
     {
       "id": "mem-3",
-      "type": "gate-Ram4",
+      "type": "gate-RAM16",
       "x": 675,
-      "y": 550
+      "y": 560
     },
     {
       "id": "mem-4",
-      "type": "gate-Ram4",
+      "type": "gate-RAM16",
       "x": 575,
       "y": 670
     },
@@ -130,7 +130,7 @@
     {
       "id": "addr-nail-2",
       "type": "nail",
-      "x": 385,
+      "x": 390,
       "y": 259
     },
     {
@@ -147,10 +147,10 @@
       "mirrored": false,
       "outputs": 2,
       "legWidths": [
-        2,
+        4,
         2
       ],
-      "singleWidth": 4
+      "singleWidth": 6
     }
   ],
   "wires": [

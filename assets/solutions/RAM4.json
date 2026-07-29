@@ -1,10 +1,10 @@
 {
   "format": "theonemachine-solution",
   "version": 1,
-  "task": "Ram64",
+  "task": "RAM4",
   "frame": {
     "id": "task-card-1",
-    "type": "taskCard-Ram64",
+    "type": "taskCard-RAM4",
     "x": 660,
     "y": 490,
     "frameW": 800,
@@ -14,7 +14,7 @@
         "id": "inputExt3",
         "x": -460,
         "y": -90,
-        "w": 6,
+        "w": 2,
         "dir": "in",
         "label": "כניסת הכתובת"
       },
@@ -22,7 +22,7 @@
         "id": "inputInt3",
         "x": -340,
         "y": -90,
-        "w": 6,
+        "w": 2,
         "dir": "out",
         "label": "כניסת הכתובת פנימית"
       },
@@ -44,7 +44,7 @@
       },
       {
         "id": "inputExt2",
-        "x": -217,
+        "x": -242,
         "y": -370,
         "w": 1,
         "dir": "in",
@@ -52,7 +52,7 @@
       },
       {
         "id": "inputInt2",
-        "x": -217,
+        "x": -242,
         "y": -230,
         "w": 1,
         "dir": "out",
@@ -87,83 +87,66 @@
   "components": [
     {
       "id": "mem-1",
-      "type": "gate-Ram16",
-      "x": 765,
-      "y": 315
+      "type": "gate-Register",
+      "x": 740,
+      "y": 365
     },
     {
       "id": "mem-2",
-      "type": "gate-Ram16",
-      "x": 730,
-      "y": 430
+      "type": "gate-Register",
+      "x": 705,
+      "y": 460
     },
     {
       "id": "mem-3",
-      "type": "gate-Ram16",
-      "x": 675,
-      "y": 550
+      "type": "gate-Register",
+      "x": 660,
+      "y": 575
     },
     {
       "id": "mem-4",
-      "type": "gate-Ram16",
-      "x": 575,
-      "y": 670
+      "type": "gate-Register",
+      "x": 580,
+      "y": 685
     },
     {
       "id": "write-dmux",
       "type": "gate-Dmux4way",
-      "x": 505,
-      "y": 305
+      "x": 480,
+      "y": 355
     },
     {
       "id": "read-mux",
       "type": "gate-Mux4way16",
-      "x": 910,
+      "x": 900,
       "y": 490
     },
     {
       "id": "addr-nail-1",
       "type": "nail",
-      "x": 350,
-      "y": 225
+      "x": 320,
+      "y": 210
     },
     {
       "id": "addr-nail-2",
       "type": "nail",
-      "x": 385,
-      "y": 259
+      "x": 355,
+      "y": 309
     },
     {
       "id": "addr-nail-3",
       "type": "nail",
-      "x": 910,
-      "y": 225
-    },
-    {
-      "id": "addr-split",
-      "type": "splitter",
-      "x": 310,
-      "y": 465,
-      "mirrored": false,
-      "outputs": 2,
-      "legWidths": [
-        4,
-        2
-      ],
-      "singleWidth": 6
+      "x": 900,
+      "y": 210
     }
   ],
   "wires": [
     {
       "a": "task-card-1.inputInt3",
-      "b": "addr-split.single"
-    },
-    {
-      "a": "addr-split.leg1",
       "b": "addr-nail-1.in"
     },
     {
-      "a": "addr-split.leg1",
+      "a": "task-card-1.inputInt3",
       "b": "addr-nail-2.in"
     },
     {
@@ -195,10 +178,6 @@
       "b": "read-mux.in1"
     },
     {
-      "a": "addr-split.leg0",
-      "b": "mem-1.in3"
-    },
-    {
       "a": "task-card-1.inputInt1",
       "b": "mem-2.in1"
     },
@@ -209,10 +188,6 @@
     {
       "a": "mem-2.out",
       "b": "read-mux.in2"
-    },
-    {
-      "a": "addr-split.leg0",
-      "b": "mem-2.in3"
     },
     {
       "a": "task-card-1.inputInt1",
@@ -227,10 +202,6 @@
       "b": "read-mux.in3"
     },
     {
-      "a": "addr-split.leg0",
-      "b": "mem-3.in3"
-    },
-    {
       "a": "task-card-1.inputInt1",
       "b": "mem-4.in1"
     },
@@ -241,10 +212,6 @@
     {
       "a": "mem-4.out",
       "b": "read-mux.in4"
-    },
-    {
-      "a": "addr-split.leg0",
-      "b": "mem-4.in3"
     },
     {
       "a": "read-mux.out",

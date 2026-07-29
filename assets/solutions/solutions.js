@@ -2691,13 +2691,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: אין טבלת אמת. מזינים ערכים לאורך כמה פעימות שעון ובודקים שהיציאה משקפת את הערך השמור (בקרה=1 כותב, בקרה=0 שומר)."
     }
   },
-  "Ram4": {
+  "RAM4": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Ram4",
+    "task": "RAM4",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Ram4",
+      "type": "taskCard-RAM4",
       "x": 660,
       "y": 490,
       "frameW": 800,
@@ -2737,7 +2737,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt2",
-          "x": -217,
+          "x": -242,
           "y": -370,
           "w": 1,
           "dir": "in",
@@ -2745,7 +2745,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt2",
-          "x": -217,
+          "x": -242,
           "y": -230,
           "w": 1,
           "dir": "out",
@@ -2805,8 +2805,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
-        "x": 505,
-        "y": 345
+        "x": 480,
+        "y": 355
       },
       {
         "id": "read-mux",
@@ -2823,8 +2823,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-2",
         "type": "nail",
-        "x": 350,
-        "y": 299
+        "x": 355,
+        "y": 309
       },
       {
         "id": "addr-nail-3",
@@ -2915,13 +2915,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
     }
   },
-  "Ram16": {
+  "RAM16": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Ram16",
+    "task": "RAM16",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Ram16",
+      "type": "taskCard-RAM16",
       "x": 660,
       "y": 490,
       "frameW": 800,
@@ -3004,25 +3004,25 @@ window.EMBEDDED_SOLUTIONS = {
     "components": [
       {
         "id": "mem-1",
-        "type": "gate-Ram4",
+        "type": "gate-RAM4",
         "x": 765,
         "y": 315
       },
       {
         "id": "mem-2",
-        "type": "gate-Ram4",
+        "type": "gate-RAM4",
         "x": 730,
         "y": 430
       },
       {
         "id": "mem-3",
-        "type": "gate-Ram4",
+        "type": "gate-RAM4",
         "x": 675,
-        "y": 550
+        "y": 560
       },
       {
         "id": "mem-4",
-        "type": "gate-Ram4",
+        "type": "gate-RAM4",
         "x": 575,
         "y": 670
       },
@@ -3047,7 +3047,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-2",
         "type": "nail",
-        "x": 385,
+        "x": 390,
         "y": 259
       },
       {
@@ -3172,13 +3172,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
     }
   },
-  "Ram64": {
+  "RAM64": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Ram64",
+    "task": "RAM64",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Ram64",
+      "type": "taskCard-RAM64",
       "x": 660,
       "y": 490,
       "frameW": 800,
@@ -3261,25 +3261,25 @@ window.EMBEDDED_SOLUTIONS = {
     "components": [
       {
         "id": "mem-1",
-        "type": "gate-Ram16",
+        "type": "gate-RAM16",
         "x": 765,
         "y": 315
       },
       {
         "id": "mem-2",
-        "type": "gate-Ram16",
+        "type": "gate-RAM16",
         "x": 730,
         "y": 430
       },
       {
         "id": "mem-3",
-        "type": "gate-Ram16",
+        "type": "gate-RAM16",
         "x": 675,
-        "y": 550
+        "y": 560
       },
       {
         "id": "mem-4",
-        "type": "gate-Ram16",
+        "type": "gate-RAM16",
         "x": 575,
         "y": 670
       },
@@ -3304,7 +3304,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-2",
         "type": "nail",
-        "x": 385,
+        "x": 390,
         "y": 259
       },
       {
@@ -3429,13 +3429,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
     }
   },
-  "Ram256": {
+  "RAM256": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Ram256",
+    "task": "RAM256",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Ram256",
+      "type": "taskCard-RAM256",
       "x": 660,
       "y": 490,
       "frameW": 800,
@@ -3518,25 +3518,25 @@ window.EMBEDDED_SOLUTIONS = {
     "components": [
       {
         "id": "mem-1",
-        "type": "gate-Ram64",
+        "type": "gate-RAM64",
         "x": 765,
         "y": 315
       },
       {
         "id": "mem-2",
-        "type": "gate-Ram64",
+        "type": "gate-RAM64",
         "x": 730,
         "y": 430
       },
       {
         "id": "mem-3",
-        "type": "gate-Ram64",
+        "type": "gate-RAM64",
         "x": 675,
-        "y": 550
+        "y": 560
       },
       {
         "id": "mem-4",
-        "type": "gate-Ram64",
+        "type": "gate-RAM64",
         "x": 575,
         "y": 670
       },
@@ -3561,7 +3561,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-2",
         "type": "nail",
-        "x": 385,
+        "x": 390,
         "y": 259
       },
       {
@@ -3686,13 +3686,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
     }
   },
-  "Ram1024": {
+  "RAM1024": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Ram1024",
+    "task": "RAM1024",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Ram1024",
+      "type": "taskCard-RAM1024",
       "x": 660,
       "y": 490,
       "frameW": 800,
@@ -3775,25 +3775,25 @@ window.EMBEDDED_SOLUTIONS = {
     "components": [
       {
         "id": "mem-1",
-        "type": "gate-Ram256",
+        "type": "gate-RAM256",
         "x": 765,
         "y": 315
       },
       {
         "id": "mem-2",
-        "type": "gate-Ram256",
+        "type": "gate-RAM256",
         "x": 730,
         "y": 430
       },
       {
         "id": "mem-3",
-        "type": "gate-Ram256",
+        "type": "gate-RAM256",
         "x": 675,
-        "y": 550
+        "y": 560
       },
       {
         "id": "mem-4",
-        "type": "gate-Ram256",
+        "type": "gate-RAM256",
         "x": 575,
         "y": 670
       },
@@ -3818,7 +3818,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-nail-2",
         "type": "nail",
-        "x": 385,
+        "x": 390,
         "y": 259
       },
       {

@@ -1,10 +1,10 @@
 {
   "format": "theonemachine-solution",
   "version": 1,
-  "task": "Ram256",
+  "task": "RAM256",
   "frame": {
     "id": "task-card-1",
-    "type": "taskCard-Ram256",
+    "type": "taskCard-RAM256",
     "x": 660,
     "y": 490,
     "frameW": 800,
@@ -87,25 +87,25 @@
   "components": [
     {
       "id": "mem-1",
-      "type": "gate-Ram64",
+      "type": "gate-RAM64",
       "x": 765,
       "y": 315
     },
     {
       "id": "mem-2",
-      "type": "gate-Ram64",
+      "type": "gate-RAM64",
       "x": 730,
       "y": 430
     },
     {
       "id": "mem-3",
-      "type": "gate-Ram64",
+      "type": "gate-RAM64",
       "x": 675,
-      "y": 550
+      "y": 560
     },
     {
       "id": "mem-4",
-      "type": "gate-Ram64",
+      "type": "gate-RAM64",
       "x": 575,
       "y": 670
     },
@@ -130,7 +130,7 @@
     {
       "id": "addr-nail-2",
       "type": "nail",
-      "x": 385,
+      "x": 390,
       "y": 259
     },
     {

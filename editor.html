@@ -6,9 +6,9 @@
 <title>עורך פתרונות — המכונה האחת</title>
 <!-- Reuse the game's own component styling + markup so the editor looks identical -->
 <link rel="stylesheet" href="css/styles.css?v=v166-tool-groups-2" />
-<script src="js/component-visuals.js?v=v111-labels-on-top-1"></script>
+<script src="js/component-visuals.js?v=v112-mux4-spread-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
-<script src="assets/solutions/solutions.js?v=v27-ram4-v2-1"></script>
+<script src="assets/solutions/solutions.js?v=v29-ram-layout-v3-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -100,11 +100,11 @@ const DEFS = {
   "gate-Neq0_16": { busGate:true, op:"Neq0", busWidth:16, inputs:1, control:false },
   "gate-Neq0_4":  { busGate:true, op:"Neq0", busWidth:4,  inputs:1, control:false },
   // The 3.3 RAM cards: a bank of 16-bit values picked by an address bus.
-  "gate-Ram4":    { ramGate:true, busWidth:16, addressWidth:2,  slots:4 },
-  "gate-Ram16":   { ramGate:true, busWidth:16, addressWidth:4,  slots:16 },
-  "gate-Ram64":   { ramGate:true, busWidth:16, addressWidth:6,  slots:64 },
-  "gate-Ram256":  { ramGate:true, busWidth:16, addressWidth:8,  slots:256 },
-  "gate-Ram1024": { ramGate:true, busWidth:16, addressWidth:10, slots:1024 },
+  "gate-RAM4":    { ramGate:true, busWidth:16, addressWidth:2,  slots:4 },
+  "gate-RAM16":   { ramGate:true, busWidth:16, addressWidth:4,  slots:16 },
+  "gate-RAM64":   { ramGate:true, busWidth:16, addressWidth:6,  slots:64 },
+  "gate-RAM256":  { ramGate:true, busWidth:16, addressWidth:8,  slots:256 },
+  "gate-RAM1024": { ramGate:true, busWidth:16, addressWidth:10, slots:1024 },
   // The 2.4 wide-routing cards: a 2-bit control bus picks one of four.
   "gate-Dmux4way":  { wideRoutingGate:"dmux4way" },
   "gate-Mux4way16": { wideRoutingGate:"mux4way16", busWidth:16 }
@@ -154,16 +154,16 @@ const PINS = {
   "gate-Register4":{ in1:{x:-62,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
   "gate-Register":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   // 3.3 RAM: data in (upper left), address in (lower left), control on top.
-  "gate-Ram4":{ in3:{x:-74,y:-24,w:2}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-Ram16":{ in3:{x:-74,y:-24,w:4}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-Ram64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-Ram256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-Ram1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM4":{ in3:{x:-74,y:-24,w:2}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM16":{ in3:{x:-74,y:-24,w:4}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
   "gate-Dmux4way":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:2},
     out1:{x:66,y:-30,w:1}, out2:{x:66,y:-10,w:1}, out3:{x:66,y:10,w:1}, out4:{x:66,y:30,w:1} },
-  "gate-Mux4way16":{ in1:{x:-62,y:-48,w:16}, in2:{x:-62,y:-16,w:16}, in3:{x:-62,y:16,w:16}, in4:{x:-62,y:48,w:16},
-    in5:{x:0,y:-60,w:2}, out:{x:66,y:0,w:16} }
+  "gate-Mux4way16":{ in1:{x:-62,y:-60,w:16}, in2:{x:-62,y:-20,w:16}, in3:{x:-62,y:20,w:16}, in4:{x:-62,y:60,w:16},
+    in5:{x:0,y:-66,w:2}, out:{x:66,y:0,w:16} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
