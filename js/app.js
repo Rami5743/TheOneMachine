@@ -9993,10 +9993,12 @@
   // Set when the finished booklet is opened from a pre-entrance slide, so leaving
   // it resumes von Neumann's entrance (issue: booklet done but parked earlier).
   let bookletBeforeEntrance = false;
-  // The arithmetic story slide the booklet was opened FROM, so leaving it returns
-  // there (e.g. re-opening the finished booklet from the worktable returns to the
-  // worktable — note still on the table — instead of the pre-note workshop slide).
-  let bookletEntryPanelIndex = null;
+  // The story slide the booklet was opened FROM — chapter, scene and panel — so
+  // leaving it returns exactly there. The booklet is reachable from every
+  // worktable from 2.5 on, so this must NOT assume the arithmetic chapter:
+  // opening it from the 3.3 worktable and closing it has to land back on the 3.3
+  // worktable, not throw the learner back into 2.5.
+  let bookletEntry = null;
 
   function goToBitsRange(extra = {}) {
     const scene = SCENES["arithmetic"];
@@ -10020,16 +10022,20 @@
   function openBinaryBooklet() {
     // Remember which arithmetic slide the booklet was opened from, so leaving it
     // returns there (see binBackToWorkshop).
-    bookletEntryPanelIndex = (state.screen === "story" && state.chapterId === "chapter-8"
-      && state.sceneId === "arithmetic" && Number.isInteger(state.panelIndex))
-      ? state.panelIndex : null;
+    bookletEntry = (state.screen === "story" && Number.isInteger(state.panelIndex))
+      ? { chapterId: state.chapterId, sceneId: state.sceneId, panelIndex: state.panelIndex }
+      : null;
     const done = binDone();
     if (!binFirstUnfinished(done)) {
       // All tasks done: play the bits-range dialogue the first time, otherwise
       // open the practice menu. If the learner opened the finished booklet from a
       // slide BEFORE von Neumann's entrance, remember it so leaving the booklet
       // resumes his entrance (rather than dropping back before it).
-      if (!state.bitsRangeSeen && goToBitsRange()) return;
+      // That catch-up only fires inside 2.5, where the dialogue belongs — opening
+      // the booklet from a later chapter's worktable must never drag the learner
+      // back there.
+      const inArithmetic = state.sceneId === "arithmetic" && state.chapterId === "chapter-8";
+      if (inArithmetic && !state.bitsRangeSeen && goToBitsRange()) return;
       bookletBeforeEntrance = onSlideBeforeBitsRange();
       setState({ screen: "notebook", notebook: { variant: "binary", mode: "menu" } });
       return;
@@ -10408,15 +10414,16 @@
       if (goToBitsRange()) return;
     }
     bookletBeforeEntrance = false;
-    // Return to the slide the booklet was opened from (e.g. the worktable, note
-    // still on the table); fall back to the workshop slide if that is unknown.
-    const returnPanel = Number.isInteger(bookletEntryPanelIndex) ? bookletEntryPanelIndex : 7;
+    // Return to the slide the booklet was opened from — whichever chapter that was
+    // (the booklet sits on every worktable from 2.5 on). Falls back to the 2.5
+    // workshop slide only when the entry point is unknown.
+    const entry = bookletEntry;
     setState({
       ...transientUiClearPatch(),
       screen: "story",
-      chapterId: "chapter-8",
-      sceneId: "arithmetic",
-      panelIndex: returnPanel,
+      chapterId: entry ? entry.chapterId : "chapter-8",
+      sceneId: entry ? entry.sceneId : "arithmetic",
+      panelIndex: entry ? entry.panelIndex : 7,
       ...(clearNotebook ? { notebook: null } : {})
     }, true);
   }
