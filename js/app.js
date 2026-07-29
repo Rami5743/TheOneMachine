@@ -717,7 +717,7 @@
   // The frame is much larger than the older cards: it has to hold four memory
   // cards PLUS the address routing (DMux chain on the control, MUX16 chain on the
   // output), so it declares its own frameSize instead of the 600×420 default.
-  const RAM_FRAME_SIZE = { w: 1000, h: 760 };
+  const RAM_FRAME_SIZE = { w: 800, h: 600 };
   for (const ramTask of (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : [])) {
     const aw = ramTask.addressWidth;
     WORKSPACE_COMPONENT_DEFS[`taskCard-${ramTask.id}`] = {
@@ -729,22 +729,24 @@
       routingMultibit: true,
       frameSize: { ...RAM_FRAME_SIZE },
       pins: {
-        // The two left-hand buses stay inside ±150 of the centre line: past that
-        // the frame shell reads a pin as poking out of the top (a control) or the
-        // bottom, and would draw it as a vertical stub.
-        inputExt1: { x: -560, y: -110, direction: "in", width: 16, label: "כניסת הדאטה" },
-        inputInt1: { x: -440, y: -110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
-        // The control straddles the frame's top edge (at y = -380), like every
+        // The address sits ABOVE the data bus on the left edge; both stay inside
+        // ±150 of the centre line, because past that the frame shell reads a pin
+        // as poking out of the top (a control) or the bottom and would draw it as
+        // a vertical stub. Each carries a caption, so which bus is which is
+        // readable off the frame itself.
+        inputExt3: { x: -460, y: -90, direction: "in", width: aw, label: "כניסת הכתובת", caption: "כתובת" },
+        inputInt3: { x: -340, y: -90, direction: "out", width: aw, label: "כניסת הכתובת פנימית" },
+        inputExt1: { x: -460, y: 90, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+        inputInt1: { x: -340, y: 90, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+        // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
-        inputExt2: { x: -380, y: -450, direction: "in", width: 1, label: "כניסת הבקרה" },
-        inputInt2: { x: -380, y: -310, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-        inputExt3: { x: -560, y: 110, direction: "in", width: aw, label: "כניסת הכתובת" },
-        inputInt3: { x: -440, y: 110, direction: "out", width: aw, label: "כניסת הכתובת פנימית" },
-        outputInt1: { x: 440, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
-        outputExt1: { x: 560, y: 0, direction: "out", width: 16, label: "יציאה" }
+        inputExt2: { x: -300, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: -300, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+        outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
-      bounds: { left: 560, right: 560, top: 450, bottom: 380 }
+      bounds: { left: 460, right: 460, top: 370, bottom: 300 }
     };
 
     // The finished card. Like gate-Register it is SEQUENTIAL, but it holds a whole
@@ -2129,11 +2131,19 @@
     // connection point (x2), so BOTH the external pin and the internal pin the
     // learner wires to are visible (matching the bus-task shell). Same for a
     // vertical control stub.
-    const hStub = (x1, x2, y, w, labelX) => (w > 1
+    // A pin may name itself (`caption`), printed under its outside tip — the RAM
+    // cards, whose two left-hand buses would otherwise be told apart only by their
+    // widths.
+    const hCaption = (x, y, cap) => (cap
+      ? `<text class="workspace-task-shell-pin-label" x="${x}" y="${y + 30}" text-anchor="middle">${esc(cap)}</text>`
+      : "");
+    const hStub = (x1, x2, y, w, labelX, cap) => (w > 1
       ? `<line class="workspace-task-shell-bus" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
          <line class="workspace-task-shell-bus-stripe" x1="${x1 + (x2 > x1 ? 4 : -4)}" y1="${y}" x2="${x2 - (x2 > x1 ? 4 : -4)}" y2="${y}" />
-         <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${w}</text>`
-      : `<line class="workspace-task-shell-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`);
+         <text class="splitter-width-label" x="${labelX}" y="${y - 16}" text-anchor="middle">${w}</text>
+         ${hCaption(x1, y, cap)}`
+      : `<line class="workspace-task-shell-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />
+         ${hCaption(x1, y, cap)}`);
     let stubs = "";
     for (const [pinId, pin] of Object.entries(frameDef.pins)) {
       if (!pinId.includes("Ext")) continue; // one stub per external pin
@@ -2168,7 +2178,7 @@
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
-        stubs += hStub(ax, ix, ay, w, labelX);
+        stubs += hStub(ax, ix, ay, w, labelX, pin.caption);
       }
     }
     return `
@@ -14828,18 +14838,12 @@
     return setState({ memoryNoteList: true });
   }
 
-  // Register4's 4 flip-flops appear already inside its frame (per the spec); the
-  // learner wires the splitters + the shared control. Register's frame is empty
-  // (built from Register4s or 16 FFs). Frame centred at (640, cardY).
+  // Both memory frames arrive EMPTY: the check reads the card's outside behaviour
+  // over a run of clocks, never its insides, so what goes in (and how much of it)
+  // is the learner's own call. Frame centred at (640, cardY).
   // Where a memory card's frame sits on the build board. Shared with the solution
   // walkthrough (aluBuildCardY) so the frame never moves between the two.
   const MEMORY_BUILD_CARD_Y = 430;
-  function memoryPreplacedComponents(taskId, cardX, cardY) {
-    if (taskId !== "Register4") return [];
-    // Bit 0 at the BOTTOM (matching the splitter's leg order, so no cable crosses),
-    // spaced out and sitting clear of the control pin at the top of the frame.
-    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY + 170 - i * 110 }));
-  }
 
   function openMemoryTaskWorkspace(taskId) {
     const task = memoryTaskDefById(taskId);
@@ -14853,7 +14857,6 @@
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
-        ...memoryPreplacedComponents(task.id, cardX, cardY),
         // A test voltage source, up near the control input, for free experimenting.
         { id: "source-1", type: "source", x: 90, y: 140 }
       ],
@@ -14927,23 +14930,13 @@
     return Boolean(ramTaskDefById(id));
   }
 
-  // Which four cards a RAM frame arrives holding: four Registers for RAM4, four
-  // of the previous RAM size for every wider one.
-  function ramInnerCardType(taskId) {
-    const def = ramTaskDefById(taskId);
-    const prev = def && Array.isArray(def.requires) ? def.requires[0] : null;
-    return gateComponentType(prev || "Register");
-  }
-
-  // Frame centred at (RAM_BUILD_CARD_X, RAM_BUILD_CARD_Y); the four cards sit in a
-  // column just left of centre, leaving the right half of the frame free for the
-  // output MUX chain and the left edge for the address/control routing.
-  const RAM_BUILD_CARD_X = 620;
-  const RAM_BUILD_CARD_Y = 470;
-  function ramPreplacedComponents(taskId, cardX, cardY) {
-    const type = ramInnerCardType(taskId);
-    return [0, 1, 2, 3].map((i) => ({ id: `mem-${i + 1}`, type, x: cardX - 40, y: cardY - 255 + i * 170 }));
-  }
+  // The frame arrives EMPTY. The check only ever looks at the card's outside
+  // behaviour over a run of clocks, so what goes inside is entirely the learner's
+  // call — including how many cards and of which kind.
+  // Sitting right of centre, it leaves the left of the board free for the
+  // converters that dial a value and an address by hand.
+  const RAM_BUILD_CARD_X = 780;
+  const RAM_BUILD_CARD_Y = 430;
 
   function openRamTaskWorkspace(taskId) {
     const task = ramTaskDefById(taskId);
@@ -14957,9 +14950,9 @@
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
-        ...ramPreplacedComponents(task.id, cardX, cardY),
-        // A test voltage source, up near the control input, for free experimenting.
-        { id: "source-1", type: "source", x: 90, y: 90 }
+        // A test voltage source for free experimenting, in the free strip left of
+        // the frame so it never lands on top of it.
+        { id: "source-1", type: "source", x: 110, y: 90 }
       ],
       wires: [],
       nextId: 2,
