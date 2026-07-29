@@ -83,9 +83,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The "+" mark (halfAdder omits the lower leg).
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${half ? 0 : arm}" />`;
-    inYs.forEach((y) => { s += `<line class="usercard-pin" x1="${-bodyW / 2}" y1="${y}" x2="${inX}" y2="${y}" />`; });
-    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${carryY}" x2="${outX}" y2="${carryY}" />`;
-    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${sumY}" x2="${outX}" y2="${sumY}" />`;
+    inYs.forEach((y) => { s += pinLine(-bodyW / 2, y, inX, y); });
+    s += pinLine(bodyW / 2, carryY, outX, carryY);
+    s += pinLine(bodyW / 2, sumY, outX, sumY);
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${carryY + 5}" text-anchor="end">c</text>`;
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${sumY + 5}" text-anchor="end">s</text>`;
     // No name caption under the placed adder gates: the "+" mark and the c/s pin
@@ -124,7 +124,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // thickness, stripe and width label — busGateBar pre-multiplies by 1/0.6 so
     // that after the gate's 0.6 render scale the pin comes out at full bus size.
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
+    const cable = (x1, x2, y) => pinLine(x1, y, x2, y);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
     // The full "+" mark, like the fullAdder.
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
@@ -193,7 +193,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const topY = -(hh + hhr) / 2;
     s += (opts.controlWidth > 1)
       ? busGateBarV(0, topY + 4, -46)
-      : `<line class="usercard-pin" x1="0" y1="${topY}" x2="0" y2="-46" />`;
+      : pinLine(0, topY, 0, -46);
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -306,6 +306,16 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function setBusRenderScale(scale) {
     busScale = (Number.isFinite(scale) && scale > 0) ? scale : BUS_GATE_SCALE;
   }
+  // A single-wire pin stub must read at CABLE width (5) wherever it is drawn —
+  // and a gate card has two sizes (full on a clocked table, GATE_RENDER_SCALE
+  // elsewhere past 2.2), so like the bus bars beside it the stroke compensates for
+  // the scale the caller renders at. Without this a pin thins out on the small
+  // version while the bus bar next to it stays put.
+  const pinStroke = () => 5 * k();
+  function pinLine(x1, y1, x2, y2, cls = "usercard-pin") {
+    return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke-width:${pinStroke()}" />`;
+  }
+
   function busGateBar(b, width, showLabel) {
     const K = k();
     const half = (11 * K) / 2;
@@ -346,7 +356,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
     s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:22px">&#8800;0</text>`;
     s += busPin(inX, -edge, 0);   // bus input on the left
-    s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
+    s += pinLine(edge, 0, outX, 0);              // single-bit cable out
     return `<g class="usercard">${s}</g>`;
   }
   // The placeable memory card (gate-Register4): a labelled box with a bus data
@@ -359,7 +369,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">${width === 16 ? "Reg" : "Reg4"}</text>`;
     s += busPin(-62, -edge, 0);                  // data bus in (left)
     s += busPin(edge, 66, 0);                    // stored bus out (right)
-    s += `<line class="usercard-pin" x1="0" y1="-46" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    s += pinLine(0, -46, 0, -bodyH / 2);         // control (top)
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -377,7 +387,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += bar(-74, -edge, -24, spec.width);       // data bus in (upper left)
     s += bar(-74, -edge, 24, spec.addressWidth); // address bus in (lower left)
     s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
-    s += `<line class="usercard-pin" x1="0" y1="-56" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    s += pinLine(0, -56, 0, -bodyH / 2);         // control (top)
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -390,7 +400,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const mux = spec.kind === "mux4way16";
     const bar = (x1, x2, y, width) => (width > 1
       ? busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar)
-      : `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`);
+      : pinLine(x1, y, x2, y));
     // The name is split over two lines — "Mux4Way16" is far too long for a box
     // this narrow on one.
     const [line1, line2] = mux ? ["Mux4Way", "16"] : ["DMux", "4Way"];
@@ -514,11 +524,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function ffCardMarkup() {
     return `
       <g class="ff-card" aria-hidden="true">
-        <line x1="-66" y1="0" x2="-40" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <line x1="0" y1="-46" x2="0" y2="-30" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <line x1="40" y1="0" x2="66" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <rect x="-40" y="-30" width="80" height="60" rx="10" fill="#f7f7f2" stroke="#111" stroke-width="5" />
-        <text x="0" y="10" text-anchor="middle" font-size="30" font-weight="700" fill="#111" font-family="'Heebo','Noto Sans Hebrew',Arial,sans-serif">FF</text>
+        ${pinLine(-66, 0, -40, 0)}
+        ${pinLine(0, -46, 0, -30)}
+        ${pinLine(40, 0, 66, 0)}
+        <rect class="usercard-body" x="-40" y="-30" width="80" height="60" rx="10" />
+        <text class="arith-gate-pin-letter" x="0" y="9" text-anchor="middle" style="font-size:26px">FF</text>
       </g>`;
   }
 
