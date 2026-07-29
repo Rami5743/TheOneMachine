@@ -1335,6 +1335,8 @@
     cardDeleteConfirm: null,
     // Which task note's "נקה התקדמות" warning is open ("boolean" | "routing" |
     // "buses" | "multibit"), or null when none.
+    // Which palette groups the learner has folded away (a lasting preference).
+    toolboxCollapsed: [],
     noteClearConfirm: null,
     // Transient input state for a story panel that gates advancement behind a
     // numeric answer: { value, feedback }.
@@ -1582,6 +1584,49 @@
   // full size. Scaling at render time leaves pin data, the circuit check and
   // the toolbar icons untouched.
   const GATE_RENDER_SCALE = 0.6;
+  // Which palette group a tool belongs to, from chapter 2.5 on (before that the
+  // palette is a flat list — there is hardly anything in it yet). The multi-way
+  // routing cards (DMux4Way / Mux4Way16) belong with the routing cards they
+  // generalise, NOT with the bus cards they were built alongside, so they are
+  // matched before BUS_TASK_DEFS.
+  function toolCategoryOf(type) {
+    const t = String(type || "");
+    if (t === "nand") return "simple";
+    if (t === "ffCard") return "memory";
+    if (t.startsWith(SAVED_CARD_PREFIX)) return "usercards";
+    if (!t.startsWith("gate-")) return "accessories";
+    const id = t.slice(5);
+    const has = (list) => Array.isArray(list) && list.some((x) => x.id === id);
+    if (has(TASK_DEFS)) return "simple";
+    if (has(ROUTING_TASK_DEFS)) return "routing";
+    if (has(typeof MULTIBIT_TASKS !== "undefined" ? MULTIBIT_TASKS : null)) return "routing";
+    if (has(BUS_TASK_DEFS)) return "buses";
+    if (has(typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : null)) return "arith";
+    if (has(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : null)) return "alu";
+    if (has(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : null)) return "memory";
+    if (has(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : null)) return "memory";
+    return "accessories";
+  }
+
+  // The palette is grouped under headings from the 2.5 worktable on.
+  function toolGroupsAvailable() {
+    const here = chapterIndexById(state.chapterId);
+    const from = chapterIndexById("chapter-8");
+    return Number.isInteger(here) && Number.isInteger(from) && here >= from;
+  }
+
+  function toolGroupCollapsed(key) {
+    const list = Array.isArray(state.toolboxCollapsed) ? state.toolboxCollapsed : [];
+    return list.includes(key);
+  }
+
+  function toggleToolGroup(key) {
+    if (!key) return;
+    const list = Array.isArray(state.toolboxCollapsed) ? state.toolboxCollapsed : [];
+    const next = list.includes(key) ? list.filter((x) => x !== key) : [...list, key];
+    return setState({ toolboxCollapsed: next }, false);
+  }
+
   function componentRenderScale(type) {
     const t = String(type || "");
     if (!t.startsWith("gate-") && t !== "nand") return 1;
@@ -2025,6 +2070,7 @@
   // Tool palette markup lives in js/toolbar-view.js (deps injected). Thin wrapper
   // keeps the existing renderWorkspace call site unchanged.
   const __toolbarView = createToolbarView({ toolbarGateToolIds, taskDefById,
+    toolCategoryOf, toolGroupsAvailable, toolGroupCollapsed,
     // The palette names a tool from its task def; the wide-routing cards (2.4)
     // live in MULTIBIT_TASKS, so the lookup falls through to there as well.
     busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
@@ -18830,6 +18876,7 @@
     if (action === "open-routing-note-tasks") return openRoutingNoteTaskDialog();
     if (action === "note-task-close") return closeNoteTaskDialog();
     if (action === "note-task") return handleNoteTask(Number(button.dataset.taskIndex));
+    if (action === "toolbox-group-toggle") return toggleToolGroup(button.dataset.group || null);
     if (action === "note-clear-open") return setState({ noteClearConfirm: button.dataset.noteKind || null }, false);
     if (action === "note-clear-cancel") return setState({ noteClearConfirm: null }, false);
     if (action === "note-clear-confirm") return clearNoteProgress();

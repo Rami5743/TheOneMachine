@@ -7,7 +7,7 @@
 // Loaded BEFORE app.js. createToolbarView(deps) -> { renderToolbar }
 //   deps: completedTaskIds, taskDefById, gateComponentType, componentMarkup, esc
 
-function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, isMemoryCardType, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
+function createToolbarView({ toolbarGateToolIds, taskDefById, toolCategoryOf, toolGroupsAvailable, toolGroupCollapsed, busTaskDefById, gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable, muxToolAvailable, ffCardAvailable, memoryBuildAvailable, sequentialToolsAvailable, isMemoryCardType, createCardToolAvailable, savedCardTools, splitterAvailable, convertersAvailable }) {
   function toolbarIcon(type) {
     return `
       <svg class="toolbox-icon" viewBox="-90 -85 180 170" aria-hidden="true" focusable="false">
@@ -26,6 +26,59 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
         <path class="trash-line" d="M35 36 V56" />
         <path class="trash-line" d="M45 36 V56" />
       </svg>`;
+  }
+
+  // The palette's headings, in the order they are shown. A heading only appears
+  // when it has cards in it, so early chapters see just the two or three that
+  // apply. The learner can fold any of them away (the arrow), and that choice
+  // lasts.
+  const TOOL_GROUPS = [
+    { key: "simple", title: "פשוטים" },
+    { key: "buses", title: "בסים" },
+    { key: "routing", title: "ניתוב" },
+    { key: "arith", title: "חיבור" },
+    { key: "alu", title: "ALU" },
+    { key: "memory", title: "זכרון" },
+    { key: "usercards", title: "הכרטיסים שלי" },
+    { key: "accessories", title: "אביזרים" }
+  ];
+
+  function toolButton(tool) {
+    return `
+      <button class="toolbox-component" data-action="toolbox-component" data-component-type="${esc(tool.type)}" type="button" aria-label="גרור ${esc(tool.label)} לשולחן">
+        ${toolbarIcon(tool.type)}
+        <span>${esc(tool.label)}</span>
+      </button>`;
+  }
+
+  // The palette body: a flat run of tools before chapter 2.5, and headed groups
+  // from there on.
+  function toolboxBody(tools) {
+    const grouped = typeof toolGroupsAvailable === "function" && toolGroupsAvailable()
+      && typeof toolCategoryOf === "function";
+    if (!grouped) {
+      return `<div class="toolbox-list">${tools.map(toolButton).join("")}</div>`;
+    }
+    const groups = TOOL_GROUPS.map((group) => ({
+      ...group,
+      items: tools.filter((tool) => toolCategoryOf(tool.type) === group.key)
+    })).filter((group) => group.items.length);
+    return `
+      <div class="toolbox-list toolbox-list-grouped">
+        ${groups.map((group) => {
+          const collapsed = typeof toolGroupCollapsed === "function" && toolGroupCollapsed(group.key);
+          return `
+            <section class="toolbox-group${collapsed ? " toolbox-group-collapsed" : ""}">
+              <button class="toolbox-group-head" data-action="toolbox-group-toggle" data-group="${esc(group.key)}" type="button" aria-expanded="${collapsed ? "false" : "true"}">
+                <svg class="toolbox-group-arrow" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                  <path d="M4 6 L8 10 L12 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>${esc(group.title)}</span>
+              </button>
+              ${collapsed ? "" : `<div class="toolbox-group-items">${group.items.map(toolButton).join("")}</div>`}
+            </section>`;
+        }).join("")}
+      </div>`;
   }
 
   function renderToolbar() {
@@ -131,13 +184,7 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, busTaskDefById, ga
 
     return `
       <aside class="workspace-toolbox" aria-label="סרגל כלים">
-        <div class="toolbox-list">
-          ${tools.map((tool) => `
-            <button class="toolbox-component" data-action="toolbox-component" data-component-type="${esc(tool.type)}" type="button" aria-label="גרור ${esc(tool.label)} לשולחן">
-              ${toolbarIcon(tool.type)}
-              <span>${esc(tool.label)}</span>
-            </button>`).join("")}
-        </div>
+        ${toolboxBody(tools)}
         ${createCardButton}
         <div class="toolbox-trash" data-trash aria-label="פח זבל">
           ${trashIcon()}
