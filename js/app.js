@@ -784,8 +784,8 @@
         // The control straddles the frame's top edge (at y = -300), like every
         // other card's control, so both its outside tip and the internal point the
         // learner wires to are visible.
-        inputExt2: { x: -300, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
-        inputInt2: { x: -300, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+        inputExt2: { x: -162, y: -370, direction: "in", width: 1, label: "כניסת הבקרה" },
+        inputInt2: { x: -162, y: -230, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
         outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
         outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
       },
@@ -15136,12 +15136,19 @@
     return setState({ memoryNoteList: true });
   }
 
-  // Both memory frames arrive EMPTY: the check reads the card's outside behaviour
-  // over a run of clocks, never its insides, so what goes in (and how much of it)
-  // is the learner's own call. Frame centred at (640, cardY).
+  // Register4 — the FIRST card built out of flip-flops — arrives with its four
+  // already inside; every later frame comes empty, since the check reads the
+  // card's outside behaviour over a run of clocks and never its insides, so what
+  // goes in is the learner's own call. Frame centred at (640, cardY).
   // Where a memory card's frame sits on the build board. Shared with the solution
   // walkthrough (aluBuildCardY) so the frame never moves between the two.
   const MEMORY_BUILD_CARD_Y = 430;
+  function memoryPreplacedComponents(taskId, cardX, cardY) {
+    if (taskId !== "Register4") return [];
+    // Bit 0 at the BOTTOM (matching the splitter's leg order, so no cable crosses),
+    // spaced out and sitting clear of the control pin at the top of the frame.
+    return [0, 1, 2, 3].map((i) => ({ id: `ff-${i + 1}`, type: "ffCard", x: cardX, y: cardY + 170 - i * 110 }));
+  }
 
   function openMemoryTaskWorkspace(taskId) {
     const task = memoryTaskDefById(taskId);
@@ -15155,6 +15162,7 @@
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        ...memoryPreplacedComponents(task.id, cardX, cardY),
         // A test voltage source, up near the control input, for free experimenting.
         { id: "source-1", type: "source", x: 90, y: 140 }
       ],
@@ -15242,8 +15250,8 @@
     const type = ramInnerCardType(taskId);
     return [0, 1, 2, 3].map((i) => ({
       id: `mem-${i + 1}`, type,
-      x: RAM_BUILD_CARD_X + 40,
-      y: RAM_BUILD_CARD_Y - 240 + i * 160
+      x: RAM_BUILD_CARD_X + 60,
+      y: RAM_BUILD_CARD_Y - 180 + i * 120
     }));
   }
 
@@ -15252,7 +15260,7 @@
   // call — including how many cards and of which kind.
   // Sitting right of centre, it leaves the left of the board free for the
   // converters that dial a value and an address by hand.
-  const RAM_BUILD_CARD_X = 780;
+  const RAM_BUILD_CARD_X = 660;
   const RAM_BUILD_CARD_Y = 490;
 
   function openRamTaskWorkspace(taskId) {
@@ -15794,15 +15802,18 @@
       return setState(patch, false);
     }
 
-    // RAM build hint: drop the four cards the RAM is made of into the frame. Unlike
-    // the other build hints this one is ADDITIVE — it only adds the four cards
-    // (and only those not already there), so nothing the learner has wired is lost.
+    // RAM build hint: lay the four cards the RAM is made of inside the frame. Like
+    // every other build hint it rebuilds the workspace to a fixed state, so it
+    // warns first (confirmBeforeApply) — what was already built is replaced.
     if (isRamTask(taskId) && hint.action === "ram-place-inner-cards") {
       const ramWs = normalizeWorkspace(clonePlain(state.workspace));
-      const have = new Set(ramWs.components.map((c) => c.id));
-      const added = ramInnerCardPlacement(taskId).filter((c) => !have.has(c.id));
-      ramWs.components = [...ramWs.components, ...added];
+      const card = componentById(ramWs, "task-card-1")
+        || { id: "task-card-1", type: taskCardComponentType(taskId), x: RAM_BUILD_CARD_X, y: RAM_BUILD_CARD_Y };
+      const source = componentById(ramWs, "source-1") || { id: "source-1", type: "source", x: 110, y: 90 };
+      ramWs.components = [clonePlain(card), clonePlain(source), ...ramInnerCardPlacement(taskId)];
+      ramWs.wires = [];
       ramWs.selectedTerminal = null;
+      ramWs.focusedComponentId = null;
       const ramPatch = {
         workspace: normalizeWorkspace(ramWs),
         hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null

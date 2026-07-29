@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/styles.css?v=v162-teaser-shift-1" />
 <script src="js/component-visuals.js?v=v104-wide-mux-shape-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
-<script src="assets/solutions/solutions.js?v=v23-ram-frame-y-1"></script>
+<script src="assets/solutions/solutions.js?v=v24-ram-layout-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -148,6 +148,8 @@ const PINS = {
   "gate-fullAdder":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
   "gate-Add4":{ in1:{x:-62,y:-52,w:4}, in2:{x:-62,y:0,w:4}, in3:{x:-62,y:52,w:1}, out2:{x:66,y:-34,w:1}, out1:{x:66,y:34,w:4} },
   // 3.1 memory: a data bus in, a single control on top, the stored bus out.
+  // The נעץ: both pins sit at the dot's centre, so a cable through it is straight.
+  nail:{ in:{x:0,y:0,w:1}, out:{x:0,y:0,w:1} },
   ffCard:{ in1:{x:-66,y:0,w:1}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:1} },
   "gate-Register4":{ in1:{x:-62,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
   "gate-Register":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
@@ -288,7 +290,7 @@ function txt(s){ return document.createTextNode(s==null?"":String(s)); }
 // A card's own box, where it is not the 130x110 default (the RAM cards are a
 // touch wider and taller than a register).
 const BOX = {};
-function compBox(c){ if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; const s=edScale(c.type); const b=BOX[c.type]|| (String(c.type).startsWith("gate-Ram")?{w:180,h:150}:{w:130,h:110}); return {w:b.w*s,h:b.h*s}; }
+function compBox(c){ if(c.type==="nail") return {w:40,h:40}; if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; const s=edScale(c.type); const b=BOX[c.type]|| (String(c.type).startsWith("gate-Ram")?{w:180,h:150}:{w:130,h:110}); return {w:b.w*s,h:b.h*s}; }
 function drawComp(c){
   const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width } : {};
   const s = edScale(c.type);

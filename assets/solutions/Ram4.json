@@ -5,7 +5,7 @@
   "frame": {
     "id": "task-card-1",
     "type": "taskCard-Ram4",
-    "x": 780,
+    "x": 660,
     "y": 490,
     "frameW": 800,
     "frameH": 600,
@@ -44,7 +44,7 @@
       },
       {
         "id": "inputExt2",
-        "x": -300,
+        "x": -162,
         "y": -370,
         "w": 1,
         "dir": "in",
@@ -52,7 +52,7 @@
       },
       {
         "id": "inputInt2",
-        "x": -300,
+        "x": -162,
         "y": -230,
         "w": 1,
         "dir": "out",
@@ -80,7 +80,7 @@
     {
       "id": "source-1",
       "type": "source",
-      "x": 110,
+      "x": 90,
       "y": 90
     }
   ],
@@ -88,52 +88,82 @@
     {
       "id": "mem-1",
       "type": "gate-Register",
-      "x": 820,
-      "y": 250
+      "x": 720,
+      "y": 310
     },
     {
       "id": "mem-2",
       "type": "gate-Register",
-      "x": 820,
-      "y": 410
+      "x": 720,
+      "y": 430
     },
     {
       "id": "mem-3",
       "type": "gate-Register",
-      "x": 820,
-      "y": 570
+      "x": 720,
+      "y": 550
     },
     {
       "id": "mem-4",
       "type": "gate-Register",
-      "x": 820,
-      "y": 730
+      "x": 720,
+      "y": 670
     },
     {
       "id": "write-dmux",
       "type": "gate-Dmux4way",
-      "x": 630,
-      "y": 490
+      "x": 560,
+      "y": 352
     },
     {
       "id": "read-mux",
       "type": "gate-Mux4way16",
-      "x": 1030,
+      "x": 900,
       "y": 490
+    },
+    {
+      "id": "addr-nail-1",
+      "type": "nail",
+      "x": 480,
+      "y": 218
+    },
+    {
+      "id": "addr-nail-2",
+      "type": "nail",
+      "x": 480,
+      "y": 306
+    },
+    {
+      "id": "addr-nail-3",
+      "type": "nail",
+      "x": 900,
+      "y": 218
     }
   ],
   "wires": [
     {
-      "a": "task-card-1.inputInt2",
-      "b": "write-dmux.in1"
+      "a": "task-card-1.inputInt3",
+      "b": "addr-nail-1.in"
     },
     {
       "a": "task-card-1.inputInt3",
+      "b": "addr-nail-2.in"
+    },
+    {
+      "a": "addr-nail-1.out",
+      "b": "addr-nail-3.in"
+    },
+    {
+      "a": "addr-nail-3.out",
+      "b": "read-mux.in5"
+    },
+    {
+      "a": "addr-nail-2.out",
       "b": "write-dmux.in2"
     },
     {
-      "a": "task-card-1.inputInt3",
-      "b": "read-mux.in5"
+      "a": "task-card-1.inputInt2",
+      "b": "write-dmux.in1"
     },
     {
       "a": "task-card-1.inputInt1",

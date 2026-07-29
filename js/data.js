@@ -88,7 +88,7 @@ const CHAPTERS = [
   {
     "id": "chapter-12",
     "partId": "part-3",
-    "title": "3.3 RAM",
+    "title": "3.3 Ram",
     "sceneId": "ram"
   }
 ];
@@ -1043,7 +1043,7 @@ const SCENES = {
   },
   "ram": {
     "id": "ram",
-    "title": "3.3 RAM",
+    "title": "3.3 Ram",
     "panels": [
       {
         "comment": "Chapter 3.3 RAM beat, next morning. Von Neumann back in the doorway (reuses panel131's raster).",
