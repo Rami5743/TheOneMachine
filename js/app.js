@@ -3142,6 +3142,13 @@
     return taskHints(taskId).length > 0;
   }
 
+  // A card can offer help without offering a single hint: the big RAMs (RAM256
+  // and up) are the previous card one size larger, so they carry no hints at all
+  // and go straight to the solution. Anything with hints OR a walkthrough counts.
+  function taskOffersHelp(taskId = null) {
+    return taskHasHints(taskId) || taskHasSolutionWalkthrough(taskId);
+  }
+
   function taskHasSolutionWalkthrough(taskId) {
     return Array.isArray(TASK_SOLUTION_STEPS[taskId]) && TASK_SOLUTION_STEPS[taskId].length > 0;
   }
@@ -3150,7 +3157,7 @@
     const hints = taskHints(taskId);
     // Only offer the "solution" button when a walkthrough actually exists — a task
     // with hints but no walkthrough (e.g. the memory cards) must not offer one.
-    return Boolean(taskId) && hints.length > 0 && taskHasSolutionWalkthrough(taskId)
+    return Boolean(taskId) && taskHasSolutionWalkthrough(taskId)
       && !taskCompleted(taskId) && hintProgress(taskId).failures >= hints.length + 2;
   }
 
@@ -3175,7 +3182,7 @@
 
   function hintedTaskActive() {
     const taskId = workspaceTaskId();
-    return state.screen === "workspace" && taskHasHints(taskId) && !taskCompleted(taskId);
+    return state.screen === "workspace" && taskOffersHelp(taskId) && !taskCompleted(taskId);
   }
 
   function hintButtonVisible() {
@@ -5429,154 +5436,22 @@
         }
       }
     ],
+    // From RAM64 on the picture is literally the previous card's, one size up, so
+    // the walkthrough is a single step: the whole solution is on the board and the
+    // text only names which card took the place of which.
     RAM64: [
       {
-        text: "ה-RAM64 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM16 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (6 ביטים) לשניים: 4 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
-        highlight: {
-          components: ["addr-split"],
-          terminals: ["task-card-1.inputInt3", "addr-split.single"],
-          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
-        }
-      },
-      {
-        text: "4 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM16 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
-          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
-        }
-      },
-      {
-        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
-          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
-        }
-      },
-      {
-        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
-        highlight: {
-          components: ["write-dmux"],
-          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
-          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
-        }
-      },
-      {
-        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
-        highlight: {
-          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
-          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
-        }
-      },
-      {
-        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
-        highlight: {
-          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
-          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
-        }
+        text: "זה בדיוק כמו RAM16 אלא שבמקום RAM4 משתמשים ב-RAM16"
       }
     ],
     RAM256: [
       {
-        text: "ה-RAM256 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM64 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (8 ביטים) לשניים: 6 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
-        highlight: {
-          components: ["addr-split"],
-          terminals: ["task-card-1.inputInt3", "addr-split.single"],
-          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
-        }
-      },
-      {
-        text: "6 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM64 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
-          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
-        }
-      },
-      {
-        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
-          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
-        }
-      },
-      {
-        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
-        highlight: {
-          components: ["write-dmux"],
-          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
-          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
-        }
-      },
-      {
-        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
-        highlight: {
-          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
-          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
-        }
-      },
-      {
-        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
-        highlight: {
-          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
-          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
-        }
+        text: "זה בדיוק כמו RAM64 אלא שבמקום RAM16 משתמשים ב-RAM64"
       }
     ],
     RAM1024: [
       {
-        text: "ה-RAM1024 בנוי בדיוק כמו ה-RAM4, רק שבמקום ארבעה רגיסטרים יש בתוכו ארבעה כרטיסי RAM256 — וכל אחד מהם כבר יודע לטפל בכתובת משלו. לכן קודם כל מפצלים את בס הכתובת (10 ביטים) לשניים: 8 הביטים התחתונים הם הכתובת שבתוך הכרטיס, ושני הביטים העליונים בוחרים לאיזה מארבעת הכרטיסים פונים.",
-        highlight: {
-          components: ["addr-split"],
-          terminals: ["task-card-1.inputInt3", "addr-split.single"],
-          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
-        }
-      },
-      {
-        text: "8 ביטי הכתובת הפנימיים מגיעים לכל ארבעת ה-RAM256 במקביל. כל אחד מהם מסתכל על אותה כתובת פנימית — ורק אחד מהם באמת יופעל.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in3", "mem-2.in3", "mem-3.in3", "mem-4.in3"],
-          wires: [wireKey("addr-split.leg0", "mem-1.in3"), wireKey("addr-split.leg0", "mem-2.in3"), wireKey("addr-split.leg0", "mem-3.in3"), wireKey("addr-split.leg0", "mem-4.in3")]
-        }
-      },
-      {
-        text: "כניסת הדאטה מגיעה לכל ארבעת הכרטיסים במקביל. זה בסדר גמור — המידע עומד בכניסה של כולם, אבל רק מי שכניסת הבקרה שלו היא 1 באמת ישמור אותו.",
-        highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["task-card-1.inputInt1", "mem-1.in1", "mem-2.in1", "mem-3.in1", "mem-4.in1"],
-          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"), wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1")]
-        }
-      },
-      {
-        text: "עכשיו הבקרה. כניסת הבקרה של הכרטיס נכנסת ל-DMux4Way — הכרטיס שבנינו כדי להעביר כניסה אחת לאחת מארבע יציאות. שני ביטי הבחירה משמשים בתור בס הבקרה שלו, ולכן בדיוק אחת מארבע היציאות שלו מקבלת את הבקרה וכל השאר מקבלות 0.",
-        highlight: {
-          components: ["write-dmux"],
-          terminals: ["task-card-1.inputInt2", "write-dmux.in1", "write-dmux.in2"],
-          wires: [wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("addr-split.leg1", "write-dmux.in2")]
-        }
-      },
-      {
-        text: "כל יציאה של ה-DMux4Way הולכת לכניסת הבקרה של כרטיס אחר. כך, כשהבקרה 1, נכתב רק הכרטיס שהכתובת מצביעה עליו — וכל השאר שומרים על מה שיש להם.",
-        highlight: {
-          components: ["write-dmux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["mem-1.in2", "mem-2.in2", "mem-3.in2", "mem-4.in2"],
-          wires: [wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"), wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2")]
-        }
-      },
-      {
-        text: "נשארה הקריאה, והיא בדיוק ההפך: Mux4Way16 מקבל את ארבע היציאות ובוחר אחת מהן לפי אותו בס בקרה. מה שיוצא ממנו הוא היציאה של הכרטיס — מה ששמור בכתובת שביקשנו. שים לב שהקריאה מיידית: רק הכתיבה מחכה לפעימת השעון.",
-        highlight: {
-          components: ["read-mux", "mem-1", "mem-2", "mem-3", "mem-4"],
-          terminals: ["read-mux.in5", "task-card-1.outputInt1"],
-          wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("addr-split.leg1", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
-        }
+        text: "זה בדיוק כמו RAM256 אלא שבמקום RAM64 משתמשים ב-RAM256"
       }
     ],
     Add4: [
@@ -13135,7 +13010,7 @@
         const failed = Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : [];
         if (!failed.includes(taskId)) patch.tasksFailedOnce = [...failed, taskId];
       }
-      if (taskHasHints(taskId)) patch.hintState = recordHintFailure(taskId);
+      if (taskOffersHelp(taskId)) patch.hintState = recordHintFailure(taskId);
     } else if (result === "success" && taskId
         && !(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []).includes(taskId)) {
       // First-ever pass of this card with no earlier failed test → "מהנדס מדויק".
