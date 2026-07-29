@@ -719,15 +719,17 @@
     taskId: "Dmux4way",
     gate: true,
     wideRoutingGate: "dmux4way",
+    // Same geometry as the plain DMUX (same symbol, same size); the four outputs
+    // simply sit closer together than its two do.
     pins: {
-      in1: { x: -74, y: 0, direction: "in", width: 1, label: "כניסת DMux4Way" },
-      in2: { x: 0, y: -104, direction: "in", width: 2, label: "כניסת הבקרה של DMux4Way" },
-      out1: { x: 78, y: -60, direction: "out", width: 1, label: "יציאת DMux4Way 1" },
-      out2: { x: 78, y: -20, direction: "out", width: 1, label: "יציאת DMux4Way 2" },
-      out3: { x: 78, y: 20, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
-      out4: { x: 78, y: 60, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
+      in1: { x: -62, y: 0, direction: "in", width: 1, label: "כניסת DMux4Way" },
+      in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה של DMux4Way" },
+      out1: { x: 66, y: -45, direction: "out", width: 1, label: "יציאת DMux4Way 1" },
+      out2: { x: 66, y: -15, direction: "out", width: 1, label: "יציאת DMux4Way 2" },
+      out3: { x: 66, y: 15, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
+      out4: { x: 66, y: 45, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
     },
-    bounds: { left: 76, right: 96, top: 118, bottom: 86 }
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-Mux4way16"] = {
@@ -736,15 +738,16 @@
     gate: true,
     wideRoutingGate: "mux4way16",
     busWidth: 16,
+    // Same geometry as the plain MUX, with four data buses in place of two.
     pins: {
-      in1: { x: -74, y: -60, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
-      in2: { x: -74, y: -20, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
-      in3: { x: -74, y: 20, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
-      in4: { x: -74, y: 60, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
-      in5: { x: 0, y: -104, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
-      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
+      in1: { x: -62, y: -45, direction: "in", width: 16, label: "כניסת Mux4Way16 1" },
+      in2: { x: -62, y: -15, direction: "in", width: 16, label: "כניסת Mux4Way16 2" },
+      in3: { x: -62, y: 15, direction: "in", width: 16, label: "כניסת Mux4Way16 3" },
+      in4: { x: -62, y: 45, direction: "in", width: 16, label: "כניסת Mux4Way16 4" },
+      in5: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה של Mux4Way16" },
+      out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת Mux4Way16" }
     },
-    bounds: { left: 76, right: 96, top: 118, bottom: 86 }
+    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
   };
 
   // ---- Chapter 3.3 RAM cards (Ram4 → Ram1024) --------------------------------
@@ -15225,6 +15228,25 @@
     return Boolean(ramTaskDefById(id));
   }
 
+  // Which card a RAM is made of four of: Registers for Ram4, the previous RAM
+  // size for every wider one.
+  function ramInnerCardType(taskId) {
+    const def = ramTaskDefById(taskId);
+    const prev = def && Array.isArray(def.requires) ? def.requires[0] : null;
+    return gateComponentType(prev || "Register");
+  }
+
+  // Where those four sit inside the frame — the same column the walkthrough uses,
+  // so the "place them for me" hint leads straight into the solution's picture.
+  function ramInnerCardPlacement(taskId) {
+    const type = ramInnerCardType(taskId);
+    return [0, 1, 2, 3].map((i) => ({
+      id: `mem-${i + 1}`, type,
+      x: RAM_BUILD_CARD_X + 40,
+      y: RAM_BUILD_CARD_Y - 240 + i * 160
+    }));
+  }
+
   // The frame arrives EMPTY. The check only ever looks at the card's outside
   // behaviour over a run of clocks, so what goes inside is entirely the learner's
   // call — including how many cards and of which kind.
@@ -15326,8 +15348,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="ram-note-close">\u05e1\u05d2\u05d5\u05e8</button>
+            ${noteClearProgressButton("ram")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -15768,6 +15792,23 @@
       };
       if (hintStateOverride) patch.hintState = hintStateOverride;
       return setState(patch, false);
+    }
+
+    // RAM build hint: drop the four cards the RAM is made of into the frame. Unlike
+    // the other build hints this one is ADDITIVE — it only adds the four cards
+    // (and only those not already there), so nothing the learner has wired is lost.
+    if (isRamTask(taskId) && hint.action === "ram-place-inner-cards") {
+      const ramWs = normalizeWorkspace(clonePlain(state.workspace));
+      const have = new Set(ramWs.components.map((c) => c.id));
+      const added = ramInnerCardPlacement(taskId).filter((c) => !have.has(c.id));
+      ramWs.components = [...ramWs.components, ...added];
+      ramWs.selectedTerminal = null;
+      const ramPatch = {
+        workspace: normalizeWorkspace(ramWs),
+        hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+      };
+      if (hintStateOverride) ramPatch.hintState = hintStateOverride;
+      return setState(ramPatch, false);
     }
 
     // fullAdder build hints: progressively construct the 3-halfAdder circuit.
@@ -16254,6 +16295,7 @@
     if (kind === "arith") return ARITH_TASKS.map((t) => t.id);
     if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
+    if (kind === "ram") return ramTaskDefs().map((t) => t.id);
     return [];
   }
 

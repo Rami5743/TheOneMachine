@@ -391,30 +391,28 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // The finished wide-routing cards (DMux4Way / Mux4Way16): a labelled box with
-  // the 2-bit control stub on top, and four pins on whichever side does the
-  // fanning — inputs for the MUX, outputs for the DMUX.
-  function wideRoutingGateMarkup(spec, label, options = {}) {
-    const edge = 46;
-    const bodyH = 156;
+  // The finished wide-routing cards (DMux4Way / Mux4Way16): the SAME trapezoid
+  // symbol and the same size as the plain MUX / DMUX they generalise — only the
+  // fanning side carries four pins instead of two, bunched closer together to fit
+  // the same body, and the control on top is a 2-bit bus rather than one wire.
+  const WIDE_ROUTING_PIN_YS = [-45, -15, 15, 45];
+  function wideRoutingGateMarkup(spec, options = {}) {
     const mux = spec.kind === "mux4way16";
-    const bar = (x1, x2, y, width) => (width > 1
-      ? busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar)
-      : pinLine(x1, y, x2, y));
-    // The name is split over two lines — "Mux4Way16" is far too long for a box
-    // this narrow on one.
-    const [line1, line2] = mux ? ["Mux4Way", "16"] : ["DMux", "4Way"];
-    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="-4" text-anchor="middle" style="font-size:15px">${esc(line1)}</text>`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="16" text-anchor="middle" style="font-size:15px">${esc(line2)}</text>`;
-    for (const y of [-60, -20, 20, 60]) {
-      s += mux ? bar(-74, -edge, y, spec.width) : bar(edge, 78, y, 1);
+    const symbol = gateMarkup({ id: mux ? "Mux" : "DMux" });
+    let s = "";
+    if (mux) {
+      // Four data buses in on the left, one bus out on the right.
+      WIDE_ROUTING_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, false); });
+      s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, !options.toolbar);
+    } else {
+      // One cable in on the left, four out on the right.
+      s += pinLine(-62, 0, -30, 0);
+      WIDE_ROUTING_PIN_YS.forEach((y) => { s += pinLine(30, y, 66, y); });
     }
-    s += mux ? bar(edge, 78, 0, spec.width) : bar(-74, -edge, 0, 1);
-    // The 2-bit control bus enters the top.
-    s += busGateBarV(0, -104, -bodyH / 2);
-    if (!options.toolbar) s += `<text class="splitter-width-label" x="24" y="-92">2</text>`;
-    return `<g class="usercard">${s}</g>`;
+    // The 2-bit control bus enters the top, over the symbol's own thin stub.
+    s += busGateBarV(0, -46, -26);
+    if (!options.toolbar) s += `<text class="splitter-width-label" x="22" y="-48">2</text>`;
+    return `<g class="bus-gate">${symbol}${s}</g>`;
   }
 
   function busGateMarkup(spec, options = {}) {
@@ -450,7 +448,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (type === "gate-Register") return registerGateMarkup(16, options);
       // The finished wide-routing cards (2.4).
       const wide = typeof wideRoutingGateSpec === "function" ? wideRoutingGateSpec(type) : null;
-      if (wide) return wideRoutingGateMarkup(wide, type === "gate-Mux4way16" ? "Mux4Way16" : "DMux4Way", options);
+      if (wide) return wideRoutingGateMarkup(wide, options);
       // The placeable RAM cards (3.3), drawn from their own spec.
       const ram = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
       if (ram) return ramGateMarkup(ram, type.slice(5), options);
