@@ -1169,6 +1169,14 @@ button { font: inherit; }
   border-color: var(--primary);
 }
 
+/* The two fixed feet of the palette. The list above them scrolls; these two must
+   NEVER be squeezed or clipped out of it, however long the tool list grows or
+   however short the window is (the palette itself clips its overflow). */
+.toolbox-create-card,
+.toolbox-trash {
+  flex: 0 0 auto;
+}
+
 /* A comic speech bubble (matching the Nand monologue in ch. 2.1), pointing left
    at the "create new card" tool. The whole bubble is clickable. */
 .create-card-bubble {
