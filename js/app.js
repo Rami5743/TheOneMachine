@@ -5405,14 +5405,6 @@
           terminals: ["read-mux.in5", "task-card-1.outputInt1"],
           wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("task-card-1.inputInt3", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
         }
-      },
-      // Two closing beats, plain dialogue over the finished circuit: WHY a register
-      // needs a control input at all, and what that lock is worth as memory.
-      {
-        text: "כאן אנחנו רואים את החשיבות שלרגיסטר יש כניסת בקרה שאם היא אינה מופעלת אנחנו לא יכולים לשנות אותו. אפשר היה לחשוב שלא צריך את זה, הרי אם אנחנו לא רוצים לשנות את מה שכתוב ברגיסטר אנחנו יכולים פשוט לא לשנות את הכניסה. אבל, כניסת הבקרה הזאת היא בדיוק מה שמאפשר לנו לרשום לרגיסטר אחד ולא לגעת באחרים."
-      },
-      {
-        text: "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
       }
     ],
     RAM16: [
@@ -14138,7 +14130,7 @@
       // before the memory/bus branches — a RAM card is multibit-shaped too.
       if (isRamTask(taskId)) {
         return setState({
-          ...ramCompletionPatch(completedTasks),
+          ...ramCompletionPatch(completedTasks, taskId),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -14240,11 +14232,16 @@
   // Where a finished RAM card lands: the 3.3 worktable with its note reopened, so
   // the next size unlocks. Once all five are built there is no further beat yet,
   // so the worktable says "המשך יבוא..." rather than leaving the player stranded.
-  function ramCompletionPatch(completedTasks) {
+  function ramCompletionPatch(completedTasks, taskId = null) {
     const allRamDone = ramTaskDefs().every((t) => completedTasks.includes(t.id));
+    // RAM4 closes with a paged explanation (the register's control input), shown
+    // out at the worktable exactly like the 2.6 ALU messages. The note opens when
+    // that dialog is dismissed.
+    const message = !allRamDone && taskId ? aluMessagePagesFor(taskId) : null;
     return {
       ...ramWorktableReturnTarget(),
-      ramNoteList: !allRamDone,
+      ramNoteList: !allRamDone && !message,
+      aluIntroDialog: message ? { page: 0, taskId } : null,
       infoDialog: allRamDone ? "המשך יבוא..." : null
     };
   }
@@ -15012,10 +15009,20 @@
     "זה מאוד נפוץ בעולם המחשבים שיש פתרון פשוט שמשתמש ברכיבים מוכנים, ופתרון מסובך יותר שמשתמש בדיוק במה שצריך. יש יתרון להשתמש ברכיבים מוכנים: הם בדוקים היטב, אם תרצה לשפר אותם — זה ישפר גם את המוצר שמשתמש בהם, וזה בדרך כלל פשוט ומהיר יותר. יש גם יתרונות לבנייה של רכיבים המתאימים בדיוק למטרה שלך: זה יעיל יותר — זאת אומרת שהמוצר יהיה מהיר יותר, זול יותר להכנה ולפעמים מדויק יותר. כמו כן, שינוי ברכיב שאתה משתמש בו יכול לפעמים לגרום לשינוי לא צפוי במוצר שלך."
   ];
 
-  // The after-completion message pages for an ALU card (null if it has none).
+  // Shown once RAM4 is done, back at the 3.3 worktable: why a register needs a
+  // control input at all, and what locking it is worth as memory.
+  const RAM4_COMPLETE_PAGES = [
+    "כאן אנחנו רואים את החשיבות שלרגיסטר יש כניסת בקרה שאם היא אינה מופעלת אנחנו לא יכולים לשנות אותו. אפשר היה לחשוב שלא צריך את זה, הרי אם אנחנו לא רוצים לשנות את מה שכתוב ברגיסטר אנחנו יכולים פשוט לא לשנות את הכניסה. אבל, כניסת הבקרה הזאת היא בדיוק מה שמאפשר לנו לרשום לרגיסטר אחד ולא לגעת באחרים.",
+    "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
+  ];
+
+  // The after-completion message pages for a card (null if it has none). ALU0 and
+  // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
+  // paged dialog, once the build (or its walkthrough) is behind the learner.
   function aluMessagePagesFor(taskId) {
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
+    if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
     return null;
   }
 
@@ -15409,7 +15416,7 @@
     // RAM cards (3.3): back to the 3.3 worktable with its note reopened.
     if (isRamTask(taskId)) {
       return setState({
-        ...ramCompletionPatch(completedTasks),
+        ...ramCompletionPatch(completedTasks, taskId),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -15621,7 +15628,7 @@
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
     if (isRamTask(taskId)) {
-      return setState({ ...ramCompletionPatch(completedTasks), ...base }, true);
+      return setState({ ...ramCompletionPatch(completedTasks, taskId), ...base }, true);
     }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
@@ -18668,6 +18675,8 @@
       if (state.aluIntroDialog?.returnToExplanations) {
         return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
       }
+      // A RAM message belongs to the 3.3 note, not the 2.6 one.
+      if (isRamTask(state.aluIntroDialog?.taskId)) return setState({ aluIntroDialog: null, ramNoteList: true });
       return setState({ aluIntroDialog: null, aluNoteList: true });
     }
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);

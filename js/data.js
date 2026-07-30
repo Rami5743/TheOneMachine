@@ -1018,10 +1018,10 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
+        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory — and it has a name, רגיסטר / אוגר. The basic unit of information the machine works with.",
         "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
         "year": "1943",
-        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרנו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. קוראים לכרטיס כזה \"רגיסטר\" (בעברית \"אוגר\"). כמו שאמרנו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
       },
       {
         "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
