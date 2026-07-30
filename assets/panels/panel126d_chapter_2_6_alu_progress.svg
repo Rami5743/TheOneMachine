@@ -6,7 +6,7 @@
    viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
-   sodipodi:docname="panel126_chapter_2_6_alu_done_1.svg"
+   sodipodi:docname="panel126d_chapter_2_6_alu_progress.svg"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -46,7 +46,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 523.24785,59.98769 H 1238.6342 c 13.2358,0 19.8537,6.88821 19.8537,20.66463 V 214.75638 c 0,13.77642 -6.6179,20.66463 -19.8537,20.66463 H 523.24785 c -13.2358,0 -19.8537,-6.88821 -19.8537,-20.66463 V 179.27522 L 402,163.32352 503.39415,133.79099 V 80.65232 c 0,-13.77642 6.6179,-20.66463 19.8537,-20.66463 z"
+       d="M 523.24785,59.98769 H 1287.72795 c 13.2358,0 19.8537,6.88821 19.8537,20.66463 V 162.13472 c 0,13.77642 -6.6179,20.66463 -19.8537,20.66463 H 523.24785 c -13.2358,0 -19.8537,-6.88821 -19.8537,-20.66463 V 179.27522 L 402,163.32352 503.39415,133.79099 V 80.65232 c 0,-13.77642 6.6179,-20.66463 19.8537,-20.66463 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -55,20 +55,16 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.2908px;line-height:1.45;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="880.94103"
+       x="905.4879"
        y="111.98769"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="880.94103"
-         y="111.98769">מצוין, בנית ALU, זאת לא סתם מכונה שעושה</tspan><tspan
+         x="905.4879"
+         y="111.98769">ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="880.94103"
-         y="164.60935">חישוב אחד, אלא ממש מכונה שאפשר להגיד לה</tspan><tspan
-         sodipodi:role="line"
-         id="bubble-text-line3"
-         x="880.94103"
-         y="217.23101">איזה חישוב היא תעשה.</tspan></text>
+         x="905.4879"
+         y="164.60935">רב שלביים אבל זאת התקדמות.</tspan></text>
   </g>
 </svg>

@@ -942,10 +942,28 @@ const SCENES = {
         ]
       },
       {
-        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
+        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. His 'you built an ALU' monologue runs over four slides (126, 126b, 126c, 126d) — same art and same balloon, only the text changes. Speech is baked into each SVG.",
         "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
         "year": "1943",
-        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד, אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד, אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה."
+      },
+      {
+        "comment": "The monologue continues: what the ALU's control bus IS — the 12-bit \"instructions\".",
+        "image": "assets/panels/panel126b_chapter_2_6_alu_instructions.svg",
+        "year": "1943",
+        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותם על שני בסים של 16 ביט כל אחד."
+      },
+      {
+        "comment": "And what those 64 operations are worth: some duplicates, some odd ones, still plenty that matter.",
+        "image": "assets/panels/panel126c_chapter_2_6_alu_operations.svg",
+        "year": "1943",
+        "read": "חלק מ-64 הפעולות האלה זהות זו לזו, חלקן מוזרות וכנראה לא שימושיות, אבל אחרי כל זה אנחנו עדיין נשארים עם לא מעט פעולות שימושיות שיאפשרו לנו לבצע חישובים מסובכים."
+      },
+      {
+        "comment": "The closing beat of the monologue: not a computer yet, but progress.",
+        "image": "assets/panels/panel126d_chapter_2_6_alu_progress.svg",
+        "year": "1943",
+        "read": "ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
       },
       {
         "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
