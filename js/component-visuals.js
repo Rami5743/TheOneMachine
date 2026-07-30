@@ -438,9 +438,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // they break after "RAM" and keep the full size rather than shrinking to fit.
     const oneLineFont = labelFontSize(label, edge * 2, 16);
     const parts = /^([A-Za-z]+)(\d+)$/.exec(String(label));
-    // labelFontSize caps at the room available, so a name that came back SMALLER
-    // than the size we asked for is a name that did not fit across the card.
-    const wraps = Boolean(parts) && oneLineFont < 16 * k();
+    // Does the whole name fit across the card at full size, with a margin either
+    // side? Arial-bold runs about 0.7em per character here, so anything past RAM4
+    // (RAM16 on up) breaks after "RAM" instead of being squeezed onto one line.
+    const wraps = Boolean(parts) && String(label).length * 0.7 * (16 * k()) > edge * 2 - 20;
     if (wraps) {
       const font = Math.min(labelFontSize(parts[1], edge * 2, 19), labelFontSize(parts[2], edge * 2, 19));
       const lh = Math.round(font * 0.95);

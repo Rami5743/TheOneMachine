@@ -12,5 +12,5 @@
   <line class="line" x1="0" y1="-46" x2="0" y2="-32" />
   <line class="line" x1="30" y1="0" x2="66" y2="0" />
   <path class="body" d="M-30 -42 L30 -22 L30 22 L-30 42 Z" />
-  <text class="label" x="-4" y="0" style="font-size:19px">MUX</text>
+  <text class="label" x="4" y="0" style="font-size:19px">MUX</text>
 </svg>

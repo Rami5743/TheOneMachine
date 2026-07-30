@@ -77,7 +77,8 @@
      class="label"
      x="2"
      y="1.4794922"
-     id="text3">NAND</text>
+     id="text3"
+     style="font-size:17px">NAND</text>
   <g
      id="pin-tags"
      data-role="pin-tags"

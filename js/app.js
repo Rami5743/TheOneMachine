@@ -14242,8 +14242,19 @@
   // Where a finished RAM card lands: the 3.3 worktable with its note reopened, so
   // the next size unlocks. Once all five are built there is no further beat yet,
   // so the worktable says "המשך יבוא..." rather than leaving the player stranded.
+  // Where the 3.3 story picks up once every RAM card is built: von Neumann's
+  // closing monologue (what 1000 registers buy, what RAM's name means, the paper
+  // tape it beats, and what it costs).
+  function ramEpilogueTarget() {
+    const chapter = chapterById("chapter-12");
+    const index = panelIndexByImage(SCENES["ram"], "panel142_chapter_3_3_ram_thousand.svg");
+    return Number.isInteger(index) && index >= 0 ? storyTarget(chapter, index) : null;
+  }
+
   function ramCompletionPatch(completedTasks, taskId = null) {
     const allRamDone = ramTaskDefs().every((t) => completedTasks.includes(t.id));
+    const epilogue = allRamDone ? ramEpilogueTarget() : null;
+    if (epilogue) return { ...epilogue, ramNoteList: false, aluIntroDialog: null, infoDialog: null };
     // RAM4 closes with a paged explanation (the register's control input), shown
     // out at the worktable exactly like the 2.6 ALU messages. The note opens when
     // that dialog is dismissed.
