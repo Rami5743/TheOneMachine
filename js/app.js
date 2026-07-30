@@ -5186,10 +5186,14 @@
 
   function renderNotTestResultDialog() {
     if (!state.notTest?.result) return "";
-    const message = state.notTest.result === "success" ? "הבדיקה הצליחה" : "הבדיקה נכשלה";
+    const passed = state.notTest.result === "success";
+    const message = passed ? "הבדיקה הצליחה" : "הבדיקה נכשלה";
+    // The verdict is told by the card's colour too — a dark green for a pass, a
+    // dark red for a failure (the text is light, so both stay dark).
+    const tone = passed ? " not-test-result-pass" : " not-test-result-fail";
     return `
       <div class="not-test-result-overlay" role="presentation">
-        <section class="not-test-result-card" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
+        <section class="not-test-result-card${tone}" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
           <p>${esc(message)}</p>
           <div class="not-test-result-actions">
             <button class="btn btn-primary" data-action="not-test-ok">אישור</button>

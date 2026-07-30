@@ -3045,6 +3045,18 @@ g.component-ffCard.ff-materialize .ff-card {
   pointer-events: auto;
 }
 
+/* The verdict's colour: a DARK green for a pass and a DARK red for a failure, so
+   the light text on top of them stays readable. */
+.not-test-result-card.not-test-result-pass {
+  background: #16351f;
+  border-color: #3f7a52;
+}
+
+.not-test-result-card.not-test-result-fail {
+  background: #3a1a1a;
+  border-color: #8a4444;
+}
+
 .not-test-result-card p {
   margin: 0;
   font-size: clamp(1.25rem, 3vw, 1.8rem);
