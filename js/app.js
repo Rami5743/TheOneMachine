@@ -5768,10 +5768,10 @@
       {
         text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון).",
         highlight: {
-          components: ["pn3", "pn3-ctrl"],
-          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          components: ["pn3"],
+          terminals: ["part3-split.leg1", "pn3.in2", "task-card-1.outputInt1"],
           wires: [
-            wireKey("part3-split.leg1", "pn3-ctrl.leg1"),
+            wireKey("part3-split.leg1", "pn3.in2"),
             wireKey("alu0.out1", "pn3.in1"),
             wireKey("pn3.out1", "task-card-1.outputInt1")
           ]
@@ -12480,7 +12480,7 @@
     const base = SOLUTION_DOCS.ALU1;
     if (!base || !Array.isArray(base.components)) return null;
     const doc = clonePlain(base);
-    const drop = new Set(["pn3", "pn3-ctrl"]); // the final PreperNum stage
+    const drop = new Set(["pn3"]); // the final PreperNum stage
     const partOf = (ref) => String(ref).split(".")[0];
     doc.components = doc.components.filter((c) => !drop.has(c.id));
     doc.wires = doc.wires.filter((w) => !drop.has(partOf(w.a)) && !drop.has(partOf(w.b)));

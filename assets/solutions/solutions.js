@@ -626,7 +626,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "ctrl-split",
         "type": "splitter",
-        "x": 385,
+        "x": 383,
         "y": 230,
         "outputs": 3,
         "width": 2,
@@ -635,7 +635,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "part3-split",
         "type": "splitter",
-        "x": 540,
+        "x": 520,
         "y": 195,
         "outputs": 2,
         "width": 1,
@@ -644,35 +644,26 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "pn1",
         "type": "gate-PreperNum",
-        "x": 425,
-        "y": 345
+        "x": 420,
+        "y": 334
       },
       {
         "id": "pn2",
         "type": "gate-PreperNum",
-        "x": 535,
-        "y": 450
+        "x": 400,
+        "y": 460
       },
       {
         "id": "alu0",
         "type": "gate-ALU0",
-        "x": 675,
-        "y": 370
-      },
-      {
-        "id": "pn3-ctrl",
-        "type": "splitter",
-        "x": 655,
-        "y": 195,
-        "outputs": 2,
-        "width": 1,
-        "mirrored": true
+        "x": 562,
+        "y": 360
       },
       {
         "id": "pn3",
         "type": "gate-PreperNum",
-        "x": 775,
-        "y": 240
+        "x": 704,
+        "y": 360
       }
     ],
     "wires": [
@@ -714,10 +705,6 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "part3-split.leg1",
-        "b": "pn3-ctrl.leg1"
-      },
-      {
-        "a": "pn3-ctrl.single",
         "b": "pn3.in2"
       },
       {
