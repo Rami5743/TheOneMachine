@@ -1066,6 +1066,64 @@ button { font: inherit; }
   min-height: 0;
 }
 
+/* From chapter 2.5 the palette is grouped under headings, so the list itself
+   stops being the grid — each group's items are. A heading with no cards is never
+   rendered, so early chapters still see a short palette. */
+.toolbox-list-grouped {
+  display: flex;
+  flex-direction: column;
+  grid-auto-rows: initial;
+  gap: 10px;
+}
+
+.toolbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbox-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: var(--muted, #b6a88f);
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: start;
+}
+
+.toolbox-group-head:hover,
+.toolbox-group-head:focus-visible {
+  color: var(--text);
+}
+
+.toolbox-group-arrow {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  transition: transform 0.15s ease;
+}
+
+/* Folded away: the arrow points along the reading direction (leftwards in RTL). */
+.toolbox-group-collapsed .toolbox-group-arrow {
+  transform: rotate(90deg);
+}
+
+.toolbox-group-items {
+  display: grid;
+  /* A fixed row height, not the ungrouped list's minmax: each group is its own
+     grid with no height to share out, so a range would let every tile stretch to
+     its maximum and the palette would run absurdly long. */
+  grid-auto-rows: 86px;
+  gap: 8px;
+}
+
 .toolbox-component {
   width: 100%;
   min-height: 86px;
@@ -1109,6 +1167,14 @@ button { font: inherit; }
   cursor: pointer;
   border-style: dashed;
   border-color: var(--primary);
+}
+
+/* The two fixed feet of the palette. The list above them scrolls; these two must
+   NEVER be squeezed or clipped out of it, however long the tool list grows or
+   however short the window is (the palette itself clips its overflow). */
+.toolbox-create-card,
+.toolbox-trash {
+  flex: 0 0 auto;
 }
 
 /* A comic speech bubble (matching the Nand monologue in ch. 2.1), pointing left
@@ -1251,7 +1317,9 @@ button { font: inherit; }
 /* A user-built card, drawn as a generic chip on the board and in the toolbar. */
 .usercard-body {
   fill: #f4e7cf;
-  stroke: #4a3b28;
+  /* Black, like the schematic symbols in assets/components — a card's border must
+     not change colour depending on which family drew it. */
+  stroke: #111;
   stroke-width: 4;
 }
 
@@ -1686,6 +1754,16 @@ g.component-ffCard.ff-materialize .ff-card {
 .workspace-wire-layer {
   pointer-events: none;
 }
+
+/* The wide-routing cards (DMux4Way / Mux4Way16) are drawn in code rather than
+   borrowed from a symbol file, so their trapezoid body and label live here — the
+   same look as the plain MUX/DMUX symbols in assets/components. */
+.wide-routing-body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
+.wide-routing-label {
+  fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 13px;
+  dominant-baseline: middle; text-anchor: middle;
+}
+.wide-routing-label-small { font-size: 10px; font-weight: 800; }
 
 /* --- Splitter (2.4) ------------------------------------------------------- */
 .splitter-hit { pointer-events: all; }

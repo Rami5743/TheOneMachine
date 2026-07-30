@@ -12,7 +12,7 @@
 // createComponentVisuals(deps) -> { componentSvgFilenameForType, componentMarkup,
 //                                   smokeMarkup, charredNandMarkup }
 
-function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, savedCardMarkup }) {
+function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup }) {
   function componentSvgImage(filename, x, y, width, height) {
     const href = `assets/components/${filename}`;
     return `<image class="component-svg" href="${esc(href)}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>`;
@@ -83,9 +83,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The "+" mark (halfAdder omits the lower leg).
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
     s += `<line class="arith-gate-plus" x1="0" y1="${-arm}" x2="0" y2="${half ? 0 : arm}" />`;
-    inYs.forEach((y) => { s += `<line class="usercard-pin" x1="${-bodyW / 2}" y1="${y}" x2="${inX}" y2="${y}" />`; });
-    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${carryY}" x2="${outX}" y2="${carryY}" />`;
-    s += `<line class="usercard-pin" x1="${bodyW / 2}" y1="${sumY}" x2="${outX}" y2="${sumY}" />`;
+    inYs.forEach((y) => { s += pinLine(-bodyW / 2, y, inX, y); });
+    s += pinLine(bodyW / 2, carryY, outX, carryY);
+    s += pinLine(bodyW / 2, sumY, outX, sumY);
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${carryY + 5}" text-anchor="end">c</text>`;
     s += `<text class="arith-gate-pin-letter" x="${bodyW / 2 - 9}" y="${sumY + 5}" text-anchor="end">s</text>`;
     // No name caption under the placed adder gates: the "+" mark and the c/s pin
@@ -124,7 +124,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // thickness, stripe and width label — busGateBar pre-multiplies by 1/0.6 so
     // that after the gate's 0.6 render scale the pin comes out at full bus size.
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    const cable = (x1, x2, y) => `<line class="usercard-pin" x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" />`;
+    const cable = (x1, x2, y) => pinLine(x1, y, x2, y);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
     // The full "+" mark, like the fullAdder.
     s += `<line class="arith-gate-plus" x1="${-arm}" y1="0" x2="${arm}" y2="0" />`;
@@ -193,7 +193,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const topY = -(hh + hhr) / 2;
     s += (opts.controlWidth > 1)
       ? busGateBarV(0, topY + 4, -46)
-      : `<line class="usercard-pin" x1="0" y1="${topY}" x2="0" y2="-46" />`;
+      : pinLine(0, topY, 0, -46);
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -207,13 +207,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const inX = -62;
     const outX = 66;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, true);
-    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="5" text-anchor="middle" style="font-size:16px">Prep</text>`;
-    s += busPin(inX, -edge, 0);   // number bus in
-    s += busPin(edge, outX, 0);   // result bus out
+    // Pins FIRST, body over them, so a pin stops at the body's edge instead of
+    // running into it.
+    let s = busPin(inX, -edge, 0);   // number bus in
+    s += busPin(edge, outX, 0);      // result bus out
     // The width-2 control bus pokes out of the top edge toward its terminal —
-    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus.
+    // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus, with its
+    // width labelled to the right of the bar like every other bus.
     s += busGateBarV(0, -bodyH / 2 + 4, -46);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
+    // The control's width label goes AFTER the body, to the right of the stub, so
+    // the body cannot swallow it.
+    const ctrlFont = 13 * k();
+    s += `<text class="splitter-width-label" x="14" y="${-46 + Math.round(ctrlFont * 0.7)}" text-anchor="start" style="font-size:${ctrlFont}px">2</text>`;
+    const prepFont = labelFontSize("Prep", bodyW, 16);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(prepFont)}" text-anchor="middle" style="font-size:${prepFont}px">Prep</text>`;
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -306,6 +314,30 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function setBusRenderScale(scale) {
     busScale = (Number.isFinite(scale) && scale > 0) ? scale : BUS_GATE_SCALE;
   }
+  // A single-wire pin stub must read at CABLE width (5) wherever it is drawn —
+  // and a gate card has two sizes (full on a clocked table, GATE_RENDER_SCALE
+  // elsewhere past 2.2), so like the bus bars beside it the stroke compensates for
+  // the scale the caller renders at. Without this a pin thins out on the small
+  // version while the bus bar next to it stays put.
+  const pinStroke = () => 5 * k();
+
+  // A card's NAME should stay the size it reads at, even when the card itself is
+  // drawn small (0.6 past the simple-gate chapter) — shrinking the box shouldn't
+  // shrink the writing on it. So the font compensates for the render scale, but
+  // only as far as the name still sits comfortably inside the body: "RAM1024" on a
+  // 104-wide card cannot take the full compensation, so it takes what fits.
+  // (Arial bold runs at roughly 0.62 em per character.)
+  function labelFontSize(text, boxWidth, baseSize) {
+    const wanted = baseSize * k();
+    const room = (boxWidth - 14) / (0.62 * Math.max(1, String(text).length));
+    return Math.max(baseSize, Math.min(wanted, room));
+  }
+  // A label's baseline, so it stays vertically centred as its size changes.
+  const labelBaseline = (fontSize) => Math.round(fontSize * 0.35);
+  function pinLine(x1, y1, x2, y2, cls = "usercard-pin") {
+    return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke-width:${pinStroke()}" />`;
+  }
+
   function busGateBar(b, width, showLabel) {
     const K = k();
     const half = (11 * K) / 2;
@@ -346,7 +378,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="12" />`;
     s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:22px">&#8800;0</text>`;
     s += busPin(inX, -edge, 0);   // bus input on the left
-    s += `<line class="usercard-pin" x1="${edge}" y1="0" x2="${outX}" y2="0" />`;   // single-bit cable out
+    s += pinLine(edge, 0, outX, 0);              // single-bit cable out
     return `<g class="usercard">${s}</g>`;
   }
   // The placeable memory card (gate-Register4): a labelled box with a bus data
@@ -356,11 +388,88 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 76;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    s += `<text class="arith-gate-pin-letter" x="0" y="7" text-anchor="middle" style="font-size:17px">Reg4</text>`;
+    // Both widths just say "Reg" — the 4 or the 16 is already on the pins.
+    const regName = "Reg";
+    const regFont = labelFontSize(regName, edge * 2, 17);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(regFont)}" text-anchor="middle" style="font-size:${regFont}px">${regName}</text>`;
     s += busPin(-62, -edge, 0);                  // data bus in (left)
     s += busPin(edge, 66, 0);                    // stored bus out (right)
-    s += `<line class="usercard-pin" x1="0" y1="-46" x2="0" y2="${-bodyH / 2}" />`; // control (top)
+    s += pinLine(0, -46, 0, -bodyH / 2);         // control (top)
     return `<g class="usercard">${s}</g>`;
+  }
+
+  // A placeable RAM card (gate-RAM4 …): a wider labelled box than the register —
+  // the name has to fit up to "RAM1024" — with the address bus in on the upper left,
+  // the address bus in on the UPPER left and the data bus below it (the same order
+  // as the build frame), the control stub on top and the data bus out on the
+  // right. The address bar is drawn at ITS width, so the card shows at a glance
+  // how many address lines it takes.
+  function ramGateMarkup(spec, label, options = {}) {
+    const edge = 52;
+    const bodyH = 86;
+    const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    let s = `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const ramFont = labelFontSize(label, edge * 2, 16);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(ramFont)}" text-anchor="middle" style="font-size:${ramFont}px">${esc(label)}</text>`;
+    s += bar(-74, -edge, -24, spec.addressWidth); // address bus in (upper left)
+    s += bar(-74, -edge, 24, spec.width);         // data bus in (lower left)
+    s += bar(edge, 78, 0, spec.width);           // stored bus out (right)
+    s += pinLine(0, -56, 0, -bodyH / 2);         // control (top)
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The finished wide-routing cards (DMux4Way / Mux4Way16). Same trapezoid and
+  // very nearly the same size as the plain MUX / DMUX they generalise, but drawn
+  // HERE rather than borrowed from the symbol file: that file draws its own two
+  // pin stubs, which would show through beside the four these cards need.
+  //
+  // Order matters — the pins are drawn FIRST and the body over them, so a pin
+  // stops at the body's edge instead of running into it.
+  //
+  // The MUX takes its four buses on the wide LEFT side, so that side is stretched
+  // (±74 instead of ±42) to hold them far enough apart that each one's width label
+  // fits above it, the way every other bus is labelled; the DMUX fans out on
+  // the wide RIGHT side, and its four are single cables, so they only need
+  // bunching (±30/±10) and the body keeps the plain DMUX's size.
+  const MUX4_PIN_YS = [-60, -20, 20, 60];
+  const DMUX4_PIN_YS = [-30, -10, 10, 30];
+  function wideRoutingGateMarkup(spec, options = {}) {
+    const mux = spec.kind === "mux4way16";
+    const label = !options.toolbar;
+    let s = "";
+    if (mux) {
+      // Four data buses in on the wide left side, one bus out on the right — each
+      // labelled above its own bar, like every other bus on every other card.
+      MUX4_PIN_YS.forEach((y) => { s += busGateBar({ x1: -62, x2: -30, y }, spec.width, label); });
+      s += busGateBar({ x1: 30, x2: 66, y: 0 }, spec.width, label);
+    } else {
+      // One cable in on the left, four out on the wide right side.
+      s += pinLine(-62, 0, -30, 0);
+      DMUX4_PIN_YS.forEach((y) => { s += pinLine(30, y, 66, y); });
+    }
+    // The 2-bit control bus enters the top and runs a little INTO the body, which
+    // is drawn over it. The MUX's body is taller (its left side was stretched), so
+    // its control starts higher to leave the same length of visible stub as the
+    // plain MUX has.
+    const ctrlTip = mux ? -66 : -46;
+    const ctrlEnd = mux ? -44 : -28;
+    s += busGateBarV(0, ctrlTip, ctrlEnd);
+    // The body next, so it covers where the pins meet it...
+    const body = mux
+      ? "M-30 -74 L30 -22 L30 22 L-30 74 Z"
+      : "M-30 -22 L30 -42 L30 42 L-30 22 Z";
+    s += `<path class="wide-routing-body" d="${body}" />`;
+    // ...and the control's width label AFTER it, ABOVE the pin's outer tip. The
+    // body's top edge slopes, so a label level with the stub would sit inside it on
+    // the DMUX however it is layered — sitting above the tip clears it outright.
+    if (label) {
+      const cfont = 13 * k();
+      s += `<text class="splitter-width-label" x="14" y="${ctrlTip + 2}" text-anchor="start" style="font-size:${cfont}px">2</text>`;
+    }
+    // Just "MUX" / "DMUX" on the card, like the plain ones — the 4-way part is
+    // told by the four pins and the 2-bit control, not by the name.
+    s += `<text class="wide-routing-label" x="${mux ? -2 : 2}" y="0">${mux ? "MUX" : "DMUX"}</text>`;
+    return `<g class="bus-gate">${s}</g>`;
   }
 
   function busGateMarkup(spec, options = {}) {
@@ -394,6 +503,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The finished wide-routing cards (2.4).
+      const wide = typeof wideRoutingGateSpec === "function" ? wideRoutingGateSpec(type) : null;
+      if (wide) return wideRoutingGateMarkup(wide, options);
+      // The placeable RAM cards (3.3), drawn from their own spec.
+      const ram = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
+      if (ram) return ramGateMarkup(ram, type.slice(5), options);
       // A bus gate (gate-Not4 …) draws like its base gate — same symbol, keyed
       // off its op — but with bus pins.
       const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
@@ -464,11 +579,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function ffCardMarkup() {
     return `
       <g class="ff-card" aria-hidden="true">
-        <line x1="-66" y1="0" x2="-40" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <line x1="0" y1="-46" x2="0" y2="-30" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <line x1="40" y1="0" x2="66" y2="0" stroke="#111" stroke-width="6" stroke-linecap="round" />
-        <rect x="-40" y="-30" width="80" height="60" rx="10" fill="#f7f7f2" stroke="#111" stroke-width="5" />
-        <text x="0" y="10" text-anchor="middle" font-size="30" font-weight="700" fill="#111" font-family="'Heebo','Noto Sans Hebrew',Arial,sans-serif">FF</text>
+        ${pinLine(-66, 0, -40, 0)}
+        ${pinLine(0, -46, 0, -30)}
+        ${pinLine(40, 0, 66, 0)}
+        <rect class="usercard-body" x="-40" y="-30" width="80" height="60" rx="10" />
+        <text class="arith-gate-pin-letter" x="0" y="${labelBaseline(labelFontSize("FF", 80, 26))}" text-anchor="middle" style="font-size:${labelFontSize("FF", 80, 26)}px">FF</text>
       </g>`;
   }
 

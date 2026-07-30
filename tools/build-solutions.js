@@ -11,7 +11,7 @@ const path = require("path");
 
 const DIR = path.join(__dirname, "..", "assets", "solutions");
 const OUT = path.join(DIR, "solutions.js");
-const TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register"];
+const TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024"];
 
 const docs = {};
 for (const task of TASKS) {
