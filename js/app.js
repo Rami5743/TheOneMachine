@@ -1637,7 +1637,9 @@
 
   function componentRenderScale(type) {
     const t = String(type || "");
-    if (!t.startsWith("gate-") && t !== "nand") return 1;
+    // The FF card is a card like any other, so it shrinks with them (it used to be
+    // left out and stayed full size on tables where everything else had shrunk).
+    if (!t.startsWith("gate-") && t !== "nand" && t !== "ffCard") return 1;
     // The schematic shrinks part-way through part 2 (past the simple-gate chapter)
     // and STAYS shrunk from there on — every later table, every solution
     // walkthrough, the clocked tables of part 3 included. A card must not change
@@ -17757,15 +17759,15 @@
     "workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"
   ];
 
-  // These panels are click-through (pointer-events:none so the board underneath
-  // stays wireable), so their only pointer-events:auto surface is the grip — they
-  // can ONLY be dragged by it. The solid docked gate/bus panel is deliberately NOT
-  // here: it is draggable from anywhere on its body that isn't text or a control
-  // (see dialogDragBlockedByControl).
   // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
   // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
   // still resolves to its own drag key, not the dock one.
-  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
+  //
+  // EVERY panel above drags from anywhere on its body that is not text or a
+  // control — the grip is a hint, not the only grab surface. (The requirements and
+  // "why" panels used to be click-through and grabbable by their grip alone; they
+  // now take pointer events across their body, so reaching the board they cover
+  // means dragging them aside or hiding them.)
 
   function draggableDialogElement(event) {
     return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
@@ -17802,11 +17804,13 @@
 
   function dialogDragBlockedByControl(event) {
     if (event.target.closest("button, a, input, textarea, select, [role='button']")) return true;
-    // On a requirements panel a drag starts from the frame/background only — a
-    // press on the description text or the truth table should select/scroll it,
-    // not move the panel. (Other dialogs stay draggable from their whole body.)
-    if (event.target.closest(".workspace-task-hint")
-        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title")) {
+    // On a requirements / "why" panel a drag starts from anything that is NOT the
+    // words themselves: a press on a paragraph, a title or the truth table should
+    // select or scroll it, while the frame, the padding and the gaps between the
+    // paragraphs all move the panel. (Other dialogs stay draggable from their
+    // whole body.)
+    if (event.target.closest(".workspace-task-hint, .workspace-why-note")
+        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title, .why-note-title, .why-note-text")) {
       return true;
     }
     return false;
@@ -17816,8 +17820,6 @@
     if (event.button !== undefined && event.button !== 0) return false;
     const element = draggableDialogElement(event);
     if (!element || dialogDragBlockedByControl(event)) return false;
-    // Click-through panels must be grabbed by their handle, not their body.
-    if (HANDLE_ONLY_DRAG_CLASSES.has(dialogDragKey(element)) && !event.target.closest("[data-drag-handle]")) return false;
 
     const rect = element.getBoundingClientRect();
     element.style.position = "fixed";
