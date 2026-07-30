@@ -945,7 +945,7 @@ const SCENES = {
         "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
         "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
         "year": "1943",
-        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד, אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
       },
       {
         "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
