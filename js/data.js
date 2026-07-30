@@ -963,7 +963,7 @@ const SCENES = {
         "comment": "The closing beat of the monologue: not a computer yet, but progress.",
         "image": "assets/panels/panel126d_chapter_2_6_alu_progress.svg",
         "year": "1943",
-        "read": "ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+        "read": "ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים רב שלביים, אבל זאת התקדמות."
       },
       {
         "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",

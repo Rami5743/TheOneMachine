@@ -23,7 +23,7 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1"
-     inkscape:cx="507"
+     inkscape:cx="726"
      inkscape:cy="140.5"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
@@ -58,16 +58,16 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.2908px;line-height:1.45;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="905.4879"
-       y="111.98769"
+       x="905.48792"
+       y="103.98769"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="905.4879"
-         y="111.98769">ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים</tspan><tspan
+         x="905.48792"
+         y="103.98769">ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="905.4879"
-         y="164.60935">רב שלביים אבל זאת התקדמות.</tspan></text>
+         x="905.48792"
+         y="156.60936">רב שלביים, אבל זאת התקדמות.</tspan></text>
   </g>
 </svg>
