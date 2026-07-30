@@ -3580,6 +3580,24 @@
     return index >= 0 ? index : scene.panels.length - 1;
   }
 
+  // The card-creation tool arrives WITH MUX16 — the card whose two-input version
+  // the learner has just collapsed into one. It used to be armed only by the last
+  // step of the MUX16 walkthrough (revealCreateCardTool), so anyone who solved
+  // MUX16 on their own — or skipped ahead — never got the tool and the palette
+  // showed no "יצירת כרטיס חדש" button for the rest of the game. Derive it from
+  // the finished card instead, exactly like the explanations and achievements.
+  function syncCreateCardUnlock() {
+    if (state.createCardUnlocked || !taskCompleted("MUX16")) return;
+    const patch = { createCardUnlocked: true };
+    // The scripted von Neumann beat (the bubble, and the next click opening the
+    // card page) belongs to the 2.4 chapter where MUX16 lives. Past it, hand over
+    // the tool quietly — a stray click in a later build must not be hijacked.
+    if (chapterIndexById(state.chapterId) > chapterIndexById("chapter-7")) patch.cardIntroDone = true;
+    else patch.cardIntroPending = true;
+    state = { ...state, ...patch };
+    saveState();
+  }
+
   function syncExplanationUnlocks() {
     const chapter4Index = chapterIndexById("chapter-4");
     const currentIndex = chapterIndexById(state.chapterId);
@@ -11060,6 +11078,7 @@
 
   function render() {
     syncExplanationUnlocks();
+    syncCreateCardUnlock();
     syncAchievements();
     syncIdleNudge();
     tickDesignClock(); // accrue design time into the active context
