@@ -5405,6 +5405,14 @@
           terminals: ["read-mux.in5", "task-card-1.outputInt1"],
           wires: [wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"), wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"), wireKey("task-card-1.inputInt3", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
         }
+      },
+      // Two closing beats, plain dialogue over the finished circuit: WHY a register
+      // needs a control input at all, and what that lock is worth as memory.
+      {
+        text: "כאן אנחנו רואים את החשיבות שלרגיסטר יש כניסת בקרה שאם היא אינה מופעלת אנחנו לא יכולים לשנות אותו. אפשר היה לחשוב שלא צריך את זה, הרי אם אנחנו לא רוצים לשנות את מה שכתוב ברגיסטר אנחנו יכולים פשוט לא לשנות את הכניסה. אבל, כניסת הבקרה הזאת היא בדיוק מה שמאפשר לנו לרשום לרגיסטר אחד ולא לגעת באחרים."
+      },
+      {
+        text: "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
       }
     ],
     RAM16: [
