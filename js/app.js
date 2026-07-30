@@ -858,10 +858,10 @@
     busWidth: 16,
     pins: {
       in1: { x: -76, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
-      in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה" },
+      in2: { x: 0, y: -60, direction: "in", width: 2, label: "כניסת הבקרה" },
       out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 76, bottom: 62 }
   };
 
   // The ALU1 build frame: two width-16 number buses on the left, a width-6

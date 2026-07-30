@@ -228,8 +228,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += busPin(edge, outX, 0);      // result bus out
     // The width-2 control bus pokes out of the top edge toward its terminal —
     // drawn as a bus bar (not a thin cable) so it reads as a width-2 bus, with its
-    // width labelled to the right of the bar like every other bus.
-    s += busGateBarV(0, -bodyH / 2 + 4, -46);
+    // width labelled to the right of the bar like every other bus. Long enough to
+    // reach the "2" beside it (the def's terminal is at the same -60).
+    s += busGateBarV(0, -bodyH / 2 + 4, -60);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${bodyW}" height="${bodyH}" rx="14" />`;
     // The control's width label goes AFTER the body, to the right of the stub, so
     // the body cannot swallow it.
