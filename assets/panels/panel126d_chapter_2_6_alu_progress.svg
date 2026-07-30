@@ -22,13 +22,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="0.75046041"
-     inkscape:cx="725.5546"
-     inkscape:cy="543"
+     inkscape:zoom="1"
+     inkscape:cx="507"
+     inkscape:cy="140.5"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-maximized="1"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-x="1432"
+     inkscape:window-y="879" />
   <defs
      id="defs1" />
   <image
@@ -46,12 +48,13 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 523.24785,59.98769 H 1287.72795 c 13.2358,0 19.8537,6.88821 19.8537,20.66463 V 162.13472 c 0,13.77642 -6.6179,20.66463 -19.8537,20.66463 H 523.24785 c -13.2358,0 -19.8537,-6.88821 -19.8537,-20.66463 V 179.27522 L 402,163.32352 503.39415,133.79099 V 80.65232 c 0,-13.77642 6.6179,-20.66463 19.8537,-20.66463 z"
+       d="M 523.24785,59.98769 H 1287.728 c 13.2357,0 19.8536,6.88821 19.8536,20.66463 v 81.4824 c 0,13.77642 -6.6179,20.66463 -19.8536,20.66463 H 523.24785 c -13.2358,0 -19.8537,-6.88821 -19.8537,-20.66463 V 142.24899 L 400.51552,155.97445 503.39415,111.13823 V 80.65232 c 0,0 6.6179,-20.66463 19.8537,-20.66463 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
        stroke-linejoin="round"
-       stroke-linecap="round" />
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssccccss" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:36.2908px;line-height:1.45;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
