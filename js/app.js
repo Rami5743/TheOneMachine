@@ -313,7 +313,7 @@
       in3: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של Mux" },
       out: { x: 66, y: 0, direction: "out", label: "יציאת Mux" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-DMux"] = {
@@ -326,7 +326,7 @@
       out1: { x: 66, y: -23, direction: "out", label: "יציאת DMux 1" },
       out2: { x: 66, y: 23, direction: "out", label: "יציאת DMux 2" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // Chapter 2.4 bus tasks build two component kinds each:
@@ -479,7 +479,7 @@
       out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
       out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
   WORKSPACE_COMPONENT_DEFS["gate-fullAdder"] = {
     label: "fullAdder",
@@ -492,7 +492,7 @@
       out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
       out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The 2.5 Add4 build frame: two width-4 bus inputs (the two numbers) and a
@@ -557,16 +557,16 @@
     busAdder: true,
     busWidth: 4,
     pins: {
-      in1: { x: -62, y: -52, direction: "in", width: 4, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
-      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
-      out1: { x: 66, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
+      in1: { x: -76, y: -52, direction: "in", width: 4, label: "כניסת המספר הראשון" },
+      in2: { x: -76, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
+      in3: { x: -76, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
+      out2: { x: 80, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
+      out1: { x: 80, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
     },
     // The gate renders at 0.6 scale, so its real visual half-height is ~53px, not
     // 92. Keep the vertical bounds close to that (56) so four stacked Add4 gates
     // fit inside the board without the bottom/top gate being clamped off-edge.
-    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
+    bounds: { left: 78, right: 98, top: 56, bottom: 56 }
   };
 
   // gate-Add16: the placeable card the learner earns by completing Add16. A "+"
@@ -582,11 +582,11 @@
     busAdder: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
+      in1: { x: -76, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -76, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+    bounds: { left: 78, right: 98, top: 40, bottom: 40 }
   };
 
   // ---- Chapter 2.6 ALU cards -----------------------------------------------
@@ -622,10 +622,10 @@
     incGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+      in1: { x: -76, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+    bounds: { left: 78, right: 98, top: 40, bottom: 40 }
   };
 
   // The ALU0 build frame: two width-16 number buses on the left, a single-bit
@@ -669,7 +669,7 @@
       in3: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // gate-Register4: the placeable card earned by completing Register4. A width-4
@@ -684,11 +684,11 @@
     memoryGate: true,
     busWidth: 4,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
+      in1: { x: -74, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 66, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
+      out: { x: 78, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+    bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
 
   // The finished 16-bit register, once built: the same memory element on a wider
@@ -700,11 +700,11 @@
     memoryGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
+      in1: { x: -74, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
+      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+    bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
 
   // ---- The finished wide-routing cards (2.4): DMux4Way & Mux4Way16 ----------
@@ -729,7 +729,7 @@
       out3: { x: 66, y: 10, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
       out4: { x: 66, y: 30, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-Mux4way16"] = {
@@ -816,12 +816,12 @@
       slots: ramTask.slots,
       // The address sits ABOVE the data, exactly as it does on the build frame.
       pins: {
-        in3: { x: -74, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
-        in1: { x: -74, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
+        in3: { x: -88, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
+        in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
         in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
-        out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+        out: { x: 92, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
       },
-      bounds: { left: 76, right: 96, top: 72, bottom: 56 }
+      bounds: { left: 90, right: 110, top: 72, bottom: 56 }
     };
   }
 
@@ -857,11 +857,11 @@
     aluOp: "prepnum",
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      in1: { x: -76, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
       in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The ALU1 build frame: two width-16 number buses on the left, a width-6
@@ -905,7 +905,7 @@
       in3: { x: 0, y: -46, direction: "in", width: 6, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The ALU2 build frame: three width-16 number buses on the left, a width-7
@@ -950,7 +950,7 @@
       in4: { x: 0, y: -58, direction: "in", width: 7, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The ALU3 build frame: three width-16 number buses on the left, a width-12
@@ -995,7 +995,7 @@
       in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // taskCard-ALU4: like ALU3 (4 inputs, 16-bit result on the right) plus two
@@ -7540,7 +7540,11 @@
           ? c.singleWidth
           : (legMatch && Array.isArray(c.legWidths) ? c.legWidths[Number(legMatch[1])] : null);
         if (!Number.isInteger(w)) return "";
-        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
+        // Over the middle of the pin's own stub — the terminal is its OUTER tip, so
+        // labelling at the terminal put the number over the cable beyond the pin.
+        // (Stub extents live in splitterBoardMarkup: single -38..-7, legs 7..37.)
+        const stubMid = Math.sign(pin.x) * (pinId === "single" ? 22.5 : 22);
+        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + stubMid}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
   }
 
