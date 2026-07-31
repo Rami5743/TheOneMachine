@@ -163,6 +163,9 @@
       // The RAM cards (3.3) — same story: their behaviour is sequential and
       // address-driven (ramGateSpec in the engine), never taskOutput.
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === taskId) : null)
+      // The 3.4 ports cards — same story again: addressed and (bar IPorts)
+      // sequential, so their behaviour never comes from taskOutput either.
+      || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === taskId) : null)
       || null;
   }
 
@@ -824,6 +827,107 @@
       bounds: { left: 90, right: 110, top: 72, bottom: 56 }
     };
   }
+
+  // ---- Chapter 3.4 ports cards ----------------------------------------------
+  // OPorts is a RAM4 that ALSO shows each of its four registers to the outside
+  // world: same three inputs and same data output, plus four width-16 buses that
+  // mirror the registers at addresses 00..11. They come out of the RIGHT edge,
+  // under the data output, each captioned with its address.
+  const PORTS_FRAME_SIZE = { w: 800, h: 560 };
+  const PORT_OUT_CAPTIONS = ["00", "01", "10", "11"];
+  const portFrameOutY = (i) => 90 + i * 60;
+
+  WORKSPACE_COMPONENT_DEFS["taskCard-OPorts"] = {
+    label: "מסגרת OPorts",
+    fixed: true,
+    taskId: "OPorts",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { ...PORTS_FRAME_SIZE },
+    pins: {
+      inputExt3: { x: -460, y: -70, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt3: { x: -340, y: -70, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
+      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+      inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }]
+      ]))
+    },
+    bounds: { left: 460, right: 460, top: 460, bottom: 280 }
+  };
+
+  // The finished OPorts card: a RAM4 with four extra buses out.
+  WORKSPACE_COMPONENT_DEFS["gate-OPorts"] = {
+    label: "OPorts",
+    taskId: "OPorts",
+    gate: true,
+    ramGate: true,
+    portOutputs: 4,
+    busWidth: 16,
+    addressWidth: 2,
+    slots: 4,
+    pins: {
+      in3: { x: -88, y: -24, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -60, direction: "out", width: 16, label: "יציאת הדאטה" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `outP${i + 1}`, { x: 92, y: -12 + i * 32, direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }
+      ]))
+    },
+    bounds: { left: 90, right: 110, top: 92, bottom: 116 }
+  };
+
+  // IPorts holds nothing at all: four width-16 buses come IN from the devices
+  // outside, and the address picks which one shows up at the single output. Pure
+  // routing — the very Mux4Way16 the learner already built, wearing a memory
+  // card's clothes (which is exactly hint 3).
+  WORKSPACE_COMPONENT_DEFS["taskCard-IPorts"] = {
+    label: "מסגרת IPorts",
+    fixed: true,
+    taskId: "IPorts",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { ...PORTS_FRAME_SIZE },
+    pins: {
+      inputExt5: { x: -460, y: -190, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt5: { x: -340, y: -190, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`inputExt${i + 1}`, { x: -460, y: -50 + i * 70, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }],
+        [`inputInt${i + 1}`, { x: -340, y: -50 + i * 70, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }]
+      ])),
+      outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
+    },
+    bounds: { left: 460, right: 460, top: 300, bottom: 280 }
+  };
+
+  // The finished IPorts card. in1..in4 are the device buses and in5 the 2-bit
+  // address — the pin names the engine's mux4way16 branch already speaks.
+  WORKSPACE_COMPONENT_DEFS["gate-IPorts"] = {
+    label: "IPorts",
+    taskId: "IPorts",
+    gate: true,
+    wideRoutingGate: "mux4way16",
+    busWidth: 16,
+    addressWidth: 2,
+    pins: {
+      in1: { x: -70, y: -60, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -70, y: -20, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -70, y: 20, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -70, y: 60, direction: "in", width: 16, label: "כניסת פורט 11" },
+      in5: { x: 0, y: -74, direction: "in", width: 2, label: "כניסת הכתובת" },
+      out: { x: 74, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+    },
+    bounds: { left: 72, right: 92, top: 112, bottom: 84 }
+  };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
   // control bus on TOP, and a width-16 output on the right. Two-stage operation
@@ -2202,6 +2306,7 @@
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === id) : null)
+      || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === id) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -2539,7 +2644,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -7158,19 +7263,45 @@
     return String(url || "").split("?")[0].split("#")[0];
   }
 
-  // The heavy raster behind a slide: the matching .jpg for an .svg wrapper, or
-  // the file itself when it is already a raster.
+  // The heavy raster a slide REALLY embeds, learned by reading the wrapper once
+  // (svg url -> raster url). Guessing it from the wrapper's own name used to be
+  // good enough, but most of part 3 reuses an earlier slide's art — so the guess
+  // named a file that does not exist. Two things went wrong then: the neighbour's
+  // real raster was never warmed, and the 404 still burned one of the browser's
+  // few connections, queueing behind the multi-megabyte fetches. Over a real
+  // network that is exactly the long hourglass on a slide whose art is already
+  // on screen.
+  const panelRasterUrls = new Map();
+
+  function resolveAgainst(baseUrl, href) {
+    const clean = String(href || "").trim();
+    if (!clean || /^(?:https?:)?\/\//.test(clean) || clean.startsWith("/")) return clean;
+    const dir = String(baseUrl).replace(/[^/]*$/, "");
+    return dir + clean;
+  }
+
+  // Read the wrapper and remember which raster it embeds. The fetch is the same
+  // request the <object> will make, so it warms the wrapper too.
+  function learnPanelRaster(svgUrl) {
+    if (panelRasterUrls.has(svgUrl) || typeof fetch !== "function") return;
+    panelRasterUrls.set(svgUrl, null); // in flight — never ask twice
+    fetch(svgUrl).then((r) => (r.ok ? r.text() : "")).then((text) => {
+      const match = /href="([^"]+\.(?:jpg|jpeg|png|webp))"/i.exec(text || "");
+      const raster = match ? resolveAgainst(svgUrl, match[1]) : "";
+      panelRasterUrls.set(svgUrl, raster);
+      if (raster) preloadAssetUrl(raster);
+    }).catch(() => { panelRasterUrls.set(svgUrl, ""); });
+  }
+
+  // The heavy raster behind a slide: whatever the wrapper turned out to embed, or
+  // the file itself when it is already a raster. Unknown (not read yet) gives ""
+  // — the caller then relies on the <object>'s own load event, which already
+  // waits for the embedded raster.
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
     if (!clean.endsWith(".svg")) return clean;
-    // Comic panels embed a .jpg raster; the hint slides (assets/hints/…) embed a
-    // .webp. Derive the right one so the preload/readiness signal points at the
-    // file the SVG actually loads (a wrong guess 404s and can stall the slide).
-    // A preference variant SVG (_girl/_young/_older) reuses the base raster, so
-    // strip that suffix first.
-    const ext = clean.includes("/hints/") ? ".webp" : ".jpg";
-    return clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ext);
+    return panelRasterUrls.get(clean) || "";
   }
 
   function preloadAssetUrl(url) {
@@ -7183,12 +7314,15 @@
     return image;
   }
 
-  // Warm a slide fully: the small SVG wrapper and its heavy PNG raster.
+  // Warm a slide fully: the small SVG wrapper and the raster it actually embeds.
   function preloadPanelImage(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return;
-    if (clean.endsWith(".svg")) preloadAssetUrl(clean);
-    preloadAssetUrl(panelHeavyUrl(clean));
+    if (!clean.endsWith(".svg")) { preloadAssetUrl(clean); return; }
+    preloadAssetUrl(clean);
+    const known = panelHeavyUrl(clean);
+    if (known) preloadAssetUrl(known);
+    else learnPanelRaster(clean);
   }
 
   const preloadedHintSlides = new Set();
@@ -7285,15 +7419,15 @@
       // Use the raster only as a readiness signal, and only if it was ALREADY
       // being preloaded (as a neighbour). Creating a fresh request here would
       // race the <object>'s own fetch of the same file (harmless but noisy). If
-      // it was not preloaded, the <object> load event already waits for the
+      // the wrapper's raster is not known yet, panelHeavyUrl gives "" and there
+      // is nothing to look up — the <object>'s load event already waits for the
       // embedded raster, so objReady alone covers it.
       //
       // `complete` is true once the preloaded image has finished — whether it
-      // loaded OR failed. A failure is expected when panelHeavyUrl guesses the
-      // wrong extension (e.g. an SVG that embeds a .webp, not a .jpg): we must
-      // still treat it as "done" and rely on objReady, otherwise the spinner
-      // would hang waiting for a raster that will never load.
-      const raster = preloadedPanelImages.get(cleanAssetUrl(panelHeavyUrl(image)));
+      // loaded OR failed — so a raster that will never arrive can never hold the
+      // spinner up.
+      const heavy = cleanAssetUrl(panelHeavyUrl(image));
+      const raster = heavy ? preloadedPanelImages.get(heavy) : null;
       if (!raster || raster.complete) {
         rasterReady = true;
       } else {
@@ -13166,6 +13300,63 @@
     }, 850);
   }
 
+  // --- Chapter 3.4 IPorts check ----------------------------------------------
+  // No registers, so no clocks: four device buses come in, the 2-bit address
+  // picks one, and it must show up at the output. The harness drives all five
+  // inputs at once and reads the single output.
+  function isIPortsTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "IPorts";
+  }
+
+  // Frozen cases: four distinct values on the ports, each address selected in
+  // turn, then a second set of values so a build that latched the first one fails.
+  const IPORTS_TEST_CASES = [
+    { ports: [1, 2, 4, 256], address: 0 },
+    { ports: [1, 2, 4, 256], address: 1 },
+    { ports: [1, 2, 4, 256], address: 2 },
+    { ports: [1, 2, 4, 256], address: 3 },
+    { ports: [43690, 21845, 65535, 4660], address: 3 },
+    { ports: [43690, 21845, 65535, 4660], address: 0 },
+    { ports: [39321, 0, 32768, 1], address: 1 },
+    { ports: [39321, 0, 32768, 1], address: 2 }
+  ];
+
+  function iPortsHarnessWorkspace(base, ports, address) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const temp = ["ip-addr", "ip-read", "ip-0", "ip-1", "ip-2", "ip-3"];
+    ws.components = ws.components.filter((c) => !temp.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "ip-addr", type: "converter-out", value: address, x: 90, y: 200 });
+    ws.wires.push({ a: "ip-addr.out", b: "task-card-1.inputExt5" });
+    ports.forEach((value, i) => {
+      ws.components.push({ id: `ip-${i}`, type: "converter-out", value, x: 90, y: 380 + i * 130 });
+      ws.wires.push({ a: `ip-${i}.out`, b: `task-card-1.inputExt${i + 1}` });
+    });
+    ws.components.push({ id: "ip-read", type: "converter-in", x: 1560, y: 440 });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "ip-read.in" });
+    return ws;
+  }
+
+  function runIPortsTest(base) {
+    for (let i = 0; i < IPORTS_TEST_CASES.length; i += 1) {
+      const testCase = IPORTS_TEST_CASES[i];
+      const flat = flattenWorkspaceForEval(iPortsHarnessWorkspace(base, testCase.ports, testCase.address));
+      const info = evaluateWorkspaceBits(flat).converters.get("ip-read");
+      const got = info ? Number(info.value) : -1;
+      const expected = testCase.ports[testCase.address];
+      if (got !== expected) return { ok: false, index: i, expected, got };
+    }
+    return { ok: true };
+  }
+
+  function startIPortsTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runIPortsTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "IPorts");
+  }
+
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
     // Memory cards (Register4/Register) are CLOCKED — checked by their memory
@@ -13174,6 +13365,8 @@
     // RAM cards (3.3) are clocked AND addressed — their own harness. Tested before
     // the memory/multibit branches (they are multibit-shaped too).
     if (isRamTaskWorkspace()) return startRamTaskTest();
+    // IPorts is the one 3.4 card with no registers at all — pure routing.
+    if (isIPortsTaskWorkspace()) return startIPortsTaskTest();
     if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
@@ -13254,15 +13447,22 @@
   // check never assumes an order — it only requires that reading an address gives
   // back what was last written THERE, and that writing one address leaves the
   // others alone.
+  // A RAM card or one of the 3.4 ports cards that holds registers — both are
+  // checked the same way, by their memory behaviour over a run of clocks.
+  function memoryCardDefById(id) {
+    return ramTaskDefById(id) || (typeof portsTaskDefById === "function" ? portsTaskDefById(id) : null);
+  }
+
   function isRamTaskWorkspace() {
-    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(ramTaskDefById(state.workspace?.taskId));
+    const def = memoryCardDefById(state.workspace?.taskId);
+    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(def) && Boolean(def.clocked !== false);
   }
 
   // The addresses the check exercises: the first four and the last four of the
   // bank (all four for RAM4), so both the low address bits and the high ones have
   // to be routed correctly. Distinct, in a fixed order.
   function ramTestAddresses(taskId) {
-    const slots = ramTaskDefById(taskId)?.slots || 4;
+    const slots = memoryCardDefById(taskId)?.slots || 4;
     const picks = [0, 1, 2, 3, slots - 4, slots - 3, slots - 2, slots - 1];
     return [...new Set(picks.filter((a) => a >= 0 && a < slots))];
   }
@@ -13274,9 +13474,10 @@
   // The learner's build + temporary drivers: a dec→bin source on the data bus,
   // another on the address bus, a bin→dec reader on the output bus, and (when
   // writing) a source on the control.
-  function ramHarnessWorkspace(base, data, address, control) {
+  function ramHarnessWorkspace(base, data, address, control, portOutputs = 0) {
     const ws = normalizeWorkspace(clonePlain(base));
-    const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl"];
+    const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl",
+      ...Array.from({ length: 8 }, (_, i) => `ram-port${i}`)];
     ws.components = ws.components.filter((c) => !temp.includes(c.id));
     ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
     ws.components.push({ id: "ram-drive", type: "converter-out", value: data, x: 90, y: 400 });
@@ -13287,11 +13488,18 @@
     ws.wires.push({ a: "ram-addr.out", b: "task-card-1.inputExt3" });
     ws.wires.push({ a: "task-card-1.outputExt1", b: "ram-read.in" });
     if (control) ws.wires.push({ a: "ram-ctrl.out", b: "task-card-1.inputExt2" });
+    // A ports card shows its registers on extra buses; give each one a reader so
+    // the check can see what the devices outside would see.
+    for (let i = 0; i < portOutputs; i += 1) {
+      ws.components.push({ id: `ram-port${i}`, type: "converter-in", x: 1560, y: 760 + i * 90 });
+      ws.wires.push({ a: `task-card-1.outputExt${i + 2}`, b: `ram-port${i}.in` });
+    }
     return ws;
   }
 
   function runRamTest(base, taskId) {
     const addresses = ramTestAddresses(taskId);
+    const portOutputs = memoryCardDefById(taskId)?.portOutputs || 0;
     // Write a distinct value to every address, then read them all back with the
     // control low — so a build that writes to more than one register at a time,
     // or reads the wrong one, is caught.
@@ -13315,13 +13523,21 @@
     const SETTLE = 8;
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
-      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c));
+      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c, portOutputs));
       for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
       if (step.c) stored.set(step.a, step.d);
       const expected = stored.has(step.a) ? stored.get(step.a) : 0;
-      const info = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters.get("ram-read");
+      const readings = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters;
+      const info = readings.get("ram-read");
       const got = info ? Number(info.value) : -1;
       if (got !== expected) return { ok: false, index: i, expected, got };
+      // Every port bus must always show its own register, whatever the address is.
+      for (let k = 0; k < portOutputs; k += 1) {
+        const want = stored.has(k) ? stored.get(k) : 0;
+        const seen = readings.get(`ram-port${k}`);
+        const mine = seen ? Number(seen.value) : -1;
+        if (mine !== want) return { ok: false, index: i, expected: want, got: mine, port: k };
+      }
     }
     return { ok: true };
   }
@@ -17643,7 +17859,12 @@
   function ramGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.ramGate) return null;
-    return { width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots };
+    return {
+      width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots,
+      // OPorts (and the cards built from it) also mirror their first N cells on
+      // extra buses out — see the engine's ramGate branch.
+      portOutputs: Number.isInteger(def.portOutputs) ? def.portOutputs : 0
+    };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are

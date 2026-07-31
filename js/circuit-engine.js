@@ -510,6 +510,12 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), ramHere.addressWidth);
             const cell = prevMap ? prevMap.get(`${component.id}.cell${addr}`) : null;
             if (setBits(outputs, `${component.id}.out`, fitBits(cell || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            // A ports card also shows its first N cells to the world, whatever the
+            // address happens to be — that is the whole point of a port.
+            for (let k = 0; k < (ramHere.portOutputs || 0); k += 1) {
+              const held = prevMap ? prevMap.get(`${component.id}.cell${k}`) : null;
+              if (setBits(outputs, `${component.id}.outP${k + 1}`, fitBits(held || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            }
             continue;
           }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is

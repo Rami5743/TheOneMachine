@@ -876,7 +876,10 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "OPorts",
       label: "OPorts",
-      requires: ["RAM4"],
+      // OPorts and IPorts are BOTH open as soon as the note is opened — they are
+      // the two halves of the same idea and neither needs the other. Ports and
+      // RAM come after them, in order.
+      requires: [],
       inputs: 3,
       outputs: 5,
       busWidth: 16,
@@ -896,7 +899,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "IPorts",
       label: "IPorts",
-      requires: ["OPorts"],
+      requires: [],
       inputs: 5,
       outputs: 1,
       busWidth: 16,
@@ -914,7 +917,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "Ports",
       label: "Ports",
-      requires: ["IPorts"],
+      requires: ["OPorts", "IPorts"],
       inputs: 7,
       outputs: 5,
       busWidth: 16,
@@ -933,7 +936,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "RAM",
       label: "RAM",
-      requires: ["Ports", "RAM1024"],
+      requires: ["Ports"],
       inputs: 7,
       outputs: 5,
       busWidth: 16,
