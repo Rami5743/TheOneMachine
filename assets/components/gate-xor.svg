@@ -17,7 +17,7 @@
   <line class="line" x1="-60" y1="-23" x2="-30" y2="-23"/>
   <line class="line" x1="-60" y1="23" x2="-30" y2="23"/>
   <line class="line" x1="62" y1="0" x2="80" y2="0"/>
-  <text class="label label-small" x="8" y="3">XOR</text>
+  <text class="label label-small" x="16" y="3" style="font-size:24px">XOR</text>
 
 
   <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">

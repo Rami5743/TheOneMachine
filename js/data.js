@@ -942,10 +942,28 @@ const SCENES = {
         ]
       },
       {
-        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. First half of his 'you built an ALU' monologue (speech baked into the SVG).",
+        "comment": "Reached after ALL the 2.6 ALU cards are built: von Neumann back in the doorway, the room as it was before the tasks. His 'you built an ALU' monologue runs over four slides (126, 126b, 126c, 126d) — same art and same balloon, only the text changes. Speech is baked into each SVG.",
         "image": "assets/panels/panel126_chapter_2_6_alu_done_1.svg",
         "year": "1943",
-        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה. היא עדיין לא מחשב שיכול לעשות חישובים רב שלביים אבל זאת התקדמות."
+        "read": "מצוין, בנית ALU, זאת לא סתם מכונה שעושה חישוב אחד, אלא ממש מכונה שאפשר להגיד לה איזה חישוב היא תעשה."
+      },
+      {
+        "comment": "The monologue continues: what the ALU's control bus IS — the 12-bit \"instructions\".",
+        "image": "assets/panels/panel126b_chapter_2_6_alu_instructions.svg",
+        "year": "1943",
+        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותם על שני בסים של 16 ביט כל אחד."
+      },
+      {
+        "comment": "And what those 64 operations are worth: some duplicates, some odd ones, still plenty that matter.",
+        "image": "assets/panels/panel126c_chapter_2_6_alu_operations.svg",
+        "year": "1943",
+        "read": "חלק מ-64 הפעולות האלה זהות זו לזו, חלקן מוזרות וכנראה לא שימושיות, אבל אחרי כל זה אנחנו עדיין נשארים עם לא מעט פעולות שימושיות שיאפשרו לנו לבצע חישובים מסובכים."
+      },
+      {
+        "comment": "The closing beat of the monologue: not a computer yet, but progress.",
+        "image": "assets/panels/panel126d_chapter_2_6_alu_progress.svg",
+        "year": "1943",
+        "read": "ה-ALU הוא עדיין לא מחשב שיכול לעשות חישובים רב שלביים, אבל זאת התקדמות."
       },
       {
         "comment": "Second half of the monologue: the teaser about subtraction, leading into the (still to be scripted) inactive workbench with side bubbles.",
@@ -1000,10 +1018,10 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory - the basic unit of information the machine works with.",
+        "comment": "Back to the doorway pose (reuses panel131's raster): the card he laid down is a 16-bit memory — and it has a name, רגיסטר / אוגר. The basic unit of information the machine works with.",
         "image": "assets/panels/panel133_chapter_3_1_sixteen_bits.svg",
         "year": "1943",
-        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. כמו שאמרנו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
+        "read": "תתחיל מזה. זה כרטיס שיודע לשמור 16 ביטים. קוראים לכרטיס כזה \"רגיסטר\" (בעברית \"אוגר\"). כמו שאמרנו קודם, אנחנו נשתמש ב-16 ביטים בשביל לשמור מספרים. ובכלל, זאת תהיה היחידה הבסיסית של מידע שהמחשב שלנו עובד איתה."
       },
       {
         "comment": "Von Neumann's parting line before going back to work (reuses panel131's raster).",
@@ -1078,6 +1096,30 @@ const SCENES = {
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
           { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
+      },
+      {
+        "comment": "Reached once all five RAM cards are built: von Neumann back in the doorway (panel131's art, as in panel138/139). What 1000 registers are worth.",
+        "image": "assets/panels/panel142_chapter_3_3_ram_thousand.svg",
+        "year": "1943",
+        "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי."
+      },
+      {
+        "comment": "What the name RAM means, and why it is a silly one.",
+        "image": "assets/panels/panel143_chapter_3_3_ram_name.svg",
+        "year": "1943",
+        "read": "לזיכרון הזה יש תכונה מיוחדת, אפשר לגשת במהירות לכל רגיסטר בזיכרון ולשנות אותו או לקרוא ממנו. קוראים לזיכרון כזה RAM אלו הן ראשי תיבות של Random Access Memory או בעברית זיכרון גישה אקראית. זהו שם די מטופש, אין כאן שום דבר אקראי, שם מתאים יותר היה יכול להיות \"זיכרון גישה ישירה\", אבל נתקענו עם השם הזה."
+      },
+      {
+        "comment": "The alternative: paper tape — cheap and big, but you cannot jump about in it.",
+        "image": "assets/panels/panel144_chapter_3_3_ram_paper_tape.svg",
+        "year": "1943",
+        "read": "יש לנו זיכרונות אחרים גדולים וזולים יותר, אבל אין להם את התכונה של גישה ישירה. למשל יש לנו סלילי נייר עליהם יש שורות שורות של נקבים. 16 מקומות לנקב בכל שורה, אך לא כל 16 המקומות מנוקבים. יש לנו מכשיר שאפשר להעביר דרכו את הסליל ובכל שורה הוא בודק איפה יש את הנקבים (לפי איפה שעובר החשמל; הנייר לא נותן לחשמל לעבור) ומוציא את המידע הזה לבס של 16 כבלים. אפשר להזין את המידע הזה למכונות חישוב כמו ה-ALU למשל. אם רוצים לעבור על כל השורות מהתחלה ועד הסוף, זה אפילו די מהיר (יותר איטי מהזיכרון שלנו, בגלל שזה מכני ולא חשמלי אבל עדיין סביר). אולם אם רוצים לגשת למקום ספציפי זה נהיה בעייתי, צריך לגלגל חלק ניכר מהסליל כדי להגיע למקום הרצוי. אם כל פעם רוצים לקפוץ לאיזור אחר בסליל זה נהיה לא מעשי בכלל. ב-RAM שלנו לעומת זאת, זה פשוט מאוד."
+      },
+      {
+        "comment": "The rest of the trade: easy to write to, expensive to make, and volatile.",
+        "image": "assets/panels/panel145_chapter_3_3_ram_volatile.svg",
+        "year": "1943",
+        "read": "ל-RAM יש עוד יתרון, אפשר לכתוב לתוכו בקלות ולא רק לקרוא ממנו. החיסרון המרכזי של ה-RAM הוא שהוא יקר וקשה ליצור, לכן אנחנו נאלצים להסתפק ב-1000 רגיסטרים. ל-RAM יש עוד חיסרון - אם מנתקים אותו מהחשמל הכל הופך ל-0 כי אין מטען בשום מקום. לכן אומרים שזה זיכרון נדיף - המידע מתנדף ממנו. זה לא מאוד מפריע לנו כי גם כך ה-RAM שלנו קטן מדי כדי לשמור בו דברים חשובים לאורך זמן. אנחנו נשתמש בו רק בשביל שהמחשב יוכל לעשות חישובים."
       }
     ]
   }

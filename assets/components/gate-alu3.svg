@@ -23,7 +23,7 @@
   <line class="splitter-stripe" x1="0" y1="-55" x2="0" y2="-43" style="stroke-width:5;stroke-dasharray:10, 5" />
   <path class="usercard-body"
      d="m -46,-54 92,24 V 30 L -46,54 V 24.833334 l 9.363472,-10.569374 -9.255514,0.07899 -0.131137,-29.078194 8.748967,-0.248527 L -46,-24.833334 Z" />
-  <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU3</text>
+  <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:24px">ALU3</text>
   <text class="splitter-width-label" x="-59.28" y="-50.699" text-anchor="middle" style="font-size:21.6667px">16</text>
   <text class="splitter-width-label" x="-59.28" y="-10.699" text-anchor="middle" style="font-size:21.6667px">16</text>
   <text class="splitter-width-label" x="-59.28" y="29.301" text-anchor="middle" style="font-size:21.6667px">16</text>

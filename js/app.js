@@ -313,7 +313,7 @@
       in3: { x: 0, y: -46, direction: "in", label: "כניסת בקרה של Mux" },
       out: { x: 66, y: 0, direction: "out", label: "יציאת Mux" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-DMux"] = {
@@ -326,7 +326,7 @@
       out1: { x: 66, y: -23, direction: "out", label: "יציאת DMux 1" },
       out2: { x: 66, y: 23, direction: "out", label: "יציאת DMux 2" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // Chapter 2.4 bus tasks build two component kinds each:
@@ -479,7 +479,7 @@
       out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
       out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
   WORKSPACE_COMPONENT_DEFS["gate-fullAdder"] = {
     label: "fullAdder",
@@ -492,7 +492,7 @@
       out2: { x: 66, y: -23, direction: "out", label: "יציאת carry" },
       out1: { x: 66, y: 23, direction: "out", label: "יציאת sum" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The 2.5 Add4 build frame: two width-4 bus inputs (the two numbers) and a
@@ -557,16 +557,16 @@
     busAdder: true,
     busWidth: 4,
     pins: {
-      in1: { x: -62, y: -52, direction: "in", width: 4, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
-      in3: { x: -62, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
-      out2: { x: 66, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
-      out1: { x: 66, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
+      in1: { x: -76, y: -52, direction: "in", width: 4, label: "כניסת המספר הראשון" },
+      in2: { x: -76, y: 0, direction: "in", width: 4, label: "כניסת המספר השני" },
+      in3: { x: -76, y: 52, direction: "in", width: 1, label: "כניסת הנשיאה" },
+      out2: { x: 80, y: -34, direction: "out", width: 1, label: "יציאת הנשיאה" },
+      out1: { x: 80, y: 34, direction: "out", width: 4, label: "יציאת הסכום" }
     },
     // The gate renders at 0.6 scale, so its real visual half-height is ~53px, not
     // 92. Keep the vertical bounds close to that (56) so four stacked Add4 gates
     // fit inside the board without the bottom/top gate being clamped off-edge.
-    bounds: { left: 64, right: 84, top: 56, bottom: 56 }
+    bounds: { left: 78, right: 98, top: 56, bottom: 56 }
   };
 
   // gate-Add16: the placeable card the learner earns by completing Add16. A "+"
@@ -582,11 +582,11 @@
     busAdder: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
-      in2: { x: -62, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
+      in1: { x: -76, y: -26, direction: "in", width: 16, label: "כניסת המספר הראשון" },
+      in2: { x: -76, y: 26, direction: "in", width: 16, label: "כניסת המספר השני" },
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת הסכום" }
     },
-    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+    bounds: { left: 78, right: 98, top: 40, bottom: 40 }
   };
 
   // ---- Chapter 2.6 ALU cards -----------------------------------------------
@@ -622,10 +622,10 @@
     incGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+      in1: { x: -76, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 40, bottom: 40 }
+    bounds: { left: 78, right: 98, top: 40, bottom: 40 }
   };
 
   // The ALU0 build frame: two width-16 number buses on the left, a single-bit
@@ -669,7 +669,7 @@
       in3: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // gate-Register4: the placeable card earned by completing Register4. A width-4
@@ -684,11 +684,11 @@
     memoryGate: true,
     busWidth: 4,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
+      in1: { x: -74, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 66, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
+      out: { x: 78, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+    bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
 
   // The finished 16-bit register, once built: the same memory element on a wider
@@ -700,11 +700,11 @@
     memoryGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
+      in1: { x: -74, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
+      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 50 }
+    bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
 
   // ---- The finished wide-routing cards (2.4): DMux4Way & Mux4Way16 ----------
@@ -729,7 +729,7 @@
       out3: { x: 66, y: 10, direction: "out", width: 1, label: "יציאת DMux4Way 3" },
       out4: { x: 66, y: 30, direction: "out", width: 1, label: "יציאת DMux4Way 4" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   WORKSPACE_COMPONENT_DEFS["gate-Mux4way16"] = {
@@ -816,12 +816,12 @@
       slots: ramTask.slots,
       // The address sits ABOVE the data, exactly as it does on the build frame.
       pins: {
-        in3: { x: -74, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
-        in1: { x: -74, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
+        in3: { x: -88, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
+        in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
         in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
-        out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+        out: { x: 92, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
       },
-      bounds: { left: 76, right: 96, top: 72, bottom: 56 }
+      bounds: { left: 90, right: 110, top: 72, bottom: 56 }
     };
   }
 
@@ -857,11 +857,11 @@
     aluOp: "prepnum",
     busWidth: 16,
     pins: {
-      in1: { x: -62, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
-      in2: { x: 0, y: -46, direction: "in", width: 2, label: "כניסת הבקרה" },
-      out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
+      in1: { x: -76, y: 0, direction: "in", width: 16, label: "כניסת המספר" },
+      in2: { x: 0, y: -60, direction: "in", width: 2, label: "כניסת הבקרה" },
+      out1: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 76, bottom: 62 }
   };
 
   // The ALU1 build frame: two width-16 number buses on the left, a width-6
@@ -905,7 +905,7 @@
       in3: { x: 0, y: -46, direction: "in", width: 6, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The ALU2 build frame: three width-16 number buses on the left, a width-7
@@ -950,7 +950,7 @@
       in4: { x: 0, y: -58, direction: "in", width: 7, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // The ALU3 build frame: three width-16 number buses on the left, a width-12
@@ -995,7 +995,7 @@
       in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" }
     },
-    bounds: { left: 64, right: 84, top: 62, bottom: 62 }
+    bounds: { left: 78, right: 98, top: 62, bottom: 62 }
   };
 
   // taskCard-ALU4: like ALU3 (4 inputs, 16-bit result on the right) plus two
@@ -1196,8 +1196,9 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
-    // The bottom-left "why do we need this?" panel is hidden once the learner
-    // dismisses it (a persistent preference, kept across tasks and reloads).
+    // The bottom-left "why do we need this?" panel. It starts OPEN on every task
+    // — hiding it applies to the current build only, and each new build reopens
+    // it (see the whyNoteHidden reset beside requirementsPanelHidden).
     whyNoteHidden: false,
     // The one-off arrow pointing at the And task's requirements; set once the
     // learner starts building (persists so it doesn't nag on every visit).
@@ -1637,7 +1638,9 @@
 
   function componentRenderScale(type) {
     const t = String(type || "");
-    if (!t.startsWith("gate-") && t !== "nand") return 1;
+    // The FF card is a card like any other, so it shrinks with them (it used to be
+    // left out and stayed full size on tables where everything else had shrunk).
+    if (!t.startsWith("gate-") && t !== "nand" && t !== "ffCard") return 1;
     // The schematic shrinks part-way through part 2 (past the simple-gate chapter)
     // and STAYS shrunk from there on — every later table, every solution
     // walkthrough, the clocked tables of part 3 included. A card must not change
@@ -3580,6 +3583,24 @@
     return index >= 0 ? index : scene.panels.length - 1;
   }
 
+  // The card-creation tool arrives WITH MUX16 — the card whose two-input version
+  // the learner has just collapsed into one. It used to be armed only by the last
+  // step of the MUX16 walkthrough (revealCreateCardTool), so anyone who solved
+  // MUX16 on their own — or skipped ahead — never got the tool and the palette
+  // showed no "יצירת כרטיס חדש" button for the rest of the game. Derive it from
+  // the finished card instead, exactly like the explanations and achievements.
+  function syncCreateCardUnlock() {
+    if (state.createCardUnlocked || !taskCompleted("MUX16")) return;
+    const patch = { createCardUnlocked: true };
+    // The scripted von Neumann beat (the bubble, and the next click opening the
+    // card page) belongs to the 2.4 chapter where MUX16 lives. Past it, hand over
+    // the tool quietly — a stray click in a later build must not be hijacked.
+    if (chapterIndexById(state.chapterId) > chapterIndexById("chapter-7")) patch.cardIntroDone = true;
+    else patch.cardIntroPending = true;
+    state = { ...state, ...patch };
+    saveState();
+  }
+
   function syncExplanationUnlocks() {
     const chapter4Index = chapterIndexById("chapter-4");
     const currentIndex = chapterIndexById(state.chapterId);
@@ -5166,10 +5187,14 @@
 
   function renderNotTestResultDialog() {
     if (!state.notTest?.result) return "";
-    const message = state.notTest.result === "success" ? "הבדיקה הצליחה" : "הבדיקה נכשלה";
+    const passed = state.notTest.result === "success";
+    const message = passed ? "הבדיקה הצליחה" : "הבדיקה נכשלה";
+    // The verdict is told by the card's colour too — a dark green for a pass, a
+    // dark red for a failure (the text is light, so both stay dark).
+    const tone = passed ? " not-test-result-pass" : " not-test-result-fail";
     return `
       <div class="not-test-result-overlay" role="presentation">
-        <section class="not-test-result-card" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
+        <section class="not-test-result-card${tone}" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
           <p>${esc(message)}</p>
           <div class="not-test-result-actions">
             <button class="btn btn-primary" data-action="not-test-ok">אישור</button>
@@ -5697,13 +5722,12 @@
     ],
     ALU1: [
       {
-        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק התחתון (שני הביטים האחרונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק העליון (שני הביטים הראשונים) מפוצל שוב — לביט ה-NOT (הראשון) וביט הפעולה (השני).",
+        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לארבעה חלקים: החלק התחתון (שני הביטים האחרונים) עבור הכנת הכניסה הראשונה, החלק שמעליו (שני ביטים) עבור הכנת הכניסה השנייה, ומעליהם שני ביטים בודדים — ביט הפעולה (השני) וביט ה-NOT (הראשון, העליון).",
         highlight: {
-          components: ["ctrl-split", "part3-split"],
+          components: ["ctrl-split"],
           terminals: ["task-card-1.inputInt3"],
           wires: [
-            wireKey("task-card-1.inputInt3", "ctrl-split.single"),
-            wireKey("ctrl-split.leg2", "part3-split.single")
+            wireKey("task-card-1.inputInt3", "ctrl-split.single")
           ]
         }
       },
@@ -5733,21 +5757,22 @@
         text: "החלק הזה מבצע את הפעולה על שתי ההכנות — ALU0 שמקבל את תוצאות שתי ההכנות ואת הביט השני של הבקרה (שקובע אם AND או חיבור).",
         highlight: {
           components: ["alu0"],
-          terminals: ["part3-split.leg0"],
+          terminals: ["ctrl-split.leg2"],
           wires: [
             wireKey("pn1.out1", "alu0.in1"),
             wireKey("pn2.out1", "alu0.in2"),
-            wireKey("part3-split.leg0", "alu0.in3")
+            wireKey("ctrl-split.leg2", "alu0.in3")
           ]
         }
       },
       {
-        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון).",
+        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. כניסת הבקרה שלו היא בס של 2 ביטים, ולנו יש רק ביט אחד — ביט ה-NOT — לכן מאחדים אותו בחזרה לבס של 2 ביטים במאחד. הרגל התחתונה של המאחד לא מחוברת, וביט לא מחובר הוא 0 — לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון.",
         highlight: {
-          components: ["pn3", "pn3-ctrl"],
-          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          components: ["not-merge", "pn3"],
+          terminals: ["ctrl-split.leg3", "pn3.in2", "task-card-1.outputInt1"],
           wires: [
-            wireKey("part3-split.leg1", "pn3-ctrl.leg1"),
+            wireKey("ctrl-split.leg3", "not-merge.leg1"),
+            wireKey("not-merge.single", "pn3.in2"),
             wireKey("alu0.out1", "pn3.in1"),
             wireKey("pn3.out1", "task-card-1.outputInt1")
           ]
@@ -5757,12 +5782,12 @@
         text: "פתרון נוסף: במקום ה-PreperNum האחרון אפשר פשוט לעשות MUX16 שבוחר בין תוצאת ה-ALU0 (כשהביט הראשון 0) לבין ה-NOT שלה (כשהוא 1). זה פתרון חסכוני יותר, אבל לפעמים קל יותר להשתמש ב-PreperNum מוכן.",
         highlight: {
           components: ["not16", "mux-not"],
-          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          terminals: ["ctrl-split.leg3", "task-card-1.outputInt1"],
           wires: [
             wireKey("alu0.out1", "not16.in1"),
             wireKey("alu0.out1", "mux-not.in1"),
             wireKey("not16.out", "mux-not.in2"),
-            wireKey("part3-split.leg1", "mux-not.in3"),
+            wireKey("ctrl-split.leg3", "mux-not.in3"),
             wireKey("mux-not.out", "task-card-1.outputInt1")
           ]
         }
@@ -7520,7 +7545,11 @@
           ? c.singleWidth
           : (legMatch && Array.isArray(c.legWidths) ? c.legWidths[Number(legMatch[1])] : null);
         if (!Number.isInteger(w)) return "";
-        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + pin.x}" y="${c.y + pin.y - 13}">${w}</text>`;
+        // Over the middle of the pin's own stub — the terminal is its OUTER tip, so
+        // labelling at the terminal put the number over the cable beyond the pin.
+        // (Stub extents live in splitterBoardMarkup: single -38..-7, legs 7..37.)
+        const stubMid = Math.sign(pin.x) * (pinId === "single" ? 22.5 : 22);
+        return `<text class="splitter-width-label" data-splitter-id="${esc(c.id)}" x="${c.x + stubMid}" y="${c.y + pin.y - 13}">${w}</text>`;
       }).join("")).join("");
   }
 
@@ -7529,7 +7558,8 @@
   const WORKSPACE_CANVAS_BOTTOM_PAD = 28;
 
   // The optional bottom-left "למה צריך את זה לעזאזל?" panel. Only tasks listed in
-  // TASK_WHY_NOTES have one. It is hideable (a persistent preference) and, while
+  // TASK_WHY_NOTES have one. It is OPEN by default on every build (hiding it is
+  // for the current build only — the next one reopens it) and, while
   // open, click-through so the board underneath stays reachable — only its
   // hide/show button captures clicks. Not shown during the solution walkthrough
   // or card creation, which have their own overlays.
@@ -11060,6 +11090,7 @@
 
   function render() {
     syncExplanationUnlocks();
+    syncCreateCardUnlock();
     syncAchievements();
     syncIdleNudge();
     tickDesignClock(); // accrue design time into the active context
@@ -11222,6 +11253,16 @@
     // AFTER the table (reached from finishMuxDemo) and must NOT re-enter it.
     if (state.screen === "story" && state.chapterId === "chapter-10" && String(currentPanel()?.image || "").includes("panel130")) {
       return enterClockedTable();
+    }
+
+    // The very last slide of 3.3: "המשך" does not leave the panel — it opens the
+    // closing message (what replaced the punched tape, and where RAM sits beside
+    // long-term storage), and dismissing that says "המשך יבוא...". This is the
+    // end of the story so far, so the player stays put rather than being dropped
+    // on the chapters screen.
+    if (state.screen === "story"
+        && String(currentPanel()?.image || "").includes("panel145_chapter_3_3_ram_volatile")) {
+      return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY }, infoDialog: null });
     }
 
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
@@ -12451,7 +12492,9 @@
     const base = SOLUTION_DOCS.ALU1;
     if (!base || !Array.isArray(base.components)) return null;
     const doc = clonePlain(base);
-    const drop = new Set(["pn3", "pn3-ctrl"]); // the final PreperNum stage
+    // The final PreperNum stage — and with it the merger that only existed to
+    // widen the single NOT bit into that PreperNum's 2-bit control.
+    const drop = new Set(["pn3", "not-merge"]);
     const partOf = (ref) => String(ref).split(".")[0];
     doc.components = doc.components.filter((c) => !drop.has(c.id));
     doc.wires = doc.wires.filter((w) => !drop.has(partOf(w.a)) && !drop.has(partOf(w.b)));
@@ -12463,7 +12506,7 @@
       { a: "alu0.out1", b: "not16.in1" },
       { a: "alu0.out1", b: "mux-not.in1" },
       { a: "not16.out", b: "mux-not.in2" },
-      { a: "part3-split.leg1", b: "mux-not.in3" },
+      { a: "ctrl-split.leg3", b: "mux-not.in3" },
       { a: "mux-not.out", b: "task-card-1.outputInt1" }
     );
     return doc;
@@ -14111,7 +14154,7 @@
       // before the memory/bus branches — a RAM card is multibit-shaped too.
       if (isRamTask(taskId)) {
         return setState({
-          ...ramCompletionPatch(completedTasks),
+          ...ramCompletionPatch(completedTasks, taskId),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -14213,11 +14256,27 @@
   // Where a finished RAM card lands: the 3.3 worktable with its note reopened, so
   // the next size unlocks. Once all five are built there is no further beat yet,
   // so the worktable says "המשך יבוא..." rather than leaving the player stranded.
-  function ramCompletionPatch(completedTasks) {
+  // Where the 3.3 story picks up once every RAM card is built: von Neumann's
+  // closing monologue (what 1000 registers buy, what RAM's name means, the paper
+  // tape it beats, and what it costs).
+  function ramEpilogueTarget() {
+    const chapter = chapterById("chapter-12");
+    const index = panelIndexByImage(SCENES["ram"], "panel142_chapter_3_3_ram_thousand.svg");
+    return Number.isInteger(index) && index >= 0 ? storyTarget(chapter, index) : null;
+  }
+
+  function ramCompletionPatch(completedTasks, taskId = null) {
     const allRamDone = ramTaskDefs().every((t) => completedTasks.includes(t.id));
+    const epilogue = allRamDone ? ramEpilogueTarget() : null;
+    if (epilogue) return { ...epilogue, ramNoteList: false, aluIntroDialog: null, infoDialog: null };
+    // RAM4 closes with a paged explanation (the register's control input), shown
+    // out at the worktable exactly like the 2.6 ALU messages. The note opens when
+    // that dialog is dismissed.
+    const message = !allRamDone && taskId ? aluMessagePagesFor(taskId) : null;
     return {
       ...ramWorktableReturnTarget(),
-      ramNoteList: !allRamDone,
+      ramNoteList: !allRamDone && !message,
+      aluIntroDialog: message ? { page: 0, taskId } : null,
       infoDialog: allRamDone ? "המשך יבוא..." : null
     };
   }
@@ -14734,6 +14793,7 @@
       taskDialog: null,
       arithNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
     }, false);
@@ -14950,6 +15010,7 @@
       taskDialog: null,
       aluNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -14985,10 +15046,31 @@
     "זה מאוד נפוץ בעולם המחשבים שיש פתרון פשוט שמשתמש ברכיבים מוכנים, ופתרון מסובך יותר שמשתמש בדיוק במה שצריך. יש יתרון להשתמש ברכיבים מוכנים: הם בדוקים היטב, אם תרצה לשפר אותם — זה ישפר גם את המוצר שמשתמש בהם, וזה בדרך כלל פשוט ומהיר יותר. יש גם יתרונות לבנייה של רכיבים המתאימים בדיוק למטרה שלך: זה יעיל יותר — זאת אומרת שהמוצר יהיה מהיר יותר, זול יותר להכנה ולפעמים מדויק יותר. כמו כן, שינוי ברכיב שאתה משתמש בו יכול לפעמים לגרום לשינוי לא צפוי במוצר שלך."
   ];
 
-  // The after-completion message pages for an ALU card (null if it has none).
+  // Shown once RAM4 is done, back at the 3.3 worktable: why a register needs a
+  // control input at all, and what locking it is worth as memory.
+  const RAM4_COMPLETE_PAGES = [
+    "כאן אנחנו רואים את החשיבות שלרגיסטר יש כניסת בקרה שאם היא אינה מופעלת אנחנו לא יכולים לשנות אותו. אפשר היה לחשוב שלא צריך את זה, הרי אם אנחנו לא רוצים לשנות את מה שכתוב ברגיסטר אנחנו יכולים פשוט לא לשנות את הכניסה. אבל, כניסת הבקרה הזאת היא בדיוק מה שמאפשר לנו לרשום לרגיסטר אחד ולא לגעת באחרים.",
+    "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
+  ];
+
+  // The last word of chapter 3.3, after von Neumann's closing slides: what
+  // replaced the punched tape, and where RAM still sits beside long-term storage.
+  const RAM_OUTRO_PAGES = [
+    "הסלילים המנוקבים נעלמו בשנת השבעים. הם הוחלפו באמצאים אחרים לשמירת נתונים לטווח ארוך. אמצאים אלו אפשרו כתיבה וקריאה נוחה, אבל גם הם התבססו באופן חלקי על פעולה מכנית ולא אפשרו גישה ישירה, והתאימו יותר לקריאה וכתיבה של רצפים ארוכים של ביטים.",
+    "רק במהלך המאה ה-21 התחילו להשתמש באופן שיטתי באמצעי זיכרון לטווח ארוך שמאפשרים גישה ישירה, ולא דורשים קריאת רצפים. אולם, עדיין אנחנו מבדילים בין ה-RAM שהוא זיכרון נדיף קטן ויקר יחסית אך מהיר מאוד ובין זכרונות לטווח ארוך (למשל דיסק קשיח) שזולים וגדולים יותר, אינם נדיפים אך איטיים יותר."
+  ];
+  // The key the paged dialog carries for those pages — not a card, so it is not
+  // one of the RAM task ids.
+  const RAM_OUTRO_KEY = "ram-outro";
+
+  // The after-completion message pages for a card (null if it has none). ALU0 and
+  // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
+  // paged dialog, once the build (or its walkthrough) is behind the learner.
   function aluMessagePagesFor(taskId) {
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
+    if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
+    if (taskId === RAM_OUTRO_KEY) return RAM_OUTRO_PAGES;
     return null;
   }
 
@@ -15001,9 +15083,11 @@
     const pages = aluMessagePagesFor(state.aluIntroDialog.taskId || "ALU0") || ALU0_COMPLETE_PAGES;
     const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
     const isLast = page >= pages.length - 1;
+    const taskId = state.aluIntroDialog.taskId || "ALU0";
+    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון" : isRamTask(taskId) ? "על הרגיסטר" : "על ה-ALU";
     return `
       <div class="dialog-overlay" role="presentation">
-        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="על ה-ALU">
+        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="${esc(label)}">
           <p class="dialog-paragraph">${esc(pages[page])}</p>
           <div class="dialog-actions">
             <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${pages.length}</span>
@@ -15135,6 +15219,7 @@
       memoryNoteList: false,
     ramNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -15250,6 +15335,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -15382,7 +15468,7 @@
     // RAM cards (3.3): back to the 3.3 worktable with its note reopened.
     if (isRamTask(taskId)) {
       return setState({
-        ...ramCompletionPatch(completedTasks),
+        ...ramCompletionPatch(completedTasks, taskId),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -15594,7 +15680,7 @@
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
     if (isRamTask(taskId)) {
-      return setState({ ...ramCompletionPatch(completedTasks), ...base }, true);
+      return setState({ ...ramCompletionPatch(completedTasks, taskId), ...base }, true);
     }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
@@ -16389,6 +16475,7 @@
       dialog: null,
       taskDialog: null,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
     }, false);
@@ -16445,6 +16532,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -16492,6 +16580,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -17723,15 +17812,15 @@
     "workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"
   ];
 
-  // These panels are click-through (pointer-events:none so the board underneath
-  // stays wireable), so their only pointer-events:auto surface is the grip — they
-  // can ONLY be dragged by it. The solid docked gate/bus panel is deliberately NOT
-  // here: it is draggable from anywhere on its body that isn't text or a control
-  // (see dialogDragBlockedByControl).
   // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
   // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
   // still resolves to its own drag key, not the dock one.
-  const HANDLE_ONLY_DRAG_CLASSES = new Set(["workspace-task-hint-mux", "workspace-why-note"]);
+  //
+  // EVERY panel above drags from anywhere on its body that is not text or a
+  // control — the grip is a hint, not the only grab surface. (The requirements and
+  // "why" panels used to be click-through and grabbable by their grip alone; they
+  // now take pointer events across their body, so reaching the board they cover
+  // means dragging them aside or hiding them.)
 
   function draggableDialogElement(event) {
     return event.target.closest("." + DRAGGABLE_DIALOG_CLASSES.join(",."));
@@ -17768,11 +17857,13 @@
 
   function dialogDragBlockedByControl(event) {
     if (event.target.closest("button, a, input, textarea, select, [role='button']")) return true;
-    // On a requirements panel a drag starts from the frame/background only — a
-    // press on the description text or the truth table should select/scroll it,
-    // not move the panel. (Other dialogs stay draggable from their whole body.)
-    if (event.target.closest(".workspace-task-hint")
-        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title")) {
+    // On a requirements / "why" panel a drag starts from anything that is NOT the
+    // words themselves: a press on a paragraph, a title or the truth table should
+    // select or scroll it, while the frame, the padding and the gaps between the
+    // paragraphs all move the panel. (Other dialogs stay draggable from their
+    // whole body.)
+    if (event.target.closest(".workspace-task-hint, .workspace-why-note")
+        && event.target.closest("p, table, .workspace-task-hint-scroll, .requirements-title, .why-note-title, .why-note-text")) {
       return true;
     }
     return false;
@@ -17782,8 +17873,6 @@
     if (event.button !== undefined && event.button !== 0) return false;
     const element = draggableDialogElement(event);
     if (!element || dialogDragBlockedByControl(event)) return false;
-    // Click-through panels must be grabbed by their handle, not their body.
-    if (HANDLE_ONLY_DRAG_CLASSES.has(dialogDragKey(element)) && !event.target.closest("[data-drag-handle]")) return false;
 
     const rect = element.getBoundingClientRect();
     element.style.position = "fixed";
@@ -18641,6 +18730,13 @@
       if (state.aluIntroDialog?.returnToExplanations) {
         return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
       }
+      // The 3.3 closing message is the end of the story so far — the game stops
+      // there, so say so instead of dropping the player back into a note.
+      if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY) {
+        return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
+      }
+      // A RAM message belongs to the 3.3 note, not the 2.6 one.
+      if (isRamTask(state.aluIntroDialog?.taskId)) return setState({ aluIntroDialog: null, ramNoteList: true });
       return setState({ aluIntroDialog: null, aluNoteList: true });
     }
     if (action === "splitter-mirror") return toggleSplitterMirror(button.dataset.componentId);

@@ -19,7 +19,7 @@
       <rect class="splitter-bar" x="-9.166666666666668" y="-46" width="18.333333333333336" height="20" />
       <line class="splitter-stripe" x1="0" y1="-43" x2="0" y2="-29" style="stroke-width:5;stroke-dasharray:10 5" />
       <path class="usercard-body" d="M -46 -40 L 46 -20 L 46 20 L -46 40 L -46 13 L -24 0 L -46 -13 Z" />
-      <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:16px">ALU1</text>
+      <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:19px">ALU1</text>
       <text class="splitter-width-label" x="-54" y="-47.66666666666667" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
       <text class="splitter-width-label" x="-54" y="4.333333333333332" text-anchor="middle" style="font-size:21.666666666666668px">16</text>
       <text class="splitter-width-label" x="56" y="-21.666666666666668" text-anchor="middle" style="font-size:21.666666666666668px">16</text>

@@ -11,5 +11,5 @@
   <line class="line" x1="30" y1="-23" x2="66" y2="-23" />
   <line class="line" x1="30" y1="23" x2="66" y2="23" />
   <path class="body" d="M-30 -22 L30 -42 L30 42 L-30 22 Z" />
-  <text class="label" x="2" y="0">DMUX</text>
+  <text class="label" x="2" y="0" style="font-size:14px">DMUX</text>
 </svg>

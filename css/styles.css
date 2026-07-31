@@ -1363,7 +1363,7 @@ button { font: inherit; }
 
 /* The s / c letters next to the adder gate's output pins. */
 .arith-gate-pin-letter {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
   fill: #2c2113;
 }
@@ -1640,10 +1640,9 @@ g.component-ffCard.ff-materialize .ff-card {
   .workspace-and-arrow { animation: none; }
 }
 
-/* Optional bottom-left "why do we need this?" panel: a hideable explainer.
-   Click-through while open (only its hide/show button captures clicks) so the
-   board underneath stays reachable; sits opposite the bottom-right
-   requirements panel. */
+/* Optional bottom-left "why do we need this?" panel: a hideable explainer,
+   draggable from anywhere on it that is not text or its button. Sits opposite
+   the bottom-right requirements panel. */
 .workspace-why-note {
   position: absolute;
   left: 14px;
@@ -1657,7 +1656,10 @@ g.component-ffCard.ff-materialize .ff-card {
   color: #f2e8d4;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
   direction: rtl;
-  pointer-events: none;
+  /* Draggable from anywhere on it that is not its text or its button, so it takes
+     pointer events across its body (it used to be click-through, grabbable only
+     by the grip). Drag it aside to reach the board beneath. */
+  pointer-events: auto;
 }
 
 .workspace-why-note .why-note-title {
@@ -1760,7 +1762,7 @@ g.component-ffCard.ff-materialize .ff-card {
    same look as the plain MUX/DMUX symbols in assets/components. */
 .wide-routing-body { fill: #e8dfc2; stroke: #111; stroke-width: 4; }
 .wide-routing-label {
-  fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 13px;
+  fill: #111; font-family: Arial, sans-serif; font-weight: 900; font-size: 16px;
   dominant-baseline: middle; text-anchor: middle;
 }
 .wide-routing-label-small { font-size: 10px; font-weight: 800; }
@@ -2741,13 +2743,11 @@ g.component-ffCard.ff-materialize .ff-card {
    wide enough to show all 8 rows without scrolling. */
 /* Compound selector so these win over the later `.workspace-task-hint`
    max-height/overflow rule (equal specificity, but declared earlier).
-   The panel is wide (instructions beside the table, no scrolling) so it
-   overlaps the board; pointer-events:none on the frame and text lets clicks
-   fall through to the board underneath, while the table stays interactive.
-   The click-through text sits at the screen edge over the FIXED lamp so the
-   learner can still hand-wire the card output to it, while the interactive
-   table covers the gate-build zone (gates are movable, so it never traps
-   them). */
+   The panel takes pointer events across its whole body so it can be dragged
+   from anywhere on it that is not text or a control (see
+   dialogDragBlockedByControl) — not just by its grip. It therefore no longer
+   lets clicks fall through to the board underneath: to reach what it covers,
+   drag it aside or hide it (הסתרה). */
 .workspace-task-hint.workspace-task-hint-mux {
   display: flex;
   width: min(560px, calc(100% - 32px));
@@ -2756,7 +2756,7 @@ g.component-ffCard.ff-materialize .ff-card {
   gap: 14px;
   max-height: none;
   overflow: visible;
-  pointer-events: none;
+  pointer-events: auto;
   background: rgba(249, 244, 232, 0.9);
   /* Leave room at the top for the hide/show toggle so it never sits on the table. */
   padding-top: 38px;
@@ -2765,12 +2765,12 @@ g.component-ffCard.ff-materialize .ff-card {
 .workspace-task-hint-mux .mux-hint-text {
   flex: 1 1 0;
   min-width: 0;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 /* Multi-bit task requirements: just the text (no scratch table), so keep it
-   narrower than the MUX panel while staying click-through so the card's lower
-   output pins underneath remain reachable. */
+   narrower than the MUX panel. Drag it aside to reach the card's lower output
+   pins underneath. */
 .workspace-task-hint.workspace-task-hint-mux.workspace-task-hint-multibit {
   width: min(360px, calc(100% - 32px));
 }
@@ -3043,6 +3043,18 @@ g.component-ffCard.ff-materialize .ff-card {
   box-shadow: 0 18px 55px rgba(0,0,0,0.65);
   text-align: center;
   pointer-events: auto;
+}
+
+/* The verdict's colour: a DARK green for a pass and a DARK red for a failure, so
+   the light text on top of them stays readable. */
+.not-test-result-card.not-test-result-pass {
+  background: #16351f;
+  border-color: #3f7a52;
+}
+
+.not-test-result-card.not-test-result-fail {
+  background: #3a1a1a;
+  border-color: #8a4444;
 }
 
 .not-test-result-card p {

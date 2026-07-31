@@ -87,7 +87,7 @@
      class="label"
      x="10"
      y="1.4794922"
-     id="text5">OR</text>
+     id="text5" style="font-size:28px">OR</text>
 
   <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
     <circle data-pin="in1" cx="-60.326107" cy="-30" r="0" />

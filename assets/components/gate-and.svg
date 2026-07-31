@@ -71,7 +71,7 @@
      class="label"
      x="-5"
      y="1.4794922"
-     id="text3">AND</text>
+     id="text3" style="font-size:26px">AND</text>
 
   <g id="pin-tags" data-role="pin-tags" opacity="0" pointer-events="none">
     <circle data-pin="in1" cx="-62" cy="-23" r="0" />
