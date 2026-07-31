@@ -3725,6 +3725,12 @@
     const aluIds = (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     if (aluIds.length > 0 && aluIds.every((id) => taskCompleted(id))) unlockAchievement("alu-engineer");
 
+    // Chapter 3.2 registers (Register4 / Register) and 3.3 RAM (RAM4 … RAM1024).
+    const memoryIds = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
+    if (memoryIds.length > 0 && memoryIds.every((id) => taskCompleted(id))) unlockAchievement("memory-engineer");
+    const ramIds = (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id);
+    if (ramIds.length > 0 && ramIds.every((id) => taskCompleted(id))) unlockAchievement("ram-engineer");
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
@@ -3734,6 +3740,8 @@
     if (chapterClean(busIds)) unlockAchievement("precise-bus-engineer");
     if (chapterClean(arithIds)) unlockAchievement("precise-arith-engineer");
     if (chapterClean(aluIds)) unlockAchievement("precise-alu-engineer");
+    if (chapterClean(memoryIds)) unlockAchievement("precise-memory-engineer");
+    if (chapterClean(ramIds)) unlockAchievement("precise-ram-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
@@ -12658,6 +12666,8 @@
 
   function componentNandCount(type, memo, stack) {
     if (type === "nand") return 1;
+    // A flip-flop is a latched MUX — count it as one MUX's worth of Nands.
+    if (type === "ffCard") return cardRecursiveCount("Mux", memo, stack);
     if (typeof type === "string" && type.startsWith("gate-")) {
       return cardRecursiveCount(type.slice(5), memo, stack);
     }
@@ -12718,6 +12728,7 @@
       const type = comp && comp.type;
       let n;
       if (type === "nand") n = 1;
+      else if (type === "ffCard") n = cardRecursiveCountWithBuilds("Mux", builds, memo, stack); // FF = one MUX
       else if (typeof type === "string" && type.startsWith("gate-")) n = cardRecursiveCountWithBuilds(type.slice(5), builds, memo, stack);
       else if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) n = cardRecursiveCountWithBuilds(type, builds, memo, stack);
       else n = 0;
