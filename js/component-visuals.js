@@ -438,11 +438,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const cap = (x, y, text, anchor) =>
       `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
     let s = "";
-    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -220, spec.addressWidth);
+    // A card with no data bus (IPorts) has its address where the data would be,
+    // facing the output — the drawing has to follow the pin, or the cable lands
+    // on a bar that is not there.
+    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, spec.dataIn === false ? -130 : -170, spec.addressWidth);
     // IPorts has no data input at all — everything it shows comes from outside —
     // so it must not grow a bus stub with no pin behind it.
-    if (spec.dataIn !== false) s += bar(-88, -edge, -180, spec.width);
-    s += bar(edge, 92, -180, spec.width);
+    if (spec.dataIn !== false) s += bar(-88, -edge, -130, spec.width);
+    s += bar(edge, 92, -130, spec.width);
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     // Inputs and outputs sit at the SAME heights, so a port's two ends line up
     // across the card.

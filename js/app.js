@@ -912,10 +912,10 @@
 
   function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -220, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -180, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in3: { x: -88, y: -170, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -130, direction: "in", width: 16, label: "כניסת הדאטה" },
       in2: { x: 0, y: -260, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" },
+      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
         `outP${i + 1}`, { x: 92, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
@@ -997,12 +997,12 @@
     addressWidth: 2,
     portInputs: 4,
     pins: {
-      in5: { x: -88, y: -180, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in5: { x: -88, y: -130, direction: "in", width: 2, label: "כניסת הכתובת" },
       in1: { x: -88, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
       in2: { x: -88, y: 68, direction: "in", width: 16, label: "כניסת פורט 01" },
       in3: { x: -88, y: 128, direction: "in", width: 16, label: "כניסת פורט 10" },
       in4: { x: -88, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
-      out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" }
+      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
     bounds: { left: 90, right: 110, top: 250, bottom: 260 }
   };

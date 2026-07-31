@@ -4344,8 +4344,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 760,
-        "y": 440
+        "x": 520,
+        "y": 570
       }
     ],
     "wires": [
