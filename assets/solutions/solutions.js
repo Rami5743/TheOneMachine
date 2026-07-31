@@ -4132,12 +4132,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 190
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 355,
-        "y": 290
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 935,
@@ -4150,10 +4144,6 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "task-card-1.inputInt3",
-        "b": "addr-nail-2.in"
-      },
-      {
         "a": "addr-nail-1.out",
         "b": "addr-nail-3.in"
       },
@@ -4162,7 +4152,7 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "read-mux.in5"
       },
       {
-        "a": "addr-nail-2.out",
+        "a": "task-card-1.inputInt3",
         "b": "write-dmux.in2"
       },
       {
@@ -4305,7 +4295,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputExt3",
           "x": -460,
-          "y": -250,
+          "y": 160,
           "w": 16,
           "dir": "in",
           "label": "כניסת פורט 10"
@@ -4313,7 +4303,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "inputInt3",
           "x": -340,
-          "y": -250,
+          "y": 160,
           "w": 16,
           "dir": "out",
           "label": ""

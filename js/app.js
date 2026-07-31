@@ -920,7 +920,7 @@
         `outP${i + 1}`, { x: 92, y: -30 + i * 30, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
       ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `inP${i + 1}`, { x: -88, y: -40 + i * 44, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+        `inP${i + 1}`, { x: -88, y: 8 + i * 44, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
       ])) : {})
     };
   }
@@ -998,10 +998,10 @@
     portInputs: 4,
     pins: {
       in5: { x: -88, y: -140, direction: "in", width: 2, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -40, direction: "in", width: 16, label: "כניסת פורט 00" },
-      in2: { x: -88, y: 4, direction: "in", width: 16, label: "כניסת פורט 01" },
-      in3: { x: -88, y: 48, direction: "in", width: 16, label: "כניסת פורט 10" },
-      in4: { x: -88, y: 92, direction: "in", width: 16, label: "כניסת פורט 11" },
+      in1: { x: -88, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -88, y: 52, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -88, y: 96, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -88, y: 140, direction: "in", width: 16, label: "כניסת פורט 11" },
       out: { x: 92, y: -140, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
     bounds: { left: 90, right: 110, top: 190, bottom: 190 }
@@ -5658,20 +5658,21 @@
     ],
     RAM: [
       {
-        text: "אותו רעיון שוב, בגדול. הכתובת היא 11 ביטים ומפצלים אותה לשלושה חלקים: שלושת הביטים האחרונים (הכתובת בתוך ה-Ports), שבעת הביטים שמעליהם, והביט הראשון — שקובע אם פונים לזיכרון הרגיל או לפורטים.",
+        text: "אותו רעיון שוב, בגדול. הכתובת היא 11 ביטים, וכל מה שצריך כדי להחליט לאן פונים זה הביט הראשון (העליון) שלה. לכן מפצלים אותה לשניים: עשרת הביטים האחרונים, שהם בדיוק הכתובת של ה-RAM1024, והביט הראשון לחוד.",
         highlight: {
-          components: ["addr-split"],
+          components: ["addr-split", "big"],
           terminals: ["task-card-1.inputInt3"],
-          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single"),
+                  wireKey("addr-split.leg0", "big.in3")]
         }
       },
       {
-        text: "ה-RAM1024 צריך כתובת של 10 ביטים, ולנו יש אותם בשני חלקים — אז מאחדים אותם בחזרה במאחד. ה-Ports לעומת זאת מקבל רק את שלושת הביטים האחרונים.",
+        text: "ה-Ports צריך כתובת של 3 ביטים בלבד, אז מפצלים שוב: מאותם עשרה ביטים לוקחים את שלושת האחרונים ושולחים אותם אליו. שים לב שאותו בס עצמו הולך גם ל-RAM1024 במלואו — אף אחד מהם לא מפריע לשני, כי בכל רגע רק אחד מהם באמת פעיל.",
         highlight: {
-          components: ["addr-merge", "big", "ports"],
+          components: ["low-split", "ports"],
           terminals: [],
-          wires: [wireKey("addr-split.leg0", "addr-merge.leg0"), wireKey("addr-split.leg1", "addr-merge.leg1"),
-                  wireKey("addr-merge.single", "big.in3"), wireKey("addr-split.leg0", "ports.in3")]
+          wires: [wireKey("addr-split.leg0", "low-split.single"),
+                  wireKey("low-split.leg0", "ports.in3")]
         }
       },
       {
@@ -5679,7 +5680,7 @@
         highlight: {
           components: ["write-sel"],
           terminals: ["task-card-1.inputInt2", "task-card-1.inputInt1"],
-          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg2", "write-sel.in2"),
+          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg1", "write-sel.in2"),
                   wireKey("write-sel.out1", "big.in2"), wireKey("write-sel.out2", "ports.in2"),
                   wireKey("task-card-1.inputInt1", "big.in1"), wireKey("task-card-1.inputInt1", "ports.in1")]
         }
@@ -5691,7 +5692,7 @@
           terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3",
                       "task-card-1.outputInt4", "task-card-1.outputInt5"],
           wires: [wireKey("big.out", "read-sel.in1"), wireKey("ports.out", "read-sel.in2"),
-                  wireKey("addr-split.leg2", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
+                  wireKey("addr-split.leg1", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
         }
       }
     ],

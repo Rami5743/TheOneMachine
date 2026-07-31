@@ -192,12 +192,6 @@
       "y": 190
     },
     {
-      "id": "addr-nail-2",
-      "type": "nail",
-      "x": 355,
-      "y": 290
-    },
-    {
       "id": "addr-nail-3",
       "type": "nail",
       "x": 935,
@@ -210,10 +204,6 @@
       "b": "addr-nail-1.in"
     },
     {
-      "a": "task-card-1.inputInt3",
-      "b": "addr-nail-2.in"
-    },
-    {
       "a": "addr-nail-1.out",
       "b": "addr-nail-3.in"
     },
@@ -222,7 +212,7 @@
       "b": "read-mux.in5"
     },
     {
-      "a": "addr-nail-2.out",
+      "a": "task-card-1.inputInt3",
       "b": "write-dmux.in2"
     },
     {

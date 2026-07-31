@@ -437,7 +437,6 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     const cap = (x, y, text, anchor) =>
       `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
-    const NAMES = ["00", "01", "10", "11"];
     let s = "";
     if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -140, spec.addressWidth);
     // IPorts has no data input at all — everything it shows comes from outside —
@@ -447,15 +446,15 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     // Inputs and outputs sit at the SAME heights, so a port's two ends line up
     // across the card.
-    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, -40 + i * 44, spec.width);
-    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, -40 + i * 44, spec.width);
+    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, 8 + i * 44, spec.width);
+    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 44, spec.width);
     s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const font = labelFontSize(label, edge * 2, 17);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 120}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
-    for (let i = 0; i < outs; i += 1) s += cap(edge - 6, -40 + i * 44 + 4, NAMES[i], "end");
+    for (let i = 0; i < outs; i += 1) s += cap(edge - 6, 8 + i * 44 + 4, String(i), "end");
     // The inputs are numbered in DECIMAL on the card — short enough to read at
     // this size, where a two-digit binary name is not.
-    for (let i = 0; i < ins; i += 1) s += cap(-edge + 6, -40 + i * 44 + 4, String(i), "start");
+    for (let i = 0; i < ins; i += 1) s += cap(-edge + 6, 8 + i * 44 + 4, String(i), "start");
     return `<g class="ram-gate" aria-hidden="true">${s}</g>`;
   }
 
