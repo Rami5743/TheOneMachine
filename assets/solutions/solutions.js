@@ -4126,12 +4126,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 290
       },
       {
-        "id": "addr-nail-1",
-        "type": "nail",
-        "x": 320,
-        "y": 190
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 935,
@@ -4141,10 +4135,6 @@ window.EMBEDDED_SOLUTIONS = {
     "wires": [
       {
         "a": "task-card-1.inputInt3",
-        "b": "addr-nail-1.in"
-      },
-      {
-        "a": "addr-nail-1.out",
         "b": "addr-nail-3.in"
       },
       {
