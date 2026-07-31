@@ -658,8 +658,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "not-merge",
         "type": "splitter",
-        "x": 705,
-        "y": 190,
+        "x": 707,
+        "y": 191,
         "outputs": 2,
         "legWidths": [
           1,
