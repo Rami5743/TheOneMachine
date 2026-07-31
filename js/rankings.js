@@ -77,6 +77,7 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     push(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []);
     push(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []); // 3.2 registers
     push(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []);       // 3.3 RAM
+    push(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []);   // 3.4 ports (last chapter)
     return rows;
   }
 
