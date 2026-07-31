@@ -3977,6 +3977,9 @@
     if (memoryIds.length > 0 && memoryIds.every((id) => taskCompleted(id))) unlockAchievement("memory-engineer");
     const ramIds = (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id);
     if (ramIds.length > 0 && ramIds.every((id) => taskCompleted(id))) unlockAchievement("ram-engineer");
+    // Chapter 3.4 ports (OPorts / IPorts / Ports / RAM).
+    const portsIds = (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id);
+    if (portsIds.length > 0 && portsIds.every((id) => taskCompleted(id))) unlockAchievement("ports-engineer");
 
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
@@ -3989,6 +3992,7 @@
     if (chapterClean(aluIds)) unlockAchievement("precise-alu-engineer");
     if (chapterClean(memoryIds)) unlockAchievement("precise-memory-engineer");
     if (chapterClean(ramIds)) unlockAchievement("precise-ram-engineer");
+    if (chapterClean(portsIds)) unlockAchievement("precise-ports-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
