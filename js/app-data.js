@@ -864,3 +864,90 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       hints: []
     }
   ];
+
+  // Chapter 3.4 ports, opened from the 3.4 worktable note. The chain: OPorts (a
+  // RAM4 whose four registers also show their contents to the outside world),
+  // IPorts (no registers at all — four buses coming IN from devices, picked by an
+  // address), Ports (the eight of them as one block: four out, four in), and RAM
+  // (the whole memory — RAM1024 with that block of ports living at the top of its
+  // address space). Like the 3.3 cards these are CLOCKED bus builds; IPorts is
+  // the one exception, being pure routing.
+  const PORTS_TASKS = [
+    {
+      id: "OPorts",
+      label: "OPorts",
+      requires: ["RAM4"],
+      inputs: 3,
+      outputs: 5,
+      busWidth: 16,
+      addressWidth: 2,
+      slots: 4,
+      portOutputs: 4,
+      clocked: true,
+      requirements: "זהו כרטיס זהה ל-RAM4 רק יש לו בנוסף עוד 4 יציאות המראות את התוכן של הרגיסטרים לכל מי שרוצה. היציאות ממוספרות בשיטה הבינרית בין 00 עד 11 והן משקפות את הרגיסטרים עם הכתובות האלו.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "תתחיל מהמימוש של ה-RAM4 ואז תוסיף מה שאתה צריך" },
+        { kind: "interactive", title: "רמז 2", action: "ports-place-ram4",
+          confirmBeforeApply: true, applyLabel: "כן",
+          text: "אניח בשבילך את המימוש של ה-RAM4 בתוך המסגרת. (שים לב: זה ימחק את מה שבנית עד עכשיו)." },
+        { kind: "text", title: "רמז 3", text: "עכשיו נשאר לך להוציא את היציאות של כל הרגיסטרים ליציאות הנוספות." }
+      ]
+    },
+    {
+      id: "IPorts",
+      label: "IPorts",
+      requires: ["OPorts"],
+      inputs: 5,
+      outputs: 1,
+      busWidth: 16,
+      addressWidth: 2,
+      slots: 4,
+      portInputs: 4,
+      clocked: false,
+      requirements: "כרטיס זה לא מכיל רגיסטרים. הוא נותן למחשב לקרוא מידע שנותנים לו מכשירים חיצוניים. מבחינת המחשב זה יהיה כמו קריאה מזיכרון.\n\nיש לו כניסת כתובת שהיא בס ברוחב 2 (בדיוק כמו ל-RAM4) ו-4 כניסות שהם בס ברוחב 16, אלו הן הכניסות שיחוברו אל מכשירים חיצוניים. הן ממוספרות בשיטה הבינרית בין 00 ל-11.\n\nיש לו יציאה אחת, גם היא בס ברוחב 16 שמראה מה יש בכניסה שמספרה הוא הכתובת שנכנסת.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "למעשה זה כרטיס שכבר בנית פעם" },
+        { kind: "text", title: "רמז 2", text: "אתה צריך לבחור בין 4 הכניסות ולהוציא את זה החוצה." },
+        { kind: "text", title: "רמז 3", text: "תכל'ס זה מוקס" }
+      ]
+    },
+    {
+      id: "Ports",
+      label: "Ports",
+      requires: ["IPorts"],
+      inputs: 7,
+      outputs: 5,
+      busWidth: 16,
+      addressWidth: 3,
+      slots: 8,
+      portOutputs: 4,
+      portInputs: 4,
+      clocked: true,
+      requirements: "ה-Ports מחבר את שני הכרטיסים הקודמים לבלוק אחד של 8 כתובות, וזה הבלוק שדרכו המחשב מדבר עם העולם.\n\nכניסת הכתובת שלו היא בס ברוחב 3, כך שיש לה 8 אפשרויות:\n\n1. הכתובות 000 עד 011 הן ארבעת הרגיסטרים של ה-OPorts. המחשב כותב אליהם, והמכשירים שבחוץ קוראים מהם ביציאות הנוספות.\n\n2. הכתובות 100 עד 111 הן ארבע הכניסות של ה-IPorts. המכשירים שבחוץ כותבים אליהן, והמחשב רק קורא מהן. אם המחשב ינסה לכתוב לכתובת כזאת פשוט לא יקרה כלום.\n\nחוץ מזה הוא נראה בדיוק כמו כרטיס זיכרון רגיל: כניסת דאטה של 16 ביטים, כניסת כתובת, כניסת בקרה מלמעלה ויציאת דאטה אחת של 16 ביטים שמוציאה את מה שכתוב בכתובת שבחרנו.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "כבר בנית את שני החצאים. עכשיו אתה רק צריך להחליט לפי הכתובת באיזה מהם להשתמש." },
+        { kind: "text", title: "רמז 2", text: "הביט הראשון של הכתובת (העליון) הוא זה שקובע: 0 - זה OPorts, 1 - זה IPorts. שני הביטים האחרונים הם הכתובת בתוך הכרטיס שבחרת." },
+        { kind: "text", title: "רמז 3", text: "את הביט הראשון של הכתובת אתה יכול להשתמש בו פעמיים: פעם אחת כדי לבחור מאיזה כרטיס לקרוא (MUX16), ופעם אחת כדי לוודא שביט הבקרה מגיע רק ל-OPorts - כך המחשב לעולם לא יכתוב לכניסות." }
+      ]
+    },
+    {
+      id: "RAM",
+      label: "RAM",
+      requires: ["Ports", "RAM1024"],
+      inputs: 7,
+      outputs: 5,
+      busWidth: 16,
+      addressWidth: 11,
+      slots: 1032,
+      portOutputs: 4,
+      portInputs: 4,
+      clocked: true,
+      requirements: "זהו הזיכרון השלם של המחשב: ה-RAM1024 וה-Ports יחד, בכרטיס אחד.\n\nכניסת הכתובת שלו היא בס ברוחב 11:\n\n1. הכתובות 0 עד 1023 הן הרגיסטרים הרגילים של ה-RAM1024.\n\n2. הכתובות 1024 עד 1031 הן שמונת הפורטים.\n\nמבחינת המחשב אין ביניהם שום הבדל - הוא פונה לכולם באותה דרך, עם כתובת. ההבדל היחיד הוא שלארבע הכתובות האחרונות הוא לא יכול לכתוב, ואם ינסה פשוט לא יקרה כלום.\n\nבנוסף לכניסות והיציאות הרגילות יוצאים מהכרטיס שמונת הבסים של הפורטים, ואליהם מתחברים המכשירים שבחוץ.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "זה בדיוק אותו רעיון כמו ה-Ports, רק שהפעם אתה בוחר בין ה-RAM1024 לבין ה-Ports." },
+        { kind: "text", title: "רמז 2", text: "הביט הראשון של הכתובת (העליון) הוא זה שקובע: 0 - זה ה-RAM1024, 1 - זה ה-Ports. עשרת הביטים האחרונים הם הכתובת של ה-RAM1024, ושלושת האחרונים הם הכתובת של ה-Ports." },
+        { kind: "text", title: "רמז 3", text: "שוב, בביט הראשון אתה משתמש פעמיים: פעם ב-MUX16 שבוחר מאיזה כרטיס לקרוא, ופעם ב-DMUX שמעביר את ביט הבקרה רק לכרטיס שאליו כותבים." }
+      ]
+    }
+  ];
+

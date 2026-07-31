@@ -1243,6 +1243,8 @@
     // The 3.1 memory worktable note (Register4 → Register).
     memoryNoteList: false,
     ramNoteList: false,
+    // The 3.4 ports worktable note (OPorts / IPorts / Ports / RAM).
+    portsNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -1859,6 +1861,7 @@
       || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
       || Boolean(state.taskDialog) || Boolean(state.dialog)
       || Boolean(state.memoryNoteList) || Boolean(state.ramNoteList) || Boolean(state.aluNoteList)
+      || Boolean(state.portsNoteList)
       || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
       || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
       || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
@@ -2385,7 +2388,8 @@
       arithNoteList: false,
       aluNoteList: false,
       memoryNoteList: false,
-    ramNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -2580,7 +2584,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -4906,6 +4910,7 @@
       ${renderAluNoteList()}
       ${renderMemoryNoteList()}
       ${renderRamNoteList()}
+      ${renderPortsNoteList()}
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -15277,7 +15282,8 @@
       dialog: null,
       taskDialog: null,
       memoryNoteList: false,
-    ramNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
       requirementsPanelHidden: false,
       whyNoteHidden: false,
       muxTable: null,
@@ -15394,6 +15400,7 @@
       taskDialog: null,
       memoryNoteList: false,
       ramNoteList: false,
+      portsNoteList: false,
       requirementsPanelHidden: false,
       whyNoteHidden: false,
       muxTable: null,
@@ -15443,6 +15450,152 @@
           <div class="note-task-actions">
             <button class="btn" data-action="ram-note-close">\u05e1\u05d2\u05d5\u05e8</button>
             ${noteClearProgressButton("ram")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
+  // --- Chapter 3.4 ports note -------------------------------------------------
+  // The 3.4 worktable note (OPorts → IPorts → Ports → RAM). Strictly ordered like
+  // the RAM chain: each card is built out of the one before it. A card whose build
+  // frame does not exist yet answers "המשך יבוא..." rather than dead-ending.
+  function portsTaskDefs() {
+    return typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : [];
+  }
+
+  function portsTaskDefById(id) {
+    return portsTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  function isPortsTask(id) {
+    return Boolean(portsTaskDefById(id));
+  }
+
+  function portsTaskUnlocked(id) {
+    const def = portsTaskDefById(id);
+    if (!def) return false;
+    return (def.requires || []).every((req) => taskCompleted(req));
+  }
+
+  // A card is playable once its build frame exists. The chapter lands in pieces,
+  // so the note has to be honest about which ones are not here yet.
+  function portsTaskImplemented(id) {
+    return Boolean(WORKSPACE_COMPONENT_DEFS[taskCardComponentType(id)]);
+  }
+
+  function portsTaskLabelOf(id) {
+    return portsTaskDefById(id)?.label || ramTaskDefById(id)?.label || id;
+  }
+
+  function portsTaskLockedMessage(id) {
+    const def = portsTaskDefById(id);
+    const missing = (def?.requires || []).filter((req) => !taskCompleted(req)).map(portsTaskLabelOf);
+    if (!missing.length) return "המשך יבוא...";
+    return `\u05e6\u05e8\u05d9\u05da \u05dc\u05d1\u05e0\u05d5\u05ea \u05e7\u05d5\u05d3\u05dd \u05d0\u05ea ${missing.join(", ")}.`;
+  }
+
+  function openPortsNote() {
+    return setState({ portsNoteList: true });
+  }
+
+  // The ports frames sit where the RAM ones do: right of centre, leaving the left
+  // strip free for the converters that dial a value and an address by hand.
+  const PORTS_BUILD_CARD_X = 660;
+  const PORTS_BUILD_CARD_Y = 440;
+
+  function openPortsTaskWorkspace(taskId) {
+    const task = portsTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-13");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: PORTS_BUILD_CARD_X, y: PORTS_BUILD_CARD_Y },
+        { id: "source-1", type: "source", x: 110, y: 90 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Every ports card but IPorts holds registers, so the build is clocked.
+      clocked: Boolean(task.clocked),
+      busClocked: Boolean(task.clocked),
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
+      requirementsPanelHidden: false,
+      whyNoteHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the 3.4 worktable a ports build was opened from.
+  function portsWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-13");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
+      ? state.workspace.sessionReturnPanelIndex
+      : (sceneByChapter(returnChapter)?.panels.length || 1) - 1;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  function handlePortsNoteTask(id) {
+    const task = portsTaskDefById(id);
+    if (!task) return;
+    if (!portsTaskUnlocked(task.id)) return setState({ infoDialog: portsTaskLockedMessage(task.id) });
+    if (!portsTaskImplemented(task.id)) return setState({ infoDialog: "המשך יבוא..." });
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openPortsTaskWorkspace(task.id);
+  }
+
+  function renderPortsNoteList() {
+    if (!state.portsNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${portsTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !portsTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "\u2713" : ""}</span>
+              <button class="note-task-button" data-action="ports-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="\u05e8\u05e9\u05d9\u05de\u05ea \u05de\u05e9\u05d9\u05de\u05d5\u05ea">
+          <h2>\u05de\u05e9\u05d9\u05de\u05d5\u05ea</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="ports-note-close">\u05e1\u05d2\u05d5\u05e8</button>
+            ${noteClearProgressButton("ports")}
           </div>
         </section>
         ${renderNoteClearDialog()}
@@ -16393,6 +16546,7 @@
     if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     if (kind === "ram") return ramTaskDefs().map((t) => t.id);
+    if (kind === "ports") return portsTaskDefs().map((t) => t.id);
     return [];
   }
 
@@ -18817,6 +18971,9 @@
     if (action === "ram-tasks-note") return openRamNote();
     if (action === "ram-note-task") return handleRamNoteTask(button.dataset.taskId);
     if (action === "ram-note-close") return setState({ ramNoteList: false });
+    if (action === "ports-tasks-note") return openPortsNote();
+    if (action === "ports-note-task") return handlePortsNoteTask(button.dataset.taskId);
+    if (action === "ports-note-close") return setState({ portsNoteList: false });
     if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
     if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");
