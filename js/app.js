@@ -835,9 +835,10 @@
   // under the data output, each captioned with its address.
   const PORTS_FRAME_SIZE = { w: 800, h: 560 };
   const PORT_OUT_CAPTIONS = ["00", "01", "10", "11"];
-  // Five outputs down the right edge, all inside the +-150 the shell allows:
-  // the data output on its own, then the four port buses under a wider gap.
-  const portFrameOutY = (i) => -50 + i * 60;
+  // Five outputs down the right edge, all inside the +-150 the shell allows: the
+  // card's own data output high on its own at -150, then a clear 120 gap and the
+  // four port buses 60 apart — so the ordinary output never reads as one of them.
+  const portFrameOutY = (i) => -30 + i * 60;
 
   WORKSPACE_COMPONENT_DEFS["taskCard-OPorts"] = {
     label: "מסגרת OPorts",
@@ -848,17 +849,17 @@
     routingMultibit: true,
     frameSize: { ...PORTS_FRAME_SIZE },
     pins: {
-      inputExt3: { x: -460, y: -70, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt3: { x: -340, y: -70, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
-      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
-      inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt3: { x: -460, y: -150, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt3: { x: -340, y: -150, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
+      inputExt1: { x: -460, y: -70, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt1: { x: -340, y: -70, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 340, y: -140, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: -140, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
         [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
-        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }]
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: `יציאה ${cap}` }]
       ]))
     },
     bounds: { left: 460, right: 460, top: 460, bottom: 280 }
@@ -874,16 +875,9 @@
     busWidth: 16,
     addressWidth: 2,
     slots: 4,
-    pins: {
-      in3: { x: -88, y: -24, direction: "in", width: 2, label: "כניסת הכתובת" },
-      in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
-      in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -60, direction: "out", width: 16, label: "יציאת הדאטה" },
-      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `outP${i + 1}`, { x: 92, y: -12 + i * 32, direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }
-      ]))
-    },
-    bounds: { left: 90, right: 110, top: 92, bottom: 116 }
+    portsCard: true,
+    pins: portsGatePins(2, false),
+    bounds: { left: 90, right: 110, top: 176, bottom: 140 }
   };
 
   // Ports and RAM share OPorts' shape, with two additions: four device buses
@@ -894,40 +888,39 @@
 
   function portsFramePins(addressWidth) {
     return {
-      inputExt3: { x: -460, y: -70, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt3: { x: -340, y: -70, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית" },
-      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
-      inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt3: { x: -460, y: -150, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt3: { x: -340, y: -150, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית" },
+      inputExt1: { x: -460, y: -70, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt1: { x: -340, y: -70, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 340, y: -140, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: -140, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
       // The four port OUTPUTS, down the right edge under the data output.
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
         [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
-        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }]
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: `יציאה ${cap}` }]
       ])),
-      // The four device buses coming IN, out of the bottom edge — that is where
-      // the world plugs in.
+      // The four device buses coming IN, down the LEFT edge under the data bus.
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`inputInt${i + 4}`, { x: PORT_IN_XS[i], y: 200, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }],
-        [`inputExt${i + 4}`, { x: PORT_IN_XS[i], y: 280, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }]
+        [`inputInt${i + 4}`, { x: -340, y: 10 + i * 60, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }],
+        [`inputExt${i + 4}`, { x: -460, y: 10 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: `כניסה ${cap}`, edge: "side" }]
       ]))
     };
   }
 
-  function portsGatePins(addressWidth) {
+  function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -24, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
-      in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -60, direction: "out", width: 16, label: "יציאת הדאטה" },
+      in3: { x: -88, y: -90, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -60, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -160, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -90, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `outP${i + 1}`, { x: 92, y: -12 + i * 32, direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }
+        `outP${i + 1}`, { x: 92, y: -30 + i * 30, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
-      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `inP${i + 1}`, { x: -88, y: 72 + i * 32, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }
-      ]))
+      ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `inP${i + 1}`, { x: -88, y: -10 + i * 30, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+      ])) : {})
     };
   }
 
@@ -947,7 +940,7 @@
       routingMultibit: true,
       frameSize: { ...PORTS_FRAME_SIZE },
       pins: portsFramePins(spec.addressWidth),
-      bounds: { left: 460, right: 460, top: 460, bottom: 360 }
+      bounds: { left: 460, right: 460, top: 460, bottom: 300 }
     };
     WORKSPACE_COMPONENT_DEFS[`gate-${spec.id}`] = {
       label: spec.id,
@@ -960,8 +953,9 @@
       portOutputs: 4,
       portOutputBase: spec.portOutputBase,
       portInputs: 4,
+      portsCard: true,
       pins: portsGatePins(spec.addressWidth),
-      bounds: { left: 90, right: 110, top: 92, bottom: 200 }
+      bounds: { left: 90, right: 110, top: 176, bottom: 140 }
     };
   }
 
@@ -981,7 +975,7 @@
       inputExt5: { x: -460, y: -140, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
       inputInt5: { x: -340, y: -140, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }],
+        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: `כניסה ${cap}` }],
         [`inputInt${i + 1}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }]
       ])),
       outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
@@ -997,17 +991,19 @@
     taskId: "IPorts",
     gate: true,
     wideRoutingGate: "mux4way16",
+    portsCard: true,
     busWidth: 16,
     addressWidth: 2,
+    portInputs: 4,
     pins: {
-      in1: { x: -70, y: -60, direction: "in", width: 16, label: "כניסת פורט 00" },
-      in2: { x: -70, y: -20, direction: "in", width: 16, label: "כניסת פורט 01" },
-      in3: { x: -70, y: 20, direction: "in", width: 16, label: "כניסת פורט 10" },
-      in4: { x: -70, y: 60, direction: "in", width: 16, label: "כניסת פורט 11" },
-      in5: { x: 0, y: -74, direction: "in", width: 2, label: "כניסת הכתובת" },
-      out: { x: 74, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+      in5: { x: -88, y: -90, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -10, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -88, y: 20, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -88, y: 50, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -88, y: 80, direction: "in", width: 16, label: "כניסת פורט 11" },
+      out: { x: 92, y: -90, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
-    bounds: { left: 72, right: 92, top: 112, bottom: 84 }
+    bounds: { left: 90, right: 110, top: 140, bottom: 140 }
   };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
@@ -2220,7 +2216,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup, componentDefs: WORKSPACE_COMPONENT_DEFS });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
@@ -2449,7 +2445,8 @@
       const ax = cx + pin.x;
       const ay = cy + pin.y;
       const w = pin.width || 1;
-      if (pin.y < -150) {
+      const pinEdge = pin.edge || (pin.y < -150 ? "top" : pin.y > 150 ? "bottom" : "side");
+      if (pinEdge === "top") {
         // Control poking out the top, drawn down to its internal pin. A wide
         // control (2-bit MUX select) is a bus with a width label; a single-bit
         // control (e.g. ALU0's op-select) is a plain cable, no label.
@@ -2466,13 +2463,27 @@
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
-      } else if (pin.y > 150) {
+      } else if (pinEdge === "bottom") {
         // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
         const iy = cy + (internalPin ? internalPin.y : pin.y - 70);
         const cap = pin.caption || "";
-        stubs += `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
-          ${cap ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 24}" text-anchor="middle">${esc(cap)}</text>` : ""}`;
+        // An OUTPUT poking out the bottom (ALU4's ng/nz) names itself under its
+        // tip. An INPUT coming in from below (the 3.4 device buses) names itself
+        // INSIDE the frame instead — under the board's own bottom edge there is
+        // often nothing left to read.
+        const capText = cap
+          ? (pin.direction === "in"
+            ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${cy + (internalPin ? internalPin.y : pin.y) - 18}" text-anchor="middle">${esc(cap)}</text>`
+            : `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 30}" text-anchor="middle">${esc(cap)}</text>`)
+          : "";
+        stubs += (w > 1)
+          ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+             <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${iy + 3}" x2="${ax}" y2="${ay - 3}" />
+             <text class="splitter-width-label" x="${ax + 26}" y="${(iy + ay) / 2}" text-anchor="middle">${w}</text>
+             ${capText}`
+          : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+             ${capText}`;
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
@@ -5672,7 +5683,7 @@
         }
       },
       {
-        text: "וזה כל ההבדל: היציאה של כל רגיסטר הולכת גם ליציאה נוספת משלו. אלו הפורטים — הן מראות את התוכן של הרגיסטרים כל הזמן, בלי קשר לכתובת שנמצאת בכניסה, כך שמכשיר שמחובר לשם תמיד רואה מה כתוב ברגיסטר שלו.",
+        text: "והינה כל ההבדל: היציאה של כל רגיסטר הולכת גם ליציאה נוספת משלו. אלו הפורטים — הן מראות את התוכן של הרגיסטרים כל הזמן, בלי קשר לכתובת שנמצאת בכניסה, כך שמכשיר שמחובר לשם תמיד רואה מה כתוב ברגיסטר שלו.",
         highlight: {
           components: ["mem-1", "mem-2", "mem-3", "mem-4"],
           terminals: ["task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4", "task-card-1.outputInt5"],
@@ -5684,13 +5695,8 @@
     IPorts: [
       {
         text: "כאן אין בכלל רגיסטרים — אין מה לשמור, המכשירים שבחוץ מחזיקים את המידע בעצמם. כל מה שצריך זה לבחור אחת מארבע הכניסות, וזה בדיוק Mux4Way16: ארבע הכניסות נכנסות אליו, בס הכתובת הוא בס הבקרה שלו, ומה שיוצא ממנו הוא היציאה של הכרטיס.",
-        highlight: {
-          components: ["read-mux"],
-          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "task-card-1.inputInt5", "task-card-1.outputInt1"],
-          wires: [wireKey("task-card-1.inputInt1", "read-mux.in1"), wireKey("task-card-1.inputInt2", "read-mux.in2"),
-                  wireKey("task-card-1.inputInt3", "read-mux.in3"), wireKey("task-card-1.inputInt4", "read-mux.in4"),
-                  wireKey("addr-nail.out", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
-        }
+        // One step, and it IS the whole circuit — nothing to single out.
+        highlight: { components: [], terminals: [], wires: [] }
       }
     ],
     RAM4: [
@@ -12775,9 +12781,13 @@
   // build at 500 like the simple gates, so their walkthrough must line up there.
   function buildCardX(taskId) {
     if (isRamTask(taskId)) return RAM_BUILD_CARD_X;
+    if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_X;
     return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
   }
   function aluBuildCardY(taskId) {
+    // The 3.4 ports cards build at the same spot the RAM cards do; their
+    // walkthroughs and build hints must land there too, or the frame jumps.
+    if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_Y;
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
       // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
@@ -13650,7 +13660,7 @@
 
   function isRamTaskWorkspace() {
     const def = memoryCardDefById(state.workspace?.taskId);
-    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(def) && Boolean(def.clocked !== false);
+    return state.screen === "workspace" && Boolean(def) && def.clocked !== false;
   }
 
   // The addresses the check exercises: the first four and the last four of the
@@ -14622,6 +14632,9 @@
 
   function startMultibitTaskTest() {
     if (!isMultibitTaskWorkspace() || notTestActive()) return;
+    // A card with no combinational cases belongs to another harness; running it
+    // here would walk zero cases and report success on anything at all.
+    if (!multibitTaskCases(state.workspace?.taskId).length) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
     muxTableSnapshot = null;
@@ -14658,6 +14671,21 @@
       if (isRamTask(taskId)) {
         return setState({
           ...ramCompletionPatch(completedTasks, taskId),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // Ports cards (chapter 3.4): complete and return to the 3.4 worktable with
+      // its own note reopened. Checked before the memory/bus branches for the same
+      // reason the RAM cards are — they are multibit-shaped too.
+      if (isPortsTask(taskId)) {
+        const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+        return setState({
+          ...portsWorktableReturnTarget(),
+          portsNoteList: !allPortsDone,
+          infoDialog: allPortsDone ? "המשך יבוא..." : null,
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -14806,14 +14834,17 @@
     // the 2.4 chapter heading.
     const ram = isRamTask(taskId);
     const memory = isMemoryTask(taskId);
-    const chapter = ram ? chapterById("chapter-12")
+    // …and so are the 3.4 ports cards.
+    const ports = isPortsTask(taskId);
+    const chapter = ports ? chapterById("chapter-13")
+      : ram ? chapterById("chapter-12")
       : memory ? chapterById("chapter-11")
       : alu ? chapterById("chapter-9")
       : arith ? chapterById("chapter-8")
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit || arith || alu) {
+    if (routing || bus || multibit || arith || alu || ports) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -15940,7 +15971,7 @@
   // The ports frames sit where the RAM ones do: right of centre, leaving the left
   // strip free for the converters that dial a value and an address by hand.
   const PORTS_BUILD_CARD_X = 660;
-  const PORTS_BUILD_CARD_Y = 440;
+  const PORTS_BUILD_CARD_Y = 400;
 
   function openPortsTaskWorkspace(taskId) {
     const task = portsTaskDefById(taskId);
@@ -16120,6 +16151,18 @@
     if (isRamTask(taskId)) {
       return setState({
         ...ramCompletionPatch(completedTasks, taskId),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // Ports cards (3.4): back to the 3.4 worktable with its own note reopened.
+    if (isPortsTask(taskId)) {
+      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+      return setState({
+        ...portsWorktableReturnTarget(),
+        portsNoteList: !allPortsDone,
+        infoDialog: allPortsDone ? "המשך יבוא..." : null,
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -16510,6 +16553,8 @@
         const half = clonePlain(doc);
         half.wires = half.wires.filter((w) => !portWires.has(w.a) && !portWires.has(w.b));
         const ws = workspaceFromSolutionDoc(half);
+        ws.clocked = Boolean(state.workspace?.clocked);
+        ws.busClocked = Boolean(state.workspace?.busClocked);
         ws.workspaceCompleted = false;
         ws.taskId = "OPorts";
         ws.taskIntroSeen = true;

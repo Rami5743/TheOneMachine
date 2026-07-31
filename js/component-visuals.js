@@ -12,7 +12,8 @@
 // createComponentVisuals(deps) -> { componentSvgFilenameForType, componentMarkup,
 //                                   smokeMarkup, charredNandMarkup }
 
-function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup }) {
+function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup, componentDefs }) {
+  const WORKSPACE_DEFS_FOR_VISUALS = componentDefs || null;
   function componentSvgImage(filename, x, y, width, height) {
     const href = `assets/components/${filename}`;
     return `<image class="component-svg" href="${esc(href)}" x="${x}" y="${y}" width="${width}" height="${height}" preserveAspectRatio="xMidYMid meet"></image>`;
@@ -424,6 +425,34 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // as the build frame), the control stub on top and the data bus out on the
   // right. The address bar is drawn at ITS width, so the card shows at a glance
   // how many address lines it takes.
+  // The 3.4 ports cards: a RAM-shaped card grown tall enough to carry its extra
+  // device buses — the port OUTPUTS down the right, the port INPUTS down the
+  // left, each captioned so a bus is never just a number.
+  function portsGateMarkup(spec, label, options = {}) {
+    const edge = 58;
+    const bodyH = 240;
+    const half = bodyH / 2;
+    const outs = spec.portOutputs || 0;
+    const ins = spec.portInputs || 0;
+    const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    const cap = (x, y, text, anchor) =>
+      `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
+    const NAMES = ["00", "01", "10", "11"];
+    let s = "";
+    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -90, spec.addressWidth);
+    s += bar(-88, -edge, -60, spec.width);
+    s += bar(edge, 92, -90, spec.width);
+    if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
+    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, -30 + i * 30, spec.width);
+    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, -10 + i * 30, spec.width);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const font = labelFontSize(label, edge * 2, 17);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 70}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    for (let i = 0; i < outs; i += 1) s += cap(edge - 6, -30 + i * 30 + 4, NAMES[i], "end");
+    for (let i = 0; i < ins; i += 1) s += cap(-edge + 6, -10 + i * 30 + 4, NAMES[i], "start");
+    return `<g class="ram-gate" aria-hidden="true">${s}</g>`;
+  }
+
   function ramGateMarkup(spec, label, options = {}) {
     const edge = 52;
     const bodyH = 86;
@@ -540,6 +569,16 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
+      // on the Mux4Way16 engine branch, but it is not a MUX on the board).
+      const portsDef = WORKSPACE_DEFS_FOR_VISUALS ? WORKSPACE_DEFS_FOR_VISUALS[type] : null;
+      if (portsDef && portsDef.portsCard) {
+        return portsGateMarkup({
+          width: portsDef.busWidth, addressWidth: portsDef.addressWidth,
+          portOutputs: portsDef.portOutputs || 0, portInputs: portsDef.portInputs || 0,
+          clockedCard: portsDef.ramGate !== undefined ? true : false
+        }, portsDef.label, options);
+      }
       // The finished wide-routing cards (2.4).
       const wide = typeof wideRoutingGateSpec === "function" ? wideRoutingGateSpec(type) : null;
       if (wide) return wideRoutingGateMarkup(wide, options);
