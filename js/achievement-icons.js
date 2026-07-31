@@ -70,7 +70,12 @@ const MEDAL_STAGE_EMBLEMS = {
      <path d="M34 51 L37 52.4 L34 53.8 Z" fill="${ink}"/>`,
   "3.3": (ink) => // RAM: a memory grid (2×2 cells)
     `<rect x="34" y="46" width="12" height="12" rx="1" fill="none" stroke="${ink}" stroke-width="1.8"/>
-     <path d="M40 46 V58 M34 52 H46" stroke="${ink}" stroke-width="1.4"/>`
+     <path d="M40 46 V58 M34 52 H46" stroke="${ink}" stroke-width="1.4"/>`,
+  "3.4": (ink) => // ports: an I/O chip with pins on both sides (in ↔ out)
+    `<rect x="37" y="46" width="6" height="12" rx="1" fill="none" stroke="${ink}" stroke-width="1.8"/>
+     <g stroke="${ink}" stroke-width="1.8" stroke-linecap="round">
+       <line x1="33" y1="49" x2="37" y2="49"/><line x1="33" y1="55" x2="37" y2="55"/>
+       <line x1="43" y1="49" x2="47" y2="49"/><line x1="43" y1="55" x2="47" y2="55"/></g>`
 };
 
 // A laurel wreath framing the medal from below — marks the "all cards" (יסודי /
@@ -187,6 +192,20 @@ function renderAchievementIcon(id) {
            <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
            <rect x="34" y="22" width="12" height="12" rx="1" fill="#fffdf3" stroke="#341f60" stroke-width="1.4"/>
            <path d="M40 22 V34 M34 28 H46" stroke="#4a2a86" stroke-width="1.2"/>` });
+    case "ports-engineer": // amber cup, an I/O chip with pins on both sides (chapter 3.4)
+      return achievementTrophy(id, { top: "#f0c67a", bot: "#8a5a12", rim: "#5c3c0a", base: "#8a5a12", handle: "#b07d22", emblem:
+        `<rect x="36" y="20" width="8" height="18" rx="1.6" fill="#fffdf3" stroke="#5c3c0a" stroke-width="1.6"/>
+           <g stroke="#8a5a12" stroke-width="1.8" stroke-linecap="round">
+             <line x1="30" y1="24" x2="36" y2="24"/><line x1="30" y1="29" x2="36" y2="29"/><line x1="30" y1="34" x2="36" y2="34"/>
+             <line x1="44" y1="24" x2="50" y2="24"/><line x1="44" y1="29" x2="50" y2="29"/><line x1="44" y1="34" x2="50" y2="34"/></g>` });
+    case "precise-ports-engineer": // amber cup, I/O chip on a bullseye (3.4 first-try clean)
+      return achievementTrophy(id, { top: "#f0c67a", bot: "#7a4e0e", rim: "#f3d27a", base: "#7a4e0e", handle: "#b07d22", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="37" y="22" width="6" height="12" rx="1.2" fill="#fffdf3" stroke="#5c3c0a" stroke-width="1.4"/>
+           <g stroke="#7a4e0e" stroke-width="1.4" stroke-linecap="round">
+             <line x1="33" y1="25" x2="37" y2="25"/><line x1="33" y1="31" x2="37" y2="31"/>
+             <line x1="43" y1="25" x2="47" y2="25"/><line x1="43" y1="31" x2="47" y2="31"/></g>` });
     case "equipment-destroyer": // burnt cup, cracked, with a flame
       return achievementTrophy(id, { top: "#c8492a", bot: "#5f1808", rim: "#3a1206", base: "#4a1608", handle: "#7a2410",
         emblem: `<path d="M40 19 C44 23 44 28 41 31 C43 31 45.5 29 45.5 26 C49 30 48 37 40 38 C32 37 32 30 35.5 27 C35.5 29.5 38 30.5 39 29.5 C36.5 26 38 22 40 19 Z" fill="#ffb038"/><path d="M40 24 C42 27 41.5 30 40 32 C38.5 30 38 27 40 24 Z" fill="#ff6a1e"/>`,
