@@ -11265,9 +11265,7 @@
 
     // The very last slide of 3.3: "המשך" does not leave the panel — it opens the
     // closing message (what replaced the punched tape, and where RAM sits beside
-    // long-term storage), and dismissing that says "המשך יבוא...". This is the
-    // end of the story so far, so the player stays put rather than being dropped
-    // on the chapters screen.
+    // long-term storage), and dismissing THAT is what walks on into 3.4.
     if (state.screen === "story"
         && String(currentPanel()?.image || "").includes("panel145_chapter_3_3_ram_volatile")) {
       return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY }, infoDialog: null });
@@ -18792,9 +18790,18 @@
       if (state.aluIntroDialog?.returnToExplanations) {
         return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
       }
-      // The 3.3 closing message is the end of the story so far — the game stops
-      // there, so say so instead of dropping the player back into a note.
+      // The 3.3 closing message hands over to chapter 3.4 (ports).
       if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY) {
+        const ports = chapterById("chapter-13");
+        if (ports) {
+          return setState({
+            ...transientUiClearPatch(),
+            ...storyTarget(ports, 0),
+            started: true,
+            replayNonce: state.replayNonce + 1,
+            workspace: state.workspace
+          }, true);
+        }
         return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
       }
       // A RAM message belongs to the 3.3 note, not the 2.6 one.

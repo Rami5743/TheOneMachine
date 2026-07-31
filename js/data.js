@@ -90,6 +90,12 @@ const CHAPTERS = [
     "partId": "part-3",
     "title": "3.3 RAM",
     "sceneId": "ram"
+  },
+  {
+    "id": "chapter-13",
+    "partId": "part-3",
+    "title": "3.4 פורטים",
+    "sceneId": "ports"
   }
 ];
 
@@ -1120,6 +1126,64 @@ const SCENES = {
         "image": "assets/panels/panel145_chapter_3_3_ram_volatile.svg",
         "year": "1943",
         "read": "ל-RAM יש עוד יתרון, אפשר לכתוב לתוכו בקלות ולא רק לקרוא ממנו. החיסרון המרכזי של ה-RAM הוא שהוא יקר וקשה ליצור, לכן אנחנו נאלצים להסתפק ב-1000 רגיסטרים. ל-RAM יש עוד חיסרון - אם מנתקים אותו מהחשמל הכל הופך ל-0 כי אין מתח בשום מקום. לכן אומרים שזה זיכרון נדיף - המידע מתנדף ממנו. זה לא מאוד מפריע לנו כי גם כך ה-RAM שלנו קטן מדי כדי לשמור בו דברים חשובים לאורך זמן. אנחנו נשתמש בו רק בשביל שהמחשב יוכל לעשות חישובים."
+      }
+    ]
+  },
+  "ports": {
+    "id": "ports",
+    "title": "3.4 פורטים",
+    "panels": [
+      {
+        "comment": "Chapter 3.4 Ports: von Neumann back in the doorway (panel131 art). Why the machine has to be able to talk to devices at all.",
+        "image": "assets/panels/panel146_chapter_3_4_ports_intro.svg",
+        "year": "1943",
+        "read": "יש עוד עניין שאנחנו צריכים לטפל בו. אנחנו רוצים להיות מסוגלים לחבר מכשירים למחשב שלנו כדי לקבל ממנו מידע ולהעביר לו מידע. אחרת, לא באמת נוכל להשתמש בו."
+      },
+      {
+        "comment": "The route chosen: do it through the memory.",
+        "image": "assets/panels/panel147_chapter_3_4_ports_memory.svg",
+        "year": "1943",
+        "read": "יש כל מיני דרכים לעשות זאת, אנחנו נשתמש בזיכרון שלו למטרה הזאת."
+      },
+      {
+        "comment": "Eight more registers, each with its own bus straight out to a device — no address needed.",
+        "image": "assets/panels/panel148_chapter_3_4_ports_eight_registers.svg",
+        "year": "1943",
+        "read": "נוסיף לזיכרון עוד 8 רגיסטרים שאליהם נוכל לחבר מכשירים מחוץ למחשב שיוכלו לכתוב ולקרוא מידע מהם. הם יהיו דומים לכרטיסי זיכרון רגילים, רק שבנוסף לכניסות והיציאות הרגילות יהיו להם עוד כניסות ויציאות שמאפשרות גישה ישירה לרגיסטרים, בלי כתובות - לכל רגיסטר בס משלו."
+      },
+      {
+        "comment": "To the computer they are ordinary memory addresses; to the world they are a way in.",
+        "image": "assets/panels/panel149_chapter_3_4_ports_part_of_memory.svg",
+        "year": "1943",
+        "read": "מבחינת המחשב שלנו הם יהיו חלק בלתי נפרד מהזיכרון, והוא יוכל לפנות אליהם עם כתובות כמו שהוא פונה לרגיסטרים האחרים, אבל הם יאפשרו לו לתקשר עם העולם החיצוני, בגלל שגם מכשירים אחרים יכולים לקרוא ולכתוב לשם."
+      },
+      {
+        "comment": "The one difference the computer can feel: some of those registers are read-only, so two writers never collide.",
+        "image": "assets/panels/panel150_chapter_3_4_ports_read_only.svg",
+        "year": "1943",
+        "read": "למעשה גם מבחינת המחשב שלנו יהיה הבדל קטן. לחלק מהרגיסטרים האלה לא נוכל לכתוב, אלא רק לקרוא, זאת מכיוון שאנחנו לא רוצים לאפשר לשני גורמים לכתוב בו זמנית לאותו רגיסטר. זה ייצור בלגן. אבל זה לא אמור להדאיג אותך, אם המחשב ינסה לכתוב לכתובת שאסור לו, אז פשוט לא יקרה כלום."
+      },
+      {
+        "comment": "Wordless beat: von Neumann lays the 3.4 tasks note on the worktable (3.3's handover art).",
+        "image": "assets/panels/panel151_chapter_3_4_ports_handover.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Chapter 3.4 ports worktable: the same click-zones as panel141, but the tasks note opens the ports list (OPorts / IPorts / Ports / RAM). The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback.",
+        "image": "assets/panels/panel152_chapter_3_4_ports_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "ports-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
       }
     ]
   }
