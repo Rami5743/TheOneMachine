@@ -1,0 +1,334 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Ports",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Ports",
+    "x": 660,
+    "y": 440,
+    "frameW": 800,
+    "frameH": 560,
+    "pins": [
+      {
+        "id": "inputExt3",
+        "x": -460,
+        "y": -70,
+        "w": 3,
+        "dir": "in",
+        "label": "כניסת הכתובת"
+      },
+      {
+        "id": "inputInt3",
+        "x": -340,
+        "y": -70,
+        "w": 3,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt1",
+        "x": -460,
+        "y": 110,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הדאטה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -340,
+        "y": 110,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt2",
+        "x": -217,
+        "y": -350,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt2",
+        "x": -217,
+        "y": -210,
+        "w": 1,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "outputInt1",
+        "x": 340,
+        "y": -140,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt1",
+        "x": 460,
+        "y": -140,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאה"
+      },
+      {
+        "id": "outputInt2",
+        "x": 340,
+        "y": -50,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt2",
+        "x": 460,
+        "y": -50,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט 00"
+      },
+      {
+        "id": "outputInt3",
+        "x": 340,
+        "y": 10,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt3",
+        "x": 460,
+        "y": 10,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט 01"
+      },
+      {
+        "id": "outputInt4",
+        "x": 340,
+        "y": 70,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt4",
+        "x": 460,
+        "y": 70,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט 10"
+      },
+      {
+        "id": "outputInt5",
+        "x": 340,
+        "y": 130,
+        "w": 16,
+        "dir": "in",
+        "label": ""
+      },
+      {
+        "id": "outputExt5",
+        "x": 460,
+        "y": 130,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט 11"
+      },
+      {
+        "id": "inputInt4",
+        "x": -240,
+        "y": 200,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt4",
+        "x": -240,
+        "y": 280,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט 00"
+      },
+      {
+        "id": "inputInt5",
+        "x": -80,
+        "y": 200,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt5",
+        "x": -80,
+        "y": 280,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט 01"
+      },
+      {
+        "id": "inputInt6",
+        "x": 80,
+        "y": 200,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt6",
+        "x": 80,
+        "y": 280,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט 10"
+      },
+      {
+        "id": "inputInt7",
+        "x": 240,
+        "y": 200,
+        "w": 16,
+        "dir": "out",
+        "label": ""
+      },
+      {
+        "id": "inputExt7",
+        "x": 240,
+        "y": 280,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט 11"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 90
+    }
+  ],
+  "components": [
+    {
+      "id": "addr-split",
+      "type": "splitter",
+      "x": 330,
+      "y": 330,
+      "outputs": 2,
+      "legWidths": [
+        2,
+        1
+      ],
+      "mirrored": false
+    },
+    {
+      "id": "write-sel",
+      "type": "gate-DMux",
+      "x": 470,
+      "y": 200
+    },
+    {
+      "id": "op",
+      "type": "gate-OPorts",
+      "x": 650,
+      "y": 330
+    },
+    {
+      "id": "ip",
+      "type": "gate-IPorts",
+      "x": 650,
+      "y": 620
+    },
+    {
+      "id": "read-sel",
+      "type": "gate-MUX16",
+      "x": 880,
+      "y": 460
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "addr-split.single"
+    },
+    {
+      "a": "addr-split.leg0",
+      "b": "op.in3"
+    },
+    {
+      "a": "addr-split.leg0",
+      "b": "ip.in5"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "write-sel.in1"
+    },
+    {
+      "a": "addr-split.leg1",
+      "b": "write-sel.in2"
+    },
+    {
+      "a": "write-sel.out1",
+      "b": "op.in2"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "op.in1"
+    },
+    {
+      "a": "op.out",
+      "b": "read-sel.in1"
+    },
+    {
+      "a": "ip.out",
+      "b": "read-sel.in2"
+    },
+    {
+      "a": "addr-split.leg1",
+      "b": "read-sel.in3"
+    },
+    {
+      "a": "read-sel.out",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "op.outP1",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "op.outP2",
+      "b": "task-card-1.outputInt3"
+    },
+    {
+      "a": "op.outP3",
+      "b": "task-card-1.outputInt4"
+    },
+    {
+      "a": "op.outP4",
+      "b": "task-card-1.outputInt5"
+    },
+    {
+      "a": "task-card-1.inputInt4",
+      "b": "ip.in1"
+    },
+    {
+      "a": "task-card-1.inputInt5",
+      "b": "ip.in2"
+    },
+    {
+      "a": "task-card-1.inputInt6",
+      "b": "ip.in3"
+    },
+    {
+      "a": "task-card-1.inputInt7",
+      "b": "ip.in4"
+    }
+  ],
+  "check": {
+    "note": "כרטיס מתוזמן: כותבים לארבע הכתובות הראשונות וקוראים בחזרה, קוראים את ארבע הכתובות האחרונות מהמכשירים, ומוודאים שכתיבה אליהן לא עושה כלום."
+  }
+}

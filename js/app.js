@@ -886,7 +886,86 @@
     bounds: { left: 90, right: 110, top: 92, bottom: 116 }
   };
 
-  // IPorts holds nothing at all: four width-16 buses come IN from the devices
+  // Ports and RAM share OPorts' shape, with two additions: four device buses
+  // coming IN along the BOTTOM edge (read-only addresses, the IPorts half), and a
+  // wider address that reaches both halves. RAM is the same card again with the
+  // whole RAM1024 in front of the ports in its address space.
+  const PORT_IN_XS = [-240, -80, 80, 240];
+
+  function portsFramePins(addressWidth) {
+    return {
+      inputExt3: { x: -460, y: -70, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt3: { x: -340, y: -70, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית" },
+      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+      inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 340, y: -140, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: -140, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      // The four port OUTPUTS, down the right edge under the data output.
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }]
+      ])),
+      // The four device buses coming IN, out of the bottom edge — that is where
+      // the world plugs in.
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`inputInt${i + 4}`, { x: PORT_IN_XS[i], y: 200, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }],
+        [`inputExt${i + 4}`, { x: PORT_IN_XS[i], y: 280, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }]
+      ]))
+    };
+  }
+
+  function portsGatePins(addressWidth) {
+    return {
+      in3: { x: -88, y: -24, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -60, direction: "out", width: 16, label: "יציאת הדאטה" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `outP${i + 1}`, { x: 92, y: -12 + i * 32, direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }
+      ])),
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `inP${i + 1}`, { x: -88, y: 72 + i * 32, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }
+      ]))
+    };
+  }
+
+  for (const spec of [
+    // slots = how many addresses can be WRITTEN. The four read-only device
+    // addresses follow them; portOutputBase is the first written cell mirrored on
+    // a port bus (RAM's ports live at the top of its address space).
+    { id: "Ports", addressWidth: 3, slots: 4, portOutputBase: 0 },
+    { id: "RAM", addressWidth: 11, slots: 1028, portOutputBase: 1024 }
+  ]) {
+    WORKSPACE_COMPONENT_DEFS[`taskCard-${spec.id}`] = {
+      label: `מסגרת ${spec.id}`,
+      fixed: true,
+      taskId: spec.id,
+      busWidth: 16,
+      busTask: true,
+      routingMultibit: true,
+      frameSize: { ...PORTS_FRAME_SIZE },
+      pins: portsFramePins(spec.addressWidth),
+      bounds: { left: 460, right: 460, top: 460, bottom: 360 }
+    };
+    WORKSPACE_COMPONENT_DEFS[`gate-${spec.id}`] = {
+      label: spec.id,
+      taskId: spec.id,
+      gate: true,
+      ramGate: true,
+      busWidth: 16,
+      addressWidth: spec.addressWidth,
+      slots: spec.slots,
+      portOutputs: 4,
+      portOutputBase: spec.portOutputBase,
+      portInputs: 4,
+      pins: portsGatePins(spec.addressWidth),
+      bounds: { left: 90, right: 110, top: 92, bottom: 200 }
+    };
+  }
+
+  // IPorts holds nothing at all:  // IPorts holds nothing at all: four width-16 buses come IN from the devices
   // outside, and the address picks which one shows up at the single output. Pure
   // routing — the very Mux4Way16 the learner already built, wearing a memory
   // card's clothes (which is exactly hint 3).
@@ -5503,6 +5582,86 @@
       }
     ],
     // ---- Chapter 3.4 ports -----------------------------------------------
+    Ports: [
+      {
+        text: "הכתובת היא 3 ביטים, אבל לכל אחד משני החצאים יש כתובת של 2 ביטים בלבד. לכן מפצלים אותה: שני הביטים האחרונים הם הכתובת בתוך הכרטיס, והביט הראשון (העליון) הוא זה שקובע באיזה מהשניים מדובר.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single"),
+                  wireKey("addr-split.leg0", "op.in3"), wireKey("addr-split.leg0", "ip.in5")]
+        }
+      },
+      {
+        text: "הכתיבה: ביט הבקרה נכנס ל-DMux שהביט הראשון של הכתובת הוא הבקרה שלו. רק היציאה הראשונה שלו מחוברת — זו שפעילה כשהביט הוא 0 — ולכן הבקרה מגיעה ל-OPorts בלבד. אם המחשב ינסה לכתוב לכתובת של קלט, הבקרה פשוט לא מגיעה לשום מקום ולא קורה כלום.",
+        highlight: {
+          components: ["write-sel", "op"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg1", "write-sel.in2"),
+                  wireKey("write-sel.out1", "op.in2"), wireKey("task-card-1.inputInt1", "op.in1")]
+        }
+      },
+      {
+        text: "הקריאה היא בדיוק ההפך: MUX16 בוחר בין היציאה של ה-OPorts לבין היציאה של ה-IPorts, לפי אותו ביט ראשון. מה שיוצא ממנו הוא היציאה של הכרטיס.",
+        highlight: {
+          components: ["read-sel", "ip"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [wireKey("op.out", "read-sel.in1"), wireKey("ip.out", "read-sel.in2"),
+                  wireKey("addr-split.leg1", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "ולבסוף שמונת הבסים של העולם החיצוני עוברים דרך הכרטיס כמו שהם: ארבע היציאות של ה-OPorts יוצאות החוצה, וארבע הכניסות מבחוץ נכנסות ל-IPorts.",
+        highlight: {
+          components: ["op", "ip"],
+          terminals: ["task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4", "task-card-1.outputInt5",
+                      "task-card-1.inputInt4", "task-card-1.inputInt5", "task-card-1.inputInt6", "task-card-1.inputInt7"],
+          wires: [wireKey("op.outP1", "task-card-1.outputInt2"), wireKey("op.outP2", "task-card-1.outputInt3"),
+                  wireKey("op.outP3", "task-card-1.outputInt4"), wireKey("op.outP4", "task-card-1.outputInt5"),
+                  wireKey("task-card-1.inputInt4", "ip.in1"), wireKey("task-card-1.inputInt5", "ip.in2"),
+                  wireKey("task-card-1.inputInt6", "ip.in3"), wireKey("task-card-1.inputInt7", "ip.in4")]
+        }
+      }
+    ],
+    RAM: [
+      {
+        text: "אותו רעיון שוב, בגדול. הכתובת היא 11 ביטים ומפצלים אותה לשלושה חלקים: שלושת הביטים האחרונים (הכתובת בתוך ה-Ports), שבעת הביטים שמעליהם, והביט הראשון — שקובע אם פונים לזיכרון הרגיל או לפורטים.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single")]
+        }
+      },
+      {
+        text: "ה-RAM1024 צריך כתובת של 10 ביטים, ולנו יש אותם בשני חלקים — אז מאחדים אותם בחזרה במאחד. ה-Ports לעומת זאת מקבל רק את שלושת הביטים האחרונים.",
+        highlight: {
+          components: ["addr-merge", "big", "ports"],
+          terminals: [],
+          wires: [wireKey("addr-split.leg0", "addr-merge.leg0"), wireKey("addr-split.leg1", "addr-merge.leg1"),
+                  wireKey("addr-merge.single", "big.in3"), wireKey("addr-split.leg0", "ports.in3")]
+        }
+      },
+      {
+        text: "הכתיבה: DMux מעביר את ביט הבקרה רק לכרטיס שאליו פונים — לזיכרון הרגיל כשהביט הראשון 0, ול-Ports כשהוא 1. כניסת הדאטה מגיעה לשניהם במקביל; רק מי שקיבל את הבקרה באמת ישמור.",
+        highlight: {
+          components: ["write-sel"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg2", "write-sel.in2"),
+                  wireKey("write-sel.out1", "big.in2"), wireKey("write-sel.out2", "ports.in2"),
+                  wireKey("task-card-1.inputInt1", "big.in1"), wireKey("task-card-1.inputInt1", "ports.in1")]
+        }
+      },
+      {
+        text: "והקריאה, שוב, היא MUX16 שבוחר בין השניים לפי אותו ביט ראשון. שמונת הבסים של הפורטים ממשיכים החוצה כמו שהם — הם כבר עברו דרך ה-Ports.",
+        highlight: {
+          components: ["read-sel", "ports"],
+          terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3",
+                      "task-card-1.outputInt4", "task-card-1.outputInt5"],
+          wires: [wireKey("big.out", "read-sel.in1"), wireKey("ports.out", "read-sel.in2"),
+                  wireKey("addr-split.leg2", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
     OPorts: [
       {
         text: "בפנים זה בדיוק ה-RAM4 שכבר בנית: כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים, DMux4Way מעביר את הבקרה רק לרגיסטר שהכתובת מצביעה עליו, ו-Mux4Way16 בוחר איזו יציאה יוצאת מהכרטיס.",
@@ -12524,7 +12683,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -13498,9 +13657,17 @@
   // bank (all four for RAM4), so both the low address bits and the high ones have
   // to be routed correctly. Distinct, in a fixed order.
   function ramTestAddresses(taskId) {
-    const slots = memoryCardDefById(taskId)?.slots || 4;
+    const def = memoryCardDefById(taskId);
+    const slots = Number.isInteger(def?.writableSlots) ? def.writableSlots : (def?.slots || 4);
+    const portInputs = def?.portInputs || 0;
+    // The first four and the last four of the WRITTEN bank (so both the low
+    // address bits and the high ones have to be routed), plus every read-only
+    // device address — writing one of those must do nothing and reading it must
+    // show the device.
     const picks = [0, 1, 2, 3, slots - 4, slots - 3, slots - 2, slots - 1];
-    return [...new Set(picks.filter((a) => a >= 0 && a < slots))];
+    const written = [...new Set(picks.filter((a) => a >= 0 && a < slots))];
+    const readOnly = Array.from({ length: portInputs }, (_, i) => slots + i);
+    return [...written, ...readOnly];
   }
 
   // Values with bits spread over the whole 16-bit word, so a mis-routed data bit
@@ -13510,10 +13677,11 @@
   // The learner's build + temporary drivers: a dec→bin source on the data bus,
   // another on the address bus, a bin→dec reader on the output bus, and (when
   // writing) a source on the control.
-  function ramHarnessWorkspace(base, data, address, control, portOutputs = 0) {
+  function ramHarnessWorkspace(base, data, address, control, portOutputs = 0, deviceValues = null) {
     const ws = normalizeWorkspace(clonePlain(base));
     const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl",
-      ...Array.from({ length: 8 }, (_, i) => `ram-port${i}`)];
+      ...Array.from({ length: 8 }, (_, i) => `ram-port${i}`),
+      ...Array.from({ length: 8 }, (_, i) => `ram-dev${i}`)];
     ws.components = ws.components.filter((c) => !temp.includes(c.id));
     ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
     ws.components.push({ id: "ram-drive", type: "converter-out", value: data, x: 90, y: 400 });
@@ -13530,12 +13698,24 @@
       ws.components.push({ id: `ram-port${i}`, type: "converter-in", x: 1560, y: 760 + i * 90 });
       ws.wires.push({ a: `task-card-1.outputExt${i + 2}`, b: `ram-port${i}.in` });
     }
+    // …and the device buses coming IN are driven, so the read-only addresses can
+    // be read back.
+    (deviceValues || []).forEach((value, i) => {
+      ws.components.push({ id: `ram-dev${i}`, type: "converter-out", value, x: 300 + i * 150, y: 1180 });
+      ws.wires.push({ a: `ram-dev${i}.out`, b: `task-card-1.inputExt${i + 4}` });
+    });
     return ws;
   }
 
   function runRamTest(base, taskId) {
     const addresses = ramTestAddresses(taskId);
-    const portOutputs = memoryCardDefById(taskId)?.portOutputs || 0;
+    const def = memoryCardDefById(taskId);
+    const portOutputs = def?.portOutputs || 0;
+    const portInputs = def?.portInputs || 0;
+    // The WRITTEN range: everything past it is a read-only device address.
+    const slots = Number.isInteger(def?.writableSlots) ? def.writableSlots : (def?.slots || 4);
+    // Frozen values on the four device buses, distinct from everything written.
+    const deviceValues = portInputs ? [5461, 26214, 52428, 13107].slice(0, portInputs) : null;
     // Write a distinct value to every address, then read them all back with the
     // control low — so a build that writes to more than one register at a time,
     // or reads the wrong one, is caught.
@@ -13559,17 +13739,21 @@
     const SETTLE = 8;
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
-      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c, portOutputs));
+      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c, portOutputs, deviceValues));
       for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
-      if (step.c) stored.set(step.a, step.d);
-      const expected = stored.has(step.a) ? stored.get(step.a) : 0;
+      // Writing a read-only address does nothing; reading one shows the device.
+      if (step.c && step.a < slots) stored.set(step.a, step.d);
+      const device = portInputs && step.a >= slots && step.a < slots + portInputs
+        ? deviceValues[step.a - slots] : null;
+      const expected = device !== null ? device : (stored.has(step.a) ? stored.get(step.a) : 0);
       const readings = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters;
       const info = readings.get("ram-read");
       const got = info ? Number(info.value) : -1;
       if (got !== expected) return { ok: false, index: i, expected, got };
       // Every port bus must always show its own register, whatever the address is.
+      const portBase = def?.portOutputBase || 0;
       for (let k = 0; k < portOutputs; k += 1) {
-        const want = stored.has(k) ? stored.get(k) : 0;
+        const want = stored.has(portBase + k) ? stored.get(portBase + k) : 0;
         const seen = readings.get(`ram-port${k}`);
         const mine = seen ? Number(seen.value) : -1;
         if (mine !== want) return { ok: false, index: i, expected: want, got: mine, port: k };
@@ -17927,7 +18111,13 @@
       width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots,
       // OPorts (and the cards built from it) also mirror their first N cells on
       // extra buses out — see the engine's ramGate branch.
-      portOutputs: Number.isInteger(def.portOutputs) ? def.portOutputs : 0
+      portOutputs: Number.isInteger(def.portOutputs) ? def.portOutputs : 0,
+      // The first written cell mirrored on a port bus (RAM's ports sit at the top
+      // of its address space, not at 0).
+      portOutputBase: Number.isInteger(def.portOutputBase) ? def.portOutputBase : 0,
+      // Read-only addresses straight after the written ones: they show whatever a
+      // device is putting on the matching inP bus.
+      portInputs: Number.isInteger(def.portInputs) ? def.portInputs : 0
     };
   }
 
