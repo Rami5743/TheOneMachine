@@ -11526,8 +11526,16 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
-    if (state.screen === "rankings") return renderRankingsScreen(app);
-    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
+    // Preserve the rankings list's scroll position across a re-render (a
+    // background tom:leaderboard refresh must not snap the learner back to the top
+    // while they are scrolling).
+    if (state.screen === "rankings" || state.screen === "cardRecords") {
+      const prev = app.querySelector(".rankings-screen");
+      const y = prev ? prev.scrollTop : 0;
+      if (state.screen === "rankings") renderRankingsScreen(app); else renderCardRecordsScreen(app);
+      if (y) { const next = app.querySelector(".rankings-screen"); if (next) next.scrollTop = y; }
+      return;
+    }
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -12947,6 +12955,10 @@
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
     getTab: () => (state.rankingsTab === "speed" || state.rankingsTab === "design" ? state.rankingsTab : "efficiency"),
+    // The 2.3/2.4 intermediate cards (DMux4Way, Mux4Way16) live in MULTIBIT_TASKS
+    // inside this IIFE, so rankings.js can't see them as a global — hand them in.
+    // (Lazy: only read at render time, well after the const is initialised.)
+    getMultibitCards: () => (typeof MULTIBIT_TASKS !== "undefined" ? MULTIBIT_TASKS : []),
     // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
     // "serial" = speed). Filled from the cloud once the backend exists.
     leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
@@ -13311,35 +13323,6 @@
   function computeBuildSerial(build, serialBuilds) {
     const memo = new Map();
     return timingScore(computeTimingProfile(build, (sub) => cardTimingWithBuilds(sub, serialBuilds || state.cardSerialBuilds || {}, memo)));
-  }
-
-  // Fill in builds for cards the player already completed before their builds
-  // were stored (a completed card can no longer be re-checked). We seed the
-  // reference solution as that card's build; a later live rebuild replaces it
-  // with the player's own (leaner) circuit.
-  function backfillCompletedCardCounts() {
-    const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
-    const builds = { ...(state.cardBuilds || {}) };
-    let changed = false;
-    for (const card of cards) {
-      if (card.id === "Nand" || builds[card.id]) continue;
-      if (!taskCompleted(card.id)) continue;
-      let ws = null;
-      try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
-      if (!ws || !Array.isArray(ws.components)) continue;
-      builds[card.id] = { components: clonePlain(ws.components), wires: clonePlain(ws.wires || []) };
-      changed = true;
-    }
-    if (!changed) return;
-    // Seed the serial track from the same reference builds (only where empty).
-    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
-    for (const id of Object.keys(builds)) if (!serialBuilds[id]) serialBuilds[id] = builds[id];
-    setState({
-      cardBuilds: builds,
-      cardSerialBuilds: serialBuilds,
-      cardNandCounts: recomputeAllCardCounts(builds),
-      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
-    }, false);
   }
 
   // A user card has no spec check of its own, so we treat it as if it were opened
@@ -19492,9 +19475,11 @@
     if (action === "about") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
-      backfillCompletedCardCounts(); // seed reference builds for already-completed cards
-      // Recompute both metrics from the current builds + user cards so any
-      // improvement to a sub-card (or an edited user card) is reflected.
+      // A card is ranked ONLY by the player's own recorded build — never the
+      // standard reference solution. A card the player never solved has no build
+      // and therefore no score. Recompute both metrics from the stored builds +
+      // user cards so any improvement to a sub-card (or an edited user card) is
+      // reflected upward.
       setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
       // Entering from the achievements menu always lands on the efficiency tab.
