@@ -127,7 +127,7 @@
       "id": "addr-nail",
       "type": "nail",
       "x": 760,
-      "y": 300
+      "y": 290
     }
   ],
   "wires": [

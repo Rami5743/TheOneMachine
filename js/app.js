@@ -15971,7 +15971,7 @@
   // The ports frames sit where the RAM ones do: right of centre, leaving the left
   // strip free for the converters that dial a value and an address by hand.
   const PORTS_BUILD_CARD_X = 660;
-  const PORTS_BUILD_CARD_Y = 400;
+  const PORTS_BUILD_CARD_Y = 440;
 
   function openPortsTaskWorkspace(taskId) {
     const task = portsTaskDefById(taskId);
@@ -16553,6 +16553,18 @@
         const half = clonePlain(doc);
         half.wires = half.wires.filter((w) => !portWires.has(w.a) && !portWires.has(w.b));
         const ws = workspaceFromSolutionDoc(half);
+        // Whatever the canonical build position is, the learner's frame stays
+        // exactly where it is: shift the laid-down circuit onto it.
+        const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+        const laid = ws.components.find((c) => c.id === "task-card-1");
+        if (here && laid) {
+          const dx = here.x - laid.x;
+          const dy = here.y - laid.y;
+          if (dx || dy) ws.components.forEach((c) => {
+            if (Number.isFinite(c.x)) c.x += dx;
+            if (Number.isFinite(c.y)) c.y += dy;
+          });
+        }
         ws.clocked = Boolean(state.workspace?.clocked);
         ws.busClocked = Boolean(state.workspace?.busClocked);
         ws.workspaceCompleted = false;
