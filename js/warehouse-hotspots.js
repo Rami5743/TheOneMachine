@@ -90,6 +90,9 @@
     // The 3.3 RAM worktable — the same room again, its own kind so the free-build
     // table returns here and its note is the RAM one.
     if (stem === "panel141_chapter_3_3_ram_worktable") return "ram-worktable";
+    // The 3.4 ports worktable — same room again, its own kind so the free-build
+    // table comes back here and the note it opens is the ports one.
+    if (stem === "panel152_chapter_3_4_ports_worktable") return "ports-worktable";
     return null;
   }
 
@@ -265,7 +268,8 @@
     // the 5th slide of the registers scene).
     "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 },
     // The 3.3 RAM worktable is the last slide of its own scene.
-    "ram-worktable": { chapterId: "chapter-12", sceneId: "ram", panelIndex: 3 }
+    "ram-worktable": { chapterId: "chapter-12", sceneId: "ram", panelIndex: 3 },
+    "ports-worktable": { chapterId: "chapter-13", sceneId: "ports", panelIndex: 6 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
@@ -312,7 +316,7 @@
     // could have built by now — including the "create new card" tool, enabled
     // here regardless of whether it was unlocked in this playthrough. cardIntroDone
     // is set too so enabling it does not re-arm the one-time scripted card intro.
-    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable") {
+    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable") {
       state.createCardUnlocked = true;
       state.cardIntroDone = true;
       state.cardIntroPending = false;
@@ -378,7 +382,7 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable");
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we

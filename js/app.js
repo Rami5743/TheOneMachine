@@ -163,6 +163,9 @@
       // The RAM cards (3.3) — same story: their behaviour is sequential and
       // address-driven (ramGateSpec in the engine), never taskOutput.
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === taskId) : null)
+      // The 3.4 ports cards — same story again: addressed and (bar IPorts)
+      // sequential, so their behaviour never comes from taskOutput either.
+      || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === taskId) : null)
       || null;
   }
 
@@ -825,6 +828,185 @@
     };
   }
 
+  // ---- Chapter 3.4 ports cards ----------------------------------------------
+  // OPorts is a RAM4 that ALSO shows each of its four registers to the outside
+  // world: same three inputs and same data output, plus four width-16 buses that
+  // mirror the registers at addresses 00..11. They come out of the RIGHT edge,
+  // under the data output, each captioned with its address.
+  const PORTS_FRAME_SIZE = { w: 800, h: 560 };
+  const PORT_OUT_CAPTIONS = ["00", "01", "10", "11"];
+  // Five outputs down the right edge, all inside the +-150 the shell allows: the
+  // card's own data output high on its own at -150, then a clear 120 gap and the
+  // four port buses 60 apart — so the ordinary output never reads as one of them.
+  const portFrameOutY = (i) => 40 + i * 60;
+
+  WORKSPACE_COMPONENT_DEFS["taskCard-OPorts"] = {
+    label: "מסגרת OPorts",
+    fixed: true,
+    taskId: "OPorts",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { ...PORTS_FRAME_SIZE },
+    pins: {
+      inputExt3: { x: -460, y: -250, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt3: { x: -340, y: -250, direction: "out", width: 2, label: "כניסת הכתובת פנימית", edge: "side" },
+      inputExt1: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה", edge: "side" },
+      inputInt1: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הדאטה פנימית", edge: "side" },
+      inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+      inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית`, edge: "side" }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap, edge: "side" }]
+      ]))
+    },
+    bounds: { left: 460, right: 460, top: 460, bottom: 280 }
+  };
+
+  // The finished OPorts card: a RAM4 with four extra buses out.
+  WORKSPACE_COMPONENT_DEFS["gate-OPorts"] = {
+    label: "OPorts",
+    taskId: "OPorts",
+    gate: true,
+    ramGate: true,
+    portOutputs: 4,
+    busWidth: 16,
+    addressWidth: 2,
+    slots: 4,
+    portsCard: true,
+    pins: portsGatePins(2, false),
+    bounds: { left: 90, right: 110, top: 300, bottom: 260 }
+  };
+
+  // Ports and RAM share OPorts' shape, with two additions: four device buses
+  // coming IN along the BOTTOM edge (read-only addresses, the IPorts half), and a
+  // wider address that reaches both halves. RAM is the same card again with the
+  // whole RAM1024 in front of the ports in its address space.
+  const PORT_IN_XS = [-240, -80, 80, 240];
+
+  function portsFramePins(addressWidth) {
+    return {
+      inputExt3: { x: -460, y: -250, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt3: { x: -340, y: -250, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית", edge: "side" },
+      inputExt1: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה", edge: "side" },
+      inputInt1: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הדאטה פנימית", edge: "side" },
+      inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+      inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" },
+      // The four port OUTPUTS, low down the right edge — as far from the card's
+      // own output as the frame allows.
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית`, edge: "side" }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap, edge: "side" }]
+      ])),
+      // The four device buses coming IN, down the LEFT edge under the data bus.
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`inputInt${i + 4}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }],
+        [`inputExt${i + 4}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap, edge: "side" }]
+      ]))
+    };
+  }
+
+  function portsGatePins(addressWidth, withInputs = true) {
+    return {
+      in3: { x: -88, y: -170, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -130, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -260, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `outP${i + 1}`, { x: 92, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
+      ])),
+      ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
+        `inP${i + 1}`, { x: -88, y: 8 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+      ])) : {})
+    };
+  }
+
+  for (const spec of [
+    // slots = how many addresses can be WRITTEN. The four read-only device
+    // addresses follow them; portOutputBase is the first written cell mirrored on
+    // a port bus (RAM's ports live at the top of its address space).
+    { id: "Ports", addressWidth: 3, slots: 4, portOutputBase: 0 },
+    { id: "RAM", addressWidth: 11, slots: 1028, portOutputBase: 1024 }
+  ]) {
+    WORKSPACE_COMPONENT_DEFS[`taskCard-${spec.id}`] = {
+      label: `מסגרת ${spec.id}`,
+      fixed: true,
+      taskId: spec.id,
+      busWidth: 16,
+      busTask: true,
+      routingMultibit: true,
+      frameSize: { ...PORTS_FRAME_SIZE },
+      pins: portsFramePins(spec.addressWidth),
+      bounds: { left: 460, right: 460, top: 460, bottom: 300 }
+    };
+    WORKSPACE_COMPONENT_DEFS[`gate-${spec.id}`] = {
+      label: spec.id,
+      taskId: spec.id,
+      gate: true,
+      ramGate: true,
+      busWidth: 16,
+      addressWidth: spec.addressWidth,
+      slots: spec.slots,
+      portOutputs: 4,
+      portOutputBase: spec.portOutputBase,
+      portInputs: 4,
+      portsCard: true,
+      pins: portsGatePins(spec.addressWidth),
+      bounds: { left: 90, right: 110, top: 300, bottom: 260 }
+    };
+  }
+
+  // IPorts holds nothing at all:  // IPorts holds nothing at all: four width-16 buses come IN from the devices
+  // outside, and the address picks which one shows up at the single output. Pure
+  // routing — the very Mux4Way16 the learner already built, wearing a memory
+  // card's clothes (which is exactly hint 3).
+  WORKSPACE_COMPONENT_DEFS["taskCard-IPorts"] = {
+    label: "מסגרת IPorts",
+    fixed: true,
+    taskId: "IPorts",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { ...PORTS_FRAME_SIZE },
+    pins: {
+      inputExt5: { x: -460, y: -250, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt5: { x: -340, y: -250, direction: "out", width: 2, label: "כניסת הכתובת פנימית", edge: "side" },
+      ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
+        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap, edge: "side" }],
+        [`inputInt${i + 1}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }]
+      ])),
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" }
+    },
+    bounds: { left: 460, right: 460, top: 300, bottom: 300 }
+  };
+
+  // The finished IPorts card. in1..in4 are the device buses and in5 the 2-bit
+  // address — the pin names the engine's mux4way16 branch already speaks.
+  WORKSPACE_COMPONENT_DEFS["gate-IPorts"] = {
+    label: "IPorts",
+    taskId: "IPorts",
+    gate: true,
+    wideRoutingGate: "mux4way16",
+    portsCard: true,
+    busWidth: 16,
+    addressWidth: 2,
+    portInputs: 4,
+    pins: {
+      in5: { x: -88, y: -130, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in1: { x: -88, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -88, y: 68, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -88, y: 128, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -88, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
+      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" }
+    },
+    bounds: { left: 90, right: 110, top: 250, bottom: 260 }
+  };
+
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
   // control bus on TOP, and a width-16 output on the right. Two-stage operation
   // selected by the control (first bit zeroes the input, second bit NOTs it).
@@ -1243,6 +1425,8 @@
     // The 3.1 memory worktable note (Register4 → Register).
     memoryNoteList: false,
     ramNoteList: false,
+    // The 3.4 ports worktable note (OPorts / IPorts / Ports / RAM).
+    portsNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -1363,8 +1547,9 @@
 
   // Player settings. Language is fixed to Hebrew for now (the only option).
   // gender/age are stored empty by default; the *effective* behaviour treats an
-  // empty gender as "בן" and an empty/invalid age as 13. Settings do not affect
-  // anything yet — that is handled later.
+  // empty gender as "בן" and an empty/invalid age as 12 (effectiveAge). That
+  // default is BEHAVIOUR only — the settings screen shows the age box empty
+  // until the player types an age, never a pre-filled or greyed 12.
   function normalizedSettings(raw) {
     const s = raw && typeof raw === "object" ? raw : {};
     return {
@@ -1614,6 +1799,8 @@
     if (has(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : null)) return "alu";
     if (has(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : null)) return "memory";
     if (has(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : null)) return "memory";
+    // The 3.4 ports cards ARE memory as far as the computer is concerned.
+    if (has(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : null)) return "memory";
     return "accessories";
   }
 
@@ -1686,6 +1873,22 @@
   // Re-register from the loaded state (covers defaults) so the toolbar and board
   // recognise every saved card from the first render.
   registerAllSavedCards();
+  // Heal the derived ranking counts on load: recompute them from the STORED
+  // builds (which always keep the real topology). This repairs values that an
+  // older cached build computed wrong — e.g. a flip-flop that used to count as 0
+  // Nands — without waiting for the rankings screen, and before any leaderboard
+  // push sends a stale number to the cloud.
+  try {
+    if (state.cardBuilds && Object.keys(state.cardBuilds).length) {
+      const healed = recomputeAllCardCounts(state.cardBuilds);
+      const healedSerial = (state.cardSerialBuilds && Object.keys(state.cardSerialBuilds).length) ? recomputeAllCardSerial(state.cardSerialBuilds) : state.cardSerialCounts;
+      if (JSON.stringify(healed) !== JSON.stringify(state.cardNandCounts) || JSON.stringify(healedSerial) !== JSON.stringify(state.cardSerialCounts)) {
+        state.cardNandCounts = healed;
+        state.cardSerialCounts = healedSerial;
+        saveState();
+      }
+    }
+  } catch (e) { /* non-fatal */ }
   let dragState = null;
   let dialogDragState = null;
   // Where the learner has dragged each kind of movable dialog, keyed by its card
@@ -1859,6 +2062,7 @@
       || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
       || Boolean(state.taskDialog) || Boolean(state.dialog)
       || Boolean(state.memoryNoteList) || Boolean(state.ramNoteList) || Boolean(state.aluNoteList)
+      || Boolean(state.portsNoteList)
       || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
       || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
       || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
@@ -2032,7 +2236,7 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
-  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup });
+  const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup, componentDefs: WORKSPACE_COMPONENT_DEFS });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);
   const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
@@ -2084,7 +2288,9 @@
     toolCategoryOf, toolGroupsAvailable, toolGroupCollapsed,
     // The palette names a tool from its task def; the wide-routing cards (2.4)
     // live in MULTIBIT_TASKS, so the lookup falls through to there as well.
-    busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+    busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), // A 3.4 ports card counts as a memory card here too — IPorts holds nothing,
+    // but it belongs with its siblings in the palette, not among the gates.
+    isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type)) || WORKSPACE_COMPONENT_DEFS[type]?.portsCard), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -2199,6 +2405,7 @@
       || (typeof ALU_TASKS !== "undefined" ? ALU_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === id) : null)
+      || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === id) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -2260,7 +2467,8 @@
       const ax = cx + pin.x;
       const ay = cy + pin.y;
       const w = pin.width || 1;
-      if (pin.y < -150) {
+      const pinEdge = pin.edge || (pin.y < -150 ? "top" : pin.y > 150 ? "bottom" : "side");
+      if (pinEdge === "top") {
         // Control poking out the top, drawn down to its internal pin. A wide
         // control (2-bit MUX select) is a bus with a width label; a single-bit
         // control (e.g. ALU0's op-select) is a plain cable, no label.
@@ -2277,13 +2485,27 @@
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
-      } else if (pin.y > 150) {
+      } else if (pinEdge === "bottom") {
         // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
         const iy = cy + (internalPin ? internalPin.y : pin.y - 70);
         const cap = pin.caption || "";
-        stubs += `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
-          ${cap ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 24}" text-anchor="middle">${esc(cap)}</text>` : ""}`;
+        // An OUTPUT poking out the bottom (ALU4's ng/nz) names itself under its
+        // tip. An INPUT coming in from below (the 3.4 device buses) names itself
+        // INSIDE the frame instead — under the board's own bottom edge there is
+        // often nothing left to read.
+        const capText = cap
+          ? (pin.direction === "in"
+            ? `<text class="workspace-task-shell-pin-label" x="${ax}" y="${cy + (internalPin ? internalPin.y : pin.y) - 18}" text-anchor="middle">${esc(cap)}</text>`
+            : `<text class="workspace-task-shell-pin-label" x="${ax}" y="${ay + 30}" text-anchor="middle">${esc(cap)}</text>`)
+          : "";
+        stubs += (w > 1)
+          ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+             <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${iy + 3}" x2="${ax}" y2="${ay - 3}" />
+             <text class="splitter-width-label" x="${ax + 26}" y="${(iy + ay) / 2}" text-anchor="middle">${w}</text>
+             ${capText}`
+          : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${iy}" x2="${ax}" y2="${ay}" />
+             ${capText}`;
       } else {
         const ix = cx + (internalPin ? internalPin.x : (pin.x < 0 ? pin.x + 80 : pin.x - 80));
         const labelX = pin.x < 0 ? ax + 20 : ax - 20;
@@ -2385,7 +2607,8 @@
       arithNoteList: false,
       aluNoteList: false,
       memoryNoteList: false,
-    ramNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -2477,13 +2700,18 @@
     return OLD_TERMINAL_REFS[ref] || ref;
   }
 
+  // `measured` says whether the returned size is the REAL board or the fallback
+  // guess (the board is not on screen yet, or has no layout). Callers that move
+  // things around must not act on a guess — see clampComponentPosition.
   function workspaceBoardSize() {
     const board = app.querySelector("[data-workspace-board]");
-    if (!board) return { width: 1000, height: 600 };
+    if (!board) return { width: 1000, height: 600, measured: false };
     const rect = board.getBoundingClientRect();
+    if (!(rect.width > 1 && rect.height > 1)) return { width: 1000, height: 600, measured: false };
     return {
       width: Math.max(1, rect.width),
-      height: Math.max(1, rect.height)
+      height: Math.max(1, rect.height),
+      measured: true
     };
   }
 
@@ -2535,7 +2763,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -2580,7 +2808,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3039,12 +3267,29 @@
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-11", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-12", ids: () => (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-12", ids: () => (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The 3.4 ports cards — so a finished OPorts/IPorts is there to build the
+    // next one out of, exactly like every chapter before it.
+    { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
+  // The order every card appears in the GAME, flattened once from the groups.
+  // The palette is sorted by it, so a card always sits in the same place no
+  // matter which order the learner happened to build things in.
+  function canonicalToolOrder() {
+    const order = new Map();
+    for (const group of GATE_TOOL_GROUPS) {
+      for (const id of group.ids()) if (!order.has(id)) order.set(id, order.size);
+    }
+    return order;
+  }
+
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
+    const order = canonicalToolOrder();
+    const byGame = (ids) => [...new Set(ids)]
+      .sort((a, b) => (order.has(a) ? order.get(a) : 1e6) - (order.has(b) ? order.get(b) : 1e6));
     const here = chapterIndexById(state.chapterId);
-    if (!Number.isInteger(here) || here < 0) return completedTaskIds();
+    if (!Number.isInteger(here) || here < 0) return byGame(completedTaskIds());
     const out = [];
     for (const group of GATE_TOOL_GROUPS) {
       const gi = chapterIndexById(group.chapter);
@@ -3053,7 +3298,7 @@
       else if (gi === here) out.push(...group.ids().filter(taskCompleted)); // this chapter: only what is built
       // later chapters: nothing
     }
-    return out;
+    return byGame(out);
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -3141,6 +3386,8 @@
     if (memDef && Array.isArray(memDef.hints)) return memDef.hints;
     const ramDef = (typeof RAM_TASKS !== "undefined") ? RAM_TASKS.find((t) => t.id === taskId) : null;
     if (ramDef && Array.isArray(ramDef.hints)) return ramDef.hints;
+    const portsDef = (typeof PORTS_TASKS !== "undefined") ? PORTS_TASKS.find((t) => t.id === taskId) : null;
+    if (portsDef && Array.isArray(portsDef.hints)) return portsDef.hints;
     return [];
   }
 
@@ -4646,7 +4893,7 @@
             <label class="settings-field">
               <span class="settings-label">גיל</span>
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
-                     data-setting="age" value="${esc(settings.age)}" placeholder="12" />
+                     data-setting="age" value="${esc(settings.age)}" />
             </label>
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הלומדה?</span>
@@ -4906,6 +5153,7 @@
       ${renderAluNoteList()}
       ${renderMemoryNoteList()}
       ${renderRamNoteList()}
+      ${renderPortsNoteList()}
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -5386,6 +5634,127 @@
             wireKey("task-card-1.inputInt2", "reg-4.in2")
           ]
         }
+      }
+    ],
+    // ---- Chapter 3.4 ports -----------------------------------------------
+    Ports: [
+      {
+        text: "הכתובת היא 3 ביטים, אבל לכל אחד משני החצאים יש כתובת של 2 ביטים בלבד. לכן מפצלים אותה: שני הביטים האחרונים הם הכתובת בתוך הכרטיס, והביט הראשון (העליון) הוא זה שקובע באיזה מהשניים מדובר.",
+        highlight: {
+          components: ["addr-split"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single"),
+                  wireKey("addr-split.leg0", "op.in3"), wireKey("addr-split.leg0", "ip.in5")]
+        }
+      },
+      {
+        text: "הכתיבה: ביט הבקרה נכנס ל-DMux שהביט הראשון של הכתובת הוא הבקרה שלו. רק היציאה הראשונה שלו מחוברת — זו שפעילה כשהביט הוא 0 — ולכן הבקרה מגיעה ל-OPorts בלבד. אם המחשב ינסה לכתוב לכתובת של קלט, הבקרה פשוט לא מגיעה לשום מקום ולא קורה כלום.",
+        highlight: {
+          components: ["write-sel", "op"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg1", "write-sel.in2"),
+                  wireKey("write-sel.out1", "op.in2"), wireKey("task-card-1.inputInt1", "op.in1")]
+        }
+      },
+      {
+        text: "הקריאה היא בדיוק ההפך: MUX16 בוחר בין היציאה של ה-OPorts לבין היציאה של ה-IPorts, לפי אותו ביט ראשון. מה שיוצא ממנו הוא היציאה של הכרטיס.",
+        highlight: {
+          components: ["read-sel", "ip"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [wireKey("op.out", "read-sel.in1"), wireKey("ip.out", "read-sel.in2"),
+                  wireKey("addr-split.leg1", "sel-nail.in"), wireKey("sel-nail.out", "read-sel.in3"),
+                  wireKey("read-sel.out", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "ולבסוף שמונת הבסים של העולם החיצוני עוברים דרך הכרטיס כמו שהם: ארבע היציאות של ה-OPorts יוצאות החוצה, וארבע הכניסות מבחוץ נכנסות ל-IPorts.",
+        highlight: {
+          components: ["op", "ip"],
+          terminals: ["task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4", "task-card-1.outputInt5",
+                      "task-card-1.inputInt4", "task-card-1.inputInt5", "task-card-1.inputInt6", "task-card-1.inputInt7"],
+          wires: [wireKey("op.outP1", "task-card-1.outputInt2"), wireKey("op.outP2", "task-card-1.outputInt3"),
+                  wireKey("op.outP3", "task-card-1.outputInt4"), wireKey("op.outP4", "task-card-1.outputInt5"),
+                  wireKey("task-card-1.inputInt4", "ip.in1"), wireKey("task-card-1.inputInt5", "ip.in2"),
+                  wireKey("task-card-1.inputInt6", "ip.in3"), wireKey("task-card-1.inputInt7", "ip.in4")]
+        }
+      }
+    ],
+    RAM: [
+      {
+        text: "אותו רעיון שוב, בגדול. הכתובת היא 11 ביטים, וכל מה שצריך כדי להחליט לאן פונים זה הביט הראשון (העליון) שלה. לכן מפצלים אותה לשניים: עשרת הביטים האחרונים, שהם בדיוק הכתובת של ה-RAM1024, והביט הראשון לחוד.",
+        highlight: {
+          components: ["addr-split", "big"],
+          terminals: ["task-card-1.inputInt3"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-split.single"),
+                  wireKey("addr-split.leg0", "big.in3")]
+        }
+      },
+      {
+        text: "ה-Ports צריך כתובת של 3 ביטים בלבד, אז מפצלים שוב: מאותם עשרה ביטים לוקחים את שלושת האחרונים ושולחים אותם אליו. שים לב שאותו בס עצמו הולך גם ל-RAM1024 במלואו — אף אחד מהם לא מפריע לשני, כי בכל רגע רק אחד מהם באמת פעיל.",
+        highlight: {
+          components: ["low-split", "ports"],
+          terminals: [],
+          wires: [wireKey("addr-split.leg0", "low-split.single"),
+                  wireKey("low-split.leg0", "ports.in3")]
+        }
+      },
+      {
+        text: "הכתיבה: DMux מעביר את ביט הבקרה רק לכרטיס שאליו פונים — לזיכרון הרגיל כשהביט הראשון 0, ול-Ports כשהוא 1. כניסת הדאטה מגיעה לשניהם במקביל; רק מי שקיבל את הבקרה באמת ישמור.",
+        highlight: {
+          components: ["write-sel"],
+          terminals: ["task-card-1.inputInt2", "task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt2", "write-sel.in1"), wireKey("addr-split.leg1", "write-sel.in2"),
+                  wireKey("write-sel.out1", "big.in2"), wireKey("write-sel.out2", "ports.in2"),
+                  wireKey("task-card-1.inputInt1", "big.in1"), wireKey("task-card-1.inputInt1", "ports.in1")]
+        }
+      },
+      {
+        text: "והקריאה, שוב, היא MUX16 שבוחר בין השניים לפי אותו ביט ראשון. שמונת הבסים של הפורטים ממשיכים החוצה כמו שהם — הם כבר עברו דרך ה-Ports.",
+        highlight: {
+          components: ["read-sel", "ports"],
+          terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3",
+                      "task-card-1.outputInt4", "task-card-1.outputInt5"],
+          wires: [wireKey("big.out", "read-sel.in1"), wireKey("ports.out", "read-sel.in2"),
+                  wireKey("addr-split.leg1", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
+        }
+      }
+    ],
+    OPorts: [
+      {
+        text: "בפנים זה בדיוק ה-RAM4 שכבר בנית: כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים, DMux4Way מעביר את הבקרה רק לרגיסטר שהכתובת מצביעה עליו, ו-Mux4Way16 בוחר איזו יציאה יוצאת מהכרטיס.",
+        // Like every other first step, the highlight covers exactly what the text
+        // names — here that is the whole RAM4 half: the data into the four
+        // registers, the control through the DMux4Way, the address to both, and
+        // the Mux4Way16 picking the output.
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4", "write-dmux", "read-mux", "addr-nail-3"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.outputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"),
+                  wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1"),
+                  wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("task-card-1.inputInt3", "write-dmux.in2"),
+                  wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"),
+                  wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2"),
+                  wireKey("task-card-1.inputInt3", "addr-nail-3.in"), wireKey("addr-nail-3.out", "read-mux.in5"),
+                  wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"),
+                  wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"),
+                  wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "והינה כל ההבדל: היציאה של כל רגיסטר הולכת גם ליציאה נוספת משלו. אלו הפורטים — הן מראות את התוכן של הרגיסטרים כל הזמן, בלי קשר לכתובת שנמצאת בכניסה, כך שמכשיר שמחובר לשם תמיד רואה מה כתוב ברגיסטר שלו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4", "task-card-1.outputInt5"],
+          wires: [wireKey("mem-1.out", "task-card-1.outputInt2"), wireKey("mem-2.out", "task-card-1.outputInt3"),
+                  wireKey("mem-3.out", "task-card-1.outputInt4"), wireKey("mem-4.out", "task-card-1.outputInt5")]
+        }
+      }
+    ],
+    IPorts: [
+      {
+        text: "כאן אין בכלל רגיסטרים — אין מה לשמור, המכשירים שבחוץ מחזיקים את המידע בעצמם. כל מה שצריך זה לבחור אחת מארבע הכניסות, וזה בדיוק Mux4Way16: ארבע הכניסות נכנסות אליו, בס הכתובת הוא בס הבקרה שלו, ומה שיוצא ממנו הוא היציאה של הכרטיס.",
+        // One step, and it IS the whole circuit — nothing to single out.
+        highlight: { components: [], terminals: [], wires: [] }
       }
     ],
     RAM4: [
@@ -7153,19 +7522,45 @@
     return String(url || "").split("?")[0].split("#")[0];
   }
 
-  // The heavy raster behind a slide: the matching .jpg for an .svg wrapper, or
-  // the file itself when it is already a raster.
+  // The heavy raster a slide REALLY embeds, learned by reading the wrapper once
+  // (svg url -> raster url). Guessing it from the wrapper's own name used to be
+  // good enough, but most of part 3 reuses an earlier slide's art — so the guess
+  // named a file that does not exist. Two things went wrong then: the neighbour's
+  // real raster was never warmed, and the 404 still burned one of the browser's
+  // few connections, queueing behind the multi-megabyte fetches. Over a real
+  // network that is exactly the long hourglass on a slide whose art is already
+  // on screen.
+  const panelRasterUrls = new Map();
+
+  function resolveAgainst(baseUrl, href) {
+    const clean = String(href || "").trim();
+    if (!clean || /^(?:https?:)?\/\//.test(clean) || clean.startsWith("/")) return clean;
+    const dir = String(baseUrl).replace(/[^/]*$/, "");
+    return dir + clean;
+  }
+
+  // Read the wrapper and remember which raster it embeds. The fetch is the same
+  // request the <object> will make, so it warms the wrapper too.
+  function learnPanelRaster(svgUrl) {
+    if (panelRasterUrls.has(svgUrl) || typeof fetch !== "function") return;
+    panelRasterUrls.set(svgUrl, null); // in flight — never ask twice
+    fetch(svgUrl).then((r) => (r.ok ? r.text() : "")).then((text) => {
+      const match = /href="([^"]+\.(?:jpg|jpeg|png|webp))"/i.exec(text || "");
+      const raster = match ? resolveAgainst(svgUrl, match[1]) : "";
+      panelRasterUrls.set(svgUrl, raster);
+      if (raster) preloadAssetUrl(raster);
+    }).catch(() => { panelRasterUrls.set(svgUrl, ""); });
+  }
+
+  // The heavy raster behind a slide: whatever the wrapper turned out to embed, or
+  // the file itself when it is already a raster. Unknown (not read yet) gives ""
+  // — the caller then relies on the <object>'s own load event, which already
+  // waits for the embedded raster.
   function panelHeavyUrl(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return "";
     if (!clean.endsWith(".svg")) return clean;
-    // Comic panels embed a .jpg raster; the hint slides (assets/hints/…) embed a
-    // .webp. Derive the right one so the preload/readiness signal points at the
-    // file the SVG actually loads (a wrong guess 404s and can stall the slide).
-    // A preference variant SVG (_girl/_young/_older) reuses the base raster, so
-    // strip that suffix first.
-    const ext = clean.includes("/hints/") ? ".webp" : ".jpg";
-    return clean.replace(/(_(?:girl|young|older|baby))?\.svg$/, ext);
+    return panelRasterUrls.get(clean) || "";
   }
 
   function preloadAssetUrl(url) {
@@ -7178,12 +7573,15 @@
     return image;
   }
 
-  // Warm a slide fully: the small SVG wrapper and its heavy PNG raster.
+  // Warm a slide fully: the small SVG wrapper and the raster it actually embeds.
   function preloadPanelImage(image) {
     const clean = cleanAssetUrl(image);
     if (!clean) return;
-    if (clean.endsWith(".svg")) preloadAssetUrl(clean);
-    preloadAssetUrl(panelHeavyUrl(clean));
+    if (!clean.endsWith(".svg")) { preloadAssetUrl(clean); return; }
+    preloadAssetUrl(clean);
+    const known = panelHeavyUrl(clean);
+    if (known) preloadAssetUrl(known);
+    else learnPanelRaster(clean);
   }
 
   const preloadedHintSlides = new Set();
@@ -7280,15 +7678,15 @@
       // Use the raster only as a readiness signal, and only if it was ALREADY
       // being preloaded (as a neighbour). Creating a fresh request here would
       // race the <object>'s own fetch of the same file (harmless but noisy). If
-      // it was not preloaded, the <object> load event already waits for the
+      // the wrapper's raster is not known yet, panelHeavyUrl gives "" and there
+      // is nothing to look up — the <object>'s load event already waits for the
       // embedded raster, so objReady alone covers it.
       //
       // `complete` is true once the preloaded image has finished — whether it
-      // loaded OR failed. A failure is expected when panelHeavyUrl guesses the
-      // wrong extension (e.g. an SVG that embeds a .webp, not a .jpg): we must
-      // still treat it as "done" and rely on objReady, otherwise the spinner
-      // would hang waiting for a raster that will never load.
-      const raster = preloadedPanelImages.get(cleanAssetUrl(panelHeavyUrl(image)));
+      // loaded OR failed — so a raster that will never arrive can never hold the
+      // spinner up.
+      const heavy = cleanAssetUrl(panelHeavyUrl(image));
+      const raster = heavy ? preloadedPanelImages.get(heavy) : null;
       if (!raster || raster.complete) {
         rasterReady = true;
       } else {
@@ -11265,9 +11663,7 @@
 
     // The very last slide of 3.3: "המשך" does not leave the panel — it opens the
     // closing message (what replaced the punched tape, and where RAM sits beside
-    // long-term storage), and dismissing that says "המשך יבוא...". This is the
-    // end of the story so far, so the player stays put rather than being dropped
-    // on the chapters screen.
+    // long-term storage), and dismissing THAT is what walks on into 3.4.
     if (state.screen === "story"
         && String(currentPanel()?.image || "").includes("panel145_chapter_3_3_ram_volatile")) {
       return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY }, infoDialog: null });
@@ -12351,7 +12747,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -12381,7 +12777,13 @@
         label: (p.label != null ? p.label : prev.label) || "",
         // Short caption drawn on the frame stub (e.g. "ng"/"nz" for ALU4's
         // bottom outputs); carried through from the JSON pin.
-        caption: (p.caption != null ? p.caption : prev.caption) || ""
+        caption: (p.caption != null ? p.caption : prev.caption) || "",
+        // WHICH edge of the frame the pin belongs to. The JSON carries geometry,
+        // not intent, so the def's own answer survives — otherwise a side pin
+        // more than 150 from the centre line (the 3.4 frames have six down each
+        // side) would be re-read as poking out of the bottom, and drawn pointing
+        // down with its caption on top of its neighbour's.
+        ...(prev.edge ? { edge: prev.edge } : {})
       };
     }
     def.__jsonApplied = true;
@@ -12443,9 +12845,13 @@
   // build at 500 like the simple gates, so their walkthrough must line up there.
   function buildCardX(taskId) {
     if (isRamTask(taskId)) return RAM_BUILD_CARD_X;
+    if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_X;
     return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
   }
   function aluBuildCardY(taskId) {
+    // The 3.4 ports cards build at the same spot the RAM cards do; their
+    // walkthroughs and build hints must land there too, or the frame jumps.
+    if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_Y;
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
       // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
@@ -13163,6 +13569,63 @@
     }, 850);
   }
 
+  // --- Chapter 3.4 IPorts check ----------------------------------------------
+  // No registers, so no clocks: four device buses come in, the 2-bit address
+  // picks one, and it must show up at the output. The harness drives all five
+  // inputs at once and reads the single output.
+  function isIPortsTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "IPorts";
+  }
+
+  // Frozen cases: four distinct values on the ports, each address selected in
+  // turn, then a second set of values so a build that latched the first one fails.
+  const IPORTS_TEST_CASES = [
+    { ports: [1, 2, 4, 256], address: 0 },
+    { ports: [1, 2, 4, 256], address: 1 },
+    { ports: [1, 2, 4, 256], address: 2 },
+    { ports: [1, 2, 4, 256], address: 3 },
+    { ports: [43690, 21845, 65535, 4660], address: 3 },
+    { ports: [43690, 21845, 65535, 4660], address: 0 },
+    { ports: [39321, 0, 32768, 1], address: 1 },
+    { ports: [39321, 0, 32768, 1], address: 2 }
+  ];
+
+  function iPortsHarnessWorkspace(base, ports, address) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const temp = ["ip-addr", "ip-read", "ip-0", "ip-1", "ip-2", "ip-3"];
+    ws.components = ws.components.filter((c) => !temp.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "ip-addr", type: "converter-out", value: address, x: 90, y: 200 });
+    ws.wires.push({ a: "ip-addr.out", b: "task-card-1.inputExt5" });
+    ports.forEach((value, i) => {
+      ws.components.push({ id: `ip-${i}`, type: "converter-out", value, x: 90, y: 380 + i * 130 });
+      ws.wires.push({ a: `ip-${i}.out`, b: `task-card-1.inputExt${i + 1}` });
+    });
+    ws.components.push({ id: "ip-read", type: "converter-in", x: 1560, y: 440 });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "ip-read.in" });
+    return ws;
+  }
+
+  function runIPortsTest(base) {
+    for (let i = 0; i < IPORTS_TEST_CASES.length; i += 1) {
+      const testCase = IPORTS_TEST_CASES[i];
+      const flat = flattenWorkspaceForEval(iPortsHarnessWorkspace(base, testCase.ports, testCase.address));
+      const info = evaluateWorkspaceBits(flat).converters.get("ip-read");
+      const got = info ? Number(info.value) : -1;
+      const expected = testCase.ports[testCase.address];
+      if (got !== expected) return { ok: false, index: i, expected, got };
+    }
+    return { ok: true };
+  }
+
+  function startIPortsTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runIPortsTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "IPorts");
+  }
+
   function startNotTaskTest() {
     if (!isNotTaskWorkspace() || notTestActive()) return;
     // Memory cards (Register4/Register) are CLOCKED — checked by their memory
@@ -13171,6 +13634,8 @@
     // RAM cards (3.3) are clocked AND addressed — their own harness. Tested before
     // the memory/multibit branches (they are multibit-shaped too).
     if (isRamTaskWorkspace()) return startRamTaskTest();
+    // IPorts is the one 3.4 card with no registers at all — pure routing.
+    if (isIPortsTaskWorkspace()) return startIPortsTaskTest();
     if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
@@ -13251,17 +13716,32 @@
   // check never assumes an order — it only requires that reading an address gives
   // back what was last written THERE, and that writing one address leaves the
   // others alone.
+  // A RAM card or one of the 3.4 ports cards that holds registers — both are
+  // checked the same way, by their memory behaviour over a run of clocks.
+  function memoryCardDefById(id) {
+    return ramTaskDefById(id) || (typeof portsTaskDefById === "function" ? portsTaskDefById(id) : null);
+  }
+
   function isRamTaskWorkspace() {
-    return state.screen === "workspace" && Boolean(state.workspace?.busClocked) && Boolean(ramTaskDefById(state.workspace?.taskId));
+    const def = memoryCardDefById(state.workspace?.taskId);
+    return state.screen === "workspace" && Boolean(def) && def.clocked !== false;
   }
 
   // The addresses the check exercises: the first four and the last four of the
   // bank (all four for RAM4), so both the low address bits and the high ones have
   // to be routed correctly. Distinct, in a fixed order.
   function ramTestAddresses(taskId) {
-    const slots = ramTaskDefById(taskId)?.slots || 4;
+    const def = memoryCardDefById(taskId);
+    const slots = Number.isInteger(def?.writableSlots) ? def.writableSlots : (def?.slots || 4);
+    const portInputs = def?.portInputs || 0;
+    // The first four and the last four of the WRITTEN bank (so both the low
+    // address bits and the high ones have to be routed), plus every read-only
+    // device address — writing one of those must do nothing and reading it must
+    // show the device.
     const picks = [0, 1, 2, 3, slots - 4, slots - 3, slots - 2, slots - 1];
-    return [...new Set(picks.filter((a) => a >= 0 && a < slots))];
+    const written = [...new Set(picks.filter((a) => a >= 0 && a < slots))];
+    const readOnly = Array.from({ length: portInputs }, (_, i) => slots + i);
+    return [...written, ...readOnly];
   }
 
   // Values with bits spread over the whole 16-bit word, so a mis-routed data bit
@@ -13271,9 +13751,11 @@
   // The learner's build + temporary drivers: a dec→bin source on the data bus,
   // another on the address bus, a bin→dec reader on the output bus, and (when
   // writing) a source on the control.
-  function ramHarnessWorkspace(base, data, address, control) {
+  function ramHarnessWorkspace(base, data, address, control, portOutputs = 0, deviceValues = null) {
     const ws = normalizeWorkspace(clonePlain(base));
-    const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl"];
+    const temp = ["ram-drive", "ram-addr", "ram-read", "ram-ctrl",
+      ...Array.from({ length: 8 }, (_, i) => `ram-port${i}`),
+      ...Array.from({ length: 8 }, (_, i) => `ram-dev${i}`)];
     ws.components = ws.components.filter((c) => !temp.includes(c.id));
     ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
     ws.components.push({ id: "ram-drive", type: "converter-out", value: data, x: 90, y: 400 });
@@ -13284,11 +13766,30 @@
     ws.wires.push({ a: "ram-addr.out", b: "task-card-1.inputExt3" });
     ws.wires.push({ a: "task-card-1.outputExt1", b: "ram-read.in" });
     if (control) ws.wires.push({ a: "ram-ctrl.out", b: "task-card-1.inputExt2" });
+    // A ports card shows its registers on extra buses; give each one a reader so
+    // the check can see what the devices outside would see.
+    for (let i = 0; i < portOutputs; i += 1) {
+      ws.components.push({ id: `ram-port${i}`, type: "converter-in", x: 1560, y: 760 + i * 90 });
+      ws.wires.push({ a: `task-card-1.outputExt${i + 2}`, b: `ram-port${i}.in` });
+    }
+    // …and the device buses coming IN are driven, so the read-only addresses can
+    // be read back.
+    (deviceValues || []).forEach((value, i) => {
+      ws.components.push({ id: `ram-dev${i}`, type: "converter-out", value, x: 300 + i * 150, y: 1180 });
+      ws.wires.push({ a: `ram-dev${i}.out`, b: `task-card-1.inputExt${i + 4}` });
+    });
     return ws;
   }
 
   function runRamTest(base, taskId) {
     const addresses = ramTestAddresses(taskId);
+    const def = memoryCardDefById(taskId);
+    const portOutputs = def?.portOutputs || 0;
+    const portInputs = def?.portInputs || 0;
+    // The WRITTEN range: everything past it is a read-only device address.
+    const slots = Number.isInteger(def?.writableSlots) ? def.writableSlots : (def?.slots || 4);
+    // Frozen values on the four device buses, distinct from everything written.
+    const deviceValues = portInputs ? [5461, 26214, 52428, 13107].slice(0, portInputs) : null;
     // Write a distinct value to every address, then read them all back with the
     // control low — so a build that writes to more than one register at a time,
     // or reads the wrong one, is caught.
@@ -13312,13 +13813,25 @@
     const SETTLE = 8;
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
-      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c));
+      const flat = flattenWorkspaceForEval(ramHarnessWorkspace(base, step.d, step.a, step.c, portOutputs, deviceValues));
       for (let t = 0; t < SETTLE; t += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
-      if (step.c) stored.set(step.a, step.d);
-      const expected = stored.has(step.a) ? stored.get(step.a) : 0;
-      const info = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters.get("ram-read");
+      // Writing a read-only address does nothing; reading one shows the device.
+      if (step.c && step.a < slots) stored.set(step.a, step.d);
+      const device = portInputs && step.a >= slots && step.a < slots + portInputs
+        ? deviceValues[step.a - slots] : null;
+      const expected = device !== null ? device : (stored.has(step.a) ? stored.get(step.a) : 0);
+      const readings = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters;
+      const info = readings.get("ram-read");
       const got = info ? Number(info.value) : -1;
       if (got !== expected) return { ok: false, index: i, expected, got };
+      // Every port bus must always show its own register, whatever the address is.
+      const portBase = def?.portOutputBase || 0;
+      for (let k = 0; k < portOutputs; k += 1) {
+        const want = stored.has(portBase + k) ? stored.get(portBase + k) : 0;
+        const seen = readings.get(`ram-port${k}`);
+        const mine = seen ? Number(seen.value) : -1;
+        if (mine !== want) return { ok: false, index: i, expected: want, got: mine, port: k };
+      }
     }
     return { ok: true };
   }
@@ -13605,7 +14118,9 @@
       // Memory and RAM cards are CLOCKED — they are checked by runMemoryTest /
     // runRamTest (a sequence of drives over several ticks), never by combinational
     // cases, so they legitimately carry no check.cases in their JSON.
-    if (isMemoryTask(taskId) || isRamTask(taskId)) return [];
+    // The 3.4 ports cards are the same: OPorts/Ports/RAM run on the RAM harness,
+    // and IPorts has its own combinational one (runIPortsTest).
+    if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -14181,6 +14696,9 @@
 
   function startMultibitTaskTest() {
     if (!isMultibitTaskWorkspace() || notTestActive()) return;
+    // A card with no combinational cases belongs to another harness; running it
+    // here would walk zero cases and report success on anything at all.
+    if (!multibitTaskCases(state.workspace?.taskId).length) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
     muxTableSnapshot = null;
@@ -14217,6 +14735,21 @@
       if (isRamTask(taskId)) {
         return setState({
           ...ramCompletionPatch(completedTasks, taskId),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // Ports cards (chapter 3.4): complete and return to the 3.4 worktable with
+      // its own note reopened. Checked before the memory/bus branches for the same
+      // reason the RAM cards are — they are multibit-shaped too.
+      if (isPortsTask(taskId)) {
+        const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+        return setState({
+          ...portsWorktableReturnTarget(),
+          portsNoteList: !allPortsDone,
+          infoDialog: allPortsDone ? "המשך יבוא..." : null,
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -14365,14 +14898,17 @@
     // the 2.4 chapter heading.
     const ram = isRamTask(taskId);
     const memory = isMemoryTask(taskId);
-    const chapter = ram ? chapterById("chapter-12")
+    // …and so are the 3.4 ports cards.
+    const ports = isPortsTask(taskId);
+    const chapter = ports ? chapterById("chapter-13")
+      : ram ? chapterById("chapter-12")
       : memory ? chapterById("chapter-11")
       : alu ? chapterById("chapter-9")
       : arith ? chapterById("chapter-8")
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit || arith || alu) {
+    if (routing || bus || multibit || arith || alu || ports) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -15279,7 +15815,8 @@
       dialog: null,
       taskDialog: null,
       memoryNoteList: false,
-    ramNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
       requirementsPanelHidden: false,
       whyNoteHidden: false,
       muxTable: null,
@@ -15396,6 +15933,7 @@
       taskDialog: null,
       memoryNoteList: false,
       ramNoteList: false,
+      portsNoteList: false,
       requirementsPanelHidden: false,
       whyNoteHidden: false,
       muxTable: null,
@@ -15445,6 +15983,152 @@
           <div class="note-task-actions">
             <button class="btn" data-action="ram-note-close">\u05e1\u05d2\u05d5\u05e8</button>
             ${noteClearProgressButton("ram")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
+  // --- Chapter 3.4 ports note -------------------------------------------------
+  // The 3.4 worktable note (OPorts → IPorts → Ports → RAM). Strictly ordered like
+  // the RAM chain: each card is built out of the one before it. A card whose build
+  // frame does not exist yet answers "המשך יבוא..." rather than dead-ending.
+  function portsTaskDefs() {
+    return typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : [];
+  }
+
+  function portsTaskDefById(id) {
+    return portsTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  function isPortsTask(id) {
+    return Boolean(portsTaskDefById(id));
+  }
+
+  function portsTaskUnlocked(id) {
+    const def = portsTaskDefById(id);
+    if (!def) return false;
+    return (def.requires || []).every((req) => taskCompleted(req));
+  }
+
+  // A card is playable once its build frame exists. The chapter lands in pieces,
+  // so the note has to be honest about which ones are not here yet.
+  function portsTaskImplemented(id) {
+    return Boolean(WORKSPACE_COMPONENT_DEFS[taskCardComponentType(id)]);
+  }
+
+  function portsTaskLabelOf(id) {
+    return portsTaskDefById(id)?.label || ramTaskDefById(id)?.label || id;
+  }
+
+  function portsTaskLockedMessage(id) {
+    const def = portsTaskDefById(id);
+    const missing = (def?.requires || []).filter((req) => !taskCompleted(req)).map(portsTaskLabelOf);
+    if (!missing.length) return "המשך יבוא...";
+    return `\u05e6\u05e8\u05d9\u05da \u05dc\u05d1\u05e0\u05d5\u05ea \u05e7\u05d5\u05d3\u05dd \u05d0\u05ea ${missing.join(", ")}.`;
+  }
+
+  function openPortsNote() {
+    return setState({ portsNoteList: true });
+  }
+
+  // The ports frames sit where the RAM ones do: right of centre, leaving the left
+  // strip free for the converters that dial a value and an address by hand.
+  const PORTS_BUILD_CARD_X = 660;
+  const PORTS_BUILD_CARD_Y = 440;
+
+  function openPortsTaskWorkspace(taskId) {
+    const task = portsTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-13");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: PORTS_BUILD_CARD_X, y: PORTS_BUILD_CARD_Y },
+        { id: "source-1", type: "source", x: 110, y: 90 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Every ports card but IPorts holds registers, so the build is clocked.
+      clocked: Boolean(task.clocked),
+      busClocked: Boolean(task.clocked),
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
+      requirementsPanelHidden: false,
+      whyNoteHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the 3.4 worktable a ports build was opened from.
+  function portsWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-13");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
+      ? state.workspace.sessionReturnPanelIndex
+      : (sceneByChapter(returnChapter)?.panels.length || 1) - 1;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  function handlePortsNoteTask(id) {
+    const task = portsTaskDefById(id);
+    if (!task) return;
+    if (!portsTaskUnlocked(task.id)) return setState({ infoDialog: portsTaskLockedMessage(task.id) });
+    if (!portsTaskImplemented(task.id)) return setState({ infoDialog: "המשך יבוא..." });
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    openPortsTaskWorkspace(task.id);
+  }
+
+  function renderPortsNoteList() {
+    if (!state.portsNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${portsTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !portsTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "\u2713" : ""}</span>
+              <button class="note-task-button" data-action="ports-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="\u05e8\u05e9\u05d9\u05de\u05ea \u05de\u05e9\u05d9\u05de\u05d5\u05ea">
+          <h2>\u05de\u05e9\u05d9\u05de\u05d5\u05ea</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="ports-note-close">\u05e1\u05d2\u05d5\u05e8</button>
+            ${noteClearProgressButton("ports")}
           </div>
         </section>
         ${renderNoteClearDialog()}
@@ -15531,6 +16215,18 @@
     if (isRamTask(taskId)) {
       return setState({
         ...ramCompletionPatch(completedTasks, taskId),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // Ports cards (3.4): back to the 3.4 worktable with its own note reopened.
+    if (isPortsTask(taskId)) {
+      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+      return setState({
+        ...portsWorktableReturnTarget(),
+        portsNoteList: !allPortsDone,
+        infoDialog: allPortsDone ? "המשך יבוא..." : null,
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -15739,6 +16435,18 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
+    // Ports cards (3.4): back to the 3.4 worktable with its own note. Checked
+    // FIRST for the same reason as the RAM and memory cards below — they are
+    // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
+    // land the learner on the BUSES note.
+    if (isPortsTask(taskId)) {
+      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+      return setState({
+        ...portsWorktableReturnTarget(), ...base,
+        portsNoteList: !allPortsDone,
+        infoDialog: allPortsDone ? "המשך יבוא..." : null
+      }, true);
+    }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
     if (isRamTask(taskId)) {
@@ -15908,6 +16616,46 @@
       };
       if (hintStateOverride) ramPatch.hintState = hintStateOverride;
       return setState(ramPatch, false);
+    }
+
+    // OPorts build hint: lay the RAM4 half of its own solution inside the frame —
+    // everything but the four wires out to the port buses, which are the part the
+    // learner is being asked to add.
+    if (taskId === "OPorts" && hint.action === "ports-place-ram4") {
+      const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.OPorts : null;
+      if (doc) {
+        const portWires = new Set(["outputInt2", "outputInt3", "outputInt4", "outputInt5"]
+          .map((pin) => `task-card-1.${pin}`));
+        const half = clonePlain(doc);
+        half.wires = half.wires.filter((w) => !portWires.has(w.a) && !portWires.has(w.b));
+        const ws = workspaceFromSolutionDoc(half);
+        // Whatever the canonical build position is, the learner's frame stays
+        // exactly where it is: shift the laid-down circuit onto it.
+        const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+        const laid = ws.components.find((c) => c.id === "task-card-1");
+        if (here && laid) {
+          const dx = here.x - laid.x;
+          const dy = here.y - laid.y;
+          if (dx || dy) ws.components.forEach((c) => {
+            if (Number.isFinite(c.x)) c.x += dx;
+            if (Number.isFinite(c.y)) c.y += dy;
+          });
+        }
+        ws.clocked = Boolean(state.workspace?.clocked);
+        ws.busClocked = Boolean(state.workspace?.busClocked);
+        ws.workspaceCompleted = false;
+        ws.taskId = "OPorts";
+        ws.taskIntroSeen = true;
+        ws.locked = false;
+        ws.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || "chapter-13";
+        ws.sessionReturnPanelIndex = state.workspace?.sessionReturnPanelIndex ?? null;
+        const patch = {
+          workspace: normalizeWorkspace(ws),
+          hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+        };
+        if (hintStateOverride) patch.hintState = hintStateOverride;
+        return setState(patch, false);
+      }
     }
 
     // fullAdder build hints: progressively construct the 3-halfAdder circuit.
@@ -16395,6 +17143,7 @@
     if (kind === "alu") return (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     if (kind === "ram") return ramTaskDefs().map((t) => t.id);
+    if (kind === "ports") return portsTaskDefs().map((t) => t.id);
     return [];
   }
 
@@ -17491,7 +18240,18 @@
   function ramGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.ramGate) return null;
-    return { width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots };
+    return {
+      width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots,
+      // OPorts (and the cards built from it) also mirror their first N cells on
+      // extra buses out — see the engine's ramGate branch.
+      portOutputs: Number.isInteger(def.portOutputs) ? def.portOutputs : 0,
+      // The first written cell mirrored on a port bus (RAM's ports sit at the top
+      // of its address space, not at 0).
+      portOutputBase: Number.isInteger(def.portOutputBase) ? def.portOutputBase : 0,
+      // Read-only addresses straight after the written ones: they show whatever a
+      // device is putting on the matching inP bus.
+      portInputs: Number.isInteger(def.portInputs) ? def.portInputs : 0
+    };
   }
 
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
@@ -18792,9 +19552,18 @@
       if (state.aluIntroDialog?.returnToExplanations) {
         return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
       }
-      // The 3.3 closing message is the end of the story so far — the game stops
-      // there, so say so instead of dropping the player back into a note.
+      // The 3.3 closing message hands over to chapter 3.4 (ports).
       if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY) {
+        const ports = chapterById("chapter-13");
+        if (ports) {
+          return setState({
+            ...transientUiClearPatch(),
+            ...storyTarget(ports, 0),
+            started: true,
+            replayNonce: state.replayNonce + 1,
+            workspace: state.workspace
+          }, true);
+        }
         return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
       }
       // A RAM message belongs to the 3.3 note, not the 2.6 one.
@@ -18810,6 +19579,9 @@
     if (action === "ram-tasks-note") return openRamNote();
     if (action === "ram-note-task") return handleRamNoteTask(button.dataset.taskId);
     if (action === "ram-note-close") return setState({ ramNoteList: false });
+    if (action === "ports-tasks-note") return openPortsNote();
+    if (action === "ports-note-task") return handlePortsNoteTask(button.dataset.taskId);
+    if (action === "ports-note-close") return setState({ portsNoteList: false });
     if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
     if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");

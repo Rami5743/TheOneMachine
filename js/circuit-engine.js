@@ -508,8 +508,23 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const ramHere = typeof ramGateSpec === "function" ? ramGateSpec(type) : null;
           if (ramHere) {
             const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), ramHere.addressWidth);
-            const cell = prevMap ? prevMap.get(`${component.id}.cell${addr}`) : null;
-            if (setBits(outputs, `${component.id}.out`, fitBits(cell || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            const inputs = ramHere.portInputs || 0;
+            // Addresses past the written cells are the READ-ONLY device inputs:
+            // they show whatever the world is putting on the matching inP bus.
+            let readVec;
+            if (inputs && addr >= ramHere.slots && addr < ramHere.slots + inputs) {
+              readVec = inputBits(workspace, `${component.id}.inP${addr - ramHere.slots + 1}`, outputs);
+            } else {
+              readVec = prevMap ? prevMap.get(`${component.id}.cell${addr}`) : null;
+            }
+            if (setBits(outputs, `${component.id}.out`, fitBits(readVec || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            // A ports card also shows its port registers to the world, whatever
+            // the address happens to be — that is the whole point of a port.
+            const base = ramHere.portOutputBase || 0;
+            for (let k = 0; k < (ramHere.portOutputs || 0); k += 1) {
+              const held = prevMap ? prevMap.get(`${component.id}.cell${base + k}`) : null;
+              if (setBits(outputs, `${component.id}.outP${k + 1}`, fitBits(held || zeroBits(ramHere.width), ramHere.width))) changed = true;
+            }
             continue;
           }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is
@@ -803,7 +818,9 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             const held = prevMap.get(key);
             if (held) next.set(key, held);
           }
-          if (control) next.set(`${component.id}.cell${addr}`, data);
+          // Only the WRITTEN range can be written: an address in the read-only
+          // device range is simply ignored, exactly as the story promises.
+          if (control && addr < ramSpec.slots) next.set(`${component.id}.cell${addr}`, data);
           continue;
         }
         // A placeable memory gate (gate-Register4) stores a whole bus the same way.
