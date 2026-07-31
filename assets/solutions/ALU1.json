@@ -110,8 +110,8 @@
     {
       "id": "ctrl-split",
       "type": "splitter",
-      "x": 383,
-      "y": 213,
+      "x": 385,
+      "y": 225,
       "outputs": 4,
       "legWidths": [
         2,
@@ -124,26 +124,26 @@
     {
       "id": "pn1",
       "type": "gate-PreperNum",
-      "x": 420,
-      "y": 334
+      "x": 425,
+      "y": 345
     },
     {
       "id": "pn2",
       "type": "gate-PreperNum",
-      "x": 400,
-      "y": 460
+      "x": 520,
+      "y": 450
     },
     {
       "id": "alu0",
       "type": "gate-ALU0",
-      "x": 562,
+      "x": 595,
       "y": 360
     },
     {
       "id": "not-merge",
       "type": "splitter",
-      "x": 666,
-      "y": 230,
+      "x": 705,
+      "y": 190,
       "outputs": 2,
       "legWidths": [
         1,
@@ -154,7 +154,7 @@
     {
       "id": "pn3",
       "type": "gate-PreperNum",
-      "x": 704,
+      "x": 745,
       "y": 360
     }
   ],
