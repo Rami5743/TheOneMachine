@@ -4626,8 +4626,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-split",
         "type": "splitter",
-        "x": 330,
-        "y": 330,
+        "x": 400,
+        "y": 300,
         "outputs": 2,
         "legWidths": [
           2,
@@ -4638,26 +4638,26 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 470,
-        "y": 200
+        "x": 530,
+        "y": 215
       },
       {
         "id": "op",
         "type": "gate-OPorts",
-        "x": 650,
-        "y": 330
+        "x": 690,
+        "y": 340
       },
       {
         "id": "ip",
         "type": "gate-IPorts",
-        "x": 650,
-        "y": 620
+        "x": 690,
+        "y": 600
       },
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 880,
-        "y": 460
+        "x": 905,
+        "y": 290
       }
     ],
     "wires": [
@@ -4960,8 +4960,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-split",
         "type": "splitter",
-        "x": 330,
-        "y": 330,
+        "x": 390,
+        "y": 300,
         "outputs": 3,
         "legWidths": [
           3,
@@ -4973,8 +4973,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-merge",
         "type": "splitter",
-        "x": 480,
-        "y": 400,
+        "x": 520,
+        "y": 380,
         "outputs": 2,
         "legWidths": [
           3,
@@ -4985,26 +4985,26 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 470,
-        "y": 190
+        "x": 530,
+        "y": 210
       },
       {
         "id": "big",
         "type": "gate-RAM1024",
-        "x": 680,
-        "y": 330
+        "x": 700,
+        "y": 340
       },
       {
         "id": "ports",
         "type": "gate-Ports",
-        "x": 680,
-        "y": 620
+        "x": 700,
+        "y": 600
       },
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 900,
-        "y": 460
+        "x": 915,
+        "y": 290
       }
     ],
     "wires": [

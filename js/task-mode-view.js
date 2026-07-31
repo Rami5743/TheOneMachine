@@ -249,7 +249,7 @@ function createTaskModeView({
     // table). "הבנתי" flies the card to the bottom-right corner where it becomes
     // the normal requirements panel (docking in dismissWorkspaceTaskIntro). The
     // corner panel stays hidden while centred (see renderNotTaskHint).
-    const desc = task ? esc(adaptGender(task.description)) : "";
+    const desc = task ? escRich(adaptGender(task.description)) : "";
     let table = "";
     if (task && Array.isArray(task.rows) && task.rows.length) {
       const inputHeaders = Array.from({ length: task.inputs }, (_, index) =>
@@ -412,7 +412,7 @@ function createTaskModeView({
     return `
       <section class="workspace-task-hint workspace-task-hint-mux" aria-label="דרישות ${esc(task.label)}">
         ${toggle}
-        <div class="mux-hint-text"><p>${esc(adaptGender(task.description))}</p></div>
+        <div class="mux-hint-text"><p>${escRich(adaptGender(task.description))}</p></div>
         <div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${scratchTableHtml}</div>
       </section>`;
   }
@@ -442,7 +442,7 @@ function createTaskModeView({
         .split(/\n\s*\n/)
         .map((part) => part.trim())
         .filter(Boolean)
-        .map((part) => `<p>${esc(part).replace(/^הערה/, "<strong>הערה</strong>")}</p>`)
+        .map((part) => `<p>${escRich(part).replace(/^הערה/, "<strong>הערה</strong>")}</p>`)
         .join("");
       // Numeric cards (adders/Inc/ALU) show a single-row table for the case under
       // test, with the inputs as decimal numbers, while a check runs or is frozen.
@@ -478,7 +478,7 @@ function createTaskModeView({
       return `
         <section class="workspace-task-hint workspace-task-hint-dock${wideClass}" aria-label="הסבר על ${esc(busDef.label)}">
           ${toggle}
-          <p>${esc(adaptGender(busDef.description || ""))}</p>
+          <p>${escRich(adaptGender(busDef.description || ""))}</p>
           ${table}
         </section>`;
     }
@@ -537,7 +537,7 @@ function createTaskModeView({
     return `
       <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-truth" aria-label="הסבר על ${esc(task.label)}">
         ${toggle}
-        <p>${esc(adaptGender(task.description))}</p>
+        <p>${escRich(adaptGender(task.description))}</p>
         <div class="workspace-task-hint-scroll" data-check-scroll>
           <table class="workspace-task-hint-table">
             <thead>
@@ -550,6 +550,12 @@ function createTaskModeView({
           </table>
         </div>
       </section>`;
+  }
+
+  // The only markup a requirements text may carry: **bold**. Escaped first, so
+  // nothing else in the text can become HTML.
+  function escRich(text) {
+    return esc(String(text == null ? "" : text)).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   }
 
   function renderNotTaskCheckButton() {

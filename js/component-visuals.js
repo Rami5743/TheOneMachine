@@ -440,7 +440,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const NAMES = ["00", "01", "10", "11"];
     let s = "";
     if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -90, spec.addressWidth);
-    s += bar(-88, -edge, -60, spec.width);
+    // IPorts has no data input at all — everything it shows comes from outside —
+    // so it must not grow a bus stub with no pin behind it.
+    if (spec.dataIn !== false) s += bar(-88, -edge, -60, spec.width);
     s += bar(edge, 92, -90, spec.width);
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     for (let i = 0; i < outs; i += 1) s += bar(edge, 92, -30 + i * 30, spec.width);
@@ -576,7 +578,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
         return portsGateMarkup({
           width: portsDef.busWidth, addressWidth: portsDef.addressWidth,
           portOutputs: portsDef.portOutputs || 0, portInputs: portsDef.portInputs || 0,
-          clockedCard: portsDef.ramGate !== undefined ? true : false
+          // Only a card that HOLDS something has a data input and a control.
+          dataIn: Boolean(portsDef.ramGate), clockedCard: Boolean(portsDef.ramGate)
         }, portsDef.label, options);
       }
       // The finished wide-routing cards (2.4).

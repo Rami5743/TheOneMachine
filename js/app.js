@@ -1797,6 +1797,8 @@
     if (has(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : null)) return "alu";
     if (has(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : null)) return "memory";
     if (has(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : null)) return "memory";
+    // The 3.4 ports cards ARE memory as far as the computer is concerned.
+    if (has(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : null)) return "memory";
     return "accessories";
   }
 
@@ -3240,7 +3242,10 @@
     { chapter: "chapter-8", ids: () => ARITH_TASKS.map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-9", ids: () => (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     { chapter: "chapter-11", ids: () => (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
-    { chapter: "chapter-12", ids: () => (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-12", ids: () => (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The 3.4 ports cards — so a finished OPorts/IPorts is there to build the
+    // next one out of, exactly like every chapter before it.
+    { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
@@ -16371,6 +16376,18 @@
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
     };
+    // Ports cards (3.4): back to the 3.4 worktable with its own note. Checked
+    // FIRST for the same reason as the RAM and memory cards below — they are
+    // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
+    // land the learner on the BUSES note.
+    if (isPortsTask(taskId)) {
+      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+      return setState({
+        ...portsWorktableReturnTarget(), ...base,
+        portsNoteList: !allPortsDone,
+        infoDialog: allPortsDone ? "המשך יבוא..." : null
+      }, true);
+    }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
     if (isRamTask(taskId)) {
