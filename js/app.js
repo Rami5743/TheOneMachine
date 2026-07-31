@@ -3725,6 +3725,12 @@
     const aluIds = (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []).map((t) => t.id);
     if (aluIds.length > 0 && aluIds.every((id) => taskCompleted(id))) unlockAchievement("alu-engineer");
 
+    // Chapter 3.2 registers (Register4 / Register) and 3.3 RAM (RAM4 … RAM1024).
+    const memoryIds = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
+    if (memoryIds.length > 0 && memoryIds.every((id) => taskCompleted(id))) unlockAchievement("memory-engineer");
+    const ramIds = (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id);
+    if (ramIds.length > 0 && ramIds.every((id) => taskCompleted(id))) unlockAchievement("ram-engineer");
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
@@ -3734,6 +3740,8 @@
     if (chapterClean(busIds)) unlockAchievement("precise-bus-engineer");
     if (chapterClean(arithIds)) unlockAchievement("precise-arith-engineer");
     if (chapterClean(aluIds)) unlockAchievement("precise-alu-engineer");
+    if (chapterClean(memoryIds)) unlockAchievement("precise-memory-engineer");
+    if (chapterClean(ramIds)) unlockAchievement("precise-ram-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
@@ -12658,6 +12666,8 @@
 
   function componentNandCount(type, memo, stack) {
     if (type === "nand") return 1;
+    // A flip-flop is a latched MUX — count it as one MUX's worth of Nands.
+    if (type === "ffCard") return cardRecursiveCount("Mux", memo, stack);
     if (typeof type === "string" && type.startsWith("gate-")) {
       return cardRecursiveCount(type.slice(5), memo, stack);
     }
@@ -12718,6 +12728,7 @@
       const type = comp && comp.type;
       let n;
       if (type === "nand") n = 1;
+      else if (type === "ffCard") n = cardRecursiveCountWithBuilds("Mux", builds, memo, stack); // FF = one MUX
       else if (typeof type === "string" && type.startsWith("gate-")) n = cardRecursiveCountWithBuilds(type.slice(5), builds, memo, stack);
       else if (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX)) n = cardRecursiveCountWithBuilds(type, builds, memo, stack);
       else n = 0;
@@ -12730,42 +12741,64 @@
   }
 
   // ---- Speed ranking: the SERIAL Nand count (critical-path depth) -----------
-  // The most Nands in series on any input→output path of a build. We build a
-  // directed graph from the build's wires (direction via terminalDirection) and
-  // take the longest weighted path. To keep it a DAG we split every component
-  // into an input-side node ("<id>#in") and an output-side node ("<id>#out");
-  // only signal-propagating components (Nand, a placed gate/card, a splitter) get
-  // an internal in→out edge, so a card frame — whose "inputs" are sources and
-  // "outputs" are sinks with no path between them — never forms a cycle. Each
-  // component's serial weight sits on its #out node.
-  function serialPropagates(type) {
-    return type === "nand"
-      || (typeof type === "string" && type.startsWith("gate-"))
-      || (typeof type === "string" && type.startsWith(SAVED_CARD_PREFIX))
-      || type === "splitter";
-  }
+  // For a clocked (sequential) build, "speed" is the clock-limiting path: the most
+  // Nands in series in any COMBINATIONAL segment between two register boundaries —
+  // FF→FF, input→FF, or FF→output. A flip-flop and the card frame are BOUNDARIES
+  // that cut a path; only combinational parts (Nands, splitters, combinational
+  // cards) carry delay. For a purely combinational card it collapses to the plain
+  // input→output depth, exactly as before.
+  //
+  // Each card gets a TIMING PROFILE: combinational → { seq:false, comb }, or
+  // sequential → { seq:true, head, tail, internal } where head = longest
+  // input→FF, tail = longest FF→output, internal = longest FF→FF. When a card is
+  // placed inside another, those three "edge" numbers are what let the paths add
+  // up correctly across the boundary (a sub-card's tail continues into the
+  // parent's logic up to the next FF, etc.). The ranked score is comb, or
+  // max(head, tail, internal) for a sequential card. Returns null if any placed
+  // card is unbuilt.
   function refComponentId(ref) {
     const dot = String(ref).lastIndexOf(".");
     return dot > 0 ? String(ref).slice(0, dot) : null;
   }
-  // longest weighted input→output path over one build. weightOf(type) → the
-  // component's serial contribution (number, or null when undefined). Returns the
-  // depth, or null if any weight was undefined.
-  function longestSerialPath(build, weightOf) {
+  function isFrameType(type) {
+    return type === "cardFrame" || type === "flipflopFrame"
+      || (typeof type === "string" && type.startsWith("taskCard-"));
+  }
+  // How a component behaves for timing. profileOf(cardKey) → the placed card's
+  // own profile (recursive), or null when unbuilt.
+  function componentTimingKind(type, profileOf) {
+    if (type === "nand") return { kind: "prop", weight: 1 };
+    // A flip-flop is a latched MUX: the (launching) FF at a register boundary
+    // counts as one MUX's worth of delay. We attribute it to the FF's output side
+    // (its "tail"), so each register-to-register segment includes exactly one FF.
+    if (type === "ffCard") {
+      const mux = profileOf("Mux");
+      if (mux === null) return { kind: "undef" };
+      const d = mux.seq ? Math.max(mux.head, mux.tail, mux.internal) : mux.comb;
+      return { kind: "ff", profile: { seq: true, head: 0, tail: d, internal: 0 } };
+    }
+    if (isFrameType(type)) return { kind: "frame" };
+    if (type === "source") return { kind: "src" };
+    if (type === "lamp") return { kind: "sink" };
+    if (typeof type === "string" && (type.startsWith("gate-") || type.startsWith(SAVED_CARD_PREFIX))) {
+      const pr = profileOf(type.startsWith("gate-") ? type.slice(5) : type);
+      if (pr === null) return { kind: "undef" };
+      if (pr.seq) return { kind: "seq", profile: pr };
+      return { kind: "prop", weight: pr.comb };
+    }
+    return { kind: "prop", weight: 0 }; // splitter / nail / converter / passive
+  }
+  // Longest-path over the build with two path categories tracked per node: F =
+  // path started at a frame input / source; FF = path started at a flip-flop /
+  // sequential-card output. Boundary components are cut (their in-side and
+  // out-side are separate), which keeps the graph acyclic.
+  function computeTimingProfile(build, profileOf) {
+    const NEG = -Infinity;
+    const addw = (x, w) => (x === NEG ? NEG : x + w);
     const comps = Array.isArray(build.components) ? build.components : [];
     const wires = Array.isArray(build.wires) ? build.wires : [];
-    const typeById = new Map(comps.map((c) => [c.id, c.type]));
-    const preds = new Map();
-    const addPred = (node, pred) => {
-      if (!preds.has(node)) preds.set(node, []);
-      preds.get(node).push(pred);
-    };
-    // Internal in→out edge for propagating components.
-    comps.forEach((c) => {
-      if (serialPropagates(c.type)) addPred(`${c.id}#out`, `${c.id}#in`);
-      else { preds.set(`${c.id}#out`, preds.get(`${c.id}#out`) || []); preds.set(`${c.id}#in`, preds.get(`${c.id}#in`) || []); }
-    });
-    // Wire edges: source #out → dest #in.
+    const byType = new Map(comps.map((c) => [c.id, c.type]));
+    const preds = new Map(comps.map((c) => [c.id, []]));
     for (const w of wires) {
       const da = terminalDirection(build, w.a);
       const db = terminalDirection(build, w.b);
@@ -12774,53 +12807,86 @@
       else if (db === "out" && da === "in") { outRef = w.b; inRef = w.a; }
       else continue;
       const oc = refComponentId(outRef), ic = refComponentId(inRef);
-      if (oc && ic) addPred(`${ic}#in`, `${oc}#out`);
+      if (oc && ic && preds.has(ic)) preds.get(ic).push(oc);
     }
-    let undefinedWeight = false;
-    const memo = new Map();
-    const visiting = new Set();
-    function depth(node) {
-      if (memo.has(node)) return memo.get(node);
-      if (visiting.has(node)) return 0; // cycle guard (shouldn't happen)
-      visiting.add(node);
-      // Weight lives on #out nodes; #in nodes carry 0.
-      let w = 0;
-      if (node.endsWith("#out")) {
-        const type = typeById.get(node.slice(0, -4));
-        const raw = weightOf(type);
-        if (raw === null) { undefinedWeight = true; w = 0; } else w = raw;
+    let undef = false;
+    const kindCache = new Map();
+    const kindOf = (id) => {
+      if (kindCache.has(id)) return kindCache.get(id);
+      const k = componentTimingKind(byType.get(id), profileOf);
+      if (k.kind === "undef") undef = true;
+      kindCache.set(id, k);
+      return k;
+    };
+    const memoOut = new Map(), memoIn = new Map(), visiting = new Set();
+    function resolveOut(id) {
+      if (memoOut.has(id)) return memoOut.get(id);
+      const k = kindOf(id);
+      let v;
+      if (k.kind === "frame" || k.kind === "src") v = { F: 0, FF: NEG };
+      else if (k.kind === "ff" || k.kind === "seq") v = { F: NEG, FF: k.profile.tail };
+      else if (k.kind === "sink") v = { F: NEG, FF: NEG };
+      else { const w = (k.kind === "undef") ? 0 : k.weight; const inV = resolveIn(id); v = { F: addw(inV.F, w), FF: addw(inV.FF, w) }; }
+      memoOut.set(id, v);
+      return v;
+    }
+    function resolveIn(id) {
+      if (memoIn.has(id)) return memoIn.get(id);
+      if (visiting.has(id)) return { F: NEG, FF: NEG }; // combinational-loop guard
+      visiting.add(id);
+      let F = NEG, FF = NEG;
+      for (const s of (preds.get(id) || [])) { const pv = resolveOut(s); if (pv.F > F) F = pv.F; if (pv.FF > FF) FF = pv.FF; }
+      visiting.delete(id);
+      const v = { F, FF };
+      memoIn.set(id, v);
+      return v;
+    }
+    let COMB = NEG, HEAD = NEG, TAIL = NEG, INTERNAL = NEG, hasSeq = false;
+    for (const c of comps) {
+      const k = kindOf(c.id);
+      if (k.kind === "frame" || k.kind === "sink") {
+        const v = resolveIn(c.id);
+        if (v.F > COMB) COMB = v.F;
+        if (v.FF > TAIL) TAIL = v.FF;
+      } else if (k.kind === "ff" || k.kind === "seq") {
+        hasSeq = true;
+        const v = resolveIn(c.id);
+        HEAD = Math.max(HEAD, addw(v.F, k.profile.head));
+        INTERNAL = Math.max(INTERNAL, addw(v.FF, k.profile.head), k.profile.internal);
       }
-      let best = 0;
-      for (const p of (preds.get(node) || [])) best = Math.max(best, depth(p));
-      visiting.delete(node);
-      const d = w + best;
-      memo.set(node, d);
-      return d;
     }
-    let max = 0;
-    comps.forEach((c) => { max = Math.max(max, depth(`${c.id}#out`), depth(`${c.id}#in`)); });
-    return undefinedWeight ? null : max;
+    if (undef) return null;
+    const clamp = (x) => (x === NEG ? 0 : x);
+    if (!hasSeq) return { seq: false, comb: clamp(COMB) };
+    return { seq: true, head: clamp(HEAD), tail: clamp(TAIL), internal: clamp(INTERNAL) };
   }
 
-  // Recursive serial depth of a card, resolving each placed gate to the serial
-  // depth of ITS build. (User cards were flattened into the build at record time,
-  // so only Nands / gate-<id> / passives appear here.)
-  function cardSerialWithBuilds(cardKey, builds, memo, stack) {
+  function timingScore(profile) {
+    if (!profile) return null;
+    return profile.seq ? Math.max(profile.head, profile.tail, profile.internal) : profile.comb;
+  }
+
+  // Recursive timing profile of a card, resolving each placed gate/user card to
+  // ITS profile. Shared memo + cycle stack across the whole recompute.
+  function cardTimingWithBuilds(cardKey, builds, memo, stack) {
     stack = stack || new Set();
-    if (cardKey === "Nand" || cardKey === "nand") return 1;
+    if (cardKey === "Nand" || cardKey === "nand") return { seq: false, comb: 1 };
     if (memo.has(cardKey)) return memo.get(cardKey);
     if (stack.has(cardKey)) return null;
-    const b = builds[cardKey];
-    if (!b || !Array.isArray(b.components)) return null;
+    let comps = null, wires = [];
+    if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
+      const card = (state.savedCards || []).find((c) => c.type === cardKey);
+      if (card && card.logic) { comps = Array.isArray(card.logic.components) ? card.logic.components : null; wires = card.logic.wires || []; }
+    } else {
+      const b = builds[cardKey];
+      if (b) { comps = Array.isArray(b.components) ? b.components : null; wires = b.wires || []; }
+    }
+    if (!comps) { memo.set(cardKey, null); return null; }
     stack.add(cardKey);
-    const d = longestSerialPath(b, (type) => {
-      if (type === "nand") return 1;
-      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), builds, memo, stack);
-      return 0; // passive (splitter/source/frame/converter …)
-    });
+    const profile = computeTimingProfile({ components: comps, wires }, (sub) => cardTimingWithBuilds(sub, builds, memo, stack));
     stack.delete(cardKey);
-    memo.set(cardKey, d);
-    return d;
+    memo.set(cardKey, profile);
+    return profile;
   }
 
   function recomputeAllCardSerial(serialBuilds) {
@@ -12828,21 +12894,17 @@
     const memo = new Map();
     const out = {};
     for (const cardId of Object.keys(source)) {
-      const d = cardSerialWithBuilds(cardId, source, memo);
-      out[cardId] = (typeof d === "number") ? d : null;
+      const s = timingScore(cardTimingWithBuilds(cardId, source, memo));
+      out[cardId] = (typeof s === "number") ? s : null;
     }
     return out;
   }
 
-  // The serial depth of one explicit build, resolving placed gates against the
+  // The speed score of one explicit build, resolving placed gates against the
   // CURRENT stored serial builds (used to compare a fresh build to the stored one).
   function computeBuildSerial(build, serialBuilds) {
     const memo = new Map();
-    return longestSerialPath(build, (type) => {
-      if (type === "nand") return 1;
-      if (typeof type === "string" && type.startsWith("gate-")) return cardSerialWithBuilds(type.slice(5), serialBuilds || state.cardSerialBuilds || {}, memo);
-      return 0;
-    });
+    return timingScore(computeTimingProfile(build, (sub) => cardTimingWithBuilds(sub, serialBuilds || state.cardSerialBuilds || {}, memo)));
   }
 
   // Fill in builds for cards the player already completed before their builds

@@ -18,6 +18,8 @@ const ACHIEVEMENTS = [
   { id: "calculator", title: "מחשב", description: "השלמת את משימות החשבון של פרק 2.5.", category: "progress" },
   { id: "arith-engineer", title: "מהנדס חשבון", description: "השלמת את כל הכרטיסים של פרק 2.5.", category: "progress" },
   { id: "alu-engineer", title: "מהנדס ALU", description: "השלמת את כל הכרטיסים של פרק 2.6.", category: "progress" },
+  { id: "memory-engineer", title: "מהנדס רגיסטרים", description: "השלמת את כל הכרטיסים של פרק 3.2.", category: "progress" },
+  { id: "ram-engineer", title: "מהנדס RAM", description: "השלמת את כל הכרטיסים של פרק 3.3.", category: "progress" },
   // Special: side accomplishments and mastery.
   { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
   { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
@@ -26,6 +28,8 @@ const ACHIEVEMENTS = [
   { id: "precise-bus-engineer", title: "מהנדס בסים מדויק", description: "השלמת את כל המשימות של פרק 2.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-arith-engineer", title: "מהנדס חשבון מדויק", description: "השלמת את כל הכרטיסים של פרק 2.5 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-alu-engineer", title: "מהנדס ALU מדויק", description: "השלמת את כל הכרטיסים של פרק 2.6 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-memory-engineer", title: "מהנדס רגיסטרים מדויק", description: "השלמת את כל הכרטיסים של פרק 3.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-ram-engineer", title: "מהנדס RAM מדויק", description: "השלמת את כל הכרטיסים של פרק 3.3 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
   { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
   { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
@@ -57,7 +61,9 @@ const MEDAL_CHAPTERS = [
   { num: "2.3", nick: "ניתובים", cards: (typeof ROUTING_TASK_DEFS !== "undefined" ? ROUTING_TASK_DEFS : []) },
   { num: "2.4", nick: "בסים", cards: (typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : []) },
   { num: "2.5", nick: "חשבון", cards: (typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : []) },
-  { num: "2.6", nick: "ALU", cards: (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []) }
+  { num: "2.6", nick: "ALU", cards: (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []) },
+  { num: "3.2", nick: "רגיסטרים", cards: (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []) },
+  { num: "3.3", nick: "RAM", cards: (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []) }
 ];
 
 const MEDAL_ACHIEVEMENTS = [];

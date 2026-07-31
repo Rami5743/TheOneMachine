@@ -64,7 +64,13 @@ const MEDAL_STAGE_EMBLEMS = {
   "2.5": (ink) => // arithmetic: a plus
     `<path d="M40 46 V58 M34 52 H46" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`,
   "2.6": (ink) => // ALU: the notched trapezoid schematic symbol
-    `<path d="M34 46 L39 46 L40 48.6 L41 46 L46 46 L43 58 L37 58 Z" fill="${ink}"/>`
+    `<path d="M34 46 L39 46 L40 48.6 L41 46 L46 46 L43 58 L37 58 Z" fill="${ink}"/>`,
+  "3.2": (ink) => // registers: a D flip-flop box with a clock-edge triangle
+    `<rect x="34" y="46" width="12" height="12" rx="1.4" fill="none" stroke="${ink}" stroke-width="1.8"/>
+     <path d="M34 51 L37 52.4 L34 53.8 Z" fill="${ink}"/>`,
+  "3.3": (ink) => // RAM: a memory grid (2×2 cells)
+    `<rect x="34" y="46" width="12" height="12" rx="1" fill="none" stroke="${ink}" stroke-width="1.8"/>
+     <path d="M40 46 V58 M34 52 H46" stroke="${ink}" stroke-width="1.4"/>`
 };
 
 // A laurel wreath framing the medal from below — marks the "all cards" (יסודי /
@@ -158,6 +164,29 @@ function renderAchievementIcon(id) {
         `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
            <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
            <path d="M33 21 L37.5 21 L40 25 L42.5 21 L47 21 L43.5 35 L36.5 35 Z" fill="#fffdf3" stroke="#1d2c44" stroke-width="1.4" stroke-linejoin="round"/>` });
+    case "memory-engineer": // teal cup, a D flip-flop / register box with a clock notch (chapter 3.2)
+      return achievementTrophy(id, { top: "#63c7c0", bot: "#0f6b66", rim: "#0a4f4b", base: "#0f6b66", handle: "#1c918a", emblem:
+        `<rect x="31" y="20" width="18" height="18" rx="2.4" fill="#fffdf3" stroke="#0a4f4b" stroke-width="1.6"/>
+           <path d="M31 27 L36 29.5 L31 32 Z" fill="#0f6b66"/>
+           <text x="42" y="26" font-size="8" font-weight="900" text-anchor="middle" fill="#0f6b66" font-family="Arial,sans-serif">D</text>
+           <text x="42" y="35" font-size="8" font-weight="900" text-anchor="middle" fill="#0f6b66" font-family="Arial,sans-serif">Q</text>` });
+    case "precise-memory-engineer": // teal cup, register box on a bullseye (3.2 first-try clean)
+      return achievementTrophy(id, { top: "#63c7c0", bot: "#0c5a55", rim: "#f3d27a", base: "#0c5a55", handle: "#1c918a", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="34" y="22" width="12" height="12" rx="1.6" fill="#fffdf3" stroke="#0a4f4b" stroke-width="1.4"/>
+           <path d="M34 25.5 L37 27.5 L34 29.5 Z" fill="#0c5a55"/>` });
+    case "ram-engineer": // violet cup, a memory grid / chip (chapter 3.3)
+      return achievementTrophy(id, { top: "#b79cf0", bot: "#4a2a86", rim: "#341f60", base: "#4a2a86", handle: "#6a43ad", emblem:
+        `<rect x="31" y="20" width="18" height="18" rx="2" fill="#fffdf3" stroke="#341f60" stroke-width="1.6"/>
+           <path d="M40 20 V38 M31 29 H49" stroke="#4a2a86" stroke-width="1.6"/>
+           <g fill="#4a2a86"><rect x="34.5" y="23.5" width="3" height="3" rx="0.6"/><rect x="42.5" y="23.5" width="3" height="3" rx="0.6"/><rect x="34.5" y="31.5" width="3" height="3" rx="0.6"/><rect x="42.5" y="31.5" width="3" height="3" rx="0.6"/></g>` });
+    case "precise-ram-engineer": // violet cup, memory grid on a bullseye (3.3 first-try clean)
+      return achievementTrophy(id, { top: "#b79cf0", bot: "#3f2475", rim: "#f3d27a", base: "#3f2475", handle: "#6a43ad", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="34" y="22" width="12" height="12" rx="1" fill="#fffdf3" stroke="#341f60" stroke-width="1.4"/>
+           <path d="M40 22 V34 M34 28 H46" stroke="#4a2a86" stroke-width="1.2"/>` });
     case "equipment-destroyer": // burnt cup, cracked, with a flame
       return achievementTrophy(id, { top: "#c8492a", bot: "#5f1808", rim: "#3a1206", base: "#4a1608", handle: "#7a2410",
         emblem: `<path d="M40 19 C44 23 44 28 41 31 C43 31 45.5 29 45.5 26 C49 30 48 37 40 38 C32 37 32 30 35.5 27 C35.5 29.5 38 30.5 39 29.5 C36.5 26 38 22 40 19 Z" fill="#ffb038"/><path d="M40 24 C42 27 41.5 30 40 32 C38.5 30 38 27 40 24 Z" fill="#ff6a1e"/>`,
