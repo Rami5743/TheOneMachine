@@ -11255,6 +11255,16 @@
       return enterClockedTable();
     }
 
+    // The very last slide of 3.3: "המשך" does not leave the panel — it opens the
+    // closing message (what replaced the punched tape, and where RAM sits beside
+    // long-term storage), and dismissing that says "המשך יבוא...". This is the
+    // end of the story so far, so the player stays put rather than being dropped
+    // on the chapters screen.
+    if (state.screen === "story"
+        && String(currentPanel()?.image || "").includes("panel145_chapter_3_3_ram_volatile")) {
+      return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY }, infoDialog: null });
+    }
+
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
 
     if (state.panelIndex < scene.panels.length - 1) {
@@ -15043,6 +15053,16 @@
     "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
   ];
 
+  // The last word of chapter 3.3, after von Neumann's closing slides: what
+  // replaced the punched tape, and where RAM still sits beside long-term storage.
+  const RAM_OUTRO_PAGES = [
+    "הסלילים המנוקבים נעלמו בשנת השבעים. הם הוחלפו באמצאים אחרים לשמירת נתונים לטווח ארוך. אמצאים אלו אפשרו כתיבה וקריאה נוחה, אבל גם הם התבססו באופן חלקי על פעולה מכנית ולא אפשרו גישה ישירה, והתאימו יותר לקריאה וכתיבה של רצפים ערוכים של ביטים.",
+    "רק במהלך המאה ה-21 התחילו להשתמש באופן שיטתי באמצעי זיכרון לטווח ארוך שמאפשרים גישה ישירה, ולא דורשים קריאת רצפים. אולם, עדיין אנחנו מבדילים בין ה-RAM שהוא זיכרון נדיף קטן ויקר יחסית אך מהיר מאוד ובין זכרונות לטווח ארוך (למשל דיסק קשיח) שזולים וגדולים יותר, אינם נדיפים אך איטיים יותר."
+  ];
+  // The key the paged dialog carries for those pages — not a card, so it is not
+  // one of the RAM task ids.
+  const RAM_OUTRO_KEY = "ram-outro";
+
   // The after-completion message pages for a card (null if it has none). ALU0 and
   // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
   // paged dialog, once the build (or its walkthrough) is behind the learner.
@@ -15050,6 +15070,7 @@
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
     if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
+    if (taskId === RAM_OUTRO_KEY) return RAM_OUTRO_PAGES;
     return null;
   }
 
@@ -15062,9 +15083,11 @@
     const pages = aluMessagePagesFor(state.aluIntroDialog.taskId || "ALU0") || ALU0_COMPLETE_PAGES;
     const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
     const isLast = page >= pages.length - 1;
+    const taskId = state.aluIntroDialog.taskId || "ALU0";
+    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון" : isRamTask(taskId) ? "על הרגיסטר" : "על ה-ALU";
     return `
       <div class="dialog-overlay" role="presentation">
-        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="על ה-ALU">
+        <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="${esc(label)}">
           <p class="dialog-paragraph">${esc(pages[page])}</p>
           <div class="dialog-actions">
             <span class="alu-intro-progress" aria-hidden="true">${page + 1} / ${pages.length}</span>
@@ -18706,6 +18729,11 @@
       // menu, closing it returns to the menu instead of the ALU worktable note.
       if (state.aluIntroDialog?.returnToExplanations) {
         return setState({ screen: "explanations", aluIntroDialog: null, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1 }, false);
+      }
+      // The 3.3 closing message is the end of the story so far — the game stops
+      // there, so say so instead of dropping the player back into a note.
+      if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY) {
+        return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
       }
       // A RAM message belongs to the 3.3 note, not the 2.6 one.
       if (isRamTask(state.aluIntroDialog?.taskId)) return setState({ aluIntroDialog: null, ramNoteList: true });
