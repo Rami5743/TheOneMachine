@@ -1547,8 +1547,9 @@
 
   // Player settings. Language is fixed to Hebrew for now (the only option).
   // gender/age are stored empty by default; the *effective* behaviour treats an
-  // empty gender as "בן" and an empty/invalid age as 13. Settings do not affect
-  // anything yet — that is handled later.
+  // empty gender as "בן" and an empty/invalid age as 12 (effectiveAge). That
+  // default is BEHAVIOUR only — the settings screen shows the age box empty
+  // until the player types an age, never a pre-filled or greyed 12.
   function normalizedSettings(raw) {
     const s = raw && typeof raw === "object" ? raw : {};
     return {
@@ -4876,7 +4877,7 @@
             <label class="settings-field">
               <span class="settings-label">גיל</span>
               <input class="settings-input" type="number" min="1" step="1" inputmode="numeric"
-                     data-setting="age" value="${esc(settings.age)}" placeholder="12" />
+                     data-setting="age" value="${esc(settings.age)}" />
             </label>
             <label class="settings-field">
               <span class="settings-label">איך אני עושה את הלומדה?</span>
