@@ -12955,6 +12955,10 @@
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
     getTab: () => (state.rankingsTab === "speed" || state.rankingsTab === "design" ? state.rankingsTab : "efficiency"),
+    // The 2.3/2.4 intermediate cards (DMux4Way, Mux4Way16) live in MULTIBIT_TASKS
+    // inside this IIFE, so rankings.js can't see them as a global — hand them in.
+    // (Lazy: only read at render time, well after the const is initialised.)
+    getMultibitCards: () => (typeof MULTIBIT_TASKS !== "undefined" ? MULTIBIT_TASKS : []),
     // Cross-user leaderboard, per metric dimension ("counts" = efficiency,
     // "serial" = speed). Filled from the cloud once the backend exists.
     leaderboardFor: (cardId, dim) => (typeof APP !== "undefined" && APP && APP.leaderboardFor ? APP.leaderboardFor(cardId, dim) : null),
@@ -13055,30 +13059,6 @@
   // circuit) = that card's recursive count; anything else (splitter, source,
   // lamp, frame, converter …) = 0. Returns null if a placed card has no known
   // build (so the whole build is "undefined"). A cycle also yields null.
-  // The REFERENCE (solution) implementation of a built-in card, used as a
-  // fallback count-source when the player has no stored build for it. This is the
-  // case for INTERMEDIATE prerequisite cards a ranked card is built on but which
-  // are not themselves ranked (e.g. RAM4 places gate-Dmux4way / gate-Mux4way16,
-  // and those two are real cards the player built but were never recorded, so
-  // without this fallback every RAM card's recursive count would collapse to
-  // null and vanish from the rankings). Memoized; user cards have no canonical
-  // reference and return null.
-  const __refWorkspaceCache = new Map();
-  function cardReferenceWorkspace(cardKey) {
-    if (typeof cardKey !== "string" || cardKey === "Nand" || cardKey === "nand") return null;
-    if (cardKey.startsWith(SAVED_CARD_PREFIX)) return null;
-    if (__refWorkspaceCache.has(cardKey)) return __refWorkspaceCache.get(cardKey);
-    let ws = null;
-    try {
-      const w = solutionWorkspaceForTask(cardKey, 0);
-      if (w && Array.isArray(w.components)) {
-        ws = { components: w.components, wires: Array.isArray(w.wires) ? w.wires : [] };
-      }
-    } catch (e) { ws = null; }
-    __refWorkspaceCache.set(cardKey, ws);
-    return ws;
-  }
-
   function cardBuildComponents(cardKey) {
     // cardKey is either a task id ("and", "Mux" …) or a "usercard-<n>" type.
     if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
@@ -13086,11 +13066,7 @@
       return card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
     }
     const build = (state.cardBuilds || {})[cardKey];
-    if (build && Array.isArray(build.components)) return build.components;
-    // No recorded build → fall back to the card's reference solution so an
-    // unranked prerequisite still resolves (and its dependents keep a count).
-    const ref = cardReferenceWorkspace(cardKey);
-    return ref ? ref.components : null;
+    return build && Array.isArray(build.components) ? build.components : null;
   }
 
   function cardRecursiveCount(cardKey, memo, stack) {
@@ -13162,8 +13138,6 @@
     } else {
       const b = builds[cardKey];
       comps = b && Array.isArray(b.components) ? b.components : null;
-      // Unranked prerequisite with no recorded build → use its reference solution.
-      if (!comps) { const ref = cardReferenceWorkspace(cardKey); comps = ref ? ref.components : null; }
     }
     if (!comps) return null;
     stack.add(cardKey);
@@ -13324,8 +13298,6 @@
     } else {
       const b = builds[cardKey];
       if (b) { comps = Array.isArray(b.components) ? b.components : null; wires = b.wires || []; }
-      // Unranked prerequisite with no recorded build → use its reference solution.
-      if (!comps) { const ref = cardReferenceWorkspace(cardKey); if (ref) { comps = ref.components; wires = ref.wires; } }
     }
     if (!comps) { memo.set(cardKey, null); return null; }
     stack.add(cardKey);
@@ -13351,35 +13323,6 @@
   function computeBuildSerial(build, serialBuilds) {
     const memo = new Map();
     return timingScore(computeTimingProfile(build, (sub) => cardTimingWithBuilds(sub, serialBuilds || state.cardSerialBuilds || {}, memo)));
-  }
-
-  // Fill in builds for cards the player already completed before their builds
-  // were stored (a completed card can no longer be re-checked). We seed the
-  // reference solution as that card's build; a later live rebuild replaces it
-  // with the player's own (leaner) circuit.
-  function backfillCompletedCardCounts() {
-    const cards = (__rankings && __rankings.rankingCards) ? __rankings.rankingCards() : [];
-    const builds = { ...(state.cardBuilds || {}) };
-    let changed = false;
-    for (const card of cards) {
-      if (card.id === "Nand" || builds[card.id]) continue;
-      if (!taskCompleted(card.id)) continue;
-      let ws = null;
-      try { ws = solutionWorkspaceForTask(card.id, 0); } catch (e) { ws = null; }
-      if (!ws || !Array.isArray(ws.components)) continue;
-      builds[card.id] = { components: clonePlain(ws.components), wires: clonePlain(ws.wires || []) };
-      changed = true;
-    }
-    if (!changed) return;
-    // Seed the serial track from the same reference builds (only where empty).
-    const serialBuilds = { ...(state.cardSerialBuilds || {}) };
-    for (const id of Object.keys(builds)) if (!serialBuilds[id]) serialBuilds[id] = builds[id];
-    setState({
-      cardBuilds: builds,
-      cardSerialBuilds: serialBuilds,
-      cardNandCounts: recomputeAllCardCounts(builds),
-      cardSerialCounts: recomputeAllCardSerial(serialBuilds)
-    }, false);
   }
 
   // A user card has no spec check of its own, so we treat it as if it were opened
@@ -19532,9 +19475,11 @@
     if (action === "about") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "about" });
     if (action === "achievements") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "achievements" });
     if (action === "open-rankings") {
-      backfillCompletedCardCounts(); // seed reference builds for already-completed cards
-      // Recompute both metrics from the current builds + user cards so any
-      // improvement to a sub-card (or an edited user card) is reflected.
+      // A card is ranked ONLY by the player's own recorded build — never the
+      // standard reference solution. A card the player never solved has no build
+      // and therefore no score. Recompute both metrics from the stored builds +
+      // user cards so any improvement to a sub-card (or an edited user card) is
+      // reflected upward.
       setState({ cardNandCounts: recomputeAllCardCounts(), cardSerialCounts: recomputeAllCardSerial() }, false);
       if (typeof APP !== "undefined" && APP && APP.refreshLeaderboard) APP.refreshLeaderboard();
       // Entering from the achievements menu always lands on the efficiency tab.

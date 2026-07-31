@@ -16,7 +16,7 @@
 //   (speed), written by app.js. Cross-user rank/record come from
 //   leaderboardFor(cardId, dim) with dim "counts"|"serial".
 
-function createRankings({ getState, esc, adaptGender, topbar, isRegistered, leaderboardFor, leaderboardRows, getNickname, getTab }) {
+function createRankings({ getState, esc, adaptGender, topbar, isRegistered, leaderboardFor, leaderboardRows, getNickname, getTab, getMultibitCards }) {
   const DEFAULT_NICKNAME = "ללא שם";
 
   // Per-tab configuration: which stored map holds the count, which leaderboard
@@ -70,6 +70,9 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     push(typeof TASK_DEFS !== "undefined" ? TASK_DEFS : []);
     push(typeof ROUTING_TASK_DEFS !== "undefined" ? ROUTING_TASK_DEFS : []);
     push(typeof BUS_TASK_DEFS !== "undefined" ? BUS_TASK_DEFS : []);
+    // The 2.3/2.4 intermediate cards (DMux4Way, Mux4Way16) — real cards the
+    // player builds and which the RAM cards are built on. Handed in from app.js.
+    push(typeof getMultibitCards === "function" ? getMultibitCards() : []);
     push(typeof ARITH_TASKS !== "undefined" ? ARITH_TASKS : []);
     push(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []);
     push(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []); // 3.2 registers
