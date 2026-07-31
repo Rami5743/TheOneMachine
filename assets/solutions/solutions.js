@@ -652,7 +652,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "alu0",
         "type": "gate-ALU0",
-        "x": 595,
+        "x": 605.2,
         "y": 360
       },
       {
