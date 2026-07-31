@@ -2270,7 +2270,9 @@
     toolCategoryOf, toolGroupsAvailable, toolGroupCollapsed,
     // The palette names a tool from its task def; the wide-routing cards (2.4)
     // live in MULTIBIT_TASKS, so the lookup falls through to there as well.
-    busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type))), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+    busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), // A 3.4 ports card counts as a memory card here too — IPorts holds nothing,
+    // but it belongs with its siblings in the palette, not among the gates.
+    isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type)) || WORKSPACE_COMPONENT_DEFS[type]?.portsCard), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
@@ -3247,10 +3249,24 @@
     // next one out of, exactly like every chapter before it.
     { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
+  // The order every card appears in the GAME, flattened once from the groups.
+  // The palette is sorted by it, so a card always sits in the same place no
+  // matter which order the learner happened to build things in.
+  function canonicalToolOrder() {
+    const order = new Map();
+    for (const group of GATE_TOOL_GROUPS) {
+      for (const id of group.ids()) if (!order.has(id)) order.set(id, order.size);
+    }
+    return order;
+  }
+
   function toolbarGateToolIds() {
     if (isNandPresentationWorkspace()) return [];
+    const order = canonicalToolOrder();
+    const byGame = (ids) => [...new Set(ids)]
+      .sort((a, b) => (order.has(a) ? order.get(a) : 1e6) - (order.has(b) ? order.get(b) : 1e6));
     const here = chapterIndexById(state.chapterId);
-    if (!Number.isInteger(here) || here < 0) return completedTaskIds();
+    if (!Number.isInteger(here) || here < 0) return byGame(completedTaskIds());
     const out = [];
     for (const group of GATE_TOOL_GROUPS) {
       const gi = chapterIndexById(group.chapter);
@@ -3259,7 +3275,7 @@
       else if (gi === here) out.push(...group.ids().filter(taskCompleted)); // this chapter: only what is built
       // later chapters: nothing
     }
-    return out;
+    return byGame(out);
   }
 
   // ROUTING_TASK_DEFS moved to js/app-data.js
@@ -12724,7 +12740,13 @@
         label: (p.label != null ? p.label : prev.label) || "",
         // Short caption drawn on the frame stub (e.g. "ng"/"nz" for ALU4's
         // bottom outputs); carried through from the JSON pin.
-        caption: (p.caption != null ? p.caption : prev.caption) || ""
+        caption: (p.caption != null ? p.caption : prev.caption) || "",
+        // WHICH edge of the frame the pin belongs to. The JSON carries geometry,
+        // not intent, so the def's own answer survives — otherwise a side pin
+        // more than 150 from the centre line (the 3.4 frames have six down each
+        // side) would be re-read as poking out of the bottom, and drawn pointing
+        // down with its caption on top of its neighbour's.
+        ...(prev.edge ? { edge: prev.edge } : {})
       };
     }
     def.__jsonApplied = true;
