@@ -13,5 +13,6 @@
 // hosts (localhost, 127.*, 192.168.*, …) are ignored automatically, so testing
 // never pollutes the stats.
 const ANALYTICS_CONFIG = {
-  GOATCOUNTER_CODE: ""
+  // GoatCounter account "TheOneMachine" → https://theonemachine.goatcounter.com
+  GOATCOUNTER_CODE: "theonemachine"
 };
