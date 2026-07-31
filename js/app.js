@@ -877,7 +877,7 @@
     slots: 4,
     portsCard: true,
     pins: portsGatePins(2, false),
-    bounds: { left: 90, right: 110, top: 280, bottom: 240 }
+    bounds: { left: 90, right: 110, top: 300, bottom: 260 }
   };
 
   // Ports and RAM share OPorts' shape, with two additions: four device buses
@@ -912,9 +912,9 @@
 
   function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -180, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -140, direction: "in", width: 16, label: "כניסת הדאטה" },
-      in2: { x: 0, y: -240, direction: "in", width: 1, label: "כניסת הבקרה" },
+      in3: { x: -88, y: -220, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -180, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -260, direction: "in", width: 1, label: "כניסת הבקרה" },
       out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
         `outP${i + 1}`, { x: 92, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
@@ -956,7 +956,7 @@
       portInputs: 4,
       portsCard: true,
       pins: portsGatePins(spec.addressWidth),
-      bounds: { left: 90, right: 110, top: 280, bottom: 240 }
+      bounds: { left: 90, right: 110, top: 300, bottom: 260 }
     };
   }
 
@@ -1004,7 +1004,7 @@
       in4: { x: -88, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
       out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
-    bounds: { left: 90, right: 110, top: 230, bottom: 240 }
+    bounds: { left: 90, right: 110, top: 250, bottom: 260 }
   };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
@@ -5640,7 +5640,8 @@
           components: ["read-sel", "ip"],
           terminals: ["task-card-1.outputInt1"],
           wires: [wireKey("op.out", "read-sel.in1"), wireKey("ip.out", "read-sel.in2"),
-                  wireKey("addr-split.leg1", "read-sel.in3"), wireKey("read-sel.out", "task-card-1.outputInt1")]
+                  wireKey("addr-split.leg1", "sel-nail.in"), wireKey("sel-nail.out", "read-sel.in3"),
+                  wireKey("read-sel.out", "task-card-1.outputInt1")]
         }
       },
       {

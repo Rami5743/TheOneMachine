@@ -4092,20 +4092,20 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "mem-1",
         "type": "gate-Register",
-        "x": 670,
-        "y": 365
+        "x": 710,
+        "y": 330
       },
       {
         "id": "mem-2",
         "type": "gate-Register",
-        "x": 640,
-        "y": 420
+        "x": 660,
+        "y": 385
       },
       {
         "id": "mem-3",
         "type": "gate-Register",
-        "x": 600,
-        "y": 490
+        "x": 620,
+        "y": 445
       },
       {
         "id": "mem-4",
@@ -4117,19 +4117,19 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "write-dmux",
         "type": "gate-Dmux4way",
         "x": 480,
-        "y": 315
+        "y": 255
       },
       {
         "id": "read-mux",
         "type": "gate-Mux4way16",
-        "x": 935,
+        "x": 960,
         "y": 290
       },
       {
         "id": "addr-nail-3",
         "type": "nail",
-        "x": 935,
-        "y": 185
+        "x": 960,
+        "y": 190
       }
     ],
     "wires": [
@@ -4596,8 +4596,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-split",
         "type": "splitter",
-        "x": 400,
-        "y": 300,
+        "x": 390,
+        "y": 220,
         "outputs": 2,
         "legWidths": [
           2,
@@ -4608,14 +4608,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 530,
-        "y": 215
+        "x": 645,
+        "y": 235
       },
       {
         "id": "op",
         "type": "gate-OPorts",
         "x": 690,
-        "y": 340
+        "y": 390
       },
       {
         "id": "ip",
@@ -4626,8 +4626,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 905,
-        "y": 290
+        "x": 895,
+        "y": 385
+      },
+      {
+        "id": "sel-nail",
+        "type": "nail",
+        "x": 895,
+        "y": 203
       }
     ],
     "wires": [
@@ -4669,6 +4675,10 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "addr-split.leg1",
+        "b": "sel-nail.in"
+      },
+      {
+        "a": "sel-nail.out",
         "b": "read-sel.in3"
       },
       {
@@ -4930,8 +4940,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-split",
         "type": "splitter",
-        "x": 365,
-        "y": 286,
+        "x": 360,
+        "y": 220,
         "outputs": 2,
         "legWidths": [
           10,
@@ -4942,8 +4952,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "low-split",
         "type": "splitter",
-        "x": 455,
-        "y": 419,
+        "x": 470,
+        "y": 360,
         "outputs": 2,
         "legWidths": [
           3,
@@ -4954,26 +4964,26 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 495,
-        "y": 296
+        "x": 520,
+        "y": 250
       },
       {
         "id": "big",
         "type": "gate-RAM1024",
-        "x": 610,
-        "y": 361
+        "x": 650,
+        "y": 335
       },
       {
         "id": "ports",
         "type": "gate-Ports",
-        "x": 535,
-        "y": 571
+        "x": 560,
+        "y": 555
       },
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 815,
-        "y": 408
+        "x": 900,
+        "y": 230
       }
     ],
     "wires": [

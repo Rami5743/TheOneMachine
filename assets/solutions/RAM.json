@@ -216,8 +216,8 @@
     {
       "id": "addr-split",
       "type": "splitter",
-      "x": 365,
-      "y": 286,
+      "x": 360,
+      "y": 220,
       "outputs": 2,
       "legWidths": [
         10,
@@ -228,8 +228,8 @@
     {
       "id": "low-split",
       "type": "splitter",
-      "x": 455,
-      "y": 419,
+      "x": 470,
+      "y": 360,
       "outputs": 2,
       "legWidths": [
         3,
@@ -240,26 +240,26 @@
     {
       "id": "write-sel",
       "type": "gate-DMux",
-      "x": 495,
-      "y": 296
+      "x": 520,
+      "y": 250
     },
     {
       "id": "big",
       "type": "gate-RAM1024",
-      "x": 610,
-      "y": 361
+      "x": 650,
+      "y": 335
     },
     {
       "id": "ports",
       "type": "gate-Ports",
-      "x": 535,
-      "y": 571
+      "x": 560,
+      "y": 555
     },
     {
       "id": "read-sel",
       "type": "gate-MUX16",
-      "x": 815,
-      "y": 408
+      "x": 900,
+      "y": 230
     }
   ],
   "wires": [

@@ -6,7 +6,7 @@
 <title>עורך פתרונות — המכונה האחת</title>
 <!-- Reuse the game's own component styling + markup so the editor looks identical -->
 <link rel="stylesheet" href="css/styles.css?v=v166-tool-groups-2" />
-<script src="js/component-visuals.js?v=v75-port-pin-room-1"></script>
+<script src="js/component-visuals.js?v=v76-data-faces-out-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
 <script src="assets/solutions/solutions.js?v=v52-oports-onenail-1"></script>
 <style>
@@ -175,14 +175,14 @@ const PINS = {
   "gate-RAM1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
   // 3.4 ports: address + data + (for Ports/RAM) four device buses down the left,
   // the data output + four port buses down the right, control on top.
-  "gate-OPorts":{ in3:{x:-88,y:-180,w:2}, in1:{x:-88,y:-140,w:16}, in2:{x:0,y:-240,w:1}, out:{x:92,y:-180,w:16},
+  "gate-OPorts":{ in3:{x:-88,y:-220,w:2}, in1:{x:-88,y:-180,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-180,w:16},
     outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16} },
   "gate-IPorts":{ in5:{x:-88,y:-180,w:2}, in1:{x:-88,y:8,w:16}, in2:{x:-88,y:68,w:16},
     in3:{x:-88,y:128,w:16}, in4:{x:-88,y:188,w:16}, out:{x:92,y:-180,w:16} },
-  "gate-Ports":{ in3:{x:-88,y:-180,w:3}, in1:{x:-88,y:-140,w:16}, in2:{x:0,y:-240,w:1}, out:{x:92,y:-180,w:16},
+  "gate-Ports":{ in3:{x:-88,y:-220,w:3}, in1:{x:-88,y:-180,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-180,w:16},
     outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
     inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
-  "gate-RAM":{ in3:{x:-88,y:-180,w:11}, in1:{x:-88,y:-140,w:16}, in2:{x:0,y:-240,w:1}, out:{x:92,y:-180,w:16},
+  "gate-RAM":{ in3:{x:-88,y:-220,w:11}, in1:{x:-88,y:-180,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-180,w:16},
     outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
     inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.

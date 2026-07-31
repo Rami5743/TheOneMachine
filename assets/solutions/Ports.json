@@ -216,8 +216,8 @@
     {
       "id": "addr-split",
       "type": "splitter",
-      "x": 400,
-      "y": 300,
+      "x": 390,
+      "y": 220,
       "outputs": 2,
       "legWidths": [
         2,
@@ -228,14 +228,14 @@
     {
       "id": "write-sel",
       "type": "gate-DMux",
-      "x": 530,
-      "y": 215
+      "x": 645,
+      "y": 235
     },
     {
       "id": "op",
       "type": "gate-OPorts",
       "x": 690,
-      "y": 340
+      "y": 390
     },
     {
       "id": "ip",
@@ -246,8 +246,14 @@
     {
       "id": "read-sel",
       "type": "gate-MUX16",
-      "x": 905,
-      "y": 290
+      "x": 895,
+      "y": 385
+    },
+    {
+      "id": "sel-nail",
+      "type": "nail",
+      "x": 895,
+      "y": 203
     }
   ],
   "wires": [
@@ -289,6 +295,10 @@
     },
     {
       "a": "addr-split.leg1",
+      "b": "sel-nail.in"
+    },
+    {
+      "a": "sel-nail.out",
       "b": "read-sel.in3"
     },
     {
