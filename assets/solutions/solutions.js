@@ -3937,5 +3937,475 @@ window.EMBEDDED_SOLUTIONS = {
     "check": {
       "note": "כרטיס מתוזמן: אין טבלת אמת. כותבים ערכים לכמה כתובות לאורך פעימות שעון וקוראים אותם בחזרה — הבדיקה מסתכלת רק על ההתנהגות מבחוץ."
     }
+  },
+  "OPorts": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "OPorts",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-OPorts",
+      "x": 660,
+      "y": 440,
+      "frameW": 800,
+      "frameH": 560,
+      "pins": [
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": -70,
+          "w": 2,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": -70,
+          "w": 2,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 110,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הדאטה"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 110,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt2",
+          "x": -217,
+          "y": -350,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת הבקרה"
+        },
+        {
+          "id": "inputInt2",
+          "x": -217,
+          "y": -210,
+          "w": 1,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": -140,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": -140,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        },
+        {
+          "id": "outputInt2",
+          "x": 340,
+          "y": -50,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt2",
+          "x": 460,
+          "y": -50,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט 00"
+        },
+        {
+          "id": "outputInt3",
+          "x": 340,
+          "y": 10,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt3",
+          "x": 460,
+          "y": 10,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט 01"
+        },
+        {
+          "id": "outputInt4",
+          "x": 340,
+          "y": 70,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt4",
+          "x": 460,
+          "y": 70,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט 10"
+        },
+        {
+          "id": "outputInt5",
+          "x": 340,
+          "y": 130,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt5",
+          "x": 460,
+          "y": 130,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט 11"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 90,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "mem-1",
+        "type": "gate-Register",
+        "x": 740,
+        "y": 335
+      },
+      {
+        "id": "mem-2",
+        "type": "gate-Register",
+        "x": 695,
+        "y": 430
+      },
+      {
+        "id": "mem-3",
+        "type": "gate-Register",
+        "x": 630,
+        "y": 540
+      },
+      {
+        "id": "mem-4",
+        "type": "gate-Register",
+        "x": 525,
+        "y": 645
+      },
+      {
+        "id": "write-dmux",
+        "type": "gate-Dmux4way",
+        "x": 480,
+        "y": 325
+      },
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 905,
+        "y": 290
+      },
+      {
+        "id": "addr-nail-1",
+        "type": "nail",
+        "x": 320,
+        "y": 180
+      },
+      {
+        "id": "addr-nail-2",
+        "type": "nail",
+        "x": 355,
+        "y": 300
+      },
+      {
+        "id": "addr-nail-3",
+        "type": "nail",
+        "x": 905,
+        "y": 180
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-nail-1.in"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "addr-nail-2.in"
+      },
+      {
+        "a": "addr-nail-1.out",
+        "b": "addr-nail-3.in"
+      },
+      {
+        "a": "addr-nail-3.out",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "addr-nail-2.out",
+        "b": "write-dmux.in2"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "write-dmux.in1"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-1.in1"
+      },
+      {
+        "a": "write-dmux.out1",
+        "b": "mem-1.in2"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-2.in1"
+      },
+      {
+        "a": "write-dmux.out2",
+        "b": "mem-2.in2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-3.in1"
+      },
+      {
+        "a": "write-dmux.out3",
+        "b": "mem-3.in2"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "mem-4.in1"
+      },
+      {
+        "a": "write-dmux.out4",
+        "b": "mem-4.in2"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "mem-1.out",
+        "b": "task-card-1.outputInt2"
+      },
+      {
+        "a": "mem-2.out",
+        "b": "task-card-1.outputInt3"
+      },
+      {
+        "a": "mem-3.out",
+        "b": "task-card-1.outputInt4"
+      },
+      {
+        "a": "mem-4.out",
+        "b": "task-card-1.outputInt5"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: כותבים ערכים לכל ארבע הכתובות וקוראים בחזרה, ובכל שלב גם ארבעת בסי הפורטים חייבים להראות את הרגיסטרים שלהם."
+    }
+  },
+  "IPorts": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "IPorts",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-IPorts",
+      "x": 660,
+      "y": 440,
+      "frameW": 800,
+      "frameH": 560,
+      "pins": [
+        {
+          "id": "inputExt5",
+          "x": -460,
+          "y": -140,
+          "w": 2,
+          "dir": "in",
+          "label": "כניסת הכתובת"
+        },
+        {
+          "id": "inputInt5",
+          "x": -340,
+          "y": -140,
+          "w": 2,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": -50,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט 00"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": -50,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt2",
+          "x": -460,
+          "y": 10,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט 01"
+        },
+        {
+          "id": "inputInt2",
+          "x": -340,
+          "y": 10,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": 70,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט 10"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": 70,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "inputExt4",
+          "x": -460,
+          "y": 130,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט 11"
+        },
+        {
+          "id": "inputInt4",
+          "x": -340,
+          "y": 130,
+          "w": 16,
+          "dir": "out",
+          "label": ""
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 0,
+          "w": 16,
+          "dir": "in",
+          "label": ""
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 0,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאה"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 90,
+        "y": 90
+      }
+    ],
+    "components": [
+      {
+        "id": "read-mux",
+        "type": "gate-Mux4way16",
+        "x": 760,
+        "y": 440
+      },
+      {
+        "id": "addr-nail",
+        "type": "nail",
+        "x": 760,
+        "y": 250
+      }
+    ],
+    "wires": [
+      {
+        "a": "task-card-1.inputInt5",
+        "b": "addr-nail.in"
+      },
+      {
+        "a": "addr-nail.out",
+        "b": "read-mux.in5"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "read-mux.in1"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "read-mux.in2"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "read-mux.in3"
+      },
+      {
+        "a": "task-card-1.inputInt4",
+        "b": "read-mux.in4"
+      },
+      {
+        "a": "read-mux.out",
+        "b": "task-card-1.outputInt1"
+      }
+    ],
+    "check": {
+      "note": "כרטיס צירופי: מזינים ארבעה ערכים לפורטים ובוחרים כל כתובת בתורה."
+    }
   }
 };

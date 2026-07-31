@@ -835,7 +835,9 @@
   // under the data output, each captioned with its address.
   const PORTS_FRAME_SIZE = { w: 800, h: 560 };
   const PORT_OUT_CAPTIONS = ["00", "01", "10", "11"];
-  const portFrameOutY = (i) => 90 + i * 60;
+  // Five outputs down the right edge, all inside the +-150 the shell allows:
+  // the data output on its own, then the four port buses under a wider gap.
+  const portFrameOutY = (i) => -50 + i * 60;
 
   WORKSPACE_COMPONENT_DEFS["taskCard-OPorts"] = {
     label: "מסגרת OPorts",
@@ -852,8 +854,8 @@
       inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      outputInt1: { x: 340, y: -140, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: -140, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
         [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
         [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap }]
@@ -897,11 +899,11 @@
     routingMultibit: true,
     frameSize: { ...PORTS_FRAME_SIZE },
     pins: {
-      inputExt5: { x: -460, y: -190, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt5: { x: -340, y: -190, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
+      inputExt5: { x: -460, y: -140, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
+      inputInt5: { x: -340, y: -140, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`inputExt${i + 1}`, { x: -460, y: -50 + i * 70, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }],
-        [`inputInt${i + 1}`, { x: -340, y: -50 + i * 70, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }]
+        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap }],
+        [`inputInt${i + 1}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }]
       ])),
       outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
       outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
@@ -3250,6 +3252,8 @@
     if (memDef && Array.isArray(memDef.hints)) return memDef.hints;
     const ramDef = (typeof RAM_TASKS !== "undefined") ? RAM_TASKS.find((t) => t.id === taskId) : null;
     if (ramDef && Array.isArray(ramDef.hints)) return ramDef.hints;
+    const portsDef = (typeof PORTS_TASKS !== "undefined") ? PORTS_TASKS.find((t) => t.id === taskId) : null;
+    if (portsDef && Array.isArray(portsDef.hints)) return portsDef.hints;
     return [];
   }
 
@@ -5495,6 +5499,38 @@
             wireKey("task-card-1.inputInt2", "reg-3.in2"),
             wireKey("task-card-1.inputInt2", "reg-4.in2")
           ]
+        }
+      }
+    ],
+    // ---- Chapter 3.4 ports -----------------------------------------------
+    OPorts: [
+      {
+        text: "בפנים זה בדיוק ה-RAM4 שכבר בנית: כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים, DMux4Way מעביר את הבקרה רק לרגיסטר שהכתובת מצביעה עליו, ו-Mux4Way16 בוחר איזו יציאה יוצאת מהכרטיס.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4", "write-dmux", "read-mux"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.outputInt1"],
+          wires: [wireKey("read-mux.out", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "וזה כל ההבדל: היציאה של כל רגיסטר הולכת גם ליציאה נוספת משלו. אלו הפורטים — הן מראות את התוכן של הרגיסטרים כל הזמן, בלי קשר לכתובת שנמצאת בכניסה, כך שמכשיר שמחובר לשם תמיד רואה מה כתוב ברגיסטר שלו.",
+        highlight: {
+          components: ["mem-1", "mem-2", "mem-3", "mem-4"],
+          terminals: ["task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4", "task-card-1.outputInt5"],
+          wires: [wireKey("mem-1.out", "task-card-1.outputInt2"), wireKey("mem-2.out", "task-card-1.outputInt3"),
+                  wireKey("mem-3.out", "task-card-1.outputInt4"), wireKey("mem-4.out", "task-card-1.outputInt5")]
+        }
+      }
+    ],
+    IPorts: [
+      {
+        text: "כאן אין בכלל רגיסטרים — אין מה לשמור, המכשירים שבחוץ מחזיקים את המידע בעצמם. כל מה שצריך זה לבחור אחת מארבע הכניסות, וזה בדיוק Mux4Way16: ארבע הכניסות נכנסות אליו, בס הכתובת הוא בס הבקרה שלו, ומה שיוצא ממנו הוא היציאה של הכרטיס.",
+        highlight: {
+          components: ["read-mux"],
+          terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.inputInt4", "task-card-1.inputInt5", "task-card-1.outputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "read-mux.in1"), wireKey("task-card-1.inputInt2", "read-mux.in2"),
+                  wireKey("task-card-1.inputInt3", "read-mux.in3"), wireKey("task-card-1.inputInt4", "read-mux.in4"),
+                  wireKey("addr-nail.out", "read-mux.in5"), wireKey("read-mux.out", "task-card-1.outputInt1")]
         }
       }
     ],
@@ -12488,7 +12524,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -13824,7 +13860,9 @@
       // Memory and RAM cards are CLOCKED — they are checked by runMemoryTest /
     // runRamTest (a sequence of drives over several ticks), never by combinational
     // cases, so they legitimately carry no check.cases in their JSON.
-    if (isMemoryTask(taskId) || isRamTask(taskId)) return [];
+    // The 3.4 ports cards are the same: OPorts/Ports/RAM run on the RAM harness,
+    // and IPorts has its own combinational one (runIPortsTest).
+    if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -16275,6 +16313,32 @@
       };
       if (hintStateOverride) ramPatch.hintState = hintStateOverride;
       return setState(ramPatch, false);
+    }
+
+    // OPorts build hint: lay the RAM4 half of its own solution inside the frame —
+    // everything but the four wires out to the port buses, which are the part the
+    // learner is being asked to add.
+    if (taskId === "OPorts" && hint.action === "ports-place-ram4") {
+      const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.OPorts : null;
+      if (doc) {
+        const portWires = new Set(["outputInt2", "outputInt3", "outputInt4", "outputInt5"]
+          .map((pin) => `task-card-1.${pin}`));
+        const half = clonePlain(doc);
+        half.wires = half.wires.filter((w) => !portWires.has(w.a) && !portWires.has(w.b));
+        const ws = workspaceFromSolutionDoc(half);
+        ws.workspaceCompleted = false;
+        ws.taskId = "OPorts";
+        ws.taskIntroSeen = true;
+        ws.locked = false;
+        ws.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || "chapter-13";
+        ws.sessionReturnPanelIndex = state.workspace?.sessionReturnPanelIndex ?? null;
+        const patch = {
+          workspace: normalizeWorkspace(ws),
+          hintDialog: hint.openAfterApply ? { taskId, index: hintIndex } : null
+        };
+        if (hintStateOverride) patch.hintState = hintStateOverride;
+        return setState(patch, false);
+      }
     }
 
     // fullAdder build hints: progressively construct the 3-halfAdder circuit.
