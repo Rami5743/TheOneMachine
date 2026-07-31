@@ -12768,7 +12768,15 @@
   // own profile (recursive), or null when unbuilt.
   function componentTimingKind(type, profileOf) {
     if (type === "nand") return { kind: "prop", weight: 1 };
-    if (type === "ffCard") return { kind: "ff", profile: { seq: true, head: 0, tail: 0, internal: 0 } };
+    // A flip-flop is a latched MUX: the (launching) FF at a register boundary
+    // counts as one MUX's worth of delay. We attribute it to the FF's output side
+    // (its "tail"), so each register-to-register segment includes exactly one FF.
+    if (type === "ffCard") {
+      const mux = profileOf("Mux");
+      if (mux === null) return { kind: "undef" };
+      const d = mux.seq ? Math.max(mux.head, mux.tail, mux.internal) : mux.comb;
+      return { kind: "ff", profile: { seq: true, head: 0, tail: d, internal: 0 } };
+    }
     if (isFrameType(type)) return { kind: "frame" };
     if (type === "source") return { kind: "src" };
     if (type === "lamp") return { kind: "sink" };
@@ -12816,8 +12824,7 @@
       const k = kindOf(id);
       let v;
       if (k.kind === "frame" || k.kind === "src") v = { F: 0, FF: NEG };
-      else if (k.kind === "ff") v = { F: NEG, FF: 0 };
-      else if (k.kind === "seq") v = { F: NEG, FF: k.profile.tail };
+      else if (k.kind === "ff" || k.kind === "seq") v = { F: NEG, FF: k.profile.tail };
       else if (k.kind === "sink") v = { F: NEG, FF: NEG };
       else { const w = (k.kind === "undef") ? 0 : k.weight; const inV = resolveIn(id); v = { F: addw(inV.F, w), FF: addw(inV.FF, w) }; }
       memoOut.set(id, v);
