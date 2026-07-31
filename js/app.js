@@ -1196,8 +1196,9 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
-    // The bottom-left "why do we need this?" panel is hidden once the learner
-    // dismisses it (a persistent preference, kept across tasks and reloads).
+    // The bottom-left "why do we need this?" panel. It starts OPEN on every task
+    // — hiding it applies to the current build only, and each new build reopens
+    // it (see the whyNoteHidden reset beside requirementsPanelHidden).
     whyNoteHidden: false,
     // The one-off arrow pointing at the And task's requirements; set once the
     // learner starts building (persists so it doesn't nag on every visit).
@@ -5721,13 +5722,12 @@
     ],
     ALU1: [
       {
-        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לשלושה חלקים: החלק התחתון (שני הביטים האחרונים) עבור הכנת הכניסה הראשונה, החלק האמצעי עבור הכנת הכניסה השנייה, והחלק העליון (שני הביטים הראשונים) מפוצל שוב — לביט ה-NOT (הראשון) וביט הפעולה (השני).",
+        text: "לפנינו מימוש של ALU1 בעזרת הכרטיסים שכבר בנינו — PreperNum ו-ALU0. קודם מפצלים את כניסת הבקרה לארבעה חלקים: החלק התחתון (שני הביטים האחרונים) עבור הכנת הכניסה הראשונה, החלק שמעליו (שני ביטים) עבור הכנת הכניסה השנייה, ומעליהם שני ביטים בודדים — ביט הפעולה (השני) וביט ה-NOT (הראשון, העליון).",
         highlight: {
-          components: ["ctrl-split", "part3-split"],
+          components: ["ctrl-split"],
           terminals: ["task-card-1.inputInt3"],
           wires: [
-            wireKey("task-card-1.inputInt3", "ctrl-split.single"),
-            wireKey("ctrl-split.leg2", "part3-split.single")
+            wireKey("task-card-1.inputInt3", "ctrl-split.single")
           ]
         }
       },
@@ -5757,21 +5757,22 @@
         text: "החלק הזה מבצע את הפעולה על שתי ההכנות — ALU0 שמקבל את תוצאות שתי ההכנות ואת הביט השני של הבקרה (שקובע אם AND או חיבור).",
         highlight: {
           components: ["alu0"],
-          terminals: ["part3-split.leg0"],
+          terminals: ["ctrl-split.leg2"],
           wires: [
             wireKey("pn1.out1", "alu0.in1"),
             wireKey("pn2.out1", "alu0.in2"),
-            wireKey("part3-split.leg0", "alu0.in3")
+            wireKey("ctrl-split.leg2", "alu0.in3")
           ]
         }
       },
       {
-        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. שים לב: אנחנו משתמשים ב-PreperNum אבל לא באמת צריכים את כל היכולות שלו, לכן לא חיברנו את אחד מביטי הבקרה שלו — וכשביט לא מחובר הוא 0 (לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון).",
+        text: "החלק הזה עושה NOT לפי הצורך, בעזרת PreperNum נוסף על תוצאת ה-ALU0. כניסת הבקרה שלו היא בס של 2 ביטים, ולנו יש רק ביט אחד — ביט ה-NOT — לכן מאחדים אותו בחזרה לבס של 2 ביטים במאחד. הרגל התחתונה של המאחד לא מחוברת, וביט לא מחובר הוא 0 — לכן שלב האיפוס אף פעם לא קורה, ורק ה-NOT מתבצע לפי הביט הראשון.",
         highlight: {
-          components: ["pn3"],
-          terminals: ["part3-split.leg1", "pn3.in2", "task-card-1.outputInt1"],
+          components: ["not-merge", "pn3"],
+          terminals: ["ctrl-split.leg3", "pn3.in2", "task-card-1.outputInt1"],
           wires: [
-            wireKey("part3-split.leg1", "pn3.in2"),
+            wireKey("ctrl-split.leg3", "not-merge.leg1"),
+            wireKey("not-merge.single", "pn3.in2"),
             wireKey("alu0.out1", "pn3.in1"),
             wireKey("pn3.out1", "task-card-1.outputInt1")
           ]
@@ -5781,12 +5782,12 @@
         text: "פתרון נוסף: במקום ה-PreperNum האחרון אפשר פשוט לעשות MUX16 שבוחר בין תוצאת ה-ALU0 (כשהביט הראשון 0) לבין ה-NOT שלה (כשהוא 1). זה פתרון חסכוני יותר, אבל לפעמים קל יותר להשתמש ב-PreperNum מוכן.",
         highlight: {
           components: ["not16", "mux-not"],
-          terminals: ["part3-split.leg1", "task-card-1.outputInt1"],
+          terminals: ["ctrl-split.leg3", "task-card-1.outputInt1"],
           wires: [
             wireKey("alu0.out1", "not16.in1"),
             wireKey("alu0.out1", "mux-not.in1"),
             wireKey("not16.out", "mux-not.in2"),
-            wireKey("part3-split.leg1", "mux-not.in3"),
+            wireKey("ctrl-split.leg3", "mux-not.in3"),
             wireKey("mux-not.out", "task-card-1.outputInt1")
           ]
         }
@@ -7557,7 +7558,8 @@
   const WORKSPACE_CANVAS_BOTTOM_PAD = 28;
 
   // The optional bottom-left "למה צריך את זה לעזאזל?" panel. Only tasks listed in
-  // TASK_WHY_NOTES have one. It is hideable (a persistent preference) and, while
+  // TASK_WHY_NOTES have one. It is OPEN by default on every build (hiding it is
+  // for the current build only — the next one reopens it) and, while
   // open, click-through so the board underneath stays reachable — only its
   // hide/show button captures clicks. Not shown during the solution walkthrough
   // or card creation, which have their own overlays.
@@ -12480,7 +12482,9 @@
     const base = SOLUTION_DOCS.ALU1;
     if (!base || !Array.isArray(base.components)) return null;
     const doc = clonePlain(base);
-    const drop = new Set(["pn3"]); // the final PreperNum stage
+    // The final PreperNum stage — and with it the merger that only existed to
+    // widen the single NOT bit into that PreperNum's 2-bit control.
+    const drop = new Set(["pn3", "not-merge"]);
     const partOf = (ref) => String(ref).split(".")[0];
     doc.components = doc.components.filter((c) => !drop.has(c.id));
     doc.wires = doc.wires.filter((w) => !drop.has(partOf(w.a)) && !drop.has(partOf(w.b)));
@@ -12492,7 +12496,7 @@
       { a: "alu0.out1", b: "not16.in1" },
       { a: "alu0.out1", b: "mux-not.in1" },
       { a: "not16.out", b: "mux-not.in2" },
-      { a: "part3-split.leg1", b: "mux-not.in3" },
+      { a: "ctrl-split.leg3", b: "mux-not.in3" },
       { a: "mux-not.out", b: "task-card-1.outputInt1" }
     );
     return doc;
@@ -14779,6 +14783,7 @@
       taskDialog: null,
       arithNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
     }, false);
@@ -14995,6 +15000,7 @@
       taskDialog: null,
       aluNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -15190,6 +15196,7 @@
       memoryNoteList: false,
     ramNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -15305,6 +15312,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -16444,6 +16452,7 @@
       dialog: null,
       taskDialog: null,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
     }, false);
@@ -16500,6 +16509,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);
@@ -16547,6 +16557,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      whyNoteHidden: false,
       muxTable: null,
       workspace
     }, false);

@@ -627,18 +627,14 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "ctrl-split",
         "type": "splitter",
         "x": 383,
-        "y": 230,
-        "outputs": 3,
-        "width": 2,
-        "mirrored": false
-      },
-      {
-        "id": "part3-split",
-        "type": "splitter",
-        "x": 520,
-        "y": 195,
-        "outputs": 2,
-        "width": 1,
+        "y": 213,
+        "outputs": 4,
+        "legWidths": [
+          2,
+          2,
+          1,
+          1
+        ],
         "mirrored": false
       },
       {
@@ -658,6 +654,18 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "gate-ALU0",
         "x": 562,
         "y": 360
+      },
+      {
+        "id": "not-merge",
+        "type": "splitter",
+        "x": 666,
+        "y": 230,
+        "outputs": 2,
+        "legWidths": [
+          1,
+          1
+        ],
+        "mirrored": true
       },
       {
         "id": "pn3",
@@ -681,7 +689,15 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "ctrl-split.leg2",
-        "b": "part3-split.single"
+        "b": "alu0.in3"
+      },
+      {
+        "a": "ctrl-split.leg3",
+        "b": "not-merge.leg1"
+      },
+      {
+        "a": "not-merge.single",
+        "b": "pn3.in2"
       },
       {
         "a": "task-card-1.inputInt1",
@@ -698,14 +714,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "pn2.out1",
         "b": "alu0.in2"
-      },
-      {
-        "a": "part3-split.leg0",
-        "b": "alu0.in3"
-      },
-      {
-        "a": "part3-split.leg1",
-        "b": "pn3.in2"
       },
       {
         "a": "alu0.out1",
