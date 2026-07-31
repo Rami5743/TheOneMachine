@@ -4596,7 +4596,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-split",
         "type": "splitter",
-        "x": 390,
+        "x": 360,
         "y": 220,
         "outputs": 2,
         "legWidths": [
@@ -4608,32 +4608,32 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 645,
-        "y": 235
+        "x": 630,
+        "y": 280
       },
       {
         "id": "op",
         "type": "gate-OPorts",
-        "x": 690,
-        "y": 390
+        "x": 715,
+        "y": 475
       },
       {
         "id": "ip",
         "type": "gate-IPorts",
-        "x": 690,
-        "y": 600
+        "x": 575,
+        "y": 540
       },
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 895,
-        "y": 385
+        "x": 960,
+        "y": 395
       },
       {
         "id": "sel-nail",
         "type": "nail",
-        "x": 895,
-        "y": 203
+        "x": 960,
+        "y": 200
       }
     ],
     "wires": [
