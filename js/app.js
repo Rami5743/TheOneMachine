@@ -2683,13 +2683,18 @@
     return OLD_TERMINAL_REFS[ref] || ref;
   }
 
+  // `measured` says whether the returned size is the REAL board or the fallback
+  // guess (the board is not on screen yet, or has no layout). Callers that move
+  // things around must not act on a guess — see clampComponentPosition.
   function workspaceBoardSize() {
     const board = app.querySelector("[data-workspace-board]");
-    if (!board) return { width: 1000, height: 600 };
+    if (!board) return { width: 1000, height: 600, measured: false };
     const rect = board.getBoundingClientRect();
+    if (!(rect.width > 1 && rect.height > 1)) return { width: 1000, height: 600, measured: false };
     return {
       width: Math.max(1, rect.width),
-      height: Math.max(1, rect.height)
+      height: Math.max(1, rect.height),
+      measured: true
     };
   }
 

@@ -7,7 +7,9 @@
 // Loaded BEFORE app.js. Dependencies are INJECTED via createBoardGeometry(...):
 //   pinDefFor          - (workspace, ref) -> { component, pin, pinId } | null
 //   componentDef       - type -> definition (for bounds)
-//   workspaceBoardSize - () -> { width, height } (reads the DOM; stays in app.js)
+//   workspaceBoardSize - () -> { width, height, measured } (reads the DOM; stays
+//                        in app.js). measured:false = the size is a fallback
+//                        guess, so nothing may be clamped against it.
 //
 // createBoardGeometry(deps) -> { terminalPosition, clampComponentPosition }
 
@@ -47,6 +49,15 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
       return { x, y };
     }
     const size = workspaceBoardSize();
+    // Same trap as the frame above, on the X axis: when the board is not on
+    // screen yet (a solution/task workspace built from a STORY screen, or
+    // normalizeWorkspace running at boot/save time) workspaceBoardSize() returns
+    // its fallback guess of width 1000. Clamping against that guess MOVES
+    // authored components that sit further right — and once the real board
+    // exists the next rebuild puts them back, so the first walkthrough step
+    // showed a component in a different place than every following step. A size
+    // we did not measure is no reason to move anything.
+    if (size.measured === false) return { x, y };
     const bounds = componentDef(type)?.bounds || { left: 8, right: 8, top: 8, bottom: 8 };
     // The board scrolls VERTICALLY, so a component may legitimately sit below the
     // visible viewport (a check's harness lamps, a tall card's solution). Clamp Y
