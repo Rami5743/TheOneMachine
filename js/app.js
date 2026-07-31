@@ -1873,6 +1873,22 @@
   // Re-register from the loaded state (covers defaults) so the toolbar and board
   // recognise every saved card from the first render.
   registerAllSavedCards();
+  // Heal the derived ranking counts on load: recompute them from the STORED
+  // builds (which always keep the real topology). This repairs values that an
+  // older cached build computed wrong — e.g. a flip-flop that used to count as 0
+  // Nands — without waiting for the rankings screen, and before any leaderboard
+  // push sends a stale number to the cloud.
+  try {
+    if (state.cardBuilds && Object.keys(state.cardBuilds).length) {
+      const healed = recomputeAllCardCounts(state.cardBuilds);
+      const healedSerial = (state.cardSerialBuilds && Object.keys(state.cardSerialBuilds).length) ? recomputeAllCardSerial(state.cardSerialBuilds) : state.cardSerialCounts;
+      if (JSON.stringify(healed) !== JSON.stringify(state.cardNandCounts) || JSON.stringify(healedSerial) !== JSON.stringify(state.cardSerialCounts)) {
+        state.cardNandCounts = healed;
+        state.cardSerialCounts = healedSerial;
+        saveState();
+      }
+    }
+  } catch (e) { /* non-fatal */ }
   let dragState = null;
   let dialogDragState = null;
   // Where the learner has dragged each kind of movable dialog, keyed by its card
