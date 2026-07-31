@@ -838,7 +838,7 @@
   // Five outputs down the right edge, all inside the +-150 the shell allows: the
   // card's own data output high on its own at -150, then a clear 120 gap and the
   // four port buses 60 apart — so the ordinary output never reads as one of them.
-  const portFrameOutY = (i) => -30 + i * 60;
+  const portFrameOutY = (i) => 40 + i * 60;
 
   WORKSPACE_COMPONENT_DEFS["taskCard-OPorts"] = {
     label: "מסגרת OPorts",
@@ -849,17 +849,17 @@
     routingMultibit: true,
     frameSize: { ...PORTS_FRAME_SIZE },
     pins: {
-      inputExt3: { x: -460, y: -150, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt3: { x: -340, y: -150, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
-      inputExt1: { x: -460, y: -70, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
-      inputInt1: { x: -340, y: -70, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt3: { x: -460, y: -250, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt3: { x: -340, y: -250, direction: "out", width: 2, label: "כניסת הכתובת פנימית", edge: "side" },
+      inputExt1: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה", edge: "side" },
+      inputInt1: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הדאטה פנימית", edge: "side" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
-        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: `יציאה ${cap}` }]
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית`, edge: "side" }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap, edge: "side" }]
       ]))
     },
     bounds: { left: 460, right: 460, top: 460, bottom: 280 }
@@ -877,7 +877,7 @@
     slots: 4,
     portsCard: true,
     pins: portsGatePins(2, false),
-    bounds: { left: 90, right: 110, top: 176, bottom: 140 }
+    bounds: { left: 90, right: 110, top: 220, bottom: 190 }
   };
 
   // Ports and RAM share OPorts' shape, with two additions: four device buses
@@ -888,38 +888,39 @@
 
   function portsFramePins(addressWidth) {
     return {
-      inputExt3: { x: -460, y: -150, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt3: { x: -340, y: -150, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית" },
-      inputExt1: { x: -460, y: -70, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
-      inputInt1: { x: -340, y: -70, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt3: { x: -460, y: -250, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt3: { x: -340, y: -250, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית", edge: "side" },
+      inputExt1: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה", edge: "side" },
+      inputInt1: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הדאטה פנימית", edge: "side" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 340, y: -150, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: -150, direction: "out", width: 16, label: "יציאה", caption: "יציאה" },
-      // The four port OUTPUTS, down the right edge under the data output.
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" },
+      // The four port OUTPUTS, low down the right edge — as far from the card's
+      // own output as the frame allows.
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית` }],
-        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: `יציאה ${cap}` }]
+        [`outputInt${i + 2}`, { x: 340, y: portFrameOutY(i), direction: "in", width: 16, label: `יציאת פורט ${cap} פנימית`, edge: "side" }],
+        [`outputExt${i + 2}`, { x: 460, y: portFrameOutY(i), direction: "out", width: 16, label: `יציאת פורט ${cap}`, caption: cap, edge: "side" }]
       ])),
       // The four device buses coming IN, down the LEFT edge under the data bus.
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`inputInt${i + 4}`, { x: -340, y: 10 + i * 60, direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }],
-        [`inputExt${i + 4}`, { x: -460, y: 10 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: `כניסה ${cap}`, edge: "side" }]
+        [`inputInt${i + 4}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }],
+        [`inputExt${i + 4}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap, edge: "side" }]
       ]))
     };
   }
 
   function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -90, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -60, direction: "in", width: 16, label: "כניסת הדאטה" },
-      in2: { x: 0, y: -160, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -90, direction: "out", width: 16, label: "יציאת הדאטה" },
+      in3: { x: -88, y: -140, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -100, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -200, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -140, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
         `outP${i + 1}`, { x: 92, y: -30 + i * 30, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
       ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `inP${i + 1}`, { x: -88, y: -10 + i * 30, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+        `inP${i + 1}`, { x: -88, y: -40 + i * 44, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
       ])) : {})
     };
   }
@@ -955,7 +956,7 @@
       portInputs: 4,
       portsCard: true,
       pins: portsGatePins(spec.addressWidth),
-      bounds: { left: 90, right: 110, top: 176, bottom: 140 }
+      bounds: { left: 90, right: 110, top: 220, bottom: 190 }
     };
   }
 
@@ -972,16 +973,16 @@
     routingMultibit: true,
     frameSize: { ...PORTS_FRAME_SIZE },
     pins: {
-      inputExt5: { x: -460, y: -140, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת" },
-      inputInt5: { x: -340, y: -140, direction: "out", width: 2, label: "כניסת הכתובת פנימית" },
+      inputExt5: { x: -460, y: -250, direction: "in", width: 2, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputInt5: { x: -340, y: -250, direction: "out", width: 2, label: "כניסת הכתובת פנימית", edge: "side" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.flatMap((cap, i) => [
-        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: `כניסה ${cap}` }],
-        [`inputInt${i + 1}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית` }]
+        [`inputExt${i + 1}`, { x: -460, y: portFrameOutY(i), direction: "in", width: 16, label: `כניסת פורט ${cap}`, caption: cap, edge: "side" }],
+        [`inputInt${i + 1}`, { x: -340, y: portFrameOutY(i), direction: "out", width: 16, label: `כניסת פורט ${cap} פנימית`, edge: "side" }]
       ])),
-      outputInt1: { x: 340, y: 0, direction: "in", width: 16, label: "יציאה פנימית" },
-      outputExt1: { x: 460, y: 0, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
+      outputInt1: { x: 340, y: -250, direction: "in", width: 16, label: "יציאה פנימית", edge: "side" },
+      outputExt1: { x: 460, y: -250, direction: "out", width: 16, label: "יציאה", caption: "יציאה", edge: "side" }
     },
-    bounds: { left: 460, right: 460, top: 300, bottom: 280 }
+    bounds: { left: 460, right: 460, top: 300, bottom: 300 }
   };
 
   // The finished IPorts card. in1..in4 are the device buses and in5 the 2-bit
@@ -996,14 +997,14 @@
     addressWidth: 2,
     portInputs: 4,
     pins: {
-      in5: { x: -88, y: -90, direction: "in", width: 2, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -10, direction: "in", width: 16, label: "כניסת פורט 00" },
-      in2: { x: -88, y: 20, direction: "in", width: 16, label: "כניסת פורט 01" },
-      in3: { x: -88, y: 50, direction: "in", width: 16, label: "כניסת פורט 10" },
-      in4: { x: -88, y: 80, direction: "in", width: 16, label: "כניסת פורט 11" },
-      out: { x: 92, y: -90, direction: "out", width: 16, label: "יציאת הדאטה" }
+      in5: { x: -88, y: -140, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -40, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -88, y: 4, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -88, y: 48, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -88, y: 92, direction: "in", width: 16, label: "כניסת פורט 11" },
+      out: { x: 92, y: -140, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
-    bounds: { left: 90, right: 110, top: 140, bottom: 140 }
+    bounds: { left: 90, right: 110, top: 190, bottom: 190 }
   };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2
