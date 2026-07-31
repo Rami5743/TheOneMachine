@@ -5700,10 +5700,22 @@
     OPorts: [
       {
         text: "בפנים זה בדיוק ה-RAM4 שכבר בנית: כניסת הדאטה מגיעה לכל ארבעת הרגיסטרים, DMux4Way מעביר את הבקרה רק לרגיסטר שהכתובת מצביעה עליו, ו-Mux4Way16 בוחר איזו יציאה יוצאת מהכרטיס.",
+        // Like every other first step, the highlight covers exactly what the text
+        // names — here that is the whole RAM4 half: the data into the four
+        // registers, the control through the DMux4Way, the address to both, and
+        // the Mux4Way16 picking the output.
         highlight: {
-          components: ["mem-1", "mem-2", "mem-3", "mem-4", "write-dmux", "read-mux"],
+          components: ["mem-1", "mem-2", "mem-3", "mem-4", "write-dmux", "read-mux", "addr-nail-3"],
           terminals: ["task-card-1.inputInt1", "task-card-1.inputInt2", "task-card-1.inputInt3", "task-card-1.outputInt1"],
-          wires: [wireKey("read-mux.out", "task-card-1.outputInt1")]
+          wires: [wireKey("task-card-1.inputInt1", "mem-1.in1"), wireKey("task-card-1.inputInt1", "mem-2.in1"),
+                  wireKey("task-card-1.inputInt1", "mem-3.in1"), wireKey("task-card-1.inputInt1", "mem-4.in1"),
+                  wireKey("task-card-1.inputInt2", "write-dmux.in1"), wireKey("task-card-1.inputInt3", "write-dmux.in2"),
+                  wireKey("write-dmux.out1", "mem-1.in2"), wireKey("write-dmux.out2", "mem-2.in2"),
+                  wireKey("write-dmux.out3", "mem-3.in2"), wireKey("write-dmux.out4", "mem-4.in2"),
+                  wireKey("task-card-1.inputInt3", "addr-nail-3.in"), wireKey("addr-nail-3.out", "read-mux.in5"),
+                  wireKey("mem-1.out", "read-mux.in1"), wireKey("mem-2.out", "read-mux.in2"),
+                  wireKey("mem-3.out", "read-mux.in3"), wireKey("mem-4.out", "read-mux.in4"),
+                  wireKey("read-mux.out", "task-card-1.outputInt1")]
         }
       },
       {
