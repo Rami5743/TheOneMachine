@@ -877,7 +877,7 @@
     slots: 4,
     portsCard: true,
     pins: portsGatePins(2, false),
-    bounds: { left: 90, right: 110, top: 220, bottom: 190 }
+    bounds: { left: 90, right: 110, top: 280, bottom: 240 }
   };
 
   // Ports and RAM share OPorts' shape, with two additions: four device buses
@@ -912,15 +912,15 @@
 
   function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -140, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -100, direction: "in", width: 16, label: "כניסת הדאטה" },
-      in2: { x: 0, y: -200, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -140, direction: "out", width: 16, label: "יציאת הדאטה" },
+      in3: { x: -88, y: -180, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -88, y: -140, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -240, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `outP${i + 1}`, { x: 92, y: -30 + i * 30, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
+        `outP${i + 1}`, { x: 92, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
       ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `inP${i + 1}`, { x: -88, y: 8 + i * 44, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+        `inP${i + 1}`, { x: -88, y: 8 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
       ])) : {})
     };
   }
@@ -956,7 +956,7 @@
       portInputs: 4,
       portsCard: true,
       pins: portsGatePins(spec.addressWidth),
-      bounds: { left: 90, right: 110, top: 220, bottom: 190 }
+      bounds: { left: 90, right: 110, top: 280, bottom: 240 }
     };
   }
 
@@ -997,14 +997,14 @@
     addressWidth: 2,
     portInputs: 4,
     pins: {
-      in5: { x: -88, y: -140, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in5: { x: -88, y: -180, direction: "in", width: 2, label: "כניסת הכתובת" },
       in1: { x: -88, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
-      in2: { x: -88, y: 52, direction: "in", width: 16, label: "כניסת פורט 01" },
-      in3: { x: -88, y: 96, direction: "in", width: 16, label: "כניסת פורט 10" },
-      in4: { x: -88, y: 140, direction: "in", width: 16, label: "כניסת פורט 11" },
-      out: { x: 92, y: -140, direction: "out", width: 16, label: "יציאת הדאטה" }
+      in2: { x: -88, y: 68, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -88, y: 128, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -88, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
+      out: { x: 92, y: -180, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
-    bounds: { left: 90, right: 110, top: 190, bottom: 190 }
+    bounds: { left: 90, right: 110, top: 230, bottom: 240 }
   };
 
   // The PreperNum build frame: a width-16 number bus on the left, a width-2

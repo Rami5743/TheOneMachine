@@ -430,7 +430,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // left, each captioned so a bus is never just a number.
   function portsGateMarkup(spec, label, options = {}) {
     const edge = 58;
-    const bodyH = 320;
+    const bodyH = 400;
     const half = bodyH / 2;
     const outs = spec.portOutputs || 0;
     const ins = spec.portInputs || 0;
@@ -438,23 +438,23 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const cap = (x, y, text, anchor) =>
       `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
     let s = "";
-    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -140, spec.addressWidth);
+    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, -180, spec.addressWidth);
     // IPorts has no data input at all — everything it shows comes from outside —
     // so it must not grow a bus stub with no pin behind it.
-    if (spec.dataIn !== false) s += bar(-88, -edge, -100, spec.width);
-    s += bar(edge, 92, -140, spec.width);
+    if (spec.dataIn !== false) s += bar(-88, -edge, -140, spec.width);
+    s += bar(edge, 92, -180, spec.width);
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     // Inputs and outputs sit at the SAME heights, so a port's two ends line up
     // across the card.
-    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, 8 + i * 44, spec.width);
-    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 44, spec.width);
+    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, 8 + i * 60, spec.width);
+    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 60, spec.width);
     s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const font = labelFontSize(label, edge * 2, 17);
-    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 120}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
-    for (let i = 0; i < outs; i += 1) s += cap(edge - 6, 8 + i * 44 + 4, String(i), "end");
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 160}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    for (let i = 0; i < outs; i += 1) s += cap(edge - 6, 8 + i * 60 + 4, String(i), "end");
     // The inputs are numbered in DECIMAL on the card — short enough to read at
     // this size, where a two-digit binary name is not.
-    for (let i = 0; i < ins; i += 1) s += cap(-edge + 6, 8 + i * 44 + 4, String(i), "start");
+    for (let i = 0; i < ins; i += 1) s += cap(-edge + 6, 8 + i * 60 + 4, String(i), "start");
     return `<g class="ram-gate" aria-hidden="true">${s}</g>`;
   }
 
