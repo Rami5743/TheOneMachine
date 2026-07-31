@@ -11526,8 +11526,16 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
-    if (state.screen === "rankings") return renderRankingsScreen(app);
-    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
+    // Preserve the rankings list's scroll position across a re-render (a
+    // background tom:leaderboard refresh must not snap the learner back to the top
+    // while they are scrolling).
+    if (state.screen === "rankings" || state.screen === "cardRecords") {
+      const prev = app.querySelector(".rankings-screen");
+      const y = prev ? prev.scrollTop : 0;
+      if (state.screen === "rankings") renderRankingsScreen(app); else renderCardRecordsScreen(app);
+      if (y) { const next = app.querySelector(".rankings-screen"); if (next) next.scrollTop = y; }
+      return;
+    }
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
