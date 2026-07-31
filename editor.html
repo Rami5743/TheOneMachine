@@ -6,9 +6,9 @@
 <title>עורך פתרונות — המכונה האחת</title>
 <!-- Reuse the game's own component styling + markup so the editor looks identical -->
 <link rel="stylesheet" href="css/styles.css?v=v166-tool-groups-2" />
-<script src="js/component-visuals.js?v=v112-mux4-spread-1"></script>
+<script src="js/component-visuals.js?v=v70-ports-card-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
-<script src="assets/solutions/solutions.js?v=v33-alu1-layout-1"></script>
+<script src="assets/solutions/solutions.js?v=v43-ports-left-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -105,14 +105,22 @@ const DEFS = {
   "gate-RAM64":   { ramGate:true, busWidth:16, addressWidth:6,  slots:64 },
   "gate-RAM256":  { ramGate:true, busWidth:16, addressWidth:8,  slots:256 },
   "gate-RAM1024": { ramGate:true, busWidth:16, addressWidth:10, slots:1024 },
+  // The 3.4 ports cards: a memory card that also talks to the world — port
+  // OUTPUTS mirror its registers, port INPUTS are read-only addresses fed from
+  // outside. IPorts holds nothing at all (it runs on the Mux4Way16 branch), but
+  // on the board it is a card of its own, not a MUX.
+  "gate-OPorts": { ramGate:true, portsCard:true, label:"OPorts", busWidth:16, addressWidth:2, slots:4, portOutputs:4 },
+  "gate-IPorts": { wideRoutingGate:"mux4way16", portsCard:true, label:"IPorts", busWidth:16, addressWidth:2, portInputs:4 },
+  "gate-Ports":  { ramGate:true, portsCard:true, label:"Ports", busWidth:16, addressWidth:3, slots:4, portOutputs:4, portInputs:4 },
+  "gate-RAM":    { ramGate:true, portsCard:true, label:"RAM", busWidth:16, addressWidth:11, slots:1028, portOutputs:4, portInputs:4 },
   // The 2.4 wide-routing cards: a 2-bit control bus picks one of four.
   "gate-Dmux4way":  { wideRoutingGate:"dmux4way" },
   "gate-Mux4way16": { wideRoutingGate:"mux4way16", busWidth:16 }
 };
 const busGateSpec = (type)=>{ const d=DEFS[type]; return d && d.busGate ? { op:d.op, inputs:d.inputs||1, width:d.busWidth, control:!!d.control } : null; };
-const ramGateSpec = (type)=>{ const d=DEFS[type]; return d && d.ramGate ? { width:d.busWidth, addressWidth:d.addressWidth, slots:d.slots } : null; };
+const ramGateSpec = (type)=>{ const d=DEFS[type]; return d && d.ramGate ? { width:d.busWidth, addressWidth:d.addressWidth, slots:d.slots, portOutputs:d.portOutputs||0, portInputs:d.portInputs||0 } : null; };
 const wideRoutingGateSpec = (type)=>{ const d=DEFS[type]; return d && d.wideRoutingGate ? { kind:d.wideRoutingGate, width:d.busWidth||1 } : null; };
-const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup:null });
+const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup:null, componentDefs: DEFS });
 
 // ---- pin geometry (for wire endpoints); matches the game's defs ----
 const SPLIT_SPACING = 34;
@@ -159,6 +167,18 @@ const PINS = {
   "gate-RAM64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
   "gate-RAM256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
   "gate-RAM1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  // 3.4 ports: address + data + (for Ports/RAM) four device buses down the left,
+  // the data output + four port buses down the right, control on top.
+  "gate-OPorts":{ in3:{x:-88,y:-90,w:2}, in1:{x:-88,y:-60,w:16}, in2:{x:0,y:-160,w:1}, out:{x:92,y:-90,w:16},
+    outP1:{x:92,y:-30,w:16}, outP2:{x:92,y:0,w:16}, outP3:{x:92,y:30,w:16}, outP4:{x:92,y:60,w:16} },
+  "gate-IPorts":{ in5:{x:-88,y:-90,w:2}, in1:{x:-88,y:-10,w:16}, in2:{x:-88,y:20,w:16},
+    in3:{x:-88,y:50,w:16}, in4:{x:-88,y:80,w:16}, out:{x:92,y:-90,w:16} },
+  "gate-Ports":{ in3:{x:-88,y:-90,w:3}, in1:{x:-88,y:-60,w:16}, in2:{x:0,y:-160,w:1}, out:{x:92,y:-90,w:16},
+    outP1:{x:92,y:-30,w:16}, outP2:{x:92,y:0,w:16}, outP3:{x:92,y:30,w:16}, outP4:{x:92,y:60,w:16},
+    inP1:{x:-88,y:-10,w:16}, inP2:{x:-88,y:20,w:16}, inP3:{x:-88,y:50,w:16}, inP4:{x:-88,y:80,w:16} },
+  "gate-RAM":{ in3:{x:-88,y:-90,w:11}, in1:{x:-88,y:-60,w:16}, in2:{x:0,y:-160,w:1}, out:{x:92,y:-90,w:16},
+    outP1:{x:92,y:-30,w:16}, outP2:{x:92,y:0,w:16}, outP3:{x:92,y:30,w:16}, outP4:{x:92,y:60,w:16},
+    inP1:{x:-88,y:-10,w:16}, inP2:{x:-88,y:20,w:16}, inP3:{x:-88,y:50,w:16}, inP4:{x:-88,y:80,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
   "gate-Dmux4way":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:2},
     out1:{x:66,y:-30,w:1}, out2:{x:66,y:-10,w:1}, out3:{x:66,y:10,w:1}, out4:{x:66,y:30,w:1} },
