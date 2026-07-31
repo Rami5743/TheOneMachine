@@ -11526,8 +11526,16 @@
     if (state.screen === "explanations") return renderExplanationsMenu();
     if (state.screen === "about") return renderAbout();
     if (state.screen === "achievements") return renderAchievements();
-    if (state.screen === "rankings") return renderRankingsScreen(app);
-    if (state.screen === "cardRecords") return renderCardRecordsScreen(app);
+    // Preserve the rankings list's scroll position across a re-render (a
+    // background tom:leaderboard refresh must not snap the learner back to the top
+    // while they are scrolling).
+    if (state.screen === "rankings" || state.screen === "cardRecords") {
+      const prev = app.querySelector(".rankings-screen");
+      const y = prev ? prev.scrollTop : 0;
+      if (state.screen === "rankings") renderRankingsScreen(app); else renderCardRecordsScreen(app);
+      if (y) { const next = app.querySelector(".rankings-screen"); if (next) next.scrollTop = y; }
+      return;
+    }
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
@@ -13047,6 +13055,30 @@
   // circuit) = that card's recursive count; anything else (splitter, source,
   // lamp, frame, converter …) = 0. Returns null if a placed card has no known
   // build (so the whole build is "undefined"). A cycle also yields null.
+  // The REFERENCE (solution) implementation of a built-in card, used as a
+  // fallback count-source when the player has no stored build for it. This is the
+  // case for INTERMEDIATE prerequisite cards a ranked card is built on but which
+  // are not themselves ranked (e.g. RAM4 places gate-Dmux4way / gate-Mux4way16,
+  // and those two are real cards the player built but were never recorded, so
+  // without this fallback every RAM card's recursive count would collapse to
+  // null and vanish from the rankings). Memoized; user cards have no canonical
+  // reference and return null.
+  const __refWorkspaceCache = new Map();
+  function cardReferenceWorkspace(cardKey) {
+    if (typeof cardKey !== "string" || cardKey === "Nand" || cardKey === "nand") return null;
+    if (cardKey.startsWith(SAVED_CARD_PREFIX)) return null;
+    if (__refWorkspaceCache.has(cardKey)) return __refWorkspaceCache.get(cardKey);
+    let ws = null;
+    try {
+      const w = solutionWorkspaceForTask(cardKey, 0);
+      if (w && Array.isArray(w.components)) {
+        ws = { components: w.components, wires: Array.isArray(w.wires) ? w.wires : [] };
+      }
+    } catch (e) { ws = null; }
+    __refWorkspaceCache.set(cardKey, ws);
+    return ws;
+  }
+
   function cardBuildComponents(cardKey) {
     // cardKey is either a task id ("and", "Mux" …) or a "usercard-<n>" type.
     if (typeof cardKey === "string" && cardKey.startsWith(SAVED_CARD_PREFIX)) {
@@ -13054,7 +13086,11 @@
       return card && card.logic && Array.isArray(card.logic.components) ? card.logic.components : null;
     }
     const build = (state.cardBuilds || {})[cardKey];
-    return build && Array.isArray(build.components) ? build.components : null;
+    if (build && Array.isArray(build.components)) return build.components;
+    // No recorded build → fall back to the card's reference solution so an
+    // unranked prerequisite still resolves (and its dependents keep a count).
+    const ref = cardReferenceWorkspace(cardKey);
+    return ref ? ref.components : null;
   }
 
   function cardRecursiveCount(cardKey, memo, stack) {
@@ -13126,6 +13162,8 @@
     } else {
       const b = builds[cardKey];
       comps = b && Array.isArray(b.components) ? b.components : null;
+      // Unranked prerequisite with no recorded build → use its reference solution.
+      if (!comps) { const ref = cardReferenceWorkspace(cardKey); comps = ref ? ref.components : null; }
     }
     if (!comps) return null;
     stack.add(cardKey);
@@ -13286,6 +13324,8 @@
     } else {
       const b = builds[cardKey];
       if (b) { comps = Array.isArray(b.components) ? b.components : null; wires = b.wires || []; }
+      // Unranked prerequisite with no recorded build → use its reference solution.
+      if (!comps) { const ref = cardReferenceWorkspace(cardKey); if (ref) { comps = ref.components; wires = ref.wires; } }
     }
     if (!comps) { memo.set(cardKey, null); return null; }
     stack.add(cardKey);
