@@ -12,16 +12,21 @@
 
 **כנס ללינק:** https://www.goatcounter.com/signup
 
-**שם תמלא את השדה** "Code" **שנמצא** בראש הטופס — זה יהיה שם הדשבורד שלך
-(למשל `theonemachine`, וכתובת הדשבורד תהיה `theonemachine.goatcounter.com`).
+**שם תמלא את השדה** "Account name" **שנמצא** בראש הטופס — זה שם החשבון/הדשבורד
+שלך (למשל `theonemachine`), וכתובת הדשבורד תהיה `https://theonemachine.goatcounter.com`.
+זה ה-`<CODE>` שצריך לשלב הבא.
 
-**אחר כך תמלא** את השדות "Email address" ו-"Password" **שנמצאים** מתחת ל-Code.
-(את "Data in timezone" אפשר להשאיר כברירת מחדל.)
+**את השדה** "Site domain" **שנמצא** מתחת (אופציונלי) אפשר למלא בכתובת האתר שלך
+(למשל `rami5743.github.io/TheOneMachine`) או להשאיר ריק.
+
+**אחר כך תמלא** את "Email address" ו-"Password" (לפחות 8 תווים) **שנמצאים** מתחת.
+
+**בשדה** "Fill in 9 here" **שנמצא** לפני הכפתור — תכתוב את הספרה `9` (אימות אנושי).
 
 **ואז תלחץ על** הכפתור "Sign up" **שנמצא** בתחתית הטופס.
 
-**לבסוף תגיע** לדשבורד בכתובת `https://<CODE>.goatcounter.com` — ה-`<CODE>` שבחרת
-הוא מה שצריך לשלב הבא.
+**לבסוף תגיע** לדשבורד בכתובת `https://<CODE>.goatcounter.com` — ה-`<CODE>` הוא
+ה-Account name שבחרת.
 
 ---
 
