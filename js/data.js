@@ -1229,7 +1229,7 @@ const SCENES = {
         "read": "קח את זה. כל כמה דקות תצטרך להציץ בעינית ולבדוק את המד. אם המספר שם מעל ל-100, תפסיק מיד הכול ולך הביתה עד למחרת. אם מאיזושהי סיבה הוא הגיע למקסימום (200) עזוב הכל ורוץ מיד אלי. אם אני לא במשרד תבוא למגורים שלי. לא חשוב מה השעה. תעיר אותי אם צריך. בוא נקווה שזה לא יקרה."
       },
       {
-        "comment": "The same picture without the speech: a click-zone over the dosimeter opens its reference window, whose 'לקחת' button walks on to the next slide. The zone's percentages are a first pass over the stand-in raster — re-measure them once the real art is in.",
+        "comment": "The same picture without the speech: a click-zone over the dosimeter opens its reference window, whose 'לקחת' button walks on to the next slide. The zone's percentages were measured off the art: the pen lies at x 485-538, y 745-812 of 1448x1086, and the zone pads that.",
         "image": "assets/panels/panel157_chapter_3_5_dosimeter_pick.svg",
         "year": "1943",
         "read": "",
@@ -1238,10 +1238,10 @@ const SCENES = {
             "action": "panel-object",
             "objectId": "dosimeter",
             "ariaLabel": "תא עיפרון",
-            "left": 30,
-            "top": 64,
-            "width": 14,
-            "height": 10
+            "left": 32,
+            "top": 65.5,
+            "width": 9,
+            "height": 11
           }
         ]
       },

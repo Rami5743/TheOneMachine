@@ -4930,27 +4930,26 @@
   // the value is an object with `discardCard`, a second "discard the card" button
   // is offered (the card-build exit error, where the card is invalid) that leaves
   // without saving.
-  // A story object the learner can look at: a small window with the object's
-  // reference link and, when it is something they take along, a "לקחת" button
-  // that walks the story on. Same window as the info dialog (it reuses the
-  // pace-dialog card), so it looks like every other slide-side note.
-  function renderPanelObjectDialog() {
+  // A story object the learner can look at. It reads exactly like the warehouse
+  // reference popovers ("מקור מתח" and friends): a small parchment window pinned
+  // beside the object itself, with its link — plus, when the object is something
+  // they take along, a "לקחת" button that walks the story on.
+  function renderPanelObjectPopover(panel) {
     const id = state.panelObjectDialog;
     if (!id) return "";
     const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[id];
     if (!object) return "";
+    // Sit beside the object's own click-zone, the way the warehouse popovers do.
+    const zone = panelHotspots(panel).find((h) => h.objectId === id);
+    const left = zone ? Math.min(Number(zone.left) + Number(zone.width), 78) : 40;
+    const top = zone ? Math.max(2, Number(zone.top) - 6) : 40;
     const take = object.takeLabel
-      ? `<button class="btn btn-primary" data-action="panel-object-take">${esc(object.takeLabel)}</button>`
+      ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
       : "";
     return `
-      <div class="pace-dialog-overlay" role="presentation">
-        <section class="pace-dialog-card panel-object-card" role="dialog" aria-modal="false" aria-label="${esc(object.label)}">
-          <a class="panel-object-link" href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
-          <div class="pace-dialog-actions">
-            ${take}
-            <button class="btn" data-action="panel-object-close">סגור</button>
-          </div>
-        </section>
+      <div class="panel-object-popover" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+        <a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
+        ${take}
       </div>`;
   }
 
@@ -5163,6 +5162,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${renderPanelObjectPopover(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
@@ -5187,7 +5187,6 @@
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}
       ${renderInfoDialog()}
-      ${renderPanelObjectDialog()}
       ${renderComponentMonologue()}
       ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
@@ -19454,6 +19453,12 @@
     }
 
     const button = event.target.closest("[data-action]");
+    // A plain click outside the object popover closes it — the same as the
+    // warehouse reference popovers — and does nothing else.
+    if (!button && state.panelObjectDialog && !event.target.closest(".panel-object-popover")) {
+      event.preventDefault();
+      return setState({ panelObjectDialog: null }, false);
+    }
     if (!button) {
       // During the booklet solution a plain click anywhere advances it, like
       // the "המשך" button (but not clicks inside the movable window itself).
@@ -19561,12 +19566,13 @@
       return;
     }
 
-    // The story object's reference window is modal like every other slide
-    // dialog: only its own three actions (and the topbar) work while it is up.
+    // The object popover is not modal: like the warehouse reference popovers, a
+    // click anywhere outside it just closes it (and a click on another object's
+    // zone opens that one instead). Its own two actions pass through.
     if (state.panelObjectDialog && !isGlobalNavigationAction(action)
-        && !["panel-object-link", "panel-object-take", "panel-object-close"].includes(action)) {
+        && !["panel-object", "panel-object-link", "panel-object-take"].includes(action)) {
       event.preventDefault();
-      return;
+      return setState({ panelObjectDialog: null }, false);
     }
 
     if (state.converterValueEdit && !isGlobalNavigationAction(action) && !["converter-value-ok", "converter-value-cancel"].includes(action)) {

@@ -690,23 +690,40 @@ button { font: inherit; }
   justify-content: center;
 }
 
-/* A story object's reference window: the link reads like the warehouse ones
-   (a plain underlined link on the card), with its "לקחת" button below. */
-.panel-object-card {
-  width: min(420px, 100%);
+/* A story object's reference window. Deliberately identical to the warehouse
+   reference popovers ("מקור מתח" and friends, styled in warehouse-hotspots.js):
+   a small parchment window pinned beside the object, with its link — and, when
+   the object is one the learner takes along, a "לקחת" button under it. */
+.panel-object-popover {
+  position: absolute;
+  z-index: 120;
+  min-width: 90px;
+  max-width: 230px;
+  display: grid;
+  gap: 8px;
   justify-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(36, 26, 13, 0.85);
+  background: rgba(249, 244, 232, 0.98);
+  color: #1e1b16;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  direction: rtl;
+  font-size: 0.95rem;
+  line-height: 1.35;
   text-align: center;
 }
 
-.panel-object-link {
-  font-size: var(--dialog-text);
+.panel-object-popover a {
+  color: #2c55a2;
   font-weight: 700;
-  color: #ffd98a;
   text-decoration: underline;
 }
 
-.panel-object-card .pace-dialog-actions {
-  gap: 12px;
+.panel-object-popover .panel-object-take {
+  min-width: 0;
+  padding: 3px 14px;
+  font-size: 0.9rem;
 }
 
 .btn,
