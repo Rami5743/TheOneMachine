@@ -2807,7 +2807,7 @@ g.component-ffCard.ff-materialize .ff-card {
    and let it scroll — never the panel itself: its hide toggle and drag grip are
    pinned to the panel, and would scroll out of reach with it. */
 .workspace-task-hint .mux-hint-text {
-  max-height: min(52vh, 430px);
+  max-height: min(62vh, 540px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }

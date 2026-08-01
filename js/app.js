@@ -1360,7 +1360,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "all";
+  const DEFAULT_PACE = "step";
 
   const defaultState = {
     screen: "menu",
@@ -8800,8 +8800,43 @@
     const scroll = app.querySelector("[data-workspace-scroll]");
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
     sizeCheckPanel();
+    widenScrollingPanels();
     revealFrozenCheckRow();
     positionClockedNailArrow();
+  }
+
+  // The worktable panels read at the dialog size now, so a long requirements text
+  // — or a long solution step — no longer fits the authored width. Rather than
+  // leave the learner scrolling inside the panel, the panel grows SIDEWAYS until
+  // the text fits: up to twice its authored width, and never wider than the
+  // board. Whatever still does not fit keeps the CSS scroll cap as a backstop.
+  // Runs before applyDraggedDialogPositions, so a panel the learner has dragged
+  // (and thereby pinned to a remembered width) keeps the width they left it at.
+  const PANEL_WIDEN_LIMIT = 2;
+  function widenScrollingPanels() {
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    const boardWidth = scroll ? scroll.clientWidth : 0;
+    const fit = (panel, body) => {
+      if (!panel || !body) return;
+      panel.style.width = "";                       // back to the authored width
+      const base = panel.getBoundingClientRect().width;
+      if (!base) return;
+      const room = boardWidth ? boardWidth - 32 : base * PANEL_WIDEN_LIMIT;
+      const maxWidth = Math.max(base, Math.min(base * PANEL_WIDEN_LIMIT, room));
+      let width = base;
+      let steps = 0;
+      while (body.scrollHeight - body.clientHeight > 2 && width < maxWidth - 0.5 && steps++ < 40) {
+        width = Math.min(maxWidth, width + 28);
+        panel.style.width = `${width}px`;
+      }
+    };
+    // The requirements panel — but not while a check row is up (sizeCheckPanel
+    // owns its width then) and not when it is collapsed to its title bar.
+    const req = app.querySelector(".workspace-task-hint:not(.workspace-task-hint-collapsed):not(.workspace-task-hint-check-wide)");
+    if (req) fit(req, req.querySelector(".mux-hint-text") || req.querySelector("p"));
+    // The solution walkthrough card (fixed height, so its step text scrolls).
+    const sol = app.querySelector(".workspace-board .solution-card");
+    if (sol) fit(sol, sol.querySelector("p"));
   }
 
   // While a check row is up, grow the requirements panel to fit the single row —
