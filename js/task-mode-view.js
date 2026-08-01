@@ -38,6 +38,16 @@ function createTaskModeView({
   // (wired to the generic dialog-drag via data-drag-handle in app.js).
   const PANEL_DRAG_HANDLE = `<span class="panel-drag-handle" data-drag-handle role="presentation" title="גרירה">⠿</span>`;
 
+  // The panel widens itself when its text would otherwise need scrolling
+  // (widenScrollingPanels). This button, beside the hide/show one, takes it back
+  // to its authored width — and, once shrunk, widens it again. It is only
+  // VISIBLE on a panel that actually had to widen; the CSS keys that off the
+  // data-size-toggle attribute the widening pass sets.
+  function requirementsSizeToggle() {
+    const compact = Boolean(getState().requirementsPanelCompact);
+    return `<button class="requirements-size-toggle" data-action="requirements-size-toggle" type="button">${compact ? "הגדלה" : "הקטנה"}</button>`;
+  }
+
   // One bus pin on the task frame: a thick black bar with a light dashed line
   // along it (the "bus" look) and the bit width above — same visual as the bus
   // wires and the splitter pins. The width label sits over `labelX` (kept
@@ -401,7 +411,7 @@ function createTaskModeView({
   function renderRequirementsPanel(task, scratchTableHtml) {
     const state = getState();
     const hidden = Boolean(state.requirementsPanelHidden);
-    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${hidden ? "" : requirementsSizeToggle()}${PANEL_DRAG_HANDLE}`;
     if (hidden) {
       return `
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(task.label)}">
@@ -430,7 +440,7 @@ function createTaskModeView({
       // build): the card's output pins sit in the lower-right, under the panel,
       // so it must let clicks fall through and be hideable to reach them.
       const hidden = Boolean(state.requirementsPanelHidden);
-      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${hidden ? "" : requirementsSizeToggle()}${PANEL_DRAG_HANDLE}`;
       if (hidden) {
         return `
           <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-collapsed" aria-label="דרישות ${esc(mbDef.label)}">
@@ -464,7 +474,7 @@ function createTaskModeView({
       // single-row truth table for the case currently under test. Draggable +
       // collapsible like every other requirements panel.
       const hidden = Boolean(state.requirementsPanelHidden);
-      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+      const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${hidden ? "" : requirementsSizeToggle()}${PANEL_DRAG_HANDLE}`;
       if (hidden) {
         return `
           <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-collapsed" aria-label="הסבר על ${esc(busDef.label)}">
@@ -522,7 +532,7 @@ function createTaskModeView({
     // "-dock" class registers it with the drag system under its own key (so its
     // remembered spot never collides with the MUX panel's).
     const hidden = Boolean(state.requirementsPanelHidden);
-    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${PANEL_DRAG_HANDLE}`;
+    const toggle = `<button class="requirements-toggle" data-action="toggle-requirements" type="button">${hidden ? "הצגה" : "הסתרה"}</button>${hidden ? "" : requirementsSizeToggle()}${PANEL_DRAG_HANDLE}`;
     if (hidden) {
       return `
         <section class="workspace-task-hint workspace-task-hint-dock workspace-task-hint-collapsed" aria-label="הסבר על ${esc(task.label)}">

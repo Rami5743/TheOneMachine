@@ -1378,6 +1378,10 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
+    // The requirements panel widens itself to fit its text (widenScrollingPanels).
+    // "הקטנה" puts it back to its authored width for the current build; each new
+    // build starts wide again, beside the requirementsPanelHidden reset.
+    requirementsPanelCompact: false,
     // The bottom-left "why do we need this?" panel. It starts OPEN on every task
     // — hiding it applies to the current build only, and each new build reopens
     // it (see the whyNoteHidden reset beside requirementsPanelHidden).
@@ -8022,6 +8026,28 @@
       </div>`;
   }
 
+  // The "הדרישות כאן" arrow points DOWN at the requirements panel, so it has to
+  // sit above whatever height that panel ends up at — which now depends on its
+  // text (bigger reading size, and the panel widens/grows to fit it). Measure the
+  // panel and park the arrow just above it instead of at a fixed offset.
+  function positionAndArrow() {
+    const arrow = app.querySelector(".workspace-and-arrow");
+    if (!arrow) return;
+    const panel = app.querySelector(".workspace-task-hint");
+    const board = app.querySelector("[data-workspace-board]") || arrow.offsetParent;
+    if (!panel || !board) return;
+    const panelRect = panel.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    const arrowRect = arrow.getBoundingClientRect();
+    if (!panelRect.height || !boardRect.height) return;
+    // 16px of air, which also clears the bounce animation (it dips 9px down).
+    const bottom = boardRect.bottom - panelRect.top + 16;
+    const maxBottom = Math.max(8, boardRect.height - arrowRect.height - 8);
+    arrow.style.bottom = `${Math.min(maxBottom, Math.max(8, bottom))}px`;
+    const right = boardRect.right - panelRect.right + (panelRect.width - arrowRect.width) / 2;
+    arrow.style.right = `${Math.max(8, right)}px`;
+  }
+
   function dismissAndArrow() {
     if (!state.workspace || state.andArrowSeen) return;
     state.andArrowSeen = true;
@@ -8801,6 +8827,7 @@
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
     sizeCheckPanel();
     widenScrollingPanels();
+    positionAndArrow();
     revealFrozenCheckRow();
     positionClockedNailArrow();
   }
@@ -8831,9 +8858,23 @@
       }
     };
     // The requirements panel — but not while a check row is up (sizeCheckPanel
-    // owns its width then) and not when it is collapsed to its title bar.
+    // owns its width then) and not when it is collapsed to its title bar. It
+    // also carries a "הקטנה" button, so the learner can send it back to its
+    // authored width; the button only SHOWS on a panel that needed the extra
+    // width in the first place (data-size-toggle), and while it is compact the
+    // panel is left at its authored width.
     const req = app.querySelector(".workspace-task-hint:not(.workspace-task-hint-collapsed):not(.workspace-task-hint-check-wide)");
-    if (req) fit(req, req.querySelector(".mux-hint-text") || req.querySelector("p"));
+    if (req) {
+      const body = req.querySelector(".mux-hint-text") || req.querySelector("p");
+      if (body) {
+        req.style.width = "";
+        const needsMore = body.scrollHeight - body.clientHeight > 2;
+        // Measured at the AUTHORED width, so this answers the same question in
+        // both states: would this panel need the extra width to fit its text?
+        req.dataset.sizeToggle = needsMore ? "1" : "";
+        if (!state.requirementsPanelCompact) fit(req, body);
+      }
+    }
     // The solution walkthrough card (fixed height, so its step text scrolls).
     const sol = app.querySelector(".workspace-board .solution-card");
     if (sol) fit(sol, sol.querySelector("p"));
@@ -15418,6 +15459,7 @@
       taskDialog: null,
       arithNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
@@ -15635,6 +15677,7 @@
       taskDialog: null,
       aluNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -15857,6 +15900,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -15974,6 +16018,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -16120,6 +16165,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -17325,6 +17371,7 @@
       dialog: null,
       taskDialog: null,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
@@ -17382,6 +17429,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -17430,6 +17478,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -19791,6 +19840,7 @@
     }
     if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
+    if (action === "requirements-size-toggle") return setState({ requirementsPanelCompact: !state.requirementsPanelCompact }, false);
     if (action === "why-note-toggle") return setState({ whyNoteHidden: !state.whyNoteHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();

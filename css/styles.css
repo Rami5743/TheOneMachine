@@ -2861,6 +2861,35 @@ g.component-ffCard.ff-materialize .ff-card {
   background: #ffe08a;
 }
 
+/* Beside it: shrink the panel back to its authored width (and grow it again).
+   Only rendered as visible when the panel actually had to widen to fit its
+   text — widenScrollingPanels sets data-size-toggle when that is the case. */
+.requirements-size-toggle {
+  position: absolute;
+  top: 6px;
+  left: 70px;
+  z-index: 3;
+  display: none;
+  pointer-events: auto;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: 1px solid rgba(36, 26, 13, 0.6);
+  background: rgba(255, 255, 255, 0.9);
+  color: #1e1b16;
+  cursor: pointer;
+}
+
+.workspace-task-hint[data-size-toggle="1"] .requirements-size-toggle {
+  display: inline-block;
+}
+
+.requirements-size-toggle:hover,
+.requirements-size-toggle:focus-visible {
+  background: #ffe08a;
+}
+
 /* Drag grip pinned to a click-through panel's top-right corner (the requirements
    panel and the "why the hell" note). It is the only pointer-events:auto surface
    on those otherwise wire-through panels, so the whole panel can be moved by it. */
