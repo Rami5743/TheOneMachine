@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Chapter 3.5, inside the hangar: room to build the memory, and the order of work — ports and frame first, then registers from address 0 up. The bubble sits right of centre so it clears von Neumann, who stands under the middle of this frame. -->
+<!-- Chapter 3.5, inside the hangar: room to build the memory, and the order of work. Bubble geometry as hand-drawn on panel162 — this speech is long, so its bubble runs wider (to x 1400) rather than far down the frame. -->
 <svg
    version="1.1"
    width="1448"
@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 638.94867,40 h 742.10266 c 12.6326,0 18.9487,8.4111 18.9487,25.23331 v 362.53478 c 0,16.8222 -6.3161,25.23331 -18.9487,25.23331 H 638.94867 c -12.63245,0 -18.94867,-8.4111 -18.94867,-25.23331 V 128.20607 l -49.45071,3.34971 49.45071,-20.41755 V 65.23331 C 620.00000,48.41111 626.31622,40 638.94867,40 Z"
+       d="m 596.80571,238 h 787.05549 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 362.53478 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 596.80571 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -299.56202 l -57.11762,10.34971 57.11762,-27.41755 v -45.90492 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -54,40 +54,40 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1010.0"
-       y="82"
+       x="990.333"
+       y="278"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1010.0"
-         y="82.0000">כמו שאתה רואה יש כאן הרבה מקום. תוכל לבנות כאן</tspan><tspan
+         x="990.333"
+         y="278">כמו שאתה רואה יש כאן הרבה מקום. תוכל לבנות כאן</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="1010.0"
-         y="132.5002">את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים</tspan><tspan
+         x="990.333"
+         y="328.5">את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
-         x="1010.0"
-         y="183.0004">מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת</tspan><tspan
+         x="990.333"
+         y="379">מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
-         x="1010.0"
-         y="233.5006">הכללית, ואז למלא אותה ברגיסטרים. תתחיל</tspan><tspan
+         x="990.333"
+         y="429.501">הכללית, ואז למלא אותה ברגיסטרים. תתחיל</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
-         x="1010.0"
-         y="284.0008">מכתובת 0 ותתקדם משם. כך שאם נראה שאנחנו לא</tspan><tspan
+         x="990.333"
+         y="480.001">מכתובת 0 ותתקדם משם. כך שאם נראה שאנחנו לא</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line6"
-         x="1010.0"
-         y="334.5010">יכולים לבנות הכל בזמן סביר, יהיה לנו זיכרון מתפקד</tspan><tspan
+         x="990.333"
+         y="530.501">יכולים לבנות הכל בזמן סביר, יהיה לנו זיכרון מתפקד</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line7"
-         x="1010.0"
-         y="385.0012">קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך</tspan><tspan
+         x="990.333"
+         y="581.001">קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line8"
-         x="1010.0"
-         y="435.5014">כשנקבל עוד אנשים נוכל להשלים אותו.</tspan></text>
+         x="990.333"
+         y="631.501">כשנקבל עוד אנשים נוכל להשלים אותו.</tspan></text>
   </g>
 </svg>
