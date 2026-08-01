@@ -1378,6 +1378,10 @@
     solutionDialog: null,
     solutionTableHidden: false,
     requirementsPanelHidden: false,
+    // The requirements panel widens itself to fit its text (widenScrollingPanels).
+    // "הקטנה" puts it back to its authored width for the current build; each new
+    // build starts wide again, beside the requirementsPanelHidden reset.
+    requirementsPanelCompact: false,
     // The bottom-left "why do we need this?" panel. It starts OPEN on every task
     // — hiding it applies to the current build only, and each new build reopens
     // it (see the whyNoteHidden reset beside requirementsPanelHidden).
@@ -8022,6 +8026,28 @@
       </div>`;
   }
 
+  // The "הדרישות כאן" arrow points DOWN at the requirements panel, so it has to
+  // sit above whatever height that panel ends up at — which now depends on its
+  // text (bigger reading size, and the panel widens/grows to fit it). Measure the
+  // panel and park the arrow just above it instead of at a fixed offset.
+  function positionAndArrow() {
+    const arrow = app.querySelector(".workspace-and-arrow");
+    if (!arrow) return;
+    const panel = app.querySelector(".workspace-task-hint");
+    const board = app.querySelector("[data-workspace-board]") || arrow.offsetParent;
+    if (!panel || !board) return;
+    const panelRect = panel.getBoundingClientRect();
+    const boardRect = board.getBoundingClientRect();
+    const arrowRect = arrow.getBoundingClientRect();
+    if (!panelRect.height || !boardRect.height) return;
+    // 16px of air, which also clears the bounce animation (it dips 9px down).
+    const bottom = boardRect.bottom - panelRect.top + 16;
+    const maxBottom = Math.max(8, boardRect.height - arrowRect.height - 8);
+    arrow.style.bottom = `${Math.min(maxBottom, Math.max(8, bottom))}px`;
+    const right = boardRect.right - panelRect.right + (panelRect.width - arrowRect.width) / 2;
+    arrow.style.right = `${Math.max(8, right)}px`;
+  }
+
   function dismissAndArrow() {
     if (!state.workspace || state.andArrowSeen) return;
     state.andArrowSeen = true;
@@ -8800,8 +8826,58 @@
     const scroll = app.querySelector("[data-workspace-scroll]");
     if (scroll && prevBoardScroll) scroll.scrollTop = prevBoardScroll;
     sizeCheckPanel();
+    widenScrollingPanels();
+    positionAndArrow();
     revealFrozenCheckRow();
     positionClockedNailArrow();
+  }
+
+  // The worktable panels read at the dialog size now, so a long requirements text
+  // — or a long solution step — no longer fits the authored width. Rather than
+  // leave the learner scrolling inside the panel, the panel grows SIDEWAYS until
+  // the text fits: up to twice its authored width, and never wider than the
+  // board. Whatever still does not fit keeps the CSS scroll cap as a backstop.
+  // Runs before applyDraggedDialogPositions, so a panel the learner has dragged
+  // (and thereby pinned to a remembered width) keeps the width they left it at.
+  const PANEL_WIDEN_LIMIT = 2;
+  function widenScrollingPanels() {
+    const scroll = app.querySelector("[data-workspace-scroll]");
+    const boardWidth = scroll ? scroll.clientWidth : 0;
+    const fit = (panel, body) => {
+      if (!panel || !body) return;
+      panel.style.width = "";                       // back to the authored width
+      const base = panel.getBoundingClientRect().width;
+      if (!base) return;
+      const room = boardWidth ? boardWidth - 32 : base * PANEL_WIDEN_LIMIT;
+      const maxWidth = Math.max(base, Math.min(base * PANEL_WIDEN_LIMIT, room));
+      let width = base;
+      let steps = 0;
+      while (body.scrollHeight - body.clientHeight > 2 && width < maxWidth - 0.5 && steps++ < 40) {
+        width = Math.min(maxWidth, width + 28);
+        panel.style.width = `${width}px`;
+      }
+    };
+    // The requirements panel — but not while a check row is up (sizeCheckPanel
+    // owns its width then) and not when it is collapsed to its title bar. It
+    // also carries a "הקטנה" button, so the learner can send it back to its
+    // authored width; the button only SHOWS on a panel that needed the extra
+    // width in the first place (data-size-toggle), and while it is compact the
+    // panel is left at its authored width.
+    const req = app.querySelector(".workspace-task-hint:not(.workspace-task-hint-collapsed):not(.workspace-task-hint-check-wide)");
+    if (req) {
+      const body = req.querySelector(".mux-hint-text") || req.querySelector("p");
+      if (body) {
+        req.style.width = "";
+        const needsMore = body.scrollHeight - body.clientHeight > 2;
+        // Measured at the AUTHORED width, so this answers the same question in
+        // both states: would this panel need the extra width to fit its text?
+        req.dataset.sizeToggle = needsMore ? "1" : "";
+        if (!state.requirementsPanelCompact) fit(req, body);
+      }
+    }
+    // The solution walkthrough card (fixed height, so its step text scrolls).
+    const sol = app.querySelector(".workspace-board .solution-card");
+    if (sol) fit(sol, sol.querySelector("p"));
   }
 
   // While a check row is up, grow the requirements panel to fit the single row —
@@ -8916,7 +8992,12 @@
     const maxPreferredH = step === 2 ? 320 : 265;
     const maxSpeechH = Math.max(130, Math.min(maxPreferredH, availableAbove));
     speech.style.maxHeight = `${maxSpeechH}px`;
-    speech.style.setProperty("--speech-content-max", `${Math.max(84, maxSpeechH - 26)}px`);
+    // The bubble does not scroll (its tail is drawn on it) — its TEXT does. The
+    // room left for the text is the bubble's height minus its own padding; the
+    // old fixed 26px allowance was less than the real padding, so at the bigger
+    // reading size the text pushed out through the bottom of the bubble.
+    const speechPad = parseFloat(getComputedStyle(speech).paddingTop) || 12;
+    speech.style.setProperty("--speech-content-max", `${Math.max(84, maxSpeechH - 2 * speechPad - 2)}px`);
 
     const speechRect = speech.getBoundingClientRect();
     const speechH = Math.min(speechRect.height || maxSpeechH, maxSpeechH);
@@ -15378,6 +15459,7 @@
       taskDialog: null,
       arithNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
@@ -15595,6 +15677,7 @@
       taskDialog: null,
       aluNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -15638,6 +15721,13 @@
     "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
   ];
 
+  // Shown once RAM16 is done, back at the 3.3 worktable: what the 4-bit address
+  // bus actually is — a number from 0 to 15 naming the register.
+  const RAM16_COMPLETE_PAGES = [
+    "שים לב: בס הכתובת של RAM16 הוא ברוחב 4. זה אומר שיש לו 16 אפשרויות. זה מתאים ל-16 הרגיסטרים שיש ב-RAM16",
+    "אפשר לחשוב על רצף של 4 ביטים כמספר שהכתיב הבינרי שלו הוא (עד) 4 ספרתי. יש בדיוק 16 מספרים כאלו. אלו הם המספרים מ-0 עד 15. כך שאנחנו יכולים לחשוב על הכתובת כמספר מ-0 עד 15 שמתאר את מספר הרגיסטר אליו אנחנו פונים (זאת אומרת קוראים או כותבים). בכרטיסים הבאים נבנה זכרונות גדולים יותר והכתובת תוכל להיות מספר גדול יותר."
+  ];
+
   // The last word of chapter 3.3, after von Neumann's closing slides: what
   // replaced the punched tape, and where RAM still sits beside long-term storage.
   const RAM_OUTRO_PAGES = [
@@ -15651,10 +15741,12 @@
   // The after-completion message pages for a card (null if it has none). ALU0 and
   // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
   // paged dialog, once the build (or its walkthrough) is behind the learner.
+  // RAM16 in 3.3 has one too — about what its 4-bit address really is.
   function aluMessagePagesFor(taskId) {
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
     if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
+    if (taskId === "RAM16") return RAM16_COMPLETE_PAGES;
     if (taskId === RAM_OUTRO_KEY) return RAM_OUTRO_PAGES;
     return null;
   }
@@ -15669,7 +15761,10 @@
     const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
     const isLast = page >= pages.length - 1;
     const taskId = state.aluIntroDialog.taskId || "ALU0";
-    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון" : isRamTask(taskId) ? "על הרגיסטר" : "על ה-ALU";
+    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון"
+      : taskId === "RAM16" ? "על הכתובת"
+      : isRamTask(taskId) ? "על הרגיסטר"
+      : "על ה-ALU";
     return `
       <div class="dialog-overlay" role="presentation">
         <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="${esc(label)}">
@@ -15805,6 +15900,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -15922,6 +16018,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -16068,6 +16165,7 @@
       ramNoteList: false,
       portsNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -17273,6 +17371,7 @@
       dialog: null,
       taskDialog: null,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
@@ -17330,6 +17429,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -17378,6 +17478,7 @@
       taskDialog: null,
       busesNoteList: false,
       requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -19739,6 +19840,7 @@
     }
     if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
+    if (action === "requirements-size-toggle") return setState({ requirementsPanelCompact: !state.requirementsPanelCompact }, false);
     if (action === "why-note-toggle") return setState({ whyNoteHidden: !state.whyNoteHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();
     if (action === "build-help-yes" || action === "build-help-open") return openNandBuildHelp();
