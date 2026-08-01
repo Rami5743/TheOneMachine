@@ -1208,13 +1208,13 @@ const SCENES = {
         "comment": "3.5 opens where 3.4 did: von Neumann in the doorway (panel131 art). The design is finished; the machine does not exist.",
         "image": "assets/panels/panel153_chapter_3_5_production_intro.svg",
         "year": "1943",
-        "read": "מצויין, עכשיו יש לנו את כל הזכרון שאנחנו צריכים ביחד עם הפורטים. יש רק בעיה אחת, אין לנו אותו. יש לנו רק תכנון. כל פעם שאתה משתמש בכרטיס שכבר בנית, אתה רק מסמן, ומישהו צריך להרכיב. קודם היית יכול לדחוף את זה לאנשים שבונים מכונות חישוב בלי שהם ישימו לב. אבל פה מדובר בכרטיס עצום. הם ישימו לב..."
+        "read": "מצוין, עכשיו יש לנו את כל הזיכרון שאנחנו צריכים ביחד עם הפורטים. יש רק בעיה אחת, אין לנו אותו. יש לנו רק תכנון. כל פעם שאתה משתמש בכרטיס שכבר בנית, אתה רק מסמן, ומישהו צריך להרכיב. קודם היית יכול לדחוף את זה לאנשים שבונים מכונות חישוב בלי שהם ישימו לב. אבל פה מדובר בכרטיס עצום. הם ישימו לב..."
       },
       {
         "comment": "The move: a big roomy place, barely reachable — and there is a good reason for that.",
         "image": "assets/panels/panel154_chapter_3_5_production_move.svg",
         "year": "1943",
-        "read": "אין ברירה, תצטרך לעשות את זה בעצמך. אתה לא תוכל להמשיך לעבוד כאן. אין כאן מספיק מקום. מצאתי מקום גדול ומרווח בשבילך. בקושי מגיעים לשם כך שתוכל לעבוד בשקט בלי שישאלו אותך שאלות מיותרות. יש רק בעיה אחת. יש סיבה טובה למה בקושי מגיעים לשם, כך שנצטרך להיזהר."
+        "read": "אין ברירה, תצטרך לעשות את זה בעצמך. אתה לא תוכל להמשיך לעבוד כאן. אין כאן מספיק מקום. מצאתי מקום גדול ומרווח בשבילך. בקושי מגיעים לשם, כך שתוכל לעבוד בשקט בלי שישאלו אותך שאלות מיותרות. יש רק בעיה אחת. יש סיבה טובה למה בקושי מגיעים לשם, כך שנצטרך להיזהר."
       },
       {
         "comment": "Wordless: he leans in and lays the pen dosimeter on the table.",
@@ -1226,7 +1226,7 @@ const SCENES = {
         "comment": "The briefing: check the meter every few minutes, and what to do at 100 and at 200.",
         "image": "assets/panels/panel156_chapter_3_5_dosimeter_brief.svg",
         "year": "1943",
-        "read": "קח את זה. כל כמה דקות תצטרך להציץ בעינית ולבדוק את המד. אם המספר שם מעל ל-100, תפסיק מיד הכול ולך הביתה עד למחרת. אם מאיזושהי סיבה הוא הגיע למקסימום (200) עזוב הכל ורוץ מיד אלי. אם אני לא במשרד תבוא למגורים שלי. לא חשוב מה השעה. תעיר אותי אם צריך. בוא נקווה שזה לא יקרה."
+        "read": "קח את זה. כל כמה דקות תצטרך להציץ בעינית ולבדוק את המד. אם המספר שם מעל ל-100, תפסיק מיד הכול ולך הביתה עד למחרת. אם מאיזושהי סיבה הוא הגיע למקסימום (200), עזוב הכול ורוץ מיד אליי. אם אני לא במשרד, תבוא למגורים שלי. לא חשוב מה השעה. תעיר אותי אם צריך. בוא נקווה שזה לא יקרה."
       },
       {
         "comment": "The same picture without the speech: a click-zone over the dosimeter opens its reference window, whose 'לקחת' button walks on to the next slide. The zone's percentages were measured off the art: the pen lies at x 485-538, y 745-812 of 1448x1086, and the zone pads that.",
@@ -1249,7 +1249,7 @@ const SCENES = {
         "comment": "The dosimeter is taken, so the table is bare again (panel131 art).",
         "image": "assets/panels/panel158_chapter_3_5_lets_go.svg",
         "year": "1943",
-        "read": "בוא נלך"
+        "read": "בוא נלך."
       },
       {
         "comment": "Wordless: where they were going — Project Y, Bldg. 1, behind the radiation-hazard signs.",
@@ -1261,25 +1261,25 @@ const SCENES = {
         "comment": "Inside the hangar: room to build in, and the order of work — ports and frame first, then registers from address 0 up.",
         "image": "assets/panels/panel160_chapter_3_5_hangar_space.svg",
         "year": "1943",
-        "read": "כמו שאתה רואה יש כאן הרבה מקום. תוכל לבנות כאן את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת הכללית, ואז למלא אותה ברגיסטרים. תתחיל מכתובת 0 ותתקדם משם. כך שאם נראה שאנחנו לא יכולים לבנות הכל בזמן סביר, יהיה לנו זיכרון מתפקד קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך כשנקבל עוד אנשים נוכל להשלים אותו."
+        "read": "כמו שאתה רואה, יש כאן הרבה מקום. תוכל לבנות כאן את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת הכללית, ואז למלא אותה ברגיסטרים. תתחיל מכתובת 0 ותתקדם משם, כך שאם נראה שאנחנו לא יכולים לבנות הכול בזמן סביר, יהיה לנו זיכרון מתפקד קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך, כשנקבל עוד אנשים, נוכל להשלים אותו."
       },
       {
         "comment": "A second memory, for the program.",
         "image": "assets/panels/panel161_chapter_3_5_hangar_program_ram.svg",
         "year": "1943",
-        "read": "ועוד דבר אחד. אנחנו צריכים זיכרון נוסף שעליו נשמור את התוכנה שלנו. אז אתה צריך לבנות עוד RAM1024 בשביל זה. גם כאן, אתה לא חייב לבנות את הכל, רק את המסגרת וכמה מאות רגיסטרים בהתחלה"
+        "read": "ועוד דבר אחד. אנחנו צריכים זיכרון נוסף שעליו נשמור את התוכנה שלנו. אז אתה צריך לבנות עוד RAM1024 בשביל זה. גם כאן, אתה לא חייב לבנות את הכול, רק את המסגרת וכמה מאות רגיסטרים בהתחלה."
       },
       {
         "comment": "One day the two memories might become one — for now it is too complicated.",
         "image": "assets/panels/panel162_chapter_3_5_hangar_someday.svg",
         "year": "1943",
-        "read": "אולי פעם נלמד לאחד את הזכרונות, כדי שנוכל לתכנת את המחשב שלנו מתוך המחשב עצמו. בינתיים זה מסובך מדי"
+        "read": "אולי פעם נלמד לאחד את הזיכרונות, כדי שנוכל לתכנת את המחשב שלנו מתוך המחשב עצמו. בינתיים זה מסובך מדי."
       },
       {
         "comment": "The last warning: loud noises from the popy mean stop everything and come.",
         "image": "assets/panels/panel163_chapter_3_5_popy_warning.svg",
         "year": "1943",
-        "read": "ועוד דבר אחד. אם אתה שומע קולות חזקים מהפופי תפסיק את מה שאתה עושה ותגיע אלי מיד."
+        "read": "ועוד דבר אחד. אם אתה שומע קולות חזקים מהפופי, תפסיק את מה שאתה עושה ותגיע אליי מיד."
       },
       {
         "comment": "Von Neumann has gone; the hangar is the learner's. Two reference click-zones: the radioactive-waste drums along the right wall, and the popy (a proportional counter) on the table. המשך from here ends the chapter on \"המשך יבוא...\".",

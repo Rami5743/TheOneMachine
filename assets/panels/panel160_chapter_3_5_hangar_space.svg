@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Chapter 3.5, inside the hangar: room to build the memory, and the order of work. Bubble geometry as hand-drawn on panel162 — this speech is long, so its bubble runs wider (to x 1400) rather than far down the frame. -->
+<!-- Chapter 3.5, inside the hangar: room to build the memory, and the order of work. Bubble geometry as hand-drawn on panel162; this speech is long, so its bubble runs wider (to x 1400). -->
 <svg
    version="1.1"
    width="1448"
@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 596.80571,238 h 787.05549 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 362.53478 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 596.80571 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -299.56202 l -57.11762,10.34971 57.11762,-27.41755 v -45.90492 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
+       d="m 596.80571,238 h 787.05549 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 413.03498 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 596.80571 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -350.06222 l -57.11762,10.34971 57.11762,-27.41755 v -45.90492 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -60,34 +60,38 @@
          sodipodi:role="line"
          id="bubble-text-line1"
          x="990.333"
-         y="278">כמו שאתה רואה יש כאן הרבה מקום. תוכל לבנות כאן</tspan><tspan
+         y="278">כמו שאתה רואה, יש כאן הרבה מקום. תוכל לבנות</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
          x="990.333"
-         y="328.5">את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים</tspan><tspan
+         y="328.5">כאן את הזיכרון בנחת. אנסה להביא לך רגיסטרים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
          x="990.333"
-         y="379">מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת</tspan><tspan
+         y="379">מוכנים מדי פעם. תתחיל מלבנות את הפורטים ואת</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
          x="990.333"
-         y="429.501">הכללית, ואז למלא אותה ברגיסטרים. תתחיל</tspan><tspan
+         y="429.501">המסגרת הכללית, ואז למלא אותה ברגיסטרים.</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
          x="990.333"
-         y="480.001">מכתובת 0 ותתקדם משם. כך שאם נראה שאנחנו לא</tspan><tspan
+         y="480.001">תתחיל מכתובת 0 ותתקדם משם, כך שאם נראה</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line6"
          x="990.333"
-         y="530.501">יכולים לבנות הכל בזמן סביר, יהיה לנו זיכרון מתפקד</tspan><tspan
+         y="530.501">שאנחנו לא יכולים לבנות הכול בזמן סביר, יהיה לנו</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line7"
          x="990.333"
-         y="581.001">קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך</tspan><tspan
+         y="581.001">זיכרון מתפקד קטן יותר, שנוכל להשתמש בו</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line8"
          x="990.333"
-         y="631.501">כשנקבל עוד אנשים נוכל להשלים אותו.</tspan></text>
+         y="631.501">להדגמות, ובהמשך, כשנקבל עוד אנשים, נוכל</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line9"
+         x="990.333"
+         y="682.002">להשלים אותו.</tspan></text>
   </g>
 </svg>
