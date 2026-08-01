@@ -690,6 +690,25 @@ button { font: inherit; }
   justify-content: center;
 }
 
+/* A story object's reference window: the link reads like the warehouse ones
+   (a plain underlined link on the card), with its "לקחת" button below. */
+.panel-object-card {
+  width: min(420px, 100%);
+  justify-items: center;
+  text-align: center;
+}
+
+.panel-object-link {
+  font-size: var(--dialog-text);
+  font-weight: 700;
+  color: #ffd98a;
+  text-decoration: underline;
+}
+
+.panel-object-card .pace-dialog-actions {
+  gap: 12px;
+}
+
 .btn,
 .chapter-btn {
   min-width: 86px;
@@ -715,6 +734,18 @@ button { font: inherit; }
 
 .chapter-btn-locked:hover {
   background: var(--button);
+}
+
+/* Plot chapters (the 1.x intro and 3.5 יצור): nothing is built in them, so the
+   menu tints them differently from the chapters the learner builds in. */
+.chapter-btn-story {
+  background: rgba(92, 68, 30, 0.72);
+  border-color: #6d5730;
+}
+
+.chapter-btn-story:hover:not(:disabled),
+.chapter-btn-story:focus-visible:not(:disabled) {
+  background: rgba(120, 90, 42, 0.85);
 }
 
 .chapter-lock {

@@ -1377,6 +1377,9 @@
     hintSlides: null,
     solutionDialog: null,
     solutionTableHidden: false,
+    // The open reference window of a story object (a click-zone on a slide):
+    // the object's id, or null. Transient — never persisted.
+    panelObjectDialog: null,
     requirementsPanelHidden: false,
     // The requirements panel widens itself to fit its text (widenScrollingPanels).
     // "הקטנה" puts it back to its authored width for the current build; each new
@@ -2613,6 +2616,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      panelObjectDialog: null,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -2812,7 +2816,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3707,8 +3711,10 @@
       // target in a data attribute the click handler reads.
       const action = h.url ? "open-external-url" : (h.action || "panel-hotspot");
       const urlAttr = h.url ? ` data-url="${esc(h.url)}"` : "";
+      // A "panel-object" hotspot names the object whose reference window opens.
+      const objectAttr = h.objectId ? ` data-object-id="${esc(h.objectId)}"` : "";
       return `
-      <button class="panel-hotspot" type="button" data-action="${esc(action)}"${urlAttr} aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`;
+      <button class="panel-hotspot" type="button" data-action="${esc(action)}"${urlAttr}${objectAttr} aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`;
     }).join("");
   }
 
@@ -4924,6 +4930,30 @@
   // the value is an object with `discardCard`, a second "discard the card" button
   // is offered (the card-build exit error, where the card is invalid) that leaves
   // without saving.
+  // A story object the learner can look at: a small window with the object's
+  // reference link and, when it is something they take along, a "לקחת" button
+  // that walks the story on. Same window as the info dialog (it reuses the
+  // pace-dialog card), so it looks like every other slide-side note.
+  function renderPanelObjectDialog() {
+    const id = state.panelObjectDialog;
+    if (!id) return "";
+    const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[id];
+    if (!object) return "";
+    const take = object.takeLabel
+      ? `<button class="btn btn-primary" data-action="panel-object-take">${esc(object.takeLabel)}</button>`
+      : "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card panel-object-card" role="dialog" aria-modal="false" aria-label="${esc(object.label)}">
+          <a class="panel-object-link" href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
+          <div class="pace-dialog-actions">
+            ${take}
+            <button class="btn" data-action="panel-object-close">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -5060,7 +5090,10 @@
 
   function chapterButtonHtml(chapter) {
     const locked = !chapterReached(chapter.id);
-    const cls = locked ? "chapter-btn chapter-btn-locked" : "chapter-btn";
+    // A plot-only chapter (the 1.x intro, 3.5) is tinted differently, so the menu
+    // shows at a glance which chapters are story and which are built in.
+    const story = chapter.story ? " chapter-btn-story" : "";
+    const cls = (locked ? "chapter-btn chapter-btn-locked" : "chapter-btn") + story;
     const attrs = locked ? ' disabled aria-disabled="true" title="הפרק יינעל עד שתגיע אליו"' : "";
     const lock = locked ? ' <span class="chapter-lock" aria-hidden="true">🔒</span>' : "";
     return `<button class="${cls}" data-action="chapter" data-chapter-id="${esc(chapter.id)}"${attrs}>${esc(chapter.title)}${lock}</button>`;
@@ -5154,6 +5187,7 @@
       ${renderNoteTaskDialog()}
       ${renderBitDialog()}
       ${renderInfoDialog()}
+      ${renderPanelObjectDialog()}
       ${renderComponentMonologue()}
       ${renderConverterInfoDialog()}
       ${renderBusesNoteList()}
@@ -11785,7 +11819,9 @@
       }, true);
     }
 
-    return setState({ screen: "chapters", panelIndex: 0, replayNonce: state.replayNonce + 1, dialog: null });
+    // Past the last slide of the last chapter there is no next chapter yet, so
+    // the story says so instead of dumping the learner on the chapters screen.
+    return setState({ infoDialog: "המשך יבוא..." });
   }
 
   function previousPanel() {
@@ -19525,6 +19561,14 @@
       return;
     }
 
+    // The story object's reference window is modal like every other slide
+    // dialog: only its own three actions (and the topbar) work while it is up.
+    if (state.panelObjectDialog && !isGlobalNavigationAction(action)
+        && !["panel-object-link", "panel-object-take", "panel-object-close"].includes(action)) {
+      event.preventDefault();
+      return;
+    }
+
     if (state.converterValueEdit && !isGlobalNavigationAction(action) && !["converter-value-ok", "converter-value-cancel"].includes(action)) {
       event.preventDefault();
       return;
@@ -19747,6 +19791,16 @@
     if (action === "dialog-no") return rejectInteractiveDialog();
     if (action === "panel-hotspot") return activatePanelHotspot();
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
+    // A story object's reference window: open it, follow its link (which earns
+    // "סקרן" like every other reference), take the object (which walks on to the
+    // next slide), or close it.
+    if (action === "panel-object") return setState({ panelObjectDialog: button.dataset.objectId || null }, false);
+    if (action === "panel-object-link") { unlockAchievement("curious"); return; }
+    if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
+    if (action === "panel-object-take") {
+      setState({ panelObjectDialog: null }, false);
+      return nextPanel();
+    }
     if (action === "stone-millis-book") return openNotebook();
     if (action === "binary-booklet") return openBinaryBooklet();
     if (action === "binbk-cell") return binInGridSolution(state.notebook) ? binWalkAdvance() : binSelectCell(Number(button.dataset.r), Number(button.dataset.c));

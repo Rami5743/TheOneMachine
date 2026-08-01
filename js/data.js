@@ -21,18 +21,21 @@ const PARTS = [
 const CHAPTERS = [
   {
     "id": "chapter-1",
+    "story": true,
     "partId": "part-1",
     "title": "1.1 המכתב",
     "sceneId": "einstein-letter"
   },
   {
     "id": "chapter-2",
+    "story": true,
     "partId": "part-1",
     "title": "1.2 הפרויקט",
     "sceneId": "berkeley-1942"
   },
   {
     "id": "chapter-3",
+    "story": true,
     "partId": "part-1",
     "title": "1.3 המחשב האלקטרוני",
     "sceneId": "oppenheimer-von-neumann-1943"
@@ -96,6 +99,13 @@ const CHAPTERS = [
     "partId": "part-3",
     "title": "3.4 פורטים",
     "sceneId": "ports"
+  },
+  {
+    "id": "chapter-14",
+    "partId": "part-3",
+    "title": "3.5 יצור",
+    "sceneId": "production",
+    "story": true
   }
 ];
 
@@ -1184,6 +1194,62 @@ const SCENES = {
           { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
           { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
         ]
+      }
+    ]
+  },
+  "production": {
+    "id": "production",
+    "title": "3.5 יצור",
+    "type": "story",
+    "chapterId": "chapter-14",
+    "year": "1943",
+    "panels": [
+      {
+        "comment": "3.5 opens where 3.4 did: von Neumann in the doorway (panel131 art). The design is finished; the machine does not exist.",
+        "image": "assets/panels/panel153_chapter_3_5_production_intro.svg",
+        "year": "1943",
+        "read": "מצויין, עכשיו יש לנו את כל הזכרון שאנחנו צריכים ביחד עם הפורטים. יש רק בעיה אחת, אין לנו אותו. יש לנו רק תכנון. כל פעם שאתה משתמש בכרטיס שכבר בנית, אתה רק מסמן, ומישהו צריך להרכיב. קודם היית יכול לדחוף את זה לאנשים שבונים מכונות חישוב בלי שהם ישימו לב. אבל פה מדובר בכרטיס עצום. הם ישימו לב..."
+      },
+      {
+        "comment": "The move: a big roomy place, barely reachable — and there is a good reason for that.",
+        "image": "assets/panels/panel154_chapter_3_5_production_move.svg",
+        "year": "1943",
+        "read": "אין ברירה, תצטרך לעשות את זה בעצמך. אתה לא תוכל להמשיך לעבוד כאן. אין כאן מספיק מקום. מצאתי מקום גדול ומרווח בשבילך. בקושי מגיעים לשם כך שתוכל לעבוד בשקט בלי שישאלו אותך שאלות מיותרות. יש רק בעיה אחת. יש סיבה טובה למה בקושי מגיעים לשם, כך שנצטרך להיזהר."
+      },
+      {
+        "comment": "Wordless: he leans in and lays the pen dosimeter on the table.",
+        "image": "assets/panels/panel155_chapter_3_5_dosimeter_placed.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "The briefing: check the meter every few minutes, and what to do at 100 and at 200.",
+        "image": "assets/panels/panel156_chapter_3_5_dosimeter_brief.svg",
+        "year": "1943",
+        "read": "קח את זה. כל כמה דקות תצטרך להציץ בעינית ולבדוק את המד. אם המספר שם מעל ל-100, תפסיק מיד הכול ולך הביתה עד למחרת. אם מאיזושהי סיבה הוא הגיע למקסימום (200) עזוב הכל ורוץ מיד אלי. אם אני לא במשרד תבוא למגורים שלי. לא חשוב מה השעה. תעיר אותי אם צריך. בוא נקווה שזה לא יקרה."
+      },
+      {
+        "comment": "The same picture without the speech: a click-zone over the dosimeter opens its reference window, whose 'לקחת' button walks on to the next slide. The zone's percentages are a first pass over the stand-in raster — re-measure them once the real art is in.",
+        "image": "assets/panels/panel157_chapter_3_5_dosimeter_pick.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "dosimeter",
+            "ariaLabel": "תא עיפרון",
+            "left": 30,
+            "top": 64,
+            "width": 14,
+            "height": 10
+          }
+        ]
+      },
+      {
+        "comment": "The dosimeter is taken, so the table is bare again (panel131 art).",
+        "image": "assets/panels/panel158_chapter_3_5_lets_go.svg",
+        "year": "1943",
+        "read": "בוא נלך"
       }
     ]
   }

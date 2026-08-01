@@ -963,3 +963,14 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
+  // Objects a story slide can offer for a closer look: a click-zone over the
+  // object opens a small window with its reference link and, when the object is
+  // something the learner takes with them, a "לקחת" button that walks the story
+  // on to the next slide.
+  const PANEL_OBJECTS = {
+    dosimeter: {
+      label: "תא עיפרון",
+      url: "https://grokipedia.com/page/quartz_fiber_dosimeter",
+      takeLabel: "לקחת"
+    }
+  };
