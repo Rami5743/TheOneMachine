@@ -1250,6 +1250,30 @@ const SCENES = {
         "image": "assets/panels/panel158_chapter_3_5_lets_go.svg",
         "year": "1943",
         "read": "בוא נלך"
+      },
+      {
+        "comment": "Wordless: where they were going — Project Y, Bldg. 1, behind the radiation-hazard signs.",
+        "image": "assets/panels/panel159_chapter_3_5_project_y.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "Inside the hangar: room to build in, and the order of work — ports and frame first, then registers from address 0 up.",
+        "image": "assets/panels/panel160_chapter_3_5_hangar_space.svg",
+        "year": "1943",
+        "read": "כמו שאתה רואה יש כאן הרבה מקום. תוכל לבנות כאן את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים מדי פעם. תתחיל מלבנות את הפורטים ואת המסגרת הכללית, ואז למלא אותה ברגיסטרים. תתחיל מכתובת 0 ותתקדם משם. כך שאם נראה שאנחנו לא יכולים לבנות הכל בזמן סביר, יהיה לנו זיכרון מתפקד קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך כשנקבל עוד אנשים נוכל להשלים אותו."
+      },
+      {
+        "comment": "A second memory, for the program.",
+        "image": "assets/panels/panel161_chapter_3_5_hangar_program_ram.svg",
+        "year": "1943",
+        "read": "ועוד דבר אחד. אנחנו צריכים זיכרון נוסף שעליו נשמור את התוכנה שלנו. אז אתה צריך לבנות עוד RAM1024 בשביל זה. גם כאן, אתה לא חייב לבנות את הכל, רק את המסגרת וכמה מאות רגיסטרים בהתחלה"
+      },
+      {
+        "comment": "One day the two memories might become one — for now it is too complicated.",
+        "image": "assets/panels/panel162_chapter_3_5_hangar_someday.svg",
+        "year": "1943",
+        "read": "אולי פעם נלמד לאחד את הזכרונות, כדי שנוכל לתכנת את המחשב שלנו מתוך המחשב עצמו. בינתיים זה מסובך מדי"
       }
     ]
   }
