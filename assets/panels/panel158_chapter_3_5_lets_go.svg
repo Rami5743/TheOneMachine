@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Chapter 3.5: the dosimeter is in the learner's pocket, so the table is bare again (panel131 art) — von Neumann: let's go. -->
+
 <svg
    version="1.1"
    width="1448"
@@ -8,6 +9,7 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel158_chapter_3_5_lets_go.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -24,11 +26,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="1"
-     inkscape:cx="798.5"
-     inkscape:cy="287.5"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:zoom="4.8511905"
+     inkscape:cx="478.13006"
+     inkscape:cy="121.00123"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1147"
+     inkscape:window-height="1080"
+     inkscape:window-x="158"
+     inkscape:window-y="794" />
   <image
      id="raster-base"
      x="0"
@@ -44,7 +50,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 489.99005,40 h 807.83758 c 12.6326,0 18.9487,8.4111 18.9487,25.23331 v 9.03338 c 0,16.8222 -6.3161,25.23331 -18.9487,25.23331 H 489.99005 c -12.63245,0 -18.94867,-8.4111 -18.94867,-25.23331 V 128.20607 l -49.45071,3.34971 49.45071,-20.41755 V 65.23331 C 471.04138,48.41111 477.35760,40 489.99005,40 Z"
+       d="M 487.54365,102.6184 582.13154,102 c 12.18054,-0.0796 22.38644,3.46563 22.61416,20.28608 l 0.22834,16.8665 C 605.20176,155.97301 591.33088,161.5 579.1501,161.5 h -85.24606 c -12.18063,0 -24.63133,3.13246 -24.63133,-13.68975 v -8.20884 l -59.844,-2.12907 59.844,-9.20836 v -9.89447 c 0,-6.88625 4.48221,-15.66096 18.27094,-15.75111 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -54,12 +60,12 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="894.58099"
-       y="82"
+       x="536.58099"
+       y="140"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="894.58099"
-         y="82.0000">בוא נלך</tspan></text>
+         x="536.58099"
+         y="140">בוא נלך</tspan></text>
   </g>
 </svg>
