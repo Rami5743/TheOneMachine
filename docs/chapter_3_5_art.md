@@ -79,7 +79,7 @@
 | --- | --- |
 | חביות הפסולת (הקיר הימני) | `left: 55, top: 31, width: 35, height: 22` |
 | חביות הפסולת (ליד הדלת) | `left: 5.4, top: 38.4, width: 10, height: 11` |
-| הפופי (המכשיר על השולחן) | `left: 7, top: 56, width: 25, height: 26` |
+| הפופי (המכשיר על השולחן) | `left: 5.3, top: 57.1, width: 25.6, height: 30.3` |
 | תא העיפרון (שקף 5) | `left: 32, top: 65.5, width: 9, height: 11` |
 
 שתי ערמות הפסולת הן שני עצמים נפרדים (`nuclearWaste` ו-`nuclearWasteLeft`) עם
