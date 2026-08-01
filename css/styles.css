@@ -15,6 +15,14 @@
   --topbar-h: 52px;
   --controls-h: 48px;
   --year-h: 48px;
+
+  /* Reading size for dialog / monologue / explanation text. Matched to the
+     comic's OWN baked speech text so a dialog reads exactly like a story slide:
+     the panels are authored at font-size 34.2662 in a 1448-wide viewBox and the
+     stage renders at ~62% of the window, i.e. 34.2662 * 0.62 / 1448 ≈ 1.47vw
+     (≈21px in a 1440px window). The clamp keeps it readable on small screens
+     and stops it growing past the panel's own size on very wide ones. */
+  --dialog-text: clamp(1.02rem, 1.47vw, 1.33rem);
 }
 
 html,
@@ -670,7 +678,7 @@ button { font: inherit; }
 
 .pace-dialog-card p {
   margin: 0;
-  font-size: clamp(1.02rem, 2vw, 1.25rem);
+  font-size: var(--dialog-text);
   line-height: 1.6;
 }
 
@@ -994,6 +1002,15 @@ button { font: inherit; }
 
 .dialog-body p:last-child {
   margin-bottom: 0;
+}
+
+/* The paged message dialogs (the 2.6 ALU messages, the 3.3 RAM ones): one
+   paragraph per page. It had no size of its own and fell back to the 16px
+   default, which read small beside the comic. */
+.dialog-paragraph {
+  margin: 0;
+  font-size: var(--dialog-text);
+  line-height: 1.6;
 }
 
 .dialog-actions {
@@ -2457,12 +2474,14 @@ g.component-ffCard.ff-materialize .ff-card {
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  font-size: clamp(0.95rem, 1.55vw, 1.18rem);
+  font-size: var(--dialog-text);
   line-height: 1.38;
 }
 
+/* Step 2 shares the bubble with the truth table, so it stays a notch smaller
+   than the other monologue steps — but it moves up with them. */
 .workspace-nand-speech.monologue-step-2 p {
-  font-size: clamp(0.82rem, 1.18vw, 0.98rem);
+  font-size: clamp(0.9rem, 1.24vw, 1.12rem);
   line-height: 1.26;
 }
 
@@ -3003,7 +3022,7 @@ g.component-ffCard.ff-materialize .ff-card {
 
 .workspace-task-intro-card p {
   margin: 0;
-  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  font-size: var(--dialog-text);
   line-height: 1.55;
 }
 
@@ -3490,6 +3509,7 @@ g.component-ffCard.ff-materialize .ff-card {
 
 .hint-content {
   min-height: 92px;
+  font-size: var(--dialog-text);
   display: grid;
   gap: 12px;
   align-content: start;
@@ -3552,7 +3572,7 @@ g.component-ffCard.ff-materialize .ff-card {
 
 .solution-card p {
   margin: 0;
-  font-size: clamp(0.92rem, 1.6vw, 1.08rem);
+  font-size: var(--dialog-text);
   line-height: 1.5;
 }
 
@@ -3710,7 +3730,7 @@ g.component-ffCard.ff-materialize .ff-card {
   margin: 0;
   overflow: auto;
   white-space: pre-wrap;
-  font-size: clamp(0.98rem, 1.65vw, 1.12rem);
+  font-size: var(--dialog-text);
   line-height: 1.55;
 }
 
@@ -3783,7 +3803,7 @@ g.component-ffCard.ff-materialize .ff-card {
 
 .component-monologue-body p {
   margin: 0;
-  font-size: clamp(0.98rem, 1.65vw, 1.12rem);
+  font-size: var(--dialog-text);
   line-height: 1.6;
 }
 
