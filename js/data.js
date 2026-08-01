@@ -1279,7 +1279,7 @@ const SCENES = {
         "comment": "The last warning: loud noises from the popy mean stop everything and come.",
         "image": "assets/panels/panel163_chapter_3_5_popy_warning.svg",
         "year": "1943",
-        "read": "ועוד דבר אחד. אם אתה שומע קולות חזקים מהפופי, תפסיק את מה שאתה עושה ותגיע אליי מיד."
+        "read": "דבר אחרון. אם אתה שומע קולות חזקים מהפופי, תפסיק את מה שאתה עושה ותגיע אליי מיד."
       },
       {
         "comment": "Von Neumann has gone; the hangar is the learner's. Two reference click-zones: the radioactive-waste drums along the right wall, and the popy (a proportional counter) on the table. המשך from here ends the chapter on \"המשך יבוא...\".",
