@@ -8916,7 +8916,12 @@
     const maxPreferredH = step === 2 ? 320 : 265;
     const maxSpeechH = Math.max(130, Math.min(maxPreferredH, availableAbove));
     speech.style.maxHeight = `${maxSpeechH}px`;
-    speech.style.setProperty("--speech-content-max", `${Math.max(84, maxSpeechH - 26)}px`);
+    // The bubble does not scroll (its tail is drawn on it) — its TEXT does. The
+    // room left for the text is the bubble's height minus its own padding; the
+    // old fixed 26px allowance was less than the real padding, so at the bigger
+    // reading size the text pushed out through the bottom of the bubble.
+    const speechPad = parseFloat(getComputedStyle(speech).paddingTop) || 12;
+    speech.style.setProperty("--speech-content-max", `${Math.max(84, maxSpeechH - 2 * speechPad - 2)}px`);
 
     const speechRect = speech.getBoundingClientRect();
     const speechH = Math.min(speechRect.height || maxSpeechH, maxSpeechH);
