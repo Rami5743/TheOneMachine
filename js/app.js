@@ -14848,11 +14848,8 @@
       // its own note reopened. Checked before the memory/bus branches for the same
       // reason the RAM cards are — they are multibit-shaped too.
       if (isPortsTask(taskId)) {
-        const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
         return setState({
-          ...portsWorktableReturnTarget(),
-          portsNoteList: !allPortsDone,
-          infoDialog: allPortsDone ? "המשך יבוא..." : null,
+          ...portsCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -16216,6 +16213,26 @@
     return storyTarget(returnChapter, returnPanelIndex);
   }
 
+  // Where a 3.4 ports card leaves the learner: back at the 3.4 worktable with its
+  // note — and, once all four are built, walking straight on into 3.5 (יצור),
+  // the way finishing 3.3's cards rolls into its own epilogue.
+  function portsCompletionPatch(completedTasks) {
+    const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+    if (!allPortsDone) {
+      return { ...portsWorktableReturnTarget(), portsNoteList: true, infoDialog: null };
+    }
+    const production = chapterById("chapter-14");
+    if (production) {
+      return {
+        ...transientUiClearPatch(),
+        ...storyTarget(production, 0),
+        started: true,
+        replayNonce: state.replayNonce + 1
+      };
+    }
+    return { ...portsWorktableReturnTarget(), portsNoteList: false, infoDialog: "המשך יבוא..." };
+  }
+
   function handlePortsNoteTask(id) {
     const task = portsTaskDefById(id);
     if (!task) return;
@@ -16342,11 +16359,8 @@
 
     // Ports cards (3.4): back to the 3.4 worktable with its own note reopened.
     if (isPortsTask(taskId)) {
-      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
       return setState({
-        ...portsWorktableReturnTarget(),
-        portsNoteList: !allPortsDone,
-        infoDialog: allPortsDone ? "המשך יבוא..." : null,
+        ...portsCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -16560,12 +16574,7 @@
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
     if (isPortsTask(taskId)) {
-      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
-      return setState({
-        ...portsWorktableReturnTarget(), ...base,
-        portsNoteList: !allPortsDone,
-        infoDialog: allPortsDone ? "המשך יבוא..." : null
-      }, true);
+      return setState({ ...portsCompletionPatch(completedTasks), ...base }, true);
     }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
