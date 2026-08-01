@@ -1298,6 +1298,15 @@ const SCENES = {
           },
           {
             "action": "panel-object",
+            "objectId": "nuclearWasteLeft",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 5.4,
+            "top": 38.4,
+            "width": 10,
+            "height": 11
+          },
+          {
+            "action": "panel-object",
             "objectId": "popy",
             "ariaLabel": "פופי",
             "left": 7,

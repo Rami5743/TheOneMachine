@@ -979,6 +979,13 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       label: "פסולת גרעינית",
       url: "https://he.wikipedia.org/wiki/פסולת_רדיואקטיבית"
     },
+    // The same waste, in the pile beside the door. It is a separate entry (not a
+    // second zone with the same id) so its window opens beside the pile the
+    // learner actually clicked.
+    nuclearWasteLeft: {
+      label: "פסולת גרעינית",
+      url: "https://he.wikipedia.org/wiki/פסולת_רדיואקטיבית"
+    },
     popy: {
       label: "פופי",
       url: "https://grokipedia.com/page/Proportional_counter"
