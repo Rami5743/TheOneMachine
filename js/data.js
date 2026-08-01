@@ -1309,10 +1309,10 @@ const SCENES = {
             "action": "panel-object",
             "objectId": "popy",
             "ariaLabel": "פופי",
-            "left": 7,
-            "top": 56,
-            "width": 25,
-            "height": 26
+            "left": 5.3,
+            "top": 57.1,
+            "width": 25.6,
+            "height": 30.3
           }
         ]
       }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Chapter 3.5, wordless: von Neumann has gone. Click-zones on the radioactive-waste drums and on the popy (the proportional counter) on the table — see the hotspots in js/data.js. -->
+
 <svg
    version="1.1"
    width="1448"
@@ -8,12 +9,32 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel164_chapter_3_5_hangar_objects.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <defs id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="724.22209"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1" />
   <image
      id="raster-base"
      x="0"
@@ -59,11 +80,11 @@
      data-aria-label="פופי"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0;fill:#37d67a"
-     x="101.36"
-     y="608.16"
-     width="362.00"
-     height="282.36" />
+     style="opacity:0;fill:#37d67a;stroke-width:1"
+     x="76.042213"
+     y="620.15259"
+     width="371.32761"
+     height="328.99805" />
   <script
      type="text/javascript"
      id="script1"><![CDATA[
