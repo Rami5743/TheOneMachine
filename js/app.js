@@ -3597,6 +3597,13 @@
     return state.screen === "story" && currentChapter()?.partId === "part-1";
   }
 
+  // Chapter 3.5 is one long transition scene with nothing to build in it, so it
+  // carries its own skip: straight to its end, where the story says
+  // "המשך יבוא...".
+  function transitionChapterActive() {
+    return state.screen === "story" && currentChapter()?.id === "chapter-14";
+  }
+
   function skipLeadsNowhere() {
     if (state.screen !== "story") return false;
     const chapter = currentChapter();
@@ -5146,7 +5153,17 @@
     // disables המשך (and דלג, below) — the learner must go through the notebook.
     // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
     const nonBlockingActions = ["binary-booklet", "nail-box"];
-    const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
+    const blockingHotspots = panelHotspots(panel).filter((h) => {
+      if (h.url || nonBlockingActions.includes(h.action)) return false;
+      // A story object blocks המשך only when TAKING it is the way forward (the
+      // dosimeter). A reference-only object — the waste drums, the popy — is
+      // there to be read about, so the learner still walks on normally.
+      if (h.action === "panel-object") {
+        const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
+        return Boolean(object && object.takeLabel);
+      }
+      return true;
+    });
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
     const questionGate = Boolean(panel.question);
@@ -5177,6 +5194,7 @@
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
           ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
           ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
+          ${transitionChapterActive() ? labeledButton("skip-transition", "skip-rtl", "דלג על קטע מעבר") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -17564,6 +17582,17 @@
     }, true);
   }
 
+  function skipTransition() {
+    const scene = currentScene();
+    setState({
+      ...transientUiClearPatch(),
+      panelIndex: Math.max(scene.panels.length - 1, 0),
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      infoDialog: "המשך יבוא..."
+    }, false);
+  }
+
   function skipStory() {
     if (state.screen === "workspace") {
       if (workspaceSkipDisabled()) return;
@@ -19786,6 +19815,7 @@
     if (action === "restart") return restartPanel();
     if (action === "skip") return skipStory();
     if (action === "skip-intro") return skipIntro();
+    if (action === "skip-transition") return skipTransition();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();

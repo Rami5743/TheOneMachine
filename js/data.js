@@ -1274,6 +1274,38 @@ const SCENES = {
         "image": "assets/panels/panel162_chapter_3_5_hangar_someday.svg",
         "year": "1943",
         "read": "אולי פעם נלמד לאחד את הזכרונות, כדי שנוכל לתכנת את המחשב שלנו מתוך המחשב עצמו. בינתיים זה מסובך מדי"
+      },
+      {
+        "comment": "The last warning: loud noises from the popy mean stop everything and come.",
+        "image": "assets/panels/panel163_chapter_3_5_popy_warning.svg",
+        "year": "1943",
+        "read": "ועוד דבר אחד. אם אתה שומע קולות חזקים מהפופי תפסיק את מה שאתה עושה ותגיע אלי מיד."
+      },
+      {
+        "comment": "Von Neumann has gone; the hangar is the learner's. Two reference click-zones: the radioactive-waste drums along the right wall, and the popy (a proportional counter) on the table. המשך from here ends the chapter on \"המשך יבוא...\".",
+        "image": "assets/panels/panel164_chapter_3_5_hangar_objects.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 55,
+            "top": 31,
+            "width": 35,
+            "height": 22
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 7,
+            "top": 56,
+            "width": 25,
+            "height": 26
+          }
+        ]
       }
     ]
   }

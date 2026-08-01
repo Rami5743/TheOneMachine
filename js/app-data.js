@@ -972,5 +972,15 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       label: "תא עיפרון",
       url: "https://grokipedia.com/page/quartz_fiber_dosimeter",
       takeLabel: "לקחת"
+    },
+    // The hangar's two reference objects — nothing to take, just a link, like the
+    // warehouse's non-game objects.
+    nuclearWaste: {
+      label: "פסולת גרעינית",
+      url: "https://he.wikipedia.org/wiki/פסולת_רדיואקטיבית"
+    },
+    popy: {
+      label: "פופי",
+      url: "https://grokipedia.com/page/Proportional_counter"
     }
   };
