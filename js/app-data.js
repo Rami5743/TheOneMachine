@@ -963,3 +963,31 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
+  // Objects a story slide can offer for a closer look: a click-zone over the
+  // object opens a small window with its reference link and, when the object is
+  // something the learner takes with them, a "לקחת" button that walks the story
+  // on to the next slide.
+  const PANEL_OBJECTS = {
+    dosimeter: {
+      label: "תא עיפרון",
+      url: "https://grokipedia.com/page/quartz_fiber_dosimeter",
+      takeLabel: "לקחת"
+    },
+    // The hangar's two reference objects — nothing to take, just a link, like the
+    // warehouse's non-game objects.
+    nuclearWaste: {
+      label: "פסולת גרעינית",
+      url: "https://he.wikipedia.org/wiki/פסולת_רדיואקטיבית"
+    },
+    // The same waste, in the pile beside the door. It is a separate entry (not a
+    // second zone with the same id) so its window opens beside the pile the
+    // learner actually clicked.
+    nuclearWasteLeft: {
+      label: "פסולת גרעינית",
+      url: "https://he.wikipedia.org/wiki/פסולת_רדיואקטיבית"
+    },
+    popy: {
+      label: "פופי",
+      url: "https://grokipedia.com/page/Proportional_counter"
+    }
+  };

@@ -690,6 +690,42 @@ button { font: inherit; }
   justify-content: center;
 }
 
+/* A story object's reference window. Deliberately identical to the warehouse
+   reference popovers ("מקור מתח" and friends, styled in warehouse-hotspots.js):
+   a small parchment window pinned beside the object, with its link — and, when
+   the object is one the learner takes along, a "לקחת" button under it. */
+.panel-object-popover {
+  position: absolute;
+  z-index: 120;
+  min-width: 90px;
+  max-width: 230px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(36, 26, 13, 0.85);
+  background: rgba(249, 244, 232, 0.98);
+  color: #1e1b16;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  direction: rtl;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.panel-object-popover a {
+  color: #2c55a2;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.panel-object-popover .panel-object-take {
+  min-width: 0;
+  padding: 3px 14px;
+  font-size: 0.9rem;
+}
+
 .btn,
 .chapter-btn {
   min-width: 86px;
@@ -715,6 +751,18 @@ button { font: inherit; }
 
 .chapter-btn-locked:hover {
   background: var(--button);
+}
+
+/* Plot chapters (the 1.x intro and 3.5 יצור): nothing is built in them, so the
+   menu tints them differently from the chapters the learner builds in. */
+.chapter-btn-story {
+  background: rgba(92, 68, 30, 0.72);
+  border-color: #6d5730;
+}
+
+.chapter-btn-story:hover:not(:disabled),
+.chapter-btn-story:focus-visible:not(:disabled) {
+  background: rgba(120, 90, 42, 0.85);
 }
 
 .chapter-lock {

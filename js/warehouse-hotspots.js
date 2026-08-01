@@ -204,7 +204,12 @@
     if (!actions) return;
     shell.querySelectorAll(".panel-hotspot").forEach((btn) => {
       const action = btn.dataset.action;
-      const geo = action && actions[action];
+      if (!action) return;
+      // A slide can carry several zones for the same action — two piles of the
+      // same radioactive waste, say — so a zone is keyed by its object id when
+      // it has one, and by the bare action otherwise.
+      const objectId = btn.dataset.objectId;
+      const geo = (objectId && actions[`${action}:${objectId}`]) || actions[action];
       if (!geo) return;
       btn.style.left = `${geo.x}%`;
       btn.style.top = `${geo.y}%`;

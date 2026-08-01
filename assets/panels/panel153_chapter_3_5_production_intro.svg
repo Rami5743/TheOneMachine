@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Chapter 3.5 Production: von Neumann in the doorway (panel131 art). We have the design, not the machine — and this card is too big to slip past anyone. -->
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1"
+     inkscape:cx="798.5"
+     inkscape:cy="287.5"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel131_chapter_3_1_more_memory.jpg"
+     xlink:href="panel131_chapter_3_1_more_memory.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="m 489.99005,40 h 807.83758 c 12.6326,0 18.9487,8.4111 18.9487,25.23331 v 261.53438 c 0,16.8222 -6.3161,25.23331 -18.9487,25.23331 H 489.99005 c -12.63245,0 -18.94867,-8.4111 -18.94867,-25.23331 V 128.20607 l -49.45071,3.34971 49.45071,-20.41755 V 65.23331 C 471.04138,48.41111 477.35760,40 489.99005,40 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.44993"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+       x="893.90884"
+       y="82"
+       id="bubble-text"><tspan
+         sodipodi:role="line"
+         id="bubble-text-line1"
+         x="893.90884"
+         y="82.0000">מצוין, עכשיו יש לנו את כל הזיכרון שאנחנו צריכים ביחד</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line2"
+         x="893.90884"
+         y="132.5002">עם הפורטים. יש רק בעיה אחת, אין לנו אותו. יש לנו רק</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line3"
+         x="893.90884"
+         y="183.0004">תכנון. כל פעם שאתה משתמש בכרטיס שכבר בנית, אתה</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line4"
+         x="893.90884"
+         y="233.5006">רק מסמן, ומישהו צריך להרכיב. קודם היית יכול לדחוף</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line5"
+         x="893.90884"
+         y="284.0008">את זה לאנשים שבונים מכונות חישוב בלי שהם ישימו לב.</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line6"
+         x="893.90884"
+         y="334.5010">אבל פה מדובר בכרטיס עצום. הם ישימו לב...</tspan></text>
+  </g>
+</svg>

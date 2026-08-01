@@ -1377,6 +1377,9 @@
     hintSlides: null,
     solutionDialog: null,
     solutionTableHidden: false,
+    // The open reference window of a story object (a click-zone on a slide):
+    // the object's id, or null. Transient — never persisted.
+    panelObjectDialog: null,
     requirementsPanelHidden: false,
     // The requirements panel widens itself to fit its text (widenScrollingPanels).
     // "הקטנה" puts it back to its authored width for the current build; each new
@@ -2613,6 +2616,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      panelObjectDialog: null,
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
@@ -2812,7 +2816,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -3593,6 +3597,13 @@
     return state.screen === "story" && currentChapter()?.partId === "part-1";
   }
 
+  // Chapter 3.5 is one long transition scene with nothing to build in it, so it
+  // carries its own skip: straight to its end, where the story says
+  // "המשך יבוא...".
+  function transitionChapterActive() {
+    return state.screen === "story" && currentChapter()?.id === "chapter-14";
+  }
+
   function skipLeadsNowhere() {
     if (state.screen !== "story") return false;
     const chapter = currentChapter();
@@ -3707,8 +3718,10 @@
       // target in a data attribute the click handler reads.
       const action = h.url ? "open-external-url" : (h.action || "panel-hotspot");
       const urlAttr = h.url ? ` data-url="${esc(h.url)}"` : "";
+      // A "panel-object" hotspot names the object whose reference window opens.
+      const objectAttr = h.objectId ? ` data-object-id="${esc(h.objectId)}"` : "";
       return `
-      <button class="panel-hotspot" type="button" data-action="${esc(action)}"${urlAttr} aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`;
+      <button class="panel-hotspot" type="button" data-action="${esc(action)}"${urlAttr}${objectAttr} aria-label="${esc(h.ariaLabel || "אזור אינטראקטיבי")}" style="left:${Number(h.left)}%;top:${Number(h.top)}%;width:${Number(h.width)}%;height:${Number(h.height)}%;"></button>`;
     }).join("");
   }
 
@@ -4924,6 +4937,29 @@
   // the value is an object with `discardCard`, a second "discard the card" button
   // is offered (the card-build exit error, where the card is invalid) that leaves
   // without saving.
+  // A story object the learner can look at. It reads exactly like the warehouse
+  // reference popovers ("מקור מתח" and friends): a small parchment window pinned
+  // beside the object itself, with its link — plus, when the object is something
+  // they take along, a "לקחת" button that walks the story on.
+  function renderPanelObjectPopover(panel) {
+    const id = state.panelObjectDialog;
+    if (!id) return "";
+    const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[id];
+    if (!object) return "";
+    // Sit beside the object's own click-zone, the way the warehouse popovers do.
+    const zone = panelHotspots(panel).find((h) => h.objectId === id);
+    const left = zone ? Math.min(Number(zone.left) + Number(zone.width), 78) : 40;
+    const top = zone ? Math.max(2, Number(zone.top) - 6) : 40;
+    const take = object.takeLabel
+      ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
+      : "";
+    return `
+      <div class="panel-object-popover" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+        <a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
+        ${take}
+      </div>`;
+  }
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -5060,7 +5096,10 @@
 
   function chapterButtonHtml(chapter) {
     const locked = !chapterReached(chapter.id);
-    const cls = locked ? "chapter-btn chapter-btn-locked" : "chapter-btn";
+    // A plot-only chapter (the 1.x intro, 3.5) is tinted differently, so the menu
+    // shows at a glance which chapters are story and which are built in.
+    const story = chapter.story ? " chapter-btn-story" : "";
+    const cls = (locked ? "chapter-btn chapter-btn-locked" : "chapter-btn") + story;
     const attrs = locked ? ' disabled aria-disabled="true" title="הפרק יינעל עד שתגיע אליו"' : "";
     const lock = locked ? ' <span class="chapter-lock" aria-hidden="true">🔒</span>' : "";
     return `<button class="${cls}" data-action="chapter" data-chapter-id="${esc(chapter.id)}"${attrs}>${esc(chapter.title)}${lock}</button>`;
@@ -5114,7 +5153,17 @@
     // disables המשך (and דלג, below) — the learner must go through the notebook.
     // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
     const nonBlockingActions = ["binary-booklet", "nail-box"];
-    const blockingHotspots = panelHotspots(panel).filter((h) => !h.url && !nonBlockingActions.includes(h.action));
+    const blockingHotspots = panelHotspots(panel).filter((h) => {
+      if (h.url || nonBlockingActions.includes(h.action)) return false;
+      // A story object blocks המשך only when TAKING it is the way forward (the
+      // dosimeter). A reference-only object — the waste drums, the popy — is
+      // there to be read about, so the learner still walks on normally.
+      if (h.action === "panel-object") {
+        const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
+        return Boolean(object && object.takeLabel);
+      }
+      return true;
+    });
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
     const questionGate = Boolean(panel.question);
@@ -5130,6 +5179,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${renderPanelObjectPopover(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
@@ -5144,6 +5194,7 @@
           ${navButton("next", "arrow-left", "המשך", { primary: true, disabled: Boolean(nextDisabled) })}
           ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
           ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
+          ${transitionChapterActive() ? labeledButton("skip-transition", "skip-rtl", "דלג על קטע מעבר") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -11785,7 +11836,9 @@
       }, true);
     }
 
-    return setState({ screen: "chapters", panelIndex: 0, replayNonce: state.replayNonce + 1, dialog: null });
+    // Past the last slide of the last chapter there is no next chapter yet, so
+    // the story says so instead of dumping the learner on the chapters screen.
+    return setState({ infoDialog: "המשך יבוא..." });
   }
 
   function previousPanel() {
@@ -14813,11 +14866,8 @@
       // its own note reopened. Checked before the memory/bus branches for the same
       // reason the RAM cards are — they are multibit-shaped too.
       if (isPortsTask(taskId)) {
-        const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
         return setState({
-          ...portsWorktableReturnTarget(),
-          portsNoteList: !allPortsDone,
-          infoDialog: allPortsDone ? "המשך יבוא..." : null,
+          ...portsCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -15724,8 +15774,8 @@
   // Shown once RAM16 is done, back at the 3.3 worktable: what the 4-bit address
   // bus actually is — a number from 0 to 15 naming the register.
   const RAM16_COMPLETE_PAGES = [
-    "שים לב: בס הכתובת של RAM16 הוא ברוחב 4. זה אומר שיש לו 16 אפשרויות. זה מתאים ל-16 הרגיסטרים שיש ב-RAM16",
-    "אפשר לחשוב על רצף של 4 ביטים כמספר שהכתיב הבינרי שלו הוא (עד) 4 ספרתי. יש בדיוק 16 מספרים כאלו. אלו הם המספרים מ-0 עד 15. כך שאנחנו יכולים לחשוב על הכתובת כמספר מ-0 עד 15 שמתאר את מספר הרגיסטר אליו אנחנו פונים (זאת אומרת קוראים או כותבים). בכרטיסים הבאים נבנה זכרונות גדולים יותר והכתובת תוכל להיות מספר גדול יותר."
+    "שים לב: בס הכתובת של RAM16 הוא ברוחב 4. זה אומר שיש לו 16 אפשרויות. זה מתאים ל-16 הרגיסטרים שיש ב-RAM16.",
+    "אפשר לחשוב על רצף של 4 ביטים כמספר שהכתיב הבינרי שלו הוא (עד) 4 ספרתי. יש בדיוק 16 מספרים כאלו. אלו הם המספרים מ-0 עד 15. כך שאנחנו יכולים לחשוב על הכתובת כמספר מ-0 עד 15 שמתאר את מספר הרגיסטר אליו אנחנו פונים (זאת אומרת קוראים או כותבים). בכרטיסים הבאים נבנה זיכרונות גדולים יותר והכתובת תוכל להיות מספר גדול יותר."
   ];
 
   // The last word of chapter 3.3, after von Neumann's closing slides: what
@@ -16181,6 +16231,26 @@
     return storyTarget(returnChapter, returnPanelIndex);
   }
 
+  // Where a 3.4 ports card leaves the learner: back at the 3.4 worktable with its
+  // note — and, once all four are built, walking straight on into 3.5 (יצור),
+  // the way finishing 3.3's cards rolls into its own epilogue.
+  function portsCompletionPatch(completedTasks) {
+    const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
+    if (!allPortsDone) {
+      return { ...portsWorktableReturnTarget(), portsNoteList: true, infoDialog: null };
+    }
+    const production = chapterById("chapter-14");
+    if (production) {
+      return {
+        ...transientUiClearPatch(),
+        ...storyTarget(production, 0),
+        started: true,
+        replayNonce: state.replayNonce + 1
+      };
+    }
+    return { ...portsWorktableReturnTarget(), portsNoteList: false, infoDialog: "המשך יבוא..." };
+  }
+
   function handlePortsNoteTask(id) {
     const task = portsTaskDefById(id);
     if (!task) return;
@@ -16307,11 +16377,8 @@
 
     // Ports cards (3.4): back to the 3.4 worktable with its own note reopened.
     if (isPortsTask(taskId)) {
-      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
       return setState({
-        ...portsWorktableReturnTarget(),
-        portsNoteList: !allPortsDone,
-        infoDialog: allPortsDone ? "המשך יבוא..." : null,
+        ...portsCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -16525,12 +16592,7 @@
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
     if (isPortsTask(taskId)) {
-      const allPortsDone = portsTaskDefs().every((t) => completedTasks.includes(t.id));
-      return setState({
-        ...portsWorktableReturnTarget(), ...base,
-        portsNoteList: !allPortsDone,
-        infoDialog: allPortsDone ? "המשך יבוא..." : null
-      }, true);
+      return setState({ ...portsCompletionPatch(completedTasks), ...base }, true);
     }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
@@ -17518,6 +17580,17 @@
       maxChapterReached: Math.max(Number.isInteger(state.maxChapterReached) ? state.maxChapterReached : 0, chapterIndexById(target.id)),
       workspace: createDefaultWorkspace()
     }, true);
+  }
+
+  function skipTransition() {
+    const scene = currentScene();
+    setState({
+      ...transientUiClearPatch(),
+      panelIndex: Math.max(scene.panels.length - 1, 0),
+      started: true,
+      replayNonce: state.replayNonce + 1,
+      infoDialog: "המשך יבוא..."
+    }, false);
   }
 
   function skipStory() {
@@ -19418,6 +19491,12 @@
     }
 
     const button = event.target.closest("[data-action]");
+    // A plain click outside the object popover closes it — the same as the
+    // warehouse reference popovers — and does nothing else.
+    if (!button && state.panelObjectDialog && !event.target.closest(".panel-object-popover")) {
+      event.preventDefault();
+      return setState({ panelObjectDialog: null }, false);
+    }
     if (!button) {
       // During the booklet solution a plain click anywhere advances it, like
       // the "המשך" button (but not clicks inside the movable window itself).
@@ -19523,6 +19602,15 @@
     if (state.bitDialog && !isGlobalNavigationAction(action) && !["bit-dialog-next", "bit-dialog-ok"].includes(action)) {
       event.preventDefault();
       return;
+    }
+
+    // The object popover is not modal: like the warehouse reference popovers, a
+    // click anywhere outside it just closes it (and a click on another object's
+    // zone opens that one instead). Its own two actions pass through.
+    if (state.panelObjectDialog && !isGlobalNavigationAction(action)
+        && !["panel-object", "panel-object-link", "panel-object-take"].includes(action)) {
+      event.preventDefault();
+      return setState({ panelObjectDialog: null }, false);
     }
 
     if (state.converterValueEdit && !isGlobalNavigationAction(action) && !["converter-value-ok", "converter-value-cancel"].includes(action)) {
@@ -19727,6 +19815,7 @@
     if (action === "restart") return restartPanel();
     if (action === "skip") return skipStory();
     if (action === "skip-intro") return skipIntro();
+    if (action === "skip-transition") return skipTransition();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();
@@ -19747,6 +19836,16 @@
     if (action === "dialog-no") return rejectInteractiveDialog();
     if (action === "panel-hotspot") return activatePanelHotspot();
     if (action === "open-external-url") return openExternalUrl(button.dataset.url);
+    // A story object's reference window: open it, follow its link (which earns
+    // "סקרן" like every other reference), take the object (which walks on to the
+    // next slide), or close it.
+    if (action === "panel-object") return setState({ panelObjectDialog: button.dataset.objectId || null }, false);
+    if (action === "panel-object-link") { unlockAchievement("curious"); return; }
+    if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
+    if (action === "panel-object-take") {
+      setState({ panelObjectDialog: null }, false);
+      return nextPanel();
+    }
     if (action === "stone-millis-book") return openNotebook();
     if (action === "binary-booklet") return openBinaryBooklet();
     if (action === "binbk-cell") return binInGridSolution(state.notebook) ? binWalkAdvance() : binSelectCell(Number(button.dataset.r), Number(button.dataset.c));

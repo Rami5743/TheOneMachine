@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Chapter 3.5, wordless: von Neumann has gone. Click-zones on the radioactive-waste drums and on the popy (the proportional counter) on the table — see the hotspots in js/data.js. -->
+
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel164_chapter_3_5_hangar_objects.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="724.22209"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel164_chapter_3_5_hangar_objects.jpg"
+     xlink:href="panel164_chapter_3_5_hangar_objects.jpg" />
+  <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
+       app reads their positions from here. -->
+  <rect
+     id="hotspot-panel-object-nuclear-waste"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="nuclearWaste"
+     data-aria-label="פסולת גרעינית"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="796.40"
+     y="336.66"
+     width="506.80"
+     height="238.92" />
+  <rect
+     id="hotspot-panel-object-nuclear-waste-left"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="nuclearWasteLeft"
+     data-aria-label="פסולת גרעינית"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="78"
+     y="417"
+     width="145"
+     height="120" />
+  <rect
+     id="hotspot-panel-object-popy"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="popy"
+     data-aria-label="פופי"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#37d67a;stroke-width:1"
+     x="76.042213"
+     y="620.15259"
+     width="371.32761"
+     height="328.99805" />
+  <script
+     type="text/javascript"
+     id="script1"><![CDATA[
+(function () {
+  var PANEL = "panel164_chapter_3_5_hangar_objects";
+  function collect() {
+    var svg = document.querySelector("svg") || document.documentElement;
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var VW = vb && vb.width ? vb.width : 1448;
+    var VH = vb && vb.height ? vb.height : 1086;
+    var rootM = null;
+    try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+    function box(rect) {
+      var bb;
+      try { bb = rect.getBBox(); } catch (e) { return null; }
+      var m = null;
+      try { if (rootM) { m = rootM.inverse().multiply(rect.getScreenCTM()); } } catch (e) { m = null; }
+      if (!m) { return { x: bb.x, y: bb.y, w: bb.width, h: bb.height }; }
+      function map(x, y) { return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f }; }
+      var p = [map(bb.x, bb.y), map(bb.x + bb.width, bb.y), map(bb.x, bb.y + bb.height), map(bb.x + bb.width, bb.y + bb.height)];
+      var xs = [p[0].x, p[1].x, p[2].x, p[3].x], ys = [p[0].y, p[1].y, p[2].y, p[3].y];
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+    function pct(rect) {
+      var b = box(rect);
+      if (!b || !(b.w > 0) || !(b.h > 0)) return null;
+      return { x: b.x / VW * 100, y: b.y / VH * 100, w: b.w / VW * 100, h: b.h / VH * 100 };
+    }
+    var rects = document.querySelectorAll("[data-hotspot]");
+    var out = { panel: PANEL, objects: [], table: null, actions: {} };
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i], kind = r.getAttribute("data-hotspot"), g = pct(r);
+      if (!g) continue;
+      if (kind === "action") {
+        var a = r.getAttribute("data-action");
+        // Several zones can share one action (two piles of the same waste), so
+        // the key carries the object id when there is one.
+        var oid = r.getAttribute("data-object-id");
+        if (a) { out.actions[oid ? a + ":" + oid : a] = { x: g.x, y: g.y, w: g.w, h: g.h }; }
+      }
+    }
+    return out;
+  }
+  function send() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ __warehouseHotspots: true, payload: collect() }, "*");
+      }
+    } catch (e) {}
+  }
+  function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+  if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); }
+  else { boot(); }
+  window.addEventListener("load", send);
+})();
+]]></script>
+</svg>
