@@ -15638,6 +15638,13 @@
     "באופן כללי, מה שהופך את הרגיסטר לזיכרון הוא העובדה שאנחנו יכולים לנעול אותו לשינויים, וכך הוא זוכר מה שהיה בו. מה שהופך אותו לזיכרון ניתן לעריכה היא העובדה שאנחנו גם יכולים לפתוח אותו לשינויים כשאנחנו רוצים."
   ];
 
+  // Shown once RAM16 is done, back at the 3.3 worktable: what the 4-bit address
+  // bus actually is — a number from 0 to 15 naming the register.
+  const RAM16_COMPLETE_PAGES = [
+    "שים לב: בס הכתובת של RAM16 הוא ברוחב 4. זה אומר שיש לו 16 אפשרויות. זה מתאים ל-16 הרגיסטרים שיש ב-RAM16",
+    "אפשר לחשוב על רצף של 4 ביטים כמספר שהכתיב הבינרי שלו הוא (עד) 4 ספרתי. יש בדיוק 16 מספרים כאלו. אלו הם המספרים מ-0 עד 15. כך שאנחנו יכולים לחשוב על הכתובת כמספר מ-0 עד 15 שמתאר את מספר הרגיסטר אליו אנחנו פונים (זאת אומרת קוראים או כותבים). בכרטיסים הבאים נבנה זכרונות גדולים יותר והכתובת תוכל להיות מספר גדול יותר."
+  ];
+
   // The last word of chapter 3.3, after von Neumann's closing slides: what
   // replaced the punched tape, and where RAM still sits beside long-term storage.
   const RAM_OUTRO_PAGES = [
@@ -15651,10 +15658,12 @@
   // The after-completion message pages for a card (null if it has none). ALU0 and
   // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
   // paged dialog, once the build (or its walkthrough) is behind the learner.
+  // RAM16 in 3.3 has one too — about what its 4-bit address really is.
   function aluMessagePagesFor(taskId) {
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
     if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
+    if (taskId === "RAM16") return RAM16_COMPLETE_PAGES;
     if (taskId === RAM_OUTRO_KEY) return RAM_OUTRO_PAGES;
     return null;
   }
@@ -15669,7 +15678,10 @@
     const page = Math.min(Math.max(Number(state.aluIntroDialog.page) || 0, 0), pages.length - 1);
     const isLast = page >= pages.length - 1;
     const taskId = state.aluIntroDialog.taskId || "ALU0";
-    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון" : isRamTask(taskId) ? "על הרגיסטר" : "על ה-ALU";
+    const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון"
+      : taskId === "RAM16" ? "על הכתובת"
+      : isRamTask(taskId) ? "על הרגיסטר"
+      : "על ה-ALU";
     return `
       <div class="dialog-overlay" role="presentation">
         <section class="dialog-card dialog-large" role="dialog" aria-modal="true" aria-label="${esc(label)}">
