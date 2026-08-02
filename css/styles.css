@@ -2348,8 +2348,12 @@ g.component-ffCard.ff-materialize .ff-card {
   inset: calc(var(--app-pad) + var(--topbar-h) + var(--gap)) 0 0 0;
   z-index: 24;
   display: grid;
-  place-items: center;
-  padding: clamp(14px, 3vw, 36px);
+  /* Sit LOW on the board, not centred: centred, the card lands on the Nand /
+     sources / lamp (which live in the upper-middle of the workbench). Bottom
+     padding keeps it above the workspace controls. */
+  justify-items: center;
+  align-items: end;
+  padding: clamp(12px, 3vw, 30px) clamp(14px, 3vw, 36px) clamp(46px, 10vh, 120px);
   background: transparent;
   pointer-events: auto;
   direction: rtl;
