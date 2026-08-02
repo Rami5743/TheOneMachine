@@ -1729,6 +1729,36 @@ const SCENES = {
             14
           ]
         }
+      },
+      {
+        "comment": "The processor's shape: it takes a 16-bit instruction from program memory and runs it.",
+        "image": "assets/panels/panel204_chapter_4_1_cpu_shape.svg",
+        "year": "1944",
+        "read": "עכשיו אנחנו יכולים לדבר על מבנה המעבד של המחשב הפשוט: הוא יקבל פקודה של 16 ביטים מזיכרון התוכנה כמו שתיארנו, ויבצע אותה."
+      },
+      {
+        "comment": "Its wiring to the data memory: a bus in, a bus out, an address bus and a write cable.",
+        "image": "assets/panels/panel205_chapter_4_1_cpu_data_memory.svg",
+        "year": "1944",
+        "read": "בשביל זה הוא גם צריך להיות מחובר לזיכרון הדאטה: ייכנס אליו בס אחד מזיכרון הדאטה עם התוכן של הרגיסטר שהכתובת שלו היא התוכן של רגיסטר A, וייצא ממנו בס לזיכרון הדאטה עם מה שאנחנו רוצים לכתוב שם. עוד ייצא ממנו בס עם הכתובת בזיכרון הדאטה שאליה אנחנו ניגשים (זה התוכן של רגיסטר A), ועוד כבל שאומר האם אנחנו כותבים לזיכרון."
+      },
+      {
+        "comment": "And the PC: it tells program memory which instruction to hand over.",
+        "image": "assets/panels/panel206_chapter_4_1_program_counter.svg",
+        "year": "1944",
+        "read": "הוא גם צריך \"להגיד\" לזיכרון התוכנה איזו פקודה לתת. זה יהיה התוכן של הרגיסטר PC. הרגיסטר PC פשוט סופר מ-0 ועד אינסוף (או עד שנכבה אותו), וכך בכל שלב נדע מה הפקודה שאנחנו קוראים."
+      },
+      {
+        "comment": "No control unit in the simple computer — a card he already has does that job.",
+        "image": "assets/panels/panel207_chapter_4_1_no_control_unit.svg",
+        "year": "1944",
+        "read": "אנחנו לא נזדקק ליחידת בקרה. במחשב הפשוט, ה\"בקרה\" היא החלטה לאן לרשום את הפלט של ה-ALU. זה לא צריך להיות מסובך מדי, למעשה יש לנו כבר כרטיס שיודע לעשות זאת."
+      },
+      {
+        "comment": "Enough theory — he does not expect it to click straight away.",
+        "image": "assets/panels/panel208_chapter_4_1_dont_worry.svg",
+        "year": "1944",
+        "read": "טוב, נפסיק לחפור. אני לא מצפה שתבין את זה מיד. זה קונספט מסובך, אבל אם תשבור את הראש על זה מספיק אז תבין."
       }
     ]
   }
