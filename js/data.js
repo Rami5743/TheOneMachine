@@ -15,6 +15,10 @@ const PARTS = [
   {
     "id": "part-3",
     "title": "חלק 3: זיכרון"
+  },
+  {
+    "id": "part-4",
+    "title": "חלק 4: מכונת חישוב אחת שתחליף את כולן"
   }
 ];
 
@@ -106,6 +110,12 @@ const CHAPTERS = [
     "title": "3.5 יצור",
     "sceneId": "production",
     "story": true
+  },
+  {
+    "id": "chapter-15",
+    "partId": "part-4",
+    "title": "4.1 מחשב פשוט",
+    "sceneId": "simple-computer"
   }
 ];
 
@@ -1315,6 +1325,288 @@ const SCENES = {
             "height": 30.3
           }
         ]
+      }
+    ]
+  },
+  "simple-computer": {
+    "id": "simple-computer",
+    "title": "4.1 מחשב פשוט",
+    "type": "story",
+    "chapterId": "chapter-15",
+    "year": "1944",
+    "panels": [
+      {
+        "comment": "4.1 opens on the desert title card: a few months have passed and the machine now stands.",
+        "image": "assets/panels/panel63.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "4.1 opens in the finished computer room: the RAM shelves are wired and working.",
+        "image": "assets/panels/panel165_chapter_4_1_memory_works.svg",
+        "year": "1944",
+        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה."
+      },
+      {
+        "comment": "What is left: turning the ALU into a processor.",
+        "image": "assets/panels/panel166_chapter_4_1_alu_to_cpu.svg",
+        "year": "1944",
+        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות."
+      },
+      {
+        "comment": "The fetch-execute cycle: processor and memory feed each other, forever.",
+        "image": "assets/panels/panel167_chapter_4_1_fetch_execute.svg",
+        "year": "1944",
+        "read": "המעבד והזיכרון יהיו מחוברים באופן קבוע ויזינו אחד את השני. יחד הם יהוו את המחשב שלנו. הם יפעלו במחזור פעולה: המעבד קורא מהזיכרון פקודה המעבד מבצע את הפקודה וחוזר חלילה. זה יאפשר לנו לבצע תוכנות ארוכות ומסובכות שיהיו בזיכרון המחשב."
+      },
+      {
+        "comment": "An instruction is nothing but a 16-bit word — the machine understands nothing else.",
+        "image": "assets/panels/panel168_chapter_4_1_instructions_are_bits.svg",
+        "year": "1944",
+        "read": "שים לב. הפקודות שאנחנו מדברים עליהן הן למעשה רצפי ביטים. המכונות שלנו לא מבינות שום דבר אחר. מכיוון שקבענו שהיחידה הבסיסית של המחשב שלנו תהיה 16 ביטים, גם הפקודות שלנו יהיו 16 ביטים."
+      },
+      {
+        "comment": "The memory splits in two: data memory (the RAM he built) and program memory.",
+        "image": "assets/panels/panel169_chapter_4_1_two_memories.svg",
+        "year": "1944",
+        "read": "הפקודות יהיו רשומות בזיכרון. כדי להקל על העבודה, הזיכרון שלנו יהיה מחולק ל-2 חלקים: זיכרון דאטה (בקיצור \"הזיכרון\") — זה כרטיס ה-RAM שבנית — הוא יכיל את המידע שעליו אנחנו רוצים לבצע את החישובים זיכרון תוכנה — זה יהיה עוד כרטיס RAM1024 שעליו תישמר רשימת הפקודות"
+      },
+      {
+        "comment": "Program memory is read-only to the computer; we write it from the outside.",
+        "image": "assets/panels/panel170_chapter_4_1_program_memory_readonly.svg",
+        "year": "1944",
+        "read": "המחשב שלנו לא יוכל לכתוב לזיכרון התוכנה, אלא רק לקרוא ממנו. אנחנו נוכל לכתוב לזיכרון התוכנה מבחוץ וכך נוכל לתכנת את המחשב שלנו לעשות מה שנרצה. אולי בעתיד נאפשר למחשב לכתוב לזיכרון התוכנה וכך נוכל לתכנת אותו מתוך המחשב עצמו."
+      },
+      {
+        "comment": "The word 'processor', and why CPU is a slightly silly name here.",
+        "image": "assets/panels/panel171_chapter_4_1_cpu_name.svg",
+        "year": "1944",
+        "read": "למעבד קוראים באנגלית processor. לפעמים גם קוראים לו CPU שהם ראשי תיבות של central processing unit — יחידת עיבוד מרכזית. זה שם לא ממש רלוונטי בשבילנו, כי זה לא שיש לנו עוד יחידות עיבוד, אבל נשתמש בו מדי פעם כי הוא קצר."
+      },
+      {
+        "comment": "The processor's three parts.",
+        "image": "assets/panels/panel172_chapter_4_1_cpu_parts.svg",
+        "year": "1944",
+        "read": "המעבד יהיה מורכב מ-3 חלקים: ה-ALU רגיסטרים יחידת בקרה"
+      },
+      {
+        "comment": "Its three registers, by name.",
+        "image": "assets/panels/panel173_chapter_4_1_cpu_registers.svg",
+        "year": "1944",
+        "read": "המעבד יכיל 3 רגיסטרים: A D PC"
+      },
+      {
+        "comment": "Why more registers when the memory already holds a thousand: an address is a detour.",
+        "image": "assets/panels/panel174_chapter_4_1_why_registers.svg",
+        "year": "1944",
+        "read": "אתה בטח רוצה לשאול למה אנחנו צריכים עוד רגיסטרים כשיש לנו כבר יותר מ-1000 רגיסטרים בזיכרון. העניין הוא שכדי לפנות לרגיסטר בזיכרון אנחנו צריכים כתובת, מה שמסבך את הפנייה. הרגיסטרים של המעבד מחוברים באופן ישיר לאן שהם צריכים להיות מחוברים ולכן קל בהרבה לטפל בהם."
+      },
+      {
+        "comment": "\"Where is the data?\" is itself data — and it has to stop somewhere.",
+        "image": "assets/panels/panel175_chapter_4_1_where_is_the_data.svg",
+        "year": "1944",
+        "read": "הם מאפשרים לנו לשמור מידע בלי לשמור גם איפה הוא נמצא. במידה מסוימת זה הכרחי, כי \"איפה המידע נמצא?\" זה גם מידע שגם אותו צריך לשמור איפשהו, ואם נצטרך לשמור איפה המידע הזה נמצא אז לא יהיה לדבר סוף."
+      },
+      {
+        "comment": "What each of A, D and PC is for.",
+        "image": "assets/panels/panel176_chapter_4_1_register_roles.svg",
+        "year": "1944",
+        "read": "לכל רגיסטר של המעבד יהיה תפקיד מוגדר למדי: רגיסטר A יכיל כתובת בזיכרון הדאטה שאליה נרצה לכתוב וממנה נרצה לקרוא. אנחנו גם נשתמש בו לעוד דברים רגיסטר D יכיל מידע שהמעבד יוכל לעבוד עליו באופן ישיר הרגיסטר PC יכיל את הכתובת בזיכרון התוכנה של הפקודה אותה המעבד צריך לבצע"
+      },
+      {
+        "comment": "The control unit is the one that 'knows'.",
+        "image": "assets/panels/panel177_chapter_4_1_control_unit.svg",
+        "year": "1944",
+        "read": "יחידת הבקרה היא זאת שתפקח על פעולת המעבד. היא \"תדע\" לאן לרשום את תוצאת הפעולה של ה-ALU ומה הפקודה הבאה שצריך לבצע."
+      },
+      {
+        "comment": "First a simpler computer — a base for changes, not a component.",
+        "image": "assets/panels/panel178_chapter_4_1_simple_first.svg",
+        "year": "1944",
+        "read": "לבנות את המחשב זו משימה מורכבת. לכן בשלב הראשון נתחיל מגרסה פשוטה יותר של המחשב. היא לא תוכל לבצע כל חישוב אבל היא תהיה טובה בתור התחלה. אנחנו לא נשתמש בה בתור רכיב של המחשב שלנו אלא בתור בסיס לשינויים."
+      },
+      {
+        "comment": "The instruction layout: 16 cells, cut 12 + 2 + 2.",
+        "image": "assets/panels/panel179_chapter_4_1_instruction_layout.svg",
+        "year": "1944",
+        "read": "הנה מבנה הפקודה של המחשב הפשוט:",
+        "instruction": {
+          "bits": ""
+        }
+      },
+      {
+        "comment": "The first 12 bits are the ALU's own instruction; its three inputs are wired for good.",
+        "image": "assets/panels/panel180_chapter_4_1_alu_field.svg",
+        "year": "1944",
+        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D התוכן של רגיסטר A התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "The next 2 bits: where the result is written (0-3).",
+        "image": "assets/panels/panel181_chapter_4_1_dest_field.svg",
+        "year": "1944",
+        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. לרגיסטר A 2. לרגיסטר D 3. לרגיסטר בזיכרון שכתובתו היא התוכן של רגיסטר A",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "The last 2 bits are ignored in the simple computer.",
+        "image": "assets/panels/panel182_chapter_4_1_unused_field.svg",
+        "year": "1944",
+        "read": "משני הביטים האחרונים נתעלם. אנחנו לא צריכים אותם במחשב הפשוט.",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            15,
+            16
+          ]
+        }
+      },
+      {
+        "comment": "Example 1: add D and A, write the result into A.",
+        "image": "assets/panels/panel183_chapter_4_1_example_add.svg",
+        "year": "1944",
+        "read": "אתן לך כמה דוגמאות: הפקודה הזאת אומרת: חבר את התוכן של D עם A וכתוב את התוצאה לרגיסטר A",
+        "instruction": {
+          "bits": "1000000100000100"
+        }
+      },
+      {
+        "comment": "Bit 1: the ALU computes.",
+        "image": "assets/panels/panel184_chapter_4_1_example_add_compute_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שה-ALU צריך לבצע חישוב.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12: addition.",
+        "image": "assets/panels/panel185_chapter_4_1_example_add_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיבור.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bit 6: operate on the ALU's first two inputs — D and A.",
+        "image": "assets/panels/panel186_chapter_4_1_example_add_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים על שתי הכניסות הראשונות של ה-ALU, הלא הן התוכן של הרגיסטרים D ו-A.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together: \"add D and A\".",
+        "image": "assets/panels/panel187_chapter_4_1_example_add_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-A\".",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into A.",
+        "image": "assets/panels/panel188_chapter_4_1_example_add_dest.svg",
+        "year": "1944",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר A.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Example 2: put the number 1025 into D.",
+        "image": "assets/panels/panel189_chapter_4_1_example_num.svg",
+        "year": "1944",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: שים את המספר 1025 ברגיסטר D",
+        "instruction": {
+          "bits": "0100000000011000"
+        }
+      },
+      {
+        "comment": "Bit 1 = 0: the ALU computes nothing, it just emits its instruction.",
+        "image": "assets/panels/panel190_chapter_4_1_example_num_literal_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שה-ALU לא מחשב כלום אלא מוציא את ההוראות שלו כפלט.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "comment": "Bits 2-12 spell 1025.",
+        "image": "assets/panels/panel191_chapter_4_1_example_num_value_bits.svg",
+        "year": "1944",
+        "read": "הביטים האלה הם המספר 1025.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            2,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together: \"emit the number 1025\".",
+        "image": "assets/panels/panel192_chapter_4_1_example_num_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"הוצא את המספר 1025\".",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into D.",
+        "image": "assets/panels/panel193_chapter_4_1_example_num_dest.svg",
+        "year": "1944",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר D.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            13,
+            14
+          ]
+        }
       }
     ]
   }

@@ -5180,6 +5180,7 @@
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
               ${renderPanelObjectPopover(panel)}
+              ${renderInstructionBits(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
@@ -5216,6 +5217,30 @@
       ${renderAluIntroDialog()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
+  }
+
+  // The 16-cell instruction strip of chapter 4.1, drawn UNDER the speech bubble
+  // (inside the slide, like a hotspot) rather than baked into the art — because
+  // the same strip is re-shown slide after slide with a different group of bits
+  // lit, and with or without an example instruction written into it.
+  //
+  // panel.instruction = { bits: "1000000100000100" | "", lit: [from, to] }
+  // Bit numbers are 1-based and read LEFT to RIGHT (bit 1 is the leftmost cell),
+  // the way von Neumann counts them: "12 הביטים הראשונים".
+  const INSTRUCTION_GROUP_STARTS = [1, 13, 15];
+  function renderInstructionBits(panel) {
+    const spec = panel && panel.instruction;
+    if (!spec) return "";
+    const bits = String(spec.bits || "");
+    const lit = Array.isArray(spec.lit) ? spec.lit : null;
+    const cells = [];
+    for (let i = 1; i <= 16; i += 1) {
+      const classes = ["panel-bit"];
+      if (INSTRUCTION_GROUP_STARTS.includes(i) && i !== 1) classes.push("panel-bit-group");
+      if (lit && i >= lit[0] && i <= lit[1]) classes.push("is-lit");
+      cells.push(`<span class="${classes.join(" ")}">${esc(bits[i - 1] || "")}</span>`);
+    }
+    return `<div class="panel-bits" aria-hidden="true">${cells.join("")}</div>`;
   }
 
   // The numeric-answer box for a gating story panel. The value is kept live in
@@ -17586,10 +17611,11 @@
     const scene = currentScene();
     setState({
       ...transientUiClearPatch(),
+      // The end of the interlude, not the end of the story: 4.1 follows it now,
+      // so "המשך" from here walks straight on into the next chapter.
       panelIndex: Math.max(scene.panels.length - 1, 0),
       started: true,
-      replayNonce: state.replayNonce + 1,
-      infoDialog: "המשך יבוא..."
+      replayNonce: state.replayNonce + 1
     }, false);
   }
 
