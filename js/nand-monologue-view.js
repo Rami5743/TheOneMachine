@@ -51,11 +51,11 @@ function createNandMonologueView({ getState, esc, workspaceNandMonologueActive, 
     // HTML-special characters, so it survives esc() unchanged and we can wrap the
     // first occurrence afterwards.
     let body = esc(NAND_MONOLOGUE_TEXTS[step]).replace("טבלת אמת", "<strong>טבלת אמת</strong>");
-    // In the name bubble, bold the word "לא" (the N=Not that ties NAND to AND).
-    // Scoped to this bubble and matched only as a standalone word (surrounded by
-    // whitespace or quotes) so it never catches "לא" inside another word (e.g.
-    // "אלא" in an earlier bubble).
-    if (isNameStep) body = body.replace(/(?<=[\s“”"])לא(?=[\s“”".,])/gu, "<strong>לא</strong>");
+    // In the name bubble, bold the SECOND "לא" — the logical one in "And לא היה",
+    // NOT the quoted dictionary gloss "לא". Matching it as a space-bounded word
+    // hits exactly that occurrence (the quoted one is wrapped in “ ”, and "אלא"
+    // in an earlier bubble is excluded both by the boundary and by isNameStep).
+    if (isNameStep) body = body.replace(/(?<=\s)לא(?=\s)/gu, "<strong>לא</strong>");
     return `
       <div class="workspace-nand-monologue-layer monologue-step-${step}" data-nand-monologue-layer role="presentation">
         <div class="workspace-nand-speech monologue-step-${step}" data-nand-speech>
