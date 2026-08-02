@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 636.13880,180 h 761.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 110.03378 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 636.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -47.06102 l -57.11762,10.34971 57.11762,-27.41755 v -45.90492 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
+       d="m 446.13880,30 h 957.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 110.03378 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 446.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -14.00000 l -57.11762,10.34971 57.11762,-27.41755 v -78.96594 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -54,20 +54,20 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1017"
-       y="220"
+       x="925"
+       y="70"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1017"
-         y="220">יחידת הבקרה היא זאת שתפקח על פעולת המעבד.</tspan><tspan
+         x="925"
+         y="70">יחידת הבקרה היא זאת שתפקח על פעולת המעבד. היא "תדע"</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="1017"
-         y="270.5">היא "תדע" לאן לרשום את תוצאת הפעולה של</tspan><tspan
+         x="925"
+         y="120.5">לאן לרשום את תוצאת הפעולה של ה-ALU ומה הפקודה הבאה</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
-         x="1017"
-         y="321">ה-ALU ומה הפקודה הבאה שצריך לבצע.</tspan></text>
+         x="925"
+         y="171">שצריך לבצע.</tspan></text>
   </g>
 </svg>

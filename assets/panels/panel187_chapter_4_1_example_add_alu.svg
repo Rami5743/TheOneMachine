@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 636.13880,180 h 761.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 59.53358 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 636.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -21.23287 l -57.11762,10.34971 57.11762,-27.41755 v -21.23287 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
+       d="m 446.13880,30 h 957.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 9.03338 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 446.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v --4.01723 l -57.11762,10.34971 57.11762,-27.41755 v --4.01723 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -54,16 +54,12 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1017"
-       y="220"
+       x="925"
+       y="70"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1017"
-         y="220">יחד 12 הביטים האלה הם ההוראה של ה-ALU:</tspan><tspan
-         sodipodi:role="line"
-         id="bubble-text-line2"
-         x="1017"
-         y="270.5">"חבר את D ו-A".</tspan></text>
+         x="925"
+         y="70">יחד 12 הביטים האלה הם ההוראה של ה-ALU: "חבר את D ו-A".</tspan></text>
   </g>
 </svg>

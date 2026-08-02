@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 636.13880,180 h 761.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 312.03458 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 636.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -249.06182 l -57.11762,10.34971 57.11762,-27.41755 v -45.90492 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
+       d="m 446.13880,30 h 957.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 261.53438 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 446.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v -14.00000 l -57.11762,10.34971 57.11762,-27.41755 v -230.46654 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -54,36 +54,36 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1017"
-       y="220"
+       x="925"
+       y="70"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1017"
-         y="220">הפקודות יהיו רשומות בזיכרון. כדי להקל על</tspan><tspan
+         x="925"
+         y="70">הפקודות יהיו רשומות בזיכרון. כדי להקל על העבודה, הזיכרון</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="1017"
-         y="270.5">העבודה, הזיכרון שלנו יהיה מחולק ל-2 חלקים:</tspan><tspan
+         x="925"
+         y="120.5">שלנו יהיה מחולק ל-2 חלקים:</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
-         x="1017"
-         y="321">• זיכרון דאטה (בקיצור "הזיכרון") — זה כרטיס</tspan><tspan
+         x="1386"
+         style="text-align:start;text-anchor:start"
+         y="171">• זיכרון דאטה (בקיצור "הזיכרון") — זה כרטיס ה-RAM שבנית —</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
-         x="1017"
-         y="371.501">ה-RAM שבנית — הוא יכיל את המידע שעליו אנחנו</tspan><tspan
+         x="1386"
+         style="text-align:start;text-anchor:start"
+         y="221.501">הוא יכיל את המידע שעליו אנחנו רוצים לבצע את החישובים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
-         x="1017"
-         y="422.001">רוצים לבצע את החישובים</tspan><tspan
+         x="1386"
+         style="text-align:start;text-anchor:start"
+         y="272.001">• זיכרון תוכנה — זה יהיה עוד כרטיס RAM1024 שעליו תישמר</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line6"
-         x="1017"
-         y="472.501">• זיכרון תוכנה — זה יהיה עוד כרטיס RAM1024</tspan><tspan
-         sodipodi:role="line"
-         id="bubble-text-line7"
-         x="1017"
-         y="523.001">שעליו תישמר רשימת הפקודות</tspan></text>
+         x="1386"
+         style="text-align:start;text-anchor:start"
+         y="322.501">רשימת הפקודות</tspan></text>
   </g>
 </svg>

@@ -945,7 +945,7 @@ button { font: inherit; }
 .panel-bits {
   position: absolute;
   left: 50%;
-  bottom: 5.5%;
+  bottom: 2.5%;
   transform: translateX(-50%);
   display: flex;
   direction: ltr;
