@@ -11765,6 +11765,21 @@
       // and with no persistent build-help button during the observe phase.
       workspace.helpPromptSeen = true;
       workspace.buildHelpButtonVisible = false;
+      // (Re)start the demo from scratch EVERY time the workbench is launched from
+      // the warehouse — so leaving mid-monologue, or returning to the launch panel
+      // later, replays the whole Nand demo instead of dropping the learner onto a
+      // spent workbench where the observe phase and monologue are already "done"
+      // (which read as the monologue being skipped). Fresh board, observation and
+      // monologue reset to their first-visit state.
+      workspace.components = cloneDefaultComponents();
+      workspace.wires = [];
+      workspace.selectedTerminal = null;
+      workspace.nextId = 2;
+      workspace.accident = null;
+      workspace.nandOutputObserved = { zero: false, one: false };
+      workspace.understoodPromptShown = false;
+      workspace.understoodButtonVisible = false;
+      workspace.nandMonologueStep = null;
     }
 
     // The Nand intro story just ended (the workbench is opening) → announce the

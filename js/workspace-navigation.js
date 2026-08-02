@@ -57,7 +57,11 @@ function createWorkspaceNavigation({
   function isWorkspaceLaunchPoint() {
     const state = getState();
     if (state.chapterId !== "chapter-4") return false;
-    if (state.workspace?.workspaceCompleted) return false;
+    // NB: intentionally NOT gated on workspaceCompleted. Advancing onto the launch
+    // panel (right after the warehouse Nand presentation) must always re-open the
+    // workbench demo — even after the learner has finished it once and later
+    // navigates back to this panel — instead of letting the story flow past and
+    // skip the demo. openWorkspace rebuilds a fresh session-1 workbench each time.
     return isWorkspaceLaunchPanel(currentPanel());
   }
 
