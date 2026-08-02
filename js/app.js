@@ -5241,7 +5241,9 @@
       if (lit && i >= lit[0] && i <= lit[1]) classes.push("is-lit");
       cells.push(`<span class="${classes.join(" ")}">${esc(bits[i - 1] || "")}</span>`);
     }
-    return `<div class="panel-bits" aria-hidden="true">${cells.join("")}</div>`;
+    // Starts pending, like the slide itself: setupPanelStage reveals both at the
+    // same moment, once the slide's box is final.
+    return `<div class="panel-bits is-pending" aria-hidden="true">${cells.join("")}</div>`;
   }
 
   // The numeric-answer box for a gating story panel. The value is kept live in
@@ -7735,6 +7737,11 @@
       revealed = true;
       if (spinnerTimer) clearTimeout(spinnerTimer);
       obj.classList.remove("is-pending");
+      // The instruction strip is positioned against the slide's own box, which
+      // is not final until the <object> has laid out — so it waits for the same
+      // moment the slide does, instead of flashing mid-frame and dropping.
+      const bits = app.querySelector(".panel-bits");
+      if (bits) bits.classList.remove("is-pending");
       if (spinner) spinner.classList.remove("is-active");
       if (typeof onReady === "function") onReady();
     };

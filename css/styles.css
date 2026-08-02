@@ -956,6 +956,16 @@ button { font: inherit; }
   border: 2px solid #2f2617;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
   font-size: clamp(0.78rem, 1.45vw, 1.28rem);
+  opacity: 1;
+  transition: opacity 0.28s ease;
+}
+
+/* Until the slide's <object> has laid out, the strip's bottom offset resolves
+   against a box that is not final yet — so it stays invisible until the slide
+   is revealed, instead of flashing mid-frame and then dropping into place. */
+.panel-bits.is-pending {
+  opacity: 0;
+  transition: none;
 }
 
 .panel-bit {
