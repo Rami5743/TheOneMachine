@@ -3791,13 +3791,13 @@
       { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.22 },
       { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: 0.42 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0.15, offset: 1 }
-    ], { duration: 1560, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2340, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the icon lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
-    ], { duration: 640, delay: 1120, easing: "ease-out" });
+    ], { duration: 960, delay: 1680, easing: "ease-out" });
   }
 
   // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
@@ -4696,12 +4696,12 @@
       { transform: "translate(-50%,-50%) scale(1.15) rotate(0deg)", opacity: 1, offset: 0.24 },
       { transform: "translate(-50%,-50%) scale(1) rotate(0deg)", opacity: 1, offset: 0.52 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.16)`, opacity: 0.12, offset: 1 }
-    ], { duration: 1800, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2700, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 680, delay: 1280, easing: "ease-out" });
+    ], { duration: 1020, delay: 1920, easing: "ease-out" });
   }
 
   // A bridge for sibling modules (e.g. warehouse-hotspots.js, which owns the
