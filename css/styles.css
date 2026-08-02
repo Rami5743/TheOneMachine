@@ -526,9 +526,17 @@ button { font: inherit; }
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  width: clamp(84px, 13vw, 150px);
-  height: clamp(84px, 13vw, 150px);
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  width: clamp(96px, 14vw, 168px);
+  height: clamp(96px, 14vw, 168px);
+  box-sizing: border-box;
+  padding: clamp(12px, 2vw, 22px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  /* Dark medallion behind the icon, with a thin gold rim, so the flying badge
+     reads as one object over the busy scene/workbench. */
+  background: radial-gradient(circle at 50% 36%, #2c2617, #14110a 80%);
+  box-shadow: inset 0 0 0 2px rgba(243, 210, 122, 0.5), 0 10px 26px rgba(0, 0, 0, 0.62);
   will-change: transform, opacity;
 }
 .achv-unlock-fly svg { width: 100%; height: 100%; }
@@ -539,10 +547,18 @@ button { font: inherit; }
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  width: clamp(52px, 8vw, 92px);
-  height: clamp(52px, 8vw, 92px);
-  color: #f3d27a;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  width: clamp(62px, 9.5vw, 108px);
+  height: clamp(62px, 9.5vw, 108px);
+  box-sizing: border-box;
+  padding: clamp(10px, 1.5vw, 18px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  /* Dark medallion behind the cap; the icon itself is a bright gold that reads
+     clearly on it. */
+  background: radial-gradient(circle at 50% 36%, #2c2617, #14110a 78%);
+  color: #ffe6a2;
+  box-shadow: inset 0 0 0 2px rgba(243, 210, 122, 0.55), 0 8px 20px rgba(0, 0, 0, 0.6);
   will-change: transform, opacity;
 }
 .expl-unlock-fly svg { width: 100%; height: 100%; }
@@ -1757,6 +1773,30 @@ g.component-ffCard.ff-materialize .ff-card {
   .workspace-and-arrow { animation: none; }
 }
 
+/* Idle hint on the first "click the Nand" slide: a bouncing arrow that only
+   appears after 60s of no click (pure CSS animation-delay; any click re-renders
+   the story and destroys this element, so the wait restarts). Centred with
+   translateX(-50%), baked into the bounce keyframe so it survives the animation. */
+.panel-nand-hint {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+  color: #ffe08a;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+  opacity: 0;
+  animation: panel-nand-hint-in 0.45s ease 60s forwards,
+             panel-nand-hint-bounce 1.05s ease-in-out 60s infinite;
+}
+@keyframes panel-nand-hint-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes panel-nand-hint-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(-7px); }
+  50% { transform: translateX(-50%) translateY(9px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-nand-hint { animation: panel-nand-hint-in 0.45s ease 60s forwards; }
+}
+
 /* Optional bottom-left "why do we need this?" panel: a hideable explainer,
    draggable from anywhere on it that is not text or its button. Sits opposite
    the bottom-right requirements panel. */
@@ -2320,6 +2360,19 @@ g.component-ffCard.ff-materialize .ff-card {
   color: #f3d27a;
 }
 
+/* Enrichment badge inside the (light) Nand speech bubble — amber for contrast on
+   the pale background, unlike the gold used on the dark teaser panel. */
+.nand-speech-enrichment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  color: #9a6b12;
+}
+.nand-speech-enrichment .build-help-icon { color: #c99a1e; }
+
 .workspace-build-help-actions {
   display: flex;
   justify-content: center;
@@ -2371,8 +2424,12 @@ g.component-ffCard.ff-materialize .ff-card {
   inset: calc(var(--app-pad) + var(--topbar-h) + var(--gap)) 0 0 0;
   z-index: 24;
   display: grid;
-  place-items: center;
-  padding: clamp(14px, 3vw, 36px);
+  /* Sit LOW on the board, not centred: centred, the card lands on the Nand /
+     sources / lamp (which live in the upper-middle of the workbench). Bottom
+     padding keeps it above the workspace controls. */
+  justify-items: center;
+  align-items: end;
+  padding: clamp(12px, 3vw, 30px) clamp(14px, 3vw, 36px) clamp(46px, 10vh, 120px);
   background: transparent;
   pointer-events: auto;
   direction: rtl;

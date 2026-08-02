@@ -3791,13 +3791,13 @@
       { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.22 },
       { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: 0.42 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0.15, offset: 1 }
-    ], { duration: 1560, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2340, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the icon lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
-    ], { duration: 640, delay: 1120, easing: "ease-out" });
+    ], { duration: 960, delay: 1680, easing: "ease-out" });
   }
 
   // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
@@ -4696,12 +4696,12 @@
       { transform: "translate(-50%,-50%) scale(1.15) rotate(0deg)", opacity: 1, offset: 0.24 },
       { transform: "translate(-50%,-50%) scale(1) rotate(0deg)", opacity: 1, offset: 0.52 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.16)`, opacity: 0.12, offset: 1 }
-    ], { duration: 1800, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2700, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 680, delay: 1280, easing: "ease-out" });
+    ], { duration: 1020, delay: 1920, easing: "ease-out" });
   }
 
   // A bridge for sibling modules (e.g. warehouse-hotspots.js, which owns the
@@ -5179,6 +5179,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${renderNandClickHint(panel)}
               ${renderPanelObjectPopover(panel)}
               ${renderInstructionBits(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
@@ -8089,6 +8090,21 @@
       && !state.solutionDialog
       && !state.cardCreation
       && !workspaceAccidentActive();
+  }
+
+  // On the very first "click the Nand to continue" slide (panel74a), a learner
+  // who does not click within a minute gets a bouncing arrow pointing at the
+  // Nand. Pure CSS timing: the arrow fades in after a 60s animation-delay, so any
+  // click (which re-renders and destroys this element) resets the wait.
+  function renderNandClickHint(panel) {
+    const img = String((panel && panel.image) || "");
+    if (!img.includes("panel74a")) return "";
+    // Centred just above the Nand hotspot (left 39% + width 20% → centre 49%;
+    // top 62%), pointing down at it.
+    return `
+      <div class="panel-nand-hint" aria-hidden="true" style="left:48%;top:53%;">
+        <svg viewBox="0 0 24 24" width="54" height="54"><path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
   }
 
   function renderAndArrow() {
@@ -11774,6 +11790,21 @@
       // and with no persistent build-help button during the observe phase.
       workspace.helpPromptSeen = true;
       workspace.buildHelpButtonVisible = false;
+      // (Re)start the demo from scratch EVERY time the workbench is launched from
+      // the warehouse — so leaving mid-monologue, or returning to the launch panel
+      // later, replays the whole Nand demo instead of dropping the learner onto a
+      // spent workbench where the observe phase and monologue are already "done"
+      // (which read as the monologue being skipped). Fresh board, observation and
+      // monologue reset to their first-visit state.
+      workspace.components = cloneDefaultComponents();
+      workspace.wires = [];
+      workspace.selectedTerminal = null;
+      workspace.nextId = 2;
+      workspace.accident = null;
+      workspace.nandOutputObserved = { zero: false, one: false };
+      workspace.understoodPromptShown = false;
+      workspace.understoodButtonVisible = false;
+      workspace.nandMonologueStep = null;
     }
 
     // The Nand intro story just ended (the workbench is opening) → announce the
