@@ -44,13 +44,18 @@ function createNandMonologueView({ getState, esc, workspaceNandMonologueActive, 
 
     const state = getState();
     const step = Math.min(Math.max(state.workspace.nandMonologueStep, 0), NAND_MONOLOGUE_TEXTS.length - 1);
-    // Bold "טבלת אמת" the first time the Nand names it (step 0). The phrase has no
-    // HTML-special characters, so it survives esc() unchanged and we can wrap the
-    // first occurrence afterwards.
-    const body = esc(NAND_MONOLOGUE_TEXTS[step]).replace("טבלת אמת", "<strong>טבלת אמת</strong>");
     // The last bubble is where the Nand explains its NAME (Not-And) — bonus
     // etymology, marked as enrichment.
     const isNameStep = step === NAND_MONOLOGUE_TEXTS.length - 1;
+    // Bold "טבלת אמת" the first time the Nand names it (step 0). The phrase has no
+    // HTML-special characters, so it survives esc() unchanged and we can wrap the
+    // first occurrence afterwards.
+    let body = esc(NAND_MONOLOGUE_TEXTS[step]).replace("טבלת אמת", "<strong>טבלת אמת</strong>");
+    // In the name bubble, bold the word "לא" (the N=Not that ties NAND to AND).
+    // Scoped to this bubble and matched only as a standalone word (surrounded by
+    // whitespace or quotes) so it never catches "לא" inside another word (e.g.
+    // "אלא" in an earlier bubble).
+    if (isNameStep) body = body.replace(/(?<=[\s“”"])לא(?=[\s“”".,])/gu, "<strong>לא</strong>");
     return `
       <div class="workspace-nand-monologue-layer monologue-step-${step}" data-nand-monologue-layer role="presentation">
         <div class="workspace-nand-speech monologue-step-${step}" data-nand-speech>
