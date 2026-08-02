@@ -2297,6 +2297,19 @@ g.component-ffCard.ff-materialize .ff-card {
   color: #f3d27a;
 }
 
+/* Enrichment badge inside the (light) Nand speech bubble — amber for contrast on
+   the pale background, unlike the gold used on the dark teaser panel. */
+.nand-speech-enrichment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  color: #9a6b12;
+}
+.nand-speech-enrichment .build-help-icon { color: #c99a1e; }
+
 .workspace-build-help-actions {
   display: flex;
   justify-content: center;
