@@ -5179,6 +5179,7 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${renderNandClickHint(panel)}
               ${renderPanelObjectPopover(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
@@ -8064,6 +8065,21 @@
       && !state.solutionDialog
       && !state.cardCreation
       && !workspaceAccidentActive();
+  }
+
+  // On the very first "click the Nand to continue" slide (panel74a), a learner
+  // who does not click within a minute gets a bouncing arrow pointing at the
+  // Nand. Pure CSS timing: the arrow fades in after a 60s animation-delay, so any
+  // click (which re-renders and destroys this element) resets the wait.
+  function renderNandClickHint(panel) {
+    const img = String((panel && panel.image) || "");
+    if (!img.includes("panel74a")) return "";
+    // Centred just above the Nand hotspot (left 39% + width 20% → centre 49%;
+    // top 62%), pointing down at it.
+    return `
+      <div class="panel-nand-hint" aria-hidden="true" style="left:48%;top:53%;">
+        <svg viewBox="0 0 24 24" width="54" height="54"><path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
   }
 
   function renderAndArrow() {

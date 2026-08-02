@@ -1710,6 +1710,30 @@ g.component-ffCard.ff-materialize .ff-card {
   .workspace-and-arrow { animation: none; }
 }
 
+/* Idle hint on the first "click the Nand" slide: a bouncing arrow that only
+   appears after 60s of no click (pure CSS animation-delay; any click re-renders
+   the story and destroys this element, so the wait restarts). Centred with
+   translateX(-50%), baked into the bounce keyframe so it survives the animation. */
+.panel-nand-hint {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+  color: #ffe08a;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+  opacity: 0;
+  animation: panel-nand-hint-in 0.45s ease 60s forwards,
+             panel-nand-hint-bounce 1.05s ease-in-out 60s infinite;
+}
+@keyframes panel-nand-hint-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes panel-nand-hint-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(-7px); }
+  50% { transform: translateX(-50%) translateY(9px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-nand-hint { animation: panel-nand-hint-in 0.45s ease 60s forwards; }
+}
+
 /* Optional bottom-left "why do we need this?" panel: a hideable explainer,
    draggable from anywhere on it that is not text or its button. Sits opposite
    the bottom-right requirements panel. */
