@@ -53,29 +53,29 @@
        sodipodi:nodetypes="ssssssccssss" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1072"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:start;writing-mode:lr-tb;direction:rtl;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="1394"
        y="78"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1072"
+         x="1394"
          y="78">שים לב. הפקודות שאנחנו מדברים עליהן הן</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="1072"
+         x="1394"
          y="128.5">למעשה רצפי ביטים. המכונות שלנו לא</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
-         x="1072"
+         x="1394"
          y="179">מבינות שום דבר אחר. מכיוון שקבענו</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
-         x="1072"
+         x="1394"
          y="229.501">שהיחידה הבסיסית של המחשב שלנו תהיה</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
-         x="1072"
+         x="1394"
          y="280.001">‏16 ביטים, גם הפקודות שלנו יהיו 16 ביטים.</tspan></text>
   </g>
 </svg>

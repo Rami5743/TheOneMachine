@@ -53,13 +53,13 @@
        sodipodi:nodetypes="ssssssccssss" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1072"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:start;writing-mode:lr-tb;direction:rtl;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="1394"
        y="99.2333"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1072"
+         x="1394"
          y="99.2333">הנה מבנה הפקודה של המחשב הפשוט:</tspan></text>
   </g>
 </svg>

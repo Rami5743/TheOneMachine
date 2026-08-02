@@ -53,37 +53,37 @@
        sodipodi:nodetypes="ssssssccssss" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="1072"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:start;writing-mode:lr-tb;direction:rtl;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="1394"
        y="78"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="1072"
+         x="1394"
          y="78">למעבד קוראים באנגלית processor.</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
-         x="1072"
+         x="1394"
          y="128.5">לפעמים גם קוראים לו CPU שהם ראשי תיבות</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
-         x="1072"
+         x="1394"
          y="179">של central processing unit — יחידת</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
-         x="1072"
+         x="1394"
          y="229.501">עיבוד מרכזית. זה שם לא ממש רלוונטי</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
-         x="1072"
+         x="1394"
          y="280.001">בשבילנו, כי זה לא שיש לנו עוד יחידות</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line6"
-         x="1072"
+         x="1394"
          y="330.501">עיבוד, אבל נשתמש בו מדי פעם כי הוא</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line7"
-         x="1072"
+         x="1394"
          y="381.001">קצר.</tspan></text>
   </g>
 </svg>
