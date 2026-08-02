@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Bits 13-14: write the answer into D. -->
+<!-- Bits 7-12 = 110010: subtraction, the code from the 2.6 demo. -->
 <svg
    version="1.1"
    width="1448"
@@ -44,7 +44,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 129.26689 A 18.9487,25.23331 0 0 1 1405.05130,154.50020 H 738.94870 A 18.9487,25.23331 0 0 1 720,129.26689 V 112.25010 L 600,374 L 720,78.25010 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
+       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 331.26769 A 18.9487,25.23331 0 0 1 1405.05130,356.50100 H 738.94870 A 18.9487,25.23331 0 0 1 720,331.26769 V 213.25050 L 600,374 L 720,179.25050 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -60,10 +60,26 @@
          sodipodi:role="line"
          id="bubble-text-line1"
          x="1072"
-         y="78">‏2 הביטים האלה אומרים שאנחנו רושמים את</tspan><tspan
+         y="78">ששת הביטים האלה מסמנים חיסור. אלה</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
          x="1072"
-         y="128.5">התשובה לרגיסטר D.</tspan></text>
+         y="128.5">בדיוק הביטים 110010 שהכנסנו לכניסת</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line3"
+         x="1072"
+         y="179">הבקרה של ה-ALU כשהראיתי לך איך</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line4"
+         x="1072"
+         y="229.501">מחסרים. הסדר חשוב: הם מחסרים את</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line5"
+         x="1072"
+         y="280.001">הכניסה השנייה מהראשונה, כלומר את A</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line6"
+         x="1072"
+         y="330.501">מ-D.</tspan></text>
   </g>
 </svg>

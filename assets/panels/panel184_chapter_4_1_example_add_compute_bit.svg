@@ -44,22 +44,22 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="m 446.13880,30 h 957.72240 c 10.7593,0 16.1388,8.4111 16.1388,25.23331 v 9.03338 c 0,16.8222 -5.3795,25.23331 -16.1388,25.23331 H 446.13880 c -10.75917,0 -16.13875,-8.4111 -16.13875,-25.23331 v --4.01723 l -57.11762,10.34971 57.11762,-27.41755 v --4.01723 c 0,-16.8222 5.37958,-25.23331 16.13875,-25.23331 z"
+       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 121.23331 A 18.9487,25.23331 0 0 1 1405.05130,146.46662 H 738.94870 A 18.9487,25.23331 0 0 1 720,121.23331 V 108.23331 L 600,374 L 720,74.23331 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
        stroke-linejoin="round"
        stroke-linecap="round"
-       sodipodi:nodetypes="ssssssscccss" />
+       sodipodi:nodetypes="ssssssccssss" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
-       x="925"
-       y="70"
+       x="1072"
+       y="99.2333"
        id="bubble-text"><tspan
          sodipodi:role="line"
          id="bubble-text-line1"
-         x="925"
-         y="70">הביט הזה אומר שה-ALU צריך לבצע חישוב.</tspan></text>
+         x="1072"
+         y="99.2333">הביט הזה אומר שה-ALU צריך לבצע חישוב.</tspan></text>
   </g>
 </svg>

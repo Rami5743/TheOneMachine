@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Bits 13-14: write the answer into D. -->
+<!-- All 12 together. -->
 <svg
    version="1.1"
    width="1448"
@@ -60,10 +60,10 @@
          sodipodi:role="line"
          id="bubble-text-line1"
          x="1072"
-         y="78">‏2 הביטים האלה אומרים שאנחנו רושמים את</tspan><tspan
+         y="78">יחד 12 הביטים האלה הם ההוראה של</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line2"
          x="1072"
-         y="128.5">התשובה לרגיסטר D.</tspan></text>
+         y="128.5">ה-ALU: "חסר את A מ-D".</tspan></text>
   </g>
 </svg>

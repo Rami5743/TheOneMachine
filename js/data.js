@@ -1607,6 +1607,128 @@ const SCENES = {
             14
           ]
         }
+      },
+      {
+        "comment": "Example 3: add D to the memory register addressed by A, back into it.",
+        "image": "assets/panels/panel194_chapter_4_1_example_mem.svg",
+        "year": "1944",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את התוכן של D עם התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A, וכתוב את התוצאה לאותו רגיסטר בזיכרון",
+        "instruction": {
+          "bits": "1000010100001100"
+        }
+      },
+      {
+        "comment": "Bit 6 = 1: the first and the third input.",
+        "image": "assets/panels/panel195_chapter_4_1_example_mem_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן התוכן של רגיסטר D והתוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12: addition, the same six as in the first example.",
+        "image": "assets/panels/panel196_chapter_4_1_example_mem_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיבור, בדיוק כמו בדוגמה הראשונה.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together.",
+        "image": "assets/panels/panel197_chapter_4_1_example_mem_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D עם הרגיסטר בזיכרון שכתובתו היא התוכן של A\".",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14 = 3: back into that same memory register.",
+        "image": "assets/panels/panel198_chapter_4_1_example_mem_dest.svg",
+        "year": "1944",
+        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת לרגיסטר בזיכרון שכתובתו היא התוכן של A. שים לב שאותו רגיסטר הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Example 4: subtract A from D into D.",
+        "image": "assets/panels/panel199_chapter_4_1_example_sub.svg",
+        "year": "1944",
+        "read": "דוגמה אחרונה: הפקודה הזאת אומרת: חסר את התוכן של A מהתוכן של D וכתוב את התוצאה לרגיסטר D",
+        "instruction": {
+          "bits": "1000001100101000"
+        }
+      },
+      {
+        "comment": "Bit 6 = 0: the first two inputs again, D and A.",
+        "image": "assets/panels/panel200_chapter_4_1_example_sub_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים שוב על שתי הכניסות הראשונות, התוכן של D והתוכן של A.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12 = 110010: subtraction, the code from the 2.6 demo.",
+        "image": "assets/panels/panel201_chapter_4_1_example_sub_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיסור. אלה בדיוק הביטים 110010 שהכנסנו לכניסת הבקרה של ה-ALU כשהראיתי לך איך מחסרים. הסדר חשוב: הם מחסרים את הכניסה השנייה מהראשונה, כלומר את A מ-D.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together.",
+        "image": "assets/panels/panel202_chapter_4_1_example_sub_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חסר את A מ-D\".",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into D.",
+        "image": "assets/panels/panel203_chapter_4_1_example_sub_dest.svg",
+        "year": "1944",
+        "read": "שני הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר D.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            13,
+            14
+          ]
+        }
       }
     ]
   }
