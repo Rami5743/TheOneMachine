@@ -1052,15 +1052,18 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // count from 1, leftmost):
   //   mark       - the bits this hint is about, lit up on the page while it is open
   //   above      - a merged cell written in the row above those bits
-  //   applyLabel - makes the hint a question: the annotation is only written
-  //                once the learner presses the button, and then it stays.
+  //   fill       - answers this hint fills in for the learner, per column
+  //   applyLabel - makes the hint a question: the annotation (or the filling-in)
+  //                only happens once the learner presses the button.
   const INSTRUCTION_SHEET = [
     { code: "A=1",     bits: "0000000000010100", after: { A: 1, D: 0,  R0: 0, R1: 0,  R2: 0 },
       hints: [
         { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
         { title: "רמז 2", text: "הביטים האלה הם המספר 1.", mark: [2, 12] },
         { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "1" }, applyLabel: "כן, כתוב לי" },
-        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } }
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } },
+        { title: "רמז 5", text: "אל תשכח שבהתחלה כל הרגיסטרים הם 0." },
+        { title: "רמז 6", text: "למלא לך את הרגיסטרים שלא השתנו ב-0?", fill: { D: 0, R0: 0, R1: 0, R2: 0 }, applyLabel: "כן, מלא" }
       ] },
     { code: "*A=17",   bits: "0000000100011100", after: { A: 1, D: 0,  R0: 0, R1: 17, R2: 0 },
       hints: [

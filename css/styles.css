@@ -1056,7 +1056,7 @@ button { font: inherit; }
 .sheet-paper {
   display: grid;
   grid-template-columns: repeat(28, var(--sq));
-  grid-template-rows: repeat(var(--rows, 15), var(--sq));
+  grid-template-rows: repeat(var(--rows, 16), var(--sq));
   justify-content: start;
   align-content: start;
   width: 100%;
@@ -1071,27 +1071,22 @@ button { font: inherit; }
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
 }
 
-/* One line between neighbours, never two: a heading draws its LEFT edge, and
-   only the one that starts a group draws its right edge. Where a thick field
-   rule already runs, the heading leaves that edge to the rule. */
+/* A heading draws only its horizontal edges — every vertical line on the page
+   comes from a rule, so nothing is ever doubled or half a pixel off. */
 .sheet-head {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #3a2c17;
-  border-right: none;
+  border: none;
+  border-bottom: 2px solid #3a2c17;
   background: #efe4c8;
   font-weight: 700;
   font-size: calc(var(--sq) * 0.56);
   color: #241d12;
 }
 
-.sheet-head-right {
-  border-right: 2px solid #3a2c17;
-}
-
-.sheet-head-open-bottom {
-  border-bottom: none;
+.sheet-head-top {
+  border-top: 2px solid #3a2c17;
 }
 
 /* The heading over the three memory registers is one merged 2x6 cell, so its
@@ -1152,8 +1147,9 @@ button { font: inherit; }
   color: #3a2c17;
   /* The app's own face, heavy: the monospace arrow was a thin, sad little dash. */
   font-weight: 800;
-  font-size: calc(var(--sq) * 0.66);
+  font-size: calc(var(--sq) * 0.54);
   letter-spacing: 0.02em;
+  padding: 0 3px;
 }
 
 /* The hints window sits over the page, which has no topbar of its own, and it
@@ -1170,14 +1166,16 @@ button { font: inherit; }
   color: #55503f;
 }
 
-/* The answers are written straight onto the paper: the column rules and the
-   printed lines are the cell, so the box itself is invisible. */
+/* An answer cell is the two squares of its column MERGED: a single box, so the
+   printed line between them does not show through. */
 .sheet-input {
   width: 100%;
   height: 100%;
   padding: 0;
   border: none;
-  background: transparent;
+  border-top: 2px solid #3a2c17;
+  border-bottom: 2px solid #3a2c17;
+  background: #fffdf6;
   color: #241d12;
   text-align: center;
   font-family: "Courier New", Courier, monospace;
@@ -1188,13 +1186,38 @@ button { font: inherit; }
 
 .sheet-input:focus {
   outline: none;
-  background: rgba(255, 212, 94, 0.35);
+  background: #fff3d0;
 }
 
 .sheet-input::-webkit-outer-spin-button,
 .sheet-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* Free-hand writing on the blank squares of the page. */
+.sheet-scratch,
+.sheet-scratch-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  color: #241d12;
+}
+
+.sheet-scratch-input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: rgba(255, 212, 94, 0.4);
+  text-align: center;
+}
+
+.sheet-scratch-input:focus {
+  outline: none;
 }
 
 .sheet-actions {

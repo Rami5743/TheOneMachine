@@ -1549,6 +1549,8 @@
     buildNoteList: false,
     // "נקה התקדמות" on the exercise page, waiting for a yes.
     sheetClearConfirm: null,
+    // The free square of the page being written in right now: { row, col }.
+    sheetScratchCell: null,
     // The 4.1 exercise sheet, opened from the note on the computer-room table:
     // { revealed, values } — how many instructions are on the page so far, and
     // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
@@ -2631,6 +2633,7 @@
       wordsBytesDialog: null,
       sheetDialog: null,
       sheetClearConfirm: null,
+      sheetScratchCell: null,
       buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
@@ -2828,7 +2831,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -5042,7 +5045,8 @@
     const values = saved && saved.values && typeof saved.values === "object" ? saved.values : {};
     const hints = saved && saved.hints && typeof saved.hints === "object" ? saved.hints : {};
     const notes = saved && saved.notes && typeof saved.notes === "object" ? saved.notes : {};
-    return { revealed, values, hints, notes };
+    const scratch = saved && saved.scratch && typeof saved.scratch === "object" ? saved.scratch : {};
+    return { revealed, values, hints, notes, scratch };
   }
 
   // ---- The sheet's hints ---------------------------------------------------
@@ -5050,6 +5054,14 @@
   // more for every failure after that, and a minute without progress counts as a
   // failure. Progress is kept per instruction, and the annotations a hint writes
   // on the page are kept with the learner's work.
+  // "*A" is a pointer written star-then-A. The star is a neutral character, so in
+  // a Hebrew line the bidi algorithm hands it the paragraph's direction and parks
+  // it on the wrong side ("A*"); fencing the pair between two left-to-right marks
+  // keeps it reading "*A". (The slides bake the same guard into their SVG text.)
+  function ltrStarRun(text) {
+    return String(text ?? "").replace(/\*A/g, "\u200e*A\u200e");
+  }
+
   function sheetHintsFor(row) {
     const def = instructionSheetDefs()[row];
     return Array.isArray(def?.hints) ? def.hints : [];
@@ -5088,6 +5100,17 @@
   function sheetHintButtonLabel(row) {
     const progress = sheetHintProgress(row);
     return (progress.seen >= 1 && sheetUnlockedHintCount(row) > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
+  }
+
+  // Which square of the page a click landed on. The grid runs right to left, so
+  // column 1 is the rightmost.
+  function sheetSquareAt(paper, clientX, clientY) {
+    const rect = paper.getBoundingClientRect();
+    const size = parseFloat(getComputedStyle(paper).backgroundSize) || 20;
+    const col = Math.floor((rect.right - clientX) / size) + 1;
+    const row = Math.floor((clientY - rect.top) / size) + 1;
+    if (!(col >= 1 && row >= 1)) return null;
+    return { row, col };
   }
 
   function openInstructionSheet() {
@@ -5146,8 +5169,20 @@
     if (!unlocked) return;
     const progress = sheetHintProgress(row);
     const at = Math.min(Math.max(Number.isFinite(index) ? index : unlocked - 1, 0), unlocked - 1);
+    const sheet = setSheetHintProgress(row, { failures: progress.failures, seen: Math.max(progress.seen, at + 1) });
+    // A hint that simply WRITES something on the page (the instruction's
+    // destination) leaves it there: showing it is not a question, so it stays
+    // once the window is closed.
+    const hint = sheetHintsFor(row)[at];
+    if (hint && hint.above && !hint.applyLabel) {
+      const notes = { ...sheet.notes };
+      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
+      notes[row] = rowNotes;
+      sheet.notes = notes;
+    }
     return setState({
-      instructionSheet: setSheetHintProgress(row, { failures: progress.failures, seen: Math.max(progress.seen, at + 1) }),
+      instructionSheet: sheet,
       sheetDialog: { ...state.sheetDialog, result: null, hint: { row, index: at } }
     });
   }
@@ -5158,12 +5193,24 @@
     if (!open) return;
     const row = Number.isInteger(open.row) ? open.row : sheetCurrentRow();
     const hint = sheetHintsFor(row)[Number(open.index) || 0];
-    if (!hint || !hint.above) return;
-    const notes = { ...instructionSheetProgress().notes };
-    const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
-    if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
-    notes[row] = rowNotes;
-    return setState({ instructionSheet: { ...instructionSheetProgress(), notes } });
+    if (!hint) return;
+    const progress = instructionSheetProgress();
+    const patch = {};
+    if (hint.above) {
+      const notes = { ...progress.notes };
+      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
+      notes[row] = rowNotes;
+      patch.notes = notes;
+    }
+    // A hint can also fill answers in — the registers this instruction left alone.
+    if (hint.fill && typeof hint.fill === "object") {
+      const values = { ...progress.values };
+      Object.entries(hint.fill).forEach(([column, value]) => { values[`${row}:${column}`] = String(value); });
+      patch.values = values;
+    }
+    if (!patch.notes && !patch.values) return;
+    return setState({ instructionSheet: { ...progress, ...patch } });
   }
 
   // "רוצה לבדוק דברים על שולחן העבודה?": a clean workbench to try things on,
@@ -5202,8 +5249,12 @@
     const list = hints.slice(0, unlocked).map((hint, index) => `
       <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="sheet-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
     const raw = hints[open.index] || {};
-    const applied = (instructionSheetProgress().notes[open.row] || [])
-      .some((n) => raw.above && n.from === raw.above.from && n.to === raw.above.to);
+    const progress = instructionSheetProgress();
+    const noteWritten = raw.above
+      && (progress.notes[open.row] || []).some((n) => n.from === raw.above.from && n.to === raw.above.to);
+    const filledIn = raw.fill
+      && Object.entries(raw.fill).every(([column, value]) => String(progress.values[`${open.row}:${column}`] ?? "") === String(value));
+    const applied = raw.above ? noteWritten : Boolean(filledIn);
     const apply = raw.applyLabel && !applied
       ? `<button class="btn btn-primary" data-action="sheet-hint-apply" type="button">${esc(raw.applyLabel)}</button>`
       : "";
@@ -5213,7 +5264,7 @@
           <h2>רמזים</h2>
           <div class="hint-layout">
             <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
-            <div class="hint-content">${hintParagraphsHtml(raw.text || "")}${apply}</div>
+            <div class="hint-content">${hintParagraphsHtml(ltrStarRun(raw.text))}${apply}</div>
           </div>
           <div class="hint-actions">
             <button class="btn" data-action="sheet-hint-close" type="button">סגור</button>
@@ -5236,23 +5287,34 @@
     // The page is always the full sheet — three heading rows and two rows per
     // instruction — even before every instruction is on it, so the paper covers
     // the screen and the rules run its whole height.
-    const rows = 3 + defs.length * 2;
-    cells.push(`<div class="sheet-head sheet-head-span sheet-head-right sheet-head-open-bottom" style="grid-column:5 / span 6;grid-row:1 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    const rows = 4 + defs.length * 2;
+    // A heading over each wing of the page.
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 10;grid-row:1;">מצב הרגיסטרים</div>`);
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:13 / span 16;grid-row:1;">פקודות המחשב</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:2 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
     columns.forEach((column, index) => {
-      cells.push(`<div class="sheet-head${index === 0 ? " sheet-head-right" : ""}" style="grid-column:${index * 2 + 1} / span 2;grid-row:3;">${esc(column)}</div>`);
+      // A and D have nothing above them in the two heading rows, so they close
+      // the band themselves.
+      cells.push(`<div class="sheet-head${index < 2 ? " sheet-head-top" : ""}" style="grid-column:${index * 2 + 1} / span 2;grid-row:4;">${esc(column)}</div>`);
     });
     // The instruction's own headings sit in the top two rows, which leaves the
     // third row free above the first instruction for the notes a hint writes.
-    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:1 / span 2;">הוראות ה-ALU</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:1 / span 2;">יעד ה-ALU</div>`);
+    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:2 / span 2;">הוראות ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    // Every vertical line on the page is a rule running its whole height — the
+    // headings draw only their horizontal edges, so no line is ever doubled.
+    // Every vertical line is a rule, so nothing is ever doubled or half a pixel
+    // off. The outer frame of each wing runs the full height; the lines INSIDE a
+    // wing start at row 2, so they do not cut through its top heading.
+    const inner = `2 / span ${rows - 1}`;
     const rules = [
-      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`,
-      // The register table's own columns, drawn from the headings to the foot of
-      // the page so the answers are written inside real columns.
-      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:1;grid-row:3 / span ${rows - 2};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:1;grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
       ...[2, 4, 6, 8, 10].map((column) =>
-        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:3 / span ${rows - 2};"></div>`)
+        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${inner};"></div>`)
     ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
@@ -5262,7 +5324,7 @@
       // Two rows per instruction: the word, then the state it leaves behind. On
       // the register side the instruction's own row reads as the single blank
       // line between one answer row and the next.
-      const bitsRow = 4 + row * 2;
+      const bitsRow = 5 + row * 2;
       const bits = String(defs[row].bits || "");
       const isCurrent = openHint && row === openHint.row;
       const mark = isCurrent && Array.isArray(openHint.hint.mark) ? openHint.hint.mark : null;
@@ -5285,6 +5347,18 @@
         const key = `${row}:${column}`;
         cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${index * 2 + 1} / span 2;grid-row:${bitsRow + 1};" />`);
       });
+    }
+    // Anything the learner has scribbled on the free squares of the page, and the
+    // square being written in right now.
+    const scratch = instructionSheetProgress().scratch;
+    Object.entries(scratch).forEach(([key, text]) => {
+      const [r, c] = key.split(",").map(Number);
+      if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
+      cells.push(`<span class="sheet-scratch" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
+    });
+    const at = state.sheetScratchCell;
+    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
+      cells.push(`<input class="sheet-scratch-input" type="text" maxlength="3" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     // The two thick rules that cut the word into its three fields run the whole
     // height of the page, from the headings down past the last answer. They are
@@ -19859,6 +19933,18 @@
     saveState();
   });
 
+  // Scribbling on a free square of the exercise page.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-scratch-input");
+    if (!box || !box.dataset.sheetScratch) return;
+    const progress = instructionSheetProgress();
+    const scratch = { ...progress.scratch };
+    if (String(box.value).trim() === "") delete scratch[box.dataset.sheetScratch];
+    else scratch[box.dataset.sheetScratch] = box.value;
+    state.instructionSheet = { ...progress, scratch };
+    saveState();
+  });
+
   // The exercise sheet's cells: same idea — kept live in state without a
   // re-render, so the caret stays where the learner put it.
   document.addEventListener("input", (event) => {
@@ -19992,6 +20078,14 @@
       return setState({ panelObjectDialog: null }, false);
     }
     if (!button) {
+      // A bare square of the exercise page: start writing on it, the way one
+      // scribbles on the squared paper of a workbook. (Only the paper itself is
+      // a free square — everything drawn on the page covers its own.)
+      if (state.sheetDialog && event.target.classList
+          && event.target.classList.contains("sheet-paper")) {
+        event.preventDefault();
+        return setState({ sheetScratchCell: sheetSquareAt(event.target, event.clientX, event.clientY) });
+      }
       // During the booklet solution a plain click anywhere advances it, like
       // the "המשך" button (but not clicks inside the movable window itself).
       if (state.screen === "notebook" && binInGridSolution(state.notebook) && !event.target.closest(".nb-window")) {
@@ -20366,8 +20460,9 @@
     if (action === "sheet-clear-cancel") return setState({ sheetClearConfirm: null });
     if (action === "sheet-clear-confirm") {
       return setState({
-        instructionSheet: { revealed: 1, values: {}, hints: {}, notes: {} },
+        instructionSheet: { revealed: 1, values: {}, hints: {}, notes: {}, scratch: {} },
         sheetClearConfirm: null,
+        sheetScratchCell: null,
         sheetDialog: { result: null }
       });
     }
