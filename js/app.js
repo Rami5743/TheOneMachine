@@ -5247,7 +5247,12 @@
     cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:1 / span 2;">יעד ה-ALU</div>`);
     const rules = [
       `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`
+      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`,
+      // The register table's own columns, drawn from the headings to the foot of
+      // the page so the answers are written inside real columns.
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:1;grid-row:3 / span ${rows - 2};"></div>`,
+      ...[2, 4, 6, 8, 10].map((column) =>
+        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:3 / span ${rows - 2};"></div>`)
     ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
@@ -20369,7 +20374,16 @@
     if (action === "sheet-workbench") return openSheetWorkbench();
     if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });
-    if (action === "sheet-result-ok") return setState({ sheetDialog: { result: null } });
+    if (action === "sheet-result-ok") {
+      // The last instruction checked out: the page is done, so close it and walk
+      // on to the next slide. (The work stays saved — coming back to the note,
+      // by "חזרה" or from the chapters menu, opens the finished page again.)
+      if (state.sheetDialog?.result === "done") {
+        setState({ sheetDialog: null }, false);
+        return nextPanel();
+      }
+      return setState({ sheetDialog: { result: null } });
+    }
     if (action === "panel-object-take") {
       setState({ panelObjectDialog: null }, false);
       return nextPanel();
