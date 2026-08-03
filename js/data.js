@@ -1438,7 +1438,7 @@ const SCENES = {
         "comment": "The first 12 bits are the ALU's own instruction; its three inputs are wired for good.",
         "image": "assets/panels/panel180_chapter_4_1_alu_field.svg",
         "year": "1944",
-        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D התוכן של רגיסטר A התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A",
+        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D (נסמן אותו ב-D) התוכן של רגיסטר A (נסמן אותו ב-A) התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A (נסמן אותו ב-A*)",
         "instruction": {
           "bits": "",
           "lit": [
@@ -1451,7 +1451,7 @@ const SCENES = {
         "comment": "The next 2 bits: where the result is written (0-3).",
         "image": "assets/panels/panel181_chapter_4_1_dest_field.svg",
         "year": "1944",
-        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. לרגיסטר A 2. לרגיסטר D 3. לרגיסטר בזיכרון שכתובתו היא התוכן של רגיסטר A",
+        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. A 2. D 3. A*",
         "instruction": {
           "bits": "",
           "lit": [
@@ -1477,7 +1477,7 @@ const SCENES = {
         "comment": "Example 1: add D and A, write the result into A.",
         "image": "assets/panels/panel183_chapter_4_1_example_add.svg",
         "year": "1944",
-        "read": "אתן לך כמה דוגמאות: הפקודה הזאת אומרת: חבר את התוכן של D עם A וכתוב את התוצאה לרגיסטר A",
+        "read": "אתן לך כמה דוגמאות: הפקודה הזאת אומרת: חבר את D עם A וכתוב את התוצאה ל-A",
         "instruction": {
           "bits": "1000000100000100"
         }
@@ -1512,7 +1512,7 @@ const SCENES = {
         "comment": "Bit 6: operate on the ALU's first two inputs — D and A.",
         "image": "assets/panels/panel186_chapter_4_1_example_add_input_bit.svg",
         "year": "1944",
-        "read": "הביט הזה אומר שאנחנו פועלים על שתי הכניסות הראשונות של ה-ALU, הלא הן התוכן של הרגיסטרים D ו-A.",
+        "read": "הביט הזה אומר שאנחנו פועלים על שתי הכניסות הראשונות של ה-ALU, הלא הן D ו-A.",
         "instruction": {
           "bits": "1000000100000100",
           "lit": [
@@ -1538,7 +1538,7 @@ const SCENES = {
         "comment": "Bits 13-14: write the answer into A.",
         "image": "assets/panels/panel188_chapter_4_1_example_add_dest.svg",
         "year": "1944",
-        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר A.",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה ל-A.",
         "instruction": {
           "bits": "1000000100000100",
           "lit": [
@@ -1551,7 +1551,7 @@ const SCENES = {
         "comment": "Example 2: put the number 1025 into D.",
         "image": "assets/panels/panel189_chapter_4_1_example_num.svg",
         "year": "1944",
-        "read": "עוד דוגמה: הפקודה הזאת אומרת: שים את המספר 1025 ברגיסטר D",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: שים את המספר 1025 ב-D",
         "instruction": {
           "bits": "0100000000011000"
         }
@@ -1599,7 +1599,7 @@ const SCENES = {
         "comment": "Bits 13-14: write the answer into D.",
         "image": "assets/panels/panel193_chapter_4_1_example_num_dest.svg",
         "year": "1944",
-        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר D.",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה ל-D.",
         "instruction": {
           "bits": "0100000000011000",
           "lit": [
@@ -1612,7 +1612,7 @@ const SCENES = {
         "comment": "Example 3: add D to the memory register addressed by A, back into it.",
         "image": "assets/panels/panel194_chapter_4_1_example_mem.svg",
         "year": "1944",
-        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את התוכן של D עם התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A, וכתוב את התוצאה לאותו רגיסטר בזיכרון",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את D עם A* וכתוב את התוצאה ל-A*",
         "instruction": {
           "bits": "1000010100001100"
         }
@@ -1621,7 +1621,7 @@ const SCENES = {
         "comment": "Bit 6 = 1: the first and the third input.",
         "image": "assets/panels/panel195_chapter_4_1_example_mem_input_bit.svg",
         "year": "1944",
-        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן התוכן של רגיסטר D והתוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A.",
+        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן D ו-A*.",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
@@ -1647,7 +1647,7 @@ const SCENES = {
         "comment": "All 12 together.",
         "image": "assets/panels/panel197_chapter_4_1_example_mem_alu.svg",
         "year": "1944",
-        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D עם הרגיסטר בזיכרון שכתובתו היא התוכן של A\".",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-A*\".",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
@@ -1660,7 +1660,7 @@ const SCENES = {
         "comment": "Bits 13-14 = 3: back into that same memory register.",
         "image": "assets/panels/panel198_chapter_4_1_example_mem_dest.svg",
         "year": "1944",
-        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת לרגיסטר בזיכרון שכתובתו היא התוכן של A. שים לב שאותו רגיסטר הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
+        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת ל-A*. שים לב ש-A* הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
@@ -1673,7 +1673,7 @@ const SCENES = {
         "comment": "Example 4: subtract A from D into D.",
         "image": "assets/panels/panel199_chapter_4_1_example_sub.svg",
         "year": "1944",
-        "read": "דוגמה אחרונה: הפקודה הזאת אומרת: חסר את התוכן של A מהתוכן של D וכתוב את התוצאה לרגיסטר D",
+        "read": "דוגמה אחרונה: הפקודה הזאת אומרת: חסר את A מ-D וכתוב את התוצאה ל-D",
         "instruction": {
           "bits": "1000001100101000"
         }
@@ -1682,7 +1682,7 @@ const SCENES = {
         "comment": "Bit 6 = 0: the first two inputs again, D and A.",
         "image": "assets/panels/panel200_chapter_4_1_example_sub_input_bit.svg",
         "year": "1944",
-        "read": "הביט הזה אומר שאנחנו פועלים שוב על שתי הכניסות הראשונות, התוכן של D והתוכן של A.",
+        "read": "הביט הזה אומר שאנחנו פועלים שוב על שתי הכניסות הראשונות, D ו-A.",
         "instruction": {
           "bits": "1000001100101000",
           "lit": [
@@ -1721,7 +1721,7 @@ const SCENES = {
         "comment": "Bits 13-14: write the answer into D.",
         "image": "assets/panels/panel203_chapter_4_1_example_sub_dest.svg",
         "year": "1944",
-        "read": "שני הביטים האלה אומרים שאנחנו רושמים את התשובה לרגיסטר D.",
+        "read": "שני הביטים האלה אומרים שאנחנו רושמים את התשובה ל-D.",
         "instruction": {
           "bits": "1000001100101000",
           "lit": [
@@ -1731,34 +1731,10 @@ const SCENES = {
         }
       },
       {
-        "comment": "The processor's shape: it takes a 16-bit instruction from program memory and runs it.",
-        "image": "assets/panels/panel204_chapter_4_1_cpu_shape.svg",
-        "year": "1944",
-        "read": "עכשיו אנחנו יכולים לדבר על מבנה המעבד של המחשב הפשוט: הוא יקבל פקודה של 16 ביטים מזיכרון התוכנה כמו שתיארנו, ויבצע אותה."
-      },
-      {
-        "comment": "Its wiring to the data memory: a bus in, a bus out, an address bus and a write cable.",
-        "image": "assets/panels/panel205_chapter_4_1_cpu_data_memory.svg",
-        "year": "1944",
-        "read": "בשביל זה הוא גם צריך להיות מחובר לזיכרון הדאטה: ייכנס אליו בס אחד מזיכרון הדאטה עם התוכן של הרגיסטר שהכתובת שלו היא התוכן של רגיסטר A, וייצא ממנו בס לזיכרון הדאטה עם מה שאנחנו רוצים לכתוב שם. עוד ייצא ממנו בס עם הכתובת בזיכרון הדאטה שאליה אנחנו ניגשים (זה התוכן של רגיסטר A), ועוד כבל שאומר האם אנחנו כותבים לזיכרון."
-      },
-      {
-        "comment": "And the PC: it tells program memory which instruction to hand over.",
-        "image": "assets/panels/panel206_chapter_4_1_program_counter.svg",
-        "year": "1944",
-        "read": "הוא גם צריך \"להגיד\" לזיכרון התוכנה איזו פקודה לתת. זה יהיה התוכן של הרגיסטר PC. הרגיסטר PC פשוט סופר מ-0 ועד אינסוף (או עד שנכבה אותו), וכך בכל שלב נדע מה הפקודה שאנחנו קוראים."
-      },
-      {
-        "comment": "No control unit in the simple computer — a card he already has does that job.",
-        "image": "assets/panels/panel207_chapter_4_1_no_control_unit.svg",
-        "year": "1944",
-        "read": "אנחנו לא נזדקק ליחידת בקרה. במחשב הפשוט, ה\"בקרה\" היא החלטה לאן לרשום את הפלט של ה-ALU. זה לא צריך להיות מסובך מדי, למעשה יש לנו כבר כרטיס שיודע לעשות זאת."
-      },
-      {
         "comment": "Enough theory — he does not expect it to click straight away.",
         "image": "assets/panels/panel208_chapter_4_1_dont_worry.svg",
         "year": "1944",
-        "read": "טוב, נפסיק לחפור. אני לא מצפה שתבין את זה מיד. זה קונספט מסובך, אבל אם תשבור את הראש על זה מספיק אז תבין."
+        "read": "טוב, נפסיק לחפור. אני לא מצפה שתבין את זה מיד. זה מסובך, אבל אם תשבור את הראש על זה מספיק אז תבין."
       }
     ]
   }

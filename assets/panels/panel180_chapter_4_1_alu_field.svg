@@ -80,11 +80,11 @@
          sodipodi:role="line"
          id="bubble-text-line6"
          x="1394"
-         y="330.501">• התוכן של רגיסטר D</tspan><tspan
+         y="330.501">• התוכן של רגיסטר D (נסמן אותו ב-D)</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line7"
          x="1394"
-         y="381.001">• התוכן של רגיסטר A</tspan><tspan
+         y="381.001">• התוכן של רגיסטר A (נסמן אותו ב-A)</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line8"
          x="1394"
@@ -92,6 +92,6 @@
          sodipodi:role="line"
          id="bubble-text-line9"
          x="1364.41"
-         y="482.002">התוכן של A</tspan></text>
+         y="482.002">התוכן של A (נסמן אותו ב-A*‎)</tspan></text>
   </g>
 </svg>

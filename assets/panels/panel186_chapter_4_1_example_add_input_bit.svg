@@ -64,10 +64,10 @@
          sodipodi:role="line"
          id="bubble-text-line2"
          x="1394"
-         y="128.5">הכניסות הראשונות של ה-ALU, הלא הן</tspan><tspan
+         y="128.5">הכניסות הראשונות של ה-ALU, הלא הן D</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
          x="1394"
-         y="179">התוכן של הרגיסטרים D ו-A.</tspan></text>
+         y="179">ו-A.</tspan></text>
   </g>
 </svg>
