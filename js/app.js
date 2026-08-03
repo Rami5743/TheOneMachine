@@ -2694,7 +2694,7 @@
   }
 
   function isGlobalNavigationAction(action) {
-    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
+    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev", "skip-examples"].includes(action);
   }
 
   // FALLBACK_END_DIALOGS moved to js/app-data.js
@@ -3651,6 +3651,32 @@
   // "המשך יבוא...".
   function transitionChapterActive() {
     return state.screen === "story" && currentChapter()?.id === "chapter-14";
+  }
+
+  // The worked examples of the simple computer's instruction word (chapter 4.1):
+  // every slide carrying the sixteen-square strip, one after the other. They are
+  // a long block, so they get their own "דלג על הדוגמאות" — always available,
+  // whatever the pace and whatever else is on screen.
+  function instructionExamplesActive() {
+    return state.screen === "story" && Boolean(currentPanel()?.instruction?.bits);
+  }
+
+  // The first slide AFTER the run of examples the learner is standing in.
+  function afterInstructionExamples() {
+    const panels = currentScene().panels;
+    let index = state.panelIndex;
+    while (index < panels.length && panels[index]?.instruction?.bits) index += 1;
+    return Math.min(index, Math.max(panels.length - 1, 0));
+  }
+
+  function skipInstructionExamples() {
+    if (!instructionExamplesActive()) return;
+    setState({
+      ...transientUiClearPatch(),
+      panelIndex: afterInstructionExamples(),
+      started: true,
+      replayNonce: state.replayNonce + 1
+    }, true);
   }
 
   function skipLeadsNowhere() {
@@ -5800,6 +5826,7 @@
           ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
           ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
           ${transitionChapterActive() ? labeledButton("skip-transition", "skip-rtl", "דלג על קטע מעבר") : ""}
+          ${instructionExamplesActive() ? labeledButton("skip-examples", "skip-rtl", "דלג על הדוגמאות") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -20584,6 +20611,7 @@
     if (action === "skip") return skipStory();
     if (action === "skip-intro") return skipIntro();
     if (action === "skip-transition") return skipTransition();
+    if (action === "skip-examples") return skipInstructionExamples();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();
