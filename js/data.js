@@ -1735,6 +1735,24 @@ const SCENES = {
         "image": "assets/panels/panel208_chapter_4_1_dont_worry.svg",
         "year": "1944",
         "read": "טוב, נפסיק לחפור. אני לא מצפה שתבין את זה מיד. זה מסובך, אבל אם תשבור את הראש על זה מספיק אז תבין."
+      },
+      {
+        "comment": "Before building it: we must be able to test it, which means knowing the answer first.",
+        "image": "assets/panels/panel209_chapter_4_1_need_a_test.svg",
+        "year": "1944",
+        "read": "לפני שאנחנו מתחילים לבנות את המחשב הפשוט אנחנו צריכים להיות מסוגלים לבדוק אותו. הדרך לעשות את זה תהיה להכניס לו כמה פקודות ולוודא שהתוצאה היא מה שהיא צריכה להיות. בשביל זה אנחנו צריכים לדעת מה היא צריכה להיות."
+      },
+      {
+        "comment": "Wordless: he leans in and lays a sheet of paper on the worktable.",
+        "image": "assets/panels/panel210_chapter_4_1_paper_placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The exercise: fill in the registers and the first three memory cells after each instruction.",
+        "image": "assets/panels/panel211_chapter_4_1_the_exercise.svg",
+        "year": "1944",
+        "read": "יש לך כאן מספר פקודות, אתה צריך לכתוב לי ליד כל אחת מה היה רשום ברגיסטרים של המעבד וב-3 הרגיסטרים הראשונים של הזיכרון לאחר הפעלתה. זכור שהמצב ההתחלתי של כל הרגיסטרים הוא 0, ושהפקודות מבוצעות בזו אחר זו, כך שהן משפיעות אחת על השנייה. אל תטרח לכתוב מספרים בכתיב בינרי. אנחנו חושבים על כל רגיסטר כעל מספר, מספיק שתכתוב לי את הצורה העשרונית שלו."
       }
     ]
   }
