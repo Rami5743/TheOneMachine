@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- He will check the exercise himself too — an error there would hide an error in the machine. -->
+
 <svg
    version="1.1"
    width="1448"
@@ -8,6 +9,7 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel214_chapter_4_1_checked_it.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -25,10 +27,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1"
-     inkscape:cx="798.5"
+     inkscape:cx="799"
      inkscape:cy="287.5"
      inkscape:window-maximized="1"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879" />
   <image
      id="raster-base"
      x="0"
@@ -44,7 +50,7 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 280.76749 A 18.9487,25.23331 0 0 1 1405.05130,306.00080 H 738.94870 A 18.9487,25.23331 0 0 1 720,280.76749 V 188.00040 L 600,374 L 720,154.00040 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
+       d="m 738.9487,35.999714 h 666.1026 c 10.4651,0 18.9487,9.091343 18.9487,20.306084 V 232.97226 c 0,11.21474 -8.4836,20.30608 -18.9487,20.30608 H 738.9487 C 728.48362,253.27834 720,244.187 720,232.97226 V 158.31949 L 600,363.99956 720,130.95856 V 56.305798 c 0,-11.214741 8.48362,-20.306084 18.9487,-20.306084 z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
@@ -62,20 +68,16 @@
          x="1394"
          y="78">טוב מאוד. אנחנו נשתמש בזה כדי לבדוק את</tspan><tspan
          sodipodi:role="line"
-         id="bubble-text-line2"
-         x="1394"
-         y="128.5">המחשב. אני מקווה מאוד שבדקת בשבע</tspan><tspan
-         sodipodi:role="line"
          id="bubble-text-line3"
          x="1394"
-         y="179">עיניים. אם יש לנו טעות לא נוכל לדעת מה</tspan><tspan
+         y="128.5002">המחשב. אני מקווה מאוד שבדקת בשבע עיניים. </tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
          x="1394"
-         y="229.501">קורה עם המחשב. אבדוק גם בעצמי ליתר</tspan><tspan
+         y="179.0004">אם יש לנו טעות לא נוכל לדעת מה קורה עם </tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
          x="1394"
-         y="280.001">ביטחון.</tspan></text>
+         y="229.5006">המחשב. אבדוק גם בעצמי ליתר ביטחון.</tspan></text>
   </g>
 </svg>

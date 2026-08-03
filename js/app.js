@@ -5784,12 +5784,14 @@
     const nonBlockingActions = ["binary-booklet", "nail-box"];
     const blockingHotspots = panelHotspots(panel).filter((h) => {
       if (h.url || nonBlockingActions.includes(h.action)) return false;
-      // A story object blocks המשך only when TAKING it is the way forward (the
-      // dosimeter). A reference-only object — the waste drums, the popy — is
-      // there to be read about, so the learner still walks on normally.
+      // A story object blocks המשך when it IS the way forward: taking it (the
+      // dosimeter), or opening what it holds (the note on the table — the page of
+      // instructions, the build tasks). A reference-only object — the waste
+      // drums, the popy, a cable tag — is there to be read about, so the learner
+      // still walks on normally.
       if (h.action === "panel-object") {
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
-        return Boolean(object && object.takeLabel);
+        return Boolean(object && (object.takeLabel || object.opens));
       }
       return true;
     });
