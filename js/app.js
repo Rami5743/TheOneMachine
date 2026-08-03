@@ -5216,6 +5216,33 @@
     return checkInstructionSheet();
   }
 
+  // Where a bit of the instruction sits on the page: bit 1 is leftmost, and the
+  // grid runs right to left, so bit i (from 0) is in column 16 - i.
+  function sheetBitColumn(i) {
+    return 16 - i;
+  }
+
+  // The squares a written note covers: the row above the instruction's bits, from
+  // its first bit to its last.
+  function sheetNoteCells(row, note) {
+    const from = Number(note && note.from);
+    const to = Number(note && note.to);
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return [];
+    const r = 5 + row * 2 - 1;
+    const start = sheetBitColumn(to - 1);
+    const cells = [];
+    for (let c = start; c <= start + (to - from); c += 1) cells.push(`${r},${c}`);
+    return cells;
+  }
+
+  // A note is written ON the page, so it rubs out whatever the learner had
+  // scribbled on those squares — the way writing over a pencil mark would.
+  function sheetScratchWithoutNote(scratch, row, note) {
+    const next = { ...scratch };
+    sheetNoteCells(row, note).forEach((key) => { delete next[key]; });
+    return next;
+  }
+
   // The hint the learner is looking at right now, if the hints window is open.
   function sheetOpenHint() {
     const open = state.sheetDialog && state.sheetDialog.hint;
@@ -5248,6 +5275,7 @@
       if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
       notes[row] = rowNotes;
       sheet.notes = notes;
+      sheet.scratch = sheetScratchWithoutNote(sheet.scratch, row, hint.above);
     }
     return setState({
       instructionSheet: sheet,
@@ -5270,6 +5298,7 @@
       if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
       notes[row] = rowNotes;
       patch.notes = notes;
+      patch.scratch = sheetScratchWithoutNote(progress.scratch, row, hint.above);
     }
     // A hint can also fill answers in — the registers this instruction left alone.
     if (hint.fill && typeof hint.fill === "object") {
@@ -5391,7 +5420,7 @@
     // instruction (bit 1 leftmost, so bit i sits in column 16 - i of this
     // right-to-left grid), two squares of gap, then A and D (two squares each)
     // and the three memory registers under one heading.
-    const bitColumn = (i) => 16 - i;
+    const bitColumn = sheetBitColumn;
     // Where the register wing starts (its rightmost square).
     const REG = 19;
     const regColumn = (index) => REG + index * 2;
@@ -5442,6 +5471,8 @@
     ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
+    // Whatever squares a note covers are its own — a scribble there is not drawn.
+    const underNote = new Set();
     const openHint = sheetOpenHint();
     const notes = instructionSheetProgress().notes;
     for (let row = 0; row < revealed; row += 1) {
@@ -5466,6 +5497,8 @@
       rowNotes.forEach((note) => {
         const span = Number(note.to) - Number(note.from) + 1;
         cells.push(`<div class="sheet-note" style="grid-column:${bitColumn(Number(note.to) - 1)} / span ${span};grid-row:${bitsRow - 1};"><span dir="ltr">${esc(note.text)}</span></div>`);
+        // A note is written ON those squares, so nothing scribbled shows through.
+        sheetNoteCells(row, note).forEach((key) => underNote.add(key));
       });
       columns.forEach((column, index) => {
         const key = `${row}:${column}`;
@@ -5490,6 +5523,7 @@
     Object.entries(scratch).forEach(([key, text]) => {
       const [r, c] = key.split(",").map(Number);
       if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
+      if (underNote.has(key)) return;
       if (r <= 4 + revealed * 2 && usedSquare(r, c)) return;
       cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
     });
