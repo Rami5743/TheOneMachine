@@ -742,6 +742,12 @@ button { font: inherit; }
   max-width: min(300px, 34vw);
 }
 
+/* Anchored by its BOTTOM edge, centred over the zone: used for the row of cable
+   tags along the bottom of the slide, so the window never sits on its neighbours. */
+.panel-object-popover-above {
+  transform: translate(-50%, -100%);
+}
+
 .panel-object-popover .panel-object-title {
   font-weight: 700;
   font-family: "Courier New", Courier, monospace;

@@ -4955,12 +4955,20 @@
     // Sit beside the object's own click-zone, the way the warehouse popovers do.
     // A zone on the right half of the slide gets the window on its LEFT instead,
     // so it never runs off the frame (the cable tags reach the very edge).
+    // A zone low in the frame (the row of cable tags) gets its window ABOVE it,
+    // centred: beside it, the window would cover the neighbouring tags and the
+    // learner could not click the next one.
     const zone = panelHotspots(panel).find((h) => h.objectId === id);
+    const above = zone && Number(zone.top) > 52;
     const after = zone ? Number(zone.left) + Number(zone.width) : 40;
-    const left = zone
-      ? (after > 62 ? Math.max(2, Number(zone.left) - 24) : after)
+    const left = !zone
+      ? 40
+      : (above
+        ? Math.min(Math.max(Number(zone.left) + Number(zone.width) / 2, 16), 84)
+        : (after > 62 ? Math.max(2, Number(zone.left) - 24) : after));
+    const top = zone
+      ? (above ? Math.max(6, Number(zone.top) - 1) : Math.min(Math.max(2, Number(zone.top) - 6), 74))
       : 40;
-    const top = zone ? Math.min(Math.max(2, Number(zone.top) - 6), 74) : 40;
     const take = object.takeLabel
       ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
       : "";
@@ -4971,7 +4979,7 @@
       : `<strong class="panel-object-title">${esc(object.label)}</strong>`;
     const note = object.note ? `<p class="panel-object-note">${esc(object.note)}</p>` : "";
     return `
-      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}${above ? " panel-object-popover-above" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
         ${head}
         ${note}
         ${take}
