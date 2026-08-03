@@ -5215,12 +5215,35 @@
 
   // "רוצה לבדוק דברים על שולחן העבודה?": a clean workbench to try things on,
   // with nothing to build and no check — only the way back to the page.
+  // "רוצה לבדוק דברים על שולחן העבודה?" — a scratch table for trying an
+  // instruction out. It opens EMPTY and in free build (the full palette, no Nand
+  // presentation), and remembers the page it came from.
   function openSheetWorkbench() {
-    const workspace = normalizeWorkspace(state.workspace);
-    workspace.unlocked = true;
-    workspace.taskId = null;
-    workspace.selectedTerminal = null;
-    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex };
+    const workspace = normalizeWorkspace({
+      selectedTerminal: null,
+      components: [],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      accident: null,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandMonologueStep: null,
+      workspaceLaunchPanelIndex: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      exitTargetPanelIndex: state.panelIndex,
+      returnToWorkspaceAfterMonologue: false,
+      taskId: null,
+      taskIntroSeen: true,
+      sessionReturnChapterId: state.chapterId,
+      sessionReturnPanelIndex: state.panelIndex,
+      freeBuild: true,
+      sheetReturn: { chapterId: state.chapterId, panelIndex: state.panelIndex }
+    });
     return setState({
       ...transientUiClearPatch(),
       screen: "workspace",
@@ -5370,7 +5393,7 @@
     });
     const at = state.sheetScratchCell;
     if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
-      cells.push(`<input class="sheet-scratch-input" type="text" maxlength="3" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
+      cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     // The two thick rules that cut the word into its three fields run the whole
     // height of the page, from the headings down past the last answer. They are
@@ -19951,9 +19974,16 @@
     if (!box || !box.dataset.sheetScratch) return;
     const progress = instructionSheetProgress();
     const scratch = { ...progress.scratch };
-    if (String(box.value).trim() === "") delete scratch[box.dataset.sheetScratch];
-    else scratch[box.dataset.sheetScratch] = box.value;
+    const typed = String(box.value).slice(0, 1);
+    if (typed.trim() === "") delete scratch[box.dataset.sheetScratch];
+    else scratch[box.dataset.sheetScratch] = typed;
     state.instructionSheet = { ...progress, scratch };
+    // One character to a square: writing one steps on to the square beside it (to
+    // the right), the way one fills in a squared page.
+    if (typed.trim() !== "") {
+      const [row, col] = String(box.dataset.sheetScratch).split(",").map(Number);
+      return setState({ sheetScratchCell: col > 1 ? { row, col: col - 1 } : null });
+    }
     saveState();
   });
 

@@ -1058,6 +1058,10 @@ button { font: inherit; }
   display: grid;
   grid-template-columns: repeat(28, var(--sq));
   grid-template-rows: repeat(var(--rows, 16), var(--sq));
+  /* Scribbling happens anywhere on the page — including past the last row or
+     column of the worksheet — so an implicit track is one printed square too. */
+  grid-auto-rows: var(--sq);
+  grid-auto-columns: var(--sq);
   justify-content: start;
   align-content: start;
   width: 100%;
