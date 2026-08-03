@@ -989,5 +989,40 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     popy: {
       label: "פופי",
       url: "https://grokipedia.com/page/Proportional_counter"
-    }
+    },
+
+    // ---- Chapter 4.1, the computer room the learner is left alone in --------
+    // The two racks get a reference link; every cable tag gets a short note
+    // instead (`note` replaces `url`). Each tag is its OWN entry even where the
+    // wording repeats, because the window opens beside the zone whose objectId
+    // it matches — sharing an id would park it beside the first zone found.
+    aluRack: {
+      label: "ALU",
+      url: "https://he.wikipedia.org/wiki/יחידה_לוגית_אריתמטית"
+    },
+    ramRack: {
+      label: "RAM",
+      url: "https://he.wikipedia.org/wiki/זיכרון_גישה_אקראית"
+    },
+    aluIn1: { label: "IN1", note: "הכניסה הראשונה של ה-ALU. בס ברוחב 16 שמחובר לרגיסטר D." },
+    aluIn2: { label: "IN2", note: "הכניסה השנייה של ה-ALU. בס ברוחב 16 שמחובר לרגיסטר A." },
+    aluIn3: { label: "IN3", note: "הכניסה השלישית של ה-ALU. בס ברוחב 16 שמחובר לרגיסטר בזיכרון שכתובתו היא התוכן של A." },
+    aluOut: { label: "OUT", note: "היציאה של ה-ALU. בס ברוחב 16 עם תוצאת החישוב." },
+    aluInst: { label: "INST", note: "כניסת הבקרה של ה-ALU. בס ברוחב 12 שאומר לו איזה חישוב לבצע — 12 הביטים הראשונים של הפקודה." },
+    aluFlags: { label: "ng ו-nz", note: "שתי היציאות הנוספות של ה-ALU, כבלים בודדים ולא בסים: ng הוא הביט המוביל של התוצאה, ו-nz הוא 0 אם כל התוצאה היא 0 ו-1 אחרת." },
+    ramIn: { label: "IN", note: "הבס שנכנס לזיכרון — המידע שרוצים לכתוב בו." },
+    ramAdr: { label: "ADR", note: "הכתובת בזיכרון — היא קובעת לאיזה רגיסטר קוראים או כותבים." },
+    ramOut: { label: "OUT", note: "הבס שיוצא מהזיכרון — התוכן של הרגיסטר שכתובתו מופיעה ב-ADR." },
+    ramWrite: { label: "כבל הבקרה", note: "כבל בודד ולא בס: הוא קובע אם כותבים לזיכרון או רק קוראים ממנו." },
+    ramIn0: { label: "IN0", note: "פורט כניסה 0. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn1: { label: "IN1", note: "פורט כניסה 1. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn2: { label: "IN2", note: "פורט כניסה 2. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn3: { label: "IN3", note: "פורט כניסה 3. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramOut0: { label: "OUT0", note: "פורט יציאה 0. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut1: { label: "OUT1", note: "פורט יציאה 1. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut2: { label: "OUT2", note: "פורט יציאה 2. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut3: { label: "OUT3", note: "פורט יציאה 3. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    // The note von Neumann left on the table. Its contents (the task list) are
+    // not built yet, so clicking it says so instead of opening a window.
+    tasksNote: { label: "הפתק", todo: "המשך יבוא..." }
   };

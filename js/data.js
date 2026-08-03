@@ -1764,7 +1764,216 @@ const SCENES = {
         "comment": "Wordless: von Neumann is gone; the room, the racks and the note are left behind.",
         "image": "assets/panels/panel213_chapter_4_1_empty_room.svg",
         "year": "1944",
-        "read": ""
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "aluRack",
+            "ariaLabel": "ארון ה-ALU",
+            "left": 40.4,
+            "top": 18.42,
+            "width": 14.64,
+            "height": 37.29
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.05,
+            "top": 15.84,
+            "width": 40.95,
+            "height": 46.04
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn1",
+            "ariaLabel": "IN1 של ה-ALU",
+            "left": 37.5,
+            "top": 59.02,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn2",
+            "ariaLabel": "IN2 של ה-ALU",
+            "left": 40.4,
+            "top": 59.67,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn3",
+            "ariaLabel": "IN3 של ה-ALU",
+            "left": 43.23,
+            "top": 60.13,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluOut",
+            "ariaLabel": "OUT של ה-ALU",
+            "left": 45.99,
+            "top": 60.5,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluInst",
+            "ariaLabel": "INST של ה-ALU",
+            "left": 48.62,
+            "top": 60.68,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluFlags",
+            "ariaLabel": "ng ו-nz של ה-ALU",
+            "left": 50.69,
+            "top": 62.62,
+            "width": 3.31,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn",
+            "ariaLabel": "IN של הזיכרון",
+            "left": 53.31,
+            "top": 77.44,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramAdr",
+            "ariaLabel": "ADR של הזיכרון",
+            "left": 56.63,
+            "top": 77.99,
+            "width": 4.14,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut",
+            "ariaLabel": "OUT של הזיכרון",
+            "left": 60.91,
+            "top": 78.73,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramWrite",
+            "ariaLabel": "כבל הבקרה של הזיכרון",
+            "left": 64.78,
+            "top": 77.44,
+            "width": 2.76,
+            "height": 9.21
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 68.99,
+            "top": 78.82,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.03,
+            "top": 79.56,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.31,
+            "top": 80.66,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 79.9,
+            "top": 81.22,
+            "width": 3.45,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.68,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.14,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 92.13,
+            "top": 82.69,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 95.99,
+            "top": 83.43,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.14,
+            "top": 37.57,
+            "width": 11.88,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 23.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tasksNote",
+            "ariaLabel": "הפתק",
+            "left": 37.85,
+            "top": 78.45,
+            "width": 6.63,
+            "height": 5.89
+          }
+        ]
       }
     ]
   }

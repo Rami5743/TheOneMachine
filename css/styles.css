@@ -736,6 +736,25 @@ button { font: inherit; }
   text-decoration: underline;
 }
 
+/* An explained object (a cable tag in 4.1) needs room for a sentence, not just
+   a link, so its window is wider and its text reads right-to-left as a block. */
+.panel-object-popover-wide {
+  max-width: min(300px, 34vw);
+}
+
+.panel-object-popover .panel-object-title {
+  font-weight: 700;
+  font-family: "Courier New", Courier, monospace;
+  letter-spacing: 0.5px;
+}
+
+.panel-object-popover .panel-object-note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
 .panel-object-popover .panel-object-take {
   min-width: 0;
   padding: 3px 14px;

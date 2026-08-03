@@ -4947,15 +4947,27 @@
     const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[id];
     if (!object) return "";
     // Sit beside the object's own click-zone, the way the warehouse popovers do.
+    // A zone on the right half of the slide gets the window on its LEFT instead,
+    // so it never runs off the frame (the cable tags reach the very edge).
     const zone = panelHotspots(panel).find((h) => h.objectId === id);
-    const left = zone ? Math.min(Number(zone.left) + Number(zone.width), 78) : 40;
-    const top = zone ? Math.max(2, Number(zone.top) - 6) : 40;
+    const after = zone ? Number(zone.left) + Number(zone.width) : 40;
+    const left = zone
+      ? (after > 62 ? Math.max(2, Number(zone.left) - 24) : after)
+      : 40;
+    const top = zone ? Math.min(Math.max(2, Number(zone.top) - 6), 74) : 40;
     const take = object.takeLabel
       ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
       : "";
+    // An object with a reference link shows the link; one with a `note` shows
+    // its name and a sentence of explanation (the cable tags in 4.1).
+    const head = object.url
+      ? `<a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>`
+      : `<strong class="panel-object-title">${esc(object.label)}</strong>`;
+    const note = object.note ? `<p class="panel-object-note">${esc(object.note)}</p>` : "";
     return `
-      <div class="panel-object-popover" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
-        <a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
+      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+        ${head}
+        ${note}
         ${take}
       </div>`;
   }
@@ -19903,7 +19915,14 @@
     // A story object's reference window: open it, follow its link (which earns
     // "סקרן" like every other reference), take the object (which walks on to the
     // next slide), or close it.
-    if (action === "panel-object") return setState({ panelObjectDialog: button.dataset.objectId || null }, false);
+    if (action === "panel-object") {
+      const objectId = button.dataset.objectId || null;
+      const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[objectId];
+      // An object whose contents are not built yet says so instead of opening an
+      // empty window (the note of tasks on the 4.1 worktable).
+      if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
+      return setState({ panelObjectDialog: objectId }, false);
+    }
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }
     if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
     if (action === "panel-object-take") {
