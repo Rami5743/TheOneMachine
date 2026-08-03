@@ -1753,6 +1753,18 @@ const SCENES = {
         "image": "assets/panels/panel211_chapter_4_1_the_exercise.svg",
         "year": "1944",
         "read": "יש לך כאן מספר פקודות, אתה צריך לכתוב לי ליד כל אחת מה היה רשום ברגיסטרים של המעבד וב-3 הרגיסטרים הראשונים של הזיכרון לאחר הפעלתה. זכור שהמצב ההתחלתי של כל הרגיסטרים הוא 0, ושהפקודות מבוצעות בזו אחר זו, כך שהן משפיעות אחת על השנייה. אל תטרח לכתוב מספרים בכתיב בינרי. אנחנו חושבים על כל רגיסטר כעל מספר, מספיק שתכתוב לי את הצורה העשרונית שלו."
+      },
+      {
+        "comment": "He goes back to work, and lets slip what the other team is building.",
+        "image": "assets/panels/panel212_chapter_4_1_back_to_work.svg",
+        "year": "1944",
+        "read": "טוב. אני חוזר לעבודה. החברה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
+      },
+      {
+        "comment": "Wordless: von Neumann is gone; the room, the racks and the note are left behind.",
+        "image": "assets/panels/panel213_chapter_4_1_empty_room.svg",
+        "year": "1944",
+        "read": ""
       }
     ]
   }
