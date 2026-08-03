@@ -1438,7 +1438,7 @@ const SCENES = {
         "comment": "The first 12 bits are the ALU's own instruction; its three inputs are wired for good.",
         "image": "assets/panels/panel180_chapter_4_1_alu_field.svg",
         "year": "1944",
-        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D (נסמן אותו ב-D) התוכן של רגיסטר A (נסמן אותו ב-A) התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A (נסמן אותו ב-A*)",
+        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D (נסמן אותו ב-D) התוכן של רגיסטר A (נסמן אותו ב-A) התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A (נסמן אותו ב-*A)",
         "instruction": {
           "bits": "",
           "lit": [
@@ -1451,7 +1451,7 @@ const SCENES = {
         "comment": "The next 2 bits: where the result is written (0-3).",
         "image": "assets/panels/panel181_chapter_4_1_dest_field.svg",
         "year": "1944",
-        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. A 2. D 3. A*",
+        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. A 2. D 3. *A",
         "instruction": {
           "bits": "",
           "lit": [
@@ -1612,7 +1612,7 @@ const SCENES = {
         "comment": "Example 3: add D to the memory register addressed by A, back into it.",
         "image": "assets/panels/panel194_chapter_4_1_example_mem.svg",
         "year": "1944",
-        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את D עם A* וכתוב את התוצאה ל-A*",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את D עם *A וכתוב את התוצאה ל-*A",
         "instruction": {
           "bits": "1000010100001100"
         }
@@ -1621,7 +1621,7 @@ const SCENES = {
         "comment": "Bit 6 = 1: the first and the third input.",
         "image": "assets/panels/panel195_chapter_4_1_example_mem_input_bit.svg",
         "year": "1944",
-        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן D ו-A*.",
+        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן D ו-*A.",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
@@ -1647,7 +1647,7 @@ const SCENES = {
         "comment": "All 12 together.",
         "image": "assets/panels/panel197_chapter_4_1_example_mem_alu.svg",
         "year": "1944",
-        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-A*\".",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-*A\".",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
@@ -1660,7 +1660,7 @@ const SCENES = {
         "comment": "Bits 13-14 = 3: back into that same memory register.",
         "image": "assets/panels/panel198_chapter_4_1_example_mem_dest.svg",
         "year": "1944",
-        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת ל-A*. שים לב ש-A* הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
+        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת ל-*A. שים לב ש-*A הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
         "instruction": {
           "bits": "1000010100001100",
           "lit": [
