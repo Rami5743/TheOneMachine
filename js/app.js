@@ -1545,6 +1545,8 @@
     // step-by-step skip gate: skip is disabled until the target panel has been
     // reached, then stays enabled (even after going back within the chapter).
     maxPanelReached: {},
+    // The 4.1 build-task note (transient, like the other worktable notes).
+    buildNoteList: false,
     // The 4.1 exercise sheet, opened from the note on the computer-room table:
     // { revealed, values } — how many instructions are on the page so far, and
     // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
@@ -2626,6 +2628,7 @@
       panelAnswer: null,
       wordsBytesDialog: null,
       sheetDialog: null,
+      buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
       // board lock don't bleed onto the next workbench you open (a task build, the
@@ -2822,7 +2825,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -5320,6 +5323,31 @@
       </div>`;
   }
 
+  // The 4.1 build-task note. The tasks are listed in the order they must be done;
+  // none of them is built yet, so opening one says "המשך יבוא...".
+  function renderBuildNoteList() {
+    if (!state.buildNoteList) return "";
+    const tasks = typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : [];
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${tasks.map((task, index) => `
+          <li class="${index === 0 ? "" : "task-locked"}">
+            <span class="note-task-check" aria-hidden="true"></span>
+            <button class="note-task-button" data-action="build-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${index === 0 ? "false" : "true"}">${esc(task.label)}</button>
+          </li>`).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="build-note-close">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -5576,6 +5604,7 @@
       ${renderRamNoteList()}
       ${renderPortsNoteList()}
       ${renderAluIntroDialog()}
+      ${renderBuildNoteList()}
       ${renderInstructionSheet()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
@@ -20291,6 +20320,7 @@
       // empty window (the note of tasks on the 4.1 worktable).
       if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
       if (object && object.opens === "instruction-sheet") return openInstructionSheet();
+      if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
       return setState({ panelObjectDialog: objectId }, false);
     }
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }
@@ -20300,6 +20330,8 @@
     if (action === "sheet-hint-select") return openSheetHints(Number(button.dataset.hintIndex));
     if (action === "sheet-hint-apply") return applySheetHint();
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
+    if (action === "build-note-task") return setState({ infoDialog: "המשך יבוא..." });
+    if (action === "build-note-close") return setState({ buildNoteList: false });
     if (action === "sheet-workbench") return openSheetWorkbench();
     if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });

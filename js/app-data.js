@@ -1023,8 +1023,19 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     ramOut2: { label: "OUT2", note: "פורט יציאה 2. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
     ramOut3: { label: "OUT3", note: "פורט יציאה 3. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
     // The note von Neumann left on the table: it opens the exercise sheet.
-    tasksNote: { label: "הפתק", opens: "instruction-sheet" }
+    tasksNote: { label: "הפתק", opens: "instruction-sheet" },
+    // The second note, left beside it: the tasks for building the simple computer.
+    buildNote: { label: "הפתק", opens: "build-tasks" }
   };
+
+  // The build tasks of chapter 4.1, to be done in this order. None of them has a
+  // workspace yet — opening one says so.
+  const SIMPLE_COMPUTER_TASKS = [
+    { id: "PC0", label: "PC0" },
+    { id: "Cont0", label: "Cont0" },
+    { id: "CPU0", label: "CPU0" },
+    { id: "Computer0", label: "Computer0" }
+  ];
 
   // ---- The 4.1 exercise: run these instructions in your head ---------------
   // The sheet shows only the BITS. `code` is the pseudo-code they were dictated
