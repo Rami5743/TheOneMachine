@@ -1036,13 +1036,58 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // write][2 unused]. In the ALU field bit 1 = 0 means "emit this number", and
   // bit 1 = 1 means compute — bit 6 picking D+A or D+*A and bits 7-12 the ALU1
   // operation. Destination 1 = A, 2 = D, 3 = *A.
+  //
+  // `hints` are that instruction's hints, in the order they unlock (bit numbers
+  // count from 1, leftmost):
+  //   mark       - the bits this hint is about, lit up on the page while it is open
+  //   above      - a merged cell written in the row above those bits
+  //   applyLabel - makes the hint a question: the annotation is only written
+  //                once the learner presses the button, and then it stays.
   const INSTRUCTION_SHEET = [
-    { code: "A=1",     bits: "0000000000010100", after: { A: 1, D: 0,  R0: 0, R1: 0,  R2: 0 } },
-    { code: "*A=17",   bits: "0000000100011100", after: { A: 1, D: 0,  R0: 0, R1: 17, R2: 0 } },
-    { code: "D=5",     bits: "0000000001011000", after: { A: 1, D: 5,  R0: 0, R1: 17, R2: 0 } },
-    { code: "D=*A-D",  bits: "1000011110001000", after: { A: 1, D: 12, R0: 0, R1: 17, R2: 0 } },
-    { code: "A=2",     bits: "0000000000100100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 0 } },
-    { code: "*A=D",    bits: "1000000011001100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 12 } }
+    { code: "A=1",     bits: "0000000000010100", after: { A: 1, D: 0,  R0: 0, R1: 0,  R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 1.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "1" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } }
+      ] },
+    { code: "*A=17",   bits: "0000000100011100", after: { A: 1, D: 0,  R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 17.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "17" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-*A — הרגיסטר בזיכרון שכתובתו היא התוכן של A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ *A" } }
+      ] },
+    { code: "D=5",     bits: "0000000001011000", after: { A: 1, D: 5,  R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 5.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "5" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-D.", mark: [13, 14], above: { from: 13, to: 14, text: "→ D" } }
+      ] },
+    { code: "D=*A-D",  bits: "1000011110001000", after: { A: 1, D: 12, R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU כן מבצע חישוב.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביט הזה אומר שהחישוב נעשה על הכניסה הראשונה והשלישית של ה-ALU — D ו-*A.", mark: [6, 6] },
+        { title: "רמז 3", text: "ששת הביטים האלה מסמנים חיסור, ובסדר הזה: הכניסה השלישית פחות הראשונה, כלומר *A פחות D.", mark: [7, 12] },
+        { title: "רמז 4", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "*A-D" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 5", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-D.", mark: [13, 14], above: { from: 13, to: 14, text: "→ D" } }
+      ] },
+    { code: "A=2",     bits: "0000000000100100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 2.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "2" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } }
+      ] },
+    { code: "*A=D",    bits: "1000000011001100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 12 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU כן מבצע חישוב.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביט הזה אומר שהחישוב נעשה על הכניסה הראשונה והשנייה של ה-ALU — D ו-A.", mark: [6, 6] },
+        { title: "רמז 3", text: "ששת הביטים האלה אומרים ל-ALU להוציא את הכניסה הראשונה כמו שהיא, כלומר את D.", mark: [7, 12] },
+        { title: "רמז 4", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "D" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 5", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-*A — הרגיסטר בזיכרון שכתובתו היא התוכן של A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ *A" } }
+      ] }
   ];
 
   const INSTRUCTION_SHEET_COLUMNS = ["A", "D", "R0", "R1", "R2"];

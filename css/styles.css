@@ -1108,6 +1108,33 @@ button { font: inherit; }
   pointer-events: none;
 }
 
+/* The bits the open hint is talking about. */
+.sheet-bit-lit {
+  background: #ffd45e;
+}
+
+/* What a hint writes above the bits: a merged cell across the field it explains. */
+.sheet-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8a6a1e;
+  background: #fff3d0;
+  color: #3a2c17;
+  font-weight: 700;
+  font-family: "Courier New", Courier, monospace;
+  font-size: calc(var(--sq) * 0.5);
+}
+
+/* The hints window sits over the page, which has no topbar of its own, and it
+   hugs the bottom so the squares it is talking about stay visible. */
+.hint-overlay.sheet-hint-overlay {
+  inset: 0;
+  z-index: 210;
+  place-items: end center;
+  padding-bottom: 76px;
+}
+
 .sheet-bit-unused {
   background: #d5cfc0;
   color: #55503f;

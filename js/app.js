@@ -3493,6 +3493,19 @@
   }
 
   function idleNudgePlan() {
+    // (0) The 4.1 exercise sheet: a minute without progress counts as a failure,
+    // so the next hint comes out — but only once the learner has caught up on
+    // the hints already waiting.
+    if (state.sheetDialog) {
+      const row = sheetCurrentRow();
+      const total = sheetHintsFor(row).length;
+      const unlocked = sheetUnlockedHintCount(row);
+      const seen = sheetHintProgress(row).seen;
+      if (total && unlocked < total && seen >= unlocked) {
+        return { key: `sheet:${row}:${seen}:${unlocked}`, fire: () => unlockNextSheetHintByTime(row) };
+      }
+      return null;
+    }
     if (state.screen !== "workspace") return null;
     // A modal / walkthrough owns the screen — don't nudge underneath it.
     if (workspaceAccidentActive() || workspaceBuildHelpPromptActive() || workspaceUnderstoodPromptActive()
@@ -3533,6 +3546,15 @@
       const current = idleNudgePlan(); // re-validate: fire only if still pending
       if (current && current.key === firedKey) current.fire();
     }, IDLE_NUDGE_MS);
+  }
+
+  // failures = unlocked + 2 puts exactly one more hint on the sheet — the same
+  // threshold a failed check would have reached.
+  function unlockNextSheetHintByTime(row) {
+    if (!state.sheetDialog) return;
+    const progress = sheetHintProgress(row);
+    const failures = sheetUnlockedHintCount(row) + 2;
+    setState({ instructionSheet: setSheetHintProgress(row, { failures, seen: progress.seen }) }, false);
   }
 
   function unlockNextHintByTime(taskId) {
@@ -5012,7 +5034,54 @@
       ? Math.min(Math.max(1, Math.floor(Number(saved.revealed))), Math.max(1, total))
       : 1;
     const values = saved && saved.values && typeof saved.values === "object" ? saved.values : {};
-    return { revealed, values };
+    const hints = saved && saved.hints && typeof saved.hints === "object" ? saved.hints : {};
+    const notes = saved && saved.notes && typeof saved.notes === "object" ? saved.notes : {};
+    return { revealed, values, hints, notes };
+  }
+
+  // ---- The sheet's hints ---------------------------------------------------
+  // Same rule as a worktable task: the first hint after two failed checks, one
+  // more for every failure after that, and a minute without progress counts as a
+  // failure. Progress is kept per instruction, and the annotations a hint writes
+  // on the page are kept with the learner's work.
+  function sheetHintsFor(row) {
+    const def = instructionSheetDefs()[row];
+    return Array.isArray(def?.hints) ? def.hints : [];
+  }
+
+  function sheetHintProgress(row) {
+    const raw = instructionSheetProgress().hints[row] || {};
+    return {
+      failures: Number.isInteger(raw.failures) ? Math.max(0, raw.failures) : 0,
+      seen: Number.isInteger(raw.seen) ? Math.max(0, raw.seen) : 0
+    };
+  }
+
+  function sheetUnlockedHintCount(row) {
+    const total = sheetHintsFor(row).length;
+    if (!total) return 0;
+    return Math.min(total, Math.max(0, sheetHintProgress(row).failures - 1));
+  }
+
+  // The instruction the learner is working on: the newest one on the page.
+  function sheetCurrentRow() {
+    return instructionSheetProgress().revealed - 1;
+  }
+
+  function setSheetHintProgress(row, progress) {
+    const sheet = instructionSheetProgress();
+    return {
+      ...sheet,
+      hints: {
+        ...sheet.hints,
+        [row]: { failures: Math.max(0, Number(progress.failures) || 0), seen: Math.max(0, Number(progress.seen) || 0) }
+      }
+    };
+  }
+
+  function sheetHintButtonLabel(row) {
+    const progress = sheetHintProgress(row);
+    return (progress.seen >= 1 && sheetUnlockedHintCount(row) > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
   }
 
   function openInstructionSheet() {
@@ -5033,15 +5102,90 @@
       for (const column of columns) {
         const typed = String(values[`${row}:${column}`] ?? "").trim();
         if (typed === "" || Number(typed) !== Number(defs[row].after[column])) {
-          return setState({ sheetDialog: { result: "fail" } });
+          // A failed check is what brings the hints closer, as on the worktable.
+          const current = sheetCurrentRow();
+          const progress = sheetHintProgress(current);
+          return setState({
+            instructionSheet: setSheetHintProgress(current, { ...progress, failures: progress.failures + 1 }),
+            sheetDialog: { result: "fail" }
+          });
         }
       }
     }
     const done = revealed >= defs.length;
     return setState({
-      instructionSheet: { revealed: done ? revealed : revealed + 1, values },
+      instructionSheet: { ...instructionSheetProgress(), revealed: done ? revealed : revealed + 1, values },
       sheetDialog: { result: done ? "done" : "success" }
     });
+  }
+
+  // The hint the learner is looking at right now, if the hints window is open.
+  function sheetOpenHint() {
+    const open = state.sheetDialog && state.sheetDialog.hint;
+    if (!open) return null;
+    const row = Number.isInteger(open.row) ? open.row : sheetCurrentRow();
+    const hints = sheetHintsFor(row);
+    const unlocked = sheetUnlockedHintCount(row);
+    const index = Math.min(Math.max(Number(open.index) || 0, 0), Math.max(0, unlocked - 1));
+    const hint = hints[index];
+    if (!hint) return null;
+    // A hint that ASKS whether to write something writes nothing until the
+    // learner says yes; until then only its question is on screen.
+    return { row, index, hint: hint.applyLabel ? { ...hint, above: null } : hint };
+  }
+
+  function openSheetHints(index) {
+    const row = sheetCurrentRow();
+    const unlocked = sheetUnlockedHintCount(row);
+    if (!unlocked) return;
+    const progress = sheetHintProgress(row);
+    const at = Math.min(Math.max(Number.isFinite(index) ? index : unlocked - 1, 0), unlocked - 1);
+    return setState({
+      instructionSheet: setSheetHintProgress(row, { failures: progress.failures, seen: Math.max(progress.seen, at + 1) }),
+      sheetDialog: { ...state.sheetDialog, result: null, hint: { row, index: at } }
+    });
+  }
+
+  // "כן, כתוב לי": the note goes onto the page and stays there.
+  function applySheetHint() {
+    const open = state.sheetDialog && state.sheetDialog.hint;
+    if (!open) return;
+    const row = Number.isInteger(open.row) ? open.row : sheetCurrentRow();
+    const hint = sheetHintsFor(row)[Number(open.index) || 0];
+    if (!hint || !hint.above) return;
+    const notes = { ...instructionSheetProgress().notes };
+    const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+    if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
+    notes[row] = rowNotes;
+    return setState({ instructionSheet: { ...instructionSheetProgress(), notes } });
+  }
+
+  function renderSheetHintWindow() {
+    const open = sheetOpenHint();
+    if (!open) return "";
+    const hints = sheetHintsFor(open.row);
+    const unlocked = sheetUnlockedHintCount(open.row);
+    const list = hints.slice(0, unlocked).map((hint, index) => `
+      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="sheet-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
+    const raw = hints[open.index] || {};
+    const applied = (instructionSheetProgress().notes[open.row] || [])
+      .some((n) => raw.above && n.from === raw.above.from && n.to === raw.above.to);
+    const apply = raw.applyLabel && !applied
+      ? `<button class="btn btn-primary" data-action="sheet-hint-apply" type="button">${esc(raw.applyLabel)}</button>`
+      : "";
+    return `
+      <div class="hint-overlay sheet-hint-overlay" role="presentation">
+        <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
+          <h2>רמזים</h2>
+          <div class="hint-layout">
+            <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
+            <div class="hint-content">${hintParagraphsHtml(raw.text || "")}${apply}</div>
+          </div>
+          <div class="hint-actions">
+            <button class="btn" data-action="sheet-hint-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderInstructionSheet() {
@@ -5063,22 +5207,41 @@
     columns.forEach((column, index) => {
       cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:3;">${esc(column)}</div>`);
     });
-    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:3;">הוראות ה-ALU</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    // The instruction's own headings sit in the top two rows, which leaves the
+    // third row free above the first instruction for the notes a hint writes.
+    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:1 / span 2;">הוראות ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:1 / span 2;">יעד ה-ALU</div>`);
     // The two thick rules that cut the word into its three fields run the whole
     // height of the page, from the headings down past the last answer.
     cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`);
     cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`);
+    // The hint currently open lights up the bits it is about and may write a
+    // note above them; notes the learner asked for stay on the page for good.
+    const openHint = sheetOpenHint();
+    const notes = instructionSheetProgress().notes;
     for (let row = 0; row < revealed; row += 1) {
       // Two rows per instruction: the word, then the state it leaves behind. On
       // the register side the instruction's own row reads as the single blank
       // line between one answer row and the next.
       const bitsRow = 4 + row * 2;
       const bits = String(defs[row].bits || "");
+      const isCurrent = openHint && row === openHint.row;
+      const mark = isCurrent && Array.isArray(openHint.hint.mark) ? openHint.hint.mark : null;
       for (let i = 0; i < 16; i += 1) {
         const unused = i >= 14 ? " sheet-bit-unused" : "";
-        cells.push(`<span class="sheet-bit${unused}" style="grid-column:${bitColumn(i)};grid-row:${bitsRow};">${esc(bits[i] || "")}</span>`);
+        const lit = (mark && i + 1 >= mark[0] && i + 1 <= mark[1]) ? " sheet-bit-lit" : "";
+        cells.push(`<span class="sheet-bit${unused}${lit}" style="grid-column:${bitColumn(i)};grid-row:${bitsRow};">${esc(bits[i] || "")}</span>`);
       }
+      // Written above the bits: what the learner has asked to have written down,
+      // plus whatever the open hint is showing right now.
+      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      if (isCurrent && openHint.hint.above && !rowNotes.some((n) => n.from === openHint.hint.above.from)) {
+        rowNotes.push(openHint.hint.above);
+      }
+      rowNotes.forEach((note) => {
+        const span = Number(note.to) - Number(note.from) + 1;
+        cells.push(`<div class="sheet-note" style="grid-column:${bitColumn(Number(note.to) - 1)} / span ${span};grid-row:${bitsRow - 1};"><span dir="ltr">${esc(note.text)}</span></div>`);
+      });
       columns.forEach((column, index) => {
         const key = `${row}:${column}`;
         cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${index * 2 + 1} / span 2;grid-row:${bitsRow + 1};" />`);
@@ -5092,11 +5255,20 @@
           </div>
           <div class="sheet-actions">
             <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
+            ${sheetHintButton()}
             <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
+        ${renderSheetHintWindow()}
         ${renderInstructionSheetResult()}
       </div>`;
+  }
+
+  function sheetHintButton() {
+    const row = sheetCurrentRow();
+    if (sheetUnlockedHintCount(row) <= 0) return "";
+    const fresh = sheetHintProgress(row).seen < sheetUnlockedHintCount(row);
+    return `<button class="btn hint-btn ${fresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="sheet-hint-open" type="button">${esc(sheetHintButtonLabel(row))}</button>`;
   }
 
   // The verdict card, in the same shape and colours as the workbench's check.
@@ -19605,10 +19777,7 @@
     const box = event.target.closest && event.target.closest(".sheet-input");
     if (!box || !box.dataset.sheetKey) return;
     const progress = instructionSheetProgress();
-    state.instructionSheet = {
-      revealed: progress.revealed,
-      values: { ...progress.values, [box.dataset.sheetKey]: box.value }
-    };
+    state.instructionSheet = { ...progress, values: { ...progress.values, [box.dataset.sheetKey]: box.value } };
     saveState();
   });
 
@@ -19844,7 +20013,8 @@
     // The exercise sheet is modal: only its own buttons (and the topbar) work
     // while it is open.
     if (state.sheetDialog && !isGlobalNavigationAction(action)
-        && !["sheet-check", "sheet-close", "sheet-result-ok"].includes(action)) {
+        && !["sheet-check", "sheet-close", "sheet-result-ok",
+             "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -20096,6 +20266,10 @@
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }
     if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
     if (action === "sheet-check") return checkInstructionSheet();
+    if (action === "sheet-hint-open") return openSheetHints();
+    if (action === "sheet-hint-select") return openSheetHints(Number(button.dataset.hintIndex));
+    if (action === "sheet-hint-apply") return applySheetHint();
+    if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
     if (action === "sheet-close") return setState({ sheetDialog: null });
     if (action === "sheet-result-ok") return setState({ sheetDialog: { result: null } });
     if (action === "panel-object-take") {
