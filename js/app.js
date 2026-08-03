@@ -5456,7 +5456,7 @@
       const [r, c] = key.split(",").map(Number);
       if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
       if (r <= 4 + revealed * 2 && usedSquare(r, c)) return;
-      cells.push(`<span class="sheet-scratch" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
+      cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
     });
     const at = state.sheetScratchCell;
     if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
@@ -12357,8 +12357,9 @@
         const box = app.querySelector(".sheet-scratch-input");
         if (!box || document.activeElement === box) return;
         box.focus();
-        const end = box.value.length;
-        try { box.setSelectionRange(end, end); } catch (e) { /* not a text input */ }
+        // A square holds one character, so re-opening one selects what is in it:
+        // typing replaces it, Backspace clears it.
+        try { box.select(); } catch (e) { /* not a text input */ }
       });
     }
   }
@@ -20208,6 +20209,23 @@
           && event.target.classList.contains("sheet-paper")) {
         event.preventDefault();
         return setState({ sheetScratchCell: sheetSquareAt(event.target, event.clientX, event.clientY) });
+      }
+      // A square the learner has already written in opens again for editing.
+      // What the PAGE itself wrote — an instruction's bits, a hint's note, a
+      // heading — is not the learner's to edit, and carries no such handle.
+      if (state.sheetDialog && event.target.closest) {
+        const written = event.target.closest(".sheet-scratch[data-sheet-scratch]");
+        if (written) {
+          event.preventDefault();
+          const [row, col] = String(written.dataset.sheetScratch).split(",").map(Number);
+          return setState({ sheetScratchCell: { row, col } });
+        }
+        // Anywhere else on the page — a bit of an instruction, a heading — puts
+        // the pencil down. (Not an answer box: re-rendering would take the caret
+        // straight back out of the box just clicked.)
+        if (state.sheetScratchCell && !event.target.closest(".sheet-scratch-input, .sheet-input")) {
+          return setState({ sheetScratchCell: null }, false);
+        }
       }
       // During the booklet solution a plain click anywhere advances it, like
       // the "המשך" button (but not clicks inside the movable window itself).
