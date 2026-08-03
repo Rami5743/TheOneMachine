@@ -2777,7 +2777,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-15") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -5160,6 +5160,34 @@
     return setState({ instructionSheet: { ...instructionSheetProgress(), notes } });
   }
 
+  // "רוצה לבדוק דברים על שולחן העבודה?": a clean workbench to try things on,
+  // with nothing to build and no check — only the way back to the page.
+  function openSheetWorkbench() {
+    const workspace = normalizeWorkspace(state.workspace);
+    workspace.unlocked = true;
+    workspace.taskId = null;
+    workspace.selectedTerminal = null;
+    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex };
+    return setState({
+      ...transientUiClearPatch(),
+      screen: "workspace",
+      workspace
+    });
+  }
+
+  function returnFromSheetWorkbench() {
+    const back = state.workspace?.sheetReturn || {};
+    const workspace = { ...normalizeWorkspace(state.workspace), sheetReturn: null };
+    return setState({
+      screen: "story",
+      chapterId: back.chapterId || state.chapterId,
+      sceneId: back.chapterId ? (chapterById(back.chapterId)?.sceneId || state.sceneId) : state.sceneId,
+      panelIndex: Number.isInteger(back.panelIndex) ? back.panelIndex : state.panelIndex,
+      workspace,
+      sheetDialog: { result: null }
+    });
+  }
+
   function renderSheetHintWindow() {
     const open = sheetOpenHint();
     if (!open) return "";
@@ -5256,6 +5284,7 @@
           <div class="sheet-actions">
             <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
             ${sheetHintButton()}
+            <button class="btn" data-action="sheet-workbench" type="button">רוצה לבדוק דברים על שולחן העבודה?</button>
             <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
@@ -20014,7 +20043,8 @@
     // while it is open.
     if (state.sheetDialog && !isGlobalNavigationAction(action)
         && !["sheet-check", "sheet-close", "sheet-result-ok",
-             "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close"].includes(action)) {
+             "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close",
+             "sheet-workbench"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -20270,6 +20300,8 @@
     if (action === "sheet-hint-select") return openSheetHints(Number(button.dataset.hintIndex));
     if (action === "sheet-hint-apply") return applySheetHint();
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
+    if (action === "sheet-workbench") return openSheetWorkbench();
+    if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });
     if (action === "sheet-result-ok") return setState({ sheetDialog: { result: null } });
     if (action === "panel-object-take") {
