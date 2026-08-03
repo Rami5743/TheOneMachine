@@ -5050,38 +5050,49 @@
     const columns = instructionSheetColumns();
     const { revealed, values } = instructionSheetProgress();
     const cells = [];
-    // Right to left: A, D, then the three memory registers under one heading;
-    // the 16 squares of the instruction itself fill the rest of the row.
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:1;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    // The page is 28 squares wide. Right to left: A and D (two squares each),
+    // the three memory registers under one heading, two squares of gap, and then
+    // the sixteen squares of the instruction — bit 1 leftmost, so bit i sits in
+    // column 28 - i of this right-to-left grid.
+    const bitColumn = (i) => 28 - i;
+    // The page is always the full sheet — three heading rows and two rows per
+    // instruction — even before every instruction is on it, so the paper covers
+    // the screen and the rules run its whole height.
+    const rows = 3 + defs.length * 2;
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:1 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
     columns.forEach((column, index) => {
-      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:2;">${esc(column)}</div>`);
+      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:3;">${esc(column)}</div>`);
     });
+    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:3;">הוראות ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    // The two thick rules that cut the word into its three fields run the whole
+    // height of the page, from the headings down past the last answer.
+    cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`);
+    cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`);
     for (let row = 0; row < revealed; row += 1) {
-      const base = 3 + row * 3;                    // a blank row, the bits, the answers
+      // Two rows per instruction: the word, then the state it leaves behind. On
+      // the register side the instruction's own row reads as the single blank
+      // line between one answer row and the next.
+      const bitsRow = 4 + row * 2;
       const bits = String(defs[row].bits || "");
-      const squares = [];
       for (let i = 0; i < 16; i += 1) {
-        // Thick rules cut the word into its three parts, and the two bits the
-        // simple computer ignores are greyed out.
-        const edge = (i === 12 || i === 14) ? " sheet-bit-group" : "";
         const unused = i >= 14 ? " sheet-bit-unused" : "";
-        squares.push(`<span class="sheet-bit${edge}${unused}">${esc(bits[i] || "")}</span>`);
+        cells.push(`<span class="sheet-bit${unused}" style="grid-column:${bitColumn(i)};grid-row:${bitsRow};">${esc(bits[i] || "")}</span>`);
       }
-      cells.push(`<div class="sheet-instruction" style="grid-column:11 / span 16;grid-row:${base + 1};">${squares.join("")}</div>`);
       columns.forEach((column, index) => {
         const key = `${row}:${column}`;
-        cells.push(`<div class="sheet-answer" style="grid-column:${index * 2 + 1} / span 2;grid-row:${base + 2};"><input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" /></div>`);
+        cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${index * 2 + 1} / span 2;grid-row:${bitsRow + 1};" />`);
       });
     }
     return `
       <div class="sheet-overlay" role="presentation">
         <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התרגיל">
           <div class="sheet-scroll">
-            <div class="sheet-paper">${cells.join("")}</div>
+            <div class="sheet-paper" style="--rows:${rows};">${cells.join("")}</div>
           </div>
           <div class="sheet-actions">
             <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
-            <button class="btn" data-action="sheet-close" type="button">סגירה</button>
+            <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
         ${renderInstructionSheetResult()}

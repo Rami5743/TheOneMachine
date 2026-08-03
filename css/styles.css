@@ -1021,49 +1021,51 @@ button { font: inherit; }
   color: #1b150c;
 }
 
-/* The 4.1 exercise sheet: a page of squared paper. One square per bit of the
-   instruction, two squares per register column, one row per line of the page. */
+/* The 4.1 exercise sheet: a full-screen page of squared paper. One square per
+   bit of the instruction, two squares per register column, and the buttons at
+   the bottom of the screen the way the worktable tasks have them. */
 .sheet-overlay {
   position: fixed;
   inset: 0;
   z-index: 200;
-  display: grid;
-  place-items: center;
-  padding: 16px;
-  background: rgba(20, 14, 6, 0.55);
+  background: rgba(20, 14, 6, 0.72);
 }
 
 .sheet-card {
-  --sq: clamp(15px, 2vw, 26px);
+  /* The page fills the screen: as wide as 28 squares go, as tall as the whole
+     sheet plus the buttons row allows. */
+  --sq: min(calc((100vw - 34px) / 28), calc((100vh - 120px) / 15));
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-width: min(96vw, 1040px);
-  max-height: 90vh;
-  padding: 16px;
-  border: 2px solid #3a2c17;
-  border-radius: 12px;
+  padding: 14px 14px 18px;
   background: #f7f1de;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
 }
 
 .sheet-scroll {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
   overflow: auto;
-  padding-top: 6px;
 }
 
 .sheet-paper {
   display: grid;
-  grid-template-columns: repeat(26, var(--sq));
-  grid-auto-rows: var(--sq);
-  width: calc(26 * var(--sq));
+  grid-template-columns: repeat(28, var(--sq));
+  grid-template-rows: repeat(var(--rows, 15), var(--sq));
+  width: calc(28 * var(--sq));
+  height: calc(var(--rows, 15) * var(--sq));
+  margin: auto;
   direction: rtl;
   background-color: #fdfaf0;
   background-image:
     linear-gradient(to right, rgba(90, 130, 170, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(90, 130, 170, 0.3) 1px, transparent 1px);
   background-size: var(--sq) var(--sq);
-  border: 1px solid rgba(90, 130, 170, 0.5);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
 }
 
 .sheet-head {
@@ -1073,52 +1075,41 @@ button { font: inherit; }
   border: 2px solid #3a2c17;
   background: #efe4c8;
   font-weight: 700;
-  font-size: calc(var(--sq) * 0.58);
+  font-size: calc(var(--sq) * 0.56);
   color: #241d12;
 }
 
-/* The heading over the three memory registers is longer than the six squares it
-   belongs to, so it is a label with a rule under it rather than a boxed cell. */
+/* The heading over the three memory registers is one merged 2x6 cell, so its
+   words wrap inside it instead of spilling over the neighbouring columns. */
 .sheet-head-span {
-  border: 0;
-  border-bottom: 2px solid #3a2c17;
-  background: transparent;
-  white-space: nowrap;
-  overflow: visible;
-  font-size: calc(var(--sq) * 0.44);
+  padding: 0 4px;
+  font-size: calc(var(--sq) * 0.34);
+  line-height: 1.2;
+  text-align: center;
 }
 
-.sheet-instruction {
-  display: grid;
-  grid-template-columns: repeat(16, var(--sq));
-  direction: ltr;
-}
-
+/* The bits are written ON the paper: the squares of the page are their cells,
+   so they carry no borders of their own (which used to sit a pixel off the
+   printed grid). Only the two thick rules and the greyed pair are drawn. */
 .sheet-bit {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #7a6a52;
-  border-right: none;
-  background: rgba(255, 253, 246, 0.75);
   font-family: "Courier New", Courier, monospace;
   font-weight: 700;
   font-size: calc(var(--sq) * 0.56);
   color: #241d12;
 }
 
-.sheet-bit:last-child {
-  border-right: 1px solid #7a6a52;
-}
-
-/* The two rules that cut the word into the ALU instruction, the destination and
-   the two bits the simple computer ignores (greyed out). */
-.sheet-bit-group {
+/* A field boundary: a 3px rule down the LEFT edge of the column it is placed
+   in, running from the headings to the bottom of the page. */
+.sheet-rule {
   border-left: 3px solid #2f2617;
+  pointer-events: none;
 }
 
 .sheet-bit-unused {
-  background: #cfc9bb;
+  background: #d5cfc0;
   color: #55503f;
 }
 
@@ -1134,6 +1125,11 @@ button { font: inherit; }
   font-weight: 700;
   font-size: calc(var(--sq) * 0.56);
   -moz-appearance: textfield;
+}
+
+.sheet-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px #b08828;
 }
 
 .sheet-input::-webkit-outer-spin-button,
