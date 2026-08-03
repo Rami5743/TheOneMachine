@@ -1556,6 +1556,13 @@
     // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
     // survives leaving the slide; the check verdict itself is transient.
     instructionSheet: null,
+    // The scratch table of the exercise page ("רוצה לבדוק דברים על שולחן העבודה?").
+    // It is the page's OWN workbench: kept in its own slot so returning to the
+    // page finds the table exactly as it was left, and so it neither disturbs nor
+    // inherits the workbench every other build uses (which lives in `workspace`).
+    // `sheetWorkbenchStash` holds whatever was in that shared slot meanwhile.
+    sheetWorkbench: null,
+    sheetWorkbenchStash: null,
     // The arithmetic notebook (chapter 2.5), opened from the Stone-Millis book.
     // { exercise:{a,b}, cells:{"r,c":char}, active:"r,c"|null, result:null|"correct"|"wrong" }
     // Persisted so the learner's work survives leaving for the library and back.
@@ -2839,6 +2846,11 @@
   }
 
   function saveState() {
+    // The exercise page's own table is kept in its own slot no matter HOW it is
+    // left — "חזרה לדף הפקודות", the topbar, or a refresh.
+    if (state.screen === "workspace" && state.workspace?.sheetReturn) {
+      state.sheetWorkbench = state.workspace;
+    }
     try {
       localStorage.setItem(APP.storageKey, JSON.stringify(stateForStorage()));
       // Let the optional cloud-sync module (js/auth.js) know a save happened, so
@@ -5243,13 +5255,13 @@
     return setState({ instructionSheet: { ...progress, ...patch } });
   }
 
-  // "רוצה לבדוק דברים על שולחן העבודה?": a clean workbench to try things on,
-  // with nothing to build and no check — only the way back to the page.
   // "רוצה לבדוק דברים על שולחן העבודה?" — a scratch table for trying an
-  // instruction out. It opens EMPTY and in free build (the full palette, no Nand
-  // presentation), and remembers the page it came from.
-  function openSheetWorkbench() {
-    const workspace = normalizeWorkspace({
+  // instruction out. The FIRST time it opens EMPTY and in free build (the full
+  // palette, no Nand presentation); after that it opens exactly as it was left,
+  // because it is kept in its own slot (state.sheetWorkbench) rather than in the
+  // shared one. Whatever is in the shared slot is stashed and put back on return.
+  function emptySheetWorkbench() {
+    return {
       selectedTerminal: null,
       components: [],
       wires: [],
@@ -5265,31 +5277,48 @@
       workspaceLaunchPanelIndex: null,
       workspaceCompleted: false,
       workspaceSession: 2,
-      exitTargetPanelIndex: state.panelIndex,
       returnToWorkspaceAfterMonologue: false,
       taskId: null,
       taskIntroSeen: true,
-      sessionReturnChapterId: state.chapterId,
-      sessionReturnPanelIndex: state.panelIndex,
-      freeBuild: true,
-      sheetReturn: { chapterId: state.chapterId, panelIndex: state.panelIndex }
-    });
+      freeBuild: true
+    };
+  }
+
+  function openSheetWorkbench() {
+    const kept = state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
+    const workspace = normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) });
+    // The way home is always the page we are standing on right now.
+    workspace.freeBuild = true;
+    workspace.unlocked = true;
+    workspace.taskId = null;
+    workspace.exitTargetPanelIndex = state.panelIndex;
+    workspace.sessionReturnChapterId = state.chapterId;
+    workspace.sessionReturnPanelIndex = state.panelIndex;
+    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex };
     return setState({
       ...transientUiClearPatch(),
       screen: "workspace",
+      // What the shared workbench held goes back when the page is returned to.
+      sheetWorkbenchStash: state.workspace,
+      sheetWorkbench: workspace,
       workspace
     });
   }
 
   function returnFromSheetWorkbench() {
     const back = state.workspace?.sheetReturn || {};
-    const workspace = { ...normalizeWorkspace(state.workspace), sheetReturn: null };
+    const kept = normalizeWorkspace(state.workspace);
+    const restored = normalizeWorkspace(state.sheetWorkbenchStash);
+    restored.sheetReturn = null;
+    restored.unlocked = true;
     return setState({
       screen: "story",
       chapterId: back.chapterId || state.chapterId,
       sceneId: back.chapterId ? (chapterById(back.chapterId)?.sceneId || state.sceneId) : state.sceneId,
       panelIndex: Number.isInteger(back.panelIndex) ? back.panelIndex : state.panelIndex,
-      workspace,
+      sheetWorkbench: kept,
+      sheetWorkbenchStash: null,
+      workspace: restored,
       sheetDialog: { result: null }
     });
   }
