@@ -1022,7 +1022,27 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     ramOut1: { label: "OUT1", note: "פורט יציאה 1. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
     ramOut2: { label: "OUT2", note: "פורט יציאה 2. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
     ramOut3: { label: "OUT3", note: "פורט יציאה 3. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
-    // The note von Neumann left on the table. Its contents (the task list) are
-    // not built yet, so clicking it says so instead of opening a window.
-    tasksNote: { label: "הפתק", todo: "המשך יבוא..." }
+    // The note von Neumann left on the table: it opens the exercise sheet.
+    tasksNote: { label: "הפתק", opens: "instruction-sheet" }
   };
+
+  // ---- The 4.1 exercise: run these instructions in your head ---------------
+  // The sheet shows only the BITS. `code` is the pseudo-code they were dictated
+  // in (kept here as the reference for the encoding, never shown to the learner)
+  // and `after` is the state of the processor's registers and of the first three
+  // memory registers once that instruction has run, starting from all zeros.
+  //
+  // The encoding is the one chapter 4.1 teaches: [12 bits ALU][2 bits where to
+  // write][2 unused]. In the ALU field bit 1 = 0 means "emit this number", and
+  // bit 1 = 1 means compute — bit 6 picking D+A or D+*A and bits 7-12 the ALU1
+  // operation. Destination 1 = A, 2 = D, 3 = *A.
+  const INSTRUCTION_SHEET = [
+    { code: "A=1",     bits: "0000000000010100", after: { A: 1, D: 0,  R0: 0, R1: 0,  R2: 0 } },
+    { code: "*A=17",   bits: "0000000100011100", after: { A: 1, D: 0,  R0: 0, R1: 17, R2: 0 } },
+    { code: "D=5",     bits: "0000000001011000", after: { A: 1, D: 5,  R0: 0, R1: 17, R2: 0 } },
+    { code: "D=*A-D",  bits: "1000011110001000", after: { A: 1, D: 12, R0: 0, R1: 17, R2: 0 } },
+    { code: "A=2",     bits: "0000000000100100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 0 } },
+    { code: "*A=D",    bits: "1000000011001100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 12 } }
+  ];
+
+  const INSTRUCTION_SHEET_COLUMNS = ["A", "D", "R0", "R1", "R2"];

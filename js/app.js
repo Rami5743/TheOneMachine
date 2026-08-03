@@ -1545,6 +1545,11 @@
     // step-by-step skip gate: skip is disabled until the target panel has been
     // reached, then stays enabled (even after going back within the chapter).
     maxPanelReached: {},
+    // The 4.1 exercise sheet, opened from the note on the computer-room table:
+    // { revealed, values } — how many instructions are on the page so far, and
+    // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
+    // survives leaving the slide; the check verdict itself is transient.
+    instructionSheet: null,
     // The arithmetic notebook (chapter 2.5), opened from the Stone-Millis book.
     // { exercise:{a,b}, cells:{"r,c":char}, active:"r,c"|null, result:null|"correct"|"wrong" }
     // Persisted so the learner's work survives leaving for the library and back.
@@ -2620,6 +2625,7 @@
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
+      sheetDialog: null,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
       // board lock don't bleed onto the next workbench you open (a task build, the
@@ -2816,7 +2822,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, workspace };
   }
 
   function stateForStorage() {
@@ -4972,6 +4978,128 @@
       </div>`;
   }
 
+  // ---- The 4.1 exercise sheet ----------------------------------------------
+  // The note on the computer-room table opens a page of squared paper: down the
+  // left, the instructions written in bits (one bit per square); on the right a
+  // two-square column for each of the processor's registers A and D and for the
+  // memory's first three, R0-R2. Under every instruction the learner writes the
+  // state once it has run. Only the first instruction is on the page to begin
+  // with — each one that checks out brings the next.
+  //
+  // state.instructionSheet = { revealed, values } is the saved work;
+  // state.sheetDialog = { result } is the open page and the last verdict, both
+  // transient.
+  function instructionSheetDefs() {
+    return typeof INSTRUCTION_SHEET !== "undefined" ? INSTRUCTION_SHEET : [];
+  }
+
+  function instructionSheetColumns() {
+    return typeof INSTRUCTION_SHEET_COLUMNS !== "undefined" ? INSTRUCTION_SHEET_COLUMNS : [];
+  }
+
+  function instructionSheetProgress() {
+    const saved = state.instructionSheet;
+    const total = instructionSheetDefs().length;
+    const revealed = saved && Number.isFinite(Number(saved.revealed))
+      ? Math.min(Math.max(1, Math.floor(Number(saved.revealed))), Math.max(1, total))
+      : 1;
+    const values = saved && saved.values && typeof saved.values === "object" ? saved.values : {};
+    return { revealed, values };
+  }
+
+  function openInstructionSheet() {
+    return setState({
+      panelObjectDialog: null,
+      instructionSheet: instructionSheetProgress(),
+      sheetDialog: { result: null }
+    });
+  }
+
+  function checkInstructionSheet() {
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const { revealed, values } = instructionSheetProgress();
+    // Every instruction on the page is checked, not only the newest one — the
+    // learner may well have gone back and changed an earlier answer.
+    for (let row = 0; row < revealed; row += 1) {
+      for (const column of columns) {
+        const typed = String(values[`${row}:${column}`] ?? "").trim();
+        if (typed === "" || Number(typed) !== Number(defs[row].after[column])) {
+          return setState({ sheetDialog: { result: "fail" } });
+        }
+      }
+    }
+    const done = revealed >= defs.length;
+    return setState({
+      instructionSheet: { revealed: done ? revealed : revealed + 1, values },
+      sheetDialog: { result: done ? "done" : "success" }
+    });
+  }
+
+  function renderInstructionSheet() {
+    if (!state.sheetDialog) return "";
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const { revealed, values } = instructionSheetProgress();
+    const cells = [];
+    // Right to left: A, D, then the three memory registers under one heading;
+    // the 16 squares of the instruction itself fill the rest of the row.
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:1;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    columns.forEach((column, index) => {
+      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:2;">${esc(column)}</div>`);
+    });
+    for (let row = 0; row < revealed; row += 1) {
+      const base = 3 + row * 3;                    // a blank row, the bits, the answers
+      const bits = String(defs[row].bits || "");
+      const squares = [];
+      for (let i = 0; i < 16; i += 1) {
+        // Thick rules cut the word into its three parts, and the two bits the
+        // simple computer ignores are greyed out.
+        const edge = (i === 12 || i === 14) ? " sheet-bit-group" : "";
+        const unused = i >= 14 ? " sheet-bit-unused" : "";
+        squares.push(`<span class="sheet-bit${edge}${unused}">${esc(bits[i] || "")}</span>`);
+      }
+      cells.push(`<div class="sheet-instruction" style="grid-column:11 / span 16;grid-row:${base + 1};">${squares.join("")}</div>`);
+      columns.forEach((column, index) => {
+        const key = `${row}:${column}`;
+        cells.push(`<div class="sheet-answer" style="grid-column:${index * 2 + 1} / span 2;grid-row:${base + 2};"><input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" /></div>`);
+      });
+    }
+    return `
+      <div class="sheet-overlay" role="presentation">
+        <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התרגיל">
+          <div class="sheet-scroll">
+            <div class="sheet-paper">${cells.join("")}</div>
+          </div>
+          <div class="sheet-actions">
+            <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
+            <button class="btn" data-action="sheet-close" type="button">סגירה</button>
+          </div>
+        </section>
+        ${renderInstructionSheetResult()}
+      </div>`;
+  }
+
+  // The verdict card, in the same shape and colours as the workbench's check.
+  function renderInstructionSheetResult() {
+    const result = state.sheetDialog && state.sheetDialog.result;
+    if (!result) return "";
+    const passed = result !== "fail";
+    const message = result === "fail"
+      ? "הבדיקה נכשלה"
+      : (result === "done" ? "הבדיקה הצליחה. סיימת את כל הפקודות!" : "הבדיקה הצליחה");
+    const tone = passed ? " not-test-result-pass" : " not-test-result-fail";
+    return `
+      <div class="not-test-result-overlay" role="presentation">
+        <section class="not-test-result-card${tone}" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
+          <p>${esc(message)}</p>
+          <div class="not-test-result-actions">
+            <button class="btn btn-primary" data-action="sheet-result-ok">אישור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -5227,7 +5355,8 @@
       ${renderMemoryNoteList()}
       ${renderRamNoteList()}
       ${renderPortsNoteList()}
-      ${renderAluIntroDialog()}`;
+      ${renderAluIntroDialog()}
+      ${renderInstructionSheet()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -19451,6 +19580,19 @@
     saveState();
   });
 
+  // The exercise sheet's cells: same idea — kept live in state without a
+  // re-render, so the caret stays where the learner put it.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-input");
+    if (!box || !box.dataset.sheetKey) return;
+    const progress = instructionSheetProgress();
+    state.instructionSheet = {
+      revealed: progress.revealed,
+      values: { ...progress.values, [box.dataset.sheetKey]: box.value }
+    };
+    saveState();
+  });
+
   // Keep the converter number box's typed value in state (no re-render, so focus
   // and caret are preserved), and clear any stale error as the learner retypes.
   document.addEventListener("input", (event) => {
@@ -19676,6 +19818,14 @@
     }
 
     if (state.bitDialog && !isGlobalNavigationAction(action) && !["bit-dialog-next", "bit-dialog-ok"].includes(action)) {
+      event.preventDefault();
+      return;
+    }
+
+    // The exercise sheet is modal: only its own buttons (and the topbar) work
+    // while it is open.
+    if (state.sheetDialog && !isGlobalNavigationAction(action)
+        && !["sheet-check", "sheet-close", "sheet-result-ok"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -19921,10 +20071,14 @@
       // An object whose contents are not built yet says so instead of opening an
       // empty window (the note of tasks on the 4.1 worktable).
       if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
+      if (object && object.opens === "instruction-sheet") return openInstructionSheet();
       return setState({ panelObjectDialog: objectId }, false);
     }
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }
     if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
+    if (action === "sheet-check") return checkInstructionSheet();
+    if (action === "sheet-close") return setState({ sheetDialog: null });
+    if (action === "sheet-result-ok") return setState({ sheetDialog: { result: null } });
     if (action === "panel-object-take") {
       setState({ panelObjectDialog: null }, false);
       return nextPanel();

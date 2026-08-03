@@ -1015,6 +1015,133 @@ button { font: inherit; }
   color: #1b150c;
 }
 
+/* The 4.1 exercise sheet: a page of squared paper. One square per bit of the
+   instruction, two squares per register column, one row per line of the page. */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(20, 14, 6, 0.55);
+}
+
+.sheet-card {
+  --sq: clamp(15px, 2vw, 26px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: min(96vw, 1040px);
+  max-height: 90vh;
+  padding: 16px;
+  border: 2px solid #3a2c17;
+  border-radius: 12px;
+  background: #f7f1de;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.sheet-scroll {
+  overflow: auto;
+  padding-top: 6px;
+}
+
+.sheet-paper {
+  display: grid;
+  grid-template-columns: repeat(26, var(--sq));
+  grid-auto-rows: var(--sq);
+  width: calc(26 * var(--sq));
+  direction: rtl;
+  background-color: #fdfaf0;
+  background-image:
+    linear-gradient(to right, rgba(90, 130, 170, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(90, 130, 170, 0.3) 1px, transparent 1px);
+  background-size: var(--sq) var(--sq);
+  border: 1px solid rgba(90, 130, 170, 0.5);
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #3a2c17;
+  background: #efe4c8;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.58);
+  color: #241d12;
+}
+
+/* The heading over the three memory registers is longer than the six squares it
+   belongs to, so it is a label with a rule under it rather than a boxed cell. */
+.sheet-head-span {
+  border: 0;
+  border-bottom: 2px solid #3a2c17;
+  background: transparent;
+  white-space: nowrap;
+  overflow: visible;
+  font-size: calc(var(--sq) * 0.44);
+}
+
+.sheet-instruction {
+  display: grid;
+  grid-template-columns: repeat(16, var(--sq));
+  direction: ltr;
+}
+
+.sheet-bit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #7a6a52;
+  border-right: none;
+  background: rgba(255, 253, 246, 0.75);
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  color: #241d12;
+}
+
+.sheet-bit:last-child {
+  border-right: 1px solid #7a6a52;
+}
+
+/* The two rules that cut the word into the ALU instruction, the destination and
+   the two bits the simple computer ignores (greyed out). */
+.sheet-bit-group {
+  border-left: 3px solid #2f2617;
+}
+
+.sheet-bit-unused {
+  background: #cfc9bb;
+  color: #55503f;
+}
+
+.sheet-input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 2px solid #3a2c17;
+  background: #ffffff;
+  color: #241d12;
+  text-align: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  -moz-appearance: textfield;
+}
+
+.sheet-input::-webkit-outer-spin-button,
+.sheet-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
 .panel-hotspot:hover,
 .panel-hotspot:focus-visible {
   outline: 3px solid rgba(255,255,255,0.9);
