@@ -1025,6 +1025,10 @@ button { font: inherit; }
    bit of the instruction, two squares per register column, and the buttons at
    the bottom of the screen the way the worktable tasks have them. */
 .sheet-overlay {
+  /* Small squares, as before — the page fills the screen by holding MORE of
+     them, not bigger ones. The hints window shares the measure. */
+  --sq: clamp(15px, 2vw, 26px);
+  --sheet-rows: 16;
   position: fixed;
   inset: 0;
   z-index: 200;
@@ -1032,9 +1036,6 @@ button { font: inherit; }
 }
 
 .sheet-card {
-  /* Small squares, as before — the page fills the screen by holding MORE of
-     them, not bigger ones. */
-  --sq: clamp(15px, 2vw, 26px);
   position: absolute;
   inset: 0;
   display: flex;
@@ -1132,6 +1133,11 @@ button { font: inherit; }
   border-right: 2px solid #3a2c17;
 }
 
+.sheet-rule-foot {
+  border-bottom: 2px solid #3a2c17;
+  pointer-events: none;
+}
+
 /* The bits the open hint is talking about. */
 .sheet-bit-lit {
   background: #ffd45e;
@@ -1152,13 +1158,13 @@ button { font: inherit; }
   padding: 0 3px;
 }
 
-/* The hints window sits over the page, which has no topbar of its own, and it
-   hugs the bottom so the squares it is talking about stay visible. */
+/* The hints window sits over the page, which has no topbar of its own, right
+   under the tables so the squares it is talking about stay visible. */
 .hint-overlay.sheet-hint-overlay {
   inset: 0;
   z-index: 210;
-  place-items: end center;
-  padding-bottom: 76px;
+  place-items: start center;
+  padding: calc(var(--sheet-rows, 16) * var(--sq) + 26px) 16px 16px;
 }
 
 .sheet-bit-unused {

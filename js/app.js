@@ -5314,7 +5314,10 @@
       `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
       `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
       ...[2, 4, 6, 8, 10].map((column) =>
-        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${inner};"></div>`)
+        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${inner};"></div>`),
+      // The foot of each wing, so the tables are closed and not left hanging.
+      `<div class="sheet-rule-foot" style="grid-column:1 / span 10;grid-row:${rows};"></div>`,
+      `<div class="sheet-rule-foot" style="grid-column:13 / span 16;grid-row:${rows};"></div>`
     ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
@@ -5351,9 +5354,18 @@
     // Anything the learner has scribbled on the free squares of the page, and the
     // square being written in right now.
     const scratch = instructionSheetProgress().scratch;
+    // Only on a square the worksheet itself does not use: a mark left on one that
+    // has since been covered (an instruction that has arrived) is not drawn.
+    const usedSquare = (r, c) => {
+      if (r <= 4) return c <= 10 || c >= 13;                  // the heading band
+      const within = r - 5;
+      if (within % 2 === 0) return c >= 13;                   // an instruction's bits
+      return c <= 10;                                          // its answers
+    };
     Object.entries(scratch).forEach(([key, text]) => {
       const [r, c] = key.split(",").map(Number);
       if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
+      if (r <= 4 + revealed * 2 && usedSquare(r, c)) return;
       cells.push(`<span class="sheet-scratch" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
     });
     const at = state.sheetScratchCell;
