@@ -5361,22 +5361,25 @@
     const columns = instructionSheetColumns();
     const { revealed, values } = instructionSheetProgress();
     const cells = [];
-    // The page is 28 squares wide. Right to left: A and D (two squares each),
-    // the three memory registers under one heading, two squares of gap, and then
-    // the sixteen squares of the instruction — bit 1 leftmost, so bit i sits in
-    // column 28 - i of this right-to-left grid.
-    const bitColumn = (i) => 28 - i;
+    // The page is 28 squares wide. Right to left: the sixteen squares of the
+    // instruction (bit 1 leftmost, so bit i sits in column 16 - i of this
+    // right-to-left grid), two squares of gap, then A and D (two squares each)
+    // and the three memory registers under one heading.
+    const bitColumn = (i) => 16 - i;
+    // Where the register wing starts (its rightmost square).
+    const REG = 19;
+    const regColumn = (index) => REG + index * 2;
     // The page is always the full sheet — three heading rows and two rows per
     // instruction — even before every instruction is on it, so the paper covers
     // the screen and the rules run its whole height.
     const rows = 4 + defs.length * 2;
     // A heading over each wing of the page.
-    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 10;grid-row:1;">מצב הרגיסטרים</div>`);
-    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:13 / span 16;grid-row:1;">פקודות המחשב</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:1 / span 4;grid-row:2 / span 2;">הרגיסטרים של המעבד</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:2 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">פקודות המחשב</div>`);
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${REG} / span 10;grid-row:1;">מצב הרגיסטרים</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${REG} / span 4;grid-row:2 / span 2;">הרגיסטרים של המעבד</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${REG + 4} / span 6;grid-row:2 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
     columns.forEach((column, index) => {
-      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:4;">${esc(column)}</div>`);
+      cells.push(`<div class="sheet-head" style="grid-column:${regColumn(index)} / span 2;grid-row:4;">${esc(column)}</div>`);
     });
     // The instruction's own headings sit in the top two rows, which leaves the
     // third row free above the first instruction for the notes a hint writes.
@@ -5394,20 +5397,22 @@
     // cutting through a heading that spans the whole group.
     const underHeadings = `4 / span ${rows - 3}`;
     const rules = [
-      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:1;grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule sheet-rule-thin" style="grid-column:10;grid-row:1 / span ${rows};"></div>`,
+      // The outer frame of the instruction wing (columns 1-16)...
       `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
       `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
+      // ...and of the register wing (columns 19-28).
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${REG};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${REG + 9};grid-row:1 / span ${rows};"></div>`,
       `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
       `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
       // Between the processor's registers and the memory's: it separates the two
       // headings too, so it runs through the band.
-      `<div class="sheet-rule sheet-rule-thin" style="grid-column:4;grid-row:${inner};"></div>`,
-      ...[2, 6, 8].map((column) =>
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${REG + 3};grid-row:${inner};"></div>`,
+      ...[REG + 1, REG + 5, REG + 7].map((column) =>
         `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${underHeadings};"></div>`),
       // The foot of each wing, so the tables are closed and not left hanging.
-      `<div class="sheet-rule-foot" style="grid-column:1 / span 10;grid-row:${rows};"></div>`,
-      `<div class="sheet-rule-foot" style="grid-column:13 / span 16;grid-row:${rows};"></div>`
+      `<div class="sheet-rule-foot" style="grid-column:1 / span 16;grid-row:${rows};"></div>`,
+      `<div class="sheet-rule-foot" style="grid-column:${REG} / span 10;grid-row:${rows};"></div>`
     ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
@@ -5438,19 +5443,23 @@
       });
       columns.forEach((column, index) => {
         const key = `${row}:${column}`;
-        cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${index * 2 + 1} / span 2;grid-row:${bitsRow + 1};" />`);
+        cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${regColumn(index)} / span 2;grid-row:${bitsRow + 1};" />`);
       });
     }
     // Anything the learner has scribbled on the free squares of the page, and the
     // square being written in right now.
     const scratch = instructionSheetProgress().scratch;
     // Only on a square the worksheet itself does not use: a mark left on one that
-    // has since been covered (an instruction that has arrived) is not drawn.
+    // has since been covered (an instruction that has arrived) is not drawn. Both
+    // tests are bounded by the two wings — everything past them, all the way to
+    // the left edge of the page, is free paper.
+    const inInstructions = (c) => c >= 1 && c <= 16;
+    const inRegisters = (c) => c >= REG && c <= REG + 9;
     const usedSquare = (r, c) => {
-      if (r <= 4) return c <= 10 || c >= 13;                  // the heading band
+      if (r <= 4) return inInstructions(c) || inRegisters(c);  // the heading band
       const within = r - 5;
-      if (within % 2 === 0) return c >= 13;                   // an instruction's bits
-      return c <= 10;                                          // its answers
+      if (within % 2 === 0) return inInstructions(c);          // an instruction's bits
+      return inRegisters(c);                                   // its answers
     };
     Object.entries(scratch).forEach(([key, text]) => {
       const [r, c] = key.split(",").map(Number);
@@ -12355,10 +12364,12 @@
     if (state.sheetDialog && state.sheetScratchCell) {
       requestAnimationFrame(() => {
         const box = app.querySelector(".sheet-scratch-input");
-        if (!box || document.activeElement === box) return;
-        box.focus();
-        // A square holds one character, so re-opening one selects what is in it:
-        // typing replaces it, Backspace clears it.
+        if (!box) return;
+        if (document.activeElement !== box) box.focus();
+        // A square holds one character, so opening one SELECTS what is in it:
+        // typing replaces it. (This runs even when the browser's own autofocus
+        // got there first — otherwise the caret sits before the character and
+        // Backspace has nothing behind it to rub out.)
         try { box.select(); } catch (e) { /* not a text input */ }
       });
     }
@@ -20065,6 +20076,24 @@
       return setState({ sheetScratchCell: col > 1 ? { row, col: col - 1 } : null });
     }
     saveState();
+  });
+
+  // Rubbing out what was written on a square: Backspace or Delete clears it.
+  // Backspace on a square that is already empty steps BACK to the one before it
+  // (the way writing steps forward) and clears that one instead.
+  document.addEventListener("keydown", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-scratch-input");
+    if (!box || !box.dataset.sheetScratch) return;
+    if (event.key !== "Backspace" && event.key !== "Delete") return;
+    event.preventDefault();
+    const progress = instructionSheetProgress();
+    const scratch = { ...progress.scratch };
+    const [row, col] = String(box.dataset.sheetScratch).split(",").map(Number);
+    let at = { row, col };
+    if (event.key === "Backspace" && !scratch[`${row},${col}`] && col + 1 <= 200) at = { row, col: col + 1 };
+    delete scratch[`${at.row},${at.col}`];
+    state.instructionSheet = { ...progress, scratch };
+    return setState({ sheetScratchCell: at });
   });
 
   // The exercise sheet's cells: same idea — kept live in state without a
