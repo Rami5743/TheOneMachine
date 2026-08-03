@@ -1547,6 +1547,8 @@
     maxPanelReached: {},
     // The 4.1 build-task note (transient, like the other worktable notes).
     buildNoteList: false,
+    // "נקה התקדמות" on the exercise page, waiting for a yes.
+    sheetClearConfirm: null,
     // The 4.1 exercise sheet, opened from the note on the computer-room table:
     // { revealed, values } — how many instructions are on the page so far, and
     // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
@@ -2628,6 +2630,7 @@
       panelAnswer: null,
       wordsBytesDialog: null,
       sheetDialog: null,
+      sheetClearConfirm: null,
       buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
@@ -2825,7 +2828,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -5234,18 +5237,18 @@
     // instruction — even before every instruction is on it, so the paper covers
     // the screen and the rules run its whole height.
     const rows = 3 + defs.length * 2;
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:1 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span sheet-head-right sheet-head-open-bottom" style="grid-column:5 / span 6;grid-row:1 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
     columns.forEach((column, index) => {
-      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:3;">${esc(column)}</div>`);
+      cells.push(`<div class="sheet-head${index === 0 ? " sheet-head-right" : ""}" style="grid-column:${index * 2 + 1} / span 2;grid-row:3;">${esc(column)}</div>`);
     });
     // The instruction's own headings sit in the top two rows, which leaves the
     // third row free above the first instruction for the notes a hint writes.
     cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:1 / span 2;">הוראות ה-ALU</div>`);
     cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:1 / span 2;">יעד ה-ALU</div>`);
-    // The two thick rules that cut the word into its three fields run the whole
-    // height of the page, from the headings down past the last answer.
-    cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`);
-    cells.push(`<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`);
+    const rules = [
+      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:1 / span ${rows};"></div>`
+    ];
     // The hint currently open lights up the bits it is about and may write a
     // note above them; notes the learner asked for stay on the page for good.
     const openHint = sheetOpenHint();
@@ -5278,6 +5281,10 @@
         cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${index * 2 + 1} / span 2;grid-row:${bitsRow + 1};" />`);
       });
     }
+    // The two thick rules that cut the word into its three fields run the whole
+    // height of the page, from the headings down past the last answer. They are
+    // added LAST so nothing (the greyed pair) paints over them.
+    cells.push(...rules);
     return `
       <div class="sheet-overlay" role="presentation">
         <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התרגיל">
@@ -5285,6 +5292,7 @@
             <div class="sheet-paper" style="--rows:${rows};">${cells.join("")}</div>
           </div>
           <div class="sheet-actions">
+            ${navButton("sheet-clear-open", "restart", "נקה התקדמות")}
             <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
             ${sheetHintButton()}
             <button class="btn" data-action="sheet-workbench" type="button">רוצה לבדוק דברים על שולחן העבודה?</button>
@@ -5292,6 +5300,7 @@
           </div>
         </section>
         ${renderSheetHintWindow()}
+        ${renderSheetClearDialog()}
         ${renderInstructionSheetResult()}
       </div>`;
   }
@@ -5301,6 +5310,22 @@
     if (sheetUnlockedHintCount(row) <= 0) return "";
     const fresh = sheetHintProgress(row).seen < sheetUnlockedHintCount(row);
     return `<button class="btn hint-btn ${fresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="sheet-hint-open" type="button">${esc(sheetHintButtonLabel(row))}</button>`;
+  }
+
+  // Wiping the page: the same warn-then-do shape the worktable notes use.
+  function renderSheetClearDialog() {
+    if (!state.sheetClearConfirm) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
+          <p>לנקות את ההתקדמות בדף הפקודות?</p>
+          <p class="my-card-delete-warn">הפעולה תמחק את כל מה שכתבת בדף ותחזיר אותו לפקודה הראשונה.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="sheet-clear-confirm" type="button">נקה</button>
+            <button class="btn" data-action="sheet-clear-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   // The verdict card, in the same shape and colours as the workbench's check.
@@ -20073,7 +20098,7 @@
     if (state.sheetDialog && !isGlobalNavigationAction(action)
         && !["sheet-check", "sheet-close", "sheet-result-ok",
              "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close",
-             "sheet-workbench"].includes(action)) {
+             "sheet-workbench", "sheet-clear-open", "sheet-clear-cancel", "sheet-clear-confirm"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -20332,6 +20357,15 @@
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
     if (action === "build-note-task") return setState({ infoDialog: "המשך יבוא..." });
     if (action === "build-note-close") return setState({ buildNoteList: false });
+    if (action === "sheet-clear-open") return setState({ sheetClearConfirm: true });
+    if (action === "sheet-clear-cancel") return setState({ sheetClearConfirm: null });
+    if (action === "sheet-clear-confirm") {
+      return setState({
+        instructionSheet: { revealed: 1, values: {}, hints: {}, notes: {} },
+        sheetClearConfirm: null,
+        sheetDialog: { result: null }
+      });
+    }
     if (action === "sheet-workbench") return openSheetWorkbench();
     if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });

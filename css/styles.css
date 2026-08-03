@@ -1032,9 +1032,9 @@ button { font: inherit; }
 }
 
 .sheet-card {
-  /* The page fills the screen: as wide as 28 squares go, as tall as the whole
-     sheet plus the buttons row allows. */
-  --sq: min(calc((100vw - 34px) / 28), calc((100vh - 120px) / 15));
+  /* Small squares, as before — the page fills the screen by holding MORE of
+     them, not bigger ones. */
+  --sq: clamp(15px, 2vw, 26px);
   position: absolute;
   inset: 0;
   display: flex;
@@ -1047,44 +1047,60 @@ button { font: inherit; }
 .sheet-scroll {
   flex: 1;
   min-height: 0;
-  display: grid;
-  place-items: center;
   overflow: auto;
 }
 
+/* The paper covers the whole page; the worksheet occupies its top-right corner
+   and the rest is blank squares. The pattern is anchored to the RIGHT so its
+   lines fall exactly on the right-to-left grid tracks. */
 .sheet-paper {
   display: grid;
   grid-template-columns: repeat(28, var(--sq));
   grid-template-rows: repeat(var(--rows, 15), var(--sq));
-  width: calc(28 * var(--sq));
-  height: calc(var(--rows, 15) * var(--sq));
-  margin: auto;
+  justify-content: start;
+  align-content: start;
+  width: 100%;
+  min-height: 100%;
   direction: rtl;
   background-color: #fdfaf0;
   background-image:
     linear-gradient(to right, rgba(90, 130, 170, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(90, 130, 170, 0.3) 1px, transparent 1px);
   background-size: var(--sq) var(--sq);
+  background-position: top right;
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
 }
 
+/* One line between neighbours, never two: a heading draws its LEFT edge, and
+   only the one that starts a group draws its right edge. Where a thick field
+   rule already runs, the heading leaves that edge to the rule. */
 .sheet-head {
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid #3a2c17;
+  border-right: none;
   background: #efe4c8;
   font-weight: 700;
   font-size: calc(var(--sq) * 0.56);
   color: #241d12;
 }
 
+.sheet-head-right {
+  border-right: 2px solid #3a2c17;
+}
+
+.sheet-head-open-bottom {
+  border-bottom: none;
+}
+
 /* The heading over the three memory registers is one merged 2x6 cell, so its
    words wrap inside it instead of spilling over the neighbouring columns. */
+/* A long heading wraps inside its merged cell rather than shrinking away. */
 .sheet-head-span {
-  padding: 0 4px;
-  font-size: calc(var(--sq) * 0.34);
-  line-height: 1.2;
+  padding: 0 3px;
+  font-size: calc(var(--sq) * 0.46);
+  line-height: 1.12;
   text-align: center;
 }
 
@@ -1106,6 +1122,7 @@ button { font: inherit; }
 .sheet-rule {
   border-left: 3px solid #2f2617;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* The bits the open hint is talking about. */
