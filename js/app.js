@@ -5156,6 +5156,22 @@
     });
   }
 
+  // Dev shortcut (Ctrl+Shift+9) on the exercise page: fill in the state the
+  // CURRENT instruction leaves behind and check it — one instruction per press,
+  // so a tester walks the page forward without working it out by hand.
+  function sheetSecretSolve() {
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const progress = instructionSheetProgress();
+    const row = sheetCurrentRow();
+    const def = defs[row];
+    if (!def) return;
+    const values = { ...progress.values };
+    for (const column of columns) values[`${row}:${column}`] = String(def.after[column]);
+    setState({ instructionSheet: { ...progress, values }, sheetDialog: { ...state.sheetDialog, hint: null } }, false);
+    return checkInstructionSheet();
+  }
+
   // The hint the learner is looking at right now, if the hints window is open.
   function sheetOpenHint() {
     const open = state.sheetDialog && state.sheetDialog.hint;
@@ -5322,30 +5338,38 @@
     // A heading over each wing of the page.
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 10;grid-row:1;">מצב הרגיסטרים</div>`);
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:13 / span 16;grid-row:1;">פקודות המחשב</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:1 / span 4;grid-row:2 / span 2;">הרגיסטרים של המעבד</div>`);
     cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:5 / span 6;grid-row:2 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
     columns.forEach((column, index) => {
-      // A and D have nothing above them in the two heading rows, so they close
-      // the band themselves.
-      cells.push(`<div class="sheet-head${index < 2 ? " sheet-head-top" : ""}" style="grid-column:${index * 2 + 1} / span 2;grid-row:4;">${esc(column)}</div>`);
+      cells.push(`<div class="sheet-head" style="grid-column:${index * 2 + 1} / span 2;grid-row:4;">${esc(column)}</div>`);
     });
     // The instruction's own headings sit in the top two rows, which leaves the
     // third row free above the first instruction for the notes a hint writes.
     cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:2 / span 2;">הוראות ה-ALU</div>`);
     cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(15)} / span 2;grid-row:2 / span 2;">ביטים מיותרים</div>`);
     // Every vertical line on the page is a rule running its whole height — the
     // headings draw only their horizontal edges, so no line is ever doubled.
     // Every vertical line is a rule, so nothing is ever doubled or half a pixel
     // off. The outer frame of each wing runs the full height; the lines INSIDE a
     // wing start at row 2, so they do not cut through its top heading.
     const inner = `2 / span ${rows - 1}`;
+    // A line INSIDE a group of columns (between A and D, or between two memory
+    // registers) starts below the second heading band — it has no business
+    // cutting through a heading that spans the whole group.
+    const underHeadings = `4 / span ${rows - 3}`;
     const rules = [
       `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:1;grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:10;grid-row:1 / span ${rows};"></div>`,
       `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
       `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
       `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
       `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
-      ...[2, 4, 6, 8, 10].map((column) =>
-        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${inner};"></div>`),
+      // Between the processor's registers and the memory's: it separates the two
+      // headings too, so it runs through the band.
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:4;grid-row:${inner};"></div>`,
+      ...[2, 6, 8].map((column) =>
+        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${underHeadings};"></div>`),
       // The foot of each wing, so the tables are closed and not left hanging.
       `<div class="sheet-rule-foot" style="grid-column:1 / span 10;grid-row:${rows};"></div>`,
       `<div class="sheet-rule-foot" style="grid-column:13 / span 16;grid-row:${rows};"></div>`
@@ -20050,7 +20074,9 @@
     // (event.code is layout-independent, so it works on any keyboard.)
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
-      if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
+      // The 4.1 exercise page: one instruction per press.
+      if (state.sheetDialog) sheetSecretSolve();
+      else if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
       // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
       // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
       // real task, so it takes the normal secret-solve path instead — otherwise it
