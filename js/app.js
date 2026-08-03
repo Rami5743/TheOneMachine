@@ -5067,7 +5067,13 @@
   // it on the wrong side ("A*"); fencing the pair between two left-to-right marks
   // keeps it reading "*A". (The slides bake the same guard into their SVG text.)
   function ltrStarRun(text) {
-    return String(text ?? "").replace(/\*A/g, "\u200e*A\u200e");
+    return String(text ?? "")
+      .replace(/\*A/g, "\u200e*A\u200e")
+      // A dash between two Latin runs \u2014 "\u2026\u05e9\u05dc \u05d4-ALU \u2014 D \u05d5-*A" \u2014 is a neutral
+      // character, so the bidi algorithm swallows it into the Latin run and it
+      // comes out on the WRONG side of what follows it (the reader gets
+      // "D \u2014 \u05d5-*A"). Fencing it with RLMs keeps it in the Hebrew flow.
+      .replace(/ ([\u2014\u2013]) /g, " \u200f$1\u200f ");
   }
 
   function sheetHintsFor(row) {
