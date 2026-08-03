@@ -4992,13 +4992,21 @@
     const zone = panelHotspots(panel).find((h) => h.objectId === id);
     const above = zone && Number(zone.top) > 52;
     const after = zone ? Number(zone.left) + Number(zone.width) : 40;
+    // A zone that reaches the right edge (the RAM racks) gets its window to its
+    // LEFT, hugging it: the window is anchored by its RIGHT edge right beside the
+    // zone, instead of being left floating in the middle of the room.
+    const beside = Boolean(zone) && !above && after > 62 && Number(zone.left) >= 34;
     const left = !zone
       ? 40
       : (above
         ? Math.min(Math.max(Number(zone.left) + Number(zone.width) / 2, 16), 84)
-        : (after > 62 ? Math.max(2, Number(zone.left) - 24) : after));
+        : (beside
+          ? Number(zone.left) - 1
+          : (after > 62 ? Math.max(2, Number(zone.left) - 24) : after)));
     const top = zone
-      ? (above ? Math.max(6, Number(zone.top) - 1) : Math.min(Math.max(2, Number(zone.top) - 6), 74))
+      ? (above
+        ? Math.max(6, Number(zone.top) - 1)
+        : Math.min(Math.max(2, Number(zone.top) - (beside ? 0 : 6)), 74))
       : 40;
     const take = object.takeLabel
       ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
@@ -5010,7 +5018,7 @@
       : `<strong class="panel-object-title">${esc(object.label)}</strong>`;
     const note = object.note ? `<p class="panel-object-note">${esc(object.note)}</p>` : "";
     return `
-      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}${above ? " panel-object-popover-above" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}${above ? " panel-object-popover-above" : ""}${beside ? " panel-object-popover-before" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
         ${head}
         ${note}
         ${take}
@@ -12281,6 +12289,18 @@
     renderStory();
     if (state.dialog) {
       requestAnimationFrame(() => app.querySelector("[data-action='dialog-yes']")?.focus());
+    }
+    // The square being written in on the exercise page. `autofocus` alone is not
+    // enough on markup written with innerHTML — without this the square was only
+    // marked and the typing went nowhere.
+    if (state.sheetDialog && state.sheetScratchCell) {
+      requestAnimationFrame(() => {
+        const box = app.querySelector(".sheet-scratch-input");
+        if (!box || document.activeElement === box) return;
+        box.focus();
+        const end = box.value.length;
+        try { box.setSelectionRange(end, end); } catch (e) { /* not a text input */ }
+      });
     }
   }
 
