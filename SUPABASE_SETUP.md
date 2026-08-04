@@ -64,6 +64,11 @@ create unique index if not exists rankings_nickname_unique on public.rankings (l
 
 ## איפוס דירוגים של כרטיס שדרישותיו השתנו
 
-זה מסמך נפרד: `SUPABASE_RESET_CARD_RECORDS.md` (וה-SQL ב-`supabase-reset-card-records.sql`).
-צריך להריץ אותו בכל פעם שמשנים דרישות של כרטיס — אחרת שיאים שנמדדו לפי הדרישות
-הישנות ממשיכים להופיע בלוח השיאים שלו.
+צריך להריץ בכל פעם שמשנים דרישות של כרטיס, אחרת שיאים שנמדדו לפי הדרישות הישנות
+ממשיכים להופיע בלוח השיאים שלו. ההוראות המלאות נמצאות במסמך נפרד:
+
+    SUPABASE_RESET_CARD_RECORDS.md
+
+וה-SQL עצמו:
+
+    supabase-reset-card-records.sql
