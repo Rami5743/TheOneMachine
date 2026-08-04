@@ -1231,7 +1231,8 @@ button { font: inherit; }
   left: 22px;
   top: calc(var(--topbar-h) + 44px);
   z-index: 215;
-  width: 320px;
+  /* Wide enough for the strip to use squares the size of the page's own. */
+  width: calc(16 * var(--sq, 26px) + 26px);
   display: flex;
   flex-direction: column;
   border: 2px solid #3a2c17;
@@ -1254,27 +1255,52 @@ button { font: inherit; }
 
 .sheet-guide-title {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 1.12rem;
   color: #241d12;
 }
+
+/* The window is picked up anywhere that is not text or a button. */
+.sheet-guide,
+.sheet-guide-head,
+.sheet-guide-body,
+.sheet-guide-foot,
+.sheet-guide-strip,
+.sheet-guide-list,
+.sheet-guide-item {
+  cursor: grab;
+}
+
+.sheet-guide-dragging,
+.sheet-guide-dragging .sheet-guide-head,
+.sheet-guide-dragging .sheet-guide-body,
+.sheet-guide-dragging .sheet-guide-foot {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.sheet-guide-title,
+.sheet-guide-page-title,
+.sheet-guide-text,
+.sheet-guide-count { cursor: default; }
 
 .sheet-guide-toggle {
-  border: none;
-  background: transparent;
+  border: 1px solid #3a2c17;
+  background: #fbf6e6;
   color: #241d12;
-  font-size: 1rem;
+  font-size: 0.92rem;
+  font-weight: 700;
   line-height: 1;
-  padding: 2px 6px;
+  padding: 5px 12px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 999px;
 }
 
-.sheet-guide-toggle:hover { background: rgba(58, 44, 23, 0.12); }
+.sheet-guide-toggle:hover { background: #f2e7cd; }
 
 .sheet-guide-body {
   /* Fixed height: the window must not resize as the pages change. Sized to the
      longest page, so nothing scrolls in practice. */
-  height: 226px;
+  height: 380px;
   overflow: auto;
   padding: 10px;
 }
@@ -1290,13 +1316,13 @@ button { font: inherit; }
 }
 
 .sheet-guide-bit {
-  height: 17px;
+  height: var(--sq, 26px);
   background: #fdfaf0;
 }
 
 .sheet-guide-page-title {
-  margin: 0 0 6px;
-  font-size: 0.95rem;
+  margin: 0 0 8px;
+  font-size: 1.06rem;
   font-weight: 800;
   color: #241d12;
   text-align: center;
@@ -1312,23 +1338,35 @@ button { font: inherit; }
 
 .sheet-guide-item {
   display: grid;
-  grid-template-columns: 16px 1fr;
+  grid-template-columns: 18px 1fr;
   gap: 7px;
   align-items: start;
 }
 
 .sheet-guide-swatch {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border: 1px solid #3a2c17;
   border-radius: 3px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .sheet-guide-text {
-  font-size: 0.86rem;
-  line-height: 1.35;
+  font-size: 1rem;
+  line-height: 1.4;
   color: #241d12;
+}
+
+/* The values a field can take, one to a line. */
+.sheet-guide-options {
+  margin: 3px 0 0;
+  padding: 0 14px 0 0;
+  list-style: disc;
+}
+
+.sheet-guide-options li {
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
 /* One colour per field of the page — the strip and its swatch share it. */
@@ -1350,29 +1388,22 @@ button { font: inherit; }
 }
 
 .sheet-guide-count {
-  font-size: 0.85rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: #4a3d27;
 }
 
-/* The arrows: "המשך" points along the reading direction (leftwards in RTL). */
-.sheet-guide-step {
-  border: 1px solid #3a2c17;
-  border-radius: 999px;
-  background: #fbf6e6;
-  color: #241d12;
-  width: 30px;
-  height: 26px;
-  font-size: 0.9rem;
-  line-height: 1;
-  cursor: pointer;
+/* The arrows are the game's own nav buttons, only smaller. */
+.sheet-guide-foot .btn.icon-btn {
+  min-width: 0;
+  width: 38px;
+  height: 34px;
+  padding: 0;
 }
 
-.sheet-guide-step-next { transform: scaleX(-1); }
-
-.sheet-guide-step:disabled {
-  opacity: 0.35;
-  cursor: default;
+.sheet-guide-foot .btn.icon-btn svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by

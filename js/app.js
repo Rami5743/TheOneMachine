@@ -5590,7 +5590,8 @@
     const pages = instructionGuidePages();
     const saved = state.sheetGuide && typeof state.sheetGuide === "object" ? state.sheetGuide : {};
     const page = Number.isInteger(saved.page) ? Math.min(Math.max(saved.page, 0), Math.max(pages.length - 1, 0)) : 0;
-    return { page, open: saved.open !== false };
+    const pos = (saved.pos && Number.isFinite(saved.pos.left) && Number.isFinite(saved.pos.top)) ? saved.pos : null;
+    return { page, open: saved.open !== false, pos };
   }
 
   function setSheetGuide(patch) {
@@ -5608,15 +5609,17 @@
   function renderSheetGuide() {
     const pages = instructionGuidePages();
     if (!pages.length) return "";
-    const { page, open } = sheetGuideState();
+    const { page, open, pos } = sheetGuideState();
+    // Where the learner last dragged it to (it opens beside the page otherwise).
+    const at = pos ? ` style="left:${Math.round(pos.left)}px;top:${Math.round(pos.top)}px;"` : "";
     const current = pages[page] || pages[0];
-    const toggle = `<button class="sheet-guide-toggle" data-action="sheet-guide-toggle" type="button" aria-expanded="${open ? "true" : "false"}" title="${open ? "הסתר" : "הצג"}">${open ? "▾" : "▸"}</button>`;
+    const toggle = `<button class="sheet-guide-toggle" data-action="sheet-guide-toggle" type="button" aria-expanded="${open ? "true" : "false"}">${open ? "הסתרה" : "הצגה"}</button>`;
     const header = `
       <div class="sheet-guide-head">
         <span class="sheet-guide-title">מבנה הפקודה</span>
         ${toggle}
       </div>`;
-    if (!open) return `<section class="sheet-guide sheet-guide-closed" aria-label="מבנה הפקודה">${header}</section>`;
+    if (!open) return `<section class="sheet-guide sheet-guide-closed" aria-label="מבנה הפקודה"${at}>${header}</section>`;
     // Which colour each of the sixteen squares takes on this page.
     const colourOf = [];
     (current.groups || []).forEach((group, index) => {
@@ -5627,13 +5630,21 @@
       const cls = Number.isInteger(at) ? ` sheet-guide-bit-c${at}` : "";
       return `<span class="sheet-guide-bit${cls}"></span>`;
     }).join("");
-    const legend = (current.groups || []).map((group, index) => `
+    // A field whose bits pick between named values gets its values as a list, one
+    // to a line, rather than run together in a sentence.
+    const legend = (current.groups || []).map((group, index) => {
+      const options = Array.isArray(group.options) && group.options.length
+        ? `<ul class="sheet-guide-options">${group.options.map((option) =>
+            `<li>${esc(isolateLatinRuns(option))}</li>`).join("")}</ul>`
+        : "";
+      return `
       <li class="sheet-guide-item">
         <span class="sheet-guide-swatch sheet-guide-bit-c${index}" aria-hidden="true"></span>
-        <span class="sheet-guide-text">${esc(isolateLatinRuns(group.text))}</span>
-      </li>`).join("");
+        <div class="sheet-guide-text">${esc(isolateLatinRuns(group.text))}${options}</div>
+      </li>`;
+    }).join("");
     return `
-      <section class="sheet-guide" aria-label="מבנה הפקודה">
+      <section class="sheet-guide" aria-label="מבנה הפקודה"${at}>
         ${header}
         <div class="sheet-guide-body">
           <div class="sheet-guide-strip" aria-hidden="true">${strip}</div>
@@ -5641,9 +5652,9 @@
           <ul class="sheet-guide-list">${legend}</ul>
         </div>
         <div class="sheet-guide-foot">
-          <button class="sheet-guide-step" data-action="sheet-guide-prev" type="button" aria-label="הקודם"${page === 0 ? " disabled" : ""}>➤</button>
+          ${navButton("sheet-guide-prev", "arrow-right", "הקודם", { disabled: page === 0 })}
           <span class="sheet-guide-count" dir="ltr">${page + 1} / ${pages.length}</span>
-          <button class="sheet-guide-step sheet-guide-step-next" data-action="sheet-guide-next" type="button" aria-label="המשך"${page >= pages.length - 1 ? " disabled" : ""}>➤</button>
+          ${navButton("sheet-guide-next", "arrow-left", "המשך", { primary: true, disabled: page >= pages.length - 1 })}
         </div>
       </section>`;
   }
@@ -20383,6 +20394,54 @@
     if (nb && Number.isFinite(left) && Number.isFinite(top)) {
       setState({ notebook: { ...nb, winPos: { left, top } } }, false);
     }
+  });
+
+  // Dragging the "מבנה הפקודה" window: it is picked up ANYWHERE that is not text
+  // and not a button — its frame, its heading strip, the paddings — so it can be
+  // moved off whatever the learner wants to look at. The position is applied live
+  // and saved on release, so it stays put.
+  let sheetGuideDrag = null;
+
+  function sheetGuideDragHandle(target) {
+    if (!target || !target.closest) return null;
+    const win = target.closest(".sheet-guide");
+    if (!win) return null;
+    // Text and buttons belong to themselves.
+    if (target.closest("button, a, input, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
+    return win;
+  }
+
+  document.addEventListener("mousedown", (event) => {
+    const win = sheetGuideDragHandle(event.target);
+    if (!win) return;
+    const rect = win.getBoundingClientRect();
+    sheetGuideDrag = { win, dx: event.clientX - rect.left, dy: event.clientY - rect.top, moved: false };
+    win.style.left = `${rect.left}px`;
+    win.style.top = `${rect.top}px`;
+    win.classList.add("sheet-guide-dragging");
+    event.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!sheetGuideDrag) return;
+    const win = sheetGuideDrag.win;
+    const rect = win.getBoundingClientRect();
+    const x = Math.max(0, Math.min(window.innerWidth - Math.min(rect.width, 80), event.clientX - sheetGuideDrag.dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 34, event.clientY - sheetGuideDrag.dy));
+    sheetGuideDrag.moved = true;
+    win.style.left = `${x}px`;
+    win.style.top = `${y}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!sheetGuideDrag) return;
+    const { win, moved } = sheetGuideDrag;
+    sheetGuideDrag = null;
+    win.classList.remove("sheet-guide-dragging");
+    if (!moved) return;
+    const left = parseInt(win.style.left, 10);
+    const top = parseInt(win.style.top, 10);
+    if (Number.isFinite(left) && Number.isFinite(top)) setSheetGuide({ pos: { left, top } });
   });
 
   // A converter digit distinguishes single-click (increment mod 10) from
