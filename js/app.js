@@ -1556,6 +1556,10 @@
     // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
     // survives leaving the slide; the check verdict itself is transient.
     instructionSheet: null,
+    // The reference window on the exercise page ("מבנה הפקודה"): which page it
+    // shows and whether it is open. A preference, so it is persisted rather than
+    // wiped with the transient dialogs.
+    sheetGuide: null,
     // The scratch table of the exercise page ("רוצה לבדוק דברים על שולחן העבודה?").
     // It is the page's OWN workbench: kept in its own slot so returning to the
     // page finds the table exactly as it was left, and so it neither disturbs nor
@@ -5114,6 +5118,15 @@
       .replace(/ ([\u2014\u2013]) /g, " \u200f$1\u200f ");
   }
 
+  // Hebrew text with Latin words and numbers in it ("יעד ה-ALU4: 0 - אין, 1 - A,
+  // 2 - D") is a bidi minefield: a run of Latin swallows the separators around it
+  // and the pairs come out in the wrong order. Wrapping every Latin/number run in
+  // a bidi ISOLATE (U+2066 … U+2069) pins each one to itself, so the commas and
+  // dashes stay in the Hebrew flow and the list reads right to left as written.
+  function isolateLatinRuns(text) {
+    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.]*/g, "\u2066$&\u2069");
+  }
+
   function sheetHintsFor(row) {
     const def = instructionSheetDefs()[row];
     return Array.isArray(def?.hints) ? def.hints : [];
@@ -5556,11 +5569,83 @@
             <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
+        ${renderSheetGuide()}
         ${renderSheetWorkbenchArrow()}
         ${renderSheetHintWindow()}
         ${renderSheetClearDialog()}
         ${renderInstructionSheetResult()}
       </div>`;
+  }
+
+  // ---- "מבנה הפקודה": the reference window on the exercise page -------------
+  // A small window the learner can fold away, paging down through the levels of
+  // the instruction: the word, the ALU3/4 instruction inside it, and so on. Each
+  // page paints its fields onto a strip of the sixteen squares and explains them
+  // underneath, colour by colour.
+  function instructionGuidePages() {
+    return typeof INSTRUCTION_GUIDE !== "undefined" ? INSTRUCTION_GUIDE : [];
+  }
+
+  function sheetGuideState() {
+    const pages = instructionGuidePages();
+    const saved = state.sheetGuide && typeof state.sheetGuide === "object" ? state.sheetGuide : {};
+    const page = Number.isInteger(saved.page) ? Math.min(Math.max(saved.page, 0), Math.max(pages.length - 1, 0)) : 0;
+    return { page, open: saved.open !== false };
+  }
+
+  function setSheetGuide(patch) {
+    return setState({ sheetGuide: { ...sheetGuideState(), ...patch } });
+  }
+
+  function stepSheetGuide(delta) {
+    const pages = instructionGuidePages();
+    const { page } = sheetGuideState();
+    const next = Math.min(Math.max(page + delta, 0), Math.max(pages.length - 1, 0));
+    if (next === page) return;
+    return setSheetGuide({ page: next });
+  }
+
+  function renderSheetGuide() {
+    const pages = instructionGuidePages();
+    if (!pages.length) return "";
+    const { page, open } = sheetGuideState();
+    const current = pages[page] || pages[0];
+    const toggle = `<button class="sheet-guide-toggle" data-action="sheet-guide-toggle" type="button" aria-expanded="${open ? "true" : "false"}" title="${open ? "הסתר" : "הצג"}">${open ? "▾" : "▸"}</button>`;
+    const header = `
+      <div class="sheet-guide-head">
+        <span class="sheet-guide-title">מבנה הפקודה</span>
+        ${toggle}
+      </div>`;
+    if (!open) return `<section class="sheet-guide sheet-guide-closed" aria-label="מבנה הפקודה">${header}</section>`;
+    // Which colour each of the sixteen squares takes on this page.
+    const colourOf = [];
+    (current.groups || []).forEach((group, index) => {
+      for (let bit = Number(group.from); bit <= Number(group.to); bit += 1) colourOf[bit] = index;
+    });
+    const strip = Array.from({ length: 16 }, (unused, i) => {
+      const at = colourOf[i + 1];
+      const cls = Number.isInteger(at) ? ` sheet-guide-bit-c${at}` : "";
+      return `<span class="sheet-guide-bit${cls}"></span>`;
+    }).join("");
+    const legend = (current.groups || []).map((group, index) => `
+      <li class="sheet-guide-item">
+        <span class="sheet-guide-swatch sheet-guide-bit-c${index}" aria-hidden="true"></span>
+        <span class="sheet-guide-text">${esc(isolateLatinRuns(group.text))}</span>
+      </li>`).join("");
+    return `
+      <section class="sheet-guide" aria-label="מבנה הפקודה">
+        ${header}
+        <div class="sheet-guide-body">
+          <div class="sheet-guide-strip" aria-hidden="true">${strip}</div>
+          <h3 class="sheet-guide-page-title">${esc(isolateLatinRuns(current.title))}</h3>
+          <ul class="sheet-guide-list">${legend}</ul>
+        </div>
+        <div class="sheet-guide-foot">
+          <button class="sheet-guide-step" data-action="sheet-guide-prev" type="button" aria-label="הקודם"${page === 0 ? " disabled" : ""}>➤</button>
+          <span class="sheet-guide-count" dir="ltr">${page + 1} / ${pages.length}</span>
+          <button class="sheet-guide-step sheet-guide-step-next" data-action="sheet-guide-next" type="button" aria-label="המשך"${page >= pages.length - 1 ? " disabled" : ""}>➤</button>
+        </div>
+      </section>`;
   }
 
   // A hint that sends the learner to the workbench ("רוצה לבדוק על שולחן העבודה
@@ -20471,7 +20556,8 @@
     if (state.sheetDialog && !isGlobalNavigationAction(action)
         && !["sheet-check", "sheet-close", "sheet-result-ok",
              "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close",
-             "sheet-workbench", "sheet-clear-open", "sheet-clear-cancel", "sheet-clear-confirm"].includes(action)) {
+             "sheet-workbench", "sheet-clear-open", "sheet-clear-cancel", "sheet-clear-confirm",
+             "sheet-guide-toggle", "sheet-guide-prev", "sheet-guide-next"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -20731,6 +20817,9 @@
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
     if (action === "build-note-task") return setState({ infoDialog: "המשך יבוא..." });
     if (action === "build-note-close") return setState({ buildNoteList: false });
+    if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
+    if (action === "sheet-guide-prev") return stepSheetGuide(-1);
+    if (action === "sheet-guide-next") return stepSheetGuide(1);
     if (action === "sheet-clear-open") return setState({ sheetClearConfirm: true });
     if (action === "sheet-clear-cancel") return setState({ sheetClearConfirm: null });
     if (action === "sheet-clear-confirm") {

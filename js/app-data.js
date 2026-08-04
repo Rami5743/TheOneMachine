@@ -1113,3 +1113,43 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   ];
 
   const INSTRUCTION_SHEET_COLUMNS = ["A", "D", "R0", "R1", "R2"];
+
+  // The reference window on the exercise page ("מבנה הפקודה"): a strip of the
+  // sixteen squares of the instruction, with the fields of one level coloured in
+  // and explained underneath. Each page zooms one level deeper — the word, the
+  // ALU3/4 instruction inside it, the ALU2 instruction inside THAT, and the ALU1
+  // instruction at the bottom. `from`/`to` are bit numbers (1 = leftmost).
+  const INSTRUCTION_GUIDE = [
+    {
+      title: "מבנה הפקודה",
+      groups: [
+        { from: 1, to: 12, text: "הוראת ה-ALU4" },
+        { from: 13, to: 14, text: "יעד ה-ALU4: 0 - אין, 1 - A, 2 - D, 3 - *A" },
+        { from: 15, to: 16, text: "ביטים מיותרים" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU3/4",
+      groups: [
+        { from: 1, to: 1, text: "האם לבצע חישוב: 0 - לא לבצע, להוציא את ההוראה עצמה, 1 - לבצע לפי הוראת ה-ALU2" },
+        { from: 2, to: 5, text: "כשלא מבצעים חישוב אלה חלק מהמספר שיוצא; כשמבצעים חישוב הם לא בשימוש" },
+        { from: 6, to: 12, text: "הוראת ה-ALU2 (כשהוא מופעל)" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU2",
+      groups: [
+        { from: 6, to: 6, text: "על אילו כניסות לעבוד: 0 - הראשונה והשנייה (D ו-A), 1 - הראשונה והשלישית (D ו-*A)" },
+        { from: 7, to: 12, text: "הוראת ה-ALU1 — הפעולה עצמה" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU1",
+      groups: [
+        { from: 7, to: 7, text: "האם לבצע NOT על התוצאה בסוף: 1 - כן" },
+        { from: 8, to: 8, text: "הפעולה על שתי הכניסות המוכנות: 0 - AND, 1 - חיבור" },
+        { from: 9, to: 10, text: "ההכנה של הכניסה השנייה: הביט הראשון - NOT, השני - איפוס" },
+        { from: 11, to: 12, text: "ההכנה של הכניסה הראשונה: הביט הראשון - NOT, השני - איפוס" }
+      ]
+    }
+  ];

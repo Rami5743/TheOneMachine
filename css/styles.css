@@ -1221,6 +1221,160 @@ button { font: inherit; }
   pointer-events: auto;
 }
 
+/* --- "מבנה הפקודה": the reference window on the exercise page -------------
+   It sits on the free paper to the left of the two tables, folds away to its
+   title bar, and keeps ONE size while the learner pages through it (the body is
+   a fixed box that scrolls if a page runs long), so paging never makes the
+   window jump about. */
+.sheet-guide {
+  position: fixed;
+  left: 22px;
+  top: calc(var(--topbar-h) + 44px);
+  z-index: 215;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #3a2c17;
+  border-radius: 10px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  direction: rtl;
+  overflow: hidden;
+}
+
+.sheet-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #efe4c8;
+  border-bottom: 2px solid #3a2c17;
+}
+
+.sheet-guide-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #241d12;
+}
+
+.sheet-guide-toggle {
+  border: none;
+  background: transparent;
+  color: #241d12;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.sheet-guide-toggle:hover { background: rgba(58, 44, 23, 0.12); }
+
+.sheet-guide-body {
+  /* Fixed height: the window must not resize as the pages change. Sized to the
+     longest page, so nothing scrolls in practice. */
+  height: 226px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.sheet-guide-strip {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  direction: ltr;               /* bit 1 leftmost, as on the page */
+  border: 1px solid #3a2c17;
+  background: #3a2c17;
+  margin-bottom: 8px;
+}
+
+.sheet-guide-bit {
+  height: 17px;
+  background: #fdfaf0;
+}
+
+.sheet-guide-page-title {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #241d12;
+  text-align: center;
+}
+
+.sheet-guide-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+
+.sheet-guide-item {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 7px;
+  align-items: start;
+}
+
+.sheet-guide-swatch {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #3a2c17;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+.sheet-guide-text {
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: #241d12;
+}
+
+/* One colour per field of the page — the strip and its swatch share it. */
+.sheet-guide-bit-c0 { background: #f2c14e; }
+.sheet-guide-bit-c1 { background: #7fb7d9; }
+.sheet-guide-bit-c2 { background: #c6c0b1; }
+.sheet-guide-bit-c3 { background: #a8cf8e; }
+.sheet-guide-bit-c4 { background: #e39aa8; }
+.sheet-guide-bit-c5 { background: #bda6e0; }
+
+.sheet-guide-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #efe4c8;
+  border-top: 2px solid #3a2c17;
+}
+
+.sheet-guide-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4a3d27;
+}
+
+/* The arrows: "המשך" points along the reading direction (leftwards in RTL). */
+.sheet-guide-step {
+  border: 1px solid #3a2c17;
+  border-radius: 999px;
+  background: #fbf6e6;
+  color: #241d12;
+  width: 30px;
+  height: 26px;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sheet-guide-step-next { transform: scaleX(-1); }
+
+.sheet-guide-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 /* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by
    JS over the button (which sits under the hints window), bouncing towards it. */
 .sheet-wb-arrow {
