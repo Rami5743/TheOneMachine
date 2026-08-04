@@ -1182,7 +1182,7 @@
 
   // taskCard-ALU4: like ALU3 (4 inputs, 16-bit result on the right) plus two
   // single-bit outputs at the BOTTOM — ng (the first/top bit of the result) and
-  // nz (1 iff the result is non-zero). JSON-backed: applySolutionDocToDefs
+  // zr (1 iff the result IS zero). JSON-backed: applySolutionDocToDefs
   // overwrites these pins from ALU4.json at load; this is the pre-JSON skeleton.
   WORKSPACE_COMPONENT_DEFS["taskCard-ALU4"] = {
     label: "מסגרת ALU4",
@@ -1202,17 +1202,17 @@
       inputInt4: { x: -215, y: -210, direction: "out", width: 12, label: "כניסת הבקרה פנימית" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת התוצאה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת התוצאה חיצונית" },
-      // ng/nz come out the BOTTOM edge of the card (pointing down), captioned.
+      // ng/zr come out the BOTTOM edge of the card (pointing down), captioned.
       outputInt2: { x: -90, y: 150, direction: "in", width: 1, label: "יציאת ng פנימית", caption: "ng" },
       outputExt2: { x: -90, y: 230, direction: "out", width: 1, label: "יציאת ng חיצונית", caption: "ng" },
-      outputInt3: { x: 90, y: 150, direction: "in", width: 1, label: "יציאת nz פנימית", caption: "nz" },
-      outputExt3: { x: 90, y: 230, direction: "out", width: 1, label: "יציאת nz חיצונית", caption: "nz" }
+      outputInt3: { x: 90, y: 150, direction: "in", width: 1, label: "יציאת zr פנימית", caption: "zr" },
+      outputExt3: { x: 90, y: 230, direction: "out", width: 1, label: "יציאת zr חיצונית", caption: "zr" }
     },
     bounds: { left: 340, right: 340, top: 310, bottom: 280 }
   };
 
   // gate-ALU4: the placeable card earned by completing ALU4. Same inputs as ALU3,
-  // a 16-bit result on the right, and the ng/nz single-bit outputs at the bottom.
+  // a 16-bit result on the right, and the ng/zr single-bit outputs at the bottom.
   WORKSPACE_COMPONENT_DEFS["gate-ALU4"] = {
     label: "ALU4",
     taskId: "ALU4",
@@ -1227,7 +1227,7 @@
       in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" },
       out2: { x: -20, y: 66, direction: "out", width: 1, label: "יציאת ng" },
-      out3: { x: 20, y: 66, direction: "out", width: 1, label: "יציאת nz" }
+      out3: { x: 20, y: 66, direction: "out", width: 1, label: "יציאת zr" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 74 }
   };
@@ -2515,11 +2515,11 @@
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
       } else if (pinEdge === "bottom") {
-        // An output poking out the BOTTOM edge (ALU4's ng/nz), drawn from its
+        // An output poking out the BOTTOM edge (ALU4's ng/zr), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
         const iy = cy + (internalPin ? internalPin.y : pin.y - 70);
         const cap = pin.caption || "";
-        // An OUTPUT poking out the bottom (ALU4's ng/nz) names itself under its
+        // An OUTPUT poking out the bottom (ALU4's ng/zr) names itself under its
         // tip. An INPUT coming in from below (the 3.4 device buses) names itself
         // INSIDE the frame instead — under the board's own bottom edge there is
         // often nothing left to read.
@@ -7169,13 +7169,14 @@
         }
       },
       {
-        text: "היציאה nz היא 1 אם בס היציאה שונה מ-0. מכניסים את בס היציאה ל-≠0_16, והיציאה שלו היא nz.",
+        text: "היציאה zr היא 1 אם בס היציאה הוא 0. מכניסים את בס היציאה ל-≠0_16 — היציאה שלו היא 1 כשהבס שונה מ-0 — ומעבירים אותה דרך Not, וזה zr.",
         highlight: {
-          components: ["nz"],
+          components: ["neq0", "zr-not"],
           terminals: ["task-card-1.outputInt3"],
           wires: [
-            wireKey("alu3.out1", "nz.in1"),
-            wireKey("nz.out", "task-card-1.outputInt3")
+            wireKey("alu3.out1", "neq0.in1"),
+            wireKey("neq0.out", "zr-not.in1"),
+            wireKey("zr-not.out", "task-card-1.outputInt3")
           ]
         }
       }
@@ -13806,7 +13807,7 @@
         direction: p.dir || prev.direction || "in",
         width: Number.isInteger(p.w) ? p.w : prev.width,
         label: (p.label != null ? p.label : prev.label) || "",
-        // Short caption drawn on the frame stub (e.g. "ng"/"nz" for ALU4's
+        // Short caption drawn on the frame stub (e.g. "ng"/"zr" for ALU4's
         // bottom outputs); carried through from the JSON pin.
         caption: (p.caption != null ? p.caption : prev.caption) || "",
         // WHICH edge of the frame the pin belongs to. The JSON carries geometry,
@@ -14992,7 +14993,7 @@
     // The expected numeric result. Add4 spreads its answer over a sum bus + a
     // carry bit, so combine them (a+b+cin); every other card has a single result
     // bus whose decimal value is the answer (its widest output for ALU4, whose
-    // ng/nz are just 1-bit flags).
+    // ng/zr are just 1-bit flags).
     let result;
     if (taskId === "Add4") {
       result = testCase.a + testCase.b + testCase.cin;
@@ -15252,15 +15253,15 @@
       ];
     }
     if (taskId === "ALU4") {
-      // Same shape as ALU3 (result), chosen to exercise ng (top/MSB bit) and nz
+      // Same shape as ALU3 (result), chosen to exercise ng (top/MSB bit) and zr
       // (result non-zero): all-zero result, a small positive, ~0 (all ones),
       // 0x0001, and a result with the MSB set.
       return [
-        { a: 0, b: 0, d: 0, control: 0x000 },                 // 0x0000 -> ng=0, nz=0
-        { a: 0x1111, b: 0x2222, d: 0x3333, control: 0x123 },  // 0x0123 -> ng=0, nz=1
-        { a: 0, b: 0, d: 0, control: 0x820 },                 // c11,c5 NOT -> 0xFFFF -> ng=1, nz=1
-        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F },  // 0x0001 -> ng=0, nz=1
-        { a: 0x8000, b: 0xFFFF, d: 0x0F0F, control: 0x800 }   // c11=1 sel0 AND -> 0x8000 -> ng=1, nz=1
+        { a: 0, b: 0, d: 0, control: 0x000 },                 // 0x0000 -> ng=0, zr=1
+        { a: 0x1111, b: 0x2222, d: 0x3333, control: 0x123 },  // 0x0123 -> ng=0, zr=0
+        { a: 0, b: 0, d: 0, control: 0x820 },                 // c11,c5 NOT -> 0xFFFF -> ng=1, zr=0
+        { a: 0x1234, b: 0x5678, d: 0x9ABC, control: 0x87F },  // 0x0001 -> ng=0, zr=0
+        { a: 0x8000, b: 0xFFFF, d: 0x0F0F, control: 0x800 }   // c11=1 sel0 AND -> 0x8000 -> ng=1, zr=0
       ];
     }
     return [];
@@ -15457,7 +15458,7 @@
     }
     if (taskId === "ALU4") {
       // ALU4 = ALU3 result + two single-bit outputs: ng (the first/top MSB bit of
-      // the result) and nz (1 iff the result is non-zero).
+      // the result) and zr (1 iff the result IS zero).
       const c = testCase.control;
       const bit = (i) => (c >> i) & 1;
       const prep = (n, zeroBit, notBit) => {
@@ -15481,7 +15482,7 @@
         outputs: [
           { ref: "outputExt1", expected: add16Bits(result) },
           { ref: "outputExt2", expected: [Boolean((result >> 15) & 1)] }, // ng = MSB
-          { ref: "outputExt3", expected: [result !== 0] }                  // nz = non-zero
+          { ref: "outputExt3", expected: [result === 0] }                  // zr = the result is zero
         ]
       };
     }

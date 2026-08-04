@@ -1360,8 +1360,8 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 150,
           "w": 1,
           "dir": "in",
-          "label": "יציאת nz",
-          "caption": "nz"
+          "label": "יציאת zr",
+          "caption": "zr"
         },
         {
           "id": "outputExt3",
@@ -1370,7 +1370,7 @@ window.EMBEDDED_SOLUTIONS = {
           "w": 1,
           "dir": "out",
           "label": "",
-          "caption": "nz"
+          "caption": "zr"
         }
       ]
     },
@@ -1403,10 +1403,16 @@ window.EMBEDDED_SOLUTIONS = {
         "singleWidth": 16
       },
       {
-        "id": "nz",
+        "id": "neq0",
         "type": "gate-Neq0_16",
         "x": 675,
         "y": 425
+      },
+      {
+        "id": "zr-not",
+        "type": "gate-Not",
+        "x": 700,
+        "y": 490
       }
     ],
     "wires": [
@@ -1436,14 +1442,18 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "alu3.out1",
-        "b": "nz.in1"
+        "b": "neq0.in1"
       },
       {
         "a": "ng-split.leg1",
         "b": "task-card-1.outputInt2"
       },
       {
-        "a": "nz.out",
+        "a": "neq0.out",
+        "b": "zr-not.in1"
+      },
+      {
+        "a": "zr-not.out",
         "b": "task-card-1.outputInt3"
       }
     ],
@@ -1480,7 +1490,7 @@ window.EMBEDDED_SOLUTIONS = {
           "control": 2048
         }
       ],
-      "note": "ALU4 = ALU3 result on the main output; ng = the first (top/MSB) bit of the result; nz = 1 iff the result is non-zero."
+      "note": "ALU4 = ALU3 result on the main output; ng = the first (top/MSB) bit of the result; zr = 1 iff the result is zero."
     },
     "harness": {
       "inputs": {

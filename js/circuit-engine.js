@@ -701,7 +701,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             } else if (alu.op === "alu4") {
               // ALU4: the ALU3 result (into out1, written below), PLUS two extra
               // single-bit outputs — ng (out2) = the first/top (MSB) bit of the
-              // result, and nz (out3) = 1 iff the result is non-zero.
+              // result, and zr (out3) = 1 iff the result IS zero.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);
               const v2 = inputBits(workspace, `${component.id}.in2`, outputs);
               const v3 = inputBits(workspace, `${component.id}.in3`, outputs);
@@ -731,9 +731,9 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               for (let i = 0; i < w; i += 1) optionB.push(ctrl[5] ? !combined[i] : combined[i]);
               const selector = ctrl[11];
               for (let i = 0; i < w; i += 1) outVec.push(selector ? optionB[i] : optionA[i]);
-              // ng = the first (top/MSB) bit of the result; nz = result is non-zero.
+              // ng = the first (top/MSB) bit of the result; zr = the result is zero.
               if (setBits(outputs, `${component.id}.out2`, [Boolean(outVec[w - 1])])) changed = true;
-              if (setBits(outputs, `${component.id}.out3`, [outVec.some(Boolean)])) changed = true;
+              if (setBits(outputs, `${component.id}.out3`, [!outVec.some(Boolean)])) changed = true;
             } else {
               // and-add (ALU0): in1, in2 number buses + single-bit control in3.
               const v1 = inputBits(workspace, `${component.id}.in1`, outputs);

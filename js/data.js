@@ -1838,7 +1838,7 @@ const SCENES = {
           {
             "action": "panel-object",
             "objectId": "aluFlags",
-            "ariaLabel": "ng ו-nz של ה-ALU",
+            "ariaLabel": "ng ו-zr של ה-ALU",
             "left": 50.69,
             "top": 62.62,
             "width": 3.31,
@@ -2079,7 +2079,7 @@ const SCENES = {
           {
             "action": "panel-object",
             "objectId": "aluFlags",
-            "ariaLabel": "ng ו-nz של ה-ALU",
+            "ariaLabel": "ng ו-zr של ה-ALU",
             "left": 50.69,
             "top": 62.62,
             "width": 3.31,

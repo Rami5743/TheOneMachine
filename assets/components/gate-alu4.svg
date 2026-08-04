@@ -22,10 +22,10 @@
   <!-- Control bus (12 bits): tall like the side pins, connection at its top tip. -->
   <rect class="splitter-bar" x="-9.166667" y="-58" width="18.333334" height="20" />
   <line class="splitter-stripe" x1="0" y1="-55" x2="0" y2="-43" style="stroke-width:5;stroke-dasharray:10, 5" />
-  <!-- ng / nz single-bit outputs at the bottom, lengthened; their captions sit
+  <!-- ng / zr single-bit outputs at the bottom, lengthened; their captions sit
        BESIDE each pin rather than under it, so neither one covers its own tip. -->
   <line class="usercard-pin" x1="-20" y1="44" x2="-20" y2="66" id="out-ng" />
-  <line class="usercard-pin" x1="20" y1="36" x2="20" y2="66" id="out-nz" />
+  <line class="usercard-pin" x1="20" y1="36" x2="20" y2="66" id="out-zr" />
   <path class="usercard-body"
      d="m -46,-54 92,24 V 30 L -46,54 V 24.833334 l 9.363472,-10.569374 -9.255514,0.07899 -0.131137,-29.078194 8.748967,-0.248527 L -46,-24.833334 Z" />
   <text class="arith-gate-pin-letter" x="6" y="6" text-anchor="middle" style="font-size:24px">ALU4</text>
@@ -35,5 +35,5 @@
   <text class="splitter-width-label" x="56" y="-21.666666" text-anchor="middle" style="font-size:21.6667px">16</text>
   <text class="splitter-width-label" x="16" y="-44" text-anchor="start" style="font-size:18px">12</text>
   <text class="alu-out-letter" x="-30" y="62" id="lbl-ng" style="text-anchor:end">ng</text>
-  <text class="alu-out-letter" x="30" y="58" id="lbl-nz" style="text-anchor:start">nz</text>
+  <text class="alu-out-letter" x="30" y="58" id="lbl-zr" style="text-anchor:start">zr</text>
 </svg>
