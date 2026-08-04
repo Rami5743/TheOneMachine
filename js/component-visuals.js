@@ -419,6 +419,44 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The 4.2 counter card (gate-PC0): a labelled box with NO data input — only
+  // the reset stub on top — and the number it holds on a bus out to the right.
+  function pcGateMarkup(width, options = {}) {
+    const edge = 40;
+    const bodyH = 76;
+    let s = busGateBar({ x1: edge, x2: 78, y: 0 }, width, !options.toolbar);
+    s += pinLine(0, -46, 0, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "PC";
+    const font = labelFontSize(name, edge * 2, 20);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.2 control card (gate-Cont0): the 2-bit bus in on the left and three
+  // single wires out on the right, each captioned with the register it writes to.
+  function contGateMarkup(options = {}) {
+    const edge = 40;
+    const bodyH = 96;
+    const outYs = [-30, 0, 30];
+    const captions = ["A", "D", "*A"];
+    let s = busGateBar({ x1: -74, x2: -edge, y: 0 }, 2, !options.toolbar);
+    outYs.forEach((y) => { s += pinLine(edge, y, 78, y); });
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "Cont";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // The captions sit ABOVE their own wire, outside the body, so a cable landing
+    // on the pin never covers the name of what it writes to.
+    if (!options.toolbar) {
+      const cfont = Math.round(12 * k());
+      outYs.forEach((y, i) => {
+        s += `<text class="arith-gate-pin-letter" x="59" y="${y - 6}" text-anchor="middle" style="font-size:${cfont}px">${esc(captions[i])}</text>`;
+      });
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // A placeable RAM card (gate-RAM4 …): a wider labelled box than the register —
   // the name has to fit up to "RAM1024" — with the address bus in on the upper left,
   // the address bus in on the UPPER left and the data bus below it (the same order
@@ -577,6 +615,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The 4.2 cards of the simple computer, each drawn from its own box.
+      if (type === "gate-PC0") return pcGateMarkup(16, options);
+      if (type === "gate-Cont0") return contGateMarkup(options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).
       const portsDef = WORKSPACE_DEFS_FOR_VISUALS ? WORKSPACE_DEFS_FOR_VISUALS[type] : null;

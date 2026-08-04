@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -410,6 +410,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         // A placeable MEMORY gate (gate-Register4) holds its stored bus this tick.
         const spec = memoryGateSpec(component.type);
         outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || zeroBits(spec.width), spec.width));
+      } else if (prevMap && typeof pcGateSpec === "function" && pcGateSpec(component.type)) {
+        // The counter card (gate-PC0) shows the number it is holding this tick;
+        // the growing by 1 happens in the next-state pass.
+        const spec = pcGateSpec(component.type);
+        outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || zeroBits(spec.width), spec.width));
       }
     }
 
@@ -527,10 +532,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
             continue;
           }
+          // The 4.2 control card (gate-Cont0): the 2-bit bus in (low wire = the 1s)
+          // says which destination is written — 0 none, 1 A, 2 D, 3 *A.
+          if (typeof contGateSpec === "function" && contGateSpec(type)) {
+            const sel = bitsToIndex(inputBits(workspace, `${component.id}.in1`, outputs), 2);
+            for (let k = 1; k <= 3; k += 1) {
+              if (setBits(outputs, `${component.id}.out${k}`, [sel === k])) changed = true;
+            }
+            continue;
+          }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is
           // the value it holds (seeded from prev above) and is recomputed only in
           // the next-state pass, never during this combinational settle.
           if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) continue;
+          // The counter card is sequential too — same story.
+          if (typeof pcGateSpec === "function" && pcGateSpec(type)) continue;
           // A placeable bus gate (gate-Not4 …): apply the op componentwise over
           // the whole input bus.
           const bus = typeof busGateSpec === "function" ? busGateSpec(type) : null;
@@ -821,6 +837,20 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           // Only the WRITTEN range can be written: an address in the read-only
           // device range is simply ignored, exactly as the story promises.
           if (control && addr < ramSpec.slots) next.set(`${component.id}.cell${addr}`, data);
+          continue;
+        }
+        // The counter card grows by 1 every tick — unless reset (in1) is high,
+        // and then it goes back to 0. It has no data input: it counts by itself.
+        const pcSpec = typeof pcGateSpec === "function" ? pcGateSpec(component.type) : null;
+        if (pcSpec) {
+          const reset = Boolean(inputBits(workspace, `${component.id}.in1`, outputs)[0]);
+          const held = fitBits(prevMap.get(`${component.id}.out`) || zeroBits(pcSpec.width), pcSpec.width);
+          let n = 0;
+          for (let i = 0; i < pcSpec.width; i += 1) n += (held[i] ? 1 : 0) * (2 ** i);
+          const value = reset ? 0 : (n + 1) % (2 ** pcSpec.width);
+          const vec = [];
+          for (let i = 0; i < pcSpec.width; i += 1) vec.push(Boolean(Math.floor(value / (2 ** i)) & 1));
+          next.set(`${component.id}.out`, vec);
           continue;
         }
         // A placeable memory gate (gate-Register4) stores a whole bus the same way.

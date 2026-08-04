@@ -166,6 +166,9 @@
       // The 3.4 ports cards — same story again: addressed and (bar IPorts)
       // sequential, so their behaviour never comes from taskOutput either.
       || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === taskId) : null)
+      // The 4.2 cards of the simple computer (PC0, Cont0 …) — only the ones with a
+      // real shape; CPU0/Computer0 are still just names on the note.
+      || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
       || null;
   }
 
@@ -1232,6 +1235,84 @@
     bounds: { left: 64, right: 84, top: 62, bottom: 74 }
   };
 
+  // ---- Chapter 4.2: the cards of the simple computer ------------------------
+  // taskCard-PC0: the program counter's build frame. It takes NO data — only the
+  // single reset wire poking out the top — and puts the number it holds on a
+  // width-16 bus to the right. Clocked: every tick the number grows by 1, unless
+  // reset is 1, in which case it goes back to 0.
+  WORKSPACE_COMPONENT_DEFS["taskCard-PC0"] = {
+    label: "מסגרת PC0",
+    fixed: true,
+    taskId: "PC0",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      // The reset straddles the frame's top edge, like the memory cards' control.
+      inputExt1: { x: -260, y: -330, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt1: { x: -260, y: -230, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת המונה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+    },
+    bounds: { left: 340, right: 340, top: 330, bottom: 300 }
+  };
+
+  // gate-PC0: the placeable counter card. Reset in on top, the count out on the
+  // right. SEQUENTIAL, like the memory cards — the clocked engine advances it
+  // (see the pcGateSpec branch in circuit-engine.js).
+  WORKSPACE_COMPONENT_DEFS["gate-PC0"] = {
+    label: "PC0",
+    taskId: "PC0",
+    gate: true,
+    pcGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
+      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+    },
+    bounds: { left: 76, right: 96, top: 62, bottom: 50 }
+  };
+
+  // taskCard-Cont0: the control unit's build frame. One width-2 bus in on the
+  // left (the two destination bits of the instruction), and three single wires
+  // out on the right — write to A, to D, to *A. Combinational.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Cont0"] = {
+    label: "מסגרת Cont0",
+    fixed: true,
+    taskId: "Cont0",
+    busWidth: 2,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
+      inputInt1: { x: -260, y: 0, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 260, y: -150, direction: "in", width: 1, label: "יציאת A פנימית", caption: "A" },
+      outputExt1: { x: 340, y: -150, direction: "out", width: 1, label: "יציאת A", caption: "A" },
+      outputInt2: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת D פנימית", caption: "D" },
+      outputExt2: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת D", caption: "D" },
+      outputInt3: { x: 260, y: 150, direction: "in", width: 1, label: "יציאת *A פנימית", caption: "*A" },
+      outputExt3: { x: 340, y: 150, direction: "out", width: 1, label: "יציאת *A", caption: "*A" }
+    },
+    bounds: { left: 340, right: 340, top: 250, bottom: 250 }
+  };
+
+  // gate-Cont0: the placeable control card. The 2-bit bus in on the left, three
+  // single wires out on the right, captioned A / D / *A.
+  WORKSPACE_COMPONENT_DEFS["gate-Cont0"] = {
+    label: "Cont0",
+    taskId: "Cont0",
+    gate: true,
+    contGate: true,
+    busWidth: 2,
+    pins: {
+      in1: { x: -74, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
+      out1: { x: 78, y: -30, direction: "out", width: 1, label: "יציאת A" },
+      out2: { x: 78, y: 0, direction: "out", width: 1, label: "יציאת D" },
+      out3: { x: 78, y: 30, direction: "out", width: 1, label: "יציאת *A" }
+    },
+    bounds: { left: 76, right: 110, top: 62, bottom: 62 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -1935,7 +2016,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -2438,6 +2519,9 @@
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === id) : null)
       || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === id) : null)
+      // The 4.2 cards: they are frame-built and bus-shaped like the rest, so they
+      // share the multi-bit shell and (for the combinational ones) its harness.
+      || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -2510,13 +2594,15 @@
         // the OUTSIDE portion of the stub (above the frame edge) so it never sits on
         // the frame line itself.
         const labelY = ay + (iy - ay) * 0.25;
+        // A top pin that is not a plain control names itself (PC0's reset).
+        const topName = esc(pin.caption || "בקרה");
         stubs += (w > 1)
           ? `<line class="workspace-task-shell-bus" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
              <line class="workspace-task-shell-bus-stripe" x1="${ax}" y1="${ay + 3}" x2="${ax}" y2="${iy - 3}" />
-             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">${topName}</text>
              <text class="splitter-width-label" x="${ax + 26}" y="${ay + 20}" text-anchor="middle">${w}</text>`
           : `<line class="workspace-task-shell-pin" x1="${ax}" y1="${ay}" x2="${ax}" y2="${iy}" />
-             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">בקרה</text>`;
+             <text class="workspace-task-shell-pin-label" x="${ax - 18}" y="${labelY}" text-anchor="end">${topName}</text>`;
       } else if (pinEdge === "bottom") {
         // An output poking out the BOTTOM edge (ALU4's ng/zr), drawn from its
         // internal pin DOWN to the external tip, with its short caption below.
@@ -3360,7 +3446,10 @@
     { chapter: "chapter-12", ids: () => (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     // The 3.4 ports cards — so a finished OPorts/IPorts is there to build the
     // next one out of, exactly like every chapter before it.
-    { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The 4.2 cards of the simple computer — same rule: a finished PC0/Cont0 is
+    // there to build the CPU out of.
+    { chapter: "chapter-16", ids: () => (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   // The order every card appears in the GAME, flattened once from the groups.
   // The palette is sorted by it, so a card always sits in the same place no
@@ -5802,18 +5891,151 @@
       </div>`;
   }
 
-  // The 4.1 build-task note. The tasks are listed in the order they must be done;
-  // none of them is built yet, so opening one says "המשך יבוא...".
+  // ---- Chapter 4.2: the cards of the simple computer -----------------------
+  // The note von Neumann left on the worktable lists them in the order they must
+  // be built, each unlocked by the one before it. PC0 and Cont0 have a real build
+  // table; CPU0 and Computer0 are still names on the note.
+  function simpleComputerTaskDefs() {
+    return typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : [];
+  }
+
+  function simpleComputerTaskDefById(id) {
+    return simpleComputerTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  function isSimpleComputerTask(id) {
+    return Boolean(simpleComputerTaskDefById(id));
+  }
+
+  function simpleComputerTaskUnlocked(id) {
+    const def = simpleComputerTaskDefById(id);
+    if (!def) return false;
+    return (def.requires || []).every((req) => taskCompleted(req));
+  }
+
+  function simpleComputerTaskLockedMessage(id) {
+    const def = simpleComputerTaskDefById(id);
+    const missing = (def?.requires || []).filter((req) => !taskCompleted(req))
+      .map((req) => simpleComputerTaskDefById(req)?.label || req);
+    if (!missing.length) return "המשך יבוא...";
+    return `קודם צריך לבנות את ${missing.join(", ")}.`;
+  }
+
+  // Which of them has a build table so far.
+  function simpleComputerTaskImplemented(id) {
+    return ["PC0", "Cont0"].includes(id);
+  }
+
+  // Where the frame sits on the build board (the same y the memory builds use, so
+  // the card never jumps between one chapter's table and the next).
+  const SIMPLE_COMPUTER_CARD_Y = 430;
+
+  function openSimpleComputerTaskWorkspace(taskId) {
+    const task = simpleComputerTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-16");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const cardX = 640;
+    const cardY = SIMPLE_COMPUTER_CARD_Y;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
+        // A test voltage source, up near the control input, for free experimenting.
+        { id: "source-1", type: "source", x: 90, y: 140 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      // Everything from part 3 on runs on the clocked bus table anyway
+      // (inSequentialEra) — say so outright, so the counter behaves the same
+      // however the workspace is reached.
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: true
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter ? chapter.id : state.chapterId,
+      sceneId: chapter ? chapter.sceneId : state.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      buildNoteList: false,
+      aluIntroDialog: null,
+      requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
+      whyNoteHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the room the note is lying in — the last slide of 4.2.
+  function simpleComputerReturnTarget() {
+    const chapter = chapterById("chapter-16");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    if (!chapter || !scene) return { screen: "story" };
+    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel217"));
+    return {
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true
+    };
+  }
+
+  // Tapping a card on the note: locked says what is missing first, a built one
+  // reopens nothing (there is no walkthrough yet) and just rebuilds, and the two
+  // that are not implemented still say "המשך יבוא...". PC0 opens with its own
+  // paged message — what a program counter IS — before the build table.
+  function handleBuildNoteTask(id) {
+    const task = simpleComputerTaskDefById(id);
+    if (!task) return;
+    if (!simpleComputerTaskUnlocked(task.id)) {
+      return setState({ infoDialog: simpleComputerTaskLockedMessage(task.id) });
+    }
+    if (!simpleComputerTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    if (Array.isArray(task.intro) && task.intro.length && !taskCompleted(task.id)) {
+      return setState({ buildNoteList: false, aluIntroDialog: { page: 0, taskId: task.id } });
+    }
+    openSimpleComputerTaskWorkspace(task.id);
+  }
+
+  // The 4.2 build-task note. The tasks are listed in the order they must be done,
+  // each unlocked by the one before it. The two that have a build table open it;
+  // the rest still say "המשך יבוא...".
   function renderBuildNoteList() {
     if (!state.buildNoteList) return "";
-    const tasks = typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : [];
+    const tasks = simpleComputerTaskDefs();
     const body = `
       <ol class="note-task-list buses-note-list">
-        ${tasks.map((task, index) => `
-          <li class="${index === 0 ? "" : "task-locked"}">
-            <span class="note-task-check" aria-hidden="true"></span>
-            <button class="note-task-button" data-action="build-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${index === 0 ? "false" : "true"}">${esc(task.label)}</button>
-          </li>`).join("")}
+        ${tasks.map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !simpleComputerTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="build-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
       </ol>`;
     return `
       <div class="note-task-overlay" role="presentation">
@@ -14710,6 +14932,9 @@
     // IPorts is the one 3.4 card with no registers at all — pure routing.
     if (isIPortsTaskWorkspace()) return startIPortsTaskTest();
     if (isMemoryTaskWorkspace()) return startMemoryTaskTest();
+    // PC0 (4.2) is clocked and drives itself — its own harness, before the
+    // multibit one (it is bus-shaped too).
+    if (isPcTaskWorkspace()) return startPcTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
@@ -14780,6 +15005,55 @@
     const taskId = state.workspace.taskId;
     const result = runMemoryTest(state.workspace, taskId);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, taskId);
+  }
+
+  // --- Chapter 4.2 PC0 check -------------------------------------------------
+  // The counter is CLOCKED and has nothing to drive but its reset wire, so there
+  // is no truth table to walk: hold reset high for a tick to start from a known
+  // zero, then let it run and watch the number grow by exactly 1 each tick, then
+  // reset it again and check it really goes back to 0.
+  function isPcTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "PC0";
+  }
+  // The learner's build + temporary drivers: a source on the reset wire (only
+  // when reset is meant to be high) and a bin→dec reader on the count bus.
+  function pcHarnessWorkspace(base, reset) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    ws.components = ws.components.filter((c) => !["pc-read", "pc-reset"].includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^pc-(read|reset)\./.test(w.a) && !/^pc-(read|reset)\./.test(w.b));
+    ws.components.push({ id: "pc-read", type: "converter-in", x: 1160, y: 700 });
+    ws.components.push({ id: "pc-reset", type: "source", x: 640, y: 60 });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "pc-read.in" });
+    if (reset) ws.wires.push({ a: "pc-reset.out", b: "task-card-1.inputExt1" });
+    return ws;
+  }
+  function pcTick(base, reset, prev) {
+    const flat = flattenWorkspaceForEval(pcHarnessWorkspace(base, reset));
+    const result = __circuitEngine.evaluateWorkspaceBits(flat, prev);
+    const info = result.converters.get("pc-read");
+    return { value: info ? Number(info.value) : -1, next: result.next };
+  }
+  function runPcTest(base) {
+    // A reset tick first, so whatever the build powered on with is behind us.
+    let prev = pcTick(base, true, new Map()).next;
+    const STEPS = 5;
+    for (let i = 0; i < STEPS; i += 1) {
+      const tick = pcTick(base, false, prev);
+      if (tick.value !== i) return { ok: false, index: i, expected: i, got: tick.value };
+      prev = tick.next;
+    }
+    // And reset really does take it back to 0, from the middle of a run.
+    prev = pcTick(base, true, prev).next;
+    const after = pcTick(base, false, prev);
+    if (after.value !== 0) return { ok: false, index: STEPS, expected: 0, got: after.value };
+    return { ok: true };
+  }
+  function startPcTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runPcTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "PC0");
   }
 
   // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
@@ -15194,6 +15468,11 @@
     // The 3.4 ports cards are the same: OPorts/Ports/RAM run on the RAM harness,
     // and IPorts has its own combinational one (runIPortsTest).
     if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
+    // PC0 is clocked too — it counts by itself, so runPcTest drives it over ticks.
+    if (taskId === "PC0") return [];
+    // Cont0: all four values of its 2-bit input, so every destination is seen —
+    // including 0, where nothing at all is written.
+    if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
     // The solution JSON (assets/solutions/<task>.json) is the source of truth for
     // the check cases: its check.cases already use the {a,b,d,control} keys the
     // reference formula below reads, so honour them verbatim when present. The
@@ -15351,6 +15630,16 @@
   // pin ref. control -> the 2-bit bus [LSB, MSB].
   function multibitCaseSpec(taskId, testCase) {
     const controlBits = [Boolean(testCase.control & 1), Boolean((testCase.control >> 1) & 1)];
+    if (taskId === "Cont0") {
+      // 0 writes nowhere; 1 -> A, 2 -> D, 3 -> *A. Exactly one wire at a time.
+      return {
+        inputs: [{ ref: "inputExt1", bits: controlBits }],
+        outputs: [1, 2, 3].map((n) => ({
+          ref: `outputExt${n}`,
+          expected: [testCase.control === n]
+        }))
+      };
+    }
     if (taskId === "Dmux4way") {
       const data = Boolean(testCase.data);
       return {
@@ -15822,6 +16111,17 @@
           ...portsCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // The 4.2 cards of the simple computer: complete and go back to the room,
+      // with the note reopened so the next one unlocks under the learner's eyes.
+      if (isSimpleComputerTask(taskId)) {
+        return setState({
+          ...simpleComputerReturnTarget(),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks, buildNoteList: true,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
         }, true);
       }
@@ -16750,6 +17050,9 @@
     if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
     if (taskId === "RAM16") return RAM16_COMPLETE_PAGES;
     if (taskId === RAM_OUTRO_KEY) return RAM_OUTRO_PAGES;
+    // The 4.2 cards carry their opening message inline, on the task itself.
+    const simple = simpleComputerTaskDefById(taskId);
+    if (simple && Array.isArray(simple.intro) && simple.intro.length) return simple.intro;
     return null;
   }
 
@@ -16766,6 +17069,7 @@
     const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון"
       : taskId === "RAM16" ? "על הכתובת"
       : isRamTask(taskId) ? "על הרגיסטר"
+      : isSimpleComputerTask(taskId) ? `על ה-${taskId}`
       : "על ה-ALU";
     return `
       <div class="dialog-overlay" role="presentation">
@@ -19338,6 +19642,23 @@
     return { width: def.busWidth };
   }
 
+  // The 4.2 counter card (gate-PC0): sequential, and unlike every memory card it
+  // has no data input at all — it counts by itself. The clocked engine advances
+  // it (see the pcGate branches in circuit-engine.js).
+  function pcGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.pcGate) return null;
+    return { width: def.busWidth || 16 };
+  }
+
+  // The 4.2 control card (gate-Cont0): combinational — the 2-bit bus in says
+  // which of the three write wires goes high (0 = none).
+  function contGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.contGate) return null;
+    return { outputs: 3 };
+  }
+
   // A placeable WIDE-ROUTING gate (gate-Dmux4way / gate-Mux4way16): a 2-bit
   // control bus picks one of four. Combinational; the behaviour lives in the
   // wide-routing branch of circuit-engine.js, keyed on the kind.
@@ -20830,6 +21151,10 @@
         }
         return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
       }
+      // A 4.2 card's opening message hands straight over to its build table.
+      if (isSimpleComputerTask(state.aluIntroDialog?.taskId)) {
+        return openSimpleComputerTaskWorkspace(state.aluIntroDialog.taskId);
+      }
       // A RAM message belongs to the 3.3 note, not the 2.6 one.
       if (isRamTask(state.aluIntroDialog?.taskId)) return setState({ aluIntroDialog: null, ramNoteList: true });
       return setState({ aluIntroDialog: null, aluNoteList: true });
@@ -20944,7 +21269,7 @@
     if (action === "sheet-hint-select") return openSheetHints(Number(button.dataset.hintIndex));
     if (action === "sheet-hint-apply") return applySheetHint();
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
-    if (action === "build-note-task") return setState({ infoDialog: "המשך יבוא..." });
+    if (action === "build-note-task") return handleBuildNoteTask(button.dataset.taskId);
     if (action === "build-note-close") return setState({ buildNoteList: false });
     if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
     if (action === "sheet-guide-prev") return stepSheetGuide(-1);
