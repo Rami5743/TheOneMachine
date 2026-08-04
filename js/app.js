@@ -5556,10 +5556,43 @@
             <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
+        ${renderSheetWorkbenchArrow()}
         ${renderSheetHintWindow()}
         ${renderSheetClearDialog()}
         ${renderInstructionSheetResult()}
       </div>`;
+  }
+
+  // A hint that sends the learner to the workbench ("רוצה לבדוק על שולחן העבודה
+  // מה עושים ששת הביטים האלה?") points at the button that takes them there, with
+  // a bouncing arrow. The button itself stays live while the hint is up.
+  function sheetHintPointsAtWorkbench() {
+    const open = sheetOpenHint();
+    return Boolean(open && open.hint && open.hint.pointsAtWorkbench);
+  }
+
+  function renderSheetWorkbenchArrow() {
+    if (!sheetHintPointsAtWorkbench()) return "";
+    return `
+      <div class="sheet-wb-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="46" height="46">
+          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>`;
+  }
+
+  // Park the arrow just above the button it points at — the row of buttons moves
+  // with the window, so it is measured rather than placed at a fixed offset.
+  function positionSheetWorkbenchArrow() {
+    const arrow = app.querySelector(".sheet-wb-arrow");
+    if (!arrow) return;
+    const button = app.querySelector('[data-action="sheet-workbench"]');
+    if (!button) return;
+    const b = button.getBoundingClientRect();
+    const a = arrow.getBoundingClientRect();
+    if (!b.height || !a.height) return;
+    arrow.style.left = `${Math.round(b.left + b.width / 2 - a.width / 2)}px`;
+    arrow.style.top = `${Math.round(b.top - a.height - 10)}px`;
   }
 
   function sheetHintButton() {
@@ -12428,6 +12461,7 @@
     if (state.dialog) {
       requestAnimationFrame(() => app.querySelector("[data-action='dialog-yes']")?.focus());
     }
+    if (state.sheetDialog) requestAnimationFrame(positionSheetWorkbenchArrow);
     // The square being written in on the exercise page. `autofocus` alone is not
     // enough on markup written with innerHTML — without this the square was only
     // marked and the typing went nowhere.

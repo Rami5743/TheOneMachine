@@ -1204,7 +1204,41 @@ button { font: inherit; }
   inset: 0;
   z-index: 210;
   place-items: start center;
-  padding: calc(var(--sheet-rows, 16) * var(--sq) + 26px) 16px 16px;
+  /* The bottom padding keeps the window clear of the row of buttons: a hint may
+     well be telling the learner to go and try something on the workbench, and the
+     button that takes them there must stay reachable. */
+  padding: calc(var(--sheet-rows, 16) * var(--sq) + 26px) 16px 104px;
+  /* The page keeps working underneath — only the window itself takes clicks. */
+  pointer-events: none;
+}
+
+.hint-overlay.sheet-hint-overlay .hint-card {
+  max-height: 100%;
+  overflow: auto;
+}
+
+.hint-overlay.sheet-hint-overlay > * {
+  pointer-events: auto;
+}
+
+/* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by
+   JS over the button (which sits under the hints window), bouncing towards it. */
+.sheet-wb-arrow {
+  position: fixed;
+  z-index: 220;
+  pointer-events: none;
+  color: #b3801a;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+  animation: sheet-wb-arrow-bounce 1.05s ease-in-out infinite;
+}
+
+@keyframes sheet-wb-arrow-bounce {
+  0%, 100% { transform: translateY(-7px); }
+  50% { transform: translateY(7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-wb-arrow { animation: none; }
 }
 
 .sheet-bit-unused {
