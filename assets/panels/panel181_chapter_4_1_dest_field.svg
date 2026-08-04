@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- The next 2 bits: where the result is written (0-3). -->
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1"
+     inkscape:cx="798.5"
+     inkscape:cy="287.5"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel165_chapter_4_1_computer_room.jpg"
+     xlink:href="panel165_chapter_4_1_computer_room.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 482.76829 A 18.9487,25.23331 0 0 1 1405.05130,508.00160 H 738.94870 A 18.9487,25.23331 0 0 1 720,482.76829 V 289.00080 L 600,374 L 720,255.00080 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.44993"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssccssss" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:start;writing-mode:lr-tb;direction:rtl;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="1394"
+       y="78"
+       id="bubble-text"><tspan
+         sodipodi:role="line"
+         id="bubble-text-line1"
+         x="1394"
+         y="78">‏2 הביטים הבאים אומרים לאן אנחנו רושמים</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line2"
+         x="1394"
+         y="128.5">את התוצאה של חישוב ה-ALU. הם מייצגים</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line3"
+         x="1394"
+         y="179">מספר בינרי בין 0 ל-3 שלפיו מחליטים:</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line4"
+         x="1394"
+         y="229.501">‏0. לא רושמים כלל. סתם מחשבים</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line5"
+         x="1344"
+         y="280.001">ומתעלמים מהתוצאה. פקודה מיותרת</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line6"
+         x="1344"
+         y="330.501">אבל אפשרית</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line7"
+         x="1394"
+         y="381.001">‏1. A</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line8"
+         x="1394"
+         y="431.501">‏2. D</tspan><tspan
+         sodipodi:role="line"
+         id="bubble-text-line9"
+         x="1394"
+         y="482.002">‏3. ‎*A‎</tspan></text>
+  </g>
+</svg>

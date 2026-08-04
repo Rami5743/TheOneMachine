@@ -75,6 +75,10 @@ function createWorkspaceChromeView({
     if (state.explanationReplay) {
       return `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`;
     }
+    // The free workbench opened from the 4.1 exercise page goes back to it.
+    if (state.workspace?.sheetReturn) {
+      return `<button class="btn" data-action="sheet-workbench-return" type="button">חזרה לדף הפקודות</button>`;
+    }
     return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
   }
 

@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Wordless: von Neumann is gone; the room, the racks and the note are left behind. -->
+
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel213_chapter_4_1_empty_room.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2"
+     inkscape:cx="946.5"
+     inkscape:cy="447.25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="panel213_chapter_4_1_empty_room.jpg"
+     xlink:href="panel213_chapter_4_1_empty_room.jpg" />
+  <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
+       app reads their positions from here. -->
+  <rect
+     id="hotspot-panel-object-alu-rack"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluRack"
+     data-aria-label="ארון ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="573"
+     y="213.5"
+     width="199.5"
+     height="384" />
+  <rect
+     id="hotspot-panel-object-ram-rack"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramRack"
+     data-aria-label="ארונות ה-RAM"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="855"
+     y="172"
+     width="593"
+     height="500" />
+  <rect
+     id="hotspot-panel-object-alu-in1"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluIn1"
+     data-aria-label="IN1 של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="543"
+     y="641"
+     width="42"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-alu-in2"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluIn2"
+     data-aria-label="IN2 של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="585"
+     y="648"
+     width="42"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-alu-in3"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluIn3"
+     data-aria-label="IN3 של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="626"
+     y="653"
+     width="42"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-alu-out"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluOut"
+     data-aria-label="OUT של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="666"
+     y="657"
+     width="42"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-alu-inst"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluInst"
+     data-aria-label="INST של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="704"
+     y="659"
+     width="42"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-alu-flags"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="aluFlags"
+     data-aria-label="ng ו-nz של ה-ALU"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="734"
+     y="680"
+     width="48"
+     height="48" />
+  <rect
+     id="hotspot-panel-object-ram-in"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramIn"
+     data-aria-label="IN של הזיכרון"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="768"
+     y="841"
+     width="48"
+     height="45.5" />
+  <rect
+     id="hotspot-panel-object-ram-adr"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramAdr"
+     data-aria-label="ADR של הזיכרון"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="820"
+     y="847"
+     width="45"
+     height="52" />
+  <rect
+     id="hotspot-panel-object-ram-out"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramOut"
+     data-aria-label="OUT של הזיכרון"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="882"
+     y="855"
+     width="47.5"
+     height="46" />
+  <rect
+     id="hotspot-panel-object-ram-write"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramWrite"
+     data-aria-label="כבל הבקרה של הזיכרון"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:0.999996"
+     x="948.5"
+     y="845"
+     width="29.5"
+     height="96" />
+  <rect
+     id="hotspot-panel-object-ram-in0"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramIn0"
+     data-aria-label="פורט כניסה IN0"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:0.999999"
+     x="998.5"
+     y="860.5"
+     width="46.5"
+     height="45.5" />
+  <rect
+     id="hotspot-panel-object-ram-in1"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramIn1"
+     data-aria-label="פורט כניסה IN1"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="1047"
+     y="868.5"
+     width="44"
+     height="49.5" />
+  <rect
+     id="hotspot-panel-object-ram-in2"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramIn2"
+     data-aria-label="פורט כניסה IN2"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="1103"
+     y="872"
+     width="50"
+     height="58" />
+  <rect
+     id="hotspot-panel-object-ram-in3"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramIn3"
+     data-aria-label="פורט כניסה IN3"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:0.999997"
+     x="1155"
+     y="878"
+     width="40"
+     height="56" />
+  <rect
+     id="hotspot-panel-object-ram-out0"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramOut0"
+     data-aria-label="פורט יציאה OUT0"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="1201"
+     y="885"
+     width="43"
+     height="55" />
+  <rect
+     id="hotspot-panel-object-ram-out1"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramOut1"
+     data-aria-label="פורט יציאה OUT1"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="1257"
+     y="888"
+     width="54"
+     height="58" />
+  <rect
+     id="hotspot-panel-object-ram-out2"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramOut2"
+     data-aria-label="פורט יציאה OUT2"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="1326"
+     y="894"
+     width="54"
+     height="58" />
+  <rect
+     id="hotspot-panel-object-ram-out3"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="ramOut3"
+     data-aria-label="פורט יציאה OUT3"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400"
+     x="1392"
+     y="898"
+     width="54"
+     height="58" />
+  <rect
+     id="hotspot-panel-object-nuclear-waste"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="nuclearWaste"
+     data-aria-label="פסולת גרעינית"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:0.999998"
+     x="58.5"
+     y="418"
+     width="166"
+     height="120" />
+  <rect
+     id="hotspot-panel-object-popy"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="popy"
+     data-aria-label="פופי"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="40"
+     y="612"
+     width="395"
+     height="339.5" />
+  <rect
+     id="hotspot-panel-object-tasks-note"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="tasksNote"
+     data-aria-label="הפתק"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="548"
+     y="855"
+     width="93.5"
+     height="61" />
+  <script
+     type="text/javascript"
+     id="script1"><![CDATA[
+(function () {
+  var PANEL = "panel213_chapter_4_1_empty_room";
+  function collect() {
+    var svg = document.querySelector("svg") || document.documentElement;
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var VW = vb && vb.width ? vb.width : 1448;
+    var VH = vb && vb.height ? vb.height : 1086;
+    var rootM = null;
+    try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+    function box(rect) {
+      var bb;
+      try { bb = rect.getBBox(); } catch (e) { return null; }
+      var m = null;
+      try { if (rootM) { m = rootM.inverse().multiply(rect.getScreenCTM()); } } catch (e) { m = null; }
+      if (!m) { return { x: bb.x, y: bb.y, w: bb.width, h: bb.height }; }
+      function map(x, y) { return { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f }; }
+      var p = [map(bb.x, bb.y), map(bb.x + bb.width, bb.y), map(bb.x, bb.y + bb.height), map(bb.x + bb.width, bb.y + bb.height)];
+      var xs = [p[0].x, p[1].x, p[2].x, p[3].x], ys = [p[0].y, p[1].y, p[2].y, p[3].y];
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    }
+    function pct(rect) {
+      var b = box(rect);
+      if (!b || !(b.w > 0) || !(b.h > 0)) return null;
+      return { x: b.x / VW * 100, y: b.y / VH * 100, w: b.w / VW * 100, h: b.h / VH * 100 };
+    }
+    var rects = document.querySelectorAll("[data-hotspot]");
+    var out = { panel: PANEL, objects: [], table: null, actions: {} };
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i], kind = r.getAttribute("data-hotspot"), g = pct(r);
+      if (!g) continue;
+      if (kind === "action") {
+        var a = r.getAttribute("data-action");
+        var oid = r.getAttribute("data-object-id");
+        if (a) { out.actions[oid ? a + ":" + oid : a] = { x: g.x, y: g.y, w: g.w, h: g.h }; }
+      }
+    }
+    return out;
+  }
+  function send() {
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ __warehouseHotspots: true, payload: collect() }, "*");
+      }
+    } catch (e) {}
+  }
+  function boot() { send(); setTimeout(send, 120); setTimeout(send, 500); }
+  if (document.readyState === "loading") { window.addEventListener("DOMContentLoaded", boot); }
+  else { boot(); }
+  window.addEventListener("load", send);
+})();
+]]></script>
+</svg>

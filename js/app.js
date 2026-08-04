@@ -1545,6 +1545,28 @@
     // step-by-step skip gate: skip is disabled until the target panel has been
     // reached, then stays enabled (even after going back within the chapter).
     maxPanelReached: {},
+    // The 4.1 build-task note (transient, like the other worktable notes).
+    buildNoteList: false,
+    // "נקה התקדמות" on the exercise page, waiting for a yes.
+    sheetClearConfirm: null,
+    // The free square of the page being written in right now: { row, col }.
+    sheetScratchCell: null,
+    // The 4.1 exercise sheet, opened from the note on the computer-room table:
+    // { revealed, values } — how many instructions are on the page so far, and
+    // what the learner typed ("<row>:<column>" -> text). Persisted, so the work
+    // survives leaving the slide; the check verdict itself is transient.
+    instructionSheet: null,
+    // The reference window on the exercise page ("מבנה הפקודה"): which page it
+    // shows and whether it is open. A preference, so it is persisted rather than
+    // wiped with the transient dialogs.
+    sheetGuide: null,
+    // The scratch table of the exercise page ("רוצה לבדוק דברים על שולחן העבודה?").
+    // It is the page's OWN workbench: kept in its own slot so returning to the
+    // page finds the table exactly as it was left, and so it neither disturbs nor
+    // inherits the workbench every other build uses (which lives in `workspace`).
+    // `sheetWorkbenchStash` holds whatever was in that shared slot meanwhile.
+    sheetWorkbench: null,
+    sheetWorkbenchStash: null,
     // The arithmetic notebook (chapter 2.5), opened from the Stone-Millis book.
     // { exercise:{a,b}, cells:{"r,c":char}, active:"r,c"|null, result:null|"correct"|"wrong" }
     // Persisted so the learner's work survives leaving for the library and back.
@@ -2620,6 +2642,10 @@
       aluIntroDialog: null,
       panelAnswer: null,
       wordsBytesDialog: null,
+      sheetDialog: null,
+      sheetClearConfirm: null,
+      sheetScratchCell: null,
+      buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
       // board lock don't bleed onto the next workbench you open (a task build, the
@@ -2672,7 +2698,7 @@
   }
 
   function isGlobalNavigationAction(action) {
-    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev"].includes(action);
+    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev", "skip-examples"].includes(action);
   }
 
   // FALLBACK_END_DIALOGS moved to js/app-data.js
@@ -2771,7 +2797,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-15") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -2816,7 +2842,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -2824,6 +2850,11 @@
   }
 
   function saveState() {
+    // The exercise page's own table is kept in its own slot no matter HOW it is
+    // left — "חזרה לדף הפקודות", the topbar, or a refresh.
+    if (state.screen === "workspace" && state.workspace?.sheetReturn) {
+      state.sheetWorkbench = state.workspace;
+    }
     try {
       localStorage.setItem(APP.storageKey, JSON.stringify(stateForStorage()));
       // Let the optional cloud-sync module (js/auth.js) know a save happened, so
@@ -3487,6 +3518,19 @@
   }
 
   function idleNudgePlan() {
+    // (0) The 4.1 exercise sheet: a minute without progress counts as a failure,
+    // so the next hint comes out — but only once the learner has caught up on
+    // the hints already waiting.
+    if (state.sheetDialog) {
+      const row = sheetCurrentRow();
+      const total = sheetHintsFor(row).length;
+      const unlocked = sheetUnlockedHintCount(row);
+      const seen = sheetHintProgress(row).seen;
+      if (total && unlocked < total && seen >= unlocked) {
+        return { key: `sheet:${row}:${seen}:${unlocked}`, fire: () => unlockNextSheetHintByTime(row) };
+      }
+      return null;
+    }
     if (state.screen !== "workspace") return null;
     // A modal / walkthrough owns the screen — don't nudge underneath it.
     if (workspaceAccidentActive() || workspaceBuildHelpPromptActive() || workspaceUnderstoodPromptActive()
@@ -3527,6 +3571,15 @@
       const current = idleNudgePlan(); // re-validate: fire only if still pending
       if (current && current.key === firedKey) current.fire();
     }, IDLE_NUDGE_MS);
+  }
+
+  // failures = unlocked + 2 puts exactly one more hint on the sheet — the same
+  // threshold a failed check would have reached.
+  function unlockNextSheetHintByTime(row) {
+    if (!state.sheetDialog) return;
+    const progress = sheetHintProgress(row);
+    const failures = sheetUnlockedHintCount(row) + 2;
+    setState({ instructionSheet: setSheetHintProgress(row, { failures, seen: progress.seen }) }, false);
   }
 
   function unlockNextHintByTime(taskId) {
@@ -3602,6 +3655,32 @@
   // "המשך יבוא...".
   function transitionChapterActive() {
     return state.screen === "story" && currentChapter()?.id === "chapter-14";
+  }
+
+  // The worked examples of the simple computer's instruction word (chapter 4.1):
+  // every slide carrying the sixteen-square strip, one after the other. They are
+  // a long block, so they get their own "דלג על הדוגמאות" — always available,
+  // whatever the pace and whatever else is on screen.
+  function instructionExamplesActive() {
+    return state.screen === "story" && Boolean(currentPanel()?.instruction?.bits);
+  }
+
+  // The first slide AFTER the run of examples the learner is standing in.
+  function afterInstructionExamples() {
+    const panels = currentScene().panels;
+    let index = state.panelIndex;
+    while (index < panels.length && panels[index]?.instruction?.bits) index += 1;
+    return Math.min(index, Math.max(panels.length - 1, 0));
+  }
+
+  function skipInstructionExamples() {
+    if (!instructionExamplesActive()) return;
+    setState({
+      ...transientUiClearPatch(),
+      panelIndex: afterInstructionExamples(),
+      started: true,
+      replayNonce: state.replayNonce + 1
+    }, true);
   }
 
   function skipLeadsNowhere() {
@@ -3791,13 +3870,13 @@
       { transform: "translate(-50%,-50%) scale(1.25)", opacity: 1, offset: 0.22 },
       { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: 0.42 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0.15, offset: 1 }
-    ], { duration: 1560, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2340, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     // A little pop on the button as the icon lands.
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.28)" }, { transform: "scale(1)" }
-    ], { duration: 640, delay: 1120, easing: "ease-out" });
+    ], { duration: 960, delay: 1680, easing: "ease-out" });
   }
 
   // "אני רוצה עוד לשחק עם זה" on the "הבנת?" prompt: shrink the dialog into the
@@ -4696,12 +4775,12 @@
       { transform: "translate(-50%,-50%) scale(1.15) rotate(0deg)", opacity: 1, offset: 0.24 },
       { transform: "translate(-50%,-50%) scale(1) rotate(0deg)", opacity: 1, offset: 0.52 },
       { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.16)`, opacity: 0.12, offset: 1 }
-    ], { duration: 1800, easing: "cubic-bezier(.4,0,.25,1)" });
+    ], { duration: 2700, easing: "cubic-bezier(.4,0,.25,1)" });
     anim.onfinish = () => fly.remove();
     anim.oncancel = () => fly.remove();
     target.animate([
       { transform: "scale(1)" }, { transform: "scale(1.3)" }, { transform: "scale(1)" }
-    ], { duration: 680, delay: 1280, easing: "ease-out" });
+    ], { duration: 1020, delay: 1920, easing: "ease-out" });
   }
 
   // A bridge for sibling modules (e.g. warehouse-hotspots.js, which owns the
@@ -4947,16 +5026,736 @@
     const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[id];
     if (!object) return "";
     // Sit beside the object's own click-zone, the way the warehouse popovers do.
+    // A zone on the right half of the slide gets the window on its LEFT instead,
+    // so it never runs off the frame (the cable tags reach the very edge).
+    // A zone low in the frame (the row of cable tags) gets its window ABOVE it,
+    // centred: beside it, the window would cover the neighbouring tags and the
+    // learner could not click the next one.
     const zone = panelHotspots(panel).find((h) => h.objectId === id);
-    const left = zone ? Math.min(Number(zone.left) + Number(zone.width), 78) : 40;
-    const top = zone ? Math.max(2, Number(zone.top) - 6) : 40;
+    const above = zone && Number(zone.top) > 52;
+    const after = zone ? Number(zone.left) + Number(zone.width) : 40;
+    // A zone that reaches the right edge (the RAM racks) gets its window to its
+    // LEFT, hugging it: the window is anchored by its RIGHT edge right beside the
+    // zone, instead of being left floating in the middle of the room.
+    const beside = Boolean(zone) && !above && after > 62 && Number(zone.left) >= 34;
+    const left = !zone
+      ? 40
+      : (above
+        ? Math.min(Math.max(Number(zone.left) + Number(zone.width) / 2, 16), 84)
+        : (beside
+          ? Number(zone.left) - 1
+          : (after > 62 ? Math.max(2, Number(zone.left) - 24) : after)));
+    const top = zone
+      ? (above
+        ? Math.max(6, Number(zone.top) - 1)
+        : Math.min(Math.max(2, Number(zone.top) - (beside ? 0 : 6)), 74))
+      : 40;
     const take = object.takeLabel
       ? `<button class="btn btn-primary panel-object-take" data-action="panel-object-take" type="button">${esc(object.takeLabel)}</button>`
       : "";
+    // An object with a reference link shows the link; one with a `note` shows
+    // its name and a sentence of explanation (the cable tags in 4.1).
+    const head = object.url
+      ? `<a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>`
+      : `<strong class="panel-object-title">${esc(object.label)}</strong>`;
+    const note = object.note ? `<p class="panel-object-note">${esc(object.note)}</p>` : "";
     return `
-      <div class="panel-object-popover" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
-        <a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>
+      <div class="panel-object-popover${object.note ? " panel-object-popover-wide" : ""}${above ? " panel-object-popover-above" : ""}${beside ? " panel-object-popover-before" : ""}" role="dialog" aria-label="${esc(object.label)}" style="left:${left}%;top:${top}%;">
+        ${head}
+        ${note}
         ${take}
+      </div>`;
+  }
+
+  // ---- The 4.1 exercise sheet ----------------------------------------------
+  // The note on the computer-room table opens a page of squared paper: down the
+  // left, the instructions written in bits (one bit per square); on the right a
+  // two-square column for each of the processor's registers A and D and for the
+  // memory's first three, R0-R2. Under every instruction the learner writes the
+  // state once it has run. Only the first instruction is on the page to begin
+  // with — each one that checks out brings the next.
+  //
+  // state.instructionSheet = { revealed, values } is the saved work;
+  // state.sheetDialog = { result } is the open page and the last verdict, both
+  // transient.
+  function instructionSheetDefs() {
+    return typeof INSTRUCTION_SHEET !== "undefined" ? INSTRUCTION_SHEET : [];
+  }
+
+  function instructionSheetColumns() {
+    return typeof INSTRUCTION_SHEET_COLUMNS !== "undefined" ? INSTRUCTION_SHEET_COLUMNS : [];
+  }
+
+  function instructionSheetProgress() {
+    const saved = state.instructionSheet;
+    const total = instructionSheetDefs().length;
+    const revealed = saved && Number.isFinite(Number(saved.revealed))
+      ? Math.min(Math.max(1, Math.floor(Number(saved.revealed))), Math.max(1, total))
+      : 1;
+    const values = saved && saved.values && typeof saved.values === "object" ? saved.values : {};
+    const hints = saved && saved.hints && typeof saved.hints === "object" ? saved.hints : {};
+    const notes = saved && saved.notes && typeof saved.notes === "object" ? saved.notes : {};
+    const scratch = saved && saved.scratch && typeof saved.scratch === "object" ? saved.scratch : {};
+    return { revealed, values, hints, notes, scratch };
+  }
+
+  // ---- The sheet's hints ---------------------------------------------------
+  // Same rule as a worktable task: the first hint after two failed checks, one
+  // more for every failure after that, and a minute without progress counts as a
+  // failure. Progress is kept per instruction, and the annotations a hint writes
+  // on the page are kept with the learner's work.
+  // "*A" is a pointer written star-then-A. The star is a neutral character, so in
+  // a Hebrew line the bidi algorithm hands it the paragraph's direction and parks
+  // it on the wrong side ("A*"); fencing the pair between two left-to-right marks
+  // keeps it reading "*A". (The slides bake the same guard into their SVG text.)
+  function ltrStarRun(text) {
+    return String(text ?? "")
+      .replace(/\*A/g, "\u200e*A\u200e")
+      // A dash between two Latin runs \u2014 "\u2026\u05e9\u05dc \u05d4-ALU \u2014 D \u05d5-*A" \u2014 is a neutral
+      // character, so the bidi algorithm swallows it into the Latin run and it
+      // comes out on the WRONG side of what follows it (the reader gets
+      // "D \u2014 \u05d5-*A"). Fencing it with RLMs keeps it in the Hebrew flow.
+      .replace(/ ([\u2014\u2013]) /g, " \u200f$1\u200f ");
+  }
+
+  // Hebrew text with Latin words and numbers in it ("יעד ה-ALU4: 0 - אין, 1 - A,
+  // 2 - D") is a bidi minefield: a run of Latin swallows the separators around it
+  // and the pairs come out in the wrong order. Wrapping every Latin/number run in
+  // a bidi ISOLATE (U+2066 … U+2069) pins each one to itself, so the commas and
+  // dashes stay in the Hebrew flow and the list reads right to left as written.
+  function isolateLatinRuns(text) {
+    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.]*/g, "\u2066$&\u2069");
+  }
+
+  function sheetHintsFor(row) {
+    const def = instructionSheetDefs()[row];
+    return Array.isArray(def?.hints) ? def.hints : [];
+  }
+
+  function sheetHintProgress(row) {
+    const raw = instructionSheetProgress().hints[row] || {};
+    return {
+      failures: Number.isInteger(raw.failures) ? Math.max(0, raw.failures) : 0,
+      seen: Number.isInteger(raw.seen) ? Math.max(0, raw.seen) : 0
+    };
+  }
+
+  function sheetUnlockedHintCount(row) {
+    const total = sheetHintsFor(row).length;
+    if (!total) return 0;
+    return Math.min(total, Math.max(0, sheetHintProgress(row).failures - 1));
+  }
+
+  // The instruction the learner is working on: the newest one on the page.
+  function sheetCurrentRow() {
+    return instructionSheetProgress().revealed - 1;
+  }
+
+  function setSheetHintProgress(row, progress) {
+    const sheet = instructionSheetProgress();
+    return {
+      ...sheet,
+      hints: {
+        ...sheet.hints,
+        [row]: { failures: Math.max(0, Number(progress.failures) || 0), seen: Math.max(0, Number(progress.seen) || 0) }
+      }
+    };
+  }
+
+  function sheetHintButtonLabel(row) {
+    const progress = sheetHintProgress(row);
+    return (progress.seen >= 1 && sheetUnlockedHintCount(row) > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
+  }
+
+  // Which square of the page a click landed on. The grid runs right to left, so
+  // column 1 is the rightmost.
+  function sheetSquareAt(paper, clientX, clientY) {
+    const rect = paper.getBoundingClientRect();
+    const size = parseFloat(getComputedStyle(paper).backgroundSize) || 20;
+    const col = Math.floor((rect.right - clientX) / size) + 1;
+    const row = Math.floor((clientY - rect.top) / size) + 1;
+    if (!(col >= 1 && row >= 1)) return null;
+    return { row, col };
+  }
+
+  function openInstructionSheet() {
+    return setState({
+      panelObjectDialog: null,
+      instructionSheet: instructionSheetProgress(),
+      sheetDialog: { result: null }
+    });
+  }
+
+  function checkInstructionSheet() {
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const { revealed, values } = instructionSheetProgress();
+    // Every instruction on the page is checked, not only the newest one — the
+    // learner may well have gone back and changed an earlier answer.
+    for (let row = 0; row < revealed; row += 1) {
+      for (const column of columns) {
+        const typed = String(values[`${row}:${column}`] ?? "").trim();
+        if (typed === "" || Number(typed) !== Number(defs[row].after[column])) {
+          // A failed check is what brings the hints closer, as on the worktable.
+          const current = sheetCurrentRow();
+          const progress = sheetHintProgress(current);
+          return setState({
+            instructionSheet: setSheetHintProgress(current, { ...progress, failures: progress.failures + 1 }),
+            sheetDialog: { result: "fail" }
+          });
+        }
+      }
+    }
+    const done = revealed >= defs.length;
+    return setState({
+      instructionSheet: { ...instructionSheetProgress(), revealed: done ? revealed : revealed + 1, values },
+      sheetDialog: { result: done ? "done" : "success" }
+    });
+  }
+
+  // Dev shortcut (Ctrl+Shift+9) on the exercise page: fill in the state the
+  // CURRENT instruction leaves behind and check it — one instruction per press,
+  // so a tester walks the page forward without working it out by hand.
+  function sheetSecretSolve() {
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const progress = instructionSheetProgress();
+    const row = sheetCurrentRow();
+    const def = defs[row];
+    if (!def) return;
+    const values = { ...progress.values };
+    for (const column of columns) values[`${row}:${column}`] = String(def.after[column]);
+    setState({ instructionSheet: { ...progress, values }, sheetDialog: { ...state.sheetDialog, hint: null } }, false);
+    return checkInstructionSheet();
+  }
+
+  // Where a bit of the instruction sits on the page: bit 1 is leftmost, and the
+  // grid runs right to left, so bit i (from 0) is in column 16 - i.
+  function sheetBitColumn(i) {
+    return 16 - i;
+  }
+
+  // The squares a written note covers: the row above the instruction's bits, from
+  // its first bit to its last.
+  function sheetNoteCells(row, note) {
+    const from = Number(note && note.from);
+    const to = Number(note && note.to);
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return [];
+    const r = 5 + row * 2 - 1;
+    const start = sheetBitColumn(to - 1);
+    const cells = [];
+    for (let c = start; c <= start + (to - from); c += 1) cells.push(`${r},${c}`);
+    return cells;
+  }
+
+  // A note is written ON the page, so it rubs out whatever the learner had
+  // scribbled on those squares — the way writing over a pencil mark would.
+  function sheetScratchWithoutNote(scratch, row, note) {
+    const next = { ...scratch };
+    sheetNoteCells(row, note).forEach((key) => { delete next[key]; });
+    return next;
+  }
+
+  // The hint the learner is looking at right now, if the hints window is open.
+  function sheetOpenHint() {
+    const open = state.sheetDialog && state.sheetDialog.hint;
+    if (!open) return null;
+    const row = Number.isInteger(open.row) ? open.row : sheetCurrentRow();
+    const hints = sheetHintsFor(row);
+    const unlocked = sheetUnlockedHintCount(row);
+    const index = Math.min(Math.max(Number(open.index) || 0, 0), Math.max(0, unlocked - 1));
+    const hint = hints[index];
+    if (!hint) return null;
+    // A hint that ASKS whether to write something writes nothing until the
+    // learner says yes; until then only its question is on screen.
+    return { row, index, hint: hint.applyLabel ? { ...hint, above: null } : hint };
+  }
+
+  function openSheetHints(index) {
+    const row = sheetCurrentRow();
+    const unlocked = sheetUnlockedHintCount(row);
+    if (!unlocked) return;
+    const progress = sheetHintProgress(row);
+    const at = Math.min(Math.max(Number.isFinite(index) ? index : unlocked - 1, 0), unlocked - 1);
+    const sheet = setSheetHintProgress(row, { failures: progress.failures, seen: Math.max(progress.seen, at + 1) });
+    // A hint that simply WRITES something on the page (the instruction's
+    // destination) leaves it there: showing it is not a question, so it stays
+    // once the window is closed.
+    const hint = sheetHintsFor(row)[at];
+    if (hint && hint.above && !hint.applyLabel) {
+      const notes = { ...sheet.notes };
+      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
+      notes[row] = rowNotes;
+      sheet.notes = notes;
+      sheet.scratch = sheetScratchWithoutNote(sheet.scratch, row, hint.above);
+    }
+    return setState({
+      instructionSheet: sheet,
+      sheetDialog: { ...state.sheetDialog, result: null, hint: { row, index: at } }
+    });
+  }
+
+  // "כן, כתוב לי": the note goes onto the page and stays there.
+  function applySheetHint() {
+    const open = state.sheetDialog && state.sheetDialog.hint;
+    if (!open) return;
+    const row = Number.isInteger(open.row) ? open.row : sheetCurrentRow();
+    const hint = sheetHintsFor(row)[Number(open.index) || 0];
+    if (!hint) return;
+    const progress = instructionSheetProgress();
+    const patch = {};
+    if (hint.above) {
+      const notes = { ...progress.notes };
+      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      if (!rowNotes.some((n) => n.from === hint.above.from && n.to === hint.above.to)) rowNotes.push(hint.above);
+      notes[row] = rowNotes;
+      patch.notes = notes;
+      patch.scratch = sheetScratchWithoutNote(progress.scratch, row, hint.above);
+    }
+    // A hint can also fill answers in — the registers this instruction left alone.
+    if (hint.fill && typeof hint.fill === "object") {
+      const values = { ...progress.values };
+      Object.entries(hint.fill).forEach(([column, value]) => { values[`${row}:${column}`] = String(value); });
+      patch.values = values;
+    }
+    if (!patch.notes && !patch.values) return;
+    return setState({ instructionSheet: { ...progress, ...patch } });
+  }
+
+  // "רוצה לבדוק דברים על שולחן העבודה?" — a scratch table for trying an
+  // instruction out. The FIRST time it opens EMPTY and in free build (the full
+  // palette, no Nand presentation); after that it opens exactly as it was left,
+  // because it is kept in its own slot (state.sheetWorkbench) rather than in the
+  // shared one. Whatever is in the shared slot is stashed and put back on return.
+  function emptySheetWorkbench() {
+    return {
+      selectedTerminal: null,
+      components: [],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      accident: null,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandMonologueStep: null,
+      workspaceLaunchPanelIndex: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      returnToWorkspaceAfterMonologue: false,
+      taskId: null,
+      taskIntroSeen: true,
+      freeBuild: true
+    };
+  }
+
+  function openSheetWorkbench() {
+    const kept = state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
+    const workspace = normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) });
+    // The way home is always the page we are standing on right now.
+    workspace.freeBuild = true;
+    workspace.unlocked = true;
+    workspace.taskId = null;
+    workspace.exitTargetPanelIndex = state.panelIndex;
+    workspace.sessionReturnChapterId = state.chapterId;
+    workspace.sessionReturnPanelIndex = state.panelIndex;
+    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex };
+    return setState({
+      ...transientUiClearPatch(),
+      screen: "workspace",
+      // What the shared workbench held goes back when the page is returned to.
+      sheetWorkbenchStash: state.workspace,
+      sheetWorkbench: workspace,
+      workspace
+    });
+  }
+
+  function returnFromSheetWorkbench() {
+    const back = state.workspace?.sheetReturn || {};
+    const kept = normalizeWorkspace(state.workspace);
+    const restored = normalizeWorkspace(state.sheetWorkbenchStash);
+    restored.sheetReturn = null;
+    restored.unlocked = true;
+    return setState({
+      screen: "story",
+      chapterId: back.chapterId || state.chapterId,
+      sceneId: back.chapterId ? (chapterById(back.chapterId)?.sceneId || state.sceneId) : state.sceneId,
+      panelIndex: Number.isInteger(back.panelIndex) ? back.panelIndex : state.panelIndex,
+      sheetWorkbench: kept,
+      sheetWorkbenchStash: null,
+      workspace: restored,
+      sheetDialog: { result: null }
+    });
+  }
+
+  function renderSheetHintWindow() {
+    const open = sheetOpenHint();
+    if (!open) return "";
+    const hints = sheetHintsFor(open.row);
+    const unlocked = sheetUnlockedHintCount(open.row);
+    const list = hints.slice(0, unlocked).map((hint, index) => `
+      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="sheet-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
+    const raw = hints[open.index] || {};
+    const progress = instructionSheetProgress();
+    const noteWritten = raw.above
+      && (progress.notes[open.row] || []).some((n) => n.from === raw.above.from && n.to === raw.above.to);
+    const filledIn = raw.fill
+      && Object.entries(raw.fill).every(([column, value]) => String(progress.values[`${open.row}:${column}`] ?? "") === String(value));
+    const applied = raw.above ? noteWritten : Boolean(filledIn);
+    const apply = raw.applyLabel && !applied
+      ? `<button class="btn btn-primary" data-action="sheet-hint-apply" type="button">${esc(raw.applyLabel)}</button>`
+      : "";
+    return `
+      <div class="hint-overlay sheet-hint-overlay" role="presentation">
+        <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
+          <h2>רמזים</h2>
+          <div class="hint-layout">
+            <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
+            <div class="hint-content">${hintParagraphsHtml(ltrStarRun(raw.text))}${apply}</div>
+          </div>
+          <div class="hint-actions">
+            <button class="btn" data-action="sheet-hint-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderInstructionSheet() {
+    if (!state.sheetDialog) return "";
+    const defs = instructionSheetDefs();
+    const columns = instructionSheetColumns();
+    const { revealed, values } = instructionSheetProgress();
+    const cells = [];
+    // The page is 28 squares wide. Right to left: the sixteen squares of the
+    // instruction (bit 1 leftmost, so bit i sits in column 16 - i of this
+    // right-to-left grid), two squares of gap, then A and D (two squares each)
+    // and the three memory registers under one heading.
+    const bitColumn = sheetBitColumn;
+    // Where the register wing starts (its rightmost square).
+    const REG = 19;
+    const regColumn = (index) => REG + index * 2;
+    // The page is always the full sheet — three heading rows and two rows per
+    // instruction — even before every instruction is on it, so the paper covers
+    // the screen and the rules run its whole height.
+    const rows = 4 + defs.length * 2;
+    // A heading over each wing of the page.
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">פקודות המחשב</div>`);
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${REG} / span 10;grid-row:1;">מצב הרגיסטרים</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${REG} / span 4;grid-row:2 / span 2;">הרגיסטרים של המעבד</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${REG + 4} / span 6;grid-row:2 / span 2;">שלושת הרגיסטרים הראשונים של הזיכרון</div>`);
+    columns.forEach((column, index) => {
+      cells.push(`<div class="sheet-head" style="grid-column:${regColumn(index)} / span 2;grid-row:4;">${esc(column)}</div>`);
+    });
+    // The instruction's own headings sit in the top two rows, which leaves the
+    // third row free above the first instruction for the notes a hint writes.
+    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:2 / span 2;">הוראות ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(15)} / span 2;grid-row:2 / span 2;">ביטים מיותרים</div>`);
+    // Every vertical line on the page is a rule running its whole height — the
+    // headings draw only their horizontal edges, so no line is ever doubled.
+    // Every vertical line is a rule, so nothing is ever doubled or half a pixel
+    // off. The outer frame of each wing runs the full height; the lines INSIDE a
+    // wing start at row 2, so they do not cut through its top heading.
+    const inner = `2 / span ${rows - 1}`;
+    // A line INSIDE a group of columns (between A and D, or between two memory
+    // registers) starts below the second heading band — it has no business
+    // cutting through a heading that spans the whole group.
+    const underHeadings = `4 / span ${rows - 3}`;
+    const rules = [
+      // The outer frame of the instruction wing (columns 1-16)...
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
+      // ...and of the register wing (columns 19-28).
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${REG};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${REG + 9};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
+      // Between the processor's registers and the memory's: it separates the two
+      // headings too, so it runs through the band.
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${REG + 3};grid-row:${inner};"></div>`,
+      ...[REG + 1, REG + 5, REG + 7].map((column) =>
+        `<div class="sheet-rule sheet-rule-thin" style="grid-column:${column};grid-row:${underHeadings};"></div>`),
+      // The foot of each wing, so the tables are closed and not left hanging.
+      `<div class="sheet-rule-foot" style="grid-column:1 / span 16;grid-row:${rows};"></div>`,
+      `<div class="sheet-rule-foot" style="grid-column:${REG} / span 10;grid-row:${rows};"></div>`
+    ];
+    // The hint currently open lights up the bits it is about and may write a
+    // note above them; notes the learner asked for stay on the page for good.
+    // Whatever squares a note covers are its own — a scribble there is not drawn.
+    const underNote = new Set();
+    const openHint = sheetOpenHint();
+    const notes = instructionSheetProgress().notes;
+    for (let row = 0; row < revealed; row += 1) {
+      // Two rows per instruction: the word, then the state it leaves behind. On
+      // the register side the instruction's own row reads as the single blank
+      // line between one answer row and the next.
+      const bitsRow = 5 + row * 2;
+      const bits = String(defs[row].bits || "");
+      const isCurrent = openHint && row === openHint.row;
+      const mark = isCurrent && Array.isArray(openHint.hint.mark) ? openHint.hint.mark : null;
+      for (let i = 0; i < 16; i += 1) {
+        const unused = i >= 14 ? " sheet-bit-unused" : "";
+        const lit = (mark && i + 1 >= mark[0] && i + 1 <= mark[1]) ? " sheet-bit-lit" : "";
+        cells.push(`<span class="sheet-bit${unused}${lit}" style="grid-column:${bitColumn(i)};grid-row:${bitsRow};">${esc(bits[i] || "")}</span>`);
+      }
+      // Written above the bits: what the learner has asked to have written down,
+      // plus whatever the open hint is showing right now.
+      const written = Array.isArray(notes[row]) ? notes[row] : [];
+      const rowNotes = written.slice();
+      if (isCurrent && openHint.hint.above && !rowNotes.some((n) => n.from === openHint.hint.above.from)) {
+        rowNotes.push(openHint.hint.above);
+      }
+      rowNotes.forEach((note, at) => {
+        const span = Number(note.to) - Number(note.from) + 1;
+        cells.push(`<div class="sheet-note" style="grid-column:${bitColumn(Number(note.to) - 1)} / span ${span};grid-row:${bitsRow - 1};"><span dir="ltr">${esc(note.text)}</span></div>`);
+        // A note that HAS been written is written ON those squares, so nothing
+        // scribbled shows through it. One that is only being shown (a hint asking
+        // "shall I write it?") has not taken the squares yet.
+        if (at < written.length) sheetNoteCells(row, note).forEach((key) => underNote.add(key));
+      });
+      columns.forEach((column, index) => {
+        const key = `${row}:${column}`;
+        cells.push(`<input class="sheet-input" type="number" inputmode="numeric" step="1" data-sheet-key="${esc(key)}" value="${esc(String(values[key] ?? ""))}" aria-label="${esc(column)} אחרי פקודה ${row + 1}" style="grid-column:${regColumn(index)} / span 2;grid-row:${bitsRow + 1};" />`);
+      });
+    }
+    // Anything the learner has scribbled on the free squares of the page, and the
+    // square being written in right now.
+    const scratch = instructionSheetProgress().scratch;
+    // Only on a square the worksheet itself does not use: a mark left on one that
+    // has since been covered (an instruction that has arrived) is not drawn. Both
+    // tests are bounded by the two wings — everything past them, all the way to
+    // the left edge of the page, is free paper.
+    const inInstructions = (c) => c >= 1 && c <= 16;
+    const inRegisters = (c) => c >= REG && c <= REG + 9;
+    const usedSquare = (r, c) => {
+      if (r <= 3) return inInstructions(c) || inRegisters(c);  // the two heading bands
+      // Row 4 is the register columns' headers (R2..A); over the instructions it
+      // is the free row above the first instruction, where a hint MAY one day
+      // write — until it does, it is the learner's to scribble on.
+      if (r === 4) return inRegisters(c);
+      const within = r - 5;
+      if (within % 2 === 0) return inInstructions(c);          // an instruction's bits
+      return inRegisters(c);                                   // its answers
+    };
+    Object.entries(scratch).forEach(([key, text]) => {
+      const [r, c] = key.split(",").map(Number);
+      if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
+      if (underNote.has(key)) return;
+      if (r <= 4 + revealed * 2 && usedSquare(r, c)) return;
+      cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
+    });
+    const at = state.sheetScratchCell;
+    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
+      cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
+    }
+    // The two thick rules that cut the word into its three fields run the whole
+    // height of the page, from the headings down past the last answer. They are
+    // added LAST so nothing (the greyed pair) paints over them.
+    cells.push(...rules);
+    return `
+      <div class="sheet-overlay" role="presentation">
+        <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התרגיל">
+          <div class="sheet-scroll">
+            <div class="sheet-paper" style="--rows:${rows};">${cells.join("")}</div>
+          </div>
+          <div class="sheet-actions">
+            ${navButton("sheet-clear-open", "restart", "נקה התקדמות")}
+            <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
+            ${sheetHintButton()}
+            <button class="btn" data-action="sheet-workbench" type="button">רוצה לבדוק דברים על שולחן העבודה?</button>
+            <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
+          </div>
+        </section>
+        ${renderSheetGuide()}
+        ${renderSheetWorkbenchArrow()}
+        ${renderSheetHintWindow()}
+        ${renderSheetClearDialog()}
+        ${renderInstructionSheetResult()}
+      </div>`;
+  }
+
+  // ---- "מבנה הפקודה": the reference window on the exercise page -------------
+  // A small window the learner can fold away, paging down through the levels of
+  // the instruction: the word, the ALU3/4 instruction inside it, and so on. Each
+  // page paints its fields onto a strip of the sixteen squares and explains them
+  // underneath, colour by colour.
+  function instructionGuidePages() {
+    return typeof INSTRUCTION_GUIDE !== "undefined" ? INSTRUCTION_GUIDE : [];
+  }
+
+  function sheetGuideState() {
+    const pages = instructionGuidePages();
+    const saved = state.sheetGuide && typeof state.sheetGuide === "object" ? state.sheetGuide : {};
+    const page = Number.isInteger(saved.page) ? Math.min(Math.max(saved.page, 0), Math.max(pages.length - 1, 0)) : 0;
+    const pos = (saved.pos && Number.isFinite(saved.pos.left) && Number.isFinite(saved.pos.top)) ? saved.pos : null;
+    return { page, open: saved.open !== false, pos };
+  }
+
+  function setSheetGuide(patch) {
+    return setState({ sheetGuide: { ...sheetGuideState(), ...patch } });
+  }
+
+  function stepSheetGuide(delta) {
+    const pages = instructionGuidePages();
+    const { page } = sheetGuideState();
+    const next = Math.min(Math.max(page + delta, 0), Math.max(pages.length - 1, 0));
+    if (next === page) return;
+    return setSheetGuide({ page: next });
+  }
+
+  function renderSheetGuide() {
+    const pages = instructionGuidePages();
+    if (!pages.length) return "";
+    const { page, open, pos } = sheetGuideState();
+    // Where the learner last dragged it to (it opens beside the page otherwise).
+    const at = pos ? ` style="left:${Math.round(pos.left)}px;top:${Math.round(pos.top)}px;"` : "";
+    const current = pages[page] || pages[0];
+    const toggle = `<button class="sheet-guide-toggle" data-action="sheet-guide-toggle" type="button" aria-expanded="${open ? "true" : "false"}">${open ? "הסתרה" : "הצגה"}</button>`;
+    const header = `
+      <div class="sheet-guide-head">
+        <span class="sheet-guide-title">מבנה הפקודה</span>
+        ${toggle}
+      </div>`;
+    if (!open) return `<section class="sheet-guide sheet-guide-closed" aria-label="מבנה הפקודה"${at}>${header}</section>`;
+    // Which colour each of the sixteen squares takes on this page.
+    const colourOf = [];
+    (current.groups || []).forEach((group, index) => {
+      for (let bit = Number(group.from); bit <= Number(group.to); bit += 1) colourOf[bit] = index;
+    });
+    const strip = Array.from({ length: 16 }, (unused, i) => {
+      const at = colourOf[i + 1];
+      const cls = Number.isInteger(at) ? ` sheet-guide-bit-c${at}` : "";
+      return `<span class="sheet-guide-bit${cls}"></span>`;
+    }).join("");
+    // A field whose bits pick between named values gets its values as a list, one
+    // to a line, rather than run together in a sentence.
+    const legend = (current.groups || []).map((group, index) => {
+      const options = Array.isArray(group.options) && group.options.length
+        ? `<ul class="sheet-guide-options">${group.options.map((option) =>
+            `<li>${esc(isolateLatinRuns(option))}</li>`).join("")}</ul>`
+        : "";
+      return `
+      <li class="sheet-guide-item">
+        <span class="sheet-guide-swatch sheet-guide-bit-c${index}" aria-hidden="true"></span>
+        <div class="sheet-guide-text">${esc(isolateLatinRuns(group.text))}${options}</div>
+      </li>`;
+    }).join("");
+    return `
+      <section class="sheet-guide" aria-label="מבנה הפקודה"${at}>
+        ${header}
+        <div class="sheet-guide-body">
+          <div class="sheet-guide-strip" aria-hidden="true">${strip}</div>
+          <h3 class="sheet-guide-page-title">${esc(isolateLatinRuns(current.title))}</h3>
+          <ul class="sheet-guide-list">${legend}</ul>
+        </div>
+        <div class="sheet-guide-foot">
+          ${navButton("sheet-guide-prev", "arrow-right", "הקודם", { disabled: page === 0 })}
+          <span class="sheet-guide-count" dir="ltr">${page + 1} / ${pages.length}</span>
+          ${navButton("sheet-guide-next", "arrow-left", "המשך", { primary: true, disabled: page >= pages.length - 1 })}
+        </div>
+      </section>`;
+  }
+
+  // A hint that sends the learner to the workbench ("רוצה לבדוק על שולחן העבודה
+  // מה עושים ששת הביטים האלה?") points at the button that takes them there, with
+  // a bouncing arrow. The button itself stays live while the hint is up.
+  function sheetHintPointsAtWorkbench() {
+    const open = sheetOpenHint();
+    return Boolean(open && open.hint && open.hint.pointsAtWorkbench);
+  }
+
+  function renderSheetWorkbenchArrow() {
+    if (!sheetHintPointsAtWorkbench()) return "";
+    return `
+      <div class="sheet-wb-arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="46" height="46">
+          <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>`;
+  }
+
+  // Park the arrow just above the button it points at — the row of buttons moves
+  // with the window, so it is measured rather than placed at a fixed offset.
+  function positionSheetWorkbenchArrow() {
+    const arrow = app.querySelector(".sheet-wb-arrow");
+    if (!arrow) return;
+    const button = app.querySelector('[data-action="sheet-workbench"]');
+    if (!button) return;
+    const b = button.getBoundingClientRect();
+    const a = arrow.getBoundingClientRect();
+    if (!b.height || !a.height) return;
+    arrow.style.left = `${Math.round(b.left + b.width / 2 - a.width / 2)}px`;
+    arrow.style.top = `${Math.round(b.top - a.height - 10)}px`;
+  }
+
+  function sheetHintButton() {
+    const row = sheetCurrentRow();
+    if (sheetUnlockedHintCount(row) <= 0) return "";
+    const fresh = sheetHintProgress(row).seen < sheetUnlockedHintCount(row);
+    return `<button class="btn hint-btn ${fresh ? "hint-btn-ready" : "hint-btn-seen"}" data-action="sheet-hint-open" type="button">${esc(sheetHintButtonLabel(row))}</button>`;
+  }
+
+  // Wiping the page: the same warn-then-do shape the worktable notes use.
+  function renderSheetClearDialog() {
+    if (!state.sheetClearConfirm) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
+          <p>לנקות את ההתקדמות בדף הפקודות?</p>
+          <p class="my-card-delete-warn">הפעולה תמחק את כל מה שכתבת בדף ותחזיר אותו לפקודה הראשונה.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="sheet-clear-confirm" type="button">נקה</button>
+            <button class="btn" data-action="sheet-clear-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // The verdict card, in the same shape and colours as the workbench's check.
+  function renderInstructionSheetResult() {
+    const result = state.sheetDialog && state.sheetDialog.result;
+    if (!result) return "";
+    const passed = result !== "fail";
+    const message = result === "fail"
+      ? "הבדיקה נכשלה"
+      : (result === "done" ? "הבדיקה הצליחה. סיימת את כל הפקודות!" : "הבדיקה הצליחה");
+    const tone = passed ? " not-test-result-pass" : " not-test-result-fail";
+    return `
+      <div class="not-test-result-overlay" role="presentation">
+        <section class="not-test-result-card${tone}" role="alertdialog" aria-modal="false" aria-label="${esc(message)}">
+          <p>${esc(message)}</p>
+          <div class="not-test-result-actions">
+            <button class="btn btn-primary" data-action="sheet-result-ok">אישור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // The 4.1 build-task note. The tasks are listed in the order they must be done;
+  // none of them is built yet, so opening one says "המשך יבוא...".
+  function renderBuildNoteList() {
+    if (!state.buildNoteList) return "";
+    const tasks = typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : [];
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${tasks.map((task, index) => `
+          <li class="${index === 0 ? "" : "task-locked"}">
+            <span class="note-task-check" aria-hidden="true"></span>
+            <button class="note-task-button" data-action="build-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${index === 0 ? "false" : "true"}">${esc(task.label)}</button>
+          </li>`).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="build-note-close">סגור</button>
+          </div>
+        </section>
       </div>`;
   }
 
@@ -5155,12 +5954,14 @@
     const nonBlockingActions = ["binary-booklet", "nail-box"];
     const blockingHotspots = panelHotspots(panel).filter((h) => {
       if (h.url || nonBlockingActions.includes(h.action)) return false;
-      // A story object blocks המשך only when TAKING it is the way forward (the
-      // dosimeter). A reference-only object — the waste drums, the popy — is
-      // there to be read about, so the learner still walks on normally.
+      // A story object blocks המשך when it IS the way forward: taking it (the
+      // dosimeter), or opening what it holds (the note on the table — the page of
+      // instructions, the build tasks). A reference-only object — the waste
+      // drums, the popy, a cable tag — is there to be read about, so the learner
+      // still walks on normally.
       if (h.action === "panel-object") {
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
-        return Boolean(object && object.takeLabel);
+        return Boolean(object && (object.takeLabel || object.opens));
       }
       return true;
     });
@@ -5179,7 +5980,9 @@
             <div class="image-shell">
               <object class="panel-image" data="${esc(imageSrc)}" type="image/svg+xml" width="1448" height="1086" aria-label="קומיקס" role="img"></object>
               ${renderHotspots(panel)}
+              ${renderNandClickHint(panel)}
               ${renderPanelObjectPopover(panel)}
+              ${renderInstructionBits(panel)}
               ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
@@ -5195,6 +5998,7 @@
           ${skipLeadsNowhere() ? "" : navButton("skip", "skip-rtl", "דלג", { disabled: routingFinalPanelActive() || Boolean(skipDisabled) })}
           ${introChapterActive() ? labeledButton("skip-intro", "skip-rtl", "דלג על המבוא") : ""}
           ${transitionChapterActive() ? labeledButton("skip-transition", "skip-rtl", "דלג על קטע מעבר") : ""}
+          ${instructionExamplesActive() ? labeledButton("skip-examples", "skip-rtl", "דלג על הדוגמאות") : ""}
           ${renderBitInfoButton()}
           ${renderXorTableHelpButton()}
           ${renderRoutingCardsButton()}
@@ -5213,9 +6017,37 @@
       ${renderMemoryNoteList()}
       ${renderRamNoteList()}
       ${renderPortsNoteList()}
-      ${renderAluIntroDialog()}`;
+      ${renderAluIntroDialog()}
+      ${renderBuildNoteList()}
+      ${renderInstructionSheet()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
+  }
+
+  // The 16-cell instruction strip of chapter 4.1, drawn UNDER the speech bubble
+  // (inside the slide, like a hotspot) rather than baked into the art — because
+  // the same strip is re-shown slide after slide with a different group of bits
+  // lit, and with or without an example instruction written into it.
+  //
+  // panel.instruction = { bits: "1000000100000100" | "", lit: [from, to] }
+  // Bit numbers are 1-based and read LEFT to RIGHT (bit 1 is the leftmost cell),
+  // the way von Neumann counts them: "12 הביטים הראשונים".
+  const INSTRUCTION_GROUP_STARTS = [1, 13, 15];
+  function renderInstructionBits(panel) {
+    const spec = panel && panel.instruction;
+    if (!spec) return "";
+    const bits = String(spec.bits || "");
+    const lit = Array.isArray(spec.lit) ? spec.lit : null;
+    const cells = [];
+    for (let i = 1; i <= 16; i += 1) {
+      const classes = ["panel-bit"];
+      if (INSTRUCTION_GROUP_STARTS.includes(i) && i !== 1) classes.push("panel-bit-group");
+      if (lit && i >= lit[0] && i <= lit[1]) classes.push("is-lit");
+      cells.push(`<span class="${classes.join(" ")}">${esc(bits[i - 1] || "")}</span>`);
+    }
+    // Starts pending, like the slide itself: setupPanelStage reveals both at the
+    // same moment, once the slide's box is final.
+    return `<div class="panel-bits is-pending" aria-hidden="true">${cells.join("")}</div>`;
   }
 
   // The numeric-answer box for a gating story panel. The value is kept live in
@@ -7709,6 +8541,11 @@
       revealed = true;
       if (spinnerTimer) clearTimeout(spinnerTimer);
       obj.classList.remove("is-pending");
+      // The instruction strip is positioned against the slide's own box, which
+      // is not final until the <object> has laid out — so it waits for the same
+      // moment the slide does, instead of flashing mid-frame and dropping.
+      const bits = app.querySelector(".panel-bits");
+      if (bits) bits.classList.remove("is-pending");
       if (spinner) spinner.classList.remove("is-active");
       if (typeof onReady === "function") onReady();
     };
@@ -8064,6 +8901,21 @@
       && !state.solutionDialog
       && !state.cardCreation
       && !workspaceAccidentActive();
+  }
+
+  // On the very first "click the Nand to continue" slide (panel74a), a learner
+  // who does not click within a minute gets a bouncing arrow pointing at the
+  // Nand. Pure CSS timing: the arrow fades in after a 60s animation-delay, so any
+  // click (which re-renders and destroys this element) resets the wait.
+  function renderNandClickHint(panel) {
+    const img = String((panel && panel.image) || "");
+    if (!img.includes("panel74a")) return "";
+    // Centred just above the Nand hotspot (left 39% + width 20% → centre 49%;
+    // top 62%), pointing down at it.
+    return `
+      <div class="panel-nand-hint" aria-hidden="true" style="left:48%;top:53%;">
+        <svg viewBox="0 0 24 24" width="54" height="54"><path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>`;
   }
 
   function renderAndArrow() {
@@ -11705,6 +12557,22 @@
     if (state.dialog) {
       requestAnimationFrame(() => app.querySelector("[data-action='dialog-yes']")?.focus());
     }
+    if (state.sheetDialog) requestAnimationFrame(positionSheetWorkbenchArrow);
+    // The square being written in on the exercise page. `autofocus` alone is not
+    // enough on markup written with innerHTML — without this the square was only
+    // marked and the typing went nowhere.
+    if (state.sheetDialog && state.sheetScratchCell) {
+      requestAnimationFrame(() => {
+        const box = app.querySelector(".sheet-scratch-input");
+        if (!box) return;
+        if (document.activeElement !== box) box.focus();
+        // A square holds one character, so opening one SELECTS what is in it:
+        // typing replaces it. (This runs even when the browser's own autofocus
+        // got there first — otherwise the caret sits before the character and
+        // Backspace has nothing behind it to rub out.)
+        try { box.select(); } catch (e) { /* not a text input */ }
+      });
+    }
   }
 
   function openChapter(chapterId) {
@@ -11749,6 +12617,21 @@
       // and with no persistent build-help button during the observe phase.
       workspace.helpPromptSeen = true;
       workspace.buildHelpButtonVisible = false;
+      // (Re)start the demo from scratch EVERY time the workbench is launched from
+      // the warehouse — so leaving mid-monologue, or returning to the launch panel
+      // later, replays the whole Nand demo instead of dropping the learner onto a
+      // spent workbench where the observe phase and monologue are already "done"
+      // (which read as the monologue being skipped). Fresh board, observation and
+      // monologue reset to their first-visit state.
+      workspace.components = cloneDefaultComponents();
+      workspace.wires = [];
+      workspace.selectedTerminal = null;
+      workspace.nextId = 2;
+      workspace.accident = null;
+      workspace.nandOutputObserved = { zero: false, one: false };
+      workspace.understoodPromptShown = false;
+      workspace.understoodButtonVisible = false;
+      workspace.nandMonologueStep = null;
     }
 
     // The Nand intro story just ended (the workbench is opening) → announce the
@@ -17586,10 +18469,11 @@
     const scene = currentScene();
     setState({
       ...transientUiClearPatch(),
+      // The end of the interlude, not the end of the story: 4.1 follows it now,
+      // so "המשך" from here walks straight on into the next chapter.
       panelIndex: Math.max(scene.panels.length - 1, 0),
       started: true,
-      replayNonce: state.replayNonce + 1,
-      infoDialog: "המשך יבוא..."
+      replayNonce: state.replayNonce + 1
     }, false);
   }
 
@@ -19375,6 +20259,53 @@
     saveState();
   });
 
+  // Scribbling on a free square of the exercise page.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-scratch-input");
+    if (!box || !box.dataset.sheetScratch) return;
+    const progress = instructionSheetProgress();
+    const scratch = { ...progress.scratch };
+    const typed = String(box.value).slice(0, 1);
+    if (typed.trim() === "") delete scratch[box.dataset.sheetScratch];
+    else scratch[box.dataset.sheetScratch] = typed;
+    state.instructionSheet = { ...progress, scratch };
+    // One character to a square: writing one steps on to the square beside it (to
+    // the right), the way one fills in a squared page.
+    if (typed.trim() !== "") {
+      const [row, col] = String(box.dataset.sheetScratch).split(",").map(Number);
+      return setState({ sheetScratchCell: col > 1 ? { row, col: col - 1 } : null });
+    }
+    saveState();
+  });
+
+  // Rubbing out what was written on a square: Backspace or Delete clears it.
+  // Backspace on a square that is already empty steps BACK to the one before it
+  // (the way writing steps forward) and clears that one instead.
+  document.addEventListener("keydown", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-scratch-input");
+    if (!box || !box.dataset.sheetScratch) return;
+    if (event.key !== "Backspace" && event.key !== "Delete") return;
+    event.preventDefault();
+    const progress = instructionSheetProgress();
+    const scratch = { ...progress.scratch };
+    const [row, col] = String(box.dataset.sheetScratch).split(",").map(Number);
+    let at = { row, col };
+    if (event.key === "Backspace" && !scratch[`${row},${col}`] && col + 1 <= 200) at = { row, col: col + 1 };
+    delete scratch[`${at.row},${at.col}`];
+    state.instructionSheet = { ...progress, scratch };
+    return setState({ sheetScratchCell: at });
+  });
+
+  // The exercise sheet's cells: same idea — kept live in state without a
+  // re-render, so the caret stays where the learner put it.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".sheet-input");
+    if (!box || !box.dataset.sheetKey) return;
+    const progress = instructionSheetProgress();
+    state.instructionSheet = { ...progress, values: { ...progress.values, [box.dataset.sheetKey]: box.value } };
+    saveState();
+  });
+
   // Keep the converter number box's typed value in state (no re-render, so focus
   // and caret are preserved), and clear any stale error as the learner retypes.
   document.addEventListener("input", (event) => {
@@ -19408,7 +20339,9 @@
     // (event.code is layout-independent, so it works on any keyboard.)
     if (event.ctrlKey && event.shiftKey && event.code === "Digit9") {
       event.preventDefault();
-      if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
+      // The 4.1 exercise page: one instruction per press.
+      if (state.sheetDialog) sheetSecretSolve();
+      else if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
       // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
       // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
       // real task, so it takes the normal secret-solve path instead — otherwise it
@@ -19463,6 +20396,54 @@
     }
   });
 
+  // Dragging the "מבנה הפקודה" window: it is picked up ANYWHERE that is not text
+  // and not a button — its frame, its heading strip, the paddings — so it can be
+  // moved off whatever the learner wants to look at. The position is applied live
+  // and saved on release, so it stays put.
+  let sheetGuideDrag = null;
+
+  function sheetGuideDragHandle(target) {
+    if (!target || !target.closest) return null;
+    const win = target.closest(".sheet-guide");
+    if (!win) return null;
+    // Text and buttons belong to themselves.
+    if (target.closest("button, a, input, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
+    return win;
+  }
+
+  document.addEventListener("mousedown", (event) => {
+    const win = sheetGuideDragHandle(event.target);
+    if (!win) return;
+    const rect = win.getBoundingClientRect();
+    sheetGuideDrag = { win, dx: event.clientX - rect.left, dy: event.clientY - rect.top, moved: false };
+    win.style.left = `${rect.left}px`;
+    win.style.top = `${rect.top}px`;
+    win.classList.add("sheet-guide-dragging");
+    event.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!sheetGuideDrag) return;
+    const win = sheetGuideDrag.win;
+    const rect = win.getBoundingClientRect();
+    const x = Math.max(0, Math.min(window.innerWidth - Math.min(rect.width, 80), event.clientX - sheetGuideDrag.dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 34, event.clientY - sheetGuideDrag.dy));
+    sheetGuideDrag.moved = true;
+    win.style.left = `${x}px`;
+    win.style.top = `${y}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!sheetGuideDrag) return;
+    const { win, moved } = sheetGuideDrag;
+    sheetGuideDrag = null;
+    win.classList.remove("sheet-guide-dragging");
+    if (!moved) return;
+    const left = parseInt(win.style.left, 10);
+    const top = parseInt(win.style.top, 10);
+    if (Number.isFinite(left) && Number.isFinite(top)) setSheetGuide({ pos: { left, top } });
+  });
+
   // A converter digit distinguishes single-click (increment mod 10) from
   // double-click (type a value): a lone click is deferred briefly, and a second
   // click on a digit within the window cancels it and opens the text box.
@@ -19498,6 +20479,31 @@
       return setState({ panelObjectDialog: null }, false);
     }
     if (!button) {
+      // A bare square of the exercise page: start writing on it, the way one
+      // scribbles on the squared paper of a workbook. (Only the paper itself is
+      // a free square — everything drawn on the page covers its own.)
+      if (state.sheetDialog && event.target.classList
+          && event.target.classList.contains("sheet-paper")) {
+        event.preventDefault();
+        return setState({ sheetScratchCell: sheetSquareAt(event.target, event.clientX, event.clientY) });
+      }
+      // A square the learner has already written in opens again for editing.
+      // What the PAGE itself wrote — an instruction's bits, a hint's note, a
+      // heading — is not the learner's to edit, and carries no such handle.
+      if (state.sheetDialog && event.target.closest) {
+        const written = event.target.closest(".sheet-scratch[data-sheet-scratch]");
+        if (written) {
+          event.preventDefault();
+          const [row, col] = String(written.dataset.sheetScratch).split(",").map(Number);
+          return setState({ sheetScratchCell: { row, col } });
+        }
+        // Anywhere else on the page — a bit of an instruction, a heading — puts
+        // the pencil down. (Not an answer box: re-rendering would take the caret
+        // straight back out of the box just clicked.)
+        if (state.sheetScratchCell && !event.target.closest(".sheet-scratch-input, .sheet-input")) {
+          return setState({ sheetScratchCell: null }, false);
+        }
+      }
       // During the booklet solution a plain click anywhere advances it, like
       // the "המשך" button (but not clicks inside the movable window itself).
       if (state.screen === "notebook" && binInGridSolution(state.notebook) && !event.target.closest(".nb-window")) {
@@ -19600,6 +20606,17 @@
     }
 
     if (state.bitDialog && !isGlobalNavigationAction(action) && !["bit-dialog-next", "bit-dialog-ok"].includes(action)) {
+      event.preventDefault();
+      return;
+    }
+
+    // The exercise sheet is modal: only its own buttons (and the topbar) work
+    // while it is open.
+    if (state.sheetDialog && !isGlobalNavigationAction(action)
+        && !["sheet-check", "sheet-close", "sheet-result-ok",
+             "sheet-hint-open", "sheet-hint-select", "sheet-hint-apply", "sheet-hint-close",
+             "sheet-workbench", "sheet-clear-open", "sheet-clear-cancel", "sheet-clear-confirm",
+             "sheet-guide-toggle", "sheet-guide-prev", "sheet-guide-next"].includes(action)) {
       event.preventDefault();
       return;
     }
@@ -19816,6 +20833,7 @@
     if (action === "skip") return skipStory();
     if (action === "skip-intro") return skipIntro();
     if (action === "skip-transition") return skipTransition();
+    if (action === "skip-examples") return skipInstructionExamples();
     if (action === "sound") return toggleSound();
     if (action === "workspace-return-warehouse") return returnToWorkspaceWarehouse();
     if (action === "clocked-script-next") return clockedScriptAdvance();
@@ -19839,9 +20857,51 @@
     // A story object's reference window: open it, follow its link (which earns
     // "סקרן" like every other reference), take the object (which walks on to the
     // next slide), or close it.
-    if (action === "panel-object") return setState({ panelObjectDialog: button.dataset.objectId || null }, false);
+    if (action === "panel-object") {
+      const objectId = button.dataset.objectId || null;
+      const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[objectId];
+      // An object whose contents are not built yet says so instead of opening an
+      // empty window (the note of tasks on the 4.1 worktable).
+      if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
+      if (object && object.opens === "instruction-sheet") return openInstructionSheet();
+      if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
+      return setState({ panelObjectDialog: objectId }, false);
+    }
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }
     if (action === "panel-object-close") return setState({ panelObjectDialog: null }, false);
+    if (action === "sheet-check") return checkInstructionSheet();
+    if (action === "sheet-hint-open") return openSheetHints();
+    if (action === "sheet-hint-select") return openSheetHints(Number(button.dataset.hintIndex));
+    if (action === "sheet-hint-apply") return applySheetHint();
+    if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
+    if (action === "build-note-task") return setState({ infoDialog: "המשך יבוא..." });
+    if (action === "build-note-close") return setState({ buildNoteList: false });
+    if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
+    if (action === "sheet-guide-prev") return stepSheetGuide(-1);
+    if (action === "sheet-guide-next") return stepSheetGuide(1);
+    if (action === "sheet-clear-open") return setState({ sheetClearConfirm: true });
+    if (action === "sheet-clear-cancel") return setState({ sheetClearConfirm: null });
+    if (action === "sheet-clear-confirm") {
+      return setState({
+        instructionSheet: { revealed: 1, values: {}, hints: {}, notes: {}, scratch: {} },
+        sheetClearConfirm: null,
+        sheetScratchCell: null,
+        sheetDialog: { result: null }
+      });
+    }
+    if (action === "sheet-workbench") return openSheetWorkbench();
+    if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
+    if (action === "sheet-close") return setState({ sheetDialog: null });
+    if (action === "sheet-result-ok") {
+      // The last instruction checked out: the page is done, so close it and walk
+      // on to the next slide. (The work stays saved — coming back to the note,
+      // by "חזרה" or from the chapters menu, opens the finished page again.)
+      if (state.sheetDialog?.result === "done") {
+        setState({ sheetDialog: null }, false);
+        return nextPanel();
+      }
+      return setState({ sheetDialog: { result: null } });
+    }
     if (action === "panel-object-take") {
       setState({ panelObjectDialog: null }, false);
       return nextPanel();

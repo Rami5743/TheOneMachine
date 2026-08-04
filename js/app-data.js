@@ -989,5 +989,188 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     popy: {
       label: "פופי",
       url: "https://grokipedia.com/page/Proportional_counter"
-    }
+    },
+
+    // ---- Chapter 4.1, the computer room the learner is left alone in --------
+    // The two racks get a reference link; every cable tag gets a short note
+    // instead (`note` replaces `url`). Each tag is its OWN entry even where the
+    // wording repeats, because the window opens beside the zone whose objectId
+    // it matches — sharing an id would park it beside the first zone found.
+    aluRack: {
+      label: "ALU",
+      url: "https://he.wikipedia.org/wiki/יחידה_לוגית_אריתמטית"
+    },
+    ramRack: {
+      label: "RAM",
+      url: "https://he.wikipedia.org/wiki/זיכרון_גישה_אקראית"
+    },
+    aluIn1: { label: "IN1", note: "הכניסה הראשונה של ה-ALU. בס ברוחב 16." },
+    aluIn2: { label: "IN2", note: "הכניסה השנייה של ה-ALU. בס ברוחב 16." },
+    aluIn3: { label: "IN3", note: "הכניסה השלישית של ה-ALU. בס ברוחב 16." },
+    aluOut: { label: "OUT", note: "היציאה של ה-ALU. בס ברוחב 16 עם תוצאת החישוב." },
+    aluInst: { label: "INST", note: "כניסת הבקרה של ה-ALU. בס ברוחב 12 שאומר לו איזה חישוב לבצע." },
+    aluFlags: { label: "ng ו-nz", note: "שתי היציאות הנוספות של ה-ALU, כבלים בודדים ולא בסים: ng הוא הביט המוביל של התוצאה, ו-nz הוא 0 אם כל התוצאה היא 0 ו-1 אחרת." },
+    ramIn: { label: "IN", note: "הבס שנכנס לזיכרון — המידע שרוצים לכתוב בו." },
+    ramAdr: { label: "ADR", note: "הכתובת בזיכרון — היא קובעת לאיזה רגיסטר קוראים או כותבים." },
+    ramOut: { label: "OUT", note: "הבס שיוצא מהזיכרון — התוכן של הרגיסטר שכתובתו מופיעה ב-ADR." },
+    ramWrite: { label: "כבל הבקרה", note: "כבל בודד ולא בס: הוא קובע אם כותבים לזיכרון או רק קוראים ממנו." },
+    ramIn0: { label: "IN0", note: "פורט כניסה 0. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn1: { label: "IN1", note: "פורט כניסה 1. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn2: { label: "IN2", note: "פורט כניסה 2. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramIn3: { label: "IN3", note: "פורט כניסה 3. בס ברוחב 16 שמגיע מבחוץ, ממכשיר שמזין את המחשב." },
+    ramOut0: { label: "OUT0", note: "פורט יציאה 0. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut1: { label: "OUT1", note: "פורט יציאה 1. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut2: { label: "OUT2", note: "פורט יציאה 2. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    ramOut3: { label: "OUT3", note: "פורט יציאה 3. בס ברוחב 16 שיוצא החוצה, למכשיר שהמחשב מפעיל." },
+    // The note von Neumann left on the table: it opens the exercise sheet.
+    tasksNote: { label: "הפתק", opens: "instruction-sheet" },
+    // The second note, left beside it: the tasks for building the simple computer.
+    buildNote: { label: "הפתק", opens: "build-tasks" }
   };
+
+  // The build tasks of chapter 4.1, to be done in this order. None of them has a
+  // workspace yet — opening one says so.
+  const SIMPLE_COMPUTER_TASKS = [
+    { id: "PC0", label: "PC0" },
+    { id: "Cont0", label: "Cont0" },
+    { id: "CPU0", label: "CPU0" },
+    { id: "Computer0", label: "Computer0" }
+  ];
+
+  // ---- The 4.1 exercise: run these instructions in your head ---------------
+  // The sheet shows only the BITS. `code` is the pseudo-code they were dictated
+  // in (kept here as the reference for the encoding, never shown to the learner)
+  // and `after` is the state of the processor's registers and of the first three
+  // memory registers once that instruction has run, starting from all zeros.
+  //
+  // The encoding is the one chapter 4.1 teaches: [12 bits ALU][2 bits where to
+  // write][2 unused]. In the ALU field bit 1 = 0 means "emit this number", and
+  // bit 1 = 1 means compute — bit 6 picking D+A or D+*A and bits 7-12 the ALU1
+  // operation. Destination 1 = A, 2 = D, 3 = *A.
+  //
+  // `hints` are that instruction's hints, in the order they unlock (bit numbers
+  // count from 1, leftmost):
+  //   mark       - the bits this hint is about, lit up on the page while it is open
+  //   above      - a merged cell written in the row above those bits
+  //   fill       - answers this hint fills in for the learner, per column
+  //   applyLabel - makes the hint a question: the annotation (or the filling-in)
+  //                only happens once the learner presses the button.
+  const INSTRUCTION_SHEET = [
+    { code: "A=1",     bits: "0000000000010100", after: { A: 1, D: 0,  R0: 0, R1: 0,  R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 1.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "1" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } },
+        { title: "רמז 5", text: "אל תשכח שבהתחלה כל הרגיסטרים הם 0." },
+        { title: "רמז 6", text: "למלא לך את הרגיסטרים שלא השתנו ב-0?", fill: { D: 0, R0: 0, R1: 0, R2: 0 }, applyLabel: "כן, מלא" }
+      ] },
+    { code: "*A=17",   bits: "0000000100011100", after: { A: 1, D: 0,  R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 17.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "17" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-*A — הרגיסטר בזיכרון שכתובתו היא התוכן של A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ *A" } },
+        { title: "רמז 5", text: "חוץ מהרגיסטר *A שאר הרגיסטרים הם באותו המצב בדיוק." },
+        { title: "רמז 6", text: "רוצה שאעתיק את המצב של הרגיסטרים שלא השתנו?", fill: { A: 1, D: 0, R0: 0, R2: 0 }, applyLabel: "כן, העתק" }
+      ] },
+    { code: "D=5",     bits: "0000000001011000", after: { A: 1, D: 5,  R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 5.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "5" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-D.", mark: [13, 14], above: { from: 13, to: 14, text: "→ D" } },
+        { title: "רמז 5", text: "רוצה שאעתיק לך את המצב של כל הרגיסטרים שלא השתנו?", fill: { A: 1, R0: 0, R1: 17, R2: 0 }, applyLabel: "כן, העתק" }
+      ] },
+    { code: "D=*A-D",  bits: "1000011110001000", after: { A: 1, D: 12, R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU כן מבצע חישוב.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביט הזה אומר שהחישוב נעשה על הכניסה הראשונה והשלישית של ה-ALU אלו הם D ו-*A.", mark: [6, 6] },
+        { title: "רמז 3", text: "רוצה לבדוק על שולחן העבודה מה עושים ששת הביטים האלה? אתה יכול לבדוק את זה עם ALU1", mark: [7, 12], pointsAtWorkbench: true },
+        { title: "רמז 4", text: "ששת הביטים האלה מסמנים חיסור, ובסדר הזה: הכניסה השלישית פחות הראשונה, כלומר *A פחות D.", mark: [7, 12] },
+        { title: "רמז 5", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "*A-D" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 6", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-D.", mark: [13, 14], above: { from: 13, to: 14, text: "→ D" } },
+        { title: "רמז 7", text: "רוצה שאעתיק לך את המצב של כל הרגיסטרים שלא השתנו?", fill: { A: 1, R0: 0, R1: 17, R2: 0 }, applyLabel: "כן, העתק" }
+      ] },
+    { code: "A=2",     bits: "0000000000100100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 0 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU לא מחשב אלא מוציא את ההוראה שלו.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביטים האלה הם המספר 2.", mark: [2, 12] },
+        { title: "רמז 3", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "2" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 4", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ A" } },
+        { title: "רמז 5", text: "רוצה שאעתיק לך את המצב של כל הרגיסטרים שלא השתנו?", fill: { D: 12, R0: 0, R1: 17, R2: 0 }, applyLabel: "כן, העתק" }
+      ] },
+    { code: "*A=D",    bits: "1000000011001100", after: { A: 2, D: 12, R0: 0, R1: 17, R2: 12 },
+      hints: [
+        { title: "רמז 1", text: "הביט הזה אומר שה-ALU כן מבצע חישוב.", mark: [1, 1] },
+        { title: "רמז 2", text: "הביט הזה אומר שהחישוב נעשה על הכניסה הראשונה והשנייה של ה-ALU אלו הם D ו-A.", mark: [6, 6] },
+        { title: "רמז 3", text: "רוצה לבדוק על שולחן העבודה מה עושים ששת הביטים האלה? אתה יכול לבדוק את זה עם ALU1", mark: [7, 12], pointsAtWorkbench: true },
+        { title: "רמז 4", text: "ששת הביטים האלה אומרים ל-ALU להוציא את הכניסה הראשונה שלו כמו שהיא, כלומר את D.", mark: [7, 12] },
+        { title: "רמז 5", text: "לכתוב לך מה משמעות ההוראה של ה-ALU מעל הביטים של ההוראה שלו?", above: { from: 1, to: 12, text: "D" }, applyLabel: "כן, כתוב לי" },
+        { title: "רמז 6", text: "הביטים האלה אומרים שהיציאה של ה-ALU נרשמת ל-*A — הרגיסטר בזיכרון שכתובתו היא התוכן של A.", mark: [13, 14], above: { from: 13, to: 14, text: "→ *A" } },
+        { title: "רמז 7", text: "רוצה שאעתיק לך את המצב של כל הרגיסטרים שלא השתנו?", fill: { A: 2, D: 12, R0: 0, R1: 17 }, applyLabel: "כן, העתק" }
+      ] }
+  ];
+
+  const INSTRUCTION_SHEET_COLUMNS = ["A", "D", "R0", "R1", "R2"];
+
+  // The reference window on the exercise page ("מבנה הפקודה"): a strip of the
+  // sixteen squares of the instruction, with the fields of one level coloured in
+  // and explained underneath. Each page zooms one level deeper — the word, the
+  // ALU3/4 instruction inside it, the ALU2 instruction inside THAT, and the ALU1
+  // instruction at the bottom. `from`/`to` are bit numbers (1 = leftmost).
+  const INSTRUCTION_GUIDE = [
+    {
+      title: "מבנה הפקודה",
+      groups: [
+        { from: 1, to: 12, text: "הוראת ה-ALU4" },
+        {
+          from: 13, to: 14, text: "יעד ה-ALU4:",
+          options: ["0 - אין", "1 - A", "2 - D", "3 - *A"]
+        },
+        { from: 15, to: 16, text: "ביטים מיותרים" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU3/4",
+      groups: [
+        {
+          from: 1, to: 1, text: "האם לבצע חישוב:",
+          options: ["0 - לא לבצע, להוציא את ההוראה עצמה", "1 - לבצע לפי הוראת ה-ALU2"]
+        },
+        { from: 2, to: 5, text: "כשלא מבצעים חישוב אלה חלק מהמספר שיוצא; כשמבצעים חישוב הם לא בשימוש" },
+        { from: 6, to: 12, text: "הוראת ה-ALU2 (כשהוא מופעל)" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU2",
+      groups: [
+        {
+          from: 6, to: 6, text: "על אילו כניסות לעבוד:",
+          options: ["0 - הראשונה והשנייה (D ו-A)", "1 - הראשונה והשלישית (D ו-*A)"]
+        },
+        { from: 7, to: 12, text: "הוראת ה-ALU1 — הפעולה עצמה" }
+      ]
+    },
+    {
+      title: "מבנה הוראת ה-ALU1",
+      groups: [
+        {
+          from: 7, to: 7, text: "האם לבצע Not על התוצאה בסוף:",
+          options: ["0 - לא", "1 - כן"]
+        },
+        {
+          from: 8, to: 8, text: "הפעולה על שתי הכניסות המוכנות:",
+          options: ["0 - And", "1 - חיבור"]
+        },
+        {
+          from: 9, to: 10, text: "ההכנה של הכניסה השנייה:",
+          options: ["הביט הראשון - Not", "הביט השני - איפוס (מתבצע לפני ה-Not)"]
+        },
+        {
+          from: 11, to: 12, text: "ההכנה של הכניסה הראשונה:",
+          options: ["הביט הראשון - Not", "הביט השני - איפוס (מתבצע לפני ה-Not)"]
+        }
+      ]
+    }
+  ];

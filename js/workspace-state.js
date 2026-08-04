@@ -86,7 +86,9 @@ function createWorkspaceState({
     // The clocked (sequential) table legitimately opens EMPTY — the learner drags
     // every part in from the palette — so it must NOT get the default
     // source/lamp/nand seeded into it the way other empty workspaces do.
-    const allowEmpty = Boolean(ws && ws.clocked);
+    // A free-build table opens empty too (the 4.1 exercise page's scratch table),
+    // so it must not be seeded either.
+    const allowEmpty = Boolean(ws && (ws.clocked || ws.freeBuild));
     const sourceComponents = Array.isArray(ws.components) && ws.components.length
       ? ws.components
       : (allowEmpty ? [] : cloneDefaultComponents());
@@ -125,6 +127,9 @@ function createWorkspaceState({
       sessionReturnPanelIndex: Number.isInteger(ws.sessionReturnPanelIndex) ? ws.sessionReturnPanelIndex : null,
       taskId: typeof ws.taskId === "string" ? ws.taskId : null,
       taskIntroSeen: Boolean(ws.taskIntroSeen),
+      // The 4.1 exercise page this free-build table was opened from — kept here
+      // (rather than in a transient field) so "חזרה לדף הפקודות" survives a refresh.
+      sheetReturn: (ws.sheetReturn && typeof ws.sheetReturn === "object") ? { ...ws.sheetReturn } : null,
       // The "empty table" free-build workbench flag. Preserved here so the mode
       // survives load/save (this normalizer runs on both) and stays
       // distinguishable from the Nand-presentation workbench.

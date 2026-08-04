@@ -15,6 +15,10 @@ const PARTS = [
   {
     "id": "part-3",
     "title": "חלק 3: זיכרון"
+  },
+  {
+    "id": "part-4",
+    "title": "חלק 4: מכונת חישוב אחת שתחליף את כולן"
   }
 ];
 
@@ -106,6 +110,12 @@ const CHAPTERS = [
     "title": "3.5 יצור",
     "sceneId": "production",
     "story": true
+  },
+  {
+    "id": "chapter-15",
+    "partId": "part-4",
+    "title": "4.1 מחשב פשוט",
+    "sceneId": "simple-computer"
   }
 ];
 
@@ -1313,6 +1323,888 @@ const SCENES = {
             "top": 57.1,
             "width": 25.6,
             "height": 30.3
+          }
+        ]
+      }
+    ]
+  },
+  "simple-computer": {
+    "id": "simple-computer",
+    "title": "4.1 מחשב פשוט",
+    "type": "story",
+    "chapterId": "chapter-15",
+    "year": "1944",
+    "panels": [
+      {
+        "comment": "4.1 opens on the desert title card: a few months have passed and the machine now stands.",
+        "image": "assets/panels/panel63.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "4.1 opens in the finished computer room: the RAM shelves are wired and working.",
+        "image": "assets/panels/panel165_chapter_4_1_memory_works.svg",
+        "year": "1944",
+        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה."
+      },
+      {
+        "comment": "What is left: turning the ALU into a processor.",
+        "image": "assets/panels/panel166_chapter_4_1_alu_to_cpu.svg",
+        "year": "1944",
+        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות."
+      },
+      {
+        "comment": "The fetch-execute cycle: processor and memory feed each other, forever.",
+        "image": "assets/panels/panel167_chapter_4_1_fetch_execute.svg",
+        "year": "1944",
+        "read": "המעבד והזיכרון יהיו מחוברים באופן קבוע ויזינו אחד את השני. יחד הם יהוו את המחשב שלנו. הם יפעלו במחזור פעולה: המעבד קורא מהזיכרון פקודה המעבד מבצע את הפקודה וחוזר חלילה. זה יאפשר לנו לבצע תוכנות ארוכות ומסובכות שיהיו בזיכרון המחשב."
+      },
+      {
+        "comment": "An instruction is nothing but a 16-bit word — the machine understands nothing else.",
+        "image": "assets/panels/panel168_chapter_4_1_instructions_are_bits.svg",
+        "year": "1944",
+        "read": "שים לב. הפקודות שאנחנו מדברים עליהן הן למעשה רצפי ביטים. המכונות שלנו לא מבינות שום דבר אחר. מכיוון שקבענו שהיחידה הבסיסית של המחשב שלנו תהיה 16 ביטים, גם הפקודות שלנו יהיו 16 ביטים."
+      },
+      {
+        "comment": "The memory splits in two: data memory (the RAM he built) and program memory.",
+        "image": "assets/panels/panel169_chapter_4_1_two_memories.svg",
+        "year": "1944",
+        "read": "הפקודות יהיו רשומות בזיכרון. כדי להקל על העבודה, הזיכרון שלנו יהיה מחולק ל-2 חלקים: זיכרון דאטה (בקיצור \"הזיכרון\") — זה כרטיס ה-RAM שבנית — הוא יכיל את המידע שעליו אנחנו רוצים לבצע את החישובים זיכרון תוכנה — זה יהיה עוד כרטיס RAM1024 שעליו תישמר רשימת הפקודות"
+      },
+      {
+        "comment": "Program memory is read-only to the computer; we write it from the outside.",
+        "image": "assets/panels/panel170_chapter_4_1_program_memory_readonly.svg",
+        "year": "1944",
+        "read": "המחשב שלנו לא יוכל לכתוב לזיכרון התוכנה, אלא רק לקרוא ממנו. אנחנו נוכל לכתוב לזיכרון התוכנה מבחוץ וכך נוכל לתכנת את המחשב שלנו לעשות מה שנרצה. אולי בעתיד נאפשר למחשב לכתוב לזיכרון התוכנה וכך נוכל לתכנת אותו מתוך המחשב עצמו."
+      },
+      {
+        "comment": "The word 'processor', and why CPU is a slightly silly name here.",
+        "image": "assets/panels/panel171_chapter_4_1_cpu_name.svg",
+        "year": "1944",
+        "read": "למעבד קוראים באנגלית processor. לפעמים גם קוראים לו CPU שהם ראשי תיבות של central processing unit — יחידת עיבוד מרכזית. זה שם לא ממש רלוונטי בשבילנו, כי זה לא שיש לנו עוד יחידות עיבוד, אבל נשתמש בו מדי פעם כי הוא קצר."
+      },
+      {
+        "comment": "The processor's three parts.",
+        "image": "assets/panels/panel172_chapter_4_1_cpu_parts.svg",
+        "year": "1944",
+        "read": "המעבד יהיה מורכב מ-3 חלקים: ה-ALU רגיסטרים יחידת בקרה"
+      },
+      {
+        "comment": "Its three registers, by name.",
+        "image": "assets/panels/panel173_chapter_4_1_cpu_registers.svg",
+        "year": "1944",
+        "read": "המעבד יכיל 3 רגיסטרים: A D PC"
+      },
+      {
+        "comment": "Why more registers when the memory already holds a thousand: an address is a detour.",
+        "image": "assets/panels/panel174_chapter_4_1_why_registers.svg",
+        "year": "1944",
+        "read": "אתה בטח רוצה לשאול למה אנחנו צריכים עוד רגיסטרים כשיש לנו כבר יותר מ-1000 רגיסטרים בזיכרון. העניין הוא שכדי לפנות לרגיסטר בזיכרון אנחנו צריכים כתובת, מה שמסבך את הפנייה. הרגיסטרים של המעבד מחוברים באופן ישיר לאן שהם צריכים להיות מחוברים ולכן קל בהרבה לטפל בהם."
+      },
+      {
+        "comment": "\"Where is the data?\" is itself data — and it has to stop somewhere.",
+        "image": "assets/panels/panel175_chapter_4_1_where_is_the_data.svg",
+        "year": "1944",
+        "read": "הם מאפשרים לנו לשמור מידע בלי לשמור גם איפה הוא נמצא. במידה מסוימת זה הכרחי, כי \"איפה המידע נמצא?\" זה גם מידע שגם אותו צריך לשמור איפשהו, ואם נצטרך לשמור איפה המידע הזה נמצא אז לא יהיה לדבר סוף."
+      },
+      {
+        "comment": "What each of A, D and PC is for.",
+        "image": "assets/panels/panel176_chapter_4_1_register_roles.svg",
+        "year": "1944",
+        "read": "לכל רגיסטר של המעבד יהיה תפקיד מוגדר למדי: רגיסטר A יכיל כתובת בזיכרון הדאטה שאליה נרצה לכתוב וממנה נרצה לקרוא. אנחנו גם נשתמש בו לעוד דברים רגיסטר D יכיל מידע שהמעבד יוכל לעבוד עליו באופן ישיר הרגיסטר PC יכיל את הכתובת בזיכרון התוכנה של הפקודה אותה המעבד צריך לבצע"
+      },
+      {
+        "comment": "The control unit is the one that 'knows'.",
+        "image": "assets/panels/panel177_chapter_4_1_control_unit.svg",
+        "year": "1944",
+        "read": "יחידת הבקרה היא זאת שתפקח על פעולת המעבד. היא \"תדע\" לאן לרשום את תוצאת הפעולה של ה-ALU ומה הפקודה הבאה שצריך לבצע."
+      },
+      {
+        "comment": "First a simpler computer — a base for changes, not a component.",
+        "image": "assets/panels/panel178_chapter_4_1_simple_first.svg",
+        "year": "1944",
+        "read": "לבנות את המחשב זו משימה מורכבת. לכן בשלב הראשון נתחיל מגרסה פשוטה יותר של המחשב. היא לא תוכל לבצע כל חישוב אבל היא תהיה טובה בתור התחלה. אנחנו לא נשתמש בה בתור רכיב של המחשב שלנו אלא בתור בסיס לשינויים."
+      },
+      {
+        "comment": "The instruction layout: 16 cells, cut 12 + 2 + 2.",
+        "image": "assets/panels/panel179_chapter_4_1_instruction_layout.svg",
+        "year": "1944",
+        "read": "הנה מבנה הפקודה של המחשב הפשוט:",
+        "instruction": {
+          "bits": ""
+        }
+      },
+      {
+        "comment": "The first 12 bits are the ALU's own instruction; its three inputs are wired for good.",
+        "image": "assets/panels/panel180_chapter_4_1_alu_field.svg",
+        "year": "1944",
+        "read": "12 הביטים הראשונים הם ההוראה ל-ALU. אתה זוכר של-ALU שלנו יש 3 כניסות (לא כולל את ההוראות). אנחנו נחבר את הכניסות האלה באופן קבוע לשלושת הבסים שמכילים את הדברים הבאים: התוכן של רגיסטר D (נסמן אותו ב-D) התוכן של רגיסטר A (נסמן אותו ב-A) התוכן של הרגיסטר בזיכרון שכתובתו היא התוכן של A (נסמן אותו ב-*A)",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "The next 2 bits: where the result is written (0-3).",
+        "image": "assets/panels/panel181_chapter_4_1_dest_field.svg",
+        "year": "1944",
+        "read": "2 הביטים הבאים אומרים לאן אנחנו רושמים את התוצאה של חישוב ה-ALU. הם מייצגים מספר בינרי בין 0 ל-3 שלפיו מחליטים: 0. לא רושמים כלל. סתם מחשבים ומתעלמים מהתוצאה. פקודה מיותרת אבל אפשרית 1. A 2. D 3. *A",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "The last 2 bits are ignored in the simple computer.",
+        "image": "assets/panels/panel182_chapter_4_1_unused_field.svg",
+        "year": "1944",
+        "read": "משני הביטים האחרונים נתעלם. אנחנו לא צריכים אותם במחשב הפשוט.",
+        "instruction": {
+          "bits": "",
+          "lit": [
+            15,
+            16
+          ]
+        }
+      },
+      {
+        "comment": "Example 1: add D and A, write the result into A.",
+        "image": "assets/panels/panel183_chapter_4_1_example_add.svg",
+        "year": "1944",
+        "read": "אתן לך כמה דוגמאות: הפקודה הזאת אומרת: חבר את D עם A וכתוב את התוצאה ל-A",
+        "instruction": {
+          "bits": "1000000100000100"
+        }
+      },
+      {
+        "comment": "Bit 1: the ALU computes.",
+        "image": "assets/panels/panel184_chapter_4_1_example_add_compute_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שה-ALU צריך לבצע חישוב.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12: addition.",
+        "image": "assets/panels/panel185_chapter_4_1_example_add_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיבור.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bit 6: operate on the ALU's first two inputs — D and A.",
+        "image": "assets/panels/panel186_chapter_4_1_example_add_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים על שתי הכניסות הראשונות של ה-ALU, הלא הן D ו-A.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together: \"add D and A\".",
+        "image": "assets/panels/panel187_chapter_4_1_example_add_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-A\".",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into A.",
+        "image": "assets/panels/panel188_chapter_4_1_example_add_dest.svg",
+        "year": "1944",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה ל-A.",
+        "instruction": {
+          "bits": "1000000100000100",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Example 2: put the number 1025 into D.",
+        "image": "assets/panels/panel189_chapter_4_1_example_num.svg",
+        "year": "1944",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: שים את המספר 1025 ב-D",
+        "instruction": {
+          "bits": "0100000000011000"
+        }
+      },
+      {
+        "comment": "Bit 1 = 0: the ALU computes nothing, it just emits its instruction.",
+        "image": "assets/panels/panel190_chapter_4_1_example_num_literal_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שה-ALU לא מחשב כלום אלא מוציא את ההוראות שלו כפלט.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            1,
+            1
+          ]
+        }
+      },
+      {
+        "comment": "Bits 2-12 spell 1025.",
+        "image": "assets/panels/panel191_chapter_4_1_example_num_value_bits.svg",
+        "year": "1944",
+        "read": "הביטים האלה הם המספר 1025.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            2,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together: \"emit the number 1025\".",
+        "image": "assets/panels/panel192_chapter_4_1_example_num_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"הוצא את המספר 1025\".",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into D.",
+        "image": "assets/panels/panel193_chapter_4_1_example_num_dest.svg",
+        "year": "1944",
+        "read": "2 הביטים האלה אומרים שאנחנו רושמים את התשובה ל-D.",
+        "instruction": {
+          "bits": "0100000000011000",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Example 3: add D to the memory register addressed by A, back into it.",
+        "image": "assets/panels/panel194_chapter_4_1_example_mem.svg",
+        "year": "1944",
+        "read": "עוד דוגמה: הפקודה הזאת אומרת: חבר את D עם *A וכתוב את התוצאה ל-*A",
+        "instruction": {
+          "bits": "1000010100001100"
+        }
+      },
+      {
+        "comment": "Bit 6 = 1: the first and the third input.",
+        "image": "assets/panels/panel195_chapter_4_1_example_mem_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים על הכניסה הראשונה והשלישית של ה-ALU, הלא הן D ו-*A.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12: addition, the same six as in the first example.",
+        "image": "assets/panels/panel196_chapter_4_1_example_mem_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיבור, בדיוק כמו בדוגמה הראשונה.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together.",
+        "image": "assets/panels/panel197_chapter_4_1_example_mem_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חבר את D ו-*A\".",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14 = 3: back into that same memory register.",
+        "image": "assets/panels/panel198_chapter_4_1_example_mem_dest.svg",
+        "year": "1944",
+        "read": "שני הביטים האלה הם המספר 3, ולכן התשובה נרשמת ל-*A. שים לב ש-*A הוא גם אחת מהכניסות של החישוב וגם המקום שאליו נכתבת התוצאה.",
+        "instruction": {
+          "bits": "1000010100001100",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Example 4: subtract A from D into D.",
+        "image": "assets/panels/panel199_chapter_4_1_example_sub.svg",
+        "year": "1944",
+        "read": "דוגמה אחרונה: הפקודה הזאת אומרת: חסר את A מ-D וכתוב את התוצאה ל-D",
+        "instruction": {
+          "bits": "1000001100101000"
+        }
+      },
+      {
+        "comment": "Bit 6 = 0: the first two inputs again, D and A.",
+        "image": "assets/panels/panel200_chapter_4_1_example_sub_input_bit.svg",
+        "year": "1944",
+        "read": "הביט הזה אומר שאנחנו פועלים שוב על שתי הכניסות הראשונות, D ו-A.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            6,
+            6
+          ]
+        }
+      },
+      {
+        "comment": "Bits 7-12 = 110010: subtraction, the code from the 2.6 demo.",
+        "image": "assets/panels/panel201_chapter_4_1_example_sub_op_bits.svg",
+        "year": "1944",
+        "read": "ששת הביטים האלה מסמנים חיסור. אלה בדיוק הביטים 110010 שהכנסנו לכניסת הבקרה של ה-ALU כשהראיתי לך איך מחסרים. הסדר חשוב: הם מחסרים את הכניסה השנייה מהראשונה, כלומר את A מ-D.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            7,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "All 12 together.",
+        "image": "assets/panels/panel202_chapter_4_1_example_sub_alu.svg",
+        "year": "1944",
+        "read": "יחד 12 הביטים האלה הם ההוראה של ה-ALU: \"חסר את A מ-D\".",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            1,
+            12
+          ]
+        }
+      },
+      {
+        "comment": "Bits 13-14: write the answer into D.",
+        "image": "assets/panels/panel203_chapter_4_1_example_sub_dest.svg",
+        "year": "1944",
+        "read": "שני הביטים האלה אומרים שאנחנו רושמים את התשובה ל-D.",
+        "instruction": {
+          "bits": "1000001100101000",
+          "lit": [
+            13,
+            14
+          ]
+        }
+      },
+      {
+        "comment": "Enough theory — he does not expect it to click straight away.",
+        "image": "assets/panels/panel208_chapter_4_1_dont_worry.svg",
+        "year": "1944",
+        "read": "טוב, נפסיק לחפור. אני לא מצפה שתבין את זה מיד. זה מסובך, אבל אם תשבור את הראש על זה מספיק אז תבין."
+      },
+      {
+        "comment": "Before building it: we must be able to test it, which means knowing the answer first.",
+        "image": "assets/panels/panel209_chapter_4_1_need_a_test.svg",
+        "year": "1944",
+        "read": "לפני שאנחנו מתחילים לבנות את המחשב הפשוט אנחנו צריכים להיות מסוגלים לבדוק אותו. הדרך לעשות את זה תהיה להכניס לו כמה פקודות ולוודא שהתוצאה היא מה שהיא צריכה להיות. בשביל זה אנחנו צריכים לדעת מה היא צריכה להיות."
+      },
+      {
+        "comment": "Wordless: he leans in and lays a sheet of paper on the worktable.",
+        "image": "assets/panels/panel210_chapter_4_1_paper_placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The exercise: fill in the registers and the first three memory cells after each instruction.",
+        "image": "assets/panels/panel211_chapter_4_1_the_exercise.svg",
+        "year": "1944",
+        "read": "יש לך כאן מספר פקודות, אתה צריך לכתוב לי ליד כל אחת מה היה רשום ברגיסטרים של המעבד וב-3 הרגיסטרים הראשונים של הזיכרון לאחר הפעלתה. זכור שהמצב ההתחלתי של כל הרגיסטרים הוא 0, ושהפקודות מבוצעות בזו אחר זו, כך שהן משפיעות אחת על השנייה. אל תטרח לכתוב מספרים בכתיב בינרי. אנחנו חושבים על כל רגיסטר כעל מספר, מספיק שתכתוב לי את הצורה העשרונית שלו."
+      },
+      {
+        "comment": "He goes back to work, and lets slip what the other team is building.",
+        "image": "assets/panels/panel212_chapter_4_1_back_to_work.svg",
+        "year": "1944",
+        "read": "טוב. אני חוזר לעבודה. החברה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
+      },
+      {
+        "comment": "Wordless: von Neumann is gone; the room, the racks and the note are left behind.",
+        "image": "assets/panels/panel213_chapter_4_1_empty_room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "aluRack",
+            "ariaLabel": "ארון ה-ALU",
+            "left": 40.4,
+            "top": 18.42,
+            "width": 14.64,
+            "height": 37.29
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.05,
+            "top": 15.84,
+            "width": 40.95,
+            "height": 46.04
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn1",
+            "ariaLabel": "IN1 של ה-ALU",
+            "left": 37.5,
+            "top": 59.02,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn2",
+            "ariaLabel": "IN2 של ה-ALU",
+            "left": 40.4,
+            "top": 59.67,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn3",
+            "ariaLabel": "IN3 של ה-ALU",
+            "left": 43.23,
+            "top": 60.13,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluOut",
+            "ariaLabel": "OUT של ה-ALU",
+            "left": 45.99,
+            "top": 60.5,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluInst",
+            "ariaLabel": "INST של ה-ALU",
+            "left": 48.62,
+            "top": 60.68,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluFlags",
+            "ariaLabel": "ng ו-nz של ה-ALU",
+            "left": 50.69,
+            "top": 62.62,
+            "width": 3.31,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn",
+            "ariaLabel": "IN של הזיכרון",
+            "left": 53.31,
+            "top": 77.44,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramAdr",
+            "ariaLabel": "ADR של הזיכרון",
+            "left": 56.63,
+            "top": 77.99,
+            "width": 4.14,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut",
+            "ariaLabel": "OUT של הזיכרון",
+            "left": 60.91,
+            "top": 78.73,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramWrite",
+            "ariaLabel": "כבל הבקרה של הזיכרון",
+            "left": 64.78,
+            "top": 77.44,
+            "width": 2.76,
+            "height": 9.21
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 68.99,
+            "top": 78.82,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.03,
+            "top": 79.56,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.31,
+            "top": 80.66,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 79.9,
+            "top": 81.22,
+            "width": 3.45,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.68,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.14,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 92.13,
+            "top": 82.69,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 95.99,
+            "top": 83.43,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.14,
+            "top": 37.57,
+            "width": 11.88,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 23.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tasksNote",
+            "ariaLabel": "הפתק",
+            "left": 37.85,
+            "top": 78.45,
+            "width": 6.63,
+            "height": 5.89
+          }
+        ]
+      },
+      {
+        "comment": "He will check the exercise himself too — an error there would hide an error in the machine.",
+        "image": "assets/panels/panel214_chapter_4_1_checked_it.svg",
+        "year": "1944",
+        "read": "טוב מאוד. אנחנו נשתמש בזה כדי לבדוק את המחשב. אני מקווה מאוד שבדקת בשבע עיניים. אם יש לנו טעות לא נוכל לדעת מה קורה עם המחשב. אבדוק גם בעצמי ליתר ביטחון."
+      },
+      {
+        "comment": "Wordless: he lays the second note — the build tasks — on the worktable.",
+        "image": "assets/panels/panel215_chapter_4_1_tasks_placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The tasks for building the simple computer, and back to his own work.",
+        "image": "assets/panels/panel216_chapter_4_1_here_are_the_tasks.svg",
+        "year": "1944",
+        "read": "הנה המשימות לבניית המחשב הפשוט. אני חוזר לעבודה."
+      },
+      {
+        "comment": "Wordless: the room again, with the note of build tasks on the table.",
+        "image": "assets/panels/panel217_chapter_4_1_build_room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "aluRack",
+            "ariaLabel": "ארון ה-ALU",
+            "left": 40.4,
+            "top": 18.42,
+            "width": 14.64,
+            "height": 37.29
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.05,
+            "top": 15.84,
+            "width": 40.95,
+            "height": 46.04
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn1",
+            "ariaLabel": "IN1 של ה-ALU",
+            "left": 37.5,
+            "top": 59.02,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn2",
+            "ariaLabel": "IN2 של ה-ALU",
+            "left": 40.4,
+            "top": 59.67,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluIn3",
+            "ariaLabel": "IN3 של ה-ALU",
+            "left": 43.23,
+            "top": 60.13,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluOut",
+            "ariaLabel": "OUT של ה-ALU",
+            "left": 45.99,
+            "top": 60.5,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluInst",
+            "ariaLabel": "INST של ה-ALU",
+            "left": 48.62,
+            "top": 60.68,
+            "width": 2.9,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "aluFlags",
+            "ariaLabel": "ng ו-nz של ה-ALU",
+            "left": 50.69,
+            "top": 62.62,
+            "width": 3.31,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn",
+            "ariaLabel": "IN של הזיכרון",
+            "left": 53.31,
+            "top": 77.44,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramAdr",
+            "ariaLabel": "ADR של הזיכרון",
+            "left": 56.63,
+            "top": 77.99,
+            "width": 4.14,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut",
+            "ariaLabel": "OUT של הזיכרון",
+            "left": 60.91,
+            "top": 78.73,
+            "width": 3.87,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramWrite",
+            "ariaLabel": "כבל הבקרה של הזיכרון",
+            "left": 64.78,
+            "top": 77.44,
+            "width": 2.76,
+            "height": 9.21
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 68.99,
+            "top": 78.82,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.03,
+            "top": 79.56,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.31,
+            "top": 80.66,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 79.9,
+            "top": 81.22,
+            "width": 3.45,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.68,
+            "width": 3.59,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.14,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 92.13,
+            "top": 82.69,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 95.99,
+            "top": 83.43,
+            "width": 3.73,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.14,
+            "top": 37.57,
+            "width": 11.88,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 23.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "buildNote",
+            "ariaLabel": "הפתק",
+            "left": 37.85,
+            "top": 78.45,
+            "width": 6.63,
+            "height": 5.89
           }
         ]
       }

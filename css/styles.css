@@ -526,9 +526,17 @@ button { font: inherit; }
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  width: clamp(84px, 13vw, 150px);
-  height: clamp(84px, 13vw, 150px);
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.6));
+  width: clamp(96px, 14vw, 168px);
+  height: clamp(96px, 14vw, 168px);
+  box-sizing: border-box;
+  padding: clamp(12px, 2vw, 22px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  /* Dark medallion behind the icon, with a thin gold rim, so the flying badge
+     reads as one object over the busy scene/workbench. */
+  background: radial-gradient(circle at 50% 36%, #2c2617, #14110a 80%);
+  box-shadow: inset 0 0 0 2px rgba(243, 210, 122, 0.5), 0 10px 26px rgba(0, 0, 0, 0.62);
   will-change: transform, opacity;
 }
 .achv-unlock-fly svg { width: 100%; height: 100%; }
@@ -539,10 +547,18 @@ button { font: inherit; }
   position: fixed;
   z-index: 9999;
   pointer-events: none;
-  width: clamp(52px, 8vw, 92px);
-  height: clamp(52px, 8vw, 92px);
-  color: #f3d27a;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+  width: clamp(62px, 9.5vw, 108px);
+  height: clamp(62px, 9.5vw, 108px);
+  box-sizing: border-box;
+  padding: clamp(10px, 1.5vw, 18px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  /* Dark medallion behind the cap; the icon itself is a bright gold that reads
+     clearly on it. */
+  background: radial-gradient(circle at 50% 36%, #2c2617, #14110a 78%);
+  color: #ffe6a2;
+  box-shadow: inset 0 0 0 2px rgba(243, 210, 122, 0.55), 0 8px 20px rgba(0, 0, 0, 0.6);
   will-change: transform, opacity;
 }
 .expl-unlock-fly svg { width: 100%; height: 100%; }
@@ -720,6 +736,38 @@ button { font: inherit; }
   text-decoration: underline;
 }
 
+/* An explained object (a cable tag in 4.1) needs room for a sentence, not just
+   a link, so its window is wider and its text reads right-to-left as a block. */
+.panel-object-popover-wide {
+  max-width: min(300px, 34vw);
+}
+
+/* Anchored by its BOTTOM edge, centred over the zone: used for the row of cable
+   tags along the bottom of the slide, so the window never sits on its neighbours. */
+.panel-object-popover-above {
+  transform: translate(-50%, -100%);
+}
+
+/* Anchored by its RIGHT edge, right beside the zone: used for an object that
+   reaches the right edge of the slide (the RAM racks), so its window hugs it
+   instead of floating away to the left. */
+.panel-object-popover-before {
+  transform: translateX(-100%);
+}
+
+.panel-object-popover .panel-object-title {
+  font-weight: 700;
+  font-family: "Courier New", Courier, monospace;
+  letter-spacing: 0.5px;
+}
+
+.panel-object-popover .panel-object-note {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  text-align: right;
+}
+
 .panel-object-popover .panel-object-take {
   min-width: 0;
   padding: 3px 14px;
@@ -800,6 +848,18 @@ button { font: inherit; }
 }
 
 .image-stage {
+  /* The height the slide is allowed to take. Kept as a custom property so the
+     shell can be sized from it BEFORE the SVG has loaded (see .image-shell). */
+  --panel-max-h: calc(
+    100dvh
+    - var(--topbar-h)
+    - var(--controls-h)
+    - var(--year-h)
+    - 4 * var(--gap)
+    - 4 * var(--app-pad)
+    - 16px
+  );
+  --panel-max-w: calc(100vw - 2 * var(--app-pad) - 20px);
   height: 100%;
   min-height: 0;
   min-width: 0;
@@ -821,8 +881,8 @@ button { font: inherit; }
   grid-row: 1;
 }
 
-.image-stage-no-year .panel-image {
-  max-height: calc(
+.image-stage-no-year {
+  --panel-max-h: calc(
     100dvh
     - var(--topbar-h)
     - var(--controls-h)
@@ -864,6 +924,23 @@ button { font: inherit; }
   position: relative;
   display: inline-block;
   line-height: 0;
+}
+
+/* The slide's box is sized from the viewport, NOT from the <object>'s intrinsic
+   size. A freshly built <object> measures the browser's default 300x150 until the
+   SVG has loaded, and everything laid over the slide in percentages (an object's
+   reference window, the click zones) landed in the middle of the screen for a
+   frame before jumping into place. Same treatment the XOR hint slides get. */
+.image-stage .image-shell {
+  width: min(var(--panel-max-w), calc(var(--panel-max-h) * 1.333333));
+  aspect-ratio: 1448 / 1086;
+}
+
+.image-stage .panel-image {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
 }
 
 /* Rapid or double clicks on the slide used to select the panel area, painting
@@ -921,6 +998,497 @@ button { font: inherit; }
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.001);
   cursor: pointer;
+}
+
+/* The 16-cell instruction strip of chapter 4.1: sits inside the slide, under the
+   speech bubble, and lights up the group of bits von Neumann is talking about.
+   Left-to-right (LTR) even though the app is RTL — bit 1 is the leftmost cell. */
+.panel-bits {
+  position: absolute;
+  left: 50%;
+  bottom: 2.5%;
+  transform: translateX(-50%);
+  display: flex;
+  direction: ltr;
+  line-height: 1;
+  padding: 7px;
+  border-radius: 9px;
+  background: rgba(247, 241, 226, 0.96);
+  border: 2px solid #2f2617;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
+  font-size: clamp(0.78rem, 1.45vw, 1.28rem);
+  opacity: 1;
+  transition: opacity 0.28s ease;
+}
+
+/* Until the slide's <object> has laid out, the strip's bottom offset resolves
+   against a box that is not final yet — so it stays invisible until the slide
+   is revealed, instead of flashing mid-frame and then dropping into place. */
+.panel-bits.is-pending {
+  opacity: 0;
+  transition: none;
+}
+
+.panel-bit {
+  width: 1.8em;
+  height: 2.35em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  color: #241d12;
+  background: #fffdf6;
+  border: 1px solid #7a6a52;
+  border-right: none;
+}
+
+.panel-bit:last-child {
+  border-right: 1px solid #7a6a52;
+}
+
+/* The thicker rules that cut the 16 cells into 12 + 2 + 2. */
+.panel-bit-group {
+  border-left: 3px solid #2f2617;
+}
+
+.panel-bit.is-lit {
+  background: #ffd45e;
+  color: #1b150c;
+}
+
+/* The 4.1 exercise sheet: a full-screen page of squared paper. One square per
+   bit of the instruction, two squares per register column, and the buttons at
+   the bottom of the screen the way the worktable tasks have them. */
+.sheet-overlay {
+  /* Small squares, as before — the page fills the screen by holding MORE of
+     them, not bigger ones. The hints window shares the measure. */
+  --sq: clamp(15px, 2vw, 26px);
+  --sheet-rows: 16;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(20, 14, 6, 0.72);
+}
+
+.sheet-card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 14px 18px;
+  background: #f7f1de;
+}
+
+.sheet-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* The paper covers the whole page; the worksheet occupies its top-right corner
+   and the rest is blank squares. The pattern is anchored to the RIGHT so its
+   lines fall exactly on the right-to-left grid tracks. */
+.sheet-paper {
+  display: grid;
+  grid-template-columns: repeat(28, var(--sq));
+  grid-template-rows: repeat(var(--rows, 16), var(--sq));
+  /* Scribbling happens anywhere on the page — including past the last row or
+     column of the worksheet — so an implicit track is one printed square too. */
+  grid-auto-rows: var(--sq);
+  grid-auto-columns: var(--sq);
+  justify-content: start;
+  align-content: start;
+  width: 100%;
+  min-height: 100%;
+  direction: rtl;
+  background-color: #fdfaf0;
+  background-image:
+    linear-gradient(to right, rgba(90, 130, 170, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(90, 130, 170, 0.3) 1px, transparent 1px);
+  background-size: var(--sq) var(--sq);
+  background-position: top right;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
+}
+
+/* A heading draws only its horizontal edges — every vertical line on the page
+   comes from a rule, so nothing is ever doubled or half a pixel off. */
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-bottom: 2px solid #3a2c17;
+  background: #efe4c8;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  color: #241d12;
+}
+
+.sheet-head-top {
+  border-top: 2px solid #3a2c17;
+}
+
+/* The heading over the three memory registers is one merged 2x6 cell, so its
+   words wrap inside it instead of spilling over the neighbouring columns. */
+/* A long heading wraps inside its merged cell rather than shrinking away. */
+.sheet-head-span {
+  padding: 0 3px;
+  font-size: calc(var(--sq) * 0.46);
+  line-height: 1.12;
+  text-align: center;
+}
+
+/* The bits are written ON the paper: the squares of the page are their cells,
+   so they carry no borders of their own (which used to sit a pixel off the
+   printed grid). Only the two thick rules and the greyed pair are drawn. */
+.sheet-bit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  color: #241d12;
+}
+
+/* A field boundary: a 3px rule down the LEFT edge of the column it is placed
+   in, running from the headings to the bottom of the page. */
+.sheet-rule {
+  border-left: 3px solid #2f2617;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* The register table's column lines: the weight of a heading's edge, not of a
+   field boundary. */
+.sheet-rule-thin {
+  border-left-width: 2px;
+  border-left-color: #3a2c17;
+}
+
+.sheet-rule-right {
+  border-left: none;
+  border-right: 2px solid #3a2c17;
+}
+
+.sheet-rule-foot {
+  border-bottom: 2px solid #3a2c17;
+  pointer-events: none;
+}
+
+/* The bits the open hint is talking about. */
+.sheet-bit-lit {
+  background: #ffd45e;
+}
+
+/* What a hint writes above the bits: a merged cell across the field it explains. */
+.sheet-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #8a6a1e;
+  background: #fff3d0;
+  color: #3a2c17;
+  /* The app's own face, heavy: the monospace arrow was a thin, sad little dash. */
+  font-weight: 800;
+  font-size: calc(var(--sq) * 0.54);
+  letter-spacing: 0.02em;
+  padding: 0 3px;
+}
+
+/* The hints window sits over the page, which has no topbar of its own, right
+   under the tables so the squares it is talking about stay visible. */
+.hint-overlay.sheet-hint-overlay {
+  inset: 0;
+  z-index: 210;
+  place-items: start center;
+  /* The bottom padding keeps the window clear of the row of buttons: a hint may
+     well be telling the learner to go and try something on the workbench, and the
+     button that takes them there must stay reachable. */
+  padding: calc(var(--sheet-rows, 16) * var(--sq) + 26px) 16px 104px;
+  /* The page keeps working underneath — only the window itself takes clicks. */
+  pointer-events: none;
+}
+
+.hint-overlay.sheet-hint-overlay .hint-card {
+  max-height: 100%;
+  overflow: auto;
+}
+
+.hint-overlay.sheet-hint-overlay > * {
+  pointer-events: auto;
+}
+
+/* --- "מבנה הפקודה": the reference window on the exercise page -------------
+   It sits on the free paper to the left of the two tables, folds away to its
+   title bar, and keeps ONE size while the learner pages through it (the body is
+   a fixed box that scrolls if a page runs long), so paging never makes the
+   window jump about. */
+.sheet-guide {
+  position: fixed;
+  left: 22px;
+  top: calc(var(--topbar-h) + 44px);
+  z-index: 215;
+  /* Wide enough for the strip to use squares the size of the page's own. */
+  width: calc(16 * var(--sq, 26px) + 26px);
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #3a2c17;
+  border-radius: 10px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  direction: rtl;
+  overflow: hidden;
+}
+
+.sheet-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #efe4c8;
+  border-bottom: 2px solid #3a2c17;
+}
+
+.sheet-guide-title {
+  font-weight: 800;
+  font-size: 1.12rem;
+  color: #241d12;
+}
+
+/* The window is picked up anywhere that is not text or a button. */
+.sheet-guide,
+.sheet-guide-head,
+.sheet-guide-body,
+.sheet-guide-foot,
+.sheet-guide-strip,
+.sheet-guide-list,
+.sheet-guide-item {
+  cursor: grab;
+}
+
+.sheet-guide-dragging,
+.sheet-guide-dragging .sheet-guide-head,
+.sheet-guide-dragging .sheet-guide-body,
+.sheet-guide-dragging .sheet-guide-foot {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.sheet-guide-title,
+.sheet-guide-page-title,
+.sheet-guide-text,
+.sheet-guide-count { cursor: default; }
+
+.sheet-guide-toggle {
+  border: 1px solid #3a2c17;
+  background: #fbf6e6;
+  color: #241d12;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 12px;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.sheet-guide-toggle:hover { background: #f2e7cd; }
+
+.sheet-guide-body {
+  /* Fixed height: the window must not resize as the pages change. Sized to the
+     longest page, so nothing scrolls in practice. */
+  height: 380px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.sheet-guide-strip {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 1px;
+  direction: ltr;               /* bit 1 leftmost, as on the page */
+  border: 1px solid #3a2c17;
+  background: #3a2c17;
+  margin-bottom: 8px;
+}
+
+.sheet-guide-bit {
+  height: var(--sq, 26px);
+  background: #fdfaf0;
+}
+
+.sheet-guide-page-title {
+  margin: 0 0 8px;
+  font-size: 1.06rem;
+  font-weight: 800;
+  color: #241d12;
+  text-align: center;
+}
+
+.sheet-guide-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 7px;
+}
+
+.sheet-guide-item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 7px;
+  align-items: start;
+}
+
+.sheet-guide-swatch {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #3a2c17;
+  border-radius: 3px;
+  margin-top: 3px;
+}
+
+.sheet-guide-text {
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #241d12;
+}
+
+/* The values a field can take, one to a line. */
+.sheet-guide-options {
+  margin: 3px 0 0;
+  padding: 0 14px 0 0;
+  list-style: disc;
+}
+
+.sheet-guide-options li {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* One colour per field of the page — the strip and its swatch share it. */
+.sheet-guide-bit-c0 { background: #f2c14e; }
+.sheet-guide-bit-c1 { background: #7fb7d9; }
+.sheet-guide-bit-c2 { background: #c6c0b1; }
+.sheet-guide-bit-c3 { background: #a8cf8e; }
+.sheet-guide-bit-c4 { background: #e39aa8; }
+.sheet-guide-bit-c5 { background: #bda6e0; }
+
+.sheet-guide-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #efe4c8;
+  border-top: 2px solid #3a2c17;
+}
+
+.sheet-guide-count {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #4a3d27;
+}
+
+/* The arrows are the game's own nav buttons, only smaller. */
+.sheet-guide-foot .btn.icon-btn {
+  min-width: 0;
+  width: 38px;
+  height: 34px;
+  padding: 0;
+}
+
+.sheet-guide-foot .btn.icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by
+   JS over the button (which sits under the hints window), bouncing towards it. */
+.sheet-wb-arrow {
+  position: fixed;
+  z-index: 220;
+  pointer-events: none;
+  color: #b3801a;
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+  animation: sheet-wb-arrow-bounce 1.05s ease-in-out infinite;
+}
+
+@keyframes sheet-wb-arrow-bounce {
+  0%, 100% { transform: translateY(-7px); }
+  50% { transform: translateY(7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-wb-arrow { animation: none; }
+}
+
+.sheet-bit-unused {
+  background: #d5cfc0;
+  color: #55503f;
+}
+
+/* An answer cell is the two squares of its column MERGED: a single box, so the
+   printed line between them does not show through. */
+.sheet-input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-top: 2px solid #3a2c17;
+  border-bottom: 2px solid #3a2c17;
+  background: #fffdf6;
+  color: #241d12;
+  text-align: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  -moz-appearance: textfield;
+}
+
+.sheet-input:focus {
+  outline: none;
+  background: #fff3d0;
+}
+
+.sheet-input::-webkit-outer-spin-button,
+.sheet-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Free-hand writing on the blank squares of the page. */
+.sheet-scratch,
+.sheet-scratch-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: calc(var(--sq) * 0.56);
+  color: #241d12;
+}
+
+.sheet-scratch-input {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: rgba(255, 212, 94, 0.4);
+  text-align: center;
+}
+
+.sheet-scratch-input:focus {
+  outline: none;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 
 .panel-hotspot:hover,
@@ -1710,6 +2278,30 @@ g.component-ffCard.ff-materialize .ff-card {
   .workspace-and-arrow { animation: none; }
 }
 
+/* Idle hint on the first "click the Nand" slide: a bouncing arrow that only
+   appears after 60s of no click (pure CSS animation-delay; any click re-renders
+   the story and destroys this element, so the wait restarts). Centred with
+   translateX(-50%), baked into the bounce keyframe so it survives the animation. */
+.panel-nand-hint {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+  color: #ffe08a;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.6));
+  opacity: 0;
+  animation: panel-nand-hint-in 0.45s ease 60s forwards,
+             panel-nand-hint-bounce 1.05s ease-in-out 60s infinite;
+}
+@keyframes panel-nand-hint-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes panel-nand-hint-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(-7px); }
+  50% { transform: translateX(-50%) translateY(9px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel-nand-hint { animation: panel-nand-hint-in 0.45s ease 60s forwards; }
+}
+
 /* Optional bottom-left "why do we need this?" panel: a hideable explainer,
    draggable from anywhere on it that is not text or its button. Sits opposite
    the bottom-right requirements panel. */
@@ -2273,6 +2865,19 @@ g.component-ffCard.ff-materialize .ff-card {
   color: #f3d27a;
 }
 
+/* Enrichment badge inside the (light) Nand speech bubble — amber for contrast on
+   the pale background, unlike the gold used on the dark teaser panel. */
+.nand-speech-enrichment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-weight: 800;
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  color: #9a6b12;
+}
+.nand-speech-enrichment .build-help-icon { color: #c99a1e; }
+
 .workspace-build-help-actions {
   display: flex;
   justify-content: center;
@@ -2324,8 +2929,12 @@ g.component-ffCard.ff-materialize .ff-card {
   inset: calc(var(--app-pad) + var(--topbar-h) + var(--gap)) 0 0 0;
   z-index: 24;
   display: grid;
-  place-items: center;
-  padding: clamp(14px, 3vw, 36px);
+  /* Sit LOW on the board, not centred: centred, the card lands on the Nand /
+     sources / lamp (which live in the upper-middle of the workbench). Bottom
+     padding keeps it above the workspace controls. */
+  justify-items: center;
+  align-items: end;
+  padding: clamp(12px, 3vw, 30px) clamp(14px, 3vw, 36px) clamp(46px, 10vh, 120px);
   background: transparent;
   pointer-events: auto;
   direction: rtl;

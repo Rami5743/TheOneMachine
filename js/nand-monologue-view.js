@@ -29,15 +29,38 @@ function createNandMonologueView({ getState, esc, workspaceNandMonologueActive, 
       </section>`;
   }
 
+  // A gold "✦ העשרה" enrichment badge — the same sparkle used on the build-help
+  // teaser and the story corner links — marking a bubble as bonus content.
+  function enrichmentBadge() {
+    return `
+      <div class="nand-speech-enrichment">
+        <svg class="build-help-icon" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+        העשרה
+      </div>`;
+  }
+
   function renderWorkspaceNandMonologue() {
     if (!workspaceNandMonologueActive()) return "";
 
     const state = getState();
     const step = Math.min(Math.max(state.workspace.nandMonologueStep, 0), NAND_MONOLOGUE_TEXTS.length - 1);
+    // The last bubble is where the Nand explains its NAME (Not-And) — bonus
+    // etymology, marked as enrichment.
+    const isNameStep = step === NAND_MONOLOGUE_TEXTS.length - 1;
+    // Bold "טבלת אמת" the first time the Nand names it (step 0). The phrase has no
+    // HTML-special characters, so it survives esc() unchanged and we can wrap the
+    // first occurrence afterwards.
+    let body = esc(NAND_MONOLOGUE_TEXTS[step]).replace("טבלת אמת", "<strong>טבלת אמת</strong>");
+    // In the name bubble, bold the SECOND "לא" — the logical one in "And לא היה",
+    // NOT the quoted dictionary gloss "לא". Matching it as a space-bounded word
+    // hits exactly that occurrence (the quoted one is wrapped in “ ”, and "אלא"
+    // in an earlier bubble is excluded both by the boundary and by isNameStep).
+    if (isNameStep) body = body.replace(/(?<=\s)לא(?=\s)/gu, "<strong>לא</strong>");
     return `
       <div class="workspace-nand-monologue-layer monologue-step-${step}" data-nand-monologue-layer role="presentation">
         <div class="workspace-nand-speech monologue-step-${step}" data-nand-speech>
-          <p>${esc(NAND_MONOLOGUE_TEXTS[step])}</p>
+          ${isNameStep ? enrichmentBadge() : ""}
+          <p>${body}</p>
         </div>
         ${step === 1 ? renderNandTruthTable() : ""}
       </div>`;
