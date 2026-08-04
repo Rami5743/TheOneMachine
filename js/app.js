@@ -2797,7 +2797,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-15") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-15" || chapter.id === "chapter-16") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;

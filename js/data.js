@@ -114,8 +114,14 @@ const CHAPTERS = [
   {
     "id": "chapter-15",
     "partId": "part-4",
-    "title": "4.1 מחשב פשוט",
+    "title": "4.1 מבנה המחשב",
     "sceneId": "simple-computer"
+  },
+  {
+    "id": "chapter-16",
+    "partId": "part-4",
+    "title": "4.2 בניית מחשב פשוט",
+    "sceneId": "build-simple-computer"
   }
 ];
 
@@ -1974,7 +1980,15 @@ const SCENES = {
             "height": 5.89
           }
         ]
-      },
+      }
+    ]
+  },
+  "build-simple-computer": {
+    "id": "build-simple-computer",
+    "type": "story",
+    "chapterId": "chapter-16",
+    "year": "1944",
+    "panels": [
       {
         "comment": "He will check the exercise himself too — an error there would hide an error in the machine.",
         "image": "assets/panels/panel214_chapter_4_1_checked_it.svg",
