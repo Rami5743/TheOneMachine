@@ -3654,7 +3654,9 @@
   // carries its own skip: straight to its end, where the story says
   // "המשך יבוא...".
   function transitionChapterActive() {
-    return state.screen === "story" && currentChapter()?.id === "chapter-14";
+    if (state.screen !== "story" || currentChapter()?.id !== "chapter-14") return false;
+    // Not on the last slide — that IS where the button leads.
+    return state.panelIndex < Math.max(currentScene().panels.length - 1, 0);
   }
 
   // The worked examples of the simple computer's instruction word (chapter 4.1):
