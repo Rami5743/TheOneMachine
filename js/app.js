@@ -1483,6 +1483,9 @@
     // card, recorded when a card's check passes (see recordCardNandCount). A card
     // built with a sub-card that has no count is stored as null (undefined).
     // Derived — recomputed from cardBuilds (see recomputeAllCardCounts).
+    // Which one-time migrations this save has already been through (see
+    // cardSpecChanges) — a card whose requirements changed is forgotten once.
+    migrationsDone: [],
     cardNandCounts: {},
     // The player's actual best build per card: { components, wires }. We store the
     // whole implementation (not just the count) so that improving one card
@@ -2768,7 +2771,55 @@
     }
   }
 
+  // ---- one-time migrations: a card whose REQUIREMENTS changed ---------------
+  // Everything recorded about a card was measured against the requirements of
+  // the day: the stored build, the Nand/serial counts derived from it, the design
+  // time, and the completion itself. When a card's requirements change, all of
+  // that is void — so it is forgotten, and the card is there to be built again.
+  // For a signed-in player the cleaned maps are pushed to the `rankings` table on
+  // the next save, which is what takes their old entry off that card's board.
+  // Each change runs once per save, remembered in state.migrationsDone.
+  function forgetCardRecord(loaded, taskId) {
+    ["cardBuilds", "cardSerialBuilds", "cardNandCounts", "cardSerialCounts", "cardDesignCounts", "taskDesignMs", "hintState"]
+      .forEach((key) => {
+        const map = loaded[key];
+        if (map && typeof map === "object" && Object.prototype.hasOwnProperty.call(map, taskId)) {
+          const next = { ...map };
+          delete next[taskId];
+          loaded[key] = next;
+        }
+      });
+    ["completedTasks", "tasksEverCompleted", "tasksClearedAfterCompletion"].forEach((key) => {
+      if (Array.isArray(loaded[key])) loaded[key] = loaded[key].filter((id) => id !== taskId);
+    });
+  }
+
+  // Declared INSIDE the function on purpose: loadState() runs early in this file,
+  // so a module-level const here would still be in its temporal dead zone and the
+  // throw would land in loadState's catch — wiping the save it was meant to fix.
+  function cardSpecChanges() {
+    return [
+      // ALU4's second flag went from nz (1 iff the result is NOT zero) to zr
+      // (1 iff it IS zero) — a build that passed the old check fails the new one.
+      { id: "alu4-zr", tasks: ["ALU4"] }
+    ];
+  }
+
+  function applyCardSpecChanges(loaded) {
+    const done = Array.isArray(loaded.migrationsDone) ? loaded.migrationsDone.slice() : [];
+    let ran = false;
+    cardSpecChanges().forEach((change) => {
+      if (done.includes(change.id)) return;
+      done.push(change.id);
+      ran = true;
+      change.tasks.forEach((taskId) => forgetCardRecord(loaded, taskId));
+    });
+    if (ran) loaded.migrationsDone = done;
+    return loaded;
+  }
+
   function normalizeLoadedState(loaded) {
+    applyCardSpecChanges(loaded);
     const chapter = chapterById(loaded.chapterId);
     const scene = SCENES[loaded.sceneId] || sceneByChapter(chapter);
     const maxPanelIndex = Math.max(scene.panels.length - 1, 0);
