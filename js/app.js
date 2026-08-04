@@ -5490,15 +5490,18 @@
       }
       // Written above the bits: what the learner has asked to have written down,
       // plus whatever the open hint is showing right now.
-      const rowNotes = Array.isArray(notes[row]) ? notes[row].slice() : [];
+      const written = Array.isArray(notes[row]) ? notes[row] : [];
+      const rowNotes = written.slice();
       if (isCurrent && openHint.hint.above && !rowNotes.some((n) => n.from === openHint.hint.above.from)) {
         rowNotes.push(openHint.hint.above);
       }
-      rowNotes.forEach((note) => {
+      rowNotes.forEach((note, at) => {
         const span = Number(note.to) - Number(note.from) + 1;
         cells.push(`<div class="sheet-note" style="grid-column:${bitColumn(Number(note.to) - 1)} / span ${span};grid-row:${bitsRow - 1};"><span dir="ltr">${esc(note.text)}</span></div>`);
-        // A note is written ON those squares, so nothing scribbled shows through.
-        sheetNoteCells(row, note).forEach((key) => underNote.add(key));
+        // A note that HAS been written is written ON those squares, so nothing
+        // scribbled shows through it. One that is only being shown (a hint asking
+        // "shall I write it?") has not taken the squares yet.
+        if (at < written.length) sheetNoteCells(row, note).forEach((key) => underNote.add(key));
       });
       columns.forEach((column, index) => {
         const key = `${row}:${column}`;
@@ -5515,7 +5518,11 @@
     const inInstructions = (c) => c >= 1 && c <= 16;
     const inRegisters = (c) => c >= REG && c <= REG + 9;
     const usedSquare = (r, c) => {
-      if (r <= 4) return inInstructions(c) || inRegisters(c);  // the heading band
+      if (r <= 3) return inInstructions(c) || inRegisters(c);  // the two heading bands
+      // Row 4 is the register columns' headers (R2..A); over the instructions it
+      // is the free row above the first instruction, where a hint MAY one day
+      // write — until it does, it is the learner's to scribble on.
+      if (r === 4) return inRegisters(c);
       const within = r - 5;
       if (within % 2 === 0) return inInstructions(c);          // an instruction's bits
       return inRegisters(c);                                   // its answers
