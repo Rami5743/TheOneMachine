@@ -1392,7 +1392,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "ng-split",
         "type": "splitter",
-        "x": 550,
+        "x": 525,
         "y": 465,
         "mirrored": false,
         "outputs": 2,
@@ -1405,14 +1405,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "neq0",
         "type": "gate-Neq0_16",
-        "x": 675,
-        "y": 425
+        "x": 620,
+        "y": 405
       },
       {
         "id": "zr-not",
         "type": "gate-Not",
-        "x": 700,
-        "y": 490
+        "x": 705,
+        "y": 405
       }
     ],
     "wires": [
