@@ -1412,7 +1412,7 @@ button { font: inherit; }
   height: 20px;
 }
 
-/* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by
+/* The arrow a hint points at "רוצה לבדוק כרטיסים?" with. Placed by
    JS over the button (which sits under the hints window), bouncing towards it. */
 .sheet-wb-arrow {
   position: fixed;

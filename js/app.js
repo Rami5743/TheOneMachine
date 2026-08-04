@@ -1563,7 +1563,7 @@
     // shows and whether it is open. A preference, so it is persisted rather than
     // wiped with the transient dialogs.
     sheetGuide: null,
-    // The scratch table of the exercise page ("רוצה לבדוק דברים על שולחן העבודה?").
+    // The scratch table of the exercise page ("רוצה לבדוק כרטיסים?").
     // It is the page's OWN workbench: kept in its own slot so returning to the
     // page finds the table exactly as it was left, and so it neither disturbs nor
     // inherits the workbench every other build uses (which lives in `workspace`).
@@ -5376,7 +5376,7 @@
     return setState({ instructionSheet: { ...progress, ...patch } });
   }
 
-  // "רוצה לבדוק דברים על שולחן העבודה?" — a scratch table for trying an
+  // "רוצה לבדוק כרטיסים?" — a scratch table for trying an
   // instruction out. The FIRST time it opens EMPTY and in free build (the full
   // palette, no Nand presentation); after that it opens exactly as it was left,
   // because it is kept in its own slot (state.sheetWorkbench) rather than in the
@@ -5405,7 +5405,13 @@
     };
   }
 
-  function openSheetWorkbench() {
+  // The same free table is reached two ways: from the exercise page ("רוצה לבדוק
+  // כרטיסים?") and by walking over to the work area on the room's floor. Both
+  // keep their build in the SAME private slot (it is one table, in one room) and
+  // both leave the shared workbench untouched — only the way home differs, so
+  // `sheetReturn.label` names the button that takes it.
+  function openSheetWorkbench(options) {
+    const { label = "חזרה לדף הפקודות", reopenSheet = true } = options || {};
     const kept = state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
     const workspace = normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) });
     // The way home is always the page we are standing on right now.
@@ -5415,7 +5421,7 @@
     workspace.exitTargetPanelIndex = state.panelIndex;
     workspace.sessionReturnChapterId = state.chapterId;
     workspace.sessionReturnPanelIndex = state.panelIndex;
-    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex };
+    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex, label, reopenSheet };
     return setState({
       ...transientUiClearPatch(),
       screen: "workspace",
@@ -5424,6 +5430,12 @@
       sheetWorkbench: workspace,
       workspace
     });
+  }
+
+  // The work area on the room's floor: the same free table, but the way back is
+  // to the room itself and not to the page of instructions.
+  function openRoomWorkbench() {
+    return openSheetWorkbench({ label: "חזרה לחדר", reopenSheet: false });
   }
 
   function returnFromSheetWorkbench() {
@@ -5440,7 +5452,10 @@
       sheetWorkbench: kept,
       sheetWorkbenchStash: null,
       workspace: restored,
-      sheetDialog: { result: null }
+      // Coming back from the exercise page reopens it; coming back from the work
+      // area lands on the room slide itself.
+      sheetDialog: back.reopenSheet === false ? null : { result: null },
+      panelObjectDialog: null
     });
   }
 
@@ -5618,7 +5633,7 @@
             ${navButton("sheet-clear-open", "restart", "נקה התקדמות")}
             <button class="btn btn-primary" data-action="sheet-check" type="button">בדיקה</button>
             ${sheetHintButton()}
-            <button class="btn" data-action="sheet-workbench" type="button">רוצה לבדוק דברים על שולחן העבודה?</button>
+            <button class="btn" data-action="sheet-workbench" type="button">רוצה לבדוק כרטיסים?</button>
             <button class="btn" data-action="sheet-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
@@ -6014,7 +6029,7 @@
       // still walks on normally.
       if (h.action === "panel-object") {
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
-        return Boolean(object && (object.takeLabel || object.opens));
+        return Boolean(object && !object.optional && (object.takeLabel || object.opens));
       }
       return true;
     });
@@ -20919,6 +20934,7 @@
       if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
       if (object && object.opens === "instruction-sheet") return openInstructionSheet();
       if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
+      if (object && object.opens === "free-workbench") return openRoomWorkbench();
       return setState({ panelObjectDialog: objectId }, false);
     }
     if (action === "panel-object-link") { unlockAchievement("curious"); return; }

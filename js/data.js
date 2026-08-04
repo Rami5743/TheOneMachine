@@ -1978,6 +1978,15 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
+          },
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "איזור העבודה",
+            "left": 43.0,
+            "top": 66.5,
+            "width": 10.5,
+            "height": 9.5
           }
         ]
       }
@@ -2219,6 +2228,15 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
+          },
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "איזור העבודה",
+            "left": 43.0,
+            "top": 66.5,
+            "width": 10.5,
+            "height": 9.5
           }
         ]
       }

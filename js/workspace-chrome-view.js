@@ -75,9 +75,11 @@ function createWorkspaceChromeView({
     if (state.explanationReplay) {
       return `<button class="btn" data-action="explanations-return-to-menu" type="button">חזרה לתפריט ההסברים</button>`;
     }
-    // The free workbench opened from the 4.1 exercise page goes back to it.
+    // The free workbench of chapter 4.1 — reached from the exercise page or from
+    // the work area on the room's floor — goes back the way it was opened.
     if (state.workspace?.sheetReturn) {
-      return `<button class="btn" data-action="sheet-workbench-return" type="button">חזרה לדף הפקודות</button>`;
+      const label = state.workspace.sheetReturn.label || "חזרה לדף הפקודות";
+      return `<button class="btn" data-action="sheet-workbench-return" type="button">${label}</button>`;
     }
     return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
   }

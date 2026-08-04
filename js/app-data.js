@@ -1025,14 +1025,41 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The note von Neumann left on the table: it opens the exercise sheet.
     tasksNote: { label: "הפתק", opens: "instruction-sheet" },
     // The second note, left beside it: the tasks for building the simple computer.
-    buildNote: { label: "הפתק", opens: "build-tasks" }
+    buildNote: { label: "הפתק", opens: "build-tasks" },
+    // The floor beside the worktable, facing the cables: the learner's own work
+    // area. Clicking it walks over to the workbench in free build — a side trip,
+    // not the way forward, so it does NOT block המשך.
+    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true }
   };
 
   // The build tasks of chapter 4.1, to be done in this order. None of them has a
   // workspace yet — opening one says so.
   const SIMPLE_COMPUTER_TASKS = [
-    { id: "PC0", label: "PC0" },
-    { id: "Cont0", label: "Cont0" },
+    {
+      id: "PC0",
+      label: "PC0",
+      requires: [],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 16,
+      clocked: true,
+      // Read once, when the task opens: what a program counter IS.
+      intro: [
+        "ה-PC0 הוא רגיסטר שמכיל בכל רגע את הכתובת בזיכרון התוכנה בה נמצאת הפקודה שאנחנו מבצעים. מכיוון שהמחשב הפשוט צריך לבצע את כל הפקודות שהוא מקבל לפי הסדר, אז ה-PC0 צריך להכיל מספר שגדל ב-1 בכל שלב. הזמן בין שלב לשלב זה הזמן שלקח למחשב שלנו לרשום דברים. האנשים של ג'ון דאגו לכך שכל הפליפ-פלופים רושמים דברים בו זמנית, והזמן בין רישום לרישום מספיק כדי שכל החישובים יקרו.",
+        "לכן, כל מה שה-PC0 צריך לעשות זה להוסיף 1 לתוכן שלו ולרשום אותו מחדש בתוכו שוב ושוב.",
+        "אנחנו גם ניתן לו כניסה שאפשר לאפס את מה שכתוב בו, כדי לאתחל את המחשב."
+      ],
+      requirements: "ל-PC0 יש יציאה אחת שהיא בס בגודל 16, שאומרת מה רשום בו. בכל שלב המספר הזה גדל ב-1.\n\nיש לו גם כניסת reset מלמעלה: אם היא 1 אז התוכן של ה-PC מתאפס במקום לגדול ב-1."
+    },
+    {
+      id: "Cont0",
+      label: "Cont0",
+      requires: ["PC0"],
+      inputs: 1,
+      outputs: 3,
+      busWidth: 2,
+      requirements: "זוהי יחידת הבקרה של המחשב הפשוט. יש לה כניסה שהיא בס ברוחב 2, שאליה נכנסים 2 הביטים שאומרים לאן לרשום את פלט ה-ALU. הם מייצגים מספר בינארי מ-0 עד 3 שמשמעותו:\n\n0 - לא רושמים לשום מקום\n1 - רושמים ל-A\n2 - רושמים ל-D\n3 - רושמים ל-*A\n\nל-Cont0 יש 3 יציאות שאומרות:\n\n1. האם לרשום ל-A\n2. האם לרשום ל-D\n3. האם לרשום ל-*A"
+    },
     { id: "CPU0", label: "CPU0" },
     { id: "Computer0", label: "Computer0" }
   ];
