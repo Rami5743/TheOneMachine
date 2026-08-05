@@ -4901,7 +4901,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "addr-split",
         "type": "splitter",
         "x": 360,
-        "y": 220,
+        "y": 205,
         "outputs": 3,
         "legWidths": [
           10,
@@ -4926,7 +4926,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-sel",
         "type": "gate-DMux",
-        "x": 520,
+        "x": 525,
         "y": 250
       },
       {
@@ -4944,8 +4944,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "read-sel",
         "type": "gate-MUX16",
-        "x": 900,
-        "y": 230
+        "x": 895,
+        "y": 235
       }
     ],
     "wires": [
