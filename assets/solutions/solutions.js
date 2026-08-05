@@ -2826,12 +2826,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 180
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 355,
-        "y": 300
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
@@ -2844,20 +2838,16 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "task-card-1.inputInt3",
-        "b": "addr-nail-2.in"
-      },
-      {
         "a": "addr-nail-1.out",
         "b": "addr-nail-3.in"
       },
       {
-        "a": "addr-nail-3.out",
-        "b": "read-mux.in5"
+        "a": "addr-nail-1.out",
+        "b": "write-dmux.in2"
       },
       {
-        "a": "addr-nail-2.out",
-        "b": "write-dmux.in2"
+        "a": "addr-nail-3.out",
+        "b": "read-mux.in5"
       },
       {
         "a": "task-card-1.inputInt2",
@@ -3050,12 +3040,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 195
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 390,
-        "y": 250
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
@@ -3085,8 +3069,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "addr-split.leg1",
-        "b": "addr-nail-2.in"
+        "a": "addr-nail-1.out",
+        "b": "write-dmux.in2"
       },
       {
         "a": "addr-nail-1.out",
@@ -3095,10 +3079,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "addr-nail-3.out",
         "b": "read-mux.in5"
-      },
-      {
-        "a": "addr-nail-2.out",
-        "b": "write-dmux.in2"
       },
       {
         "a": "task-card-1.inputInt2",
@@ -3307,12 +3287,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 195
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 390,
-        "y": 250
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
@@ -3342,8 +3316,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "addr-split.leg1",
-        "b": "addr-nail-2.in"
+        "a": "addr-nail-1.out",
+        "b": "write-dmux.in2"
       },
       {
         "a": "addr-nail-1.out",
@@ -3352,10 +3326,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "addr-nail-3.out",
         "b": "read-mux.in5"
-      },
-      {
-        "a": "addr-nail-2.out",
-        "b": "write-dmux.in2"
       },
       {
         "a": "task-card-1.inputInt2",
@@ -3564,12 +3534,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 195
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 390,
-        "y": 250
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
@@ -3599,8 +3563,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "addr-split.leg1",
-        "b": "addr-nail-2.in"
+        "a": "addr-nail-1.out",
+        "b": "write-dmux.in2"
       },
       {
         "a": "addr-nail-1.out",
@@ -3609,10 +3573,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "addr-nail-3.out",
         "b": "read-mux.in5"
-      },
-      {
-        "a": "addr-nail-2.out",
-        "b": "write-dmux.in2"
       },
       {
         "a": "task-card-1.inputInt2",
@@ -3821,12 +3781,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 195
       },
       {
-        "id": "addr-nail-2",
-        "type": "nail",
-        "x": 390,
-        "y": 250
-      },
-      {
         "id": "addr-nail-3",
         "type": "nail",
         "x": 905,
@@ -3856,8 +3810,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "addr-nail-1.in"
       },
       {
-        "a": "addr-split.leg1",
-        "b": "addr-nail-2.in"
+        "a": "addr-nail-1.out",
+        "b": "write-dmux.in2"
       },
       {
         "a": "addr-nail-1.out",
@@ -3866,10 +3820,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "addr-nail-3.out",
         "b": "read-mux.in5"
-      },
-      {
-        "a": "addr-nail-2.out",
-        "b": "write-dmux.in2"
       },
       {
         "a": "task-card-1.inputInt2",
