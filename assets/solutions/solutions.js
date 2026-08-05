@@ -5629,5 +5629,378 @@ window.EMBEDDED_SOLUTIONS = {
     "check": {
       "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה."
     }
+  },
+  "Computer0": {
+    "format": "theonemachine-solution",
+    "version": 1,
+    "task": "Computer0",
+    "frame": {
+      "id": "task-card-1",
+      "type": "taskCard-Computer0",
+      "x": 660,
+      "y": 440,
+      "frameW": 800,
+      "frameH": 560,
+      "pins": [
+        {
+          "id": "inputExt6",
+          "x": -460,
+          "y": -250,
+          "w": 10,
+          "dir": "in",
+          "label": "כניסת כתובת התוכנה",
+          "caption": "cd-adr"
+        },
+        {
+          "id": "inputInt6",
+          "x": -340,
+          "y": -250,
+          "w": 10,
+          "dir": "out",
+          "label": "כניסת כתובת התוכנה פנימית"
+        },
+        {
+          "id": "inputExt7",
+          "x": -460,
+          "y": -180,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת הפקודה לכתיבה",
+          "caption": "cd"
+        },
+        {
+          "id": "inputInt7",
+          "x": -340,
+          "y": -180,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת הפקודה לכתיבה פנימית"
+        },
+        {
+          "id": "inputExt5",
+          "x": -217,
+          "y": -350,
+          "w": 1,
+          "dir": "in",
+          "label": "כניסת האיפוס",
+          "caption": "reset"
+        },
+        {
+          "id": "inputInt5",
+          "x": -217,
+          "y": -210,
+          "w": 1,
+          "dir": "out",
+          "label": "כניסת האיפוס פנימית",
+          "caption": "reset"
+        },
+        {
+          "id": "inputExt1",
+          "x": -460,
+          "y": 20,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט In0",
+          "caption": "In0"
+        },
+        {
+          "id": "inputInt1",
+          "x": -340,
+          "y": 20,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת פורט In0 פנימית"
+        },
+        {
+          "id": "inputExt2",
+          "x": -460,
+          "y": 80,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט In1",
+          "caption": "In1"
+        },
+        {
+          "id": "inputInt2",
+          "x": -340,
+          "y": 80,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת פורט In1 פנימית"
+        },
+        {
+          "id": "inputExt3",
+          "x": -460,
+          "y": 140,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט In2",
+          "caption": "In2"
+        },
+        {
+          "id": "inputInt3",
+          "x": -340,
+          "y": 140,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת פורט In2 פנימית"
+        },
+        {
+          "id": "inputExt4",
+          "x": -460,
+          "y": 200,
+          "w": 16,
+          "dir": "in",
+          "label": "כניסת פורט In3",
+          "caption": "In3"
+        },
+        {
+          "id": "inputInt4",
+          "x": -340,
+          "y": 200,
+          "w": 16,
+          "dir": "out",
+          "label": "כניסת פורט In3 פנימית"
+        },
+        {
+          "id": "outputInt1",
+          "x": 340,
+          "y": 20,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת פורט Out0 פנימית"
+        },
+        {
+          "id": "outputExt1",
+          "x": 460,
+          "y": 20,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט Out0",
+          "caption": "Out0"
+        },
+        {
+          "id": "outputInt2",
+          "x": 340,
+          "y": 80,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת פורט Out1 פנימית"
+        },
+        {
+          "id": "outputExt2",
+          "x": 460,
+          "y": 80,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט Out1",
+          "caption": "Out1"
+        },
+        {
+          "id": "outputInt3",
+          "x": 340,
+          "y": 140,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת פורט Out2 פנימית"
+        },
+        {
+          "id": "outputExt3",
+          "x": 460,
+          "y": 140,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט Out2",
+          "caption": "Out2"
+        },
+        {
+          "id": "outputInt4",
+          "x": 340,
+          "y": 200,
+          "w": 16,
+          "dir": "in",
+          "label": "יציאת פורט Out3 פנימית"
+        },
+        {
+          "id": "outputExt4",
+          "x": 460,
+          "y": 200,
+          "w": 16,
+          "dir": "out",
+          "label": "יציאת פורט Out3",
+          "caption": "Out3"
+        }
+      ]
+    },
+    "external": [
+      {
+        "id": "source-1",
+        "type": "source",
+        "x": 90,
+        "y": 140
+      }
+    ],
+    "components": [
+      {
+        "id": "pc-wide",
+        "type": "splitter",
+        "x": 420,
+        "y": 640,
+        "mirrored": true,
+        "outputs": 2,
+        "legWidths": [
+          10,
+          6
+        ],
+        "singleWidth": 16
+      },
+      {
+        "id": "cd-wide",
+        "type": "splitter",
+        "x": 330,
+        "y": 300,
+        "mirrored": true,
+        "outputs": 2,
+        "legWidths": [
+          10,
+          6
+        ],
+        "singleWidth": 16
+      },
+      {
+        "id": "addr-pick",
+        "type": "gate-MUX16",
+        "x": 430,
+        "y": 380
+      },
+      {
+        "id": "addr-cut",
+        "type": "splitter",
+        "x": 540,
+        "y": 380,
+        "mirrored": false,
+        "outputs": 2,
+        "legWidths": [
+          10,
+          6
+        ],
+        "singleWidth": 16
+      },
+      {
+        "id": "program",
+        "type": "gate-RAM1024",
+        "x": 660,
+        "y": 300
+      },
+      {
+        "id": "cpu",
+        "type": "gate-CPU0",
+        "x": 660,
+        "y": 520
+      },
+      {
+        "id": "memory",
+        "type": "gate-RAM",
+        "x": 900,
+        "y": 440
+      }
+    ],
+    "wires": [
+      {
+        "a": "cpu.out2",
+        "b": "pc-wide.leg0"
+      },
+      {
+        "a": "task-card-1.inputInt6",
+        "b": "cd-wide.leg0"
+      },
+      {
+        "a": "pc-wide.single",
+        "b": "addr-pick.in1"
+      },
+      {
+        "a": "cd-wide.single",
+        "b": "addr-pick.in2"
+      },
+      {
+        "a": "task-card-1.inputInt5",
+        "b": "addr-pick.in3"
+      },
+      {
+        "a": "addr-pick.out",
+        "b": "addr-cut.single"
+      },
+      {
+        "a": "addr-cut.leg0",
+        "b": "program.in3"
+      },
+      {
+        "a": "task-card-1.inputInt7",
+        "b": "program.in1"
+      },
+      {
+        "a": "task-card-1.inputInt5",
+        "b": "program.in2"
+      },
+      {
+        "a": "program.out",
+        "b": "cpu.in1"
+      },
+      {
+        "a": "memory.out",
+        "b": "cpu.in2"
+      },
+      {
+        "a": "task-card-1.inputInt5",
+        "b": "cpu.in3"
+      },
+      {
+        "a": "cpu.out1",
+        "b": "memory.in3"
+      },
+      {
+        "a": "cpu.out3",
+        "b": "memory.in1"
+      },
+      {
+        "a": "cpu.out4",
+        "b": "memory.in2"
+      },
+      {
+        "a": "task-card-1.inputInt1",
+        "b": "memory.inP1"
+      },
+      {
+        "a": "task-card-1.inputInt2",
+        "b": "memory.inP2"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "memory.inP3"
+      },
+      {
+        "a": "task-card-1.inputInt4",
+        "b": "memory.inP4"
+      },
+      {
+        "a": "memory.outP1",
+        "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "memory.outP2",
+        "b": "task-card-1.outputInt2"
+      },
+      {
+        "a": "memory.outP3",
+        "b": "task-card-1.outputInt3"
+      },
+      {
+        "a": "memory.outP4",
+        "b": "task-card-1.outputInt4"
+      }
+    ],
+    "check": {
+      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מחזיקה את הריסט וכותבת תוכנית קטנה לזיכרון התוכנה דרך cd-adr/cd, פקודה בכל פעימה, מרפה מהריסט ובודקת שהתוכנית העתיקה את In0 ל-Out0 ואת In1 ל-Out1. אחר כך היא מוודאת ש-cd באמת לא משפיע כשהמחשב רץ, ושריסט מתחיל את התוכנית מהתחלה."
+    }
   }
 };

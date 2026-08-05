@@ -1376,6 +1376,45 @@
     bounds: { left: 76, right: 116, top: 92, bottom: 80 }
   };
 
+  // taskCard-Computer0: the whole simple computer. Down the left, the memory's
+  // four device ports come in and the two program-writing buses (the address in
+  // the program memory and the instruction to put there); reset pokes out the
+  // top; down the right, the memory's four device ports go out.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Computer0"] = {
+    label: "מסגרת Computer0",
+    fixed: true,
+    taskId: "Computer0",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { w: 800, h: 560 },
+    pins: {
+      inputExt6: { x: -460, y: -250, direction: "in", width: 10, label: "כניסת כתובת התוכנה", caption: "cd-adr", edge: "side" },
+      inputInt6: { x: -340, y: -250, direction: "out", width: 10, label: "כניסת כתובת התוכנה פנימית", edge: "side" },
+      inputExt7: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הפקודה לכתיבה", caption: "cd", edge: "side" },
+      inputInt7: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הפקודה לכתיבה פנימית", edge: "side" },
+      inputExt5: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt5: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      inputExt1: { x: -460, y: 20, direction: "in", width: 16, label: "כניסת פורט In0", caption: "In0", edge: "side" },
+      inputInt1: { x: -340, y: 20, direction: "out", width: 16, label: "כניסת פורט In0 פנימית", edge: "side" },
+      inputExt2: { x: -460, y: 80, direction: "in", width: 16, label: "כניסת פורט In1", caption: "In1", edge: "side" },
+      inputInt2: { x: -340, y: 80, direction: "out", width: 16, label: "כניסת פורט In1 פנימית", edge: "side" },
+      inputExt3: { x: -460, y: 140, direction: "in", width: 16, label: "כניסת פורט In2", caption: "In2", edge: "side" },
+      inputInt3: { x: -340, y: 140, direction: "out", width: 16, label: "כניסת פורט In2 פנימית", edge: "side" },
+      inputExt4: { x: -460, y: 200, direction: "in", width: 16, label: "כניסת פורט In3", caption: "In3", edge: "side" },
+      inputInt4: { x: -340, y: 200, direction: "out", width: 16, label: "כניסת פורט In3 פנימית", edge: "side" },
+      outputInt1: { x: 340, y: 20, direction: "in", width: 16, label: "יציאת פורט Out0 פנימית", edge: "side" },
+      outputExt1: { x: 460, y: 20, direction: "out", width: 16, label: "יציאת פורט Out0", caption: "Out0", edge: "side" },
+      outputInt2: { x: 340, y: 80, direction: "in", width: 16, label: "יציאת פורט Out1 פנימית", edge: "side" },
+      outputExt2: { x: 460, y: 80, direction: "out", width: 16, label: "יציאת פורט Out1", caption: "Out1", edge: "side" },
+      outputInt3: { x: 340, y: 140, direction: "in", width: 16, label: "יציאת פורט Out2 פנימית", edge: "side" },
+      outputExt3: { x: 460, y: 140, direction: "out", width: 16, label: "יציאת פורט Out2", caption: "Out2", edge: "side" },
+      outputInt4: { x: 340, y: 200, direction: "in", width: 16, label: "יציאת פורט Out3 פנימית", edge: "side" },
+      outputExt4: { x: 460, y: 200, direction: "out", width: 16, label: "יציאת פורט Out3", caption: "Out3", edge: "side" }
+    },
+    bounds: { left: 460, right: 460, top: 370, bottom: 300 }
+  };
+
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
   // worktable. Their single bus pin has NO fixed width, so wireWidthLegal lets it
   // accept ANY bus; the actual width is read from the connection at eval/render.
@@ -6000,7 +6039,7 @@
 
   // Which of them has a build table so far.
   function simpleComputerTaskImplemented(id) {
-    return ["PC0", "Cont0", "CPU0"].includes(id);
+    return ["PC0", "Cont0", "CPU0", "Computer0"].includes(id);
   }
 
   // Where the frame sits on the build board (the same y the memory builds use, so
@@ -6494,6 +6533,12 @@
     if (!type || seen.has(type)) return false;
     if (type === "ffCard") return true;
     if (typeof memoryGateSpec === "function" && memoryGateSpec(type)) return true;
+    // The 4.2 cards hold state too: the counter holds its count, and the
+    // processor holds A, D and the PC. Feeding what comes out of them back into
+    // them is how a computer is wired — the program memory is addressed by the
+    // PC and the data memory by A — so they must break the path like a register.
+    if (typeof pcGateSpec === "function" && pcGateSpec(type)) return true;
+    if (typeof cpuGateSpec === "function" && cpuGateSpec(type)) return true;
     if (!String(type).startsWith("usercard-")) return false;
     seen.add(type);
     const card = typeof savedCardByType === "function" ? savedCardByType(type) : null;
@@ -14148,7 +14193,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "PC0", "Cont0", "CPU0"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "PC0", "Cont0", "CPU0", "Computer0"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -15021,6 +15066,8 @@
     if (isPcTaskWorkspace()) return startPcTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
+    // Computer0 (4.2): the whole machine, run as a program over ticks.
+    if (isComputerTaskWorkspace()) return startComputerTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
@@ -15269,6 +15316,123 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runCpuTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "CPU0");
+  }
+
+  // --- Chapter 4.2 Computer0 check -------------------------------------------
+  // The whole machine. There is nothing to drive but its ports, so the check does
+  // what a person would: it holds reset, writes a little program into the program
+  // memory one instruction per tick through cd-adr/cd, lets go of reset, and
+  // watches the program copy two of the input ports to two of the output ports.
+  // Then it proves the two rules the chapter promises — that cd is ignored while
+  // the machine is running, and that reset really does start the program over.
+  function isComputerTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "Computer0";
+  }
+  // The memory's ports live at the top of its address space: the four written
+  // cells 1024–1027 are Out0–Out3, and the four read-only addresses 1028–1031
+  // are In0–In3 (see the RAM card of chapter 3.4).
+  const COMPUTER_PORT_OUT_BASE = 1024;
+  const COMPUTER_PORT_IN_BASE = 1028;
+  // "Out0 = In0, Out1 = In1", written in the machine's own instruction format.
+  function computerTestProgram() {
+    const setA = (n) => (n << 4) | (2 << 2);      // emit n, write it to A
+    const readStar = 0b1000010100010100;          // D = *A   (compute on D and *A, D zeroed, add)
+    const writeStar = 0b1000000011001100;         // *A = D   (pass D through, write to *A)
+    return [
+      setA(COMPUTER_PORT_IN_BASE), readStar, setA(COMPUTER_PORT_OUT_BASE), writeStar,
+      setA(COMPUTER_PORT_IN_BASE + 1), readStar, setA(COMPUTER_PORT_OUT_BASE + 1), writeStar
+    ];
+  }
+  // The learner's build + temporary drivers: dec→bin converters on cd-adr, cd and
+  // the two input ports, a source on reset, bin→dec readers on all four outputs.
+  function computerHarnessWorkspace(base, step) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const ids = ["cm-adr", "cm-cd", "cm-reset", "cm-in0", "cm-in1", "cm-out0", "cm-out1", "cm-out2", "cm-out3"];
+    ws.components = ws.components.filter((c) => !ids.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !ids.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "cm-adr", type: "converter-out", value: step.cdAdr, x: 60, y: 190 });
+    ws.components.push({ id: "cm-cd", type: "converter-out", value: step.cd, x: 60, y: 260 });
+    ws.components.push({ id: "cm-reset", type: "source", x: 420, y: 60 });
+    ws.components.push({ id: "cm-in0", type: "converter-out", value: step.in0, x: 60, y: 460 });
+    ws.components.push({ id: "cm-in1", type: "converter-out", value: step.in1, x: 60, y: 530 });
+    [0, 1, 2, 3].forEach((i) => ws.components.push({ id: `cm-out${i}`, type: "converter-in", x: 1200, y: 460 + i * 70 }));
+    ws.wires.push({ a: "cm-adr.out", b: "task-card-1.inputExt6" });
+    ws.wires.push({ a: "cm-cd.out", b: "task-card-1.inputExt7" });
+    if (step.reset) ws.wires.push({ a: "cm-reset.out", b: "task-card-1.inputExt5" });
+    ws.wires.push({ a: "cm-in0.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "cm-in1.out", b: "task-card-1.inputExt2" });
+    [0, 1, 2, 3].forEach((i) => ws.wires.push({ a: `task-card-1.outputExt${i + 1}`, b: `cm-out${i}.in` }));
+    return ws;
+  }
+  function computerTick(base, step, prev) {
+    const flat = flattenWorkspaceForEval(computerHarnessWorkspace(base, step));
+    const result = __circuitEngine.evaluateWorkspaceBits(flat, prev);
+    const read = (i) => {
+      const info = result.converters.get(`cm-out${i}`);
+      return info ? Number(info.value) : -1;
+    };
+    return { outs: [read(0), read(1), read(2), read(3)], next: result.next };
+  }
+  function runComputerTest(base) {
+    const program = computerTestProgram();
+    const idle = { cdAdr: 0, cd: 0, in0: 0, in1: 0, reset: false };
+    // Load the program while reset is held: one instruction per tick.
+    const load = (prev, in0, in1) => {
+      let p = prev;
+      for (let i = 0; i < program.length; i += 1) {
+        p = computerTick(base, { cdAdr: i, cd: program[i], in0, in1, reset: true }, p).next;
+      }
+      return p;
+    };
+    // Let it run long enough for the eight instructions to go by.
+    const run = (prev, in0, in1, ticks) => {
+      let p = prev;
+      let last = null;
+      for (let i = 0; i < ticks; i += 1) {
+        last = computerTick(base, { ...idle, in0, in1 }, p);
+        p = last.next;
+      }
+      return { outs: last ? last.outs : [-1, -1, -1, -1], next: p };
+    };
+    const want = (got, expected, index) => {
+      if (expected.every((v, i) => got[i] === v)) return null;
+      // A failed run says WHICH of the three things went wrong and what the ports
+      // showed — the result dialog only says pass or fail.
+      if (typeof console !== "undefined") console.info(`[Computer0] phase ${index}: ports show ${got.join(", ")} — expected ${expected.join(", ")}`);
+      return { ok: false, index, expected, got };
+    };
+
+    let prev = load(new Map(), 0, 0);
+    let phase = run(prev, 4321, 1234, 14);
+    let bad = want(phase.outs, [4321, 1234, 0, 0], 0);
+    if (bad) return bad;
+    prev = phase.next;
+
+    // cd is ignored while it runs: writing a "put 9 in Out0" word into the
+    // program must change nothing until reset says so.
+    const poison = (9 << 4) | (2 << 2);
+    for (let i = 0; i < 4; i += 1) {
+      prev = computerTick(base, { cdAdr: 0, cd: poison, in0: 4321, in1: 1234, reset: false }, prev).next;
+    }
+    phase = run(prev, 4321, 1234, 4);
+    bad = want(phase.outs, [4321, 1234, 0, 0], 1);
+    if (bad) return bad;
+
+    // And reset starts the program over: new numbers on the ports, and the very
+    // same program copies them across again. The reset tick writes the first
+    // instruction back over itself, so the program is left exactly as it was.
+    prev = computerTick(base, { cdAdr: 0, cd: program[0], in0: 7, in1: 8, reset: true }, phase.next).next;
+    phase = run(prev, 7, 8, 14);
+    bad = want(phase.outs, [7, 8, 0, 0], 2);
+    if (bad) return bad;
+    return { ok: true };
+  }
+  function startComputerTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runComputerTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "Computer0");
   }
 
   // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
@@ -15685,7 +15849,7 @@
     if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "CPU0") return [];
+    if (taskId === "PC0" || taskId === "CPU0" || taskId === "Computer0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
