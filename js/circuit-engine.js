@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -338,6 +338,44 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
     return vec.concat(zeroBits(width - vec.length));
   }
 
+  // The ALU4's own arithmetic, as a plain function of bit vectors: the processor
+  // card runs the very ALU the learner built into it, so its behaviour cannot
+  // drift from the card's. `ctrl` is the 12-bit instruction, little-endian —
+  // ctrl[11] is the first (leftmost) bit, "do you compute at all".
+  // (This mirrors the alu4 branch of the gate loop below, which reads its vectors
+  // off the board instead of taking them as arguments.)
+  function alu4Vec(v1, v2, v3, ctrl, w) {
+    // Not computing: the instruction itself comes out, zero-extended.
+    const optionA = [];
+    for (let i = 0; i < w; i += 1) optionA.push(i < ctrl.length ? Boolean(ctrl[i]) : false);
+    // Computing: ALU2 over the first input and the one ctrl[6] picks.
+    const op2 = ctrl[6] ? v3 : v2;
+    const prep = (vec, zeroBit, notBit) => {
+      const r = [];
+      for (let i = 0; i < w; i += 1) {
+        const stage1 = zeroBit ? false : Boolean(vec[i]);
+        r.push(notBit ? !stage1 : stage1);
+      }
+      return r;
+    };
+    const p1 = prep(fitBits(v1, w), ctrl[0], ctrl[1]);
+    const p2 = prep(fitBits(op2, w), ctrl[2], ctrl[3]);
+    const combined = [];
+    if (ctrl[4]) {
+      const toNum = (vec) => { let n = 0; for (let i = 0; i < w; i += 1) n += (vec[i] ? 1 : 0) * (2 ** i); return n; };
+      const total = toNum(p1) + toNum(p2);
+      for (let i = 0; i < w; i += 1) combined.push(Boolean((total >> i) & 1));
+    } else {
+      for (let i = 0; i < w; i += 1) combined.push(Boolean(p1[i] && p2[i]));
+    }
+    const out = [];
+    for (let i = 0; i < w; i += 1) {
+      const optionB = ctrl[5] ? !combined[i] : combined[i];
+      out.push(ctrl[11] ? optionB : optionA[i]);
+    }
+    return out;
+  }
+
   // The bit-vector driving an input ref: the bitwise OR of every connected
   // output's vector, sized to the input pin's width.
   function inputBits(workspace, inputRef, outputs) {
@@ -410,6 +448,12 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         // A placeable MEMORY gate (gate-Register4) holds its stored bus this tick.
         const spec = memoryGateSpec(component.type);
         outputs.set(`${component.id}.out`, fitBits(prevMap.get(`${component.id}.out`) || zeroBits(spec.width), spec.width));
+      } else if (prevMap && typeof cpuGateSpec === "function" && cpuGateSpec(component.type)) {
+        // The processor card (gate-CPU0) holds A, D and the PC. Two of them are
+        // outputs, so they show what is held this tick; D is internal.
+        const spec = cpuGateSpec(component.type);
+        outputs.set(`${component.id}.out1`, fitBits(prevMap.get(`${component.id}.a`) || zeroBits(spec.width), spec.width));
+        outputs.set(`${component.id}.out2`, fitBits(prevMap.get(`${component.id}.pc`) || zeroBits(spec.width), spec.width));
       } else if (prevMap && typeof pcGateSpec === "function" && pcGateSpec(component.type)) {
         // The counter card (gate-PC0) shows the number it is holding this tick;
         // the growing by 1 happens in the next-state pass.
@@ -530,6 +574,31 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
               const held = prevMap ? prevMap.get(`${component.id}.cell${base + k}`) : null;
               if (setBits(outputs, `${component.id}.outP${k + 1}`, fitBits(held || zeroBits(ramHere.width), ramHere.width))) changed = true;
             }
+            continue;
+          }
+          // The 4.2 processor card (gate-CPU0). Its instruction word is read the
+          // way chapter 4.1 teaches it: the FIRST (top/MSB) 12 bits are the
+          // ALU4's instruction, the next 2 say where the result is written, and
+          // the last 2 are spare. The ALU works on D (first input), A (second)
+          // and the number coming in from memory (third).
+          const cpu = typeof cpuGateSpec === "function" ? cpuGateSpec(type) : null;
+          if (cpu) {
+            const w = cpu.width;
+            const instr = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), 16);
+            const mem = fitBits(inputBits(workspace, `${component.id}.in2`, outputs), w);
+            const held = (key) => fitBits((prevMap ? prevMap.get(`${component.id}.${key}`) : null) || zeroBits(w), w);
+            const a = held("a");
+            const d = held("d");
+            const pc = held("pc");
+            // instr index 15 is the leftmost bit, so the 12-bit ALU field is
+            // indices 15..4 and the 2-bit destination is indices 3 (high) and 2.
+            const ctrl = Array.from({ length: 12 }, (_, i) => Boolean(instr[i + 4]));
+            const dest = (instr[3] ? 2 : 0) + (instr[2] ? 1 : 0);
+            const result = alu4Vec(d, a, mem, ctrl, w);
+            if (setBits(outputs, `${component.id}.out1`, a)) changed = true;
+            if (setBits(outputs, `${component.id}.out2`, pc)) changed = true;
+            if (setBits(outputs, `${component.id}.out3`, result)) changed = true;
+            if (setBits(outputs, `${component.id}.out4`, [dest === 3])) changed = true;
             continue;
           }
           // The 4.2 control card (gate-Cont0): the 2-bit bus in (low wire = the 1s)
@@ -837,6 +906,29 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           // Only the WRITTEN range can be written: an address in the read-only
           // device range is simply ignored, exactly as the story promises.
           if (control && addr < ramSpec.slots) next.set(`${component.id}.cell${addr}`, data);
+          continue;
+        }
+        // The processor card writes the ALU's result where the instruction says,
+        // and its PC counts on (or goes back to 0 while reset is high).
+        const cpuSpec = typeof cpuGateSpec === "function" ? cpuGateSpec(component.type) : null;
+        if (cpuSpec) {
+          const w = cpuSpec.width;
+          const instr = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), 16);
+          const mem = fitBits(inputBits(workspace, `${component.id}.in2`, outputs), w);
+          const reset = Boolean(inputBits(workspace, `${component.id}.in3`, outputs)[0]);
+          const held = (key) => fitBits(prevMap.get(`${component.id}.${key}`) || zeroBits(w), w);
+          const a = held("a");
+          const d = held("d");
+          const pc = held("pc");
+          const ctrl = Array.from({ length: 12 }, (_, i) => Boolean(instr[i + 4]));
+          const dest = (instr[3] ? 2 : 0) + (instr[2] ? 1 : 0);
+          const result = alu4Vec(d, a, mem, ctrl, w);
+          let n = 0;
+          for (let i = 0; i < w; i += 1) n += (pc[i] ? 1 : 0) * (2 ** i);
+          const counted = reset ? 0 : (n + 1) % (2 ** w);
+          next.set(`${component.id}.a`, dest === 1 ? result : a);
+          next.set(`${component.id}.d`, dest === 2 ? result : d);
+          next.set(`${component.id}.pc`, Array.from({ length: w }, (_, i) => Boolean(Math.floor(counted / (2 ** i)) & 1)));
           continue;
         }
         // The counter card grows by 1 every tick — unless reset (in1) is high,

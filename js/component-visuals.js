@@ -433,6 +433,34 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The 4.2 processor card (gate-CPU0): the instruction and the number from
+  // memory in on the left, reset on top, and four things out on the right, each
+  // captioned — A, PC, the number going out, and the write wire.
+  function cpuGateMarkup(width, options = {}) {
+    const edge = 46;
+    const bodyH = 160;
+    const inYs = [-30, 30];
+    const outYs = [-45, -15, 15, 45];
+    const captions = ["A", "PC", "\u05e4\u05dc\u05d8", "\u200e*A\u200e"];
+    let s = "";
+    inYs.forEach((y) => { s += busGateBar({ x1: -74, x2: -edge, y }, width, !options.toolbar); });
+    // Three buses out, and the write wire as a plain cable.
+    outYs.slice(0, 3).forEach((y) => { s += busGateBar({ x1: edge, x2: 78, y }, width, !options.toolbar); });
+    s += pinLine(edge, outYs[3], 78, outYs[3]);
+    s += pinLine(0, -76, 0, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "CPU";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    if (!options.toolbar) {
+      const cfont = Math.round(11 * k());
+      outYs.forEach((y, i) => {
+        s += `<text class="arith-gate-pin-letter" x="62" y="${y - 8}" text-anchor="middle" style="font-size:${cfont}px">${esc(captions[i])}</text>`;
+      });
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // The 4.2 control card (gate-Cont0): the 2-bit bus in on the left and three
   // single wires out on the right, each captioned with the register it writes to.
   function contGateMarkup(options = {}) {
@@ -618,6 +646,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // The 4.2 cards of the simple computer, each drawn from its own box.
       if (type === "gate-PC0") return pcGateMarkup(16, options);
       if (type === "gate-Cont0") return contGateMarkup(options);
+      if (type === "gate-CPU0") return cpuGateMarkup(16, options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).
       const portsDef = WORKSPACE_DEFS_FOR_VISUALS ? WORKSPACE_DEFS_FOR_VISUALS[type] : null;

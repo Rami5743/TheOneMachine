@@ -1248,13 +1248,14 @@
     busTask: true,
     routingMultibit: true,
     pins: {
-      // The reset straddles the frame's top edge, like the memory cards' control.
-      inputExt1: { x: -260, y: -330, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
-      inputInt1: { x: -260, y: -230, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      // The reset STRADDLES the frame's top edge (which sits at y -210 on a
+      // 420-tall frame): the outside tip above it, the point wired to below it.
+      inputExt1: { x: -260, y: -240, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt1: { x: -260, y: -160, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת המונה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
     },
-    bounds: { left: 340, right: 340, top: 330, bottom: 300 }
+    bounds: { left: 340, right: 340, top: 250, bottom: 220 }
   };
 
   // gate-PC0: the placeable counter card. Reset in on top, the count out on the
@@ -1311,6 +1312,58 @@
       out3: { x: 78, y: 30, direction: "out", width: 1, label: "יציאת *A" }
     },
     bounds: { left: 76, right: 110, top: 62, bottom: 62 }
+  };
+
+  // taskCard-CPU0: the processor's build frame. The instruction word and the
+  // number coming in from memory enter on the left, reset on top, and four
+  // things leave on the right — A (the memory's address), the PC (the program
+  // memory's address), the number going out to memory, and the single wire that
+  // says whether it is being written.
+  WORKSPACE_COMPONENT_DEFS["taskCard-CPU0"] = {
+    label: "מסגרת CPU0",
+    fixed: true,
+    taskId: "CPU0",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -140, direction: "in", width: 16, label: "כניסת הפקודה", caption: "פקודה" },
+      inputInt1: { x: -260, y: -140, direction: "out", width: 16, label: "כניסת הפקודה פנימית" },
+      inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "קלט" },
+      inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
+      inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      outputInt1: { x: 260, y: -200, direction: "in", width: 16, label: "יציאת A פנימית" },
+      outputExt1: { x: 340, y: -200, direction: "out", width: 16, label: "יציאת A", caption: "A" },
+      outputInt2: { x: 260, y: -70, direction: "in", width: 16, label: "יציאת PC פנימית" },
+      outputExt2: { x: 340, y: -70, direction: "out", width: 16, label: "יציאת PC", caption: "PC" },
+      outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
+      outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "פלט" },
+      outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית" },
+      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "\u200e*A\u200e" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 280 }
+  };
+
+  // gate-CPU0: the placeable processor, for building the computer out of. Same
+  // shape as the frame; sequential (it holds A, D and the PC) — see cpuGateSpec
+  // and the cpuGate branches in circuit-engine.js.
+  WORKSPACE_COMPONENT_DEFS["gate-CPU0"] = {
+    label: "CPU0",
+    taskId: "CPU0",
+    gate: true,
+    cpuGate: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -74, y: -30, direction: "in", width: 16, label: "כניסת הפקודה" },
+      in2: { x: -74, y: 30, direction: "in", width: 16, label: "כניסת הקלט" },
+      in3: { x: 0, y: -76, direction: "in", width: 1, label: "כניסת האיפוס" },
+      out1: { x: 78, y: -45, direction: "out", width: 16, label: "יציאת A" },
+      out2: { x: 78, y: -15, direction: "out", width: 16, label: "יציאת PC" },
+      out3: { x: 78, y: 15, direction: "out", width: 16, label: "יציאת הפלט" },
+      out4: { x: 78, y: 45, direction: "out", width: 1, label: "יציאת הכתיבה" }
+    },
+    bounds: { left: 76, right: 116, top: 92, bottom: 80 }
   };
 
   // The 2.5 binary↔decimal converters — dynamic-width helper devices for the
@@ -2016,7 +2069,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -2549,7 +2602,9 @@
     }
     // Add16 stacks four (tall) Add4 gates; ALU2/ALU3 have three number inputs
     // (and tall control splitters in their solutions), so they get a taller frame.
-    const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3" || def.id === "ALU4";
+    const tall = def.id === "Add16" || def.id === "ALU2" || def.id === "ALU3" || def.id === "ALU4"
+      // CPU0 stacks four outputs down its right side.
+      || def.id === "CPU0";
     // The frame size comes from the task's solution JSON when present (see
     // solutionFrameSize), else the built-in default.
     // A frame may also declare its own size (the RAM frames, which have to hold
@@ -5923,16 +5978,20 @@
 
   // Which of them has a build table so far.
   function simpleComputerTaskImplemented(id) {
-    return ["PC0", "Cont0"].includes(id);
+    return ["PC0", "Cont0", "CPU0"].includes(id);
   }
 
   // Where the frame sits on the build board (the same y the memory builds use, so
   // the card never jumps between one chapter's table and the next).
   const SIMPLE_COMPUTER_CARD_Y = 430;
 
-  function openSimpleComputerTaskWorkspace(taskId) {
+  // `options.intro` opens the card's opening message OVER the build table — the
+  // learner reads what the card IS while standing at the work area, not back in
+  // the hangar.
+  function openSimpleComputerTaskWorkspace(taskId, options) {
     const task = simpleComputerTaskDefById(taskId);
     if (!task) return;
+    const withIntro = Boolean(options && options.intro);
     const chapter = chapterById("chapter-16");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
@@ -5976,7 +6035,7 @@
       dialog: null,
       taskDialog: null,
       buildNoteList: false,
-      aluIntroDialog: null,
+      aluIntroDialog: withIntro ? { page: 0, taskId: task.id } : null,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
       whyNoteHidden: false,
@@ -6002,8 +6061,8 @@
 
   // Tapping a card on the note: locked says what is missing first, a built one
   // reopens nothing (there is no walkthrough yet) and just rebuilds, and the two
-  // that are not implemented still say "המשך יבוא...". PC0 opens with its own
-  // paged message — what a program counter IS — before the build table.
+  // that are not implemented still say "המשך יבוא...". PC0's opening message —
+  // what a program counter IS — is read over the build table itself.
   function handleBuildNoteTask(id) {
     const task = simpleComputerTaskDefById(id);
     if (!task) return;
@@ -6013,10 +6072,8 @@
     if (!simpleComputerTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
     }
-    if (Array.isArray(task.intro) && task.intro.length && !taskCompleted(task.id)) {
-      return setState({ buildNoteList: false, aluIntroDialog: { page: 0, taskId: task.id } });
-    }
-    openSimpleComputerTaskWorkspace(task.id);
+    const intro = Array.isArray(task.intro) && task.intro.length && !taskCompleted(task.id);
+    openSimpleComputerTaskWorkspace(task.id, { intro });
   }
 
   // The 4.2 build-task note. The tasks are listed in the order they must be done,
@@ -14935,6 +14992,8 @@
     // PC0 (4.2) is clocked and drives itself — its own harness, before the
     // multibit one (it is bus-shaped too).
     if (isPcTaskWorkspace()) return startPcTaskTest();
+    // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
+    if (isCpuTaskWorkspace()) return startCpuTaskTest();
     if (isMultibitTaskWorkspace()) return startMultibitTaskTest();
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
@@ -15054,6 +15113,116 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runPcTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "PC0");
+  }
+
+  // --- Chapter 4.2 CPU0 check ------------------------------------------------
+  // The processor is clocked, so it is checked by RUNNING a little program on it:
+  // each tick drives an instruction word, a number "from memory" and the reset
+  // wire, and all four outputs are compared against what the chapter says they
+  // must be. The reference below is the story's own reading of the word — the
+  // first 12 bits are the ALU4's instruction, the next 2 the destination.
+  function isCpuTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "CPU0";
+  }
+  // The ALU4's arithmetic on plain numbers (the same formula the ALU4 check uses).
+  function cpuAluResult(control, in1, in2, in3) {
+    const bit = (i) => (control >> i) & 1;
+    const prep = (n, zeroBit, notBit) => {
+      const s1 = zeroBit ? 0 : (n & 0xffff);
+      return (notBit ? ~s1 : s1) & 0xffff;
+    };
+    const optionA = control & 0xffff;
+    const op2 = bit(6) ? in3 : in2;
+    const p1 = prep(in1, bit(0), bit(1));
+    const p2 = prep(op2, bit(2), bit(3));
+    const combined = bit(4) ? ((p1 + p2) & 0xffff) : (p1 & p2);
+    const optionB = (bit(5) ? ~combined : combined) & 0xffff;
+    return (bit(11) ? optionB : optionA) & 0xffff;
+  }
+  // The little program the check runs. Each step is one tick: the instruction
+  // word (as the 16 bits of chapter 4.1), the number arriving from memory on the
+  // input bus, and whether reset is held high. Between them they exercise all
+  // four destinations, both ALU operand choices, and the reset.
+  function cpuTestSteps() {
+    return [
+      { instr: 0b0000000000010100, mem: 0, reset: false },  // A = 1
+      { instr: 0b0000000100011100, mem: 0, reset: false },  // *A = 17
+      { instr: 0b0000000001011000, mem: 17, reset: false }, // D = 5
+      { instr: 0b1000011110001000, mem: 17, reset: false }, // D = *A - D
+      { instr: 0b0000000000100100, mem: 17, reset: false }, // A = 2
+      { instr: 0b1000000011001100, mem: 0, reset: false },  // *A = D
+      { instr: 0b1000000011000000, mem: 0, reset: false },  // compute, write nowhere
+      { instr: 0b0000000000010100, mem: 0, reset: true },   // A = 1, and reset the PC
+      { instr: 0b0000000001011000, mem: 0, reset: false }   // D = 5, counting on from 0
+    ];
+  }
+  // What every output must show on each tick, from the story's own rules. The
+  // registers show what they HOLD, so a write lands on the tick after it.
+  function cpuExpectedRun() {
+    const rows = [];
+    let a = 0, d = 0, pc = 0;
+    for (const step of cpuTestSteps()) {
+      const control = (step.instr >> 4) & 0xfff;
+      const dest = (step.instr >> 2) & 3;
+      const result = cpuAluResult(control, d, a, step.mem);
+      rows.push({ a, pc, out: result, write: dest === 3 });
+      const nextA = dest === 1 ? result : a;
+      const nextD = dest === 2 ? result : d;
+      pc = step.reset ? 0 : (pc + 1) & 0xffff;
+      a = nextA; d = nextD;
+    }
+    return rows;
+  }
+  // The learner's build + temporary drivers: dec→bin converters on the two
+  // number buses in, a source on reset, bin→dec readers on the three buses out
+  // and a lamp on the single write wire.
+  function cpuHarnessWorkspace(base, step) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const ids = ["cpu-instr", "cpu-mem", "cpu-reset", "cpu-a", "cpu-pc", "cpu-out", "cpu-write"];
+    ws.components = ws.components.filter((c) => !ids.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !ids.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "cpu-instr", type: "converter-out", value: step.instr, x: 120, y: 290 });
+    ws.components.push({ id: "cpu-mem", type: "converter-out", value: step.mem, x: 120, y: 700 });
+    ws.components.push({ id: "cpu-reset", type: "source", x: 380, y: 60 });
+    ws.components.push({ id: "cpu-a", type: "converter-in", x: 1160, y: 230 });
+    ws.components.push({ id: "cpu-pc", type: "converter-in", x: 1160, y: 360 });
+    ws.components.push({ id: "cpu-out", type: "converter-in", x: 1160, y: 500 });
+    ws.components.push({ id: "cpu-write", type: "lamp", x: 1160, y: 640 });
+    ws.wires.push({ a: "cpu-instr.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "cpu-mem.out", b: "task-card-1.inputExt2" });
+    if (step.reset) ws.wires.push({ a: "cpu-reset.out", b: "task-card-1.inputExt3" });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "cpu-a.in" });
+    ws.wires.push({ a: "task-card-1.outputExt2", b: "cpu-pc.in" });
+    ws.wires.push({ a: "task-card-1.outputExt3", b: "cpu-out.in" });
+    ws.wires.push({ a: "task-card-1.outputExt4", b: "cpu-write.in" });
+    return ws;
+  }
+  function runCpuTest(base) {
+    const steps = cpuTestSteps();
+    const want = cpuExpectedRun();
+    let prev = new Map();
+    for (let i = 0; i < steps.length; i += 1) {
+      const flat = flattenWorkspaceForEval(cpuHarnessWorkspace(base, steps[i]));
+      const result = __circuitEngine.evaluateWorkspaceBits(flat, prev);
+      const read = (id) => {
+        const info = result.converters.get(id);
+        return info ? Number(info.value) : -1;
+      };
+      const got = { a: read("cpu-a"), pc: read("cpu-pc"), out: read("cpu-out"), write: Boolean(result.lamps.get("cpu-write")) };
+      const expect = want[i];
+      if (got.a !== expect.a || got.pc !== expect.pc || got.out !== expect.out || got.write !== expect.write) {
+        return { ok: false, index: i, expected: expect, got };
+      }
+      prev = result.next;
+    }
+    return { ok: true };
+  }
+  function startCpuTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runCpuTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "CPU0");
   }
 
   // --- Chapter 3.3 RAM check (RAM4 … RAM1024) --------------------------------
@@ -15468,8 +15637,9 @@
     // The 3.4 ports cards are the same: OPorts/Ports/RAM run on the RAM harness,
     // and IPorts has its own combinational one (runIPortsTest).
     if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
-    // PC0 is clocked too — it counts by itself, so runPcTest drives it over ticks.
-    if (taskId === "PC0") return [];
+    // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
+    // runCpuTest), never as a table of combinational cases.
+    if (taskId === "PC0" || taskId === "CPU0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
@@ -17855,6 +18025,13 @@
     if (isRamTask(taskId)) {
       return setState({ ...ramCompletionPatch(completedTasks, taskId), ...base }, true);
     }
+    // The 4.2 cards of the simple computer: back to the room with the build note
+    // open. Checked FIRST for the same reason as the cards below — they are
+    // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
+    // land the learner on the BUSES note.
+    if (isSimpleComputerTask(taskId)) {
+      return setState({ ...simpleComputerReturnTarget(), ...base, buildNoteList: true }, true);
+    }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
     // Checked FIRST: they are multibit-shaped, so they would otherwise fall into
@@ -19651,6 +19828,15 @@
     return { width: def.busWidth || 16 };
   }
 
+  // The 4.2 processor card (gate-CPU0): sequential — it holds A, D and the PC.
+  // Everything it does is spelled out in the cpuGate branches of
+  // circuit-engine.js; here we only say that it IS one.
+  function cpuGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.cpuGate) return null;
+    return { width: def.busWidth || 16 };
+  }
+
   // The 4.2 control card (gate-Cont0): combinational — the 2-bit bus in says
   // which of the three write wires goes high (0 = none).
   function contGateSpec(type) {
@@ -21151,9 +21337,10 @@
         }
         return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
       }
-      // A 4.2 card's opening message hands straight over to its build table.
+      // A 4.2 card's opening message is read AT the work area, over the table it
+      // belongs to — closing it just gets out of the way.
       if (isSimpleComputerTask(state.aluIntroDialog?.taskId)) {
-        return openSimpleComputerTaskWorkspace(state.aluIntroDialog.taskId);
+        return setState({ aluIntroDialog: null }, false);
       }
       // A RAM message belongs to the 3.3 note, not the 2.6 one.
       if (isRamTask(state.aluIntroDialog?.taskId)) return setState({ aluIntroDialog: null, ramNoteList: true });
