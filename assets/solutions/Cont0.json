@@ -1,0 +1,146 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Cont0",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Cont0",
+    "x": 640,
+    "y": 430,
+    "frameW": 600,
+    "frameH": 420,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": 0,
+        "w": 2,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": 0,
+        "w": 2,
+        "dir": "out",
+        "label": "כניסת הבקרה פנימית"
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": -150,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת D פנימית",
+        "caption": "D"
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": -150,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת D",
+        "caption": "D"
+      },
+      {
+        "id": "outputInt2",
+        "x": 260,
+        "y": 0,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת A פנימית",
+        "caption": "A"
+      },
+      {
+        "id": "outputExt2",
+        "x": 340,
+        "y": 0,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת A",
+        "caption": "A"
+      },
+      {
+        "id": "outputInt3",
+        "x": 260,
+        "y": 150,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת ‎*A‎ פנימית",
+        "caption": "‎*A‎"
+      },
+      {
+        "id": "outputExt3",
+        "x": 340,
+        "y": 150,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת ‎*A‎",
+        "caption": "‎*A‎"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 140
+    }
+  ],
+  "components": [
+    {
+      "id": "always-one",
+      "type": "source",
+      "x": 420,
+      "y": 300
+    },
+    {
+      "id": "pick",
+      "type": "gate-Dmux4way",
+      "x": 640,
+      "y": 430
+    }
+  ],
+  "wires": [
+    {
+      "a": "always-one.out",
+      "b": "pick.in1"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "pick.in2"
+    },
+    {
+      "a": "pick.out2",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "pick.out3",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "pick.out4",
+      "b": "task-card-1.outputInt3"
+    }
+  ],
+  "check": {
+    "cases": [
+      {
+        "control": 0
+      },
+      {
+        "control": 1
+      },
+      {
+        "control": 2
+      },
+      {
+        "control": 3
+      }
+    ],
+    "note": "כל ארבעת הערכים של בס הבקרה: 0 לא מדליק אף יציאה, 1 את D, 2 את A, 3 את ‎*A‎. היציאה הראשונה של ה-DMux4Way (זו של הערך 0) לא מחוברת לשום מקום."
+  }
+}

@@ -14148,7 +14148,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "PC0", "Cont0", "CPU0"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -14253,6 +14253,9 @@
     // The 3.4 ports cards build at the same spot the RAM cards do; their
     // walkthroughs and build hints must land there too, or the frame jumps.
     if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_Y;
+    // The 4.2 cards: the SAME y their build uses, so a solution laid out in the
+    // editor lands exactly where the learner's own frame sat.
+    if (typeof isSimpleComputerTask === "function" && isSimpleComputerTask(taskId)) return SIMPLE_COMPUTER_CARD_Y;
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
       // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
