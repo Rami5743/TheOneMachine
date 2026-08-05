@@ -1,0 +1,185 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Cd",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Cd",
+    "x": 660,
+    "y": 440,
+    "frameW": 800,
+    "frameH": 560,
+    "pins": [
+      {
+        "id": "inputExt3",
+        "x": -460,
+        "y": -170,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת כתובת הקריאה",
+        "caption": "כתובת קריאה"
+      },
+      {
+        "id": "inputInt3",
+        "x": -340,
+        "y": -170,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת כתובת הקריאה פנימית"
+      },
+      {
+        "id": "inputExt4",
+        "x": -460,
+        "y": -50,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת כתובת הכתיבה",
+        "caption": "כתובת כתיבה"
+      },
+      {
+        "id": "inputInt4",
+        "x": -340,
+        "y": -50,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת כתובת הכתיבה פנימית"
+      },
+      {
+        "id": "inputExt1",
+        "x": -460,
+        "y": 110,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הדאטה",
+        "caption": "דאטה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -340,
+        "y": 110,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הדאטה פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -217,
+        "y": -350,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt2",
+        "x": -217,
+        "y": -210,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת הבקרה פנימית"
+      },
+      {
+        "id": "outputInt1",
+        "x": 340,
+        "y": 20,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאה פנימית"
+      },
+      {
+        "id": "outputExt1",
+        "x": 460,
+        "y": 20,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאה",
+        "caption": "יציאה"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 90
+    }
+  ],
+  "components": [
+    {
+      "id": "addr-pick",
+      "type": "gate-MUX16",
+      "x": 470,
+      "y": 330
+    },
+    {
+      "id": "addr-cut",
+      "type": "splitter",
+      "x": 610,
+      "y": 250,
+      "outputs": 2,
+      "mirrored": false,
+      "legWidths": [
+        10,
+        6
+      ],
+      "singleWidth": 16
+    },
+    {
+      "id": "bank",
+      "type": "gate-RAM1024",
+      "x": 790,
+      "y": 420
+    },
+    {
+      "id": "out-pick",
+      "type": "gate-MUX16",
+      "x": 960,
+      "y": 560
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "addr-pick.in1"
+    },
+    {
+      "a": "task-card-1.inputInt4",
+      "b": "addr-pick.in2"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "addr-pick.in3"
+    },
+    {
+      "a": "addr-pick.out",
+      "b": "addr-cut.single"
+    },
+    {
+      "a": "addr-cut.leg0",
+      "b": "bank.in3"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "bank.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "bank.in2"
+    },
+    {
+      "a": "bank.out",
+      "b": "out-pick.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "out-pick.in3"
+    },
+    {
+      "a": "out-pick.out",
+      "b": "task-card-1.outputInt1"
+    }
+  ],
+  "check": {
+    "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה כותבת לכתובות בשני קצות הבנק — בכל כתיבה כתובת הקריאה מכוונת למקום אחר — קוראת הכל בחזרה, ומוודאת שבזמן כתיבה היציאה היא 0 ושכתיבה עם בקרה כבויה לא משנה כלום."
+  }
+}

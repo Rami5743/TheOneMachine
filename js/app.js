@@ -166,6 +166,8 @@
       // The 3.4 ports cards — same story again: addressed and (bar IPorts)
       // sequential, so their behaviour never comes from taskOutput either.
       || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === taskId) : null)
+      // The 3.5 program memory — addressed and sequential like the rest of them.
+      || (typeof CD_TASKS !== "undefined" ? CD_TASKS.find((task) => task.id === taskId) : null)
       // The 4.2 cards of the simple computer (PC0, Cont0 …) — only the ones with a
       // real shape; CPU0/Computer0 are still just names on the note.
       || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
@@ -1384,6 +1386,57 @@
     bounds: { left: 114, right: 114, top: 186, bottom: 130 }
   };
 
+  // ---- 3.5 program memory (Cd) -------------------------------------------
+  // taskCard-Cd: the memory the computer's instructions live in. Down the left,
+  // the two 16-bit address buses (read above, write below) and the data bus;
+  // control straddles the top edge; the value read leaves on the right.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Cd"] = {
+    label: "מסגרת Cd",
+    fixed: true,
+    taskId: "Cd",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    frameSize: { w: 800, h: 560 },
+    pins: {
+      // A pin more than 150 off the centre line is read by the frame shell as
+      // poking out of the TOP edge unless it says it leaves through the side.
+      inputExt3: { x: -460, y: -170, direction: "in", width: 16, label: "כניסת כתובת הקריאה", caption: "כתובת קריאה", edge: "side" },
+      inputInt3: { x: -340, y: -170, direction: "out", width: 16, label: "כניסת כתובת הקריאה פנימית", edge: "side" },
+      inputExt4: { x: -460, y: -50, direction: "in", width: 16, label: "כניסת כתובת הכתיבה", caption: "כתובת כתיבה" },
+      inputInt4: { x: -340, y: -50, direction: "out", width: 16, label: "כניסת כתובת הכתיבה פנימית" },
+      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
+      inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
+      outputInt1: { x: 340, y: 20, direction: "in", width: 16, label: "יציאה פנימית" },
+      outputExt1: { x: 460, y: 20, direction: "out", width: 16, label: "יציאה", caption: "יציאה" }
+    },
+    bounds: { left: 460, right: 460, top: 460, bottom: 280 }
+  };
+
+  // gate-Cd: the finished program memory, for building the computer out of.
+  WORKSPACE_COMPONENT_DEFS["gate-Cd"] = {
+    label: "Cd",
+    taskId: "Cd",
+    gate: true,
+    cdGate: true,
+    busWidth: 16,
+    // The address PINS are 16 wide; only the last 10 bits address the bank, the
+    // same split the RAM's address uses (addressWidth = pin, addressBits = used).
+    addressWidth: 16,
+    addressBits: 10,
+    slots: 1024,
+    pins: {
+      in3: { x: -92, y: -60, direction: "in", width: 16, label: "כניסת כתובת הקריאה" },
+      in4: { x: -92, y: 0, direction: "in", width: 16, label: "כניסת כתובת הכתיבה" },
+      in1: { x: -92, y: 60, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in2: { x: 0, y: -110, direction: "in", width: 1, label: "כניסת הבקרה" },
+      out: { x: 92, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+    },
+    bounds: { left: 96, right: 96, top: 126, bottom: 96 }
+  };
+
   // taskCard-Computer0: the whole simple computer. Down the left, the memory's
   // four device ports come in and the two program-writing buses (the address in
   // the program memory and the instruction to put there); reset pokes out the
@@ -2127,7 +2180,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, cdGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -2630,6 +2683,7 @@
       || (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || (typeof RAM_TASKS !== "undefined" ? RAM_TASKS.find((task) => task.id === id) : null)
       || (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS.find((task) => task.id === id) : null)
+      || (typeof CD_TASKS !== "undefined" ? CD_TASKS.find((task) => task.id === id) : null)
       // The 4.2 cards: they are frame-built and bus-shaped like the rest, so they
       // share the multi-bit shell and (for the combinational ones) its harness.
       || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === id && task.busWidth) : null)
@@ -3060,7 +3114,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-15" || chapter.id === "chapter-16") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-17" || chapter.id === "chapter-15" || chapter.id === "chapter-16") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -3573,6 +3627,8 @@
     // The 3.4 ports cards — so a finished OPorts/IPorts is there to build the
     // next one out of, exactly like every chapter before it.
     { chapter: "chapter-13", ids: () => (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The 3.5 program memory, so a finished Cd is on the table for 4.2.
+    { chapter: "chapter-17", ids: () => (typeof CD_TASKS !== "undefined" ? CD_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     // The 4.2 cards of the simple computer — same rule: a finished PC0/Cont0 is
     // there to build the CPU out of.
     { chapter: "chapter-16", ids: () => (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
@@ -6550,6 +6606,7 @@
     // PC and the data memory by A — so they must break the path like a register.
     if (typeof pcGateSpec === "function" && pcGateSpec(type)) return true;
     if (typeof cpuGateSpec === "function" && cpuGateSpec(type)) return true;
+    if (typeof cdGateSpec === "function" && cdGateSpec(type)) return true;
     if (!String(type).startsWith("usercard-")) return false;
     seen.add(type);
     const card = typeof savedCardByType === "function" ? savedCardByType(type) : null;
@@ -6994,6 +7051,54 @@
                   wireKey("op.outP3", "task-card-1.outputInt4"), wireKey("op.outP4", "task-card-1.outputInt5"),
                   wireKey("task-card-1.inputInt4", "ip.in1"), wireKey("task-card-1.inputInt5", "ip.in2"),
                   wireKey("task-card-1.inputInt6", "ip.in3"), wireKey("task-card-1.inputInt7", "ip.in4")]
+        }
+      }
+    ],
+    // 3.5 — the program memory. Four steps: the address MUX, the cut to 10 bits,
+    // the data and control into the bank, and the output MUX that shows 0 while
+    // the card is being written to.
+    Cd: [
+      {
+        text: "כל הזיכרון עצמו הוא RAM1024 אחד — 1024 רגיסטרים, בדיוק מה שצריך. כל מה שנשאר זה להחליט איזו כתובת מגיעה אליו ומה יוצא ממנו.",
+        highlight: {
+          components: ["bank"],
+          terminals: [],
+          wires: []
+        }
+      },
+      {
+        text: "לזיכרון יש כניסת כתובת אחת, ולנו יש שתיים. MUX16 פותר את זה: כתובת הקריאה נכנסת אליו בכניסה הראשונה, כתובת הכתיבה בשנייה, וכניסת הבקרה של הכרטיס היא זו שבוחרת. כשהבקרה 0 עוברת כתובת הקריאה, וכשהיא 1 עוברת כתובת הכתיבה — בדיוק ההתעלמות שהתבקשה.",
+        highlight: {
+          components: ["addr-pick"],
+          terminals: ["task-card-1.inputInt3", "task-card-1.inputInt4", "task-card-1.inputInt2"],
+          wires: [wireKey("task-card-1.inputInt3", "addr-pick.in1"),
+                  wireKey("task-card-1.inputInt4", "addr-pick.in2"),
+                  wireKey("task-card-1.inputInt2", "addr-pick.in3")]
+        }
+      },
+      {
+        text: "הכתובת שיצאה מה-MUX היא בס של 16, ול-RAM1024 יש כניסת כתובת של 10. מפצל חותך אותה: עשרת הביטים האחרונים הולכים לזיכרון, ושישה הביטים הראשונים לא מחוברים לכלום — הכרטיס מתעלם מהם, בדיוק כמו שנכתב בדרישות.",
+        highlight: {
+          components: ["addr-cut", "bank"],
+          terminals: ["bank.in3"],
+          wires: [wireKey("addr-pick.out", "addr-cut.single"), wireKey("addr-cut.leg0", "bank.in3")]
+        }
+      },
+      {
+        text: "הדאטה וכניסת הבקרה נכנסות ל-RAM1024 כמו שהן. הבקרה עושה כאן שתי עבודות באותו רגע: היא זו שפותחת את הזיכרון לכתיבה, והיא זו שכבר בחרה למעלה שהכתובת שתגיע אליו היא כתובת הכתיבה. כך הכתיבה תמיד נוחתת במקום הנכון.",
+        highlight: {
+          components: ["bank"],
+          terminals: ["task-card-1.inputInt1", "bank.in1", "bank.in2"],
+          wires: [wireKey("task-card-1.inputInt1", "bank.in1"), wireKey("task-card-1.inputInt2", "bank.in2")]
+        }
+      },
+      {
+        text: "נשארה היציאה. בזמן כתיבה הכרטיס צריך להוציא 0, ולכן MUX16 שני יושב על היציאה: בכניסה הראשונה שלו מה שיצא מהזיכרון, הכניסה השנייה שלו לא מחוברת לכלום — כלומר 0 — ואותה כניסת בקרה בוחרת. בקרה 0 מוציאה את מה שקראנו, בקרה 1 מוציאה 0.",
+        highlight: {
+          components: ["out-pick"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [wireKey("bank.out", "out-pick.in1"), wireKey("task-card-1.inputInt2", "out-pick.in3"),
+                  wireKey("out-pick.out", "task-card-1.outputInt1")]
         }
       }
     ],
@@ -14204,7 +14309,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "PC0", "Cont0", "CPU0", "Computer0"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Cd", "PC0", "Cont0", "CPU0", "Computer0"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -15068,6 +15173,9 @@
     // tested before the multibit branch (they are multibit-shaped too).
     // RAM cards (3.3) are clocked AND addressed — their own harness. Tested before
     // the memory/multibit branches (they are multibit-shaped too).
+    // The 3.5 program memory: clocked, addressed and with TWO addresses — its own
+    // harness, before the RAM one (its def is RAM-shaped too).
+    if (isCdTaskWorkspace()) return startCdTaskTest();
     if (isRamTaskWorkspace()) return startRamTaskTest();
     // IPorts is the one 3.4 card with no registers at all — pure routing.
     if (isIPortsTaskWorkspace()) return startIPortsTaskTest();
@@ -15660,6 +15768,87 @@
     return { ok: true };
   }
 
+  // ---- 3.5 program memory: its own harness --------------------------------
+  // The build is a clocked, addressed card like the RAM, but with two addresses.
+  // The check drives all four inputs by hand and reads the one output.
+  function isCdTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "Cd";
+  }
+
+  function cdHarnessWorkspace(base, data, readAddr, writeAddr, control) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const temp = ["cd-data", "cd-read", "cd-write", "cd-out", "cd-ctrl"];
+    ws.components = ws.components.filter((c) => !temp.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !temp.some((id) => String(w.a).startsWith(`${id}.`) || String(w.b).startsWith(`${id}.`)));
+    ws.components.push({ id: "cd-read", type: "converter-out", value: readAddr, x: 90, y: 300 });
+    ws.components.push({ id: "cd-write", type: "converter-out", value: writeAddr, x: 90, y: 560 });
+    ws.components.push({ id: "cd-data", type: "converter-out", value: data, x: 90, y: 820 });
+    ws.components.push({ id: "cd-out", type: "converter-in", x: 1560, y: 460 });
+    ws.components.push({ id: "cd-ctrl", type: "source", x: 360, y: 40 });
+    ws.wires.push({ a: "cd-read.out", b: "task-card-1.inputExt3" });
+    ws.wires.push({ a: "cd-write.out", b: "task-card-1.inputExt4" });
+    ws.wires.push({ a: "cd-data.out", b: "task-card-1.inputExt1" });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "cd-out.in" });
+    if (control) ws.wires.push({ a: "cd-ctrl.out", b: "task-card-1.inputExt2" });
+    return ws;
+  }
+
+  // Values distinct from each other and from anything an unwired build would show.
+  const CD_TEST_VALUES = [4369, 39321, 21845, 60000, 7, 33825];
+
+  function runCdTest(base) {
+    // Addresses at both ends of the bank, so the low address bits AND the high
+    // ones have to be routed. The read address is deliberately DIFFERENT from the
+    // write address on every writing step: a build that writes at the read
+    // address (or reads at the write one) fails here and nowhere else.
+    const steps = [];
+    const writes = [
+      { at: 0, other: 1023, d: CD_TEST_VALUES[0] },
+      { at: 1, other: 512, d: CD_TEST_VALUES[1] },
+      { at: 512, other: 3, d: CD_TEST_VALUES[2] },
+      { at: 1023, other: 0, d: CD_TEST_VALUES[3] },
+      { at: 3, other: 1, d: CD_TEST_VALUES[4] }
+    ];
+    for (const w of writes) steps.push({ c: 1, w: w.at, r: w.other, d: w.d });
+    // Then read them all back with the control low, the write address parked
+    // somewhere else entirely so it cannot be what is being read.
+    for (const w of writes) steps.push({ c: 0, w: 777, r: w.at, d: 0 });
+    // Overwrite one and re-read it and a neighbour, so holding one word while
+    // another changes is checked too.
+    steps.push({ c: 1, w: 512, r: 0, d: CD_TEST_VALUES[5] });
+    steps.push({ c: 0, w: 777, r: 512, d: 0 });
+    steps.push({ c: 0, w: 777, r: 0, d: 0 });
+    // …and one last write with the control LOW: nothing may change.
+    steps.push({ c: 0, w: 0, r: 3, d: 12345 });
+    steps.push({ c: 0, w: 777, r: 0, d: 0 });
+
+    const stored = new Map();
+    let prev = new Map();
+    const SETTLE = 8;
+    for (let i = 0; i < steps.length; i += 1) {
+      const step = steps[i];
+      const flat = flattenWorkspaceForEval(cdHarnessWorkspace(base, step.d, step.r, step.w, step.c));
+      for (let tick = 0; tick < SETTLE; tick += 1) { prev = __circuitEngine.evaluateWorkspaceBits(flat, prev).next; }
+      if (step.c) stored.set(step.w, step.d);
+      // While the control is high the card shows 0; otherwise the word at the
+      // READ address.
+      const expected = step.c ? 0 : (stored.has(step.r) ? stored.get(step.r) : 0);
+      const readings = __circuitEngine.evaluateWorkspaceBits(flat, prev).converters;
+      const info = readings.get("cd-out");
+      const got = info ? Number(info.value) : -1;
+      if (got !== expected) return { ok: false, index: i, expected, got };
+    }
+    return { ok: true };
+  }
+
+  function startCdTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runCdTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "Cd");
+  }
+
   function startRamTaskTest() {
     if (notTestActive()) return;
     clearNotTestTimer();
@@ -15945,6 +16134,9 @@
     // The 3.4 ports cards are the same: OPorts/Ports/RAM run on the RAM harness,
     // and IPorts has its own combinational one (runIPortsTest).
     if (isMemoryTask(taskId) || isRamTask(taskId) || isPortsTask(taskId)) return [];
+    // The 3.5 program memory is clocked and addressed too — runCdTest drives it
+    // over ticks, so its JSON legitimately carries no combinational cases.
+    if (isCdTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
     if (taskId === "PC0" || taskId === "CPU0" || taskId === "Computer0") return [];
@@ -16581,6 +16773,18 @@
         }, true);
       }
 
+      // The 3.5 program memory: back to its worktable, or on into יצור once it is
+      // built. Checked before the memory/bus branches for the same reason the RAM
+      // and ports cards are — it is multibit-shaped too.
+      if (isCdTask(taskId)) {
+        return setState({
+          ...cdCompletionPatch(completedTasks),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
       // Ports cards (chapter 3.4): complete and return to the 3.4 worktable with
       // its own note reopened. Checked before the memory/bus branches for the same
       // reason the RAM cards are — they are multibit-shaped too.
@@ -16748,7 +16952,10 @@
     const memory = isMemoryTask(taskId);
     // …and so are the 3.4 ports cards.
     const ports = isPortsTask(taskId);
-    const chapter = ports ? chapterById("chapter-13")
+    // …and so is the 3.5 program memory.
+    const cd = isCdTask(taskId);
+    const chapter = cd ? chapterById("chapter-17")
+      : ports ? chapterById("chapter-13")
       : ram ? chapterById("chapter-12")
       : memory ? chapterById("chapter-11")
       : alu ? chapterById("chapter-9")
@@ -16756,7 +16963,7 @@
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
-    if (routing || bus || multibit || arith || alu || ports) {
+    if (routing || bus || multibit || arith || alu || ports || cd) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
       workspace.sessionReturnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
@@ -18035,10 +18242,9 @@
 
   const cdTaskDefs = () => (typeof CD_TASKS !== "undefined" ? CD_TASKS : []);
   const cdTaskDefById = (id) => cdTaskDefs().find((task) => task.id === id) || null;
-  // The single switch that opens the build: Cd has no requirements written yet,
-  // so the note offers the card and the click says "המשך יבוא..." instead of
-  // stranding the learner on an empty worktable.
-  const cdTaskImplemented = () => false;
+  const isCdTask = (id) => Boolean(cdTaskDefById(id));
+  // A card is playable once its build frame exists.
+  const cdTaskImplemented = (id) => Boolean(WORKSPACE_COMPONENT_DEFS[taskCardComponentType(id)]);
 
   function handleCdNoteTask(id) {
     const task = cdTaskDefById(id);
@@ -18047,6 +18253,85 @@
     if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
       return showTaskSolution(task.id, { completeOnClose: false });
     }
+    openCdTaskWorkspace(task.id);
+  }
+
+  // The Cd frame sits where the RAM and ports ones do: right of centre, leaving
+  // the left strip free for the converters that dial the addresses by hand.
+  function openCdTaskWorkspace(taskId) {
+    const task = cdTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-17");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 660, y: 440 },
+        { id: "source-1", type: "source", x: 110, y: 90 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: false
+    };
+    clockedUnderstoodResolved = true; // the "הבנת?" prompt never applies to a task build
+    setState({
+      screen: "workspace",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      memoryNoteList: false,
+      ramNoteList: false,
+      portsNoteList: false,
+      cdNoteList: false,
+      requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
+      whyNoteHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the 3.5 worktable a Cd build was opened from — and once the card is
+  // built, straight on into יצור, the way finishing 3.4's cards rolls onward.
+  function cdWorktableReturnTarget() {
+    const returnChapter = chapterById(state.workspace?.sessionReturnChapterId || "chapter-17");
+    const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex)
+      ? state.workspace.sessionReturnPanelIndex
+      : (sceneByChapter(returnChapter)?.panels.length || 1) - 1;
+    return storyTarget(returnChapter, returnPanelIndex);
+  }
+
+  function cdCompletionPatch(completedTasks) {
+    const allDone = cdTaskDefs().every((task) => completedTasks.includes(task.id));
+    if (!allDone) return { ...cdWorktableReturnTarget(), cdNoteList: true, infoDialog: null };
+    const production = chapterById("chapter-14");
+    if (production) {
+      return {
+        ...transientUiClearPatch(),
+        ...storyTarget(production, 0),
+        started: true,
+        replayNonce: state.replayNonce + 1
+      };
+    }
+    return { ...cdWorktableReturnTarget(), cdNoteList: false, infoDialog: "המשך יבוא..." };
   }
 
   function renderCdNoteList() {
@@ -18154,6 +18439,15 @@
     if (isRamTask(taskId)) {
       return setState({
         ...ramCompletionPatch(completedTasks, taskId),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // The 3.5 program memory: back to its worktable, or on into יצור once built.
+    if (isCdTask(taskId)) {
+      return setState({
+        ...cdCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
@@ -18377,6 +18671,10 @@
     // land the learner on the BUSES note.
     if (isPortsTask(taskId)) {
       return setState({ ...portsCompletionPatch(completedTasks), ...base }, true);
+    }
+    // The 3.5 program memory: same story, its own worktable and note.
+    if (isCdTask(taskId)) {
+      return setState({ ...cdCompletionPatch(completedTasks), ...base }, true);
     }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
@@ -20232,6 +20530,19 @@
   // address bus (in3) picks the cell; reading it is combinational (the addressed
   // cell appears on the output right away) while writing waits for the clock —
   // control (in2) high stores the data bus (in1) into the addressed cell.
+  // The 3.5 program memory (gate-Cd): a bank of `slots` words with TWO addresses.
+  // Control low reads at the read address; control high writes at the write
+  // address and the card shows 0. See the cdGate branches in circuit-engine.js.
+  function cdGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.cdGate) return null;
+    return {
+      width: def.busWidth,
+      addressWidth: Number.isInteger(def.addressBits) ? def.addressBits : def.addressWidth,
+      slots: def.slots
+    };
+  }
+
   function ramGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.ramGate) return null;
@@ -21766,7 +22077,7 @@
     if (action === "ports-note-task") return handlePortsNoteTask(button.dataset.taskId);
     if (action === "ports-note-close") return setState({ portsNoteList: false });
     if (action === "cd-tasks-note") return openCdNote();
-    if (action === "cd-note-task") return handleCdNoteTask(target.dataset.taskId);
+    if (action === "cd-note-task") return handleCdNoteTask(button.dataset.taskId);
     if (action === "cd-note-close") return setState({ cdNoteList: false });
     if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
     if (action === "memory-note-close") return setState({ memoryNoteList: false });

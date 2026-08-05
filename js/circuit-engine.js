@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, cdGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -578,6 +578,18 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
             continue;
           }
+          // The 3.5 program memory (gate-Cd). Like a RAM its reading is
+          // combinational, but it has TWO addresses and the control picks which
+          // one is live: control low reads at the READ address (in3), control
+          // high is a write and the card shows 0.
+          const cdHere = typeof cdGateSpec === "function" ? cdGateSpec(type) : null;
+          if (cdHere) {
+            const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+            const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), cdHere.addressWidth);
+            const held = control ? null : (prevMap ? prevMap.get(`${component.id}.cell${addr}`) : null);
+            if (setBits(outputs, `${component.id}.out`, fitBits(held || zeroBits(cdHere.width), cdHere.width))) changed = true;
+            continue;
+          }
           // The 4.2 processor card (gate-CPU0). Its instruction word is read the
           // way chapter 4.1 teaches it: the FIRST (top/MSB) 12 bits are the
           // ALU4's instruction, the next 2 say where the result is written, and
@@ -908,6 +920,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           // Only the WRITTEN range can be written: an address in the read-only
           // device range is simply ignored, exactly as the story promises.
           if (control && addr < ramSpec.slots) next.set(`${component.id}.cell${addr}`, data);
+          continue;
+        }
+        // The program memory carries its whole bank forward and writes only while
+        // the control is high — at the WRITE address (in4), never the read one.
+        const cdSpec = typeof cdGateSpec === "function" ? cdGateSpec(component.type) : null;
+        if (cdSpec) {
+          const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+          const addr = bitsToIndex(inputBits(workspace, `${component.id}.in4`, outputs), cdSpec.addressWidth);
+          const data = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), cdSpec.width);
+          for (let cell = 0; cell < cdSpec.slots; cell += 1) {
+            const key = `${component.id}.cell${cell}`;
+            const kept = prevMap.get(key);
+            if (kept) next.set(key, kept);
+          }
+          if (control && addr < cdSpec.slots) next.set(`${component.id}.cell${addr}`, data);
           continue;
         }
         // The processor card writes the ALU's result where the instruction says,

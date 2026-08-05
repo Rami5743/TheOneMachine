@@ -134,7 +134,10 @@ const DEFS = {
   // entries only have to exist and carry their bus width.
   "gate-PC0":   { pcGate:true, label:"PC0", busWidth:16 },
   "gate-Cont0": { contGate:true, label:"Cont0", busWidth:2 },
-  "gate-CPU0":  { cpuGate:true, label:"CPU0", busWidth:16 }
+  "gate-CPU0":  { cpuGate:true, label:"CPU0", busWidth:16 },
+  // 3.5: the program memory. Two 16-bit address pins, of which only the last 10
+  // address the bank (addressBits), plus data in, control on top and the word out.
+  "gate-Cd":    { cdGate:true, label:"Cd", busWidth:16, addressWidth:16, addressBits:10, slots:1024 }
 };
 const busGateSpec = (type)=>{ const d=DEFS[type]; return d && d.busGate ? { op:d.op, inputs:d.inputs||1, width:d.busWidth, control:!!d.control } : null; };
 const ramGateSpec = (type)=>{ const d=DEFS[type]; return d && d.ramGate ? { width:d.busWidth, addressWidth:d.addressWidth, slots:d.slots, portOutputs:d.portOutputs||0, portInputs:d.portInputs||0 } : null; };
@@ -217,7 +220,8 @@ const PINS = {
   "gate-PC0":{ in1:{x:0,y:-46,w:1}, out:{x:78,y:0,w:16} },
   "gate-Cont0":{ in1:{x:-74,y:0,w:2}, out1:{x:86,y:-30,w:1}, out2:{x:86,y:0,w:1}, out3:{x:86,y:30,w:1} },
   "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
-    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:10}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} }
+    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:10}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} },
+  "gate-Cd":{ in3:{x:-92,y:-60,w:16}, in4:{x:-92,y:0,w:16}, in1:{x:-92,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:92,y:0,w:16} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
