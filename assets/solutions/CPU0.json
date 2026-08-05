@@ -66,7 +66,7 @@
         "id": "outputInt1",
         "x": 260,
         "y": -70,
-        "w": 11,
+        "w": 16,
         "dir": "in",
         "label": "יציאת A פנימית"
       },
@@ -74,7 +74,7 @@
         "id": "outputExt1",
         "x": 340,
         "y": -70,
-        "w": 11,
+        "w": 16,
         "dir": "out",
         "label": "יציאת A",
         "caption": "A"
@@ -221,19 +221,6 @@
       "type": "nail",
       "x": 520,
       "y": 510
-    },
-    {
-      "id": "a-address",
-      "type": "splitter",
-      "x": 825,
-      "y": 385,
-      "outputs": 2,
-      "mirrored": false,
-      "legWidths": [
-        11,
-        5
-      ],
-      "singleWidth": 16
     }
   ],
   "wires": [
@@ -314,12 +301,8 @@
       "b": "a-nail-in.out"
     },
     {
-      "a": "task-card-1.outputInt1",
-      "b": "a-address.leg0"
-    },
-    {
       "a": "reg-a.out",
-      "b": "a-address.single"
+      "b": "task-card-1.outputInt1"
     }
   ],
   "check": {

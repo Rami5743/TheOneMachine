@@ -4698,7 +4698,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "inputExt3",
           "x": -460,
           "y": -250,
-          "w": 11,
+          "w": 16,
           "dir": "in",
           "label": "כניסת הכתובת"
         },
@@ -4706,7 +4706,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "inputInt3",
           "x": -340,
           "y": -250,
-          "w": 11,
+          "w": 16,
           "dir": "out",
           "label": ""
         },
@@ -4902,12 +4902,14 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "splitter",
         "x": 360,
         "y": 220,
-        "outputs": 2,
+        "outputs": 3,
         "legWidths": [
           10,
-          1
+          1,
+          5
         ],
-        "mirrored": false
+        "mirrored": false,
+        "singleWidth": 16
       },
       {
         "id": "low-split",
@@ -5396,7 +5398,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "outputInt1",
           "x": 260,
           "y": -70,
-          "w": 11,
+          "w": 16,
           "dir": "in",
           "label": "יציאת A פנימית"
         },
@@ -5404,7 +5406,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "outputExt1",
           "x": 340,
           "y": -70,
-          "w": 11,
+          "w": 16,
           "dir": "out",
           "label": "יציאת A",
           "caption": "A"
@@ -5551,19 +5553,6 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "nail",
         "x": 520,
         "y": 510
-      },
-      {
-        "id": "a-address",
-        "type": "splitter",
-        "x": 825,
-        "y": 385,
-        "outputs": 2,
-        "mirrored": false,
-        "legWidths": [
-          11,
-          5
-        ],
-        "singleWidth": 16
       }
     ],
     "wires": [
@@ -5644,12 +5633,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "a-nail-in.out"
       },
       {
-        "a": "task-card-1.outputInt1",
-        "b": "a-address.leg0"
-      },
-      {
         "a": "reg-a.out",
-        "b": "a-address.single"
+        "b": "task-card-1.outputInt1"
       }
     ],
     "check": {

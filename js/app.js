@@ -933,7 +933,12 @@
     // addresses follow them; portOutputBase is the first written cell mirrored on
     // a port bus (RAM's ports live at the top of its address space).
     { id: "Ports", addressWidth: 3, slots: 4, portOutputBase: 0 },
-    { id: "RAM", addressWidth: 11, slots: 1028, portOutputBase: 1024 }
+    // The RAM's address PIN is a full 16-bit bus, but the card reads only the
+    // last 11 bits of it — the first five are ignored. They are there so the
+    // whole of register A can be handed to the memory as it is, with nothing to
+    // cut on the way. `addressWidth` is the pin (and what the card draws);
+    // `addressBits` is what the memory actually addresses with.
+    { id: "RAM", addressWidth: 16, addressBits: 11, slots: 1028, portOutputBase: 1024 }
   ]) {
     WORKSPACE_COMPONENT_DEFS[`taskCard-${spec.id}`] = {
       label: `מסגרת ${spec.id}`,
@@ -953,6 +958,8 @@
       ramGate: true,
       busWidth: 16,
       addressWidth: spec.addressWidth,
+      // Only present when the card ignores the top of its address bus.
+      ...(Number.isInteger(spec.addressBits) ? { addressBits: spec.addressBits } : {}),
       slots: spec.slots,
       portOutputs: 4,
       portOutputBase: spec.portOutputBase,
@@ -1338,13 +1345,14 @@
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
       inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
       inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
-      // The two ADDRESS buses are narrower than the registers they come from: the
-      // memory takes 11 bits of an address, the program memory 10.
+      // A goes out WHOLE — the memory takes a 16-bit address bus and ignores the
+      // top five bits itself, so nothing has to be cut here. Only the PC's bus is
+      // narrower than its register: the program memory addresses with 10 bits.
       // All four outputs leave through the card's SIDE, however high or low they
       // sit — without saying so the shell reads a pin past ±150 as poking out of
       // the top or bottom edge and stands it on end.
-      outputInt1: { x: 260, y: -70, direction: "in", width: 11, label: "יציאת A פנימית", edge: "side" },
-      outputExt1: { x: 340, y: -70, direction: "out", width: 11, label: "יציאת A", caption: "A", edge: "side" },
+      outputInt1: { x: 260, y: -70, direction: "in", width: 16, label: "יציאת A פנימית", edge: "side" },
+      outputExt1: { x: 340, y: -70, direction: "out", width: 16, label: "יציאת A", caption: "A", edge: "side" },
       outputInt2: { x: 260, y: -200, direction: "in", width: 10, label: "יציאת PC פנימית", edge: "side" },
       outputExt2: { x: 340, y: -200, direction: "out", width: 10, label: "יציאת PC", caption: "PC", edge: "side" },
       outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
@@ -1368,7 +1376,7 @@
       in1: { x: -110, y: -50, direction: "in", width: 16, label: "כניסת הפקודה" },
       in2: { x: -110, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
       in3: { x: 0, y: -170, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out1: { x: 110, y: -30, direction: "out", width: 11, label: "יציאת A" },
+      out1: { x: 110, y: -30, direction: "out", width: 16, label: "יציאת A" },
       out2: { x: 110, y: -85, direction: "out", width: 10, label: "יציאת PC" },
       out3: { x: 110, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
       out4: { x: 110, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
@@ -6988,7 +6996,7 @@
     ],
     RAM: [
       {
-        text: "אותו רעיון שוב, בגדול. הכתובת היא 11 ביטים, וכל מה שצריך כדי להחליט לאן פונים זה הביט הראשון (העליון) שלה. לכן מפצלים אותה לשניים: עשרת הביטים האחרונים, שהם בדיוק הכתובת של ה-RAM1024, והביט הראשון לחוד.",
+        text: "אותו רעיון שוב, בגדול. בס הכתובת הוא 16 ביטים, אבל הכרטיס קורא רק את אחד עשר האחרונים - חמשת הראשונים פשוט לא מחוברים לכלום. מבין האחד עשר, כל מה שצריך כדי להחליט לאן פונים זה הביט הראשון (העליון). לכן המפצל חותך שלושה חלקים: עשרת הביטים האחרונים, שהם בדיוק הכתובת של ה-RAM1024, הביט שמעליהם לחוד, וחמשת הביטים הראשונים שנזרקים.",
         highlight: {
           components: ["addr-split", "big"],
           terminals: ["task-card-1.inputInt3"],
@@ -15256,8 +15264,8 @@
       const control = (step.instr >> 4) & 0xfff;
       const dest = (step.instr >> 2) & 3;
       const result = cpuAluResult(control, d, a, step.mem);
-      // The address buses carry only the last 11 / 10 bits of the registers.
-      rows.push({ a: a & 0x7ff, pc: pc & 0x3ff, out: result, write: dest === 3 });
+      // A leaves whole; only the PC's bus is cut, to the last 10 bits.
+      rows.push({ a: a & 0xffff, pc: pc & 0x3ff, out: result, write: dest === 3 });
       // 1 writes to D, 2 to A, 3 to *A.
       const nextA = dest === 2 ? result : a;
       const nextD = dest === 1 ? result : d;
@@ -20175,7 +20183,11 @@
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.ramGate) return null;
     return {
-      width: def.busWidth, addressWidth: def.addressWidth, slots: def.slots,
+      width: def.busWidth,
+      // The bits the card addresses with. On the RAM that is fewer than the pin
+      // is wide — bitsToIndex cuts the vector down, which drops the top bits.
+      addressWidth: Number.isInteger(def.addressBits) ? def.addressBits : def.addressWidth,
+      slots: def.slots,
       // OPorts (and the cards built from it) also mirror their first N cells on
       // extra buses out — see the engine's ramGate branch.
       portOutputs: Number.isInteger(def.portOutputs) ? def.portOutputs : 0,

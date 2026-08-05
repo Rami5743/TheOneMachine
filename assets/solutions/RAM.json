@@ -14,7 +14,7 @@
         "id": "inputExt3",
         "x": -460,
         "y": -250,
-        "w": 11,
+        "w": 16,
         "dir": "in",
         "label": "כניסת הכתובת"
       },
@@ -22,7 +22,7 @@
         "id": "inputInt3",
         "x": -340,
         "y": -250,
-        "w": 11,
+        "w": 16,
         "dir": "out",
         "label": ""
       },
@@ -218,12 +218,14 @@
       "type": "splitter",
       "x": 360,
       "y": 220,
-      "outputs": 2,
+      "outputs": 3,
       "legWidths": [
         10,
-        1
+        1,
+        5
       ],
-      "mirrored": false
+      "mirrored": false,
+      "singleWidth": 16
     },
     {
       "id": "low-split",

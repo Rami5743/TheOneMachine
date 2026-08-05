@@ -204,7 +204,7 @@ const PINS = {
   "gate-Ports":{ in3:{x:-88,y:-170,w:3}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
     outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
     inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
-  "gate-RAM":{ in3:{x:-88,y:-170,w:11}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
+  "gate-RAM":{ in3:{x:-88,y:-170,w:16}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
     outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
     inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
@@ -217,7 +217,7 @@ const PINS = {
   "gate-PC0":{ in1:{x:0,y:-46,w:1}, out:{x:78,y:0,w:16} },
   "gate-Cont0":{ in1:{x:-74,y:0,w:2}, out1:{x:86,y:-30,w:1}, out2:{x:86,y:0,w:1}, out3:{x:86,y:30,w:1} },
   "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
-    out1:{x:110,y:-30,w:11}, out2:{x:110,y:-85,w:10}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} }
+    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:10}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
