@@ -4,11 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>עורך פתרונות — המכונה האחת</title>
-<!-- Reuse the game's own component styling + markup so the editor looks identical -->
-<link rel="stylesheet" href="css/styles.css?v=v166-tool-groups-2" />
-<script src="js/component-visuals.js?v=v78-pins-inside-1"></script>
+<!-- Reuse the game's own component styling + markup so the editor looks identical.
+     NOTE: these three ?v= tags are the editor's OWN cache-busters and are NOT
+     bumped by editing index.html. Keep them equal to the game's — a stale
+     component-visuals.js here draws every card added since as an empty box (which
+     is exactly how "the solution has no PC0 in it" looks), and a stale
+     solutions.js makes "שמור חבילה" write an out-of-date bundle. -->
+<link rel="stylesheet" href="css/styles.css?v=v211-sheet-framed-1" />
+<script src="js/component-visuals.js?v=v48-caption-halo-1"></script>
 <!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
-<script src="assets/solutions/solutions.js?v=v52-oports-onenail-1"></script>
+<script src="assets/solutions/solutions.js?v=v8-layout-1"></script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -135,9 +140,15 @@ const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGate
 const SPLIT_SPACING = 34;
 function splitterPin(comp, pinId) {
   const n = Math.min(16, Math.max(2, comp.outputs || 4)); const mir = !!comp.mirrored;
-  if (pinId === "single") return { x: mir?38:-38, y:0, w:(comp.width||1)*n };
+  // Legs need not be equal: legWidths[] gives each its own width (leg 0 = the low
+  // chunk) and the single side carries their sum. A splitter with only the legacy
+  // scalar `width` means every leg is that wide.
+  const legs = Array.isArray(comp.legWidths) ? comp.legWidths : null;
+  const legW = (i) => (legs ? (Number(legs[i]) || 1) : (comp.width || 1));
+  const singleW = legs ? legs.reduce((sum, w) => sum + (Number(w) || 1), 0) : (comp.width || 1) * n;
+  if (pinId === "single") return { x: mir?38:-38, y:0, w: comp.singleWidth || singleW };
   const m = pinId.match(/^leg(\d+)$/);
-  if (m) { const i=Math.min(n-1,Math.max(0,+m[1])); return { x: mir?-37:37, y:Math.round(((n-1)/2 - i)*SPLIT_SPACING), w:comp.width||1 }; }
+  if (m) { const i=Math.min(n-1,Math.max(0,+m[1])); return { x: mir?-37:37, y:Math.round(((n-1)/2 - i)*SPLIT_SPACING), w: legW(i) }; }
   return null;
 }
 const PINS = {
@@ -330,7 +341,7 @@ function txt(s){ return document.createTextNode(s==null?"":String(s)); }
 const BOX = {};
 function compBox(c){ if(c.type==="nail") return {w:40,h:40}; if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; const s=edScale(c.type); const b=BOX[c.type]|| (String(c.type).startsWith("gate-Ram")?{w:180,h:150}:{w:130,h:110}); return {w:b.w*s,h:b.h*s}; }
 function drawComp(c){
-  const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width } : {};
+  const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width, legWidths:c.legWidths } : {};
   const s = edScale(c.type);
   const g = document.createElementNS(NS,"g");
   g.setAttribute("transform",`translate(${c.x} ${c.y})`+(s!==1?` scale(${s})`:""));

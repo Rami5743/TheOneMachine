@@ -460,7 +460,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     if (!options.toolbar) {
       const cfont = Math.round(11 * k());
       outYs.forEach((y, i) => {
-        s += `<text class="arith-gate-pin-letter" x="62" y="${y - 8}" text-anchor="middle" style="font-size:${cfont}px">${esc(captions[i])}</text>`;
+        s += `<text class="arith-gate-pin-letter" x="62" y="${y - 12}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
       });
     }
     return `<g class="usercard">${s}</g>`;
@@ -472,7 +472,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const edge = 40;
     const bodyH = 96;
     const outYs = [-30, 0, 30];
-    const captions = ["D", "A", "*A"];
+    const captions = ["D", "A", "\u200e*A\u200e"];
     let s = busGateBar({ x1: -74, x2: -edge, y: 0 }, 2, !options.toolbar);
     outYs.forEach((y) => { s += pinLine(edge, y, 78, y); });
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
@@ -482,9 +482,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The captions sit ABOVE their own wire, outside the body, so a cable landing
     // on the pin never covers the name of what it writes to.
     if (!options.toolbar) {
+      // Each caption carries a halo the colour of the card: on a crowded board a
+      // cable often runs right under one, and without it the letter disappears.
       const cfont = Math.round(12 * k());
       outYs.forEach((y, i) => {
-        s += `<text class="arith-gate-pin-letter" x="59" y="${y - 6}" text-anchor="middle" style="font-size:${cfont}px">${esc(captions[i])}</text>`;
+        // Clear of the stub the cable lands on, not sitting across it.
+        s += `<text class="arith-gate-pin-letter" x="60" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
       });
     }
     return `<g class="usercard">${s}</g>`;
