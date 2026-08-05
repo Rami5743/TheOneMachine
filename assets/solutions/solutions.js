@@ -5486,12 +5486,55 @@ window.EMBEDDED_SOLUTIONS = {
     ],
     "components": [
       {
+        "id": "counter",
+        "type": "gate-PC0",
+        "x": 602,
+        "y": 283
+      },
+      {
+        "id": "control",
+        "type": "gate-Cont0",
+        "x": 527,
+        "y": 572
+      },
+      {
+        "id": "alu",
+        "type": "gate-ALU3",
+        "x": 594,
+        "y": 405
+      },
+      {
+        "id": "reg-a",
+        "type": "gate-Register",
+        "x": 685,
+        "y": 470
+      },
+      {
+        "id": "reg-d",
+        "type": "gate-Register",
+        "x": 733,
+        "y": 369
+      },
+      {
+        "id": "pc-address",
+        "type": "splitter",
+        "x": 839,
+        "y": 283,
+        "outputs": 2,
+        "mirrored": false,
+        "legWidths": [
+          10,
+          6
+        ],
+        "singleWidth": 16
+      },
+      {
         "id": "word-split",
         "type": "splitter",
-        "x": 420,
-        "y": 230,
-        "mirrored": false,
+        "x": 441,
+        "y": 405,
         "outputs": 3,
+        "mirrored": false,
         "legWidths": [
           2,
           2,
@@ -5500,94 +5543,71 @@ window.EMBEDDED_SOLUTIONS = {
         "singleWidth": 16
       },
       {
-        "id": "control",
-        "type": "gate-Cont0",
-        "x": 580,
-        "y": 220
+        "id": "d-nail-out",
+        "type": "nail",
+        "x": 776,
+        "y": 321
       },
       {
-        "id": "alu",
-        "type": "gate-ALU4",
-        "x": 680,
-        "y": 460
+        "id": "d-nail-in",
+        "type": "nail",
+        "x": 510,
+        "y": 324
       },
       {
-        "id": "reg-d",
-        "type": "gate-Register",
-        "x": 470,
-        "y": 400
+        "id": "a-nail-out",
+        "type": "nail",
+        "x": 775,
+        "y": 514
       },
       {
-        "id": "reg-a",
-        "type": "gate-Register",
-        "x": 470,
-        "y": 520
-      },
-      {
-        "id": "counter",
-        "type": "gate-PC0",
-        "x": 420,
-        "y": 640
+        "id": "a-nail-in",
+        "type": "nail",
+        "x": 515,
+        "y": 513
       },
       {
         "id": "a-address",
         "type": "splitter",
-        "x": 840,
-        "y": 560,
-        "mirrored": false,
+        "x": 776,
+        "y": 577,
         "outputs": 2,
+        "mirrored": false,
         "legWidths": [
           11,
           5
-        ],
-        "singleWidth": 16
-      },
-      {
-        "id": "pc-address",
-        "type": "splitter",
-        "x": 610,
-        "y": 640,
-        "mirrored": false,
-        "outputs": 2,
-        "legWidths": [
-          10,
-          6
         ],
         "singleWidth": 16
       }
     ],
     "wires": [
       {
-        "a": "task-card-1.inputInt1",
-        "b": "word-split.single"
+        "a": "counter.out",
+        "b": "pc-address.single"
       },
       {
-        "a": "word-split.leg2",
-        "b": "alu.in4"
+        "a": "task-card-1.outputInt2",
+        "b": "pc-address.leg0"
       },
       {
-        "a": "word-split.leg1",
-        "b": "control.in1"
-      },
-      {
-        "a": "reg-d.out",
-        "b": "alu.in1"
-      },
-      {
-        "a": "reg-a.out",
-        "b": "alu.in2"
+        "a": "task-card-1.inputInt3",
+        "b": "counter.in1"
       },
       {
         "a": "task-card-1.inputInt2",
         "b": "alu.in3"
       },
       {
-        "a": "alu.out1",
-        "b": "reg-d.in1"
+        "a": "task-card-1.inputInt1",
+        "b": "word-split.single"
       },
       {
-        "a": "alu.out1",
-        "b": "reg-a.in1"
+        "a": "alu.in4",
+        "b": "word-split.leg2"
+      },
+      {
+        "a": "control.in1",
+        "b": "word-split.leg1"
       },
       {
         "a": "control.out1",
@@ -5598,36 +5618,56 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "reg-a.in2"
       },
       {
-        "a": "task-card-1.inputInt3",
-        "b": "counter.in1"
+        "a": "task-card-1.outputInt4",
+        "b": "control.out3"
+      },
+      {
+        "a": "alu.out1",
+        "b": "reg-d.in1"
+      },
+      {
+        "a": "alu.out1",
+        "b": "reg-a.in1"
+      },
+      {
+        "a": "task-card-1.outputInt3",
+        "b": "alu.out1"
+      },
+      {
+        "a": "reg-d.out",
+        "b": "d-nail-out.in"
+      },
+      {
+        "a": "d-nail-in.in",
+        "b": "d-nail-out.out"
+      },
+      {
+        "a": "alu.in1",
+        "b": "d-nail-in.out"
+      },
+      {
+        "a": "reg-a.out",
+        "b": "a-nail-out.in"
+      },
+      {
+        "a": "a-nail-out.out",
+        "b": "a-nail-in.in"
+      },
+      {
+        "a": "alu.in2",
+        "b": "a-nail-in.out"
+      },
+      {
+        "a": "task-card-1.outputInt1",
+        "b": "a-address.leg0"
       },
       {
         "a": "reg-a.out",
         "b": "a-address.single"
-      },
-      {
-        "a": "a-address.leg0",
-        "b": "task-card-1.outputInt1"
-      },
-      {
-        "a": "counter.out",
-        "b": "pc-address.single"
-      },
-      {
-        "a": "pc-address.leg0",
-        "b": "task-card-1.outputInt2"
-      },
-      {
-        "a": "alu.out1",
-        "b": "task-card-1.outputInt3"
-      },
-      {
-        "a": "control.out3",
-        "b": "task-card-1.outputInt4"
       }
     ],
     "check": {
-      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה."
+      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה. הבנייה היא ALU3 (ה-CPU לא צריך את ng ו-zr), שני רגיסטרים, יחידת הבקרה, המונה, ושלושה מפצלים — אחד לפקודה ושניים שחותכים את הכתובות ל-10 ול-11 ביטים."
     }
   },
   "Computer0": {
