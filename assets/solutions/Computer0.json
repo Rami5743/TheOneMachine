@@ -210,19 +210,6 @@
   ],
   "components": [
     {
-      "id": "pc-wide",
-      "type": "splitter",
-      "x": 745,
-      "y": 420,
-      "mirrored": true,
-      "outputs": 2,
-      "legWidths": [
-        10,
-        6
-      ],
-      "singleWidth": 16
-    },
-    {
       "id": "cd-wide",
       "type": "splitter",
       "x": 330,
@@ -276,15 +263,11 @@
   "wires": [
     {
       "a": "cpu.out2",
-      "b": "pc-wide.leg0"
+      "b": "addr-pick.in1"
     },
     {
       "a": "task-card-1.inputInt6",
       "b": "cd-wide.leg0"
-    },
-    {
-      "a": "pc-wide.single",
-      "b": "addr-pick.in1"
     },
     {
       "a": "cd-wide.single",

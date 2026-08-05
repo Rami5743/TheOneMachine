@@ -476,9 +476,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // LRM (U+200E) so "*A" keeps its order inside the right-to-left word.
     const inNames = ["פקודה", "‎*A‎"];
     const outNames = ["PC", "A", "‎*A‎", "בקרה"];
-    // A leaves whole (the memory ignores the top of its address bus itself); only
-    // the PC's bus out is narrower than the word, at 10 bits.
-    const outWidths = [10, width, width];
+    // Every bus out is a full word: each memory ignores the top of the address it
+    // is handed, so neither address leaves the processor cut down.
+    const outWidths = [width, width, width];
     let s = "";
     // The bars are LONG (40) on purpose: the width number is centred over the bar
     // and the body is drawn on top of it, so a short bar leaves half the number

@@ -83,7 +83,7 @@
         "id": "outputInt2",
         "x": 260,
         "y": -200,
-        "w": 10,
+        "w": 16,
         "dir": "in",
         "label": "יציאת PC פנימית"
       },
@@ -91,7 +91,7 @@
         "id": "outputExt2",
         "x": 340,
         "y": -200,
-        "w": 10,
+        "w": 16,
         "dir": "out",
         "label": "יציאת PC",
         "caption": "PC"
@@ -172,19 +172,6 @@
       "y": 305
     },
     {
-      "id": "pc-address",
-      "type": "splitter",
-      "x": 825,
-      "y": 210,
-      "outputs": 2,
-      "mirrored": false,
-      "legWidths": [
-        10,
-        6
-      ],
-      "singleWidth": 16
-    },
-    {
       "id": "word-split",
       "type": "splitter",
       "x": 420,
@@ -224,14 +211,6 @@
     }
   ],
   "wires": [
-    {
-      "a": "counter.out",
-      "b": "pc-address.single"
-    },
-    {
-      "a": "task-card-1.outputInt2",
-      "b": "pc-address.leg0"
-    },
     {
       "a": "task-card-1.inputInt3",
       "b": "counter.in1"
@@ -303,6 +282,10 @@
     {
       "a": "reg-a.out",
       "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "counter.out",
+      "b": "task-card-1.outputInt2"
     }
   ],
   "check": {

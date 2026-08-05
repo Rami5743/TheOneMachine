@@ -5600,7 +5600,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "outputInt2",
           "x": 260,
           "y": -200,
-          "w": 10,
+          "w": 16,
           "dir": "in",
           "label": "יציאת PC פנימית"
         },
@@ -5608,7 +5608,7 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "outputExt2",
           "x": 340,
           "y": -200,
-          "w": 10,
+          "w": 16,
           "dir": "out",
           "label": "יציאת PC",
           "caption": "PC"
@@ -5689,19 +5689,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 305
       },
       {
-        "id": "pc-address",
-        "type": "splitter",
-        "x": 825,
-        "y": 210,
-        "outputs": 2,
-        "mirrored": false,
-        "legWidths": [
-          10,
-          6
-        ],
-        "singleWidth": 16
-      },
-      {
         "id": "word-split",
         "type": "splitter",
         "x": 420,
@@ -5741,14 +5728,6 @@ window.EMBEDDED_SOLUTIONS = {
       }
     ],
     "wires": [
-      {
-        "a": "counter.out",
-        "b": "pc-address.single"
-      },
-      {
-        "a": "task-card-1.outputInt2",
-        "b": "pc-address.leg0"
-      },
       {
         "a": "task-card-1.inputInt3",
         "b": "counter.in1"
@@ -5820,6 +5799,10 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "reg-a.out",
         "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "counter.out",
+        "b": "task-card-1.outputInt2"
       }
     ],
     "check": {
@@ -6038,19 +6021,6 @@ window.EMBEDDED_SOLUTIONS = {
     ],
     "components": [
       {
-        "id": "pc-wide",
-        "type": "splitter",
-        "x": 745,
-        "y": 420,
-        "mirrored": true,
-        "outputs": 2,
-        "legWidths": [
-          10,
-          6
-        ],
-        "singleWidth": 16
-      },
-      {
         "id": "cd-wide",
         "type": "splitter",
         "x": 330,
@@ -6104,15 +6074,11 @@ window.EMBEDDED_SOLUTIONS = {
     "wires": [
       {
         "a": "cpu.out2",
-        "b": "pc-wide.leg0"
+        "b": "addr-pick.in1"
       },
       {
         "a": "task-card-1.inputInt6",
         "b": "cd-wide.leg0"
-      },
-      {
-        "a": "pc-wide.single",
-        "b": "addr-pick.in1"
       },
       {
         "a": "cd-wide.single",

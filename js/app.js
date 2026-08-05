@@ -1347,16 +1347,16 @@
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
       inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
       inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
-      // A goes out WHOLE — the memory takes a 16-bit address bus and ignores the
-      // top five bits itself, so nothing has to be cut here. Only the PC's bus is
-      // narrower than its register: the program memory addresses with 10 bits.
+      // BOTH addresses go out WHOLE. Each memory takes a 16-bit address bus and
+      // ignores the top of it itself — five bits on the data memory, six on the
+      // program memory — so nothing has to be cut here at all.
       // All four outputs leave through the card's SIDE, however high or low they
       // sit — without saying so the shell reads a pin past ±150 as poking out of
       // the top or bottom edge and stands it on end.
       outputInt1: { x: 260, y: -70, direction: "in", width: 16, label: "יציאת A פנימית", edge: "side" },
       outputExt1: { x: 340, y: -70, direction: "out", width: 16, label: "יציאת A", caption: "A", edge: "side" },
-      outputInt2: { x: 260, y: -200, direction: "in", width: 10, label: "יציאת PC פנימית", edge: "side" },
-      outputExt2: { x: 340, y: -200, direction: "out", width: 10, label: "יציאת PC", caption: "PC", edge: "side" },
+      outputInt2: { x: 260, y: -200, direction: "in", width: 16, label: "יציאת PC פנימית", edge: "side" },
+      outputExt2: { x: 340, y: -200, direction: "out", width: 16, label: "יציאת PC", caption: "PC", edge: "side" },
       outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
       outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "\u2067פלט \u200e*A\u200e\u2069" },
       outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית", edge: "side" },
@@ -1379,7 +1379,7 @@
       in2: { x: -110, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
       in3: { x: 0, y: -170, direction: "in", width: 1, label: "כניסת האיפוס" },
       out1: { x: 110, y: -30, direction: "out", width: 16, label: "יציאת A" },
-      out2: { x: 110, y: -85, direction: "out", width: 10, label: "יציאת PC" },
+      out2: { x: 110, y: -85, direction: "out", width: 16, label: "יציאת PC" },
       out3: { x: 110, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
       out4: { x: 110, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
     },
@@ -15399,8 +15399,8 @@
       const control = (step.instr >> 4) & 0xfff;
       const dest = (step.instr >> 2) & 3;
       const result = cpuAluResult(control, d, a, step.mem);
-      // A leaves whole; only the PC's bus is cut, to the last 10 bits.
-      rows.push({ a: a & 0xffff, pc: pc & 0x3ff, out: result, write: dest === 3 });
+      // Both leave whole: each memory cuts its own address down.
+      rows.push({ a: a & 0xffff, pc: pc & 0xffff, out: result, write: dest === 3 });
       // 1 writes to D, 2 to A, 3 to *A.
       const nextA = dest === 2 ? result : a;
       const nextD = dest === 1 ? result : d;
