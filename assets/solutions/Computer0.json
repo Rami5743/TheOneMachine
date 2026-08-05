@@ -214,27 +214,8 @@
       "type": "splitter",
       "x": 330,
       "y": 230,
+      "outputs": 2,
       "mirrored": true,
-      "outputs": 2,
-      "legWidths": [
-        10,
-        6
-      ],
-      "singleWidth": 16
-    },
-    {
-      "id": "addr-pick",
-      "type": "gate-MUX16",
-      "x": 450,
-      "y": 300
-    },
-    {
-      "id": "addr-cut",
-      "type": "splitter",
-      "x": 545,
-      "y": 300,
-      "mirrored": false,
-      "outputs": 2,
       "legWidths": [
         10,
         6
@@ -243,7 +224,7 @@
     },
     {
       "id": "program",
-      "type": "gate-RAM1024",
+      "type": "gate-Cd",
       "x": 660,
       "y": 210
     },
@@ -263,7 +244,7 @@
   "wires": [
     {
       "a": "cpu.out2",
-      "b": "addr-pick.in1"
+      "b": "program.in3"
     },
     {
       "a": "task-card-1.inputInt6",
@@ -271,19 +252,7 @@
     },
     {
       "a": "cd-wide.single",
-      "b": "addr-pick.in2"
-    },
-    {
-      "a": "task-card-1.inputInt5",
-      "b": "addr-pick.in3"
-    },
-    {
-      "a": "addr-pick.out",
-      "b": "addr-cut.single"
-    },
-    {
-      "a": "addr-cut.leg0",
-      "b": "program.in3"
+      "b": "program.in4"
     },
     {
       "a": "task-card-1.inputInt7",
@@ -351,6 +320,6 @@
     }
   ],
   "check": {
-    "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מחזיקה את הריסט וכותבת תוכנית קטנה לזיכרון התוכנה דרך cd-adr/cd, פקודה בכל פעימה, מרפה מהריסט ובודקת שהתוכנית העתיקה את In0 ל-Out0 ואת In1 ל-Out1. אחר כך היא מוודאת ש-cd באמת לא משפיע כשהמחשב רץ, ושריסט מתחיל את התוכנית מהתחלה."
+    "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Cd) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא CPU0, זיכרון התוכנה Cd, זיכרון הדאטה RAM ומפצל אחד שמרפד את cd-adr מ-10 ל-16."
   }
 }

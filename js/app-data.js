@@ -1101,7 +1101,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "Computer0",
       label: "Computer0",
-      requires: ["CPU0"],
+      // The whole machine: the processor AND the program memory built in 3.5.
+      requires: ["CPU0", "Cd"],
       inputs: 7,
       outputs: 4,
       busWidth: 16,

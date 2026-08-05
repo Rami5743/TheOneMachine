@@ -15507,7 +15507,7 @@
   // How much of the program memory the check writes for each program: enough for
   // the longest of them, and cleared to zero above it so one program never runs
   // into what the one before it left behind.
-  const PROGRAM_ROOM = 24;
+  const PROGRAM_ROOM = 32;   // the longest program (18) plus the 8-instruction port clear, with room over
 
   // The programs the check runs, each with the numbers to put on the two input
   // ports and what the four output ports must hold when it has run its course.
@@ -15562,7 +15562,20 @@
       in0: 777, in1: 30000,
       outs: (a, b) => [a, b, (a + b) & 0xffff, b]
     };
-    return [copy, add, subtract, everything];
+    // Every program starts by clearing the four output ports. The check runs the
+    // programs one after another on the SAME machine, and a port keeps whatever
+    // the program before it wrote — so "the add program leaves Out1 at 0" is only
+    // true if something clears it. (The build that used a bare RAM1024 as its
+    // program memory cleared them by accident: while a program was being written
+    // that memory still showed the word at the address being written to, so the
+    // PREVIOUS program ran again with zero inputs. A program memory that is
+    // honestly silent while it is written — Cd — does not do that, and the
+    // accident is not something a learner's build should have to reproduce.)
+    const clearPorts = [
+      setA(OUT), emit(0, CPU_DEST.star), setA(OUT + 1), emit(0, CPU_DEST.star),
+      setA(OUT + 2), emit(0, CPU_DEST.star), setA(OUT + 3), emit(0, CPU_DEST.star)
+    ];
+    return [copy, add, subtract, everything].map((test) => ({ ...test, program: [...clearPorts, ...test.program] }));
   }
   // The learner's build + temporary drivers: dec→bin converters on cd-adr, cd and
   // the two input ports, a source on reset, bin→dec readers on all four outputs.
