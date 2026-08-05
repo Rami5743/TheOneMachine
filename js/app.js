@@ -20299,6 +20299,19 @@
     "workspace-task-hint-mux", "workspace-why-note", "workspace-task-hint-dock"
   ];
 
+  // A press on a control, or anywhere inside one of the panels that float OVER
+  // the board (the requirements panel, the "why" note, a solution card …), is UI
+  // — the near-a-pin wiring tolerance below reads the POINTER's board position
+  // and knows nothing about what is on top of it, so without this a panel dragged
+  // over the card's pins swallowed every click on its own buttons.
+  function pressIsOnFloatingUi(event) {
+    if (!event.target || !event.target.closest) return false;
+    // NOT [role='button'] — the board's own pin hit-circles carry that role, and
+    // the wire cursor must still show when the pointer is right on one.
+    if (event.target.closest("button, a, input, textarea, select")) return true;
+    return Boolean(draggableDialogElement(event));
+  }
+
   // NOTE: workspace-task-hint-dock must stay LAST-listed after workspace-task-hint-mux
   // in DRAGGABLE_DIALOG_CLASSES so a mux panel (which also carries workspace-task-hint)
   // still resolves to its own drag key, not the dock one.
@@ -20328,8 +20341,15 @@
     element.style.bottom = "auto";
     element.style.transform = "none";
     element.style.margin = "0";
-    element.style.width = pos.width;
     element.style.maxWidth = "none";
+    // A remembered width is re-applied for most dialogs, but NOT for a panel
+    // whose width is recomputed every render (the requirements panel grows to
+    // fit its text, and "הקטנה" takes it back). Pinning the width it happened to
+    // have when it was dragged left that button with nothing to do.
+    // (No `else` — leaving the width alone keeps whatever widenScrollingPanels
+    // just worked out for it; clearing it here would pin the panel to its
+    // authored width and the "הגדלה" half of the button would do nothing.)
+    if (pos.width) element.style.width = pos.width;
   }
 
   // After each render, restore any dragged dialog to its saved position; forget
@@ -20406,7 +20426,10 @@
     // Remember where this kind of dialog was dropped, so a re-render (e.g.
     // advancing the solution with "המשך") keeps it there instead of snapping back.
     const key = dialogDragKey(el);
-    if (key) draggedDialogPositions[key] = { left: el.style.left, top: el.style.top, width: el.style.width };
+    // The requirements panel remembers WHERE it was put, never how wide it was —
+    // its width belongs to widenScrollingPanels and to the "הקטנה" button.
+    const keepWidth = !el.classList.contains("workspace-task-hint");
+    if (key) draggedDialogPositions[key] = { left: el.style.left, top: el.style.top, width: keepWidth ? el.style.width : "" };
     dialogDragState = null;
   }
 
@@ -21758,8 +21781,9 @@
 
     // A press that just MISSED a pin (on empty board or over a fixed part, but not
     // over a movable component's body) still grabs the nearest pin within
-    // tolerance, so wiring near a pin stays forgiving.
-    const nearTerminalRef = nearestTerminalRefFromEvent(event);
+    // tolerance, so wiring near a pin stays forgiving — but never when the press
+    // landed on the UI floating OVER the board (see pressIsOnFloatingUi).
+    const nearTerminalRef = pressIsOnFloatingUi(event) ? null : nearestTerminalRefFromEvent(event);
     if (nearTerminalRef) {
       event.preventDefault();
       return startCableDrag(nearTerminalRef, event);
@@ -21787,7 +21811,7 @@
     const compEl = event.target.closest("[data-action='workspace-component']");
     const comp = compEl && componentById(state.workspace, compEl.dataset.componentId);
     const overMovable = comp && !isFixedWorkspaceComponent(comp);
-    const nearPin = !overMovable
+    const nearPin = !overMovable && !pressIsOnFloatingUi(event)
       && (event.target.closest("[data-action='workspace-terminal']") || nearestTerminalRefFromEvent(event));
     scroll.classList.toggle("workspace-wire-cursor", Boolean(nearPin));
   }
