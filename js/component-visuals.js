@@ -427,7 +427,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     let s = busGateBar({ x1: edge, x2: 78, y: 0 }, width, !options.toolbar);
     s += pinLine(0, -46, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    const name = "PC";
+    const name = "PC0";
     const font = labelFontSize(name, edge * 2, 20);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     return `<g class="usercard">${s}</g>`;
@@ -437,46 +437,62 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // memory in on the left, reset on top, and four things out on the right, each
   // captioned — A, PC, the number going out, and the write wire.
   function cpuGateMarkup(width, options = {}) {
-    const edge = 46;
-    const bodyH = 160;
-    const inYs = [-30, 30];
-    const outYs = [-45, -15, 15, 45];
-    // The mixed Hebrew+Latin captions are wrapped in a right-to-left isolate
-    // (U+2067…U+2069) so they read in the right order inside the LTR SVG text.
-    const captions = ["PC", "A", "\u2067\u05e4\u05dc\u05d8 \u200e*A\u200e\u2069", "\u2067\u05d1\u05e7\u05e8\u05ea \u200e*A\u200e\u2069"];
+    // The processor is the biggest card on the board: seven pins, and every one
+    // of them named ON the body — so the box has to be wide enough to hold a
+    // word and tall enough to space the four outputs apart.
+    const edge = 70;
+    const bodyH = 230;
+    const inYs = [-50, 50];
+    const outYs = [-85, -30, 30, 85];
+    // Short names, the way the guide says them out loud: the instruction and the
+    // number from memory in, then the PC, A, the number going back to memory and
+    // the write control out. A name that mixes Hebrew with Latin is fenced with
+    // LRM (U+200E) so "*A" keeps its order inside the right-to-left word.
+    const inNames = ["פקודה", "‎*A‎"];
+    const outNames = ["PC", "A", "‎*A‎", "בקרה"];
     // The two address buses out are narrower than the word: 11 bits of A for the
     // memory, 10 of the PC for the program memory.
     const outWidths = [10, 11, width];
     let s = "";
-    inYs.forEach((y) => { s += busGateBar({ x1: -74, x2: -edge, y }, width, !options.toolbar); });
+    inYs.forEach((y) => { s += busGateBar({ x1: -92, x2: -edge, y }, width, !options.toolbar); });
     // Three buses out, and the write wire as a plain cable.
-    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 78, y }, outWidths[i], !options.toolbar); });
-    s += pinLine(edge, outYs[3], 78, outYs[3]);
-    s += pinLine(0, -76, 0, -bodyH / 2);
+    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 92, y }, outWidths[i], !options.toolbar); });
+    s += pinLine(edge, outYs[3], 92, outYs[3]);
+    s += pinLine(0, -152, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    const name = "CPU";
+    // The card's own name sits in the MIDDLE of the body — the one band no pin
+    // name uses (the pins sit at ±30 and ±50 either side of it). It is the FULL
+    // name, 0 and all: "CPU0" is what the chapter calls this card.
+    const name = "CPU0";
     const font = labelFontSize(name, edge * 2, 18);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
-    if (!options.toolbar) {
-      const cfont = Math.round(11 * k());
-      outYs.forEach((y, i) => {
-        s += `<text class="arith-gate-pin-letter" x="62" y="${y - 12}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
-      });
-    }
+    // Each pin's name is written INSIDE the body, on the side its pin leaves from
+    // and level with it, so a cable landing on the pin can never cover it.
+    const nfont = Math.round(11 * k());
+    // direction:ltr is NOT decoration: the page around this SVG is right-to-left,
+    // and in an RTL run "start"/"end" mean the opposite sides — every name flipped
+    // out through the wrong edge of the body and landed on the bus bars.
+    const nameText = (x, y, anchor, text) =>
+      `<text class="arith-gate-pin-letter" x="${x}" y="${y + Math.round(nfont * 0.35)}" text-anchor="${anchor}" style="font-size:${nfont}px;direction:ltr">${esc(text)}</text>`;
+    inYs.forEach((y, i) => { s += nameText(-edge + 10, y, "start", inNames[i]); });
+    outYs.forEach((y, i) => { s += nameText(edge - 10, y, "end", outNames[i]); });
+    s += nameText(0, -bodyH / 2 + 18, "middle", "rst");
     return `<g class="usercard">${s}</g>`;
   }
 
   // The 4.2 control card (gate-Cont0): the 2-bit bus in on the left and three
   // single wires out on the right, each captioned with the register it writes to.
   function contGateMarkup(options = {}) {
-    const edge = 40;
+    // Wide enough for the full name: "Cont0" on a 80-wide body had to shrink to
+    // two thirds of the size the other cards write at.
+    const edge = 50;
     const bodyH = 96;
     const outYs = [-30, 0, 30];
     const captions = ["D", "A", "\u200e*A\u200e"];
     let s = busGateBar({ x1: -74, x2: -edge, y: 0 }, 2, !options.toolbar);
-    outYs.forEach((y) => { s += pinLine(edge, y, 78, y); });
+    outYs.forEach((y) => { s += pinLine(edge, y, 86, y); });
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    const name = "Cont";
+    const name = "Cont0";
     const font = labelFontSize(name, edge * 2, 18);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // The captions sit ABOVE their own wire, outside the body, so a cable landing
@@ -487,7 +503,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       const cfont = Math.round(12 * k());
       outYs.forEach((y, i) => {
         // Clear of the stub the cable lands on, not sitting across it.
-        s += `<text class="arith-gate-pin-letter" x="60" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
+        s += `<text class="arith-gate-pin-letter" x="68" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
       });
     }
     return `<g class="usercard">${s}</g>`;

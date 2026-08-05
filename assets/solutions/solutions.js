@@ -5292,13 +5292,13 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "always-one",
         "type": "source",
-        "x": 430,
-        "y": 300
+        "x": 500,
+        "y": 520
       },
       {
         "id": "pick",
         "type": "gate-Dmux4way",
-        "x": 640,
+        "x": 575,
         "y": 430
       }
     ],
@@ -5500,26 +5500,26 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "alu",
         "type": "gate-ALU3",
-        "x": 594,
-        "y": 405
+        "x": 610,
+        "y": 400
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 685,
-        "y": 470
+        "x": 730,
+        "y": 385
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 733,
-        "y": 369
+        "x": 730,
+        "y": 305
       },
       {
         "id": "pc-address",
         "type": "splitter",
-        "x": 839,
-        "y": 283,
+        "x": 825,
+        "y": 210,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [
@@ -5531,8 +5531,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 441,
-        "y": 405,
+        "x": 420,
+        "y": 255,
         "outputs": 3,
         "mirrored": false,
         "legWidths": [
@@ -5545,32 +5545,32 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "d-nail-out",
         "type": "nail",
-        "x": 776,
-        "y": 321
+        "x": 770,
+        "y": 235
       },
       {
         "id": "d-nail-in",
         "type": "nail",
-        "x": 510,
-        "y": 324
+        "x": 525,
+        "y": 235
       },
       {
         "id": "a-nail-out",
         "type": "nail",
-        "x": 775,
-        "y": 514
+        "x": 770,
+        "y": 505
       },
       {
         "id": "a-nail-in",
         "type": "nail",
-        "x": 515,
-        "y": 513
+        "x": 520,
+        "y": 510
       },
       {
         "id": "a-address",
         "type": "splitter",
-        "x": 776,
-        "y": 577,
+        "x": 825,
+        "y": 385,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [

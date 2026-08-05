@@ -94,13 +94,13 @@
     {
       "id": "always-one",
       "type": "source",
-      "x": 430,
-      "y": 300
+      "x": 500,
+      "y": 520
     },
     {
       "id": "pick",
       "type": "gate-Dmux4way",
-      "x": 640,
+      "x": 575,
       "y": 430
     }
   ],

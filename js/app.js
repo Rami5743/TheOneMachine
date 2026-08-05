@@ -1307,11 +1307,11 @@
     busWidth: 2,
     pins: {
       in1: { x: -74, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
-      out1: { x: 78, y: -30, direction: "out", width: 1, label: "יציאת D" },
-      out2: { x: 78, y: 0, direction: "out", width: 1, label: "יציאת A" },
-      out3: { x: 78, y: 30, direction: "out", width: 1, label: "יציאת *A" }
+      out1: { x: 86, y: -30, direction: "out", width: 1, label: "יציאת D" },
+      out2: { x: 86, y: 0, direction: "out", width: 1, label: "יציאת A" },
+      out3: { x: 86, y: 30, direction: "out", width: 1, label: "יציאת *A" }
     },
-    bounds: { left: 76, right: 110, top: 62, bottom: 62 }
+    bounds: { left: 76, right: 118, top: 62, bottom: 62 }
   };
 
   // taskCard-CPU0: the processor's build frame. The instruction word and the
@@ -1365,15 +1365,15 @@
     cpuGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -74, y: -30, direction: "in", width: 16, label: "כניסת הפקודה" },
-      in2: { x: -74, y: 30, direction: "in", width: 16, label: "כניסת הקלט" },
-      in3: { x: 0, y: -76, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out1: { x: 78, y: -15, direction: "out", width: 11, label: "יציאת A" },
-      out2: { x: 78, y: -45, direction: "out", width: 10, label: "יציאת PC" },
-      out3: { x: 78, y: 15, direction: "out", width: 16, label: "יציאת הפלט" },
-      out4: { x: 78, y: 45, direction: "out", width: 1, label: "יציאת הכתיבה" }
+      in1: { x: -92, y: -50, direction: "in", width: 16, label: "כניסת הפקודה" },
+      in2: { x: -92, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
+      in3: { x: 0, y: -152, direction: "in", width: 1, label: "כניסת האיפוס" },
+      out1: { x: 92, y: -30, direction: "out", width: 11, label: "יציאת A" },
+      out2: { x: 92, y: -85, direction: "out", width: 10, label: "יציאת PC" },
+      out3: { x: 92, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
+      out4: { x: 92, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
     },
-    bounds: { left: 76, right: 116, top: 92, bottom: 80 }
+    bounds: { left: 96, right: 96, top: 168, bottom: 130 }
   };
 
   // taskCard-Computer0: the whole simple computer. Down the left, the memory's
