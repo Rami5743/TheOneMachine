@@ -16,6 +16,7 @@ function createWorkspaceChromeView({
   getState,
   genderText,
   navButton,
+  workspaceExitLabel,
   workspaceBuildHelpPromptActive,
   workspaceUnderstoodPromptActive,
   workspaceSkipDisabled
@@ -81,7 +82,9 @@ function createWorkspaceChromeView({
       const label = state.workspace.sheetReturn.label || "חזרה לדף הפקודות";
       return `<button class="btn" data-action="sheet-workbench-return" type="button">${label}</button>`;
     }
-    return `<button class="btn" data-action="workspace-return-warehouse" type="button">חזרה למחסן</button>`;
+    // In part 4 the way out leads to the hangar, not the warehouse.
+    const label = typeof workspaceExitLabel === "function" ? workspaceExitLabel() : "חזרה למחסן";
+    return `<button class="btn" data-action="workspace-return-warehouse" type="button">${label}</button>`;
   }
 
   function renderWorkspaceSkipButton() {

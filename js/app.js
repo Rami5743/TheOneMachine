@@ -2484,7 +2484,7 @@
   // keep existing call sites unchanged.
   const __workspaceChromeView = createWorkspaceChromeView({
     getState: () => state,
-    genderText, navButton,
+    genderText, navButton, workspaceExitLabel,
     workspaceBuildHelpPromptActive, workspaceUnderstoodPromptActive, workspaceSkipDisabled
   });
   const renderWorkspaceAccidentModal = (...a) => __workspaceChromeView.renderWorkspaceAccidentModal(...a);
@@ -2705,6 +2705,18 @@
   // monologue flow). The other two are the task-card build (taskId set) and the
   // "empty table" free build (freeBuild set). Toolbar contents and the ability to
   // short the Nand both depend on being in this mode.
+  // In part 4 the learner is not in the warehouse any more — they are alone in
+  // the hangar, and everything they build (a task, a free table, a new card of
+  // their own) is built at the work area on its floor. So the way out is named
+  // for where it actually leads.
+  const HANGAR_CHAPTERS = ["chapter-15", "chapter-16"];
+  function inHangarChapter(chapterId = state.chapterId) {
+    return HANGAR_CHAPTERS.includes(chapterId);
+  }
+  function workspaceExitLabel() {
+    return inHangarChapter() ? "חזרה להאנגר" : "חזרה למחסן";
+  }
+
   function isNandPresentationWorkspace() {
     return (
       state.screen === "workspace" &&
@@ -5579,7 +5591,7 @@
   // The work area on the room's floor: the same free table, but the way back is
   // to the room itself and not to the page of instructions.
   function openRoomWorkbench() {
-    return openSheetWorkbench({ label: "חזרה לחדר", reopenSheet: false });
+    return openSheetWorkbench({ label: "חזרה להאנגר", reopenSheet: false });
   }
 
   function returnFromSheetWorkbench() {
@@ -10943,7 +10955,7 @@
     return `
       <section class="controls">
         ${navButton("card-creation-reset", "restart", "נקה שולחן")}
-        <button class="btn" data-action="card-creation-back" type="button">חזרה למחסן</button>
+        <button class="btn" data-action="card-creation-back" type="button">${workspaceExitLabel()}</button>
         ${navButton("sound", state.soundOn ? "speaker" : "speaker-muted", state.soundOn ? "השתק סאונד" : "הפעל סאונד")}
       </section>`;
   }
@@ -15093,18 +15105,29 @@
     return { value: info ? Number(info.value) : -1, next: result.next };
   }
   function runPcTest(base) {
+    const WRAP = 2 ** 16;
     // A reset tick first, so whatever the build powered on with is behind us.
     let prev = pcTick(base, true, new Map()).next;
+    // Whatever a freshly reset counter SHOWS is its starting point. The chapter
+    // asks for a number that grows by 1 every step and goes back to the start on
+    // reset — it never says which number that is, so a build that shows the
+    // count it is about to store (0,1,2…) and one that shows the count it has
+    // just made (1,2,3…) are both right, and both are accepted here.
+    const first = pcTick(base, false, prev);
+    const start = first.value;
+    if (!Number.isFinite(start) || start < 0) return { ok: false, index: 0, expected: 0, got: start };
+    prev = first.next;
     const STEPS = 5;
-    for (let i = 0; i < STEPS; i += 1) {
+    for (let i = 1; i <= STEPS; i += 1) {
       const tick = pcTick(base, false, prev);
-      if (tick.value !== i) return { ok: false, index: i, expected: i, got: tick.value };
+      const want = (start + i) % WRAP;
+      if (tick.value !== want) return { ok: false, index: i, expected: want, got: tick.value };
       prev = tick.next;
     }
-    // And reset really does take it back to 0, from the middle of a run.
+    // And reset really does put it back to the start, from mid-run.
     prev = pcTick(base, true, prev).next;
     const after = pcTick(base, false, prev);
-    if (after.value !== 0) return { ok: false, index: STEPS, expected: 0, got: after.value };
+    if (after.value !== start) return { ok: false, index: STEPS + 1, expected: start, got: after.value };
     return { ok: true };
   }
   function startPcTaskTest() {
