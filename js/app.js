@@ -19914,6 +19914,15 @@
     for (const id of toolbarGateToolIds()) set.add(gateComponentType(id));
     if (splitterInToolbar()) set.add("splitter");
     if (convertersInToolbar()) { set.add("converter-in"); set.add("converter-out"); }
+    // From part 3 on the palette also carries the נעץ and the flip-flop card, and
+    // a clocked build carries them whatever the chapter says. They were missing
+    // from this list, so a card the learner built out of either was judged
+    // unbuildable here and quietly dropped from every task's palette — which is
+    // exactly where they most want it.
+    if (inSequentialEra() || Boolean(state.workspace?.busClocked)) {
+      set.add("nail");
+      set.add("ffCard");
+    }
     return set;
   }
 
