@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- The memory splits in two: data memory (the RAM he built) and program memory. -->
+
 <svg
    version="1.1"
    width="1448"
@@ -8,6 +9,7 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="panel169_chapter_4_1_two_memories.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -25,10 +27,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="1"
-     inkscape:cx="798.5"
+     inkscape:cx="799"
      inkscape:cy="287.5"
      inkscape:window-maximized="1"
-     inkscape:current-layer="text-bubble-layer" />
+     inkscape:current-layer="text-bubble-layer"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879" />
   <image
      id="raster-base"
      x="0"
@@ -64,30 +70,30 @@
          sodipodi:role="line"
          id="bubble-text-line2"
          x="1394"
-         y="128.5">העבודה, הזיכרון שלנו יהיה מחולק ל-2</tspan><tspan
+         y="128.5002">העבודה, הזיכרון שלנו יהיה מחולק ל-2</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line3"
          x="1394"
-         y="179">חלקים:</tspan><tspan
+         y="179.0004">חלקים:</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line4"
          x="1394"
-         y="229.501">• זיכרון דאטה (בקיצור "הזיכרון") — זה</tspan><tspan
+         y="229.5006">• זיכרון דאטה (בקיצור &quot;הזיכרון&quot;) — זה</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line5"
-         x="1364.41"
-         y="280.001">כרטיס ה-RAM שבנית — הוא יכיל את המידע</tspan><tspan
+         x="1394"
+         y="280.00079">כרטיס ה-RAM שבנית — הוא יכיל את המידע</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line6"
-         x="1364.41"
-         y="330.501">שעליו אנחנו רוצים לבצע את החישובים</tspan><tspan
-         sodipodi:role="line"
-         id="bubble-text-line7"
          x="1394"
-         y="381.001">• זיכרון תוכנה — זה יהיה עוד כרטיס</tspan><tspan
+         y="330.50098">שעליו אנחנו רוצים לבצע את החישובים</tspan><tspan
          sodipodi:role="line"
          id="bubble-text-line8"
-         x="1364.41"
-         y="431.501">RAM1024 שעליו תישמר רשימת הפקודות</tspan></text>
+         x="1394"
+         y="381.00119">• זיכרון תוכנה — זה כרטיס ה-Cd שבנית — </tspan><tspan
+         sodipodi:role="line"
+         x="1394"
+         y="431.50137"
+         id="tspan1">עליו תישמר רשימת הפקודות</tspan></text>
   </g>
 </svg>
