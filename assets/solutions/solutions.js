@@ -5150,20 +5150,44 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "zero-mux",
         "type": "gate-MUX16",
-        "x": 470,
-        "y": 330
+        "x": 500,
+        "y": 435
       },
       {
         "id": "counter",
         "type": "gate-Register",
-        "x": 700,
-        "y": 330
+        "x": 622,
+        "y": 435
       },
       {
         "id": "plus-one",
         "type": "gate-Inc",
-        "x": 600,
-        "y": 520
+        "x": 711,
+        "y": 490
+      },
+      {
+        "id": "always-one",
+        "type": "source",
+        "x": 577,
+        "y": 315
+      },
+      {
+        "id": "loop-right",
+        "type": "nail",
+        "x": 759,
+        "y": 566
+      },
+      {
+        "id": "loop-left",
+        "type": "nail",
+        "x": 392,
+        "y": 566
+      },
+      {
+        "id": "loop-up",
+        "type": "nail",
+        "x": 392,
+        "y": 416
       }
     ],
     "wires": [
@@ -5176,7 +5200,7 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "counter.in1"
       },
       {
-        "a": "source-1.out",
+        "a": "always-one.out",
         "b": "counter.in2"
       },
       {
@@ -5184,12 +5208,24 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "plus-one.in1"
       },
       {
-        "a": "plus-one.out1",
-        "b": "zero-mux.in1"
-      },
-      {
         "a": "counter.out",
         "b": "task-card-1.outputInt1"
+      },
+      {
+        "a": "plus-one.out1",
+        "b": "loop-right.in"
+      },
+      {
+        "a": "loop-right.out",
+        "b": "loop-left.in"
+      },
+      {
+        "a": "loop-left.out",
+        "b": "loop-up.in"
+      },
+      {
+        "a": "loop-up.out",
+        "b": "zero-mux.in1"
       }
     ],
     "check": {
