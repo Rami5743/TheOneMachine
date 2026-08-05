@@ -1365,15 +1365,15 @@
     cpuGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -92, y: -50, direction: "in", width: 16, label: "כניסת הפקודה" },
-      in2: { x: -92, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
-      in3: { x: 0, y: -152, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out1: { x: 92, y: -30, direction: "out", width: 11, label: "יציאת A" },
-      out2: { x: 92, y: -85, direction: "out", width: 10, label: "יציאת PC" },
-      out3: { x: 92, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
-      out4: { x: 92, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
+      in1: { x: -110, y: -50, direction: "in", width: 16, label: "כניסת הפקודה" },
+      in2: { x: -110, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
+      in3: { x: 0, y: -170, direction: "in", width: 1, label: "כניסת האיפוס" },
+      out1: { x: 110, y: -30, direction: "out", width: 11, label: "יציאת A" },
+      out2: { x: 110, y: -85, direction: "out", width: 10, label: "יציאת PC" },
+      out3: { x: 110, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
+      out4: { x: 110, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
     },
-    bounds: { left: 96, right: 96, top: 168, bottom: 130 }
+    bounds: { left: 114, right: 114, top: 186, bottom: 130 }
   };
 
   // taskCard-Computer0: the whole simple computer. Down the left, the memory's

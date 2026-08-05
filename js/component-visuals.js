@@ -454,11 +454,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // memory, 10 of the PC for the program memory.
     const outWidths = [10, 11, width];
     let s = "";
-    inYs.forEach((y) => { s += busGateBar({ x1: -92, x2: -edge, y }, width, !options.toolbar); });
+    // The bars are LONG (40) on purpose: the width number is centred over the bar
+    // and the body is drawn on top of it, so a short bar leaves half the number
+    // under the card and it reads as cut off.
+    inYs.forEach((y) => { s += busGateBar({ x1: -110, x2: -edge, y }, width, !options.toolbar); });
     // Three buses out, and the write wire as a plain cable.
-    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 92, y }, outWidths[i], !options.toolbar); });
-    s += pinLine(edge, outYs[3], 92, outYs[3]);
-    s += pinLine(0, -152, 0, -bodyH / 2);
+    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 110, y }, outWidths[i], !options.toolbar); });
+    s += pinLine(edge, outYs[3], 110, outYs[3]);
+    s += pinLine(0, -170, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // The card's own name sits in the MIDDLE of the body — the one band no pin
     // name uses (the pins sit at ±30 and ±50 either side of it). It is the FULL
