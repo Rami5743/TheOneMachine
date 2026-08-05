@@ -5524,13 +5524,13 @@ window.EMBEDDED_SOLUTIONS = {
       "type": "taskCard-CPU0",
       "x": 640,
       "y": 430,
-      "frameW": 600,
-      "frameH": 540,
+      "frameW": 800,
+      "frameH": 680,
       "pins": [
         {
           "id": "inputExt1",
-          "x": -340,
-          "y": -140,
+          "x": -440,
+          "y": -176,
           "w": 16,
           "dir": "in",
           "label": "כניסת הפקודה",
@@ -5538,16 +5538,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt1",
-          "x": -260,
-          "y": -140,
+          "x": -360,
+          "y": -176,
           "w": 16,
           "dir": "out",
           "label": "כניסת הפקודה פנימית"
         },
         {
           "id": "inputExt2",
-          "x": -340,
-          "y": 140,
+          "x": -440,
+          "y": 176,
           "w": 16,
           "dir": "in",
           "label": "כניסת הקלט",
@@ -5555,16 +5555,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt2",
-          "x": -260,
-          "y": 140,
+          "x": -360,
+          "y": 176,
           "w": 16,
           "dir": "out",
           "label": "כניסת הקלט פנימית"
         },
         {
           "id": "inputExt3",
-          "x": -260,
-          "y": -300,
+          "x": -347,
+          "y": -370,
           "w": 1,
           "dir": "in",
           "label": "כניסת האיפוס",
@@ -5572,8 +5572,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt3",
-          "x": -260,
-          "y": -220,
+          "x": -347,
+          "y": -290,
           "w": 1,
           "dir": "out",
           "label": "כניסת האיפוס פנימית",
@@ -5581,16 +5581,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt1",
-          "x": 260,
-          "y": -70,
+          "x": 360,
+          "y": -88,
           "w": 16,
           "dir": "in",
           "label": "יציאת A פנימית"
         },
         {
           "id": "outputExt1",
-          "x": 340,
-          "y": -70,
+          "x": 440,
+          "y": -88,
           "w": 16,
           "dir": "out",
           "label": "יציאת A",
@@ -5598,16 +5598,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt2",
-          "x": 260,
-          "y": -200,
+          "x": 360,
+          "y": -252,
           "w": 16,
           "dir": "in",
           "label": "יציאת PC פנימית"
         },
         {
           "id": "outputExt2",
-          "x": 340,
-          "y": -200,
+          "x": 440,
+          "y": -252,
           "w": 16,
           "dir": "out",
           "label": "יציאת PC",
@@ -5615,16 +5615,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt3",
-          "x": 260,
-          "y": 70,
+          "x": 360,
+          "y": 88,
           "w": 16,
           "dir": "in",
           "label": "יציאת הפלט פנימית"
         },
         {
           "id": "outputExt3",
-          "x": 340,
-          "y": 70,
+          "x": 440,
+          "y": 88,
           "w": 16,
           "dir": "out",
           "label": "יציאת הפלט",
@@ -5632,16 +5632,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt4",
-          "x": 260,
-          "y": 200,
+          "x": 360,
+          "y": 252,
           "w": 1,
           "dir": "in",
           "label": "יציאת הכתיבה פנימית"
         },
         {
           "id": "outputExt4",
-          "x": 340,
-          "y": 200,
+          "x": 440,
+          "y": 252,
           "w": 1,
           "dir": "out",
           "label": "יציאת הכתיבה",
@@ -5661,38 +5661,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "counter",
         "type": "gate-PC0",
-        "x": 602,
-        "y": 283
+        "x": 426,
+        "y": 284
       },
       {
         "id": "control",
         "type": "gate-Cont0",
-        "x": 527,
-        "y": 572
+        "x": 537,
+        "y": 357
       },
       {
         "id": "alu",
         "type": "gate-ALU3",
-        "x": 610,
-        "y": 400
+        "x": 817,
+        "y": 477
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 730,
-        "y": 385
+        "x": 677,
+        "y": 437
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 730,
-        "y": 305
+        "x": 675,
+        "y": 366
       },
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 420,
-        "y": 255,
+        "x": 424,
+        "y": 434,
         "outputs": 3,
         "mirrored": false,
         "legWidths": [
@@ -5703,46 +5703,64 @@ window.EMBEDDED_SOLUTIONS = {
         "singleWidth": 16
       },
       {
-        "id": "d-nail-out",
+        "id": "write-nail-out",
         "type": "nail",
-        "x": 770,
-        "y": 235
+        "x": 591,
+        "y": 601
       },
       {
-        "id": "d-nail-in",
+        "id": "ctrl-nail-out",
         "type": "nail",
-        "x": 525,
-        "y": 235
+        "x": 464,
+        "y": 317
       },
       {
-        "id": "a-nail-out",
+        "id": "ctrl-nail-in",
         "type": "nail",
-        "x": 770,
-        "y": 505
+        "x": 816,
+        "y": 315
       },
       {
-        "id": "a-nail-in",
+        "id": "write-nail-in",
         "type": "nail",
-        "x": 520,
-        "y": 510
+        "x": 902,
+        "y": 595
+      },
+      {
+        "id": "res-nail-1",
+        "type": "nail",
+        "x": 858,
+        "y": 564
+      },
+      {
+        "id": "res-nail-2",
+        "type": "nail",
+        "x": 618,
+        "y": 568
+      },
+      {
+        "id": "res-nail-3",
+        "type": "nail",
+        "x": 616,
+        "y": 403
+      },
+      {
+        "id": "reset-nail",
+        "type": "nail",
+        "x": 379,
+        "y": 260
+      },
+      {
+        "id": "pc-nail",
+        "type": "nail",
+        "x": 902,
+        "y": 283
       }
     ],
     "wires": [
       {
-        "a": "task-card-1.inputInt3",
-        "b": "counter.in1"
-      },
-      {
-        "a": "task-card-1.inputInt2",
-        "b": "alu.in3"
-      },
-      {
         "a": "task-card-1.inputInt1",
         "b": "word-split.single"
-      },
-      {
-        "a": "alu.in4",
-        "b": "word-split.leg2"
       },
       {
         "a": "control.in1",
@@ -5757,52 +5775,84 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "reg-a.in2"
       },
       {
-        "a": "task-card-1.outputInt4",
-        "b": "control.out3"
-      },
-      {
-        "a": "alu.out1",
-        "b": "reg-d.in1"
-      },
-      {
-        "a": "alu.out1",
-        "b": "reg-a.in1"
-      },
-      {
         "a": "task-card-1.outputInt3",
         "b": "alu.out1"
       },
       {
-        "a": "reg-d.out",
-        "b": "d-nail-out.in"
+        "a": "control.out3",
+        "b": "write-nail-out.in"
       },
       {
-        "a": "d-nail-in.in",
-        "b": "d-nail-out.out"
-      },
-      {
-        "a": "alu.in1",
-        "b": "d-nail-in.out"
-      },
-      {
-        "a": "reg-a.out",
-        "b": "a-nail-out.in"
-      },
-      {
-        "a": "a-nail-out.out",
-        "b": "a-nail-in.in"
+        "a": "task-card-1.inputInt2",
+        "b": "alu.in3"
       },
       {
         "a": "alu.in2",
-        "b": "a-nail-in.out"
+        "b": "reg-a.out"
       },
       {
-        "a": "reg-a.out",
-        "b": "task-card-1.outputInt1"
+        "a": "alu.in4",
+        "b": "ctrl-nail-in.out"
+      },
+      {
+        "a": "ctrl-nail-out.out",
+        "b": "ctrl-nail-in.in"
+      },
+      {
+        "a": "ctrl-nail-out.in",
+        "b": "word-split.leg2"
+      },
+      {
+        "a": "alu.in1",
+        "b": "reg-d.out"
+      },
+      {
+        "a": "task-card-1.outputInt4",
+        "b": "write-nail-in.out"
+      },
+      {
+        "a": "write-nail-out.out",
+        "b": "write-nail-in.in"
+      },
+      {
+        "a": "alu.out1",
+        "b": "res-nail-1.in"
+      },
+      {
+        "a": "res-nail-1.out",
+        "b": "res-nail-2.in"
+      },
+      {
+        "a": "res-nail-2.out",
+        "b": "res-nail-3.in"
+      },
+      {
+        "a": "reg-a.in1",
+        "b": "res-nail-3.out"
+      },
+      {
+        "a": "reg-d.in1",
+        "b": "res-nail-3.out"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "reset-nail.in"
+      },
+      {
+        "a": "counter.in1",
+        "b": "reset-nail.out"
+      },
+      {
+        "a": "task-card-1.outputInt1",
+        "b": "reg-a.out"
       },
       {
         "a": "counter.out",
-        "b": "task-card-1.outputInt2"
+        "b": "pc-nail.in"
+      },
+      {
+        "a": "task-card-1.outputInt2",
+        "b": "pc-nail.out"
       }
     ],
     "check": {
@@ -5818,13 +5868,13 @@ window.EMBEDDED_SOLUTIONS = {
       "type": "taskCard-Computer0",
       "x": 660,
       "y": 440,
-      "frameW": 800,
-      "frameH": 560,
+      "frameW": 1000,
+      "frameH": 700,
       "pins": [
         {
           "id": "inputExt6",
-          "x": -460,
-          "y": -250,
+          "x": -560,
+          "y": -312,
           "w": 10,
           "dir": "in",
           "label": "כניסת כתובת התוכנה",
@@ -5832,16 +5882,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt6",
-          "x": -340,
-          "y": -250,
+          "x": -440,
+          "y": -312,
           "w": 10,
           "dir": "out",
           "label": "כניסת כתובת התוכנה פנימית"
         },
         {
           "id": "inputExt7",
-          "x": -460,
-          "y": -180,
+          "x": -560,
+          "y": -225,
           "w": 16,
           "dir": "in",
           "label": "כניסת הפקודה לכתיבה",
@@ -5849,16 +5899,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt7",
-          "x": -340,
-          "y": -180,
+          "x": -440,
+          "y": -225,
           "w": 16,
           "dir": "out",
           "label": "כניסת הפקודה לכתיבה פנימית"
         },
         {
           "id": "inputExt5",
-          "x": -217,
-          "y": -350,
+          "x": -271,
+          "y": -420,
           "w": 1,
           "dir": "in",
           "label": "כניסת האיפוס",
@@ -5866,8 +5916,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt5",
-          "x": -217,
-          "y": -210,
+          "x": -271,
+          "y": -280,
           "w": 1,
           "dir": "out",
           "label": "כניסת האיפוס פנימית",
@@ -5875,8 +5925,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt1",
-          "x": -460,
-          "y": 20,
+          "x": -560,
+          "y": 25,
           "w": 16,
           "dir": "in",
           "label": "כניסת פורט In0",
@@ -5884,16 +5934,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt1",
-          "x": -340,
-          "y": 20,
+          "x": -440,
+          "y": 25,
           "w": 16,
           "dir": "out",
           "label": "כניסת פורט In0 פנימית"
         },
         {
           "id": "inputExt2",
-          "x": -460,
-          "y": 80,
+          "x": -560,
+          "y": 100,
           "w": 16,
           "dir": "in",
           "label": "כניסת פורט In1",
@@ -5901,16 +5951,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt2",
-          "x": -340,
-          "y": 80,
+          "x": -440,
+          "y": 100,
           "w": 16,
           "dir": "out",
           "label": "כניסת פורט In1 פנימית"
         },
         {
           "id": "inputExt3",
-          "x": -460,
-          "y": 140,
+          "x": -560,
+          "y": 175,
           "w": 16,
           "dir": "in",
           "label": "כניסת פורט In2",
@@ -5918,16 +5968,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt3",
-          "x": -340,
-          "y": 140,
+          "x": -440,
+          "y": 175,
           "w": 16,
           "dir": "out",
           "label": "כניסת פורט In2 פנימית"
         },
         {
           "id": "inputExt4",
-          "x": -460,
-          "y": 200,
+          "x": -560,
+          "y": 250,
           "w": 16,
           "dir": "in",
           "label": "כניסת פורט In3",
@@ -5935,24 +5985,24 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt4",
-          "x": -340,
-          "y": 200,
+          "x": -440,
+          "y": 250,
           "w": 16,
           "dir": "out",
           "label": "כניסת פורט In3 פנימית"
         },
         {
           "id": "outputInt1",
-          "x": 340,
-          "y": 20,
+          "x": 440,
+          "y": 25,
           "w": 16,
           "dir": "in",
           "label": "יציאת פורט Out0 פנימית"
         },
         {
           "id": "outputExt1",
-          "x": 460,
-          "y": 20,
+          "x": 560,
+          "y": 25,
           "w": 16,
           "dir": "out",
           "label": "יציאת פורט Out0",
@@ -5960,16 +6010,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt2",
-          "x": 340,
-          "y": 80,
+          "x": 440,
+          "y": 100,
           "w": 16,
           "dir": "in",
           "label": "יציאת פורט Out1 פנימית"
         },
         {
           "id": "outputExt2",
-          "x": 460,
-          "y": 80,
+          "x": 560,
+          "y": 100,
           "w": 16,
           "dir": "out",
           "label": "יציאת פורט Out1",
@@ -5977,16 +6027,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt3",
-          "x": 340,
-          "y": 140,
+          "x": 440,
+          "y": 175,
           "w": 16,
           "dir": "in",
           "label": "יציאת פורט Out2 פנימית"
         },
         {
           "id": "outputExt3",
-          "x": 460,
-          "y": 140,
+          "x": 560,
+          "y": 175,
           "w": 16,
           "dir": "out",
           "label": "יציאת פורט Out2",
@@ -5994,16 +6044,16 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "outputInt4",
-          "x": 340,
-          "y": 200,
+          "x": 440,
+          "y": 250,
           "w": 16,
           "dir": "in",
           "label": "יציאת פורט Out3 פנימית"
         },
         {
           "id": "outputExt4",
-          "x": 460,
-          "y": 200,
+          "x": 560,
+          "y": 250,
           "w": 16,
           "dir": "out",
           "label": "יציאת פורט Out3",

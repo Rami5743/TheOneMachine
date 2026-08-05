@@ -1335,6 +1335,8 @@
     busWidth: 16,
     busTask: true,
     routingMultibit: true,
+    // Only a fallback: the solution JSON's frameW/frameH win (solutionFrameSize).
+    frameSize: { w: 800, h: 680 },
     pins: {
       inputExt1: { x: -340, y: -140, direction: "in", width: 16, label: "כניסת הפקודה", caption: "פקודה" },
       inputInt1: { x: -260, y: -140, direction: "out", width: 16, label: "כניסת הפקודה פנימית" },
@@ -1448,7 +1450,8 @@
     busWidth: 16,
     busTask: true,
     routingMultibit: true,
-    frameSize: { w: 800, h: 560 },
+    // Only a fallback: the solution JSON's frameW/frameH win (solutionFrameSize).
+    frameSize: { w: 1000, h: 700 },
     pins: {
       inputExt6: { x: -460, y: -250, direction: "in", width: 10, label: "כניסת כתובת התוכנה", caption: "cd-adr", edge: "side" },
       inputInt6: { x: -340, y: -250, direction: "out", width: 10, label: "כניסת כתובת התוכנה פנימית", edge: "side" },
