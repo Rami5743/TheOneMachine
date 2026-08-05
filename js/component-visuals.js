@@ -441,7 +441,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 160;
     const inYs = [-30, 30];
     const outYs = [-45, -15, 15, 45];
-    const captions = ["A", "PC", "\u05e4\u05dc\u05d8", "\u200e*A\u200e"];
+    const captions = ["A", "PC", "\u05e4\u05dc\u05d8 \u200e*A\u200e", "\u05d1\u05e7\u05e8\u05ea \u200e*A\u200e"];
     // The two address buses out are narrower than the word: 11 bits of A for the
     // memory, 10 of the PC for the program memory.
     const outWidths = [11, 10, width];
