@@ -441,7 +441,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 160;
     const inYs = [-30, 30];
     const outYs = [-45, -15, 15, 45];
-    const captions = ["A", "PC", "\u05e4\u05dc\u05d8 \u200e*A\u200e", "\u05d1\u05e7\u05e8\u05ea \u200e*A\u200e"];
+    // The mixed Hebrew+Latin captions are wrapped in a right-to-left isolate
+    // (U+2067…U+2069) so they read in the right order inside the LTR SVG text.
+    const captions = ["A", "PC", "\u2067\u05e4\u05dc\u05d8 \u200e*A\u200e\u2069", "\u2067\u05d1\u05e7\u05e8\u05ea \u200e*A\u200e\u2069"];
     // The two address buses out are narrower than the word: 11 bits of A for the
     // memory, 10 of the PC for the program memory.
     const outWidths = [11, 10, width];
@@ -470,7 +472,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const edge = 40;
     const bodyH = 96;
     const outYs = [-30, 0, 30];
-    const captions = ["A", "D", "*A"];
+    const captions = ["D", "A", "*A"];
     let s = busGateBar({ x1: -74, x2: -edge, y: 0 }, 2, !options.toolbar);
     outYs.forEach((y) => { s += pinLine(edge, y, 78, y); });
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;

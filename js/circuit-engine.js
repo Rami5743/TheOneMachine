@@ -928,8 +928,9 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           let n = 0;
           for (let i = 0; i < w; i += 1) n += (pc[i] ? 1 : 0) * (2 ** i);
           const counted = reset ? 0 : (n + 1) % (2 ** w);
-          next.set(`${component.id}.a`, dest === 1 ? result : a);
-          next.set(`${component.id}.d`, dest === 2 ? result : d);
+          // The destination field: 1 writes to D, 2 to A, 3 to *A (0 nowhere).
+          next.set(`${component.id}.a`, dest === 2 ? result : a);
+          next.set(`${component.id}.d`, dest === 1 ? result : d);
           next.set(`${component.id}.pc`, Array.from({ length: w }, (_, i) => Boolean(Math.floor(counted / (2 ** i)) & 1)));
           continue;
         }

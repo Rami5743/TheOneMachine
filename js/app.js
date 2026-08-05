@@ -1287,10 +1287,10 @@
     pins: {
       inputExt1: { x: -340, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
       inputInt1: { x: -260, y: 0, direction: "out", width: 2, label: "כניסת הבקרה פנימית" },
-      outputInt1: { x: 260, y: -150, direction: "in", width: 1, label: "יציאת A פנימית", caption: "A" },
-      outputExt1: { x: 340, y: -150, direction: "out", width: 1, label: "יציאת A", caption: "A" },
-      outputInt2: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת D פנימית", caption: "D" },
-      outputExt2: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת D", caption: "D" },
+      outputInt1: { x: 260, y: -150, direction: "in", width: 1, label: "יציאת D פנימית", caption: "D" },
+      outputExt1: { x: 340, y: -150, direction: "out", width: 1, label: "יציאת D", caption: "D" },
+      outputInt2: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת A פנימית", caption: "A" },
+      outputExt2: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת A", caption: "A" },
       outputInt3: { x: 260, y: 150, direction: "in", width: 1, label: "יציאת *A פנימית", caption: "*A" },
       outputExt3: { x: 340, y: 150, direction: "out", width: 1, label: "יציאת *A", caption: "*A" }
     },
@@ -1307,8 +1307,8 @@
     busWidth: 2,
     pins: {
       in1: { x: -74, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
-      out1: { x: 78, y: -30, direction: "out", width: 1, label: "יציאת A" },
-      out2: { x: 78, y: 0, direction: "out", width: 1, label: "יציאת D" },
+      out1: { x: 78, y: -30, direction: "out", width: 1, label: "יציאת D" },
+      out2: { x: 78, y: 0, direction: "out", width: 1, label: "יציאת A" },
       out3: { x: 78, y: 30, direction: "out", width: 1, label: "יציאת *A" }
     },
     bounds: { left: 76, right: 110, top: 62, bottom: 62 }
@@ -1329,7 +1329,12 @@
     pins: {
       inputExt1: { x: -340, y: -140, direction: "in", width: 16, label: "כניסת הפקודה", caption: "פקודה" },
       inputInt1: { x: -260, y: -140, direction: "out", width: 16, label: "כניסת הפקודה פנימית" },
-      inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "קלט \u200e*A\u200e" },
+      // A caption that mixes Hebrew with Latin is wrapped in a RIGHT-TO-LEFT
+      // ISOLATE (U+2067…U+2069): the SVG text around it runs left-to-right, so
+      // without it "קלט *A" comes out with the Hebrew on the left and reads
+      // backwards. The isolate sets the run's own direction without touching
+      // how the label is anchored.
+      inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "\u2067קלט \u200e*A\u200e\u2069" },
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
       inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
       inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
@@ -1343,9 +1348,9 @@
       outputInt2: { x: 260, y: -70, direction: "in", width: 10, label: "יציאת PC פנימית" },
       outputExt2: { x: 340, y: -70, direction: "out", width: 10, label: "יציאת PC", caption: "PC" },
       outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
-      outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "פלט \u200e*A\u200e" },
+      outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "\u2067פלט \u200e*A\u200e\u2069" },
       outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית", edge: "side" },
-      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "בקרת \u200e*A\u200e", edge: "side" }
+      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "\u2067בקרת \u200e*A\u200e\u2069", edge: "side" }
     },
     bounds: { left: 340, right: 340, top: 310, bottom: 280 }
   };
@@ -15175,20 +15180,20 @@
   // four destinations, both ALU operand choices, and the reset.
   function cpuTestSteps() {
     return [
-      { instr: 0b0000000000010100, mem: 0, reset: false },  // A = 1
+      { instr: 0b0000000000011000, mem: 0, reset: false },  // A = 1
       { instr: 0b0000000100011100, mem: 0, reset: false },  // *A = 17
-      { instr: 0b0000000001011000, mem: 17, reset: false }, // D = 5
-      { instr: 0b1000011110001000, mem: 17, reset: false }, // D = *A - D
-      { instr: 0b0000000000100100, mem: 17, reset: false }, // A = 2
+      { instr: 0b0000000001010100, mem: 17, reset: false }, // D = 5
+      { instr: 0b1000011110000100, mem: 17, reset: false }, // D = *A - D
+      { instr: 0b0000000000101000, mem: 17, reset: false }, // A = 2
       { instr: 0b1000000011001100, mem: 0, reset: false },  // *A = D
       { instr: 0b1000000011000000, mem: 0, reset: false },  // compute, write nowhere
-      { instr: 0b0000000000010100, mem: 0, reset: true },   // A = 1, and reset the PC
-      { instr: 0b0000000001011000, mem: 0, reset: false },  // D = 5, counting on from 0
+      { instr: 0b0000000000011000, mem: 0, reset: true },   // A = 1, and reset the PC
+      { instr: 0b0000000001010100, mem: 0, reset: false },  // D = 5, counting on from 0
       // And a number too big for the address bus: A grows past 11 bits, so the
       // address it puts out must be the LAST 11 bits of it and nothing more.
-      { instr: 0x7FF8, mem: 0, reset: false },              // D = 2047
-      { instr: 0x7FF4, mem: 0, reset: false },              // A = 2047
-      { instr: 0x8104, mem: 0, reset: false },              // A = D + A = 4094
+      { instr: 0x7FF4, mem: 0, reset: false },              // D = 2047
+      { instr: 0x7FF8, mem: 0, reset: false },              // A = 2047
+      { instr: 0x8108, mem: 0, reset: false },              // A = D + A = 4094
       { instr: 0x8100, mem: 0, reset: false }               // compute, write nowhere
     ];
   }
@@ -15203,8 +15208,9 @@
       const result = cpuAluResult(control, d, a, step.mem);
       // The address buses carry only the last 11 / 10 bits of the registers.
       rows.push({ a: a & 0x7ff, pc: pc & 0x3ff, out: result, write: dest === 3 });
-      const nextA = dest === 1 ? result : a;
-      const nextD = dest === 2 ? result : d;
+      // 1 writes to D, 2 to A, 3 to *A.
+      const nextA = dest === 2 ? result : a;
+      const nextD = dest === 1 ? result : d;
       pc = step.reset ? 0 : (pc + 1) & 0xffff;
       a = nextA; d = nextD;
     }
