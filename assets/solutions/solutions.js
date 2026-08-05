@@ -5152,14 +5152,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-pick",
         "type": "gate-MUX16",
-        "x": 470,
+        "x": 445,
         "y": 330
       },
       {
         "id": "addr-cut",
         "type": "splitter",
-        "x": 610,
-        "y": 250,
+        "x": 520,
+        "y": 500,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [
@@ -5171,14 +5171,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "bank",
         "type": "gate-RAM1024",
-        "x": 790,
-        "y": 420
+        "x": 710,
+        "y": 535
       },
       {
         "id": "out-pick",
         "type": "gate-MUX16",
         "x": 960,
-        "y": 560
+        "y": 550
       }
     ],
     "wires": [

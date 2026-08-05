@@ -3749,6 +3749,11 @@
     if (ramDef && Array.isArray(ramDef.hints)) return ramDef.hints;
     const portsDef = (typeof PORTS_TASKS !== "undefined") ? PORTS_TASKS.find((t) => t.id === taskId) : null;
     if (portsDef && Array.isArray(portsDef.hints)) return portsDef.hints;
+    const cdDef = (typeof CD_TASKS !== "undefined") ? CD_TASKS.find((t) => t.id === taskId) : null;
+    if (cdDef && Array.isArray(cdDef.hints)) return cdDef.hints;
+    // The 4.2 cards carry theirs inline too.
+    const simpleDef = (typeof SIMPLE_COMPUTER_TASKS !== "undefined") ? SIMPLE_COMPUTER_TASKS.find((t) => t.id === taskId) : null;
+    if (simpleDef && Array.isArray(simpleDef.hints)) return simpleDef.hints;
     return [];
   }
 
@@ -14405,15 +14410,34 @@
   // Where the game places a JSON-backed card's frame on the X axis. The wide
   // ALU/adder cards sit at 640; the single-bit 2.5 cards (halfAdder/fullAdder)
   // build at 500 like the simple gates, so their walkthrough must line up there.
+  // WHERE A CARD'S FRAME SITS — and why this pair of functions is a trap.
+  //
+  // A task's frame is placed twice, by two different pieces of code: the BUILD
+  // opener (openPortsTaskWorkspace, openCdTaskWorkspace, …) puts it at the spot
+  // the learner builds on, and the SOLUTION walkthrough re-places it through
+  // buildCardX/aluBuildCardY below. If the two disagree the frame JUMPS the
+  // moment the solution opens — which is exactly what happened to Cd, whose
+  // opener said (660, 440) while this table had no branch for it and fell
+  // through to the default (640, 288).
+  //
+  // So: EVERY new card needs a branch here, and its opener must place the frame
+  // from the SAME constants this branch returns — never from literals. When the
+  // walkthrough opens over the learner's own build the mismatch is now caught and
+  // corrected at run time (see showTaskSolution), and console.warn says so; but
+  // opening a finished card's solution from its note has no build to compare
+  // against, so the branch still has to be right.
   function buildCardX(taskId) {
     if (isRamTask(taskId)) return RAM_BUILD_CARD_X;
     if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_X;
+    if (typeof isCdTask === "function" && isCdTask(taskId)) return CD_BUILD_CARD_X;
     return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
   }
   function aluBuildCardY(taskId) {
     // The 3.4 ports cards build at the same spot the RAM cards do; their
     // walkthroughs and build hints must land there too, or the frame jumps.
     if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_Y;
+    // The 3.5 program memory, likewise.
+    if (typeof isCdTask === "function" && isCdTask(taskId)) return CD_BUILD_CARD_Y;
     // The 4.2 cards: the SAME y their build uses, so a solution laid out in the
     // editor lands exactly where the learner's own frame sat.
     if (typeof isSimpleComputerTask === "function" && isSimpleComputerTask(taskId)) return SIMPLE_COMPUTER_CARD_Y;
@@ -16935,6 +16959,27 @@
     return storyTarget(returnChapter, returnPanelIndex);
   }
 
+  // Move a walkthrough workspace so its task frame lands exactly where the frame
+  // of the learner's own build of the same task sits, and shift everything else
+  // by the same delta so the wiring keeps its shape.
+  function alignSolutionFrameToBuild(workspace, taskId) {
+    if (!workspace || state.screen !== "workspace" || state.workspace?.taskId !== taskId) return;
+    const isFrame = (c) => String(c?.type || "").startsWith("taskCard-");
+    const built = (state.workspace.components || []).find(isFrame);
+    const shown = (workspace.components || []).find(isFrame);
+    if (!built || !shown || !Number.isFinite(built.x) || !Number.isFinite(built.y)) return;
+    const dx = built.x - shown.x;
+    const dy = built.y - shown.y;
+    if (!dx && !dy) return;
+    if (typeof console !== "undefined") {
+      console.warn(`[solution] ${taskId}: the walkthrough placed the frame at (${shown.x}, ${shown.y}) but the build has it at (${built.x}, ${built.y}) — moving it back. Add/fix this card's branch in buildCardX/aluBuildCardY.`);
+    }
+    for (const c of workspace.components || []) {
+      if (Number.isFinite(c.x)) c.x += dx;
+      if (Number.isFinite(c.y)) c.y += dy;
+    }
+  }
+
   function showTaskSolution(taskId, options = {}) {
     // Seeing a basic gate's solution unlocks its button in the explanations menu
     // (and plays the unlock flourish the first time). The routing cards unlock on
@@ -16963,6 +17008,13 @@
       : (routing || bus || multibit) ? chapterById((bus || multibit) ? "chapter-7" : "chapter-6")
       : simpleGatesChapter();
     const workspace = solutionWorkspaceForTask(taskId, 0);
+    // THE FRAME MUST NOT JUMP. If the learner is standing in their own build of
+    // this very task, that build's frame position is the truth — put the
+    // walkthrough's frame exactly there, whatever buildCardX/aluBuildCardY said.
+    // A mismatch means the table above is missing (or wrong about) this card, so
+    // say so out loud instead of letting the frame quietly move: opening the same
+    // solution from a note has no build to compare against and would still jump.
+    alignSolutionFrameToBuild(workspace, taskId);
     if (routing || bus || multibit || arith || alu || ports || cd) {
       // Keep the return target so leaving the solution goes back to the worktable.
       workspace.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || state.chapterId;
@@ -18258,6 +18310,12 @@
 
   // The Cd frame sits where the RAM and ports ones do: right of centre, leaving
   // the left strip free for the converters that dial the addresses by hand.
+  // These two constants are the ONE place the position is written down — the
+  // solution walkthrough reads them back through buildCardX/aluBuildCardY, so
+  // the frame cannot jump between the build and the replay.
+  const CD_BUILD_CARD_X = 660;
+  const CD_BUILD_CARD_Y = 440;
+
   function openCdTaskWorkspace(taskId) {
     const task = cdTaskDefById(taskId);
     if (!task) return;
@@ -18267,7 +18325,7 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: 660, y: 440 },
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: CD_BUILD_CARD_X, y: CD_BUILD_CARD_Y },
         { id: "source-1", type: "source", x: 110, y: 90 }
       ],
       wires: [],
