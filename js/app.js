@@ -6118,8 +6118,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="build-note-close">סגור</button>
+            ${noteClearProgressButton("build")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -18759,6 +18761,7 @@
     if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     if (kind === "ram") return ramTaskDefs().map((t) => t.id);
     if (kind === "ports") return portsTaskDefs().map((t) => t.id);
+    if (kind === "build") return simpleComputerTaskDefs().map((t) => t.id);
     return [];
   }
 
