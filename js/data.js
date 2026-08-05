@@ -1332,18 +1332,6 @@ const SCENES = {
         "read": "כמו שאתה רואה, יש כאן הרבה מקום. תוכל לבנות כאן את הזיכרון בנחת. אנסה להביא לך רגיסטרים מוכנים מדי פעם. אני אביא לך גם כונניות שתוכל לסדר עליהן את מה שאתה בונה. תתחיל מלבנות את הפורטים ואת המסגרת הכללית, ואז למלא אותה ברגיסטרים. תתחיל מכתובת 0 ותתקדם משם, כך שאם נראה שאנחנו לא יכולים לבנות הכול בזמן סביר, יהיה לנו זיכרון מתפקד קטן יותר, שנוכל להשתמש בו להדגמות, ובהמשך, כשנקבל עוד אנשים, נוכל להשלים אותו."
       },
       {
-        "comment": "A second memory, for the program.",
-        "image": "assets/panels/panel161_chapter_3_5_hangar_program_ram.svg",
-        "year": "1943",
-        "read": "ועוד דבר אחד. אנחנו צריכים זיכרון נוסף שעליו נשמור את התוכנה שלנו. אז אתה צריך לבנות עוד RAM1024 בשביל זה. גם כאן, אתה לא חייב לבנות את הכול, רק את המסגרת וכמה מאות רגיסטרים בהתחלה."
-      },
-      {
-        "comment": "One day the two memories might become one — for now it is too complicated.",
-        "image": "assets/panels/panel162_chapter_3_5_hangar_someday.svg",
-        "year": "1943",
-        "read": "אולי פעם נלמד לאחד את הזיכרונות, כדי שנוכל לתכנת את המחשב שלנו מתוך המחשב עצמו. בינתיים זה מסובך מדי."
-      },
-      {
         "comment": "The last warning: loud noises from the popy mean stop everything and come.",
         "image": "assets/panels/panel163_chapter_3_5_popy_warning.svg",
         "year": "1943",
