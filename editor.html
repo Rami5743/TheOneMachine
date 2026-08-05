@@ -125,7 +125,9 @@ const DEFS = {
   "gate-OPorts": { ramGate:true, portsCard:true, label:"OPorts", busWidth:16, addressWidth:2, slots:4, portOutputs:4 },
   "gate-IPorts": { wideRoutingGate:"mux4way16", portsCard:true, label:"IPorts", busWidth:16, addressWidth:2, portInputs:4 },
   "gate-Ports":  { ramGate:true, portsCard:true, label:"Ports", busWidth:16, addressWidth:3, slots:4, portOutputs:4, portInputs:4 },
-  "gate-RAM":    { ramGate:true, portsCard:true, label:"RAM", busWidth:16, addressWidth:11, slots:1028, portOutputs:4, portInputs:4 },
+  // The RAM's address PIN is 16 wide; only the last 11 bits address the bank
+  // (addressBits), the same split the game's own def uses.
+  "gate-RAM":    { ramGate:true, portsCard:true, label:"RAM", busWidth:16, addressWidth:16, addressBits:11, slots:1028, portOutputs:4, portInputs:4 },
   // The 2.4 wide-routing cards: a 2-bit control bus picks one of four.
   "gate-Dmux4way":  { wideRoutingGate:"dmux4way" },
   "gate-Mux4way16": { wideRoutingGate:"mux4way16", busWidth:16 },

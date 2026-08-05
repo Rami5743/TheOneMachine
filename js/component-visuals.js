@@ -557,8 +557,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const outs = spec.portOutputs || 0;
     const ins = spec.portInputs || 0;
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    // direction:ltr — the page around this SVG is right-to-left, and there
+    // "start"/"end" mean the opposite sides, so a name anchored at the body's
+    // left edge would run out through it.
     const cap = (x, y, text, anchor) =>
-      `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
+      `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px;direction:ltr">${esc(text)}</text>`;
     let s = "";
     // A card with no data bus (IPorts) has its address where the data would be,
     // facing the output — the drawing has to follow the pin, or the cable lands
@@ -575,7 +578,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 60, spec.width);
     s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const font = labelFontSize(label, edge * 2, 17);
-    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 180}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    // The name sits in the band BETWEEN the address/data buses at the top and the
+    // first port row, not squeezed up against the top edge with the bars.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 60}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    // The address bus is named on the body, level with its own bar.
+    if (Number.isInteger(spec.addressWidth)) {
+      s += cap(-edge + 6, (spec.dataIn === false ? -130 : -170) + 4, "Adr", "start");
+    }
     for (let i = 0; i < outs; i += 1) s += cap(edge - 6, 8 + i * 60 + 4, String(i), "end");
     // The inputs are numbered in DECIMAL on the card — short enough to read at
     // this size, where a two-digit binary name is not.
