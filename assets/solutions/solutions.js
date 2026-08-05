@@ -5661,38 +5661,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "counter",
         "type": "gate-PC0",
-        "x": 426,
-        "y": 284
+        "x": 520,
+        "y": 170
       },
       {
         "id": "control",
         "type": "gate-Cont0",
-        "x": 537,
-        "y": 357
+        "x": 535,
+        "y": 360
       },
       {
         "id": "alu",
         "type": "gate-ALU3",
-        "x": 817,
-        "y": 477
+        "x": 815,
+        "y": 520
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 677,
-        "y": 437
+        "x": 705,
+        "y": 470
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 675,
-        "y": 366
+        "x": 700,
+        "y": 365
       },
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 424,
-        "y": 434,
+        "x": 320,
+        "y": 300,
         "outputs": 3,
         "mirrored": false,
         "legWidths": [
@@ -5703,58 +5703,10 @@ window.EMBEDDED_SOLUTIONS = {
         "singleWidth": 16
       },
       {
-        "id": "write-nail-out",
-        "type": "nail",
-        "x": 591,
-        "y": 601
-      },
-      {
-        "id": "ctrl-nail-out",
-        "type": "nail",
-        "x": 464,
-        "y": 317
-      },
-      {
-        "id": "ctrl-nail-in",
-        "type": "nail",
-        "x": 816,
-        "y": 315
-      },
-      {
-        "id": "write-nail-in",
-        "type": "nail",
-        "x": 902,
-        "y": 595
-      },
-      {
-        "id": "res-nail-1",
-        "type": "nail",
-        "x": 858,
-        "y": 564
-      },
-      {
-        "id": "res-nail-2",
-        "type": "nail",
-        "x": 618,
-        "y": 568
-      },
-      {
         "id": "res-nail-3",
         "type": "nail",
-        "x": 616,
-        "y": 403
-      },
-      {
-        "id": "reset-nail",
-        "type": "nail",
-        "x": 379,
-        "y": 260
-      },
-      {
-        "id": "pc-nail",
-        "type": "nail",
-        "x": 902,
-        "y": 283
+        "x": 625,
+        "y": 425
       }
     ],
     "wires": [
@@ -5779,10 +5731,6 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "alu.out1"
       },
       {
-        "a": "control.out3",
-        "b": "write-nail-out.in"
-      },
-      {
         "a": "task-card-1.inputInt2",
         "b": "alu.in3"
       },
@@ -5791,40 +5739,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "reg-a.out"
       },
       {
-        "a": "alu.in4",
-        "b": "ctrl-nail-in.out"
-      },
-      {
-        "a": "ctrl-nail-out.out",
-        "b": "ctrl-nail-in.in"
-      },
-      {
-        "a": "ctrl-nail-out.in",
-        "b": "word-split.leg2"
-      },
-      {
         "a": "alu.in1",
         "b": "reg-d.out"
-      },
-      {
-        "a": "task-card-1.outputInt4",
-        "b": "write-nail-in.out"
-      },
-      {
-        "a": "write-nail-out.out",
-        "b": "write-nail-in.in"
-      },
-      {
-        "a": "alu.out1",
-        "b": "res-nail-1.in"
-      },
-      {
-        "a": "res-nail-1.out",
-        "b": "res-nail-2.in"
-      },
-      {
-        "a": "res-nail-2.out",
-        "b": "res-nail-3.in"
       },
       {
         "a": "reg-a.in1",
@@ -5835,28 +5751,32 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "res-nail-3.out"
       },
       {
-        "a": "task-card-1.inputInt3",
-        "b": "reset-nail.in"
-      },
-      {
-        "a": "counter.in1",
-        "b": "reset-nail.out"
-      },
-      {
         "a": "task-card-1.outputInt1",
         "b": "reg-a.out"
       },
       {
-        "a": "counter.out",
-        "b": "pc-nail.in"
+        "a": "word-split.leg2",
+        "b": "alu.in4"
       },
       {
-        "a": "task-card-1.outputInt2",
-        "b": "pc-nail.out"
+        "a": "counter.out",
+        "b": "task-card-1.outputInt2"
+      },
+      {
+        "a": "alu.out1",
+        "b": "res-nail-3.in"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "counter.in1"
+      },
+      {
+        "a": "control.out3",
+        "b": "task-card-1.outputInt4"
       }
     ],
     "check": {
-      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה. הבנייה היא ALU3 (ה-CPU לא צריך את ng ו-zr), שני רגיסטרים, יחידת הבקרה, המונה, ושלושה מפצלים — אחד לפקודה ושניים שחותכים את הכתובות ל-10 ול-11 ביטים."
+      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה. הבנייה היא ALU3 (ה-CPU לא צריך את ng ו-zr), שני רגיסטרים, יחידת הבקרה, המונה ומפצל אחד לפקודה — שתי הכתובות יוצאות שלמות, ולכן אין בו אף מפצל של כתובת."
     }
   },
   "Computer0": {
