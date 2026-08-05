@@ -2081,6 +2081,10 @@
     if (has(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : null)) return "memory";
     // The 3.4 ports cards ARE memory as far as the computer is concerned.
     if (has(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : null)) return "memory";
+    // …and so is the 3.5 program memory.
+    if (has(typeof CD_TASKS !== "undefined" ? CD_TASKS : null)) return "memory";
+    // The 4.2 cards are the computer itself — not accessories beside the lamp.
+    if (has(typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : null)) return "computer";
     return "accessories";
   }
 
@@ -2570,7 +2574,7 @@
     // live in MULTIBIT_TASKS, so the lookup falls through to there as well.
     busTaskDefById: (id) => busTaskDefById(id) || multibitTaskDefById(id), gateComponentType, componentMarkup, esc, isNandPresentationWorkspace, isFreeBuildWorkspace, isBusTaskWorkspace, isMultibitTaskWorkspace, nailAvailable: isClockedWorkspace, muxToolAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.muxScene), ffCardAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.ffCardUnlocked), memoryBuildAvailable: () => state.screen === "workspace" && Boolean(state.workspace?.busClocked), sequentialToolsAvailable: () => state.screen === "workspace" && inSequentialEra(), // A 3.4 ports card counts as a memory card here too — IPorts holds nothing,
     // but it belongs with its siblings in the palette, not among the gates.
-    isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type)) || WORKSPACE_COMPONENT_DEFS[type]?.portsCard), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
+    isMemoryCardType: (type) => Boolean((typeof memoryGateSpec === "function" && memoryGateSpec(type)) || (typeof ramGateSpec === "function" && ramGateSpec(type)) || (typeof cdGateSpec === "function" && cdGateSpec(type)) || WORKSPACE_COMPONENT_DEFS[type]?.portsCard), createCardToolAvailable: () => Boolean(state.createCardUnlocked) && !state.cardCreation, savedCardTools: () => {
     // While editing a card, hide it and anything that (transitively) uses it, so
     // the learner can't build a cycle.
     const editing = state.cardCreation?.editingType || null;
