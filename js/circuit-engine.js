@@ -452,8 +452,10 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         // The processor card (gate-CPU0) holds A, D and the PC. Two of them are
         // outputs, so they show what is held this tick; D is internal.
         const spec = cpuGateSpec(component.type);
-        outputs.set(`${component.id}.out1`, fitBits(prevMap.get(`${component.id}.a`) || zeroBits(spec.width), spec.width));
-        outputs.set(`${component.id}.out2`, fitBits(prevMap.get(`${component.id}.pc`) || zeroBits(spec.width), spec.width));
+        // Only the LAST bits of each go out: 11 of A (the memory's address) and
+        // 10 of the PC (the program memory's).
+        outputs.set(`${component.id}.out1`, fitBits(prevMap.get(`${component.id}.a`) || zeroBits(spec.width), spec.addressWidth));
+        outputs.set(`${component.id}.out2`, fitBits(prevMap.get(`${component.id}.pc`) || zeroBits(spec.width), spec.programWidth));
       } else if (prevMap && typeof pcGateSpec === "function" && pcGateSpec(component.type)) {
         // The counter card (gate-PC0) shows the number it is holding this tick;
         // the growing by 1 happens in the next-state pass.
@@ -595,8 +597,8 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             const ctrl = Array.from({ length: 12 }, (_, i) => Boolean(instr[i + 4]));
             const dest = (instr[3] ? 2 : 0) + (instr[2] ? 1 : 0);
             const result = alu4Vec(d, a, mem, ctrl, w);
-            if (setBits(outputs, `${component.id}.out1`, a)) changed = true;
-            if (setBits(outputs, `${component.id}.out2`, pc)) changed = true;
+            if (setBits(outputs, `${component.id}.out1`, fitBits(a, cpu.addressWidth))) changed = true;
+            if (setBits(outputs, `${component.id}.out2`, fitBits(pc, cpu.programWidth))) changed = true;
             if (setBits(outputs, `${component.id}.out3`, result)) changed = true;
             if (setBits(outputs, `${component.id}.out4`, [dest === 3])) changed = true;
             continue;

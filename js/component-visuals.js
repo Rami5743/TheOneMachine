@@ -442,10 +442,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const inYs = [-30, 30];
     const outYs = [-45, -15, 15, 45];
     const captions = ["A", "PC", "\u05e4\u05dc\u05d8", "\u200e*A\u200e"];
+    // The two address buses out are narrower than the word: 11 bits of A for the
+    // memory, 10 of the PC for the program memory.
+    const outWidths = [11, 10, width];
     let s = "";
     inYs.forEach((y) => { s += busGateBar({ x1: -74, x2: -edge, y }, width, !options.toolbar); });
     // Three buses out, and the write wire as a plain cable.
-    outYs.slice(0, 3).forEach((y) => { s += busGateBar({ x1: edge, x2: 78, y }, width, !options.toolbar); });
+    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 78, y }, outWidths[i], !options.toolbar); });
     s += pinLine(edge, outYs[3], 78, outYs[3]);
     s += pinLine(0, -76, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;

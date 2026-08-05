@@ -1333,14 +1333,19 @@
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
       inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
       inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
-      outputInt1: { x: 260, y: -200, direction: "in", width: 16, label: "יציאת A פנימית" },
-      outputExt1: { x: 340, y: -200, direction: "out", width: 16, label: "יציאת A", caption: "A" },
-      outputInt2: { x: 260, y: -70, direction: "in", width: 16, label: "יציאת PC פנימית" },
-      outputExt2: { x: 340, y: -70, direction: "out", width: 16, label: "יציאת PC", caption: "PC" },
+      // The two ADDRESS buses are narrower than the registers they come from: the
+      // memory takes 11 bits of an address, the program memory 10.
+      // All four outputs leave through the card's SIDE, however high or low they
+      // sit — without saying so the shell reads a pin past ±150 as poking out of
+      // the top or bottom edge and stands it on end.
+      outputInt1: { x: 260, y: -200, direction: "in", width: 11, label: "יציאת A פנימית", edge: "side" },
+      outputExt1: { x: 340, y: -200, direction: "out", width: 11, label: "יציאת A", caption: "A", edge: "side" },
+      outputInt2: { x: 260, y: -70, direction: "in", width: 10, label: "יציאת PC פנימית" },
+      outputExt2: { x: 340, y: -70, direction: "out", width: 10, label: "יציאת PC", caption: "PC" },
       outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
       outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "פלט" },
-      outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית" },
-      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "\u200e*A\u200e" }
+      outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית", edge: "side" },
+      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "\u200e*A\u200e", edge: "side" }
     },
     bounds: { left: 340, right: 340, top: 310, bottom: 280 }
   };
@@ -1358,8 +1363,8 @@
       in1: { x: -74, y: -30, direction: "in", width: 16, label: "כניסת הפקודה" },
       in2: { x: -74, y: 30, direction: "in", width: 16, label: "כניסת הקלט" },
       in3: { x: 0, y: -76, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out1: { x: 78, y: -45, direction: "out", width: 16, label: "יציאת A" },
-      out2: { x: 78, y: -15, direction: "out", width: 16, label: "יציאת PC" },
+      out1: { x: 78, y: -45, direction: "out", width: 11, label: "יציאת A" },
+      out2: { x: 78, y: -15, direction: "out", width: 10, label: "יציאת PC" },
       out3: { x: 78, y: 15, direction: "out", width: 16, label: "יציאת הפלט" },
       out4: { x: 78, y: 45, direction: "out", width: 1, label: "יציאת הכתיבה" }
     },
@@ -15176,7 +15181,13 @@
       { instr: 0b1000000011001100, mem: 0, reset: false },  // *A = D
       { instr: 0b1000000011000000, mem: 0, reset: false },  // compute, write nowhere
       { instr: 0b0000000000010100, mem: 0, reset: true },   // A = 1, and reset the PC
-      { instr: 0b0000000001011000, mem: 0, reset: false }   // D = 5, counting on from 0
+      { instr: 0b0000000001011000, mem: 0, reset: false },  // D = 5, counting on from 0
+      // And a number too big for the address bus: A grows past 11 bits, so the
+      // address it puts out must be the LAST 11 bits of it and nothing more.
+      { instr: 0x7FF8, mem: 0, reset: false },              // D = 2047
+      { instr: 0x7FF4, mem: 0, reset: false },              // A = 2047
+      { instr: 0x8104, mem: 0, reset: false },              // A = D + A = 4094
+      { instr: 0x8100, mem: 0, reset: false }               // compute, write nowhere
     ];
   }
   // What every output must show on each tick, from the story's own rules. The
@@ -15188,7 +15199,8 @@
       const control = (step.instr >> 4) & 0xfff;
       const dest = (step.instr >> 2) & 3;
       const result = cpuAluResult(control, d, a, step.mem);
-      rows.push({ a, pc, out: result, write: dest === 3 });
+      // The address buses carry only the last 11 / 10 bits of the registers.
+      rows.push({ a: a & 0x7ff, pc: pc & 0x3ff, out: result, write: dest === 3 });
       const nextA = dest === 1 ? result : a;
       const nextD = dest === 2 ? result : d;
       pc = step.reset ? 0 : (pc + 1) & 0xffff;
@@ -19857,7 +19869,13 @@
   function cpuGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.cpuGate) return null;
-    return { width: def.busWidth || 16 };
+    // Its two address buses are narrower than the registers behind them — they
+    // carry the LAST bits only, which is exactly what each memory can address.
+    return {
+      width: def.busWidth || 16,
+      addressWidth: def.pins.out1.width,
+      programWidth: def.pins.out2.width
+    };
   }
 
   // The 4.2 control card (gate-Cont0): combinational — the 2-bit bus in says
