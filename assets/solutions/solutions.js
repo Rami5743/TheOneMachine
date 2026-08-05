@@ -5061,7 +5061,7 @@ window.EMBEDDED_SOLUTIONS = {
           "w": 16,
           "dir": "in",
           "label": "כניסת כתובת הקריאה",
-          "caption": "כתובת קריאה"
+          "caption": "RAdr"
         },
         {
           "id": "inputInt3",
@@ -5078,7 +5078,7 @@ window.EMBEDDED_SOLUTIONS = {
           "w": 16,
           "dir": "in",
           "label": "כניסת כתובת הכתיבה",
-          "caption": "כתובת כתיבה"
+          "caption": "WAdr"
         },
         {
           "id": "inputInt4",
@@ -5094,8 +5094,7 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 110,
           "w": 16,
           "dir": "in",
-          "label": "כניסת הדאטה",
-          "caption": "דאטה"
+          "label": "כניסת הדאטה"
         },
         {
           "id": "inputInt1",

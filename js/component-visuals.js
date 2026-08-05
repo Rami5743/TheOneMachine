@@ -440,7 +440,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const edge = 56;
     const bodyH = 170;
     const inYs = [-60, 0, 60];
-    const inNames = ["כתובת קריאה", "כתובת כתיבה", "דאטה"];
+    // The two addresses are named; the data bus is not — it is the only thing
+    // left it could be.
+    const inNames = ["RAdr", "WAdr", ""];
     let s = "";
     inYs.forEach((y) => { s += busGateBar({ x1: -110, x2: -edge, y }, width, !options.toolbar); });
     s += busGateBar({ x1: edge, x2: 110, y: 0 }, width, !options.toolbar);
@@ -454,6 +456,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // body through the wrong edge.
     const nfont = Math.round(9 * k());
     inYs.forEach((y, i) => {
+      if (!inNames[i]) return;
       s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${y + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">${esc(inNames[i])}</text>`;
     });
     return `<g class="usercard">${s}</g>`;
@@ -505,7 +508,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       `<text class="arith-gate-pin-letter" x="${x}" y="${y + Math.round(nfont * 0.35)}" text-anchor="${anchor}" style="font-size:${nfont}px;direction:ltr">${esc(text)}</text>`;
     inYs.forEach((y, i) => { s += nameText(-edge + 10, y, "start", inNames[i]); });
     outYs.forEach((y, i) => { s += nameText(edge - 10, y, "end", outNames[i]); });
-    s += nameText(0, -bodyH / 2 + 18, "middle", "rst");
+    s += nameText(0, -bodyH / 2 + 18, "middle", "Rst");
     return `<g class="usercard">${s}</g>`;
   }
 

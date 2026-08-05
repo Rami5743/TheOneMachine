@@ -1403,11 +1403,11 @@
     pins: {
       // A pin more than 150 off the centre line is read by the frame shell as
       // poking out of the TOP edge unless it says it leaves through the side.
-      inputExt3: { x: -460, y: -170, direction: "in", width: 16, label: "כניסת כתובת הקריאה", caption: "כתובת קריאה", edge: "side" },
+      inputExt3: { x: -460, y: -170, direction: "in", width: 16, label: "כניסת כתובת הקריאה", caption: "RAdr", edge: "side" },
       inputInt3: { x: -340, y: -170, direction: "out", width: 16, label: "כניסת כתובת הקריאה פנימית", edge: "side" },
-      inputExt4: { x: -460, y: -50, direction: "in", width: 16, label: "כניסת כתובת הכתיבה", caption: "כתובת כתיבה" },
+      inputExt4: { x: -460, y: -50, direction: "in", width: 16, label: "כניסת כתובת הכתיבה", caption: "WAdr" },
       inputInt4: { x: -340, y: -50, direction: "out", width: 16, label: "כניסת כתובת הכתיבה פנימית" },
-      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputExt1: { x: -460, y: 110, direction: "in", width: 16, label: "כניסת הדאטה" },
       inputInt1: { x: -340, y: 110, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
       inputExt2: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת הבקרה" },
       inputInt2: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת הבקרה פנימית" },
