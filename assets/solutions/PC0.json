@@ -59,19 +59,19 @@
       "id": "zero-mux",
       "type": "gate-MUX16",
       "x": 470,
-      "y": 430
+      "y": 330
     },
     {
       "id": "counter",
       "type": "gate-Register",
-      "x": 790,
-      "y": 430
+      "x": 700,
+      "y": 330
     },
     {
       "id": "plus-one",
       "type": "gate-Inc",
-      "x": 640,
-      "y": 580
+      "x": 600,
+      "y": 520
     }
   ],
   "wires": [

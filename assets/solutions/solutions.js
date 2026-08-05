@@ -5151,19 +5151,19 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "zero-mux",
         "type": "gate-MUX16",
         "x": 470,
-        "y": 430
+        "y": 330
       },
       {
         "id": "counter",
         "type": "gate-Register",
-        "x": 790,
-        "y": 430
+        "x": 700,
+        "y": 330
       },
       {
         "id": "plus-one",
         "type": "gate-Inc",
-        "x": 640,
-        "y": 580
+        "x": 600,
+        "y": 520
       }
     ],
     "wires": [
@@ -5292,7 +5292,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "always-one",
         "type": "source",
-        "x": 420,
+        "x": 430,
         "y": 300
       },
       {
@@ -5409,7 +5409,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt1",
           "x": 260,
-          "y": -200,
+          "y": -70,
           "w": 11,
           "dir": "in",
           "label": "יציאת A פנימית"
@@ -5417,7 +5417,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt1",
           "x": 340,
-          "y": -200,
+          "y": -70,
           "w": 11,
           "dir": "out",
           "label": "יציאת A",
@@ -5426,7 +5426,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputInt2",
           "x": 260,
-          "y": -70,
+          "y": -200,
           "w": 10,
           "dir": "in",
           "label": "יציאת PC פנימית"
@@ -5434,7 +5434,7 @@ window.EMBEDDED_SOLUTIONS = {
         {
           "id": "outputExt2",
           "x": 340,
-          "y": -70,
+          "y": -200,
           "w": 10,
           "dir": "out",
           "label": "יציאת PC",
@@ -5488,8 +5488,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 430,
-        "y": 250,
+        "x": 420,
+        "y": 230,
         "mirrored": false,
         "outputs": 3,
         "legWidths": [
@@ -5502,38 +5502,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "control",
         "type": "gate-Cont0",
-        "x": 590,
-        "y": 250
+        "x": 580,
+        "y": 220
       },
       {
         "id": "alu",
         "type": "gate-ALU4",
-        "x": 560,
+        "x": 680,
         "y": 460
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 780,
-        "y": 370
+        "x": 470,
+        "y": 400
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 780,
-        "y": 550
+        "x": 470,
+        "y": 520
       },
       {
         "id": "counter",
         "type": "gate-PC0",
-        "x": 430,
-        "y": 620
+        "x": 420,
+        "y": 640
       },
       {
         "id": "a-address",
         "type": "splitter",
-        "x": 890,
-        "y": 470,
+        "x": 840,
+        "y": 560,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -5546,7 +5546,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "pc-address",
         "type": "splitter",
         "x": 610,
-        "y": 620,
+        "y": 640,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -5844,8 +5844,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "pc-wide",
         "type": "splitter",
-        "x": 420,
-        "y": 640,
+        "x": 745,
+        "y": 420,
         "mirrored": true,
         "outputs": 2,
         "legWidths": [
@@ -5858,7 +5858,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "cd-wide",
         "type": "splitter",
         "x": 330,
-        "y": 300,
+        "y": 230,
         "mirrored": true,
         "outputs": 2,
         "legWidths": [
@@ -5870,14 +5870,14 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "addr-pick",
         "type": "gate-MUX16",
-        "x": 430,
-        "y": 380
+        "x": 450,
+        "y": 300
       },
       {
         "id": "addr-cut",
         "type": "splitter",
-        "x": 540,
-        "y": 380,
+        "x": 545,
+        "y": 300,
         "mirrored": false,
         "outputs": 2,
         "legWidths": [
@@ -5890,19 +5890,19 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "program",
         "type": "gate-RAM1024",
         "x": 660,
-        "y": 300
+        "y": 210
       },
       {
         "id": "cpu",
         "type": "gate-CPU0",
-        "x": 660,
-        "y": 520
+        "x": 600,
+        "y": 350
       },
       {
         "id": "memory",
         "type": "gate-RAM",
-        "x": 900,
-        "y": 440
+        "x": 880,
+        "y": 470
       }
     ],
     "wires": [

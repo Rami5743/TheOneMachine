@@ -1343,10 +1343,10 @@
       // All four outputs leave through the card's SIDE, however high or low they
       // sit — without saying so the shell reads a pin past ±150 as poking out of
       // the top or bottom edge and stands it on end.
-      outputInt1: { x: 260, y: -200, direction: "in", width: 11, label: "יציאת A פנימית", edge: "side" },
-      outputExt1: { x: 340, y: -200, direction: "out", width: 11, label: "יציאת A", caption: "A", edge: "side" },
-      outputInt2: { x: 260, y: -70, direction: "in", width: 10, label: "יציאת PC פנימית" },
-      outputExt2: { x: 340, y: -70, direction: "out", width: 10, label: "יציאת PC", caption: "PC" },
+      outputInt1: { x: 260, y: -70, direction: "in", width: 11, label: "יציאת A פנימית", edge: "side" },
+      outputExt1: { x: 340, y: -70, direction: "out", width: 11, label: "יציאת A", caption: "A", edge: "side" },
+      outputInt2: { x: 260, y: -200, direction: "in", width: 10, label: "יציאת PC פנימית", edge: "side" },
+      outputExt2: { x: 340, y: -200, direction: "out", width: 10, label: "יציאת PC", caption: "PC", edge: "side" },
       outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
       outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "\u2067פלט \u200e*A\u200e\u2069" },
       outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית", edge: "side" },
@@ -1368,8 +1368,8 @@
       in1: { x: -74, y: -30, direction: "in", width: 16, label: "כניסת הפקודה" },
       in2: { x: -74, y: 30, direction: "in", width: 16, label: "כניסת הקלט" },
       in3: { x: 0, y: -76, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out1: { x: 78, y: -45, direction: "out", width: 11, label: "יציאת A" },
-      out2: { x: 78, y: -15, direction: "out", width: 10, label: "יציאת PC" },
+      out1: { x: 78, y: -15, direction: "out", width: 11, label: "יציאת A" },
+      out2: { x: 78, y: -45, direction: "out", width: 10, label: "יציאת PC" },
       out3: { x: 78, y: 15, direction: "out", width: 16, label: "יציאת הפלט" },
       out4: { x: 78, y: 45, direction: "out", width: 1, label: "יציאת הכתיבה" }
     },
@@ -20569,6 +20569,12 @@
     // NOT [role='button'] — the board's own pin hit-circles carry that role, and
     // the wire cursor must still show when the pointer is right on one.
     if (event.target.closest("button, a, input, textarea, select")) return true;
+    // The card designer's pin stubs: double-clicking one opens its width picker.
+    // The tolerance reaches right across them, and starting a wire calls
+    // preventDefault — which stops the browser ever reporting the double click,
+    // so almost every attempt to widen a pin grabbed the pin instead. Wiring is
+    // done on the terminal itself, which is handled well before this.
+    if (event.target.closest("[data-card-pin]")) return true;
     return Boolean(draggableDialogElement(event));
   }
 
