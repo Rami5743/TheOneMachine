@@ -15333,15 +15333,90 @@
   // are In0–In3 (see the RAM card of chapter 3.4).
   const COMPUTER_PORT_OUT_BASE = 1024;
   const COMPUTER_PORT_IN_BASE = 1028;
-  // "Out0 = In0, Out1 = In1", written in the machine's own instruction format.
-  function computerTestProgram() {
-    const setA = (n) => (n << 4) | (2 << 2);      // emit n, write it to A
-    const readStar = 0b1000010100010100;          // D = *A   (compute on D and *A, D zeroed, add)
-    const writeStar = 0b1000000011001100;         // *A = D   (pass D through, write to *A)
-    return [
-      setA(COMPUTER_PORT_IN_BASE), readStar, setA(COMPUTER_PORT_OUT_BASE), writeStar,
-      setA(COMPUTER_PORT_IN_BASE + 1), readStar, setA(COMPUTER_PORT_OUT_BASE + 1), writeStar
-    ];
+  // Instructions, written the way chapter 4.1 reads them: twelve bits of ALU
+  // instruction, two of destination, two spare.
+  //   emit(n, dest)  - don't compute, put the number n where dest says
+  //   alu(op, dest)  - compute op and put the result where dest says
+  // The ALU instructions themselves, by the bit numbers of the guide: bit 1 says
+  // compute, bit 6 picks the second operand (A or *A), bit 7 is a NOT at the end,
+  // bit 8 picks add over and, bits 9-10 prepare the second operand and 11-12 the
+  // first (Not / zero).
+  const CPU_DEST = { none: 0, D: 1, A: 2, star: 3 };
+  const ALU_OP = {
+    D:        0b100000001100,   // D and NOT-of-zero -> D
+    star:     0b100001010001,   // zero + *A         -> *A
+    D_plus_A: 0b100000010000,
+    D_plus_star: 0b100001010000,
+    D_minus_A: 0b100000110010,  // the chapter's own subtraction bits
+    D_minus_star: 0b100001110010,
+    star_minus_D: 0b100001111000,
+    D_and_A:  0b100000000000
+  };
+  const emit = (n, dest) => ((n & 0x7ff) << 4) | (dest << 2);
+  const alu = (op, dest) => (op << 4) | (dest << 2);
+  const setA = (n) => emit(n, CPU_DEST.A);
+  const IN = COMPUTER_PORT_IN_BASE;
+  const OUT = COMPUTER_PORT_OUT_BASE;
+  const SCRATCH = 7;                                // an ordinary memory cell
+  // How much of the program memory the check writes for each program: enough for
+  // the longest of them, and cleared to zero above it so one program never runs
+  // into what the one before it left behind.
+  const PROGRAM_ROOM = 24;
+
+  // The programs the check runs, each with the numbers to put on the two input
+  // ports and what the four output ports must hold when it has run its course.
+  // Between them they use every destination, both of the ALU's operand choices,
+  // addition and subtraction, an ordinary memory cell as scratch, and a sum that
+  // runs off the end of sixteen bits.
+  function computerTestPrograms() {
+    const copy = {
+      name: "copy",
+      program: [
+        setA(IN), alu(ALU_OP.star, CPU_DEST.D), setA(OUT), alu(ALU_OP.D, CPU_DEST.star),
+        setA(IN + 1), alu(ALU_OP.star, CPU_DEST.D), setA(OUT + 1), alu(ALU_OP.D, CPU_DEST.star)
+      ],
+      in0: 4321, in1: 1234,
+      outs: (a, b) => [a, b, 0, 0]
+    };
+    const add = {
+      name: "add",
+      program: [
+        setA(IN), alu(ALU_OP.star, CPU_DEST.D),
+        setA(IN + 1), alu(ALU_OP.D_plus_star, CPU_DEST.D),
+        setA(OUT), alu(ALU_OP.D, CPU_DEST.star)
+      ],
+      in0: 65000, in1: 1000,                          // 66000 — over sixteen bits
+      outs: (a, b) => [(a + b) & 0xffff, 0, 0, 0]
+    };
+    const subtract = {
+      name: "subtract",
+      program: [
+        setA(IN), alu(ALU_OP.star, CPU_DEST.D),
+        setA(IN + 1), alu(ALU_OP.D_minus_star, CPU_DEST.D),
+        setA(OUT + 1), alu(ALU_OP.D, CPU_DEST.star)
+      ],
+      in0: 100, in1: 358,                             // negative, so it wraps round
+      outs: (a, b) => [0, (a - b) & 0xffff, 0, 0]
+    };
+    // The long one: it fills all four output ports, and carries a number through
+    // an ordinary memory cell to do it.
+    const everything = {
+      name: "all four ports",
+      program: [
+        setA(IN), alu(ALU_OP.star, CPU_DEST.D),         // D = In0
+        setA(OUT), alu(ALU_OP.D, CPU_DEST.star),        // Out0 = In0
+        setA(SCRATCH), alu(ALU_OP.D, CPU_DEST.star),    // keep In0 in a plain cell
+        setA(IN + 1), alu(ALU_OP.star, CPU_DEST.D),     // D = In1
+        setA(OUT + 1), alu(ALU_OP.D, CPU_DEST.star),    // Out1 = In1
+        setA(SCRATCH), alu(ALU_OP.D_plus_star, CPU_DEST.D),   // D = In1 + In0
+        setA(OUT + 2), alu(ALU_OP.D, CPU_DEST.star),    // Out2 = the sum
+        setA(SCRATCH), alu(ALU_OP.D_minus_star, CPU_DEST.D),  // D = the sum - In0
+        setA(OUT + 3), alu(ALU_OP.D, CPU_DEST.star)     // Out3 = In1 again
+      ],
+      in0: 777, in1: 30000,
+      outs: (a, b) => [a, b, (a + b) & 0xffff, b]
+    };
+    return [copy, add, subtract, everything];
   }
   // The learner's build + temporary drivers: dec→bin converters on cd-adr, cd and
   // the two input ports, a source on reset, bin→dec readers on all four outputs.
@@ -15374,56 +15449,68 @@
     return { outs: [read(0), read(1), read(2), read(3)], next: result.next };
   }
   function runComputerTest(base) {
-    const program = computerTestProgram();
     const idle = { cdAdr: 0, cd: 0, in0: 0, in1: 0, reset: false };
-    // Load the program while reset is held: one instruction per tick.
-    const load = (prev, in0, in1) => {
+    const want = (got, expected, where) => {
+      if (expected.every((v, i) => got[i] === v)) return null;
+      // A failed run says WHICH program (or which rule) went wrong and what the
+      // ports showed — the result dialog only says pass or fail.
+      if (typeof console !== "undefined") console.info(`[Computer0] ${where}: ports show ${got.join(", ")} — expected ${expected.join(", ")}`);
+      return { ok: false, where, expected, got };
+    };
+    // Loading a program: reset held, one instruction per tick. Every cell the
+    // program does NOT fill is written back to 0, so a program never inherits
+    // what the one before it left in the program memory.
+    const load = (prev, program, in0, in1) => {
       let p = prev;
-      for (let i = 0; i < program.length; i += 1) {
-        p = computerTick(base, { cdAdr: i, cd: program[i], in0, in1, reset: true }, p).next;
+      for (let i = 0; i < PROGRAM_ROOM; i += 1) {
+        const word = i < program.length ? program[i] : 0;
+        p = computerTick(base, { cdAdr: i, cd: word, in0, in1, reset: true }, p).next;
       }
       return p;
     };
-    // Let it run long enough for the eight instructions to go by.
-    const run = (prev, in0, in1, ticks) => {
+    // Long enough for the whole program to go by, plus a few idle ticks.
+    const run = (prev, program, in0, in1) => {
       let p = prev;
       let last = null;
-      for (let i = 0; i < ticks; i += 1) {
+      for (let i = 0; i < program.length + 4; i += 1) {
         last = computerTick(base, { ...idle, in0, in1 }, p);
         p = last.next;
       }
       return { outs: last ? last.outs : [-1, -1, -1, -1], next: p };
     };
-    const want = (got, expected, index) => {
-      if (expected.every((v, i) => got[i] === v)) return null;
-      // A failed run says WHICH of the three things went wrong and what the ports
-      // showed — the result dialog only says pass or fail.
-      if (typeof console !== "undefined") console.info(`[Computer0] phase ${index}: ports show ${got.join(", ")} — expected ${expected.join(", ")}`);
-      return { ok: false, index, expected, got };
-    };
 
-    let prev = load(new Map(), 0, 0);
-    let phase = run(prev, 4321, 1234, 14);
-    let bad = want(phase.outs, [4321, 1234, 0, 0], 0);
-    if (bad) return bad;
-    prev = phase.next;
-
-    // cd is ignored while it runs: writing a "put 9 in Out0" word into the
-    // program must change nothing until reset says so.
-    const poison = (9 << 4) | (2 << 2);
-    for (let i = 0; i < 4; i += 1) {
-      prev = computerTick(base, { cdAdr: 0, cd: poison, in0: 4321, in1: 1234, reset: false }, prev).next;
+    let prev = new Map();
+    let phase = null;
+    let first = null;
+    for (const test of computerTestPrograms()) {
+      prev = load(prev, test.program, 0, 0);
+      phase = run(prev, test.program, test.in0, test.in1);
+      const bad = want(phase.outs, test.outs(test.in0, test.in1), `the "${test.name}" program`);
+      if (bad) return bad;
+      prev = phase.next;
+      if (!first) first = test;
     }
-    phase = run(prev, 4321, 1234, 4);
-    bad = want(phase.outs, [4321, 1234, 0, 0], 1);
+
+    // The last program is still loaded and its numbers are still on the ports.
+    const last = computerTestPrograms()[computerTestPrograms().length - 1];
+    const settled = last.outs(last.in0, last.in1);
+
+    // cd is ignored while it runs: writing a "put 9 in A" word over the program's
+    // first instruction must change nothing at all until reset says so.
+    const poison = emit(9, CPU_DEST.A);
+    for (let i = 0; i < 4; i += 1) {
+      prev = computerTick(base, { cdAdr: 0, cd: poison, in0: last.in0, in1: last.in1, reset: false }, prev).next;
+    }
+    phase = run(prev, last.program, last.in0, last.in1);
+    let bad = want(phase.outs, settled, "the rule that cd is ignored while it runs");
     if (bad) return bad;
 
     // And reset starts the program over: new numbers on the ports, and the very
-    // same program copies them across again. The reset tick writes the first
+    // same program works them out again. The reset tick writes the first
     // instruction back over itself, so the program is left exactly as it was.
-    prev = computerTick(base, { cdAdr: 0, cd: program[0], in0: 7, in1: 8, reset: true }, phase.next).next;
-    phase = run(prev, 7, 8, 14);
-    bad = want(phase.outs, [7, 8, 0, 0], 2);
+    prev = computerTick(base, { cdAdr: 0, cd: last.program[0], in0: 11, in1: 22, reset: true }, phase.next).next;
+    phase = run(prev, last.program, 11, 22);
+    bad = want(phase.outs, last.outs(11, 22), "the rule that reset starts the program over");
     if (bad) return bad;
     return { ok: true };
   }
