@@ -1242,7 +1242,7 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "The same picture as the beat before it, with the send-off.",
+        "comment": "The send-off, on the STANDING art (the one two beats back) — not the handover picture beside it.",
         "image": "assets/panels/panel221_chapter_3_5_program_memory_good_luck.svg",
         "year": "1943",
         "read": "בהצלחה"

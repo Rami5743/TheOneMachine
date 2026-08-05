@@ -6,12 +6,12 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg">
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
-     preserveAspectRatio="none" href="panel140_chapter_3_3_ram_handover.jpg" xlink:href="panel140_chapter_3_3_ram_handover.jpg" />
+     preserveAspectRatio="none" href="panel131_chapter_3_1_more_memory.jpg" xlink:href="panel131_chapter_3_1_more_memory.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 779.51169,40 H 1064.48831 C 1077.49611,40 1084,47.33333 1084,62 V 88 C 1084,102.66667 1077.4961,110 1064.48831,110 H 779.51169 C 766.50389,110 760,102.66667 760,88 V 123.23 L 714.47133,129.92 L 760,101.21 V 62 C 760,47.33333 766.50389,40 779.51169,40 Z" fill="#ffffff" stroke="#000000"
+    <path id="speech-bubble" d="M 490.51169,40 H 740.48831 C 753.49611,40 760,47.33333 760,62 V 88 C 760,102.66667 753.4961,110 740.48831,110 H 490.51169 C 477.50389,110 471,102.66667 471,88 V 88 L 425.47133,94.69 L 471,65.98 V 62 C 471,47.33333 477.50389,40 490.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="922" y="80" id="tspan1">בהצלחה</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="615.5" y="80" id="tspan1">בהצלחה</tspan></text>
   </g>
 </svg>
