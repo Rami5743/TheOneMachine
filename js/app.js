@@ -1625,6 +1625,7 @@
     ramNoteList: false,
     // The 3.4 ports worktable note (OPorts / IPorts / Ports / RAM).
     portsNoteList: false,
+    cdNoteList: false,
     // The paged "what is an ALU" message shown once ALU0 is built ({page} | null).
     aluIntroDialog: null,
     // The scripted 2.6 subtraction demo (von Neumann drives an ALU4 through a
@@ -2285,7 +2286,7 @@
       || Boolean(state.solutionDialog) || Boolean(state.infoDialog)
       || Boolean(state.taskDialog) || Boolean(state.dialog)
       || Boolean(state.memoryNoteList) || Boolean(state.ramNoteList) || Boolean(state.aluNoteList)
-      || Boolean(state.portsNoteList)
+      || Boolean(state.portsNoteList) || Boolean(state.cdNoteList)
       || Boolean(state.arithNoteList) || Boolean(state.busesNoteList)
       || Boolean(state.noteClearConfirm) || Boolean(state.componentMonologue)
       || Boolean(state.converterValueEdit) || Boolean(state.converterInfo);
@@ -2851,6 +2852,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      cdNoteList: false,
       panelObjectDialog: null,
       aluIntroDialog: null,
       panelAnswer: null,
@@ -3103,7 +3105,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, cdNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6435,6 +6437,7 @@
       ${renderMemoryNoteList()}
       ${renderRamNoteList()}
       ${renderPortsNoteList()}
+      ${renderCdNoteList()}
       ${renderAluIntroDialog()}
       ${renderBuildNoteList()}
       ${renderInstructionSheet()}`;
@@ -17680,6 +17683,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      cdNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
       whyNoteHidden: false,
@@ -17798,6 +17802,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      cdNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
       whyNoteHidden: false,
@@ -17945,6 +17950,7 @@
       memoryNoteList: false,
       ramNoteList: false,
       portsNoteList: false,
+      cdNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
       whyNoteHidden: false,
@@ -17970,11 +17976,12 @@
     if (!allPortsDone) {
       return { ...portsWorktableReturnTarget(), portsNoteList: true, infoDialog: null };
     }
-    const production = chapterById("chapter-14");
-    if (production) {
+    // 3.5 (program memory) now sits between the ports and יצור.
+    const programMemory = chapterById("chapter-17");
+    if (programMemory) {
       return {
         ...transientUiClearPatch(),
-        ...storyTarget(production, 0),
+        ...storyTarget(programMemory, 0),
         started: true,
         replayNonce: state.replayNonce + 1
       };
@@ -18018,6 +18025,52 @@
           </div>
         </section>
         ${renderNoteClearDialog()}
+      </div>`;
+  }
+
+  // ---- 3.5 program memory: the tasks note with the single Cd card ---------
+  function openCdNote() {
+    return setState({ cdNoteList: true });
+  }
+
+  const cdTaskDefs = () => (typeof CD_TASKS !== "undefined" ? CD_TASKS : []);
+  const cdTaskDefById = (id) => cdTaskDefs().find((task) => task.id === id) || null;
+  // The single switch that opens the build: Cd has no requirements written yet,
+  // so the note offers the card and the click says "המשך יבוא..." instead of
+  // stranding the learner on an empty worktable.
+  const cdTaskImplemented = () => false;
+
+  function handleCdNoteTask(id) {
+    const task = cdTaskDefById(id);
+    if (!task) return;
+    if (!cdTaskImplemented(task.id)) return setState({ infoDialog: "המשך יבוא..." });
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+  }
+
+  function renderCdNoteList() {
+    if (!state.cdNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${cdTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "\u2713" : ""}</span>
+              <button class="note-task-button" data-action="cd-note-task" data-task-id="${esc(task.id)}" type="button">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="cd-note-close">סגור</button>
+          </div>
+        </section>
       </div>`;
   }
 
@@ -21712,6 +21765,9 @@
     if (action === "ports-tasks-note") return openPortsNote();
     if (action === "ports-note-task") return handlePortsNoteTask(button.dataset.taskId);
     if (action === "ports-note-close") return setState({ portsNoteList: false });
+    if (action === "cd-tasks-note") return openCdNote();
+    if (action === "cd-note-task") return handleCdNoteTask(target.dataset.taskId);
+    if (action === "cd-note-close") return setState({ cdNoteList: false });
     if (action === "memory-note-task") return handleMemoryNoteTask(button.dataset.taskId);
     if (action === "memory-note-close") return setState({ memoryNoteList: false });
     if (action === "arith-converter-in") return openConverterInfo("in");

@@ -105,9 +105,15 @@ const CHAPTERS = [
     "sceneId": "ports"
   },
   {
+    "id": "chapter-17",
+    "partId": "part-3",
+    "title": "3.5 זיכרון תוכנה",
+    "sceneId": "program-memory"
+  },
+  {
     "id": "chapter-14",
     "partId": "part-3",
-    "title": "3.5 יצור",
+    "title": "3.6 יצור",
     "sceneId": "production",
     "story": true
   },
@@ -1202,6 +1208,52 @@ const SCENES = {
         "read": "",
         "hotspots": [
           { "ariaLabel": "פתק המשימות", "action": "ports-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
+          { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
+          { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
+          { "ariaLabel": "חוברת התרגילים", "action": "binary-booklet", "left": 58.4, "top": 73.7, "width": 11.4, "height": 11.5 },
+          { "ariaLabel": "הקש על Nand", "action": "return-to-nand-dialog", "left": 39, "top": 59, "width": 18, "height": 24 },
+          { "ariaLabel": "האגף הימני של הארגז החדש", "action": "buses-crate-right", "left": 47, "top": 40, "width": 8, "height": 12 },
+          { "ariaLabel": "האגף השמאלי של הארגז החדש", "action": "buses-crate-left", "left": 55, "top": 40, "width": 8, "height": 12 }
+        ]
+      }
+    ]
+  },
+  "program-memory": {
+    "id": "program-memory",
+    "title": "3.5 זיכרון תוכנה",
+    "panels": [
+      {
+        "comment": "Chapter 3.5 program memory: von Neumann in the doorway again (the 3.4 opening art). The data memory is done; now the machine needs somewhere to keep its instructions.",
+        "image": "assets/panels/panel218_chapter_3_5_program_memory_intro.svg",
+        "year": "1943",
+        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים. אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותם כדי שהוא יוכל לקרוא אותם."
+      },
+      {
+        "comment": "The whole design of the program memory in one breath: like the RAM but no ports, read-only to the computer, and a SECOND address just for writing — which the control input switches to.",
+        "image": "assets/panels/panel219_chapter_3_5_program_memory_design.svg",
+        "year": "1943",
+        "read": "הזיכרון הזה נקרא זיכרון תוכנה. הוא יהיה כמעט זהה ל-RAM. אבל עם כמה הבדלים קטנים. לא נצטרך שום פורטים ולא נצטרך לאפשר למחשב שלנו לכתוב לתוכו, רק לקרוא ממנו. אולם אנחנו כן רוצים לכתוב לתוכו ממקום אחר. כך שלא נוותר על כניסת הדאטה של הזיכרון. אנחנו לא רוצים לנתק אותו בכל פעם שאנחנו רוצים לכתוב לתוכו, לכן ניתן לו עוד כניסת כתובת ונשתמש בה בשביל לכתוב. מכיוון שהזיכרונות שלנו לא מאפשרים כתיבה וקריאה לכתובות שונות בפועל, כאשר כניסת הבקרה של הזיכרון תפתח אותו לכתיבה נצטרך לגרום לזיכרון להתעלם מכתובת הקריאה הרגילה שלו ולהשתמש רק בכתובת הכתיבה. בדרך כלל הוא יהיה נעול לכתיבה, ואז נתעלם מכתובת הכתיבה. גם כאן נסתפק בזיכרון בגודל 1024 רגיסטרים."
+      },
+      {
+        "comment": "Wordless beat: von Neumann lays the tasks note on the worktable (the same handover art 3.3 and 3.4 use).",
+        "image": "assets/panels/panel220_chapter_3_5_program_memory_handover.svg",
+        "year": "1943",
+        "read": ""
+      },
+      {
+        "comment": "The same picture as the beat before it, with the send-off.",
+        "image": "assets/panels/panel221_chapter_3_5_program_memory_good_luck.svg",
+        "year": "1943",
+        "read": "בהצלחה"
+      },
+      {
+        "comment": "Chapter 3.5 worktable: the very click-zones of 3.4's, except that the tasks note opens the program-memory list (one card, Cd). The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback.",
+        "image": "assets/panels/panel222_chapter_3_5_program_memory_worktable.svg",
+        "year": "1943",
+        "read": "",
+        "hotspots": [
+          { "ariaLabel": "פתק המשימות", "action": "cd-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
           { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
           { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
           { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },

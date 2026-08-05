@@ -963,6 +963,29 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
+  // ---- 3.5 program memory ------------------------------------------------
+  // One card: Cd, the memory the computer's instructions live in. It is the RAM
+  // without the ports, read-only to the computer, and with a SECOND address that
+  // the control input switches to for writing.
+  // The requirements are not written yet, so the note offers the card but the
+  // build is not open — handleCdNoteTask shows "המשך יבוא..." until they arrive
+  // (cdTaskImplemented in app.js is the single switch that opens it).
+  const CD_TASKS = [
+    {
+      id: "Cd",
+      label: "Cd",
+      requires: [],
+      inputs: 4,
+      outputs: 1,
+      busWidth: 16,
+      addressWidth: 10,
+      slots: 1024,
+      clocked: true,
+      requirements: "Cd הוא זיכרון התוכנה של המחשב.\n\nיש לו 2 כניסות כתובת ברוחב 16 ביטים כל אחת, אבל הוא מתייחס רק ל-10 הביטים האחרונים של הכתובת. אחת מכניסות הכתובת היא לכתיבה והשנייה לקריאה. יש לו גם כניסת בקרה וכניסת דאטה.\n\nאם כניסת הבקרה היא 0, הוא מתעלם מכתובת הכתיבה ומוציא את הערך של הרגיסטר שנמצא בכתובת הקריאה.\n\nאם כניסת הבקרה היא 1 הוא מתעלם מכתובת הקריאה וכותב לרגיסטר שנמצא בכתובת הכתיבה. במקרה זה הוא מוציא 0.",
+      hints: []
+    }
+  ];
+
   // Objects a story slide can offer for a closer look: a click-zone over the
   // object opens a small window with its reference link and, when the object is
   // something the learner takes with them, a "לקחת" button that walks the story
