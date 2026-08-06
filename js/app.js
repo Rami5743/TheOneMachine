@@ -3544,13 +3544,13 @@
   function isWorkspaceLaunchPanel(panel) {
     if (!panel) return false;
     if (panel.launchWorkspace || panel.workspaceLaunch) return true;
-    return panelImageIs(panel, "panel82.png");
+    return panelImageIs(panel, "083_2.1_nand-workshop-1943.svg");
   }
 
   function isReturnToNandPanel(panel) {
     if (!panel) return false;
     if (panel.returnToNand || panel.nandReturn) return true;
-    return panelImageIs(panel, "panel87.png");
+    return panelImageIs(panel, "090_2.2_simple-gates-worktable.svg");
   }
 
   function chapterBySceneId(sceneId) {
@@ -3618,7 +3618,7 @@
   }
 
   function firstWorkspaceExitPanelIndex(scene = currentScene()) {
-    const panel83Index = panelIndexByImage(scene, "panel83.png");
+    const panel83Index = panelIndexByImage(scene, "086_2.2_simple-gates-01.svg");
     if (panel83Index >= 0) return panel83Index;
 
     const launchIndex = workspaceLaunchPanelIndex(scene);
@@ -3628,7 +3628,7 @@
   }
 
   function secondWorkspaceExitPanelIndex(scene = currentScene()) {
-    const panel87Index = panelIndexByImage(scene, "panel87.png");
+    const panel87Index = panelIndexByImage(scene, "090_2.2_simple-gates-worktable.svg");
     if (panel87Index >= 0) return panel87Index;
     return Math.max(0, scene.panels.length - 1);
   }
@@ -4294,13 +4294,13 @@
 
   function nandIntroStartIndex() {
     const scene = nandIntroScene();
-    const index = panelIndexByImage(scene, "panel75.png");
+    const index = panelIndexByImage(scene, "078_2.1_nand-workshop-1943.svg");
     return index >= 0 ? index : 0;
   }
 
   function nandIntroEndIndex() {
     const scene = nandIntroScene();
-    const index = panelIndexByImage(scene, "panel82.png");
+    const index = panelIndexByImage(scene, "083_2.1_nand-workshop-1943.svg");
     return index >= 0 ? index : scene.panels.length - 1;
   }
 
@@ -4649,7 +4649,7 @@
       if (!explanationUnlocked("bit-info")) return;
       const chapter = simpleGatesChapter();
       const scene = sceneByChapter(chapter);
-      const panel87Index = panelIndexByImage(scene, "panel87.png");
+      const panel87Index = panelIndexByImage(scene, "090_2.2_simple-gates-worktable.svg");
       return setState({
         ...transientUiClearPatch(),
         screen: "story",
@@ -4667,7 +4667,7 @@
       if (!explanationUnlocked("truth-table-cards")) return;
       const chapter = simpleGatesChapter();
       const scene = sceneByChapter(chapter);
-      const panel87Index = panelIndexByImage(scene, "panel87.png");
+      const panel87Index = panelIndexByImage(scene, "090_2.2_simple-gates-worktable.svg");
       preloadHintSlides(XOR_HINT_SLIDES);
       return setState({
         ...transientUiClearPatch(),
@@ -6230,7 +6230,7 @@
     const chapter = chapterById("chapter-16");
     const scene = chapter ? SCENES[chapter.sceneId] : null;
     if (!chapter || !scene) return { screen: "story" };
-    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel217"));
+    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("235_4.2_build-room.svg"));
     return {
       screen: "story",
       chapterId: chapter.id,
@@ -9700,7 +9700,7 @@
   // click (which re-renders and destroys this element) resets the wait.
   function renderNandClickHint(panel) {
     const img = String((panel && panel.image) || "");
-    if (!img.includes("panel74a")) return "";
+    if (!img.includes("077_2.1_nand-workshop-1943.svg")) return "";
     // Centred just above the Nand hotspot (left 39% + width 20% → centre 49%;
     // top 62%), pointing down at it.
     return `
@@ -12125,7 +12125,7 @@
   // menu). Used to resume the plot when the booklet is already finished.
   function bitsRangeEntranceIndex() {
     const scene = SCENES["arithmetic"];
-    return scene ? scene.panels.findIndex((p) => p.image && p.image.includes("panel108_chapter_2_5_bits_1")) : -1;
+    return scene ? scene.panels.findIndex((p) => p.image && p.image.includes("121_2.5_bits-1.svg")) : -1;
   }
   function onSlideBeforeBitsRange() {
     const vn = bitsRangeEntranceIndex();
@@ -12148,7 +12148,7 @@
 
   function goToBitsRange(extra = {}) {
     const scene = SCENES["arithmetic"];
-    const vnIndex = scene ? scene.panels.findIndex((p) => p.image && p.image.includes("panel108_chapter_2_5_bits_1")) : -1;
+    const vnIndex = scene ? scene.panels.findIndex((p) => p.image && p.image.includes("121_2.5_bits-1.svg")) : -1;
     if (vnIndex < 0) return false;
     setState({
       ...transientUiClearPatch(),
@@ -13471,14 +13471,14 @@
 
     // The 2.6 closing monologue's teaser slide ("הנה תראה משהו מגניב:") leads into
     // the scripted subtraction demo on the workbench (not another story panel).
-    if (state.screen === "story" && String(currentPanel()?.image || "").includes("panel127_chapter_2_6_alu_done_2")) {
+    if (state.screen === "story" && String(currentPanel()?.image || "").includes("145_2.6_alu-done-2.svg")) {
       return openSubtractionDemo();
     }
     // Chapter 3.1 (flip-flop): panel130's "המשך" ("הנה, תנסה לחבר את ה-NOT
     // במעגל") hands the player straight into the clocked (sequential) table. Keyed
     // to panel130 specifically — the warehouse "more memory" panels (131–134) come
     // AFTER the table (reached from finishMuxDemo) and must NOT re-enter it.
-    if (state.screen === "story" && state.chapterId === "chapter-10" && String(currentPanel()?.image || "").includes("panel130")) {
+    if (state.screen === "story" && state.chapterId === "chapter-10" && String(currentPanel()?.image || "").includes("148_3.1_try-not-loop.svg")) {
       return enterClockedTable();
     }
 
@@ -13486,7 +13486,7 @@
     // closing message (what replaced the punched tape, and where RAM sits beside
     // long-term storage), and dismissing THAT is what walks on into 3.4.
     if (state.screen === "story"
-        && String(currentPanel()?.image || "").includes("panel145_chapter_3_3_ram_volatile")) {
+        && String(currentPanel()?.image || "").includes("163_3.3_ram-volatile.svg")) {
       return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY }, infoDialog: null });
     }
 
@@ -14126,7 +14126,7 @@
     // The FF explanation ends chapter 3.1 and opens chapter 3.2 (רגיסטרים),
     // whose first slide is panel131 ("we need much more memory").
     const scene = SCENES["registers"];
-    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel131"));
+    const idx = scene.panels.findIndex((p) => String(p.image || "").includes("149_3.2_more-memory.svg"));
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -14218,7 +14218,7 @@
     const originPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
     const nandChapter = chapterById("chapter-4");
     const scene = sceneByChapter(nandChapter);
-    const panel75Index = panelIndexByImage(scene, "panel75.png");
+    const panel75Index = panelIndexByImage(scene, "078_2.1_nand-workshop-1943.svg");
 
     // Replaying the Nand monologue from the final warehouse must not reuse the
     // previous workbench state. Start from the same clean workbench as the
@@ -17042,6 +17042,10 @@
 
     if (state.notTest?.result === "success") {
       const taskId = state.notTest.taskId;
+      // Bus cards never reach the branches below — they are diverted to their
+      // walkthrough just above and finish in finishSolutionDialog — so "bus" is
+      // the one family this switch does not carry.
+      const family = taskFamilyOf(taskId);
       notTestSnapshot = null;
       muxTableSnapshot = null;
       clearNotTestTimer();
@@ -17057,7 +17061,7 @@
 
       // RAM cards (chapter 3.3): complete and return to the 3.3 worktable. Checked
       // before the memory/bus branches — a RAM card is multibit-shaped too.
-      if (isRamTask(taskId)) {
+      if (family === "ram") {
         return setState({
           ...ramCompletionPatch(completedTasks, taskId),
           taskDialog: null, notTest: null, muxTable: null,
@@ -17069,7 +17073,7 @@
       // The 3.5 program memory: back to its worktable, or on into יצור once it is
       // built. Checked before the memory/bus branches for the same reason the RAM
       // and ports cards are — it is multibit-shaped too.
-      if (isPrgTask(taskId)) {
+      if (family === "prg") {
         return setState({
           ...prgCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
@@ -17081,7 +17085,7 @@
       // Ports cards (chapter 3.4): complete and return to the 3.4 worktable with
       // its own note reopened. Checked before the memory/bus branches for the same
       // reason the RAM cards are — they are multibit-shaped too.
-      if (isPortsTask(taskId)) {
+      if (family === "ports") {
         return setState({
           ...portsCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
@@ -17092,7 +17096,7 @@
 
       // The 4.2 cards of the simple computer: complete and go back to the room,
       // with the note reopened so the next one unlocks under the learner's eyes.
-      if (isSimpleComputerTask(taskId)) {
+      if (family === "simple-computer") {
         return setState({
           ...simpleComputerReturnTarget(),
           taskDialog: null, notTest: null, muxTable: null,
@@ -17103,11 +17107,11 @@
 
       // Memory cards (chapter 3.1): complete and return to the memory worktable,
       // reopening the note. Once BOTH are built, roll into the "good work" ending.
-      if (isMemoryTask(taskId)) {
+      if (family === "memory") {
         const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
         if (allMemoryDone) {
           const scene = SCENES["registers"];
-          const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+          const idx = scene.panels.findIndex((p) => String(p.image || "").includes("154_3.2_good-work.svg"));
           return setState({
             screen: "story", chapterId: "chapter-11", sceneId: "registers",
             panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
@@ -17127,7 +17131,7 @@
       // Arith cards with no solution walkthrough yet: complete and return to the
       // 2.5 worktable. All done -> roll into chapter 2.6 (the ALU opening);
       // otherwise reopen the note so the next card unlocks.
-      if (isArithTask(taskId)) {
+      if (family === "arith") {
         const allArithDone = allArithTasksCompletedIn(completedTasks);
         if (allArithDone) {
           return setState({
@@ -17156,7 +17160,7 @@
       // ALU cards (chapter 2.6): complete and return to the 2.6 worktable. Some
       // cards first show an after-completion message (ALU0 "what is an ALU",
       // ALU1 ready-made-vs-custom); every other ALU card just reopens the note.
-      if (isAluTask(taskId)) {
+      if (family === "alu") {
         const showAluIntro = aluTaskHasMessage(taskId);
         return setState({
           ...aluWorktableReturnTarget(),
@@ -18731,6 +18735,33 @@
       </div>`;
   }
 
+  // Which family of build cards a task belongs to. EVERY "where does the learner
+  // go when this card is finished" decision routes on this one function —
+  // finishNotTestDialog (a card with no walkthrough), finishSolutionDialog (a
+  // card whose walkthrough completes it) and the dev shortcut all switch on it —
+  // so a new family of cards is taught here once instead of in three places.
+  //
+  // The order is not cosmetic: the RAM, program-memory, ports, 4.2 and memory
+  // cards are all multibit-SHAPED, so multibitTaskDefById() answers yes for them
+  // too. They must be recognised before the bus/multibit family or they fall
+  // into it. That is exactly the bug that kept coming back: the 4.2 cards were
+  // taught to two of the three switches, and finishing PC0 — which completes
+  // through its walkthrough, i.e. the third one — put the learner on the 2.4
+  // BUSES note. tools/audit-task-routes.js now fails if a family is missing from
+  // any of the three.
+  function taskFamilyOf(taskId) {
+    if (!taskId) return null;
+    if (isRamTask(taskId)) return "ram";
+    if (isPrgTask(taskId)) return "prg";
+    if (isPortsTask(taskId)) return "ports";
+    if (isSimpleComputerTask(taskId)) return "simple-computer";
+    if (isMemoryTask(taskId)) return "memory";
+    if (isArithTask(taskId)) return "arith";
+    if (isAluTask(taskId)) return "alu";
+    if (busTaskDefById(taskId) || multibitTaskDefById(taskId)) return "bus";
+    return null;
+  }
+
   function finishSolutionDialog() {
     const taskId = state.solutionDialog?.taskId || "Not";
     // A gate solution opened from the explanations menu just goes back there,
@@ -18763,9 +18794,10 @@
     const completedTasks = shouldComplete && taskId && !taskCompleted(taskId)
       ? [...completedTaskIds(), taskId]
       : completedTaskIds();
+    const family = taskFamilyOf(taskId);
 
     // RAM cards (3.3): back to the 3.3 worktable with its note reopened.
-    if (isRamTask(taskId)) {
+    if (family === "ram") {
       return setState({
         ...ramCompletionPatch(completedTasks, taskId),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
@@ -18774,7 +18806,7 @@
     }
 
     // The 3.5 program memory: back to its worktable, or on into יצור once built.
-    if (isPrgTask(taskId)) {
+    if (family === "prg") {
       return setState({
         ...prgCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
@@ -18783,7 +18815,7 @@
     }
 
     // Ports cards (3.4): back to the 3.4 worktable with its own note reopened.
-    if (isPortsTask(taskId)) {
+    if (family === "ports") {
       return setState({
         ...portsCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
@@ -18791,10 +18823,23 @@
       }, true);
     }
 
+    // The 4.2 cards of the simple computer (PC0, Cont0, CPU0, Computer0): back to
+    // the build room with its note reopened, so the next card unlocks under the
+    // learner's eyes. These complete THROUGH their walkthrough, so this is the
+    // branch that actually runs for them.
+    if (family === "simple-computer") {
+      return setState({
+        ...simpleComputerReturnTarget(),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks, buildNoteList: true,
+        workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
     // Memory cards (3.1): back to the memory worktable with its note reopened.
     // Once BOTH are built, roll into the "good work" ending instead. They are
     // multibit-shaped, so this must come before the bus/multibit branch below.
-    if (isMemoryTask(taskId)) {
+    if (family === "memory") {
       const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
       const common = {
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
@@ -18802,7 +18847,7 @@
       };
       if (allMemoryDone) {
         const scene = SCENES["registers"];
-        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("154_3.2_good-work.svg"));
         return setState({
           screen: "story", chapterId: "chapter-11", sceneId: "registers",
           panelIndex: idx >= 0 ? idx : scene.panels.length - 1, started: true,
@@ -18815,7 +18860,7 @@
     // Bus tasks (2.4) and multi-bit routing tasks (2.5): back to the worktable
     // with the note reopened (so the next task unlocks). ALU bus cards (Inc …)
     // are also multibit tasks but route to their own worktable (handled below).
-    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    if (family === "bus") {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       // Finishing the LAST multi-bit task (Mux4way16) rolls into the closing von
@@ -18857,7 +18902,7 @@
     // Arith cards (2.5): back to the worktable. If this completion finished the
     // WHOLE note, roll into chapter 2.6 (the ALU opening); otherwise reopen the
     // note so the next card unlocks.
-    if (isArithTask(taskId)) {
+    if (family === "arith") {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
       if (allArithDone) {
         return setState({
@@ -18891,7 +18936,7 @@
     // with an after-completion message (ALU0 "what is an ALU", ALU1 ready-made-
     // vs-custom) show it every time their solution is closed — both on first
     // completion and when replaying from the note.
-    if (isAluTask(taskId)) {
+    if (family === "alu") {
       // Finishing the LAST ALU card rolls into the closing von Neumann doorway
       // monologue ("you built an ALU …") instead of returning to the worktable.
       if (allAluTasksCompletedIn(completedTasks)) {
@@ -18990,6 +19035,7 @@
     const taskId = state.workspace?.taskId;
     if (!taskId) return;
     const completedTasks = !taskCompleted(taskId) ? [...completedTaskIds(), taskId] : completedTaskIds();
+    const family = taskFamilyOf(taskId);
     const base = {
       taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
       completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -18998,34 +19044,34 @@
     // FIRST for the same reason as the RAM and memory cards below — they are
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
-    if (isPortsTask(taskId)) {
+    if (family === "ports") {
       return setState({ ...portsCompletionPatch(completedTasks), ...base }, true);
     }
     // The 3.5 program memory: same story, its own worktable and note.
-    if (isPrgTask(taskId)) {
+    if (family === "prg") {
       return setState({ ...prgCompletionPatch(completedTasks), ...base }, true);
     }
     // RAM cards (3.3): back to the 3.3 worktable with its note. Checked FIRST for
     // the same reason as the memory cards below.
-    if (isRamTask(taskId)) {
+    if (family === "ram") {
       return setState({ ...ramCompletionPatch(completedTasks, taskId), ...base }, true);
     }
     // The 4.2 cards of the simple computer: back to the room with the build note
     // open. Checked FIRST for the same reason as the cards below — they are
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
-    if (isSimpleComputerTask(taskId)) {
+    if (family === "simple-computer") {
       return setState({ ...simpleComputerReturnTarget(), ...base, buildNoteList: true }, true);
     }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
     // Checked FIRST: they are multibit-shaped, so they would otherwise fall into
     // the chapter-2.4 bus branch below.
-    if (isMemoryTask(taskId)) {
+    if (family === "memory") {
       const allMemoryDone = (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).every((t) => completedTasks.includes(t.id));
       if (allMemoryDone) {
         const scene = SCENES["registers"];
-        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("panel136"));
+        const idx = scene.panels.findIndex((p) => String(p.image || "").includes("154_3.2_good-work.svg"));
         return setState({
           screen: "story", chapterId: "chapter-11", sceneId: "registers",
           panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
@@ -19034,7 +19080,7 @@
       }
       return setState({ ...memoryWorktableReturnTarget(), ...base, memoryNoteList: true }, true);
     }
-    if (!isArithTask(taskId) && !isAluTask(taskId) && (busTaskDefById(taskId) || multibitTaskDefById(taskId))) {
+    if (family === "bus") {
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       if (taskId === "Mux4way16") {
@@ -19046,14 +19092,14 @@
     }
     // Arith cards (2.5): back to the arithmetic worktable with its note, not the
     // 2.2 gates worktable. All done -> roll into chapter 2.6 (the ALU opening).
-    if (isArithTask(taskId)) {
+    if (family === "arith") {
       const allArithDone = allArithTasksCompletedIn(completedTasks);
       if (allArithDone) return setState({ ...chapter26StartTarget(), ...base, arithNoteList: false }, true);
       return setState({ ...arithWorktableReturnTarget(), ...base, arithNoteList: true }, true);
     }
     // ALU cards (2.6): back to the ALU worktable with its note (ALU0 first shows
     // the "what is an ALU" message).
-    if (isAluTask(taskId)) {
+    if (family === "alu") {
       if (allAluTasksCompletedIn(completedTasks)) return setState({ ...aluDoneMonologueTarget(), ...base, aluNoteList: false, aluIntroDialog: null }, true);
       const showAluIntro = aluTaskHasMessage(taskId);
       return setState({ ...aluWorktableReturnTarget(), ...base, aluNoteList: !showAluIntro, aluIntroDialog: showAluIntro ? { page: 0, taskId } : null }, true);
