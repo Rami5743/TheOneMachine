@@ -1009,12 +1009,12 @@
     addressWidth: 2,
     portInputs: 4,
     pins: {
-      in5: { x: -88, y: -130, direction: "in", width: 2, label: "כניסת הכתובת" },
-      in1: { x: -88, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
-      in2: { x: -88, y: 68, direction: "in", width: 16, label: "כניסת פורט 01" },
-      in3: { x: -88, y: 128, direction: "in", width: 16, label: "כניסת פורט 10" },
-      in4: { x: -88, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
-      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" }
+      in5: { x: -98, y: -130, direction: "in", width: 2, label: "כניסת הכתובת" },
+      in1: { x: -98, y: 8, direction: "in", width: 16, label: "כניסת פורט 00" },
+      in2: { x: -98, y: 68, direction: "in", width: 16, label: "כניסת פורט 01" },
+      in3: { x: -98, y: 128, direction: "in", width: 16, label: "כניסת פורט 10" },
+      in4: { x: -98, y: 188, direction: "in", width: 16, label: "כניסת פורט 11" },
+      out: { x: 98, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
     bounds: { left: 90, right: 110, top: 250, bottom: 260 }
   };
@@ -2521,6 +2521,13 @@
 
   // Component SVG markup lives in js/component-visuals.js (deps injected: esc,
   // gateComponentType, taskDefById). Thin wrappers keep every call site unchanged.
+  // A read-only handle on the finished card table, for TOOLING only — nothing in
+  // the game reads it back. tools/audit-solutions.js compares it against the
+  // copy editor.html keeps, because that copy is written by hand and has drifted
+  // more than once (a card missing from it draws as an empty box; a pin at the
+  // wrong x draws every wire in that solution landing short of the stub).
+  try { if (typeof window !== "undefined") window.__COMPONENT_DEFS = WORKSPACE_COMPONENT_DEFS; } catch {}
+
   const __componentVisuals = createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSpec, ramGateSpec, wideRoutingGateSpec, savedCardMarkup, componentDefs: WORKSPACE_COMPONENT_DEFS });
   const componentSvgFilenameForType = (...args) => __componentVisuals.componentSvgFilenameForType(...args);
   const componentMarkup = (...args) => __componentVisuals.componentMarkup(...args);

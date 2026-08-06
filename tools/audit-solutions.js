@@ -6,6 +6,7 @@
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
 const fs=require('fs'), path=require('path');
 const ROOT='/home/user/TheOneMachine';
+let bad0=0;
 (async()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
     args:['--no-proxy-server','--disable-dev-shm-usage','--disable-gpu','--no-sandbox']});
@@ -13,6 +14,48 @@ const ROOT='/home/user/TheOneMachine';
   const errs=[]; p.on('pageerror',e=>errs.push(e.message.slice(0,140)));
   await p.goto('http://127.0.0.1:8199/editor.html',{waitUntil:'commit'});
   await p.waitForTimeout(2500);
+  // ---- 0. does the editor's copy of the card table still match the game's? ----
+  // editor.html keeps its own DEFS/PINS by hand. Every drift is silent: a card it
+  // has never heard of draws as an empty box, and a pin at the wrong x draws every
+  // wire of that solution landing short of the stub. Diff them first.
+  const game=await (async()=>{
+    const gp=await b.newPage();
+    await gp.goto('http://127.0.0.1:8199/index.html',{waitUntil:'commit'});
+    await gp.waitForTimeout(2500);
+    const defs=await gp.evaluate(()=>{
+      const d=window.__COMPONENT_DEFS; if(!d) return null;
+      const out={};
+      // The editor draws these by other means (its own splitter geometry, the
+      // source/lamp/nand images), so they are not part of the mirrored table.
+      const drawnElsewhere=new Set(["nand","lamp","source","splitter","nail","bus","ffCard","flipflopFrame","converter-in","converter-out"]);
+      for(const [type,def] of Object.entries(d)){
+        if(!def||!def.pins||def.fixed||drawnElsewhere.has(type)) continue;
+        // A pin with no width of its own is as wide as the card's bus.
+        const w=(v)=>v.width==null?(def.busWidth||1):v.width;
+        out[type]=Object.fromEntries(Object.entries(def.pins).map(([k,v])=>[k,[v.x,v.y,w(v)]]));
+      }
+      return out;
+    });
+    await gp.close();
+    return defs;
+  })();
+  if(!game){ console.log('! the game does not expose __COMPONENT_DEFS — cannot diff the editor\'s table'); }
+  else {
+    const mirror=await p.evaluate(()=>Object.fromEntries(Object.entries(PINS).map(([t,tbl])=>
+      [t,Object.fromEntries(Object.entries(tbl).map(([k,v])=>[k,[v.x,v.y,v.w==null?1:v.w]]))])));
+    const problems=[];
+    for(const [type,pins] of Object.entries(game)){
+      if(!mirror[type]){ problems.push(`${type}: the editor has never heard of it`); continue; }
+      for(const [pid,g] of Object.entries(pins)){
+        const m=mirror[type][pid];
+        if(!m){ problems.push(`${type}.${pid}: missing from the editor`); continue; }
+        if(m[0]!==g[0]||m[1]!==g[1]||m[2]!==g[2]) problems.push(`${type}.${pid}: game (${g}) vs editor (${m})`);
+      }
+    }
+    if(problems.length){ bad0=problems.length; console.log('THE EDITOR\'S CARD TABLE HAS DRIFTED:'); problems.forEach(s=>console.log('  '+s)); console.log(''); }
+    else console.log("the editor's card table matches the game's, pin for pin\n");
+  }
+
   const files=fs.readdirSync(path.join(ROOT,'assets/solutions')).filter(f=>f.endsWith('.json')).sort();
   let bad=0;
   for(const file of files){
@@ -85,5 +128,6 @@ const ROOT='/home/user/TheOneMachine';
   }
   if(errs.length) console.log('\npage errors:',[...new Set(errs)].slice(0,4));
   console.log(bad?`\n${bad} solution(s) have problems`:'\nevery solution is clean in the editor');
+  if(bad0) console.log(`${bad0} pin(s) differ between the game and the editor`);
   await b.close();
 })();

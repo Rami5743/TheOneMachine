@@ -104,7 +104,7 @@ const taskDefById = (id)=>({ id });
 // through the game's busGateMarkup (base symbol + bus bars), identical to the game.
 const DEFS = {
   "gate-AND16": { busGate:true, op:"And", busWidth:16, inputs:2, control:false },
-  "gate-Or16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
+  "gate-OR16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
   "gate-Not16": { busGate:true, op:"Not", busWidth:16, inputs:1, control:false },
   "gate-MUX16": { busGate:true, op:"Mux", busWidth:16, inputs:3, control:true },
   // The plain 2.3 routing cards, reused inside the 3.4 solutions.
@@ -163,16 +163,23 @@ function splitterPin(comp, pinId) {
 }
 const PINS = {
   source:{ out:{x:40,y:0,w:1} },
-  "gate-PreperNum":{ in1:{x:-76,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:80,y:0,w:16} },
+  "gate-PreperNum":{ in1:{x:-76,y:0,w:16}, in2:{x:0,y:-60,w:2}, out1:{x:80,y:0,w:16} },
   "gate-ALU0":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out1:{x:66,y:0,w:16} },
   "gate-ALU1":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} },
-  "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:7}, out1:{x:66,y:0,w:16} },
-  "gate-ALU3":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16} },
-  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:60,w:1}, out3:{x:20,y:60,w:1} },
+  "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:7}, out1:{x:66,y:0,w:16} },
+  "gate-ALU3":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16} },
+  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:66,w:1}, out3:{x:20,y:66,w:1} },
+  // Cards a solution may legitimately use that the mirror was missing.
+  "gate-AND3way":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out:{x:66,y:0,w:1} },
+  "gate-OR4way":{ in1:{x:-60.326107,y:-30,w:1}, in2:{x:-59.462559,y:-9.9898129,w:1}, in3:{x:-59.919762,y:10.020376,w:1}, in4:{x:-60.369907,y:30,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Not4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:4} },
+  "gate-AND4":{ in1:{x:-62,y:-23,w:4}, in2:{x:-62,y:23,w:4}, out:{x:66,y:0,w:4} },
+  "gate-OR4":{ in1:{x:-58,y:-23,w:4}, in2:{x:-58,y:23,w:4}, out:{x:80,y:0,w:4} },
+  "gate-MUX4":{ in1:{x:-62,y:-23,w:4}, in2:{x:-62,y:23,w:4}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
   "gate-AND16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
-  "gate-Or16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
+  "gate-OR16":{ in1:{x:-58,y:-23,w:16}, in2:{x:-58,y:23,w:16}, out:{x:80,y:0,w:16} },
   "gate-Add16":{ in1:{x:-76,y:-26,w:16}, in2:{x:-76,y:26,w:16}, out1:{x:80,y:0,w:16} },
-  "gate-Not16":{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} },
+  "gate-Not16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:16} },
   "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   // The plain 2.3 cards: single-wire pins, control on top.
   "gate-DMux":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:1}, out1:{x:66,y:-23,w:1}, out2:{x:66,y:23,w:1} },
@@ -331,6 +338,22 @@ function render(){
     else { const c=(selected==="frame")?{x:f.x,y:f.y,__frame:true}:findComp(selected);
       if (c){ const b=c.__frame?{w:fw,h:fh}:compBox(c); board.appendChild(el("rect",{x:c.x-b.w/2-6,y:c.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
   }
+  fitStage();
+}
+// The window follows the SOLUTION, never the other way round. The stage used to
+// carry a fixed viewBox, so every time a frame grew or a pin moved outward the
+// far edge of a big solution (Computer0, the ports cards) was quietly cut off —
+// which is what "the solution is broken in the editor" has looked like every
+// time. Measure what was actually drawn and show all of it, with a margin.
+function fitStage(){
+  const bb = stage.getBBox();
+  if (!bb || !bb.width) return;
+  const m = 30;
+  const x = Math.min(0, bb.x - m);
+  const y = Math.min(0, bb.y - m);
+  const w = Math.max(1200, bb.x + bb.width + m - x);
+  const h = Math.max(760, bb.y + bb.height + m - y);
+  stage.setAttribute("viewBox", `${Math.round(x)} ${Math.round(y)} ${Math.round(w)} ${Math.round(h)}`);
 }
 function harnessBox(e){ if(e.kind==="split"){ const n=Math.min(16,Math.max(2,e.w)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; }
   if(e.kind==="lamp") return {w:60,h:60}; return {w:120,h:96}; }
