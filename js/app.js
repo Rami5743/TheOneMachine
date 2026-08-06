@@ -2418,7 +2418,17 @@
       componentLayer.innerHTML = parts.map((part) => part.html).join("");
     } else {
       parts.forEach((part, i) => {
-        if (clockComponentHtml.get(part.id) !== part.html) componentLayer.children[i].outerHTML = part.html;
+        if (clockComponentHtml.get(part.id) === part.html) return;
+        // Swap the node through an SVG parent, NOT through outerHTML: assigning
+        // outerHTML on a child of an <svg> re-parses the markup with the HTML
+        // parser, which lower-cases camelCase attributes and drops the xlink
+        // namespace — the card comes back with broken pins and a missing-image
+        // icon where its art was. innerHTML on an SVG element parses in the SVG
+        // namespace, which is what the rest of the board is built with.
+        const holder = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        holder.innerHTML = part.html;
+        const fresh = holder.firstElementChild;
+        if (fresh) componentLayer.replaceChild(fresh, componentLayer.children[i]);
       });
     }
     clockComponentHtml = new Map(parts.map((part) => [part.id, part.html]));
@@ -7095,6 +7105,200 @@
                   wireKey("op.outP3", "task-card-1.outputInt4"), wireKey("op.outP4", "task-card-1.outputInt5"),
                   wireKey("task-card-1.inputInt4", "ip.in1"), wireKey("task-card-1.inputInt5", "ip.in2"),
                   wireKey("task-card-1.inputInt6", "ip.in3"), wireKey("task-card-1.inputInt7", "ip.in4")]
+        }
+      }
+    ],
+    // 4.2 — the counter. Register, then what to feed it, then the reset.
+    PC0: [
+      {
+        text: "בלב ה-PC0 יושב רגיסטר אחד. הוא זה שמחזיק את המספר, והיציאה שלו היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["counter"],
+          terminals: ["task-card-1.outputInt1"],
+          wires: [wireKey("counter.out", "task-card-1.outputInt1")]
+        }
+      },
+      {
+        text: "המספר משתנה בכל פעימה, ולכן הרגיסטר צריך לכתוב בכל פעימה. כניסת הבקרה שלו מחוברת ישר למקור מתח - היא פשוט תמיד 1, ואין רגע שבו הרגיסטר לא כותב.",
+        highlight: {
+          components: ["always-one", "counter"],
+          terminals: ["counter.in2"],
+          wires: [wireKey("always-one.out", "counter.in2")]
+        }
+      },
+      {
+        text: "ומה נכתב אליו? מה שיש בו ועוד 1. היציאה של הרגיסטר נכנסת לכרטיס ה-Inc, וזה כל מנגנון הספירה — הכרטיס מזין את עצמו דרך המחבר.",
+        highlight: {
+          components: ["plus-one", "counter"],
+          terminals: ["plus-one.in1"],
+          wires: [wireKey("counter.out", "plus-one.in1")]
+        }
+      },
+      {
+        text: "נשאר הריסט. הכניסה של הרגיסטר היא לא תמיד \"מה שיש בו ועוד 1\" — כשהריסט דלוק היא צריכה להיות 0. MUX16 בוחר בין השניים, וכניסת הריסט של הכרטיס היא זו שבוחרת.",
+        highlight: {
+          components: ["zero-mux"],
+          terminals: ["task-card-1.inputInt1", "zero-mux.in3"],
+          wires: [wireKey("task-card-1.inputInt1", "zero-mux.in3"), wireKey("zero-mux.out", "counter.in1")]
+        }
+      },
+      {
+        text: "בכניסה הראשונה של ה-MUX16 יושבת התוצאה של ה-Inc, שחוזרת אליו על שלושה נעצים. הכניסה השנייה שלו לא מחוברת לכלום — כלומר 0. ריסט כבוי מעביר את הספירה, ריסט דלוק מעביר 0.",
+        highlight: {
+          components: ["loop-right", "loop-left", "loop-up", "zero-mux"],
+          terminals: ["zero-mux.in1"],
+          wires: [wireKey("plus-one.out1", "loop-right.in"), wireKey("loop-right.out", "loop-left.in"),
+                  wireKey("loop-left.out", "loop-up.in"), wireKey("loop-up.out", "zero-mux.in1")]
+        }
+      }
+    ],
+    // 4.2 — the control unit: one DMux4Way and nothing else.
+    Cont0: [
+      {
+        text: "כל יחידת הבקרה היא DMux4Way אחד. שני ביטי היעד של הפקודה נכנסים אליו בתור בס הבחירה שלו, והוא מעביר את מה שנכנס אליו בדיוק ליציאה אחת מארבע.",
+        highlight: {
+          components: ["pick"],
+          terminals: ["task-card-1.inputInt1", "pick.in2"],
+          wires: [wireKey("task-card-1.inputInt1", "pick.in2")]
+        }
+      },
+      {
+        text: "ומה נכנס אליו? 1 קבוע, ממקור מתח. כך היציאה שהוא בחר מקבלת 1 וכל השאר מקבלות 0 — בדיוק \"תרשום לכאן, ולא לשאר\".",
+        highlight: {
+          components: ["always-one", "pick"],
+          terminals: ["pick.in1"],
+          wires: [wireKey("always-one.out", "pick.in1")]
+        }
+      },
+      {
+        text: "היציאה הראשונה של ה-DMux4Way, זו של יעד 0, לא מחוברת לכלום — יעד 0 זה \"אל תרשום לשום מקום\". השלוש שאחריה הן היציאות של הכרטיס: ל-D, ל-A ול-*A, לפי הסדר.",
+        highlight: {
+          components: ["pick"],
+          terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3"],
+          wires: [wireKey("pick.out2", "task-card-1.outputInt1"), wireKey("pick.out3", "task-card-1.outputInt2"),
+                  wireKey("pick.out4", "task-card-1.outputInt3")]
+        }
+      }
+    ],
+    // 4.2 — the processor: the instruction word, the ALU, the two registers, the
+    // counter, and the result on its way back.
+    CPU0: [
+      {
+        text: "הכול מתחיל מהפקודה. מפצל חותך את בס ה-16 לשלושה חלקים: 12 הביטים הראשונים הם ההוראה של ה-ALU, שני הביטים שאחריהם אומרים לאן לרשום, ושני האחרונים מיותרים ולא מחוברים לכלום.",
+        highlight: {
+          components: ["word-split"],
+          terminals: ["task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "word-split.single")]
+        }
+      },
+      {
+        text: "12 הביטים של ההוראה הולכים לכניסת הבקרה של ה-ALU3. ALU3 ולא ALU4 — המעבד לא צריך את ng ואת zr, אז אין סיבה לכרטיס גדול יותר.",
+        highlight: {
+          components: ["alu"],
+          terminals: ["alu.in4"],
+          wires: [wireKey("word-split.leg2", "alu.in4")]
+        }
+      },
+      {
+        text: "לשלוש הכניסות של ה-ALU3 נכנסים שלושת המספרים שהוא יודע לעבוד איתם: מה שיש ב-D, מה שיש ב-A, ומה שהגיע מהזיכרון - הבס *A.",
+        highlight: {
+          components: ["alu", "reg-a", "reg-d"],
+          terminals: ["alu.in1", "alu.in2", "alu.in3", "task-card-1.inputInt2"],
+          wires: [wireKey("alu.in1", "reg-d.out"), wireKey("alu.in2", "reg-a.out"),
+                  wireKey("task-card-1.inputInt2", "alu.in3")]
+        }
+      },
+      {
+        text: "שני ביטי היעד הולכים ל-Cont0, ושלוש היציאות שלו הן כניסות הבקרה: אחת אומרת ל-D לרשום, אחת אומרת ל-A לרשום, והשלישית יוצאת מהכרטיס ואומרת לזיכרון שרושמים אליו.",
+        highlight: {
+          components: ["control", "reg-a", "reg-d"],
+          terminals: ["control.in1", "reg-d.in2", "reg-a.in2", "task-card-1.outputInt4"],
+          wires: [wireKey("control.in1", "word-split.leg1"), wireKey("control.out1", "reg-d.in2"),
+                  wireKey("control.out2", "reg-a.in2"), wireKey("control.out3", "task-card-1.outputInt4")]
+        }
+      },
+      {
+        text: "התוצאה של ה-ALU3 הולכת לשלושה מקומות בבת אחת: לכניסת הדאטה של שני הרגיסטרים - רק זה שהבקרה שלו דלוקה באמת ישמור אותה - והחוצה מהכרטיס, בתור המספר שנרשם ל-*A.",
+        highlight: {
+          components: ["res-nail-3", "reg-a", "reg-d"],
+          terminals: ["reg-a.in1", "reg-d.in1", "task-card-1.outputInt3"],
+          wires: [wireKey("alu.out1", "res-nail-3.in"), wireKey("reg-a.in1", "res-nail-3.out"),
+                  wireKey("reg-d.in1", "res-nail-3.out"), wireKey("task-card-1.outputInt3", "alu.out1")]
+        }
+      },
+      {
+        text: "ולבסוף שתי הכתובות יוצאות שלמות: מה שיש ב-A יוצא ישר מהרגיסטר, וה-PC0 מחובר לריסט של הכרטיס ומוציא את הספירה שלו. אף אחת מהן לא נחתכת — כל זיכרון מתעלם בעצמו מראש הכתובת שהוא מקבל.",
+        highlight: {
+          components: ["counter", "reg-a"],
+          terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.inputInt3"],
+          wires: [wireKey("task-card-1.outputInt1", "reg-a.out"), wireKey("counter.out", "task-card-1.outputInt2"),
+                  wireKey("task-card-1.inputInt3", "counter.in1")]
+        }
+      }
+    ],
+    // 4.2 — the whole machine: three cards and the two loops between them.
+    Computer0: [
+      {
+        text: "המחשב כולו הוא שלושה כרטיסים שכבר בנית: המעבד CPU0, זיכרון התוכנה Prg, וזיכרון הדאטה RAM עם הפורטים שלו. אין כאן שום דבר נוסף - רק החיווט ביניהם.",
+        highlight: {
+          components: ["cpu", "program", "memory"],
+          terminals: [],
+          wires: []
+        }
+      },
+      {
+        text: "יציאת ה-PC של המעבד היא כתובת הקריאה של זיכרון התוכנה. זה כל מנגנון \"הבא את הפקודה הבאה\": ה-PC סופר, וזיכרון התוכנה מוציא את הפקודה שבכתובת הזאת.",
+        highlight: {
+          components: ["program", "cpu"],
+          terminals: ["program.in3"],
+          wires: [wireKey("cpu.out2", "program.in3")]
+        }
+      },
+      {
+        text: "והפקודה חוזרת למעבד, על נעצים מעל הלוח, אל כניסת הפקודה שלו. זאת הלולאה הראשונה של המחשב.",
+        highlight: {
+          components: ["instr-nail-1", "instr-nail-2", "instr-nail-3"],
+          terminals: ["cpu.in1"],
+          wires: [wireKey("program.out", "instr-nail-1.in"), wireKey("instr-nail-1.out", "instr-nail-2.in"),
+                  wireKey("instr-nail-2.out", "instr-nail-3.in"), wireKey("instr-nail-3.out", "cpu.in1")]
+        }
+      },
+      {
+        text: "שתי כניסות כתיבת התוכנה של המחשב הולכות לזיכרון התוכנה כמו שהן: Prg-adr לכתובת הכתיבה ו-Prg לדאטה. כניסת הריסט היא כניסת הבקרה שלו - ולכן כשהמחשב רץ הוא פשוט מתעלם משתיהן, בדיוק כמו שהדרישות אומרות.",
+        highlight: {
+          components: ["program"],
+          terminals: ["program.in4", "program.in1", "program.in2", "task-card-1.inputInt5"],
+          wires: [wireKey("task-card-1.inputInt6", "program.in4"), wireKey("task-card-1.inputInt7", "program.in1"),
+                  wireKey("task-card-1.inputInt5", "program.in2"), wireKey("task-card-1.inputInt5", "cpu.in3")]
+        }
+      },
+      {
+        text: "בצד השני של המעבד יושב זיכרון הדאטה: יציאת A היא הכתובת שלו, הפלט הוא הדאטה שנרשם אליו, וכבל הבקרה של המעבד אומר לו מתי לרשום.",
+        highlight: {
+          components: ["memory", "cpu"],
+          terminals: ["memory.in3", "memory.in1", "memory.in2"],
+          wires: [wireKey("cpu.out1", "memory.in3"), wireKey("cpu.out3", "memory.in1"),
+                  wireKey("cpu.out4", "memory.in2")]
+        }
+      },
+      {
+        text: "ומה שהזיכרון מוציא חוזר למעבד מתחת ללוח, לכניסת ה-*A שלו. זאת הלולאה השנייה, וכאן המחשב סגור: הוא מביא פקודה, מבצע אותה על מספר מהזיכרון, וכותב את התוצאה חזרה.",
+        highlight: {
+          components: ["mem-nail-1", "mem-nail-2", "mem-nail-3"],
+          terminals: ["cpu.in2"],
+          wires: [wireKey("memory.out", "mem-nail-1.in"), wireKey("mem-nail-1.out", "mem-nail-2.in"),
+                  wireKey("mem-nail-2.out", "mem-nail-3.in"), wireKey("mem-nail-3.out", "cpu.in2")]
+        }
+      },
+      {
+        text: "נשארו הפורטים: ארבע הכניסות In0-In3 נכנסות לפורטי הכניסה של הזיכרון, וארבעת פורטי היציאה שלו יוצאים אל Out0-Out3. דרכם המחשב מדבר עם העולם.",
+        highlight: {
+          components: ["memory"],
+          terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3", "task-card-1.outputInt4"],
+          wires: [wireKey("task-card-1.inputInt1", "memory.inP1"), wireKey("task-card-1.inputInt2", "memory.inP2"),
+                  wireKey("task-card-1.inputInt3", "memory.inP3"), wireKey("task-card-1.inputInt4", "memory.inP4"),
+                  wireKey("memory.outP1", "task-card-1.outputInt1"), wireKey("memory.outP2", "task-card-1.outputInt2"),
+                  wireKey("memory.outP3", "task-card-1.outputInt3"), wireKey("memory.outP4", "task-card-1.outputInt4")]
         }
       }
     ],
