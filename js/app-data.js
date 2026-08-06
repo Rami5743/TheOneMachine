@@ -1090,7 +1090,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "Cont0",
       label: "Cont0",
-      requires: ["PC0"],
+      // Open from the moment the note is: Cont0 has nothing to do with the
+      // counter, so there is no reason to build PC0 first.
+      requires: [],
       inputs: 1,
       outputs: 3,
       busWidth: 2,
@@ -1105,7 +1107,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "CPU0",
       label: "CPU0",
-      requires: ["Cont0"],
+      // The processor is made OF the counter and the control unit, and a card of
+      // this chapter is only in the palette once it is built — so both must be.
+      requires: ["PC0", "Cont0"],
       inputs: 3,
       outputs: 4,
       busWidth: 16,
