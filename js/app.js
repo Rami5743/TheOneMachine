@@ -14560,6 +14560,20 @@
     return snap;
   }
 
+  // The table the learner is looking at right now: their own if they have written
+  // in it, the untouched empty one if they have not. The check overwrites the row
+  // under test, so this is what has to be given back when it ends — and "they
+  // never touched it" is not "there is nothing to restore": without the empty
+  // table the answers the check wrote stayed on the board for good.
+  function scratchTableSnapshot() {
+    const spec = scratchTableSpec();
+    if (!spec) return null;
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === spec.count
+      ? state.muxTable
+      : spec.empty();
+    return table.map((row) => ({ ...row }));
+  }
+
   // The scratch-table shape for the current task (MUX or DMUX), or null.
   function scratchTableSpec() {
     const taskId = state.workspace?.taskId;
@@ -15514,7 +15528,7 @@
     if (isBusTaskWorkspace()) return startBusTaskTest();
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
-    muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
+    muxTableSnapshot = scratchTableSnapshot();
     const testWorkspace = cleanedWorkspaceForTaskTest(state.workspace);
     runNotTestRow(testWorkspace, 0);
   }
@@ -17078,7 +17092,7 @@
     notTestSnapshot = clonePlain(state.workspace);
     // Cont0 fills its scratch table while the check runs, so the learner's own
     // table has to be kept to give back afterwards.
-    muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
+    muxTableSnapshot = scratchTableSnapshot();
     runMultibitTestCase(state.workspace, 0);
   }
 
