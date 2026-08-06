@@ -433,10 +433,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
-  // The 3.5 program memory (gate-Cd): three buses in on the left — the read
+  // The 3.5 program memory (gate-Prg): three buses in on the left — the read
   // address, the write address and the data — the control on top, and the word
   // read out on the right. Each name is written ON the body beside its own pin.
-  function cdGateMarkup(width, options = {}) {
+  function prgGateMarkup(width, options = {}) {
     const edge = 56;
     const bodyH = 170;
     const inYs = [-60, 0, 60];
@@ -448,7 +448,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += busGateBar({ x1: edge, x2: 110, y: 0 }, width, !options.toolbar);
     s += pinLine(0, -110, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
-    const name = "Cd";
+    const name = "Prg";
     const font = labelFontSize(name, edge * 2, 18);
     s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 16}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // direction:ltr — the page around this SVG is right-to-left, and in an RTL
@@ -712,7 +712,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (type === "gate-PC0") return pcGateMarkup(16, options);
       if (type === "gate-Cont0") return contGateMarkup(options);
       if (type === "gate-CPU0") return cpuGateMarkup(16, options);
-      if (type === "gate-Cd") return cdGateMarkup(16, options);
+      if (type === "gate-Prg") return prgGateMarkup(16, options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).
       const portsDef = WORKSPACE_DEFS_FOR_VISUALS ? WORKSPACE_DEFS_FOR_VISUALS[type] : null;

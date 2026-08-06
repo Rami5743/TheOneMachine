@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, cdGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -578,11 +578,11 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
             continue;
           }
-          // The 3.5 program memory (gate-Cd). Like a RAM its reading is
+          // The 3.5 program memory (gate-Prg). Like a RAM its reading is
           // combinational, but it has TWO addresses and the control picks which
           // one is live: control low reads at the READ address (in3), control
           // high is a write and the card shows 0.
-          const cdHere = typeof cdGateSpec === "function" ? cdGateSpec(type) : null;
+          const cdHere = typeof prgGateSpec === "function" ? prgGateSpec(type) : null;
           if (cdHere) {
             const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
             const addr = bitsToIndex(inputBits(workspace, `${component.id}.in3`, outputs), cdHere.addressWidth);
@@ -924,7 +924,7 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
         }
         // The program memory carries its whole bank forward and writes only while
         // the control is high — at the WRITE address (in4), never the read one.
-        const cdSpec = typeof cdGateSpec === "function" ? cdGateSpec(component.type) : null;
+        const cdSpec = typeof prgGateSpec === "function" ? prgGateSpec(component.type) : null;
         if (cdSpec) {
           const control = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
           const addr = bitsToIndex(inputBits(workspace, `${component.id}.in4`, outputs), cdSpec.addressWidth);

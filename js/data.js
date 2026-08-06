@@ -1248,12 +1248,12 @@ const SCENES = {
         "read": "בהצלחה"
       },
       {
-        "comment": "Chapter 3.5 worktable: the very click-zones of 3.4's, except that the tasks note opens the program-memory list (one card, Cd). The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback.",
+        "comment": "Chapter 3.5 worktable: the very click-zones of 3.4's, except that the tasks note opens the program-memory list (one card, Prg). The REAL geometry lives in the panel SVG (hotspot-action-* rects, editable in Inkscape); the percentages below are only the fallback.",
         "image": "assets/panels/panel222_chapter_3_5_program_memory_worktable.svg",
         "year": "1943",
         "read": "",
         "hotspots": [
-          { "ariaLabel": "פתק המשימות", "action": "cd-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
+          { "ariaLabel": "פתק המשימות", "action": "prg-tasks-note", "left": 23, "top": 66, "width": 10, "height": 9 },
           { "ariaLabel": "קופסת הנעצים", "action": "nail-box", "left": 58, "top": 56, "width": 12, "height": 10 },
           { "ariaLabel": "הממיר העליון (בינרי לעשרוני)", "action": "arith-converter-in", "left": 1.5, "top": 45, "width": 10, "height": 7 },
           { "ariaLabel": "הממיר התחתון (עשרוני לבינרי)", "action": "arith-converter-out", "left": 0, "top": 52.5, "width": 15, "height": 11 },
@@ -1415,7 +1415,7 @@ const SCENES = {
         "comment": "The memory splits in two: data memory (the RAM he built) and program memory.",
         "image": "assets/panels/panel169_chapter_4_1_two_memories.svg",
         "year": "1944",
-        "read": "הפקודות יהיו רשומות בזיכרון. כדי להקל על העבודה, הזיכרון שלנו יהיה מחולק ל-2 חלקים: זיכרון דאטה (בקיצור \"הזיכרון\") — זה כרטיס ה-RAM שבנית — הוא יכיל את המידע שעליו אנחנו רוצים לבצע את החישובים זיכרון תוכנה — זה כרטיס ה-Cd שבנית — עליו תישמר רשימת הפקודות"
+        "read": "הפקודות יהיו רשומות בזיכרון. כדי להקל על העבודה, הזיכרון שלנו יהיה מחולק ל-2 חלקים: זיכרון דאטה (בקיצור \"הזיכרון\") — זה כרטיס ה-RAM שבנית — הוא יכיל את המידע שעליו אנחנו רוצים לבצע את החישובים זיכרון תוכנה — זה כרטיס ה-Prg שבנית — עליו תישמר רשימת הפקודות"
       },
       {
         "comment": "Program memory is read-only to the computer; we write it from the outside.",

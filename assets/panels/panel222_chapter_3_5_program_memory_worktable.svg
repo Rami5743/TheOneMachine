@@ -68,11 +68,11 @@
      width="1007.1271"
      height="411.41217" />
   <!-- Editable click-zones (invisible). Same zones as panel125; the tasks note opens
-       the program-memory list (action cd-tasks-note), plus the nail-box zone. -->
+       the program-memory list (action prg-tasks-note), plus the nail-box zone. -->
   <rect
-     id="hotspot-action-cd-tasks-note"
+     id="hotspot-action-prg-tasks-note"
      data-hotspot="action"
-     data-action="cd-tasks-note"
+     data-action="prg-tasks-note"
      data-aria-label="פתק המשימות"
      class="hotspot hotspot-action"
      pointer-events="none"

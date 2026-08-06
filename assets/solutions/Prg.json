@@ -1,10 +1,10 @@
 {
   "format": "theonemachine-solution",
   "version": 1,
-  "task": "Cd",
+  "task": "Prg",
   "frame": {
     "id": "task-card-1",
-    "type": "taskCard-Cd",
+    "type": "taskCard-Prg",
     "x": 660,
     "y": 440,
     "frameW": 800,

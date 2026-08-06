@@ -5042,13 +5042,13 @@ window.EMBEDDED_SOLUTIONS = {
       "note": "כרטיס מתוזמן: הזיכרון הרגיל והפורטים בכתובת אחת. כותבים וקוראים בשני הטווחים, ומוודאים שהכתובות הקוראות-בלבד לא ניתנות לכתיבה."
     }
   },
-  "Cd": {
+  "Prg": {
     "format": "theonemachine-solution",
     "version": 1,
-    "task": "Cd",
+    "task": "Prg",
     "frame": {
       "id": "task-card-1",
-      "type": "taskCard-Cd",
+      "type": "taskCard-Prg",
       "x": 660,
       "y": 440,
       "frameW": 800,
@@ -5794,16 +5794,16 @@ window.EMBEDDED_SOLUTIONS = {
           "id": "inputExt6",
           "x": -560,
           "y": -312,
-          "w": 10,
+          "w": 16,
           "dir": "in",
           "label": "כניסת כתובת התוכנה",
-          "caption": "cd-adr"
+          "caption": "Prg-adr"
         },
         {
           "id": "inputInt6",
           "x": -440,
           "y": -312,
-          "w": 10,
+          "w": 16,
           "dir": "out",
           "label": "כניסת כתובת התוכנה פנימית"
         },
@@ -5814,7 +5814,7 @@ window.EMBEDDED_SOLUTIONS = {
           "w": 16,
           "dir": "in",
           "label": "כניסת הפקודה לכתיבה",
-          "caption": "cd"
+          "caption": "Prg"
         },
         {
           "id": "inputInt7",
@@ -5980,45 +5980,24 @@ window.EMBEDDED_SOLUTIONS = {
         }
       ]
     },
-    "external": [
-      {
-        "id": "source-1",
-        "type": "source",
-        "x": 90,
-        "y": 140
-      }
-    ],
     "components": [
       {
-        "id": "cd-wide",
-        "type": "splitter",
-        "x": 330,
-        "y": 230,
-        "outputs": 2,
-        "mirrored": true,
-        "legWidths": [
-          10,
-          6
-        ],
-        "singleWidth": 16
-      },
-      {
         "id": "program",
-        "type": "gate-Cd",
-        "x": 660,
-        "y": 210
+        "type": "gate-Prg",
+        "x": 629,
+        "y": 215
       },
       {
         "id": "cpu",
         "type": "gate-CPU0",
-        "x": 600,
-        "y": 350
+        "x": 390,
+        "y": 353
       },
       {
         "id": "memory",
         "type": "gate-RAM",
-        "x": 880,
-        "y": 470
+        "x": 625,
+        "y": 597
       }
     ],
     "wires": [
@@ -6028,10 +6007,6 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "task-card-1.inputInt6",
-        "b": "cd-wide.leg0"
-      },
-      {
-        "a": "cd-wide.single",
         "b": "program.in4"
       },
       {
@@ -6100,7 +6075,7 @@ window.EMBEDDED_SOLUTIONS = {
       }
     ],
     "check": {
-      "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Cd) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא CPU0, זיכרון התוכנה Cd, זיכרון הדאטה RAM ומפצל אחד שמרפד את cd-adr מ-10 ל-16."
+      "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Prg) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא שלושה כרטיסים בלבד: CPU0, זיכרון התוכנה Prg וזיכרון הדאטה RAM."
     }
   }
 };
