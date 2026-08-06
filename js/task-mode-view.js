@@ -285,9 +285,9 @@ function createTaskModeView({
   }
 
   function muxScratchCell(row, column, value, highlighted) {
-    const shown = value === 0 ? "0" : value === 1 ? "1" : "";
+    const shown = Number.isInteger(value) ? String(value) : "";
     const cls = value === null || value === undefined ? "mux-cell-empty" : "";
-    const isDivider = column === "out" || column === "out1" || column === "sum";
+    const isDivider = column === "out" || column === "out1" || column === "sum" || column === "d";
     const tdCls = `${isDivider ? "truth-output-cell" : ""}${highlighted ? " truth-col-solution-highlight" : ""}`.trim();
     return `<td class="${tdCls}"><button type="button" class="mux-truth-cell ${cls}" data-action="mux-truth-cell" data-row="${row}" data-col="${column}" aria-label="שורה ${row + 1} עמודה">${shown}</button></td>`;
   }
@@ -405,6 +405,39 @@ function createTaskModeView({
       </table>`;
   }
 
+  // The editable scratch table for Cont0 (4.2): four rows, one per value of its
+  // 2-bit input. The input cell counts 0-3 (it is a number, not a wire); the
+  // three destination cells are wires. Empty — the learner fills it in, and the
+  // check walks it row by row like it does for the simple cards.
+  function renderContScratchTable() {
+    const state = getState();
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === 4
+      ? state.muxTable
+      : Array.from({ length: 4 }, () => ({ in: null, d: null, a: null, star: null }));
+    const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+    // LTR DOM == visual left-to-right; read right-to-left as כניסה, ┃ (divider)
+    // D, A, *A — the same order the requirements list them in.
+    const rows = table.map((row, index) => `
+      <tr class="${activeRow === index ? "truth-row-active" : ""}">
+        ${muxScratchCell(index, "star", row.star)}
+        ${muxScratchCell(index, "a", row.a)}
+        ${muxScratchCell(index, "d", row.d)}
+        ${muxScratchCell(index, "in", row.in)}
+      </tr>`).join("");
+    return `
+      <table class="workspace-task-hint-table mux-scratch-table">
+        <thead>
+          <tr>
+            <th>\u200e*A\u200e</th>
+            <th>A</th>
+            <th class="truth-output-cell">D</th>
+            <th>כניסה</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
   // The MUX/DMUX build requirements panel (description + editable table) with a
   // hide/show toggle in its top-left corner. When hidden it collapses to just a
   // title bar ("דרישות כרטיס ה-…").
@@ -458,6 +491,11 @@ function createTaskModeView({
       // test, with the inputs as decimal numbers, while a check runs or is frozen.
       const numericRow = typeof multibitCheckDisplayRow === "function" ? multibitCheckDisplayRow() : null;
       const numericTable = numericRow ? renderMultibitCheckRow(numericRow) : "";
+      // Cont0 is the one multibit card small enough to reason about in a table,
+      // so it gets an empty editable one under its requirements.
+      const scratchTable = mbDef.id === "Cont0"
+        ? `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${renderContScratchTable()}</div>`
+        : "";
       // While the check row is up, let the panel grow to fit it (capped at the
       // workbench width by CSS).
       const wideClass = numericTable ? " workspace-task-hint-check-wide" : "";
@@ -465,6 +503,7 @@ function createTaskModeView({
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit${wideClass}" aria-label="דרישות ${esc(mbDef.label)}">
           ${toggle}
           <div class="mux-hint-text">${paragraphs}</div>
+          ${scratchTable}
           ${numericTable}
         </section>`;
     }

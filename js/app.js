@@ -14494,9 +14494,11 @@
       : createEmptyMuxTable();
   }
 
-  function cycleMuxCell(value) {
+  // blank -> 0 -> 1 -> blank for a wire; a column that holds a NUMBER (Cont0's
+  // 2-bit input) counts up to its own max first.
+  function cycleMuxCell(value, max = 1) {
     if (value === null || value === undefined) return 0;
-    if (value === 0) return 1;
+    if (value < max) return value + 1;
     return null;
   }
 
@@ -14535,11 +14537,35 @@
     return snap;
   }
 
+  // --- Cont0 scratch truth table (4.2): four rows, one per value of its 2-bit
+  // input, and one column per destination. The input column holds a NUMBER (0-3),
+  // the three output columns a wire (0/1). Shares state.muxTable like the others.
+  const CONT0_TABLE_COLUMNS = ["in", "d", "a", "star"];
+
+  function createEmptyContTable() {
+    return Array.from({ length: 4 }, () => ({ in: null, d: null, a: null, star: null }));
+  }
+
+  // What the row for control value N says: the destination whose number it is
+  // gets the 1, everything else 0 — and 0 writes nowhere at all.
+  function contRowDisplay(control) {
+    return { in: control, d: control === 1 ? 1 : 0, a: control === 2 ? 1 : 0, star: control === 3 ? 1 : 0 };
+  }
+
+  function contCheckDisplayTable(rowIndex) {
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === 4
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : createEmptyContTable();
+    if (rowIndex >= 0 && rowIndex < 4) snap[rowIndex] = contRowDisplay(rowIndex);
+    return snap;
+  }
+
   // The scratch-table shape for the current task (MUX or DMUX), or null.
   function scratchTableSpec() {
     const taskId = state.workspace?.taskId;
     if (taskId === "Mux") return { columns: MUX_TABLE_COLUMNS, count: 8, empty: createEmptyMuxTable };
     if (taskId === "DMux") return { columns: DMUX_TABLE_COLUMNS, count: 4, empty: createEmptyDmuxTable };
+    if (taskId === "Cont0") return { columns: CONT0_TABLE_COLUMNS, count: 4, empty: createEmptyContTable, max: { in: 3 } };
     if (isArithTask(taskId)) return { columns: arithScratchColumns(taskId), count: arithScratchRowCount(taskId), empty: () => arithEmptyScratchTable(taskId) };
     return null;
   }
@@ -14551,7 +14577,7 @@
     if (!Number.isInteger(rowIndex) || rowIndex < 0 || rowIndex >= spec.count) return;
     const current = Array.isArray(state.muxTable) && state.muxTable.length === spec.count ? state.muxTable : spec.empty();
     const table = current.map((row) => ({ ...row }));
-    table[rowIndex][column] = cycleMuxCell(table[rowIndex][column]);
+    table[rowIndex][column] = cycleMuxCell(table[rowIndex][column], (spec.max && spec.max[column]) || 1);
     setState({ muxTable: table }, false);
   }
 
@@ -17016,7 +17042,14 @@
 
     const spec = multibitCaseSpec(def.id, cases[caseIndex]);
     const { workspace, outChecks } = multibitTestHarnessWorkspace(baseWorkspace, spec);
-    setState({ workspace, notTest: { active: true, taskId: def.id, rowIndex: caseIndex } }, false);
+    setState({
+      workspace,
+      notTest: { active: true, taskId: def.id, rowIndex: caseIndex },
+      // Cont0 has an editable scratch table like the simple cards, so the check
+      // walks it: the row under test is filled with the right answer for as long
+      // as that case runs, and reverts to the learner's own table afterwards.
+      ...(def.id === "Cont0" ? { muxTable: contCheckDisplayTable(caseIndex) } : {})
+    }, false);
 
     notTestTimer = window.setTimeout(() => {
       const evaluation = evaluateWorkspaceBits(workspace);
@@ -17043,7 +17076,9 @@
     if (!multibitTaskCases(state.workspace?.taskId).length) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
-    muxTableSnapshot = null;
+    // Cont0 fills its scratch table while the check runs, so the learner's own
+    // table has to be kept to give back afterwards.
+    muxTableSnapshot = Array.isArray(state.muxTable) ? state.muxTable.map((row) => ({ ...row })) : null;
     runMultibitTestCase(state.workspace, 0);
   }
 
