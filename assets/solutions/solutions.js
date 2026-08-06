@@ -5702,10 +5702,58 @@ window.EMBEDDED_SOLUTIONS = {
         "singleWidth": 16
       },
       {
+        "id": "write-nail-out",
+        "type": "nail",
+        "x": 595,
+        "y": 685
+      },
+      {
+        "id": "ctrl-nail-out",
+        "type": "nail",
+        "x": 485,
+        "y": 265
+      },
+      {
+        "id": "ctrl-nail-in",
+        "type": "nail",
+        "x": 810,
+        "y": 265
+      },
+      {
+        "id": "write-nail-in",
+        "type": "nail",
+        "x": 885,
+        "y": 680
+      },
+      {
+        "id": "res-nail-1",
+        "type": "nail",
+        "x": 855,
+        "y": 600
+      },
+      {
+        "id": "res-nail-2",
+        "type": "nail",
+        "x": 630,
+        "y": 605
+      },
+      {
         "id": "res-nail-3",
         "type": "nail",
         "x": 625,
         "y": 425
+      },
+      {
+        "id": "reset-nail",
+        "type": "nail",
+        "x": 405,
+        "y": 145
+      },
+      {
+        "id": "pc-nail",
+        "type": "nail",
+        "x": 875,
+        "y": 180
       }
     ],
     "wires": [
@@ -5730,6 +5778,10 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "alu.out1"
       },
       {
+        "a": "control.out3",
+        "b": "write-nail-out.in"
+      },
+      {
         "a": "task-card-1.inputInt2",
         "b": "alu.in3"
       },
@@ -5738,8 +5790,40 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "reg-a.out"
       },
       {
+        "a": "alu.in4",
+        "b": "ctrl-nail-in.out"
+      },
+      {
+        "a": "ctrl-nail-out.out",
+        "b": "ctrl-nail-in.in"
+      },
+      {
+        "a": "ctrl-nail-out.in",
+        "b": "word-split.leg2"
+      },
+      {
         "a": "alu.in1",
         "b": "reg-d.out"
+      },
+      {
+        "a": "task-card-1.outputInt4",
+        "b": "write-nail-in.out"
+      },
+      {
+        "a": "write-nail-out.out",
+        "b": "write-nail-in.in"
+      },
+      {
+        "a": "alu.out1",
+        "b": "res-nail-1.in"
+      },
+      {
+        "a": "res-nail-1.out",
+        "b": "res-nail-2.in"
+      },
+      {
+        "a": "res-nail-2.out",
+        "b": "res-nail-3.in"
       },
       {
         "a": "reg-a.in1",
@@ -5750,32 +5834,28 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "res-nail-3.out"
       },
       {
+        "a": "task-card-1.inputInt3",
+        "b": "reset-nail.in"
+      },
+      {
+        "a": "counter.in1",
+        "b": "reset-nail.out"
+      },
+      {
         "a": "task-card-1.outputInt1",
         "b": "reg-a.out"
       },
       {
-        "a": "word-split.leg2",
-        "b": "alu.in4"
-      },
-      {
         "a": "counter.out",
-        "b": "task-card-1.outputInt2"
+        "b": "pc-nail.in"
       },
       {
-        "a": "alu.out1",
-        "b": "res-nail-3.in"
-      },
-      {
-        "a": "task-card-1.inputInt3",
-        "b": "counter.in1"
-      },
-      {
-        "a": "control.out3",
-        "b": "task-card-1.outputInt4"
+        "a": "task-card-1.outputInt2",
+        "b": "pc-nail.out"
       }
     ],
     "check": {
-      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה. הבנייה היא ALU3 (ה-CPU לא צריך את ng ו-zr), שני רגיסטרים, יחידת הבקרה, המונה ומפצל אחד לפקודה — שתי הכתובות יוצאות שלמות, ולכן אין בו אף מפצל של כתובת."
+      "note": "כרטיס מתוזמן: אין טבלת אמת. הבדיקה מריצה תוכנית של פקודות אמיתיות ובכל פעימה משווה את ארבע היציאות למה שהפרק אומר. הרגיסטרים מראים מה שהם מחזיקים, ולכן כתיבה נראית בפעימה שאחריה. הבנייה היא ALU3 (המעבד לא צריך את ng ו-zr), שני רגיסטרים, יחידת הבקרה, המונה ומפצל אחד לפקודה — שתי הכתובות יוצאות שלמות, ולכן אין בו אף מפצל של כתובת."
     }
   },
   "Computer0": {

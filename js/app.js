@@ -7194,9 +7194,10 @@
       {
         text: "12 הביטים של ההוראה הולכים לכניסת הבקרה של ה-ALU3. ALU3 ולא ALU4 — המעבד לא צריך את ng ואת zr, אז אין סיבה לכרטיס גדול יותר.",
         highlight: {
-          components: ["alu"],
+          components: ["alu", "ctrl-nail-out", "ctrl-nail-in"],
           terminals: ["alu.in4"],
-          wires: [wireKey("word-split.leg2", "alu.in4")]
+          wires: [wireKey("word-split.leg2", "ctrl-nail-out.in"), wireKey("ctrl-nail-out.out", "ctrl-nail-in.in"),
+                  wireKey("ctrl-nail-in.out", "alu.in4")]
         }
       },
       {
@@ -7211,28 +7212,31 @@
       {
         text: "שני ביטי היעד הולכים ל-Cont0, ושלוש היציאות שלו הן כניסות הבקרה: אחת אומרת ל-D לרשום, אחת אומרת ל-A לרשום, והשלישית יוצאת מהכרטיס ואומרת לזיכרון שרושמים אליו.",
         highlight: {
-          components: ["control", "reg-a", "reg-d"],
+          components: ["control", "reg-a", "reg-d", "write-nail-out", "write-nail-in"],
           terminals: ["control.in1", "reg-d.in2", "reg-a.in2", "task-card-1.outputInt4"],
           wires: [wireKey("control.in1", "word-split.leg1"), wireKey("control.out1", "reg-d.in2"),
-                  wireKey("control.out2", "reg-a.in2"), wireKey("control.out3", "task-card-1.outputInt4")]
+                  wireKey("control.out2", "reg-a.in2"), wireKey("control.out3", "write-nail-out.in"),
+                  wireKey("write-nail-out.out", "write-nail-in.in"), wireKey("write-nail-in.out", "task-card-1.outputInt4")]
         }
       },
       {
         text: "התוצאה של ה-ALU3 הולכת לשלושה מקומות בבת אחת: לכניסת הדאטה של שני הרגיסטרים - רק זה שהבקרה שלו דלוקה באמת ישמור אותה - והחוצה מהכרטיס, בתור המספר שנרשם ל-*A.",
         highlight: {
-          components: ["res-nail-3", "reg-a", "reg-d"],
+          components: ["res-nail-1", "res-nail-2", "res-nail-3", "reg-a", "reg-d"],
           terminals: ["reg-a.in1", "reg-d.in1", "task-card-1.outputInt3"],
-          wires: [wireKey("alu.out1", "res-nail-3.in"), wireKey("reg-a.in1", "res-nail-3.out"),
+          wires: [wireKey("alu.out1", "res-nail-1.in"), wireKey("res-nail-1.out", "res-nail-2.in"),
+                  wireKey("res-nail-2.out", "res-nail-3.in"), wireKey("reg-a.in1", "res-nail-3.out"),
                   wireKey("reg-d.in1", "res-nail-3.out"), wireKey("task-card-1.outputInt3", "alu.out1")]
         }
       },
       {
         text: "ולבסוף שתי הכתובות יוצאות שלמות: מה שיש ב-A יוצא ישר מהרגיסטר, וה-PC0 מחובר לריסט של הכרטיס ומוציא את הספירה שלו. אף אחת מהן לא נחתכת — כל זיכרון מתעלם בעצמו מראש הכתובת שהוא מקבל.",
         highlight: {
-          components: ["counter", "reg-a"],
+          components: ["counter", "reg-a", "reset-nail", "pc-nail"],
           terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.inputInt3"],
-          wires: [wireKey("task-card-1.outputInt1", "reg-a.out"), wireKey("counter.out", "task-card-1.outputInt2"),
-                  wireKey("task-card-1.inputInt3", "counter.in1")]
+          wires: [wireKey("task-card-1.outputInt1", "reg-a.out"),
+                  wireKey("counter.out", "pc-nail.in"), wireKey("task-card-1.outputInt2", "pc-nail.out"),
+                  wireKey("task-card-1.inputInt3", "reset-nail.in"), wireKey("counter.in1", "reset-nail.out")]
         }
       }
     ],
