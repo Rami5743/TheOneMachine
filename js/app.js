@@ -9151,9 +9151,16 @@
       <button class="hint-list-item hint-solution-item ${selectedIsSolution ? "hint-list-item-active" : ""}" data-action="hint-solution" type="button">פתרון</button>` : "";
     const list = `${hintItems}${solutionItem}`;
 
+    // An interactive hint may leave a word behind once it has run (what it laid
+    // down, what to notice about it). While that message is up the hint shows it
+    // INSTEAD of its question — picking the hint again from the list brings the
+    // question, and the button that re-applies it, back.
+    const appliedNote = !selectedIsSolution && state.hintDialog.applied && selectedHint?.appliedText
+      ? hintParagraphsHtml(selectedHint.appliedText)
+      : "";
     const content = selectedIsSolution
       ? `<p>אפשר לראות את המימוש המלא של ${esc(task?.label || taskId)}.</p><button class="btn btn-primary" data-action="show-task-solution" type="button">הצג פתרון</button>`
-      : (selectedHint?.kind === "interactive"
+      : appliedNote || (selectedHint?.kind === "interactive"
         ? (selectedHint.openAfterApply && selectedHint.text
           ? hintParagraphsHtml(selectedHint.text)
           : `${selectedHint.text ? hintParagraphsHtml(selectedHint.text) : ""}<button class="btn btn-primary" data-action="hint-apply" data-hint-index="${selectedIndex}" type="button">${esc(selectedHint.applyLabel || "הפעל רמז")}</button>`)
@@ -19174,6 +19181,53 @@
       };
       if (hintStateOverride) ramPatch.hintState = hintStateOverride;
       return setState(ramPatch, false);
+    }
+
+    // CPU0 build hint: the ALU never chooses its operands — it always works on
+    // the same three (what D holds, what A holds, and the *A bus coming in from
+    // memory), so those three wires can be laid once and left alone. This hint
+    // lays them: the ALU3 and the two registers at their solution positions,
+    // with in1/in2/in3 wired and NOTHING else (the instruction field, the result
+    // and the control unit are the parts the learner still has to think about).
+    // Like every build hint it rebuilds the workspace, so it warns first.
+    if (taskId === "CPU0" && hint.action === "cpu0-place-alu") {
+      const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.CPU0 : null;
+      if (doc) {
+        const keep = new Set(["alu", "reg-a", "reg-d"]);
+        const half = clonePlain(doc);
+        half.components = half.components.filter((component) => keep.has(component.id));
+        // The three data inputs of the ALU, and only those.
+        const wanted = new Set(["alu.in1", "alu.in2", "alu.in3"]);
+        half.wires = half.wires.filter((wire) => wanted.has(wire.a) || wanted.has(wire.b));
+        const ws = workspaceFromSolutionDoc(half);
+        // The learner's frame does not move: shift the laid-down circuit onto it.
+        const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+        const laid = ws.components.find((c) => c.id === "task-card-1");
+        if (here && laid) {
+          const dx = here.x - laid.x;
+          const dy = here.y - laid.y;
+          if (dx || dy) ws.components.forEach((c) => {
+            if (Number.isFinite(c.x)) c.x += dx;
+            if (Number.isFinite(c.y)) c.y += dy;
+          });
+        }
+        ws.clocked = Boolean(state.workspace?.clocked);
+        ws.busClocked = Boolean(state.workspace?.busClocked);
+        ws.workspaceCompleted = false;
+        ws.taskId = "CPU0";
+        ws.taskIntroSeen = true;
+        ws.locked = false;
+        ws.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || null;
+        ws.sessionReturnPanelIndex = state.workspace?.sessionReturnPanelIndex ?? null;
+        const patch = {
+          workspace: normalizeWorkspace(ws),
+          // Which register is which is invisible once they are both on the board,
+          // so the hint says so the moment it lays them down.
+          hintDialog: hint.appliedText ? { taskId, index: hintIndex, applied: true } : null
+        };
+        if (hintStateOverride) patch.hintState = hintStateOverride;
+        return setState(patch, false);
+      }
     }
 
     // OPorts build hint: lay the RAM4 half of its own solution inside the frame —
