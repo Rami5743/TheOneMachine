@@ -1143,8 +1143,11 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "Computer0",
       label: "Computer0",
-      // The whole machine: the processor AND the program memory built in 3.5.
-      requires: ["CPU0", "Prg"],
+      // The whole machine: the processor, plus the program memory. Prg is NOT
+      // listed: it belongs to an earlier stage (3.5) and is assumed to be in the
+      // warehouse the way every earlier card is — the learner may have skipped it
+      // or cleared its note, and that must not lock the computer.
+      requires: ["CPU0"],
       inputs: 7,
       outputs: 4,
       busWidth: 16,
