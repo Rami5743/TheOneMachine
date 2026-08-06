@@ -6061,7 +6061,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "mem-nail-1",
         "type": "nail",
         "x": 780,
-        "y": 515
+        "y": 480
       },
       {
         "id": "mem-nail-2",
