@@ -1454,7 +1454,7 @@
     frameSize: { w: 1000, h: 700 },
     pins: {
       // As wide as the program memory's own address bus, so it goes straight in.
-      inputExt6: { x: -460, y: -250, direction: "in", width: 16, label: "כניסת כתובת התוכנה", caption: "Prg-adr", edge: "side" },
+      inputExt6: { x: -460, y: -250, direction: "in", width: 16, label: "כניסת כתובת התוכנה", caption: "Prg-Adr", edge: "side" },
       inputInt6: { x: -340, y: -250, direction: "out", width: 16, label: "כניסת כתובת התוכנה פנימית", edge: "side" },
       inputExt7: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הפקודה לכתיבה", caption: "Prg", edge: "side" },
       inputInt7: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הפקודה לכתיבה פנימית", edge: "side" },
@@ -6199,8 +6199,11 @@
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), x: cardX, y: cardY },
-        // A test voltage source, up near the control input, for free experimenting.
-        { id: "source-1", type: "source", x: 90, y: 140 }
+        // A test voltage source, up near the control input, for free experimenting
+        // — but NOT for the computer: it is wired out of three finished cards and
+        // has no loose control to hold high, so a source on its table is only
+        // something to wonder about. (It can still be dragged in from the palette.)
+        ...(task.id === "Computer0" ? [] : [{ id: "source-1", type: "source", x: 90, y: 140 }])
       ],
       wires: [],
       nextId: 2,
@@ -7284,7 +7287,7 @@
         }
       },
       {
-        text: "שתי כניסות כתיבת התוכנה של המחשב הולכות לזיכרון התוכנה כמו שהן: Prg-adr לכתובת הכתיבה ו-Prg לדאטה. כניסת הריסט היא כניסת הבקרה שלו - ולכן כשהמחשב רץ הוא פשוט מתעלם משתיהן, בדיוק כמו שהדרישות אומרות.",
+        text: "שתי כניסות כתיבת התוכנה של המחשב הולכות לזיכרון התוכנה כמו שהן: Prg-Adr לכתובת הכתיבה ו-Prg לדאטה. כניסת הריסט היא כניסת הבקרה שלו - ולכן כשהמחשב רץ הוא פשוט מתעלם משתיהן, בדיוק כמו שהדרישות אומרות.",
         highlight: {
           components: ["program"],
           terminals: ["program.in4", "program.in1", "program.in2", "task-card-1.inputInt5"],
@@ -15777,7 +15780,7 @@
   // --- Chapter 4.2 Computer0 check -------------------------------------------
   // The whole machine. There is nothing to drive but its ports, so the check does
   // what a person would: it holds reset, writes a little program into the program
-  // memory one instruction per tick through Prg-adr/Prg, lets go of reset, and
+  // memory one instruction per tick through Prg-Adr/Prg, lets go of reset, and
   // watches the program copy two of the input ports to two of the output ports.
   // Then it proves the two rules the chapter promises — that cd is ignored while
   // the machine is running, and that reset really does start the program over.
@@ -15887,7 +15890,7 @@
     ];
     return [copy, add, subtract, everything].map((test) => ({ ...test, program: [...clearPorts, ...test.program] }));
   }
-  // The learner's build + temporary drivers: dec→bin converters on Prg-adr, Prg and
+  // The learner's build + temporary drivers: dec→bin converters on Prg-Adr, Prg and
   // the two input ports, a source on reset, bin→dec readers on all four outputs.
   function computerHarnessWorkspace(base, step) {
     const ws = normalizeWorkspace(clonePlain(base));

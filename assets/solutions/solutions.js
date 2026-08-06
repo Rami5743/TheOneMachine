@@ -5837,7 +5837,7 @@ window.EMBEDDED_SOLUTIONS = {
           "w": 16,
           "dir": "in",
           "label": "כניסת כתובת התוכנה",
-          "caption": "Prg-adr"
+          "caption": "Prg-Adr"
         },
         {
           "id": "inputInt6",
