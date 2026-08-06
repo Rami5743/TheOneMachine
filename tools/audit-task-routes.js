@@ -77,5 +77,32 @@ if (missing.length) {
   missing.forEach((ref) => console.log(`   js/app.js:${ref.line}  "${ref.name}"`));
 } else console.log(`\nok all ${refs.length} panel references in app.js resolve`);
 
-console.log(bad ? `\n${bad} audit(s) failed` : '\nboth audits clean');
+// ---- 3. every frame pin is a pair that runs along ONE axis -----------------
+// A frame pin is a pass-through: an external tip and an internal connection
+// point. The shell draws the stub BETWEEN them, so they must differ on exactly
+// one axis. Sharing both (or neither) draws a stub zero pixels long — an
+// invisible pin, and a 6px white stripe where it should have been. That is what
+// happened when CPU0's inputs moved to ±176 in its JSON.
+const solDir = path.join(ROOT, 'assets/solutions');
+const pairProblems = [];
+for (const file of fs.readdirSync(solDir).filter((f) => f.endsWith('.json')).sort()) {
+  const doc = JSON.parse(fs.readFileSync(path.join(solDir, file), 'utf8'));
+  const pins = Object.fromEntries(((doc.frame || {}).pins || []).map((p) => [p.id, p]));
+  for (const [id, pin] of Object.entries(pins)) {
+    if (!id.includes('Ext')) continue;
+    const inner = pins[id.replace('Ext', 'Int')];
+    if (!inner) { pairProblems.push(`${file} ${id}: no matching internal pin`); continue; }
+    const sameX = inner.x === pin.x;
+    const sameY = inner.y === pin.y;
+    if (sameX && sameY) pairProblems.push(`${file} ${id}: external and internal pin sit on the same point`);
+    else if (!sameX && !sameY) pairProblems.push(`${file} ${id}: external (${pin.x},${pin.y}) and internal (${inner.x},${inner.y}) differ on both axes`);
+  }
+}
+if (pairProblems.length) {
+  bad++;
+  console.log(`\n✗ ${pairProblems.length} frame pin pair(s) cannot draw a stub:`);
+  pairProblems.forEach((s) => console.log('   ' + s));
+} else console.log('ok every frame pin pair runs along one axis');
+
+console.log(bad ? `\n${bad} audit(s) failed` : '\nall audits clean');
 process.exit(bad ? 1 : 0);

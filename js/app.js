@@ -2568,6 +2568,9 @@
   const converterMarkup = (...args) => __componentVisuals.converterMarkup(...args);
   const smokeMarkup = (...args) => __componentVisuals.smokeMarkup(...args);
   const charredNandMarkup = (...args) => __componentVisuals.charredNandMarkup(...args);
+  // Same reason as __COMPONENT_DEFS above: tooling draws a single card on its own,
+  // big, to look at its pins without the board around it.
+  try { if (typeof window !== "undefined") window.__COMPONENT_MARKUP = componentMarkup; } catch {}
 
   // The splitter's leg-count drag handle (SVG markup + drag→count mapping) lives
   // in js/splitter-resize.js; app.js owns the shared drag state below.
@@ -2799,7 +2802,21 @@
       const ax = cx + pin.x;
       const ay = cy + pin.y;
       const w = pin.width || 1;
-      const pinEdge = pin.edge || (pin.y < -150 ? "top" : pin.y > 150 ? "bottom" : "side");
+      // WHICH edge the pin leaves through is read off the pin PAIR, not off how
+      // far from the middle it sits: a pass-through pin is a pair (external tip +
+      // internal connection point), and the axis they differ on IS the direction
+      // the stub runs. Same y, different x → it leaves through the side; same x,
+      // different y → through the top or the bottom, whichever end the external
+      // tip is at. The old rule guessed from |y| > 150, which silently broke a
+      // side pin the moment a card grew: CPU0's two inputs moved from ±140 to
+      // ±176 in its JSON and were re-read as top/bottom, so each was drawn as a
+      // vertical line between two points with the SAME y — zero pixels long, i.e.
+      // no visible pin at all. Only a pin with no partner falls back to a guess.
+      const pinEdge = pin.edge || (internalPin
+        ? (internalPin.y === pin.y
+          ? "side"
+          : (internalPin.x === pin.x ? (pin.y < internalPin.y ? "top" : "bottom") : "side"))
+        : (pin.y < -150 ? "top" : pin.y > 150 ? "bottom" : "side"));
       if (pinEdge === "top") {
         // Control poking out the top, drawn down to its internal pin. A wide
         // control (2-bit MUX select) is a bus with a width label; a single-bit
