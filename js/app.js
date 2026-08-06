@@ -2201,6 +2201,10 @@
   let clockPrev = new Map();
   let clockTimer = null;
   let clockTick = 0;
+  // What each component's markup was on the last clock tick, so the next tick can
+  // replace only what changed (see renderClockTick). Dropped on a full render,
+  // which rebuilds the layer anyway.
+  let clockComponentHtml = null;
   const CLOCK_PERIOD_MS = 500; // 2 ticks per second
   // The one-time "I laid out נעצים for you" hand-off on the clocked table.
   // Transient (runtime only); reset on each entry, dismissed by "הבנתי".
@@ -2397,7 +2401,27 @@
     // The draft wire is only used mid-drag, and ticks are skipped while dragging.
     wireLayer.innerHTML = `${renderWires()}
       <line id="workspace-draft-wire" class="wire-line wire-line-draft" x1="0" y1="0" x2="0" y2="0" hidden />`;
-    componentLayer.innerHTML = state.workspace.components.map((component) => renderComponent(component, evaluation)).join("");
+    // Rebuilding the whole component layer every tick re-creates every element on
+    // it — and an <image> that is re-created flashes: the voltage source (and the
+    // Nand, the lamp and the gate symbols, which are external SVGs too) blinked
+    // in and out twice a second on any clocked table. Between ticks only lamps
+    // and converters actually change, so patch just the ones whose markup did.
+    // A fixed frame renders as an empty string and puts NO node on the board, so
+    // it must not count when the markup is lined up against the children.
+    const parts = state.workspace.components
+      .map((component) => ({ id: component.id, html: renderComponent(component, evaluation) }))
+      .filter((part) => part.html);
+    const sameShape = clockComponentHtml
+      && componentLayer.children.length === parts.length
+      && parts.every((part, i) => componentLayer.children[i]?.dataset.componentId === part.id);
+    if (!sameShape) {
+      componentLayer.innerHTML = parts.map((part) => part.html).join("");
+    } else {
+      parts.forEach((part, i) => {
+        if (clockComponentHtml.get(part.id) !== part.html) componentLayer.children[i].outerHTML = part.html;
+      });
+    }
+    clockComponentHtml = new Map(parts.map((part) => [part.id, part.html]));
     terminalLayer.innerHTML = renderTerminals();
     if (counter) counter.textContent = String(clockTick);
   }
@@ -13036,6 +13060,9 @@
   }
 
   function render() {
+    // A full render rebuilds the board from scratch, so last tick's per-component
+    // markup no longer describes what is on screen.
+    clockComponentHtml = null;
     syncExplanationUnlocks();
     syncCreateCardUnlock();
     syncAchievements();
