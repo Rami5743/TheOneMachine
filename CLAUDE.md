@@ -8,6 +8,15 @@ When a question comes up during a task, do not stop and wait for an answer. Inst
 
 After each logical step check, commit and push your work and then continue to the next one, without waiting for my response.
 
+**Never stop to report and wait.** When I give you a list of things — or send another
+instruction while you are working — commit and push what is done and go straight on
+to the next item. Do not end your turn with "this is the next thing" or "shall I
+start it?"; if you know what the next item is, you have everything you need to do
+it. My instructions are given so that they will be CARRIED OUT, not so that we can
+discuss them. Stopping costs me a great deal of time. Report only when the whole
+list is done — or when something is genuinely blocked, and then say what is blocked
+and keep going with everything else.
+
 I write my requests in Hebrew and often with typos. Use my EXACT Hebrew wording in the app; fix only obvious typos (spelling), never rephrase meaning. Replies can be in Hebrew.
 
 **External actions (anything I must do outside the code).** Whenever completing a task requires an action from ME in some external service or tool — running SQL in a dashboard, clicking through a console, configuring a provider, setting a secret, flipping a setting, uploading a file, etc. — give me **explicit, click-by-click** instructions in this exact style (Hebrew), naming every UI element AND where it is located:
@@ -82,6 +91,17 @@ We do NOT push to main casually — but when I explicitly ask to push to main / 
 
 ## Panel / SVG convention (IMPORTANT)
 
+**File names are the running order.** A panel is named
+`NNN_<chapter>_<slug>.svg` — `001_1.1_einstein-letter.svg`, `235_4.2_build-room.svg`
+— where NNN is the slide's position in the WHOLE game, counted through CHAPTERS
+in order and each scene's panels in order. So sorting the folder by name is
+reading the game front to back, and the chapter is on the file. Its raster carries
+the same name with `.jpg`; a raster shared by several slides keeps the name of the
+FIRST slide that uses it. Alternate art for a slide (youngImage / femaleImage /
+olderImage / babyImage) is that slide's name plus `_young`, `_female`, … so it
+sorts right beside it. When you insert a slide, renumber from it on — the numbers
+are positions, not ids.
+
 Each story slide is its OWN `.svg` file in `assets/panels/`. The SVG:
 - has `viewBox="0 0 1448 1086"`,
 - embeds a same-basename **`.jpg`** raster via `<image href="name.jpg" xlink:href="name.jpg">` (the JPG must exist so the slide shows in Inkscape),
@@ -108,8 +128,8 @@ In `js/data.js` a panel is `{ image, read, ... }`:
 
 Story runs chapters 1.1–2.5. Chapter 2.5 (`arithmetic` scene) currently ends
 with: library → binary explanation → workshop → the binary booklet → (after
-completing it) the "bits-range" von Neumann dialogue (panel108–panel116) →
-task handover (panel117 wordless, panel118 doorway speech, panel119 empty
+completing it) the "bits-range" von Neumann dialogue (121_2.5_bits-1–129_2.5_add-4) →
+task handover (130_2.5_handover wordless, 131_2.5_doorway doorway speech, 134_2.5_worktable empty
 worktable). The worktable's tasks-note zone (`arith-tasks-note`) is a
 placeholder ("המשך יבוא...") — the arithmetic build tasks (2-digit adder,
 3-digit adder, multi-digit adder) are NOT yet implemented.

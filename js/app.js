@@ -3731,7 +3731,7 @@
   // to the worktable note.
   function aluDoneMonologueTarget() {
     const chapter = chapterById("chapter-9");
-    const index = panelIndexByImage(sceneByChapter(chapter), "panel126_chapter_2_6_alu_done_1.svg");
+    const index = panelIndexByImage(sceneByChapter(chapter), "141_2.6_alu-done-1.svg");
     return storyTarget(chapter, index >= 0 ? index : 0);
   }
 
@@ -3978,7 +3978,7 @@
   // chapter rather than to a panel in this scene.
   function busesClosingMonologue() {
     if (state.screen !== "story" || state.sceneId !== "buses") return false;
-    const g = panelIndexByImage(currentScene(), "panel99g_chapter_2_4_worktable_next.svg");
+    const g = panelIndexByImage(currentScene(), "109_2.4_worktable-next.svg");
     return g >= 0 && Number.isInteger(state.panelIndex) && state.panelIndex > g;
   }
 
@@ -4059,7 +4059,7 @@
     // Skipping the 2.4 opening also skips examining the new bus + splitter, so on
     // a first pass the shortcut is withheld until that equipment has actually
     // been examined (the tasks note depends on it).
-    if (chapter?.id === "chapter-7" && target === panelIndexByImage(currentScene(), "panel99_chapter_2_4_worktable.svg")) {
+    if (chapter?.id === "chapter-7" && target === panelIndexByImage(currentScene(), "102_2.4_worktable.svg")) {
       return newEquipmentChecked();
     }
     return true;
@@ -4659,7 +4659,7 @@
       if (!explanationUnlocked("why-route")) return;
       const chapter = chapterById("chapter-6");
       const scene = sceneByChapter(chapter);
-      const idx = panelIndexByImage(scene, "panel89_chapter_2_3_routing_concept.svg");
+      const idx = panelIndexByImage(scene, "092_2.3_routing-concept.svg");
       return setState({
         ...transientUiClearPatch(),
         screen: "story",
@@ -8842,13 +8842,13 @@
     return (
       state.screen === "story" &&
       state.chapterId === "chapter-6" &&
-      panelImageIs(currentPanel(), "panel93_chapter_2_3_worktable.svg") &&
+      panelImageIs(currentPanel(), "096_2.3_worktable.svg") &&
       Boolean(state.xorTableHelpUnlocked || (Array.isArray(state.explanationsUnlocked) && state.explanationsUnlocked.includes("truth-table-cards")))
     );
   }
 
   function routingFinalPanelActive() {
-    return state.screen === "story" && state.chapterId === "chapter-6" && panelImageIs(currentPanel(), "panel93_chapter_2_3_worktable.svg");
+    return state.screen === "story" && state.chapterId === "chapter-6" && panelImageIs(currentPanel(), "096_2.3_worktable.svg");
   }
 
   function renderRoutingCardsButton() {
@@ -9822,7 +9822,7 @@
   function exitSubtractionDemoToStory() {
     const chapter = chapterById("chapter-9");
     const scene = sceneByChapter(chapter);
-    const idx = panelIndexByImage(scene, "panel127_chapter_2_6_alu_done_2.svg");
+    const idx = panelIndexByImage(scene, "145_2.6_alu-done-2.svg");
     setState({
       ...transientUiClearPatch(),
       screen: "story",
@@ -10869,7 +10869,7 @@
   // The one-off story beat at the end of the scripted card-intro moment: on
   // "הבנתי" we leave the table and cut to von Neumann catching the learner
   // "playing instead of working", then the plot continues.
-  const VON_NEUMANN_PLAY_PANEL = "panel99b_chapter_2_4_von_neumann.svg";
+  const VON_NEUMANN_PLAY_PANEL = "103_2.4_von-neumann.svg";
   function dismissCardCreationIntro() {
     const cc = state.cardCreation || {};
     const chapterId = cc.returnChapterId || "chapter-7";
@@ -10893,7 +10893,7 @@
   // The final slide of the post-MUX16 monologue (von Neumann handing over the
   // new tasks). "המשך" from here returns to the worktable.
   function isMonologueEndPanel(panel) {
-    return panelImageIs(panel, "panel99f_chapter_2_4_fermi.svg");
+    return panelImageIs(panel, "108_2.4_fermi.svg");
   }
 
   // Delete a saved card: drop its record and its component defs, then re-render.
@@ -13222,7 +13222,7 @@
     // looks like the worktable but whose note lists Dmux4way / Mux4way16. The
     // original worktable (reached by replaying the chapter) keeps its own note.
     if (state.screen === "story" && isMonologueEndPanel(currentPanel())) {
-      const nextWorktable = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
+      const nextWorktable = panelIndexByImage(scene, "109_2.4_worktable-next.svg");
       if (nextWorktable >= 0) {
         return setState({ panelIndex: nextWorktable, started: true, replayNonce: state.replayNonce + 1, dialog: null }, true);
       }
@@ -16960,7 +16960,7 @@
   // tape it beats, and what it costs).
   function ramEpilogueTarget() {
     const chapter = chapterById("chapter-12");
-    const index = panelIndexByImage(SCENES["ram"], "panel142_chapter_3_3_ram_thousand.svg");
+    const index = panelIndexByImage(SCENES["ram"], "160_3.3_ram-thousand.svg");
     return Number.isInteger(index) && index >= 0 ? storyTarget(chapter, index) : null;
   }
 
@@ -17556,7 +17556,7 @@
   // original worktable keeps the bus-task list. Keyed off which panel we're on,
   // so replaying the chapter naturally shows the original note.
   function onNextTasksWorktable() {
-    return state.screen === "story" && panelImageIs(currentPanel(), "panel99g_chapter_2_4_worktable_next.svg");
+    return state.screen === "story" && panelImageIs(currentPanel(), "109_2.4_worktable-next.svg");
   }
 
   function renderBusesNoteList() {
@@ -18582,7 +18582,7 @@
       // the worktable note.
       if (taskId === "Mux4way16") {
         const scene = sceneByChapter(returnChapter);
-        const monologueIndex = panelIndexByImage(scene, "panel99h_chapter_2_4_vn_midnight.svg");
+        const monologueIndex = panelIndexByImage(scene, "110_2.4_vn-midnight.svg");
         if (monologueIndex >= 0) {
           return setState({
             ...storyTarget(returnChapter, monologueIndex),
@@ -18797,7 +18797,7 @@
       const returnChapterId = state.workspace?.sessionReturnChapterId || "chapter-7";
       const returnChapter = chapterById(returnChapterId);
       if (taskId === "Mux4way16") {
-        const monologueIndex = panelIndexByImage(sceneByChapter(returnChapter), "panel99h_chapter_2_4_vn_midnight.svg");
+        const monologueIndex = panelIndexByImage(sceneByChapter(returnChapter), "110_2.4_vn-midnight.svg");
         if (monologueIndex >= 0) return setState({ ...storyTarget(returnChapter, monologueIndex), ...base, busesNoteList: false }, true);
       }
       const returnPanelIndex = Number.isInteger(state.workspace?.sessionReturnPanelIndex) ? state.workspace.sessionReturnPanelIndex : 0;
@@ -19849,9 +19849,9 @@
     if (currentChapter()?.id !== "chapter-8") return null;
     const scene = currentScene();
     if (!scene) return null;
-    const afterLibrary = panelIndexByImage(scene, "panel102_chapter_2_5_library_vn.svg");
-    const booklet = panelIndexByImage(scene, "panel107_chapter_2_5_workshop.svg");
-    const noteTasks = panelIndexByImage(scene, "panel119_chapter_2_5_worktable.svg");
+    const afterLibrary = panelIndexByImage(scene, "115_2.5_library-vn.svg");
+    const booklet = panelIndexByImage(scene, "120_2.5_workshop.svg");
+    const noteTasks = panelIndexByImage(scene, "134_2.5_worktable.svg");
     const p = state.panelIndex;
     if (afterLibrary >= 0 && p < afterLibrary) return afterLibrary;
     if (booklet >= 0 && p < booklet) return booklet;
@@ -19865,7 +19865,7 @@
   // the closing monologue and the subtraction demo — "דלג" jumps to chapter 3.1.
   function aluWorktablePanelIndex() {
     const scene = currentScene();
-    return scene ? panelIndexByImage(scene, "panel125_chapter_2_6_alu_worktable.svg") : -1;
+    return scene ? panelIndexByImage(scene, "140_2.6_alu-worktable.svg") : -1;
   }
   function aluAtWorktable() {
     if (currentChapter()?.id !== "chapter-9") return false;
@@ -19917,8 +19917,8 @@
       const launch = workspaceLaunchPanelIndex(scene);
       return Number.isInteger(launch) && launch >= 0 ? launch : Math.max(scene.panels.length - 1, 0);
     }
-    const worktableIndex = panelIndexByImage(scene, "panel99_chapter_2_4_worktable.svg");
-    const nextWorktableIndex = panelIndexByImage(scene, "panel99g_chapter_2_4_worktable_next.svg");
+    const worktableIndex = panelIndexByImage(scene, "102_2.4_worktable.svg");
+    const nextWorktableIndex = panelIndexByImage(scene, "109_2.4_worktable-next.svg");
     const lastIndex = Math.max(scene.panels.length - 1, 0);
     // Past the next-tasks worktable (the closing "go to sleep" monologue) → skip
     // to the end of the scene.

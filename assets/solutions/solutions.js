@@ -5998,6 +5998,42 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "gate-RAM",
         "x": 625,
         "y": 597
+      },
+      {
+        "id": "instr-nail-1",
+        "type": "nail",
+        "x": 775,
+        "y": 231
+      },
+      {
+        "id": "instr-nail-2",
+        "type": "nail",
+        "x": 775,
+        "y": 105
+      },
+      {
+        "id": "instr-nail-3",
+        "type": "nail",
+        "x": 321,
+        "y": 105
+      },
+      {
+        "id": "mem-nail-1",
+        "type": "nail",
+        "x": 792,
+        "y": 516
+      },
+      {
+        "id": "mem-nail-2",
+        "type": "nail",
+        "x": 792,
+        "y": 757
+      },
+      {
+        "id": "mem-nail-3",
+        "type": "nail",
+        "x": 321,
+        "y": 757
       }
     ],
     "wires": [
@@ -6016,14 +6052,6 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "task-card-1.inputInt5",
         "b": "program.in2"
-      },
-      {
-        "a": "program.out",
-        "b": "cpu.in1"
-      },
-      {
-        "a": "memory.out",
-        "b": "cpu.in2"
       },
       {
         "a": "task-card-1.inputInt5",
@@ -6072,10 +6100,42 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "a": "memory.outP4",
         "b": "task-card-1.outputInt4"
+      },
+      {
+        "a": "program.out",
+        "b": "instr-nail-1.in"
+      },
+      {
+        "a": "instr-nail-1.out",
+        "b": "instr-nail-2.in"
+      },
+      {
+        "a": "instr-nail-2.out",
+        "b": "instr-nail-3.in"
+      },
+      {
+        "a": "instr-nail-3.out",
+        "b": "cpu.in1"
+      },
+      {
+        "a": "memory.out",
+        "b": "mem-nail-1.in"
+      },
+      {
+        "a": "mem-nail-1.out",
+        "b": "mem-nail-2.in"
+      },
+      {
+        "a": "mem-nail-2.out",
+        "b": "mem-nail-3.in"
+      },
+      {
+        "a": "mem-nail-3.out",
+        "b": "cpu.in2"
       }
     ],
     "check": {
-      "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Prg) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא שלושה כרטיסים בלבד: CPU0, זיכרון התוכנה Prg וזיכרון הדאטה RAM."
+      "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Prg) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא שלושה כרטיסים — CPU0, זיכרון התוכנה Prg וזיכרון הדאטה RAM — ושתי לולאות שחוזרות למעבד על נעצים: הפקודה מעל הלוח והמספר מהזיכרון מתחתיו."
     }
   }
 };

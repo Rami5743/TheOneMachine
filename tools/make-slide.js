@@ -5,7 +5,7 @@
 //   node tools/make-slide.js <outSvgPath> <jpgBasename> "<line1>|<line2>|..."
 //
 // The geometry below is taken VERBATIM from the hand-corrected reference slide
-// (panel136_chapter_3_1_good_work.svg): a 621-wide bubble centred at x=774, with
+// (154_3.2_good-work.svg): a 621-wide bubble centred at x=774, with
 // soft cubic corners and a SLIM tail on the left edge pointing left toward the
 // speaker. Do not "improve" these numbers — the earlier generated bubbles were
 // rejected precisely because their tail was oversized and mis-shaped.

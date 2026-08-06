@@ -285,7 +285,7 @@
   function arithWorktableIndex() {
     try {
       if (typeof APP !== "undefined" && APP.panelIndexByImage) {
-        const i = APP.panelIndexByImage("arithmetic", "panel119_chapter_2_5_worktable.svg");
+        const i = APP.panelIndexByImage("arithmetic", "134_2.5_worktable.svg");
         if (Number.isInteger(i) && i >= 0) return i;
       }
     } catch (e) {}
