@@ -319,6 +319,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // Bus gates render at GATE_RENDER_SCALE (0.6) in chapter 2.4, which would
   // shrink the bars below normal bus thickness — so the bar/stripe/label sizes
   // are pre-divided by that scale to come out the same thickness as a real bus.
+  // THE STANDARD PIN LENGTH. Every stub a card draws sticks out this far from the
+  // body, and the wiring table (WORKSPACE_COMPONENT_DEFS in app.js, mirrored in
+  // editor.html) puts the pin at exactly the same place — so a cable always lands
+  // on the TIP of the stub and never part-way along it. 40 is chosen to hold the
+  // two-digit bus width that is printed over the bar ("16" at this font is about
+  // 27 wide); shorter, and the number spills over the end.
+  const PIN = 40;
+
   const BUS_GATE_SCALE = 0.6;
   // A bus bar must look EXACTLY as thick wherever it is drawn. The bar lives
   // inside the component's own <g>, which the board may scale (0.6 past chapter
@@ -389,6 +397,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const edge = 30;
     const bodyW = edge * 2;
     const bodyH = 64;
+    // ≠0 borrows the Not gate's terminals (it has no symbol of its own), so its
+    // stub ends where THAT card's pins are — not at the standard length.
     const inX = -60;
     const outX = 80;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
@@ -408,8 +418,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     // Pins FIRST, body over them, then the labels: a pin stops at the body's
     // edge instead of running into it, and the body cannot swallow a label.
-    let s = busPin(-74, -edge, 0);               // data bus in (left)
-    s += busPin(edge, 78, 0);                    // stored bus out (right)
+    let s = busPin(-(edge + PIN), -edge, 0);     // data bus in (left)
+    s += busPin(edge, edge + PIN, 0);            // stored bus out (right)
     s += pinLine(0, -46, 0, -bodyH / 2);         // control (top)
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // Both widths just say "Reg" — the 4 or the 16 is already on the pins.
@@ -424,7 +434,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   function pcGateMarkup(width, options = {}) {
     const edge = 40;
     const bodyH = 76;
-    let s = busGateBar({ x1: edge, x2: 78, y: 0 }, width, !options.toolbar);
+    let s = busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
     s += pinLine(0, -46, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "PC0";
@@ -444,8 +454,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // left it could be.
     const inNames = ["RAdr", "WAdr", ""];
     let s = "";
-    inYs.forEach((y) => { s += busGateBar({ x1: -110, x2: -edge, y }, width, !options.toolbar); });
-    s += busGateBar({ x1: edge, x2: 110, y: 0 }, width, !options.toolbar);
+    inYs.forEach((y) => { s += busGateBar({ x1: -(edge + PIN), x2: -edge, y }, width, !options.toolbar); });
+    s += busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
     s += pinLine(0, -110, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "Prg";
@@ -486,10 +496,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The bars are LONG (40) on purpose: the width number is centred over the bar
     // and the body is drawn on top of it, so a short bar leaves half the number
     // under the card and it reads as cut off.
-    inYs.forEach((y) => { s += busGateBar({ x1: -110, x2: -edge, y }, width, !options.toolbar); });
+    inYs.forEach((y) => { s += busGateBar({ x1: -(edge + PIN), x2: -edge, y }, width, !options.toolbar); });
     // Three buses out, and the write wire as a plain cable.
-    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: 110, y }, outWidths[i], !options.toolbar); });
-    s += pinLine(edge, outYs[3], 110, outYs[3]);
+    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: edge + PIN, y }, outWidths[i], !options.toolbar); });
+    s += pinLine(edge, outYs[3], edge + PIN, outYs[3]);
     s += pinLine(0, -170, 0, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // The card's own name sits in the MIDDLE of the body — the one band no pin
@@ -521,8 +531,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bodyH = 96;
     const outYs = [-30, 0, 30];
     const captions = ["D", "A", "\u200e*A\u200e"];
-    let s = busGateBar({ x1: -74, x2: -edge, y: 0 }, 2, !options.toolbar);
-    outYs.forEach((y) => { s += pinLine(edge, y, 86, y); });
+    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: 0 }, 2, !options.toolbar);
+    outYs.forEach((y) => { s += pinLine(edge, y, edge + PIN, y); });
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "Cont0";
     const font = labelFontSize(name, edge * 2, 18);
@@ -566,16 +576,16 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // A card with no data bus (IPorts) has its address where the data would be,
     // facing the output — the drawing has to follow the pin, or the cable lands
     // on a bar that is not there.
-    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, spec.dataIn === false ? -130 : -170, spec.addressWidth);
+    if (Number.isInteger(spec.addressWidth)) s += bar(-(edge + PIN), -edge, spec.dataIn === false ? -130 : -170, spec.addressWidth);
     // IPorts has no data input at all — everything it shows comes from outside —
     // so it must not grow a bus stub with no pin behind it.
-    if (spec.dataIn !== false) s += bar(-88, -edge, -130, spec.width);
-    s += bar(edge, 92, -130, spec.width);
+    if (spec.dataIn !== false) s += bar(-(edge + PIN), -edge, -130, spec.width);
+    s += bar(edge, edge + PIN, -130, spec.width);
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     // Inputs and outputs sit at the SAME heights, so a port's two ends line up
     // across the card.
-    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, 8 + i * 60, spec.width);
-    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 60, spec.width);
+    for (let i = 0; i < outs; i += 1) s += bar(edge, edge + PIN, 8 + i * 60, spec.width);
+    for (let i = 0; i < ins; i += 1) s += bar(-(edge + PIN), -edge, 8 + i * 60, spec.width);
     s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const font = labelFontSize(label, edge * 2, 17);
     // The name sits in the band BETWEEN the address/data buses at the top and the
@@ -598,9 +608,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     // Pins FIRST, body over them, then the name: a pin stops at the body's edge
     // instead of running into it, and the body cannot swallow the name.
-    let s = bar(-88, -edge, -24, spec.addressWidth); // address bus in (upper left)
-    s += bar(-88, -edge, 24, spec.width);            // data bus in (lower left)
-    s += bar(edge, 92, 0, spec.width);               // stored bus out (right)
+    let s = bar(-(edge + PIN), -edge, -24, spec.addressWidth); // address bus in (upper left)
+    s += bar(-(edge + PIN), -edge, 24, spec.width);            // data bus in (lower left)
+    s += bar(edge, edge + PIN, 0, spec.width);                 // stored bus out (right)
     s += pinLine(0, -56, 0, -bodyH / 2);             // control (top)
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // The longer names (RAM256, RAM1024) do not fit across the card on one line, so

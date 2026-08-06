@@ -692,9 +692,9 @@
     memoryGate: true,
     busWidth: 4,
     pins: {
-      in1: { x: -74, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
+      in1: { x: -80, y: 0, direction: "in", width: 4, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 78, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
+      out: { x: 80, y: 0, direction: "out", width: 4, label: "יציאת המידע השמור" }
     },
     bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
@@ -708,9 +708,9 @@
     memoryGate: true,
     busWidth: 16,
     pins: {
-      in1: { x: -74, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
+      in1: { x: -80, y: 0, direction: "in", width: 16, label: "כניסת המידע" },
       in2: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
+      out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המידע השמור" }
     },
     bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
@@ -824,8 +824,8 @@
       slots: ramTask.slots,
       // The address sits ABOVE the data, exactly as it does on the build frame.
       pins: {
-        in3: { x: -88, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
-        in1: { x: -88, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
+        in3: { x: -92, y: -24, direction: "in", width: aw, label: "כניסת הכתובת" },
+        in1: { x: -92, y: 24, direction: "in", width: 16, label: "כניסת הדאטה" },
         in2: { x: 0, y: -56, direction: "in", width: 1, label: "כניסת הבקרה" },
         out: { x: 92, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
       },
@@ -917,15 +917,15 @@
 
   function portsGatePins(addressWidth, withInputs = true) {
     return {
-      in3: { x: -88, y: -170, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
-      in1: { x: -88, y: -130, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in3: { x: -98, y: -170, direction: "in", width: addressWidth, label: "כניסת הכתובת" },
+      in1: { x: -98, y: -130, direction: "in", width: 16, label: "כניסת הדאטה" },
       in2: { x: 0, y: -260, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" },
+      out: { x: 98, y: -130, direction: "out", width: 16, label: "יציאת הדאטה" },
       ...Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `outP${i + 1}`, { x: 92, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
+        `outP${i + 1}`, { x: 98, y: 8 + i * 60, direction: "out", width: 16, label: `יציאת פורט ${cap}` }
       ])),
       ...(withInputs ? Object.fromEntries(PORT_OUT_CAPTIONS.map((cap, i) => [
-        `inP${i + 1}`, { x: -88, y: 8 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
+        `inP${i + 1}`, { x: -98, y: 8 + i * 60, direction: "in", width: 16, label: `כניסת פורט ${cap}` }
       ])) : {})
     };
   }
@@ -1278,7 +1278,7 @@
     busWidth: 16,
     pins: {
       in1: { x: 0, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
-      out: { x: 78, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+      out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
     },
     bounds: { left: 76, right: 96, top: 62, bottom: 50 }
   };
@@ -1315,10 +1315,10 @@
     contGate: true,
     busWidth: 2,
     pins: {
-      in1: { x: -74, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
-      out1: { x: 86, y: -30, direction: "out", width: 1, label: "יציאת D" },
-      out2: { x: 86, y: 0, direction: "out", width: 1, label: "יציאת A" },
-      out3: { x: 86, y: 30, direction: "out", width: 1, label: "יציאת *A" }
+      in1: { x: -90, y: 0, direction: "in", width: 2, label: "כניסת הבקרה" },
+      out1: { x: 90, y: -30, direction: "out", width: 1, label: "יציאת D" },
+      out2: { x: 90, y: 0, direction: "out", width: 1, label: "יציאת A" },
+      out3: { x: 90, y: 30, direction: "out", width: 1, label: "יציאת *A" }
     },
     bounds: { left: 76, right: 118, top: 62, bottom: 62 }
   };
@@ -1430,11 +1430,11 @@
     addressBits: 10,
     slots: 1024,
     pins: {
-      in3: { x: -92, y: -60, direction: "in", width: 16, label: "כניסת כתובת הקריאה" },
-      in4: { x: -92, y: 0, direction: "in", width: 16, label: "כניסת כתובת הכתיבה" },
-      in1: { x: -92, y: 60, direction: "in", width: 16, label: "כניסת הדאטה" },
+      in3: { x: -96, y: -60, direction: "in", width: 16, label: "כניסת כתובת הקריאה" },
+      in4: { x: -96, y: 0, direction: "in", width: 16, label: "כניסת כתובת הכתיבה" },
+      in1: { x: -96, y: 60, direction: "in", width: 16, label: "כניסת הדאטה" },
       in2: { x: 0, y: -110, direction: "in", width: 1, label: "כניסת הבקרה" },
-      out: { x: 92, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
+      out: { x: 96, y: 0, direction: "out", width: 16, label: "יציאת הדאטה" }
     },
     bounds: { left: 96, right: 96, top: 126, bottom: 96 }
   };
@@ -18433,8 +18433,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="prg-note-close">סגור</button>
+            ${noteClearProgressButton("prg")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -19459,6 +19461,7 @@
     if (kind === "memory") return (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []).map((t) => t.id);
     if (kind === "ram") return ramTaskDefs().map((t) => t.id);
     if (kind === "ports") return portsTaskDefs().map((t) => t.id);
+    if (kind === "prg") return prgTaskDefs().map((t) => t.id);
     if (kind === "build") return simpleComputerTaskDefs().map((t) => t.id);
     return [];
   }
@@ -19470,6 +19473,12 @@
   // "נקה התקדמות" for a task note: shown when the note already holds completed
   // tasks. Clearing wipes those tasks (and their first-try/hint bookkeeping) so
   // the chapter can be rebuilt from scratch.
+  //
+  // EVERY task note gets this button. A new note needs exactly two things: a
+  // `kind` branch in noteTaskIdsForKind above, and ${noteClearProgressButton(kind)}
+  // beside its "סגור" button — and renderNoteClearDialog() inside its overlay, or
+  // pressing the button does nothing. It has been forgotten on every new note so
+  // far; if you are adding one, add these now.
   function noteClearProgressButton(kind) {
     if (!noteHasProgress(kind)) return "";
     return `<button class="btn notebook-clear-progress-btn" data-action="note-clear-open" data-note-kind="${kind}" type="button">נקה התקדמות</button>`;

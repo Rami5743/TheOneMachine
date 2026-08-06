@@ -163,7 +163,7 @@ function splitterPin(comp, pinId) {
 }
 const PINS = {
   source:{ out:{x:40,y:0,w:1} },
-  "gate-PreperNum":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:66,y:0,w:16} },
+  "gate-PreperNum":{ in1:{x:-76,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:80,y:0,w:16} },
   "gate-ALU0":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out1:{x:66,y:0,w:16} },
   "gate-ALU1":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} },
   "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:7}, out1:{x:66,y:0,w:16} },
@@ -171,13 +171,13 @@ const PINS = {
   "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:60,w:1}, out3:{x:20,y:60,w:1} },
   "gate-AND16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
   "gate-Or16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
-  "gate-Add16":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out1:{x:66,y:0,w:16} },
+  "gate-Add16":{ in1:{x:-76,y:-26,w:16}, in2:{x:-76,y:26,w:16}, out1:{x:80,y:0,w:16} },
   "gate-Not16":{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} },
   "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   // The plain 2.3 cards: single-wire pins, control on top.
   "gate-DMux":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:1}, out1:{x:66,y:-23,w:1}, out2:{x:66,y:23,w:1} },
   "gate-Mux":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:1} },
-  "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} },
+  "gate-Inc":{ in1:{x:-76,y:0,w:16}, out1:{x:80,y:0,w:16} },
   "gate-Neq0_16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:1} },
   "gate-Neq0_4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:1} },
   // 2.5 arithmetic gates (single-bit unless noted) — so their solution wires draw.
@@ -187,31 +187,31 @@ const PINS = {
   "gate-Not":{ in1:{x:-60,y:0,w:1}, out:{x:80,y:0,w:1} },
   "gate-halfAdder":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
   "gate-fullAdder":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
-  "gate-Add4":{ in1:{x:-62,y:-52,w:4}, in2:{x:-62,y:0,w:4}, in3:{x:-62,y:52,w:1}, out2:{x:66,y:-34,w:1}, out1:{x:66,y:34,w:4} },
+  "gate-Add4":{ in1:{x:-76,y:-52,w:4}, in2:{x:-76,y:0,w:4}, in3:{x:-76,y:52,w:1}, out2:{x:80,y:-34,w:1}, out1:{x:80,y:34,w:4} },
   // 3.1 memory: a data bus in, a single control on top, the stored bus out.
   // The נעץ: both pins sit at the dot's centre, so a cable through it is straight.
   nail:{ in:{x:0,y:0,w:1}, out:{x:0,y:0,w:1} },
   ffCard:{ in1:{x:-66,y:0,w:1}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:1} },
-  "gate-Register4":{ in1:{x:-62,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
-  "gate-Register":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
+  "gate-Register4":{ in1:{x:-80,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:80,y:0,w:4} },
+  "gate-Register":{ in1:{x:-80,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:80,y:0,w:16} },
   // 3.3 RAM: data in (upper left), address in (lower left), control on top.
-  "gate-RAM4":{ in3:{x:-74,y:-24,w:2}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM16":{ in3:{x:-74,y:-24,w:4}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM4":{ in3:{x:-92,y:-24,w:2}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM16":{ in3:{x:-92,y:-24,w:4}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM64":{ in3:{x:-92,y:-24,w:6}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM256":{ in3:{x:-92,y:-24,w:8}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM1024":{ in3:{x:-92,y:-24,w:10}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
   // 3.4 ports: address + data + (for Ports/RAM) four device buses down the left,
   // the data output + four port buses down the right, control on top.
-  "gate-OPorts":{ in3:{x:-88,y:-170,w:2}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16} },
-  "gate-IPorts":{ in5:{x:-88,y:-130,w:2}, in1:{x:-88,y:8,w:16}, in2:{x:-88,y:68,w:16},
-    in3:{x:-88,y:128,w:16}, in4:{x:-88,y:188,w:16}, out:{x:92,y:-130,w:16} },
-  "gate-Ports":{ in3:{x:-88,y:-170,w:3}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
-    inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
-  "gate-RAM":{ in3:{x:-88,y:-170,w:16}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
-    inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
+  "gate-OPorts":{ in3:{x:-98,y:-170,w:2}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16} },
+  "gate-IPorts":{ in5:{x:-98,y:-130,w:2}, in1:{x:-98,y:8,w:16}, in2:{x:-98,y:68,w:16},
+    in3:{x:-98,y:128,w:16}, in4:{x:-98,y:188,w:16}, out:{x:98,y:-130,w:16} },
+  "gate-Ports":{ in3:{x:-98,y:-170,w:3}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16},
+    inP1:{x:-98,y:8,w:16}, inP2:{x:-98,y:68,w:16}, inP3:{x:-98,y:128,w:16}, inP4:{x:-98,y:188,w:16} },
+  "gate-RAM":{ in3:{x:-98,y:-170,w:16}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16},
+    inP1:{x:-98,y:8,w:16}, inP2:{x:-98,y:68,w:16}, inP3:{x:-98,y:128,w:16}, inP4:{x:-98,y:188,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
   "gate-Dmux4way":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:2},
     out1:{x:66,y:-30,w:1}, out2:{x:66,y:-10,w:1}, out3:{x:66,y:10,w:1}, out4:{x:66,y:30,w:1} },
@@ -219,11 +219,11 @@ const PINS = {
     in5:{x:0,y:-66,w:2}, out:{x:66,y:0,w:16} },
   // 4.2: the counter (reset on top, the count out), the control unit (the 2-bit
   // destination field in, one wire per destination out) and the processor.
-  "gate-PC0":{ in1:{x:0,y:-46,w:1}, out:{x:78,y:0,w:16} },
-  "gate-Cont0":{ in1:{x:-74,y:0,w:2}, out1:{x:86,y:-30,w:1}, out2:{x:86,y:0,w:1}, out3:{x:86,y:30,w:1} },
+  "gate-PC0":{ in1:{x:0,y:-46,w:1}, out:{x:80,y:0,w:16} },
+  "gate-Cont0":{ in1:{x:-90,y:0,w:2}, out1:{x:90,y:-30,w:1}, out2:{x:90,y:0,w:1}, out3:{x:90,y:30,w:1} },
   "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
     out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} },
-  "gate-Prg":{ in3:{x:-92,y:-60,w:16}, in4:{x:-92,y:0,w:16}, in1:{x:-92,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:92,y:0,w:16} }
+  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
