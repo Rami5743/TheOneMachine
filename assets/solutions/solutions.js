@@ -5661,7 +5661,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "counter",
         "type": "gate-PC0",
         "x": 520,
-        "y": 170
+        "y": 175
       },
       {
         "id": "control",
@@ -5672,20 +5672,20 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "alu",
         "type": "gate-ALU3",
-        "x": 815,
+        "x": 835,
         "y": 520
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
         "x": 705,
-        "y": 470
+        "y": 480
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
         "x": 700,
-        "y": 365
+        "y": 370
       },
       {
         "id": "word-split",
@@ -5710,13 +5710,13 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "ctrl-nail-in",
         "type": "nail",
-        "x": 810,
+        "x": 830,
         "y": 265
       },
       {
         "id": "res-nail-1",
         "type": "nail",
-        "x": 855,
+        "x": 875,
         "y": 600
       },
       {
