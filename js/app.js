@@ -7194,10 +7194,9 @@
       {
         text: "12 הביטים של ההוראה הולכים לכניסת הבקרה של ה-ALU3. ALU3 ולא ALU4 — המעבד לא צריך את ng ואת zr, אז אין סיבה לכרטיס גדול יותר.",
         highlight: {
-          components: ["alu", "ctrl-nail-out", "ctrl-nail-in"],
+          components: ["alu", "ctrl-nail-in"],
           terminals: ["alu.in4"],
-          wires: [wireKey("word-split.leg2", "ctrl-nail-out.in"), wireKey("ctrl-nail-out.out", "ctrl-nail-in.in"),
-                  wireKey("ctrl-nail-in.out", "alu.in4")]
+          wires: [wireKey("word-split.leg2", "ctrl-nail-in.in"), wireKey("ctrl-nail-in.out", "alu.in4")]
         }
       },
       {
@@ -7212,11 +7211,11 @@
       {
         text: "שני ביטי היעד הולכים ל-Cont0, ושלוש היציאות שלו הן כניסות הבקרה: אחת אומרת ל-D לרשום, אחת אומרת ל-A לרשום, והשלישית יוצאת מהכרטיס ואומרת לזיכרון שרושמים אליו.",
         highlight: {
-          components: ["control", "reg-a", "reg-d", "write-nail-out", "write-nail-in"],
+          components: ["control", "reg-a", "reg-d", "write-nail-out"],
           terminals: ["control.in1", "reg-d.in2", "reg-a.in2", "task-card-1.outputInt4"],
           wires: [wireKey("control.in1", "word-split.leg1"), wireKey("control.out1", "reg-d.in2"),
                   wireKey("control.out2", "reg-a.in2"), wireKey("control.out3", "write-nail-out.in"),
-                  wireKey("write-nail-out.out", "write-nail-in.in"), wireKey("write-nail-in.out", "task-card-1.outputInt4")]
+                  wireKey("write-nail-out.out", "task-card-1.outputInt4")]
         }
       },
       {
@@ -7232,11 +7231,11 @@
       {
         text: "ולבסוף שתי הכתובות יוצאות שלמות: מה שיש ב-A יוצא ישר מהרגיסטר, וה-PC0 מחובר לריסט של הכרטיס ומוציא את הספירה שלו.",
         highlight: {
-          components: ["counter", "reg-a", "reset-nail", "pc-nail"],
+          components: ["counter", "reg-a"],
           terminals: ["task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.inputInt3"],
           wires: [wireKey("task-card-1.outputInt1", "reg-a.out"),
-                  wireKey("counter.out", "pc-nail.in"), wireKey("task-card-1.outputInt2", "pc-nail.out"),
-                  wireKey("task-card-1.inputInt3", "reset-nail.in"), wireKey("counter.in1", "reset-nail.out")]
+                  wireKey("counter.out", "task-card-1.outputInt2"),
+                  wireKey("task-card-1.inputInt3", "counter.in1")]
         }
       }
     ],

@@ -5708,22 +5708,10 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 685
       },
       {
-        "id": "ctrl-nail-out",
-        "type": "nail",
-        "x": 485,
-        "y": 265
-      },
-      {
         "id": "ctrl-nail-in",
         "type": "nail",
         "x": 810,
         "y": 265
-      },
-      {
-        "id": "write-nail-in",
-        "type": "nail",
-        "x": 885,
-        "y": 680
       },
       {
         "id": "res-nail-1",
@@ -5742,18 +5730,6 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "nail",
         "x": 625,
         "y": 425
-      },
-      {
-        "id": "reset-nail",
-        "type": "nail",
-        "x": 405,
-        "y": 145
-      },
-      {
-        "id": "pc-nail",
-        "type": "nail",
-        "x": 875,
-        "y": 180
       }
     ],
     "wires": [
@@ -5794,24 +5770,8 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "ctrl-nail-in.out"
       },
       {
-        "a": "ctrl-nail-out.out",
-        "b": "ctrl-nail-in.in"
-      },
-      {
-        "a": "ctrl-nail-out.in",
-        "b": "word-split.leg2"
-      },
-      {
         "a": "alu.in1",
         "b": "reg-d.out"
-      },
-      {
-        "a": "task-card-1.outputInt4",
-        "b": "write-nail-in.out"
-      },
-      {
-        "a": "write-nail-out.out",
-        "b": "write-nail-in.in"
       },
       {
         "a": "alu.out1",
@@ -5834,24 +5794,24 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "res-nail-3.out"
       },
       {
-        "a": "task-card-1.inputInt3",
-        "b": "reset-nail.in"
-      },
-      {
-        "a": "counter.in1",
-        "b": "reset-nail.out"
-      },
-      {
         "a": "task-card-1.outputInt1",
         "b": "reg-a.out"
       },
       {
-        "a": "counter.out",
-        "b": "pc-nail.in"
+        "a": "word-split.leg2",
+        "b": "ctrl-nail-in.in"
       },
       {
-        "a": "task-card-1.outputInt2",
-        "b": "pc-nail.out"
+        "a": "write-nail-out.out",
+        "b": "task-card-1.outputInt4"
+      },
+      {
+        "a": "task-card-1.inputInt3",
+        "b": "counter.in1"
+      },
+      {
+        "a": "counter.out",
+        "b": "task-card-1.outputInt2"
       }
     ],
     "check": {

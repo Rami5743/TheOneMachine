@@ -112,6 +112,43 @@ let bad0=0;
           if(!tbl[pid]) out.deadEnds.push(ref+' (pin not in PINS)');
         }
       }
+      // 5. a nail that is not a corner. A נעץ earns its place by BENDING a run:
+      // one cable in, one cable out, at a different angle. When the cable arrives
+      // and leaves at (nearly) the same angle the nail sits in the middle of a
+      // straight line and removing it would not move a single pixel of the
+      // drawing — so it is just clutter. Fan-out nails (one in, several out) are
+      // never redundant; they are how one signal is duplicated.
+      out.straightNails=[];
+      const SPACING=34, SCALE=0.6;
+      const scaleOf=(t)=>(String(t).startsWith('gate-')||t==='nand'||t==='ffCard')?SCALE:1;
+      const posOf=(ref)=>{
+        const [cid,pid]=String(ref).split('.');
+        const c=byId[cid]; if(!c) return null;
+        if(c.__frame){ const q=(d.frame.pins||[]).find((x)=>x.id===pid);
+          return q?{x:d.frame.x+q.x,y:d.frame.y+q.y}:null; }
+        let pin;
+        if(c.type==='splitter'){
+          const n=Math.min(16,Math.max(2,Number(c.outputs)||4)), m=Boolean(c.mirrored);
+          pin=pid==='single'?{x:m?38:-38,y:0}
+            :{x:m?-37:37,y:Math.round(((n-1)/2-Number(pid.slice(3)))*SPACING)};
+        } else pin=(PINS[c.type]||{})[pid];   // the editor's mirror, diffed against the game above
+        if(!pin) return null;
+        const s=scaleOf(c.type);
+        return {x:c.x+pin.x*s, y:c.y+pin.y*s};
+      };
+      for(const nail of (d.components||[]).filter((c)=>c.type==='nail')){
+        const mine=(d.wires||[]).filter((w)=>[w.a,w.b].some((r)=>String(r).split('.')[0]===nail.id));
+        const side=(w)=>String(w.a).split('.')[0]===nail.id?{own:w.a,other:w.b}:{own:w.b,other:w.a};
+        const ins=mine.filter((w)=>side(w).own.endsWith('.in'));
+        const outs=mine.filter((w)=>side(w).own.endsWith('.out'));
+        if(ins.length!==1||outs.length!==1) continue;
+        const from=posOf(side(ins[0]).other), to=posOf(side(outs[0]).other);
+        if(!from||!to) continue;
+        const a1=Math.atan2(nail.y-from.y,nail.x-from.x)*180/Math.PI;
+        const a2=Math.atan2(to.y-nail.y,to.x-nail.x)*180/Math.PI;
+        let bend=Math.abs(a1-a2); if(bend>180) bend=360-bend;
+        if(bend<12) out.straightNails.push(`${nail.id} (${bend.toFixed(1)}°)`);
+      }
       out.drawn=document.querySelectorAll('#stage line.ed-bus, #stage line.ed-cable').length;
       return out;
     },[doc]);
@@ -123,6 +160,7 @@ let bad0=0;
     if(r.deadEnds.length) problems.push('dead wire ends: '+[...new Set(r.deadEnds)].slice(0,4).join(' '));
     if(r.emptyDraw.length) problems.push('draws NOTHING: '+r.emptyDraw.join(','));
     if(r.badDirection&&r.badDirection.length) problems.push('wire between two same-direction pins: '+r.badDirection.join(' ; '));
+    if(r.straightNails&&r.straightNails.length) problems.push('nail that bends nothing (drop it): '+r.straightNails.join(' '));
     if(problems.length){ bad++; console.log(doc.task.padEnd(11),'✗ '+problems.join(' | ')); }
     else console.log(doc.task.padEnd(11),'ok  ('+want+' wires, '+((doc.components||[]).length)+' components)');
   }
