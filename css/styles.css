@@ -5515,7 +5515,7 @@ object.panel-image.is-pending {
 }
 
 .prog-alu-table th { background: #efe4c8; font-weight: 800; }
-.prog-alu-op { font-weight: 700; }
+.prog-alu-op { font-weight: 700; white-space: nowrap; padding-inline: 10px; }
 .prog-alu-bits { font-family: "Courier New", monospace; letter-spacing: 0.12em; }
 
 .prog-alu-note {
@@ -5536,7 +5536,7 @@ object.panel-image.is-pending {
 
 /* The instruction beside each operation is written on squares the size of the
    page's own — six of them, the way it will be copied onto the paper. */
-.prog-window-alu { width: min(31rem, 34vw); }
+.prog-window-alu { width: min(34rem, 37vw); }
 
 .prog-alu-bits { padding: 1px 3px; }
 

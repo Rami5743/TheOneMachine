@@ -6312,6 +6312,35 @@
     }
   }
 
+  // Reading the task turns it into the window in the corner — and it gets there
+  // by flying, the way the build requirements do when their intro is dismissed.
+  function dismissProgramIntro() {
+    const card = app.querySelector(".prog-intro-card");
+    const overlay = card ? card.closest(".pace-dialog-overlay") : null;
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const seat = () => setState({ programIntroSeen: true, programDialog: { intro: false } });
+    if (!card || reduceMotion) return seat();
+    const rect = card.getBoundingClientRect();
+    const scale = 0.4;
+    const targetCX = window.innerWidth - 16 - (rect.width * scale) / 2;
+    const targetCY = window.innerHeight - 16 - (rect.height * scale) / 2;
+    const dx = Math.round(targetCX - (rect.left + rect.width / 2));
+    const dy = Math.round(targetCY - (rect.top + rect.height / 2));
+    card.style.pointerEvents = "none";
+    card.style.transformOrigin = "center center";
+    card.style.transition = "transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.5s ease";
+    if (overlay) {
+      overlay.style.pointerEvents = "none";
+      overlay.style.background = "transparent";
+    }
+    requestAnimationFrame(() => {
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+      card.style.opacity = "0.15";
+    });
+    window.setTimeout(seat, 480);
+  }
+
   function openProgramSheet() {
     return setState({
       panelObjectDialog: null,
@@ -6450,7 +6479,7 @@
     if (!task || !state.programDialog || !state.programDialog.intro) return "";
     return `
       <div class="pace-dialog-overlay" role="presentation">
-        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
+        <section class="pace-dialog-card prog-intro-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
           <h2 class="prog-intro-title">${esc(isolateLatinRuns(task.title))}</h2>
           <p>${esc(isolateLatinRuns(task.text))}</p>
           <div class="pace-dialog-actions">
@@ -23145,7 +23174,7 @@
     if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });
     // The 4.3 programming page.
-    if (action === "program-intro-ok") return setState({ programIntroSeen: true, programDialog: { intro: false } });
+    if (action === "program-intro-ok") return dismissProgramIntro();
     if (action === "program-panel-toggle") {
       const panel = button.dataset.panel;
       const panels = programPanelsState();
