@@ -18188,16 +18188,28 @@
   // shortcut — go through here, so a card's message cannot reach only some of them.
   function simpleComputerCompletionPatch(taskId, completedTasks = completedTaskIds()) {
     const messageKey = simpleComputerDoneKey(taskId);
-    // 4.2 is the LAST chapter: once its last card is built there is nothing after
-    // it yet, so the room says so instead of reopening a note with everything
-    // already ticked and no next step on it. (Same as the 3.3 epilogue.)
+    // Once the LAST card of 4.2 is built the computer stands, and the story rolls
+    // straight on into 4.3 (תכנות פשוט) — the way finishing 3.5's cards rolls into
+    // יצור. Only if that chapter is missing does the room say "המשך יבוא...".
     const done = new Set(completedTasks);
     const allBuilt = simpleComputerTaskDefs().every((task) => done.has(task.id));
+    if (allBuilt && !messageKey) {
+      const programming = chapterById("chapter-18");
+      if (programming && sceneByChapter(programming)) {
+        return {
+          ...transientUiClearPatch(),
+          ...storyTarget(programming, 0),
+          started: true,
+          replayNonce: state.replayNonce + 1
+        };
+      }
+      return { ...simpleComputerReturnTarget(), buildNoteList: false, infoDialog: "המשך יבוא..." };
+    }
     return {
       ...simpleComputerReturnTarget(),
       buildNoteList: !messageKey && !allBuilt,
       aluIntroDialog: messageKey ? { page: 0, taskId: messageKey } : null,
-      infoDialog: allBuilt && !messageKey ? "המשך יבוא..." : null
+      infoDialog: null
     };
   }
 

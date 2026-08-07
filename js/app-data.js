@@ -1057,7 +1057,23 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The floor beside the worktable, facing the cables: the learner's own work
     // area. Clicking it walks over to the workbench in free build — a side trip,
     // not the way forward, so it does NOT block המשך.
-    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true }
+    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true },
+
+    // ---- Chapter 4.3, the same room once the computer is standing ----------
+    // The ALU rack has become the CPU rack, the first two cables are the ones
+    // that write the program into the program memory, and one unnamed cable
+    // carries the reset switch.
+    cpuRack: {
+      label: "CPU",
+      url: "https://he.wikipedia.org/wiki/יחידת_עיבוד_מרכזית"
+    },
+    prgPort: { label: "PRG", note: "בס ברוחב 16 שמחזיק את הפקודה שרוצים לכתוב לזיכרון התוכנה. המחשב מתעלם ממנו כל עוד הריסט לא לחוץ." },
+    prgAdrPort: { label: "ADR PRG", note: "בס ברוחב 16 שאומר לאיזו כתובת בזיכרון התוכנה נכתבת הפקודה." },
+    resetSwitch: { label: "המפסק של הריסט", note: "המפסק על הכבל שאין לו שם. כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
+    // The description of the program to be written, left on the table. The
+    // description itself is not written yet, so it says so instead of opening
+    // an empty page.
+    programNote: { label: "הפתק", todo: "המשך יבוא..." }
   };
 
   // The build tasks of chapter 4.1, to be done in this order. None of them has a
