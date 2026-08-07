@@ -17186,7 +17186,7 @@
       // with the note reopened so the next one unlocks under the learner's eyes.
       if (family === "simple-computer") {
         return setState({
-          ...simpleComputerCompletionPatch(taskId),
+          ...simpleComputerCompletionPatch(taskId, completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -18159,12 +18159,18 @@
   // it has one (the note opens when that is dismissed) and the note itself if it
   // does not. All three completion paths — the check, the walkthrough and the dev
   // shortcut — go through here, so a card's message cannot reach only some of them.
-  function simpleComputerCompletionPatch(taskId) {
+  function simpleComputerCompletionPatch(taskId, completedTasks = completedTaskIds()) {
     const messageKey = simpleComputerDoneKey(taskId);
+    // 4.2 is the LAST chapter: once its last card is built there is nothing after
+    // it yet, so the room says so instead of reopening a note with everything
+    // already ticked and no next step on it. (Same as the 3.3 epilogue.)
+    const done = new Set(completedTasks);
+    const allBuilt = simpleComputerTaskDefs().every((task) => done.has(task.id));
     return {
       ...simpleComputerReturnTarget(),
-      buildNoteList: !messageKey,
-      aluIntroDialog: messageKey ? { page: 0, taskId: messageKey } : null
+      buildNoteList: !messageKey && !allBuilt,
+      aluIntroDialog: messageKey ? { page: 0, taskId: messageKey } : null,
+      infoDialog: allBuilt && !messageKey ? "המשך יבוא..." : null
     };
   }
 
@@ -18949,7 +18955,7 @@
     // branch that actually runs for them.
     if (family === "simple-computer") {
       return setState({
-        ...simpleComputerCompletionPatch(taskId),
+        ...simpleComputerCompletionPatch(taskId, completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks,
         workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -19181,7 +19187,7 @@
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
     if (family === "simple-computer") {
-      return setState({ ...simpleComputerCompletionPatch(taskId), ...base }, true);
+      return setState({ ...simpleComputerCompletionPatch(taskId, completedTasks), ...base }, true);
     }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
