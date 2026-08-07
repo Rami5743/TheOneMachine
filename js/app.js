@@ -1841,7 +1841,8 @@
     assemblerHint: false,
     programAssembler: null,
     // The red teaser over his first page ("there is no gnome, but there IS an
-    // assembler"): once it has been taken up — or passed over — it is done.
+    // assembler"): once it has been taken up — or passed over — it is done for
+    // this visit to the page (opening the page again offers it once more).
     assemblerTeaserDone: false,
     assemblerInfo: false,
     // The scratch table of the exercise page ("רוצה לבדוק כרטיסים?").
@@ -6414,6 +6415,9 @@
       panelObjectDialog: null,
       programSheet: programSheetProgress(),
       programPanels: { ...programPanelsState(), pos: {} },
+      // His red teaser is offered once a visit, not once ever: coming back to
+      // the page and clicking him shows it again.
+      assemblerTeaserDone: false,
       programDialog: { intro: true }
     });
     startAssemblerHintTimer();
