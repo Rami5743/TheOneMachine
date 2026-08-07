@@ -1834,6 +1834,10 @@
     assemblerMet: false,
     assemblerHint: false,
     programAssembler: null,
+    // The red teaser over his first page ("there is no gnome, but there IS an
+    // assembler"): once it has been taken up — or passed over — it is done.
+    assemblerTeaserDone: false,
+    assemblerInfo: false,
     // The scratch table of the exercise page ("רוצה לבדוק כרטיסים?").
     // It is the page's OWN workbench: kept in its own slot so returning to the
     // page finds the table exactly as it was left, and so it neither disturbs nor
@@ -3006,6 +3010,7 @@
       programClearConfirm: null,
       programAssembler: null,
       assemblerHint: false,
+      assemblerInfo: false,
       buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
@@ -3251,7 +3256,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, assemblerHint: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6584,59 +6589,84 @@
   // Drawn rather than photographed: a red pointed cap, a white beard, a blue
   // tunic and a pair of boots, with enough shading to sit on the paper.
   const ASSEMBLER_FIGURE = `
-    <svg viewBox="0 0 120 170" width="100%" height="100%" aria-hidden="true">
+    <svg viewBox="0 0 120 180" width="100%" height="100%" aria-hidden="true">
       <defs>
-        <linearGradient id="gnome-hat" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#c8362c" />
-          <stop offset="0.55" stop-color="#a52a22" />
-          <stop offset="1" stop-color="#71190f" />
+        <linearGradient id="gnome-g-hat" x1="0.15" y1="0" x2="0.9" y2="1">
+          <stop offset="0" stop-color="#d24a3c"/><stop offset="0.45" stop-color="#b23327"/><stop offset="1" stop-color="#6d1710"/>
         </linearGradient>
-        <linearGradient id="gnome-coat" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#5b7ea1" />
-          <stop offset="0.6" stop-color="#3f5f80" />
-          <stop offset="1" stop-color="#2b425a" />
+        <linearGradient id="gnome-g-brim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c8402f"/><stop offset="1" stop-color="#7c1c13"/>
         </linearGradient>
-        <radialGradient id="gnome-beard" cx="0.42" cy="0.3" r="0.8">
-          <stop offset="0" stop-color="#ffffff" />
-          <stop offset="0.65" stop-color="#e7e3da" />
-          <stop offset="1" stop-color="#c2bcb0" />
+        <linearGradient id="gnome-g-coat" x1="0.1" y1="0" x2="0.95" y2="1">
+          <stop offset="0" stop-color="#5c85ab"/><stop offset="0.5" stop-color="#3f6488"/><stop offset="1" stop-color="#25384d"/>
+        </linearGradient>
+        <radialGradient id="gnome-g-beard" cx="0.45" cy="0.18" r="0.9">
+          <stop offset="0" stop-color="#ffffff"/><stop offset="0.6" stop-color="#ebe7dd"/><stop offset="1" stop-color="#bab3a5"/>
         </radialGradient>
-        <radialGradient id="gnome-nose" cx="0.35" cy="0.32" r="0.75">
-          <stop offset="0" stop-color="#f0c3a4" />
-          <stop offset="1" stop-color="#c98f6c" />
+        <radialGradient id="gnome-g-skin" cx="0.36" cy="0.28" r="0.85">
+          <stop offset="0" stop-color="#fbdcc2"/><stop offset="0.7" stop-color="#eebd9b"/><stop offset="1" stop-color="#cd9169"/>
+        </radialGradient>
+        <radialGradient id="gnome-g-nose" cx="0.34" cy="0.28" r="0.85">
+          <stop offset="0" stop-color="#f9d2b6"/><stop offset="0.6" stop-color="#e3a983"/><stop offset="1" stop-color="#b9784f"/>
         </radialGradient>
       </defs>
-      <ellipse cx="60" cy="163" rx="34" ry="6" fill="rgba(0,0,0,0.22)" />
-      <path d="M60 96 C40 96 30 112 28 132 C27 143 30 152 34 156 L86 156 C90 152 93 143 92 132 C90 112 80 96 60 96 Z"
-            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="2" stroke-linejoin="round" />
-      <path d="M31 138 L89 138 L88 147 L32 147 Z" fill="#6b4a24" stroke="#3f2a11" stroke-width="1.6" />
-      <rect x="53" y="137" width="14" height="12" rx="2.5" fill="#d7b25a" stroke="#8a6c22" stroke-width="1.6" />
-      <path d="M36 156 L52 156 L52 164 C52 166 50 167 47 167 L41 167 C38 167 36 166 36 164 Z"
-            fill="#4a3218" stroke="#2c1c09" stroke-width="1.8" stroke-linejoin="round" />
-      <path d="M68 156 L84 156 L84 164 C84 166 82 167 79 167 L73 167 C70 167 68 166 68 164 Z"
-            fill="#4a3218" stroke="#2c1c09" stroke-width="1.8" stroke-linejoin="round" />
-      <path d="M30 118 C22 122 18 130 19 138 C19 141 23 142 25 139 C27 133 30 128 33 125 Z"
-            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="1.8" stroke-linejoin="round" />
-      <path d="M90 118 C98 122 102 130 101 138 C101 141 97 142 95 139 C93 133 90 128 87 125 Z"
-            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="1.8" stroke-linejoin="round" />
-      <path d="M60 84 C42 84 32 98 32 114 C32 130 42 142 60 142 C78 142 88 130 88 114 C88 98 78 84 60 84 Z"
-            fill="url(#gnome-beard)" stroke="#a49c8e" stroke-width="1.6" />
-      <path d="M42 96 C46 116 52 130 60 138 C68 130 74 116 78 96 C72 104 66 108 60 108 C54 108 48 104 42 96 Z"
-            fill="#f3f0e8" opacity="0.75" />
-      <path d="M40 84 C40 72 48 64 60 64 C72 64 80 72 80 84 C80 90 74 94 60 94 C46 94 40 90 40 84 Z"
-            fill="#f0c9ac" stroke="#c79974" stroke-width="1.5" />
-      <ellipse cx="60" cy="92" rx="10" ry="9" fill="url(#gnome-nose)" stroke="#b6805e" stroke-width="1.4" />
-      <circle cx="50" cy="80" r="2.6" fill="#31221a" />
-      <circle cx="70" cy="80" r="2.6" fill="#31221a" />
-      <circle cx="50.9" cy="79.1" r="0.9" fill="#ffffff" />
-      <circle cx="70.9" cy="79.1" r="0.9" fill="#ffffff" />
-      <path d="M44 73 C47 70 52 70 55 72" fill="none" stroke="#8a7a63" stroke-width="2" stroke-linecap="round" />
-      <path d="M65 72 C68 70 73 70 76 73" fill="none" stroke="#8a7a63" stroke-width="2" stroke-linecap="round" />
-      <path d="M30 70 C30 70 40 16 60 8 C80 16 90 70 90 70 C78 76 42 76 30 70 Z"
-            fill="url(#gnome-hat)" stroke="#5e1409" stroke-width="2" stroke-linejoin="round" />
-      <path d="M60 8 C50 20 44 44 40 68 C46 70 52 71 58 71 C56 46 57 24 60 8 Z"
-            fill="#ffffff" opacity="0.13" />
-      <ellipse cx="60" cy="71" rx="30" ry="6" fill="#8f231a" stroke="#5e1409" stroke-width="1.6" />
+
+      <ellipse cx="60" cy="172" rx="32" ry="5" fill="rgba(40,26,10,0.20)"/>
+
+      <!-- legs + boots -->
+      <path d="M46 138 L46 158 C46 161 48 162 51 162 L55 162 C58 162 59 161 59 158 L59 138 Z" fill="#3a5570" stroke="#22344a" stroke-width="1.5"/>
+      <path d="M61 138 L61 158 C61 161 62 162 65 162 L69 162 C72 162 74 161 74 158 L74 138 Z" fill="#324a63" stroke="#22344a" stroke-width="1.5"/>
+      <path d="M41 162 C41 159 44 157 48 157 L57 157 C59 157 60 159 60 161 C60 164 58 166 55 166 L45 166 C42 166 41 164 41 162 Z" fill="#5d3f1e" stroke="#31200a" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M63 162 C63 159 66 157 70 157 L79 157 C81 157 82 159 82 161 C82 164 80 166 77 166 L67 166 C64 166 63 164 63 162 Z" fill="#4e3418" stroke="#31200a" stroke-width="1.5" stroke-linejoin="round"/>
+
+      <!-- tunic -->
+      <path d="M60 92 C42 92 32 104 30 124 C29 133 31 139 34 142 L86 142 C89 139 91 133 90 124 C88 104 78 92 60 92 Z" fill="url(#gnome-g-coat)" stroke="#22344a" stroke-width="1.9" stroke-linejoin="round"/>
+      <path d="M60 92 C51 92 44 96 39 103 C43 116 45 130 45 142 L34 142 C31 139 29 133 30 124 C32 104 42 92 60 92 Z" fill="#ffffff" opacity="0.11"/>
+
+      <!-- sleeves + hands -->
+      <path d="M32 108 C22 114 17 124 18 134 C18.5 138 23 139 25 135 C27 128 30 121 35 117 Z" fill="#3d6485" stroke="#22344a" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M88 108 C98 114 103 124 102 134 C101.5 138 97 139 95 135 C93 128 90 121 85 117 Z" fill="#3d6485" stroke="#22344a" stroke-width="1.6" stroke-linejoin="round"/>
+      <ellipse cx="23.5" cy="137" rx="6.5" ry="6" fill="url(#gnome-g-skin)" stroke="#bd8760" stroke-width="1.3"/>
+      <ellipse cx="96.5" cy="137" rx="6.5" ry="6" fill="url(#gnome-g-skin)" stroke="#bd8760" stroke-width="1.3"/>
+
+      <!-- belt -->
+      <path d="M32 124 L88 124 L87 134 L33 134 Z" fill="#6b4a24" stroke="#3a2510" stroke-width="1.5"/>
+      <rect x="52" y="123" width="16" height="12" rx="2.5" fill="#d9b45c" stroke="#8a6c22" stroke-width="1.5"/>
+
+      <!-- beard -->
+      <path d="M60 66 C44 66 36 78 36 93 C36 106 44 118 60 124 C76 118 84 106 84 93 C84 78 76 66 60 66 Z" fill="url(#gnome-g-beard)" stroke="#a49c8e" stroke-width="1.4"/>
+      <path d="M45 82 C47 98 52 111 60 119 C68 111 73 98 75 82 C70 90 65 93 60 93 C55 93 50 90 45 82 Z" fill="#ffffff" opacity="0.5"/>
+      <path d="M43 88 C46 102 51 113 58 120" fill="none" stroke="#c8c1b2" stroke-width="1" stroke-linecap="round"/>
+      <path d="M77 88 C74 102 69 113 62 120" fill="none" stroke="#c8c1b2" stroke-width="1" stroke-linecap="round"/>
+
+      <!-- face -->
+      <path d="M42 62 C42 54 49 49 60 49 C71 49 78 54 78 62 C78 74 71 82 60 82 C49 82 42 74 42 62 Z" fill="url(#gnome-g-skin)" stroke="#bd8760" stroke-width="1.3"/>
+      <ellipse cx="46.5" cy="70" rx="4.6" ry="3.2" fill="#e79a7c" opacity="0.5"/>
+      <ellipse cx="73.5" cy="70" rx="4.6" ry="3.2" fill="#e79a7c" opacity="0.5"/>
+
+      <!-- nose -->
+      <ellipse cx="60" cy="72" rx="8" ry="7" fill="url(#gnome-g-nose)" stroke="#b0764e" stroke-width="1.2"/>
+      <ellipse cx="57.2" cy="69.6" rx="2.4" ry="1.8" fill="#ffffff" opacity="0.45"/>
+
+      <!-- moustache, over the nose so its wings read -->
+      <path d="M60 79 C55.5 79.5 50 78 46 74.5 C44 80.5 48.5 87.5 54.5 87.5 C57 87.5 59 86 60 84 C61 86 63 87.5 65.5 87.5 C71.5 87.5 76 80.5 74 74.5 C70 78 64.5 79.5 60 79 Z" fill="#f8f5ef" stroke="#a89f8f" stroke-width="1.1" stroke-linejoin="round"/>
+
+      <!-- eyes -->
+      <ellipse cx="50" cy="61" rx="3.1" ry="3.3" fill="#ffffff" stroke="#b79b80" stroke-width="0.85"/>
+      <ellipse cx="70" cy="61" rx="3.1" ry="3.3" fill="#ffffff" stroke="#b79b80" stroke-width="0.85"/>
+      <circle cx="50.5" cy="61.4" r="1.85" fill="#4a3520"/>
+      <circle cx="70.5" cy="61.4" r="1.85" fill="#4a3520"/>
+      <circle cx="51.2" cy="60.5" r="0.7" fill="#ffffff"/>
+      <circle cx="71.2" cy="60.5" r="0.7" fill="#ffffff"/>
+
+      <!-- brows -->
+      <path d="M43.5 55.5 C47 51.5 54 51.5 57.5 55 C53.5 53.5 47.5 53.5 43.5 55.5 Z" fill="#f1eee6" stroke="#bdb6a7" stroke-width="0.9"/>
+      <path d="M62.5 55 C66 51.5 73 51.5 76.5 55.5 C72.5 53.5 66.5 53.5 62.5 55 Z" fill="#f1eee6" stroke="#bdb6a7" stroke-width="0.9"/>
+
+      <!-- hat -->
+      <path d="M27 44 C29 39 33 22 43 11 C49 4 56 1 61 2 C68 3 72 10 74 18 C78 32 86 40 89 44 C77 50 39 50 27 44 Z" fill="url(#gnome-g-hat)" stroke="#57110b" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M61 2 C54 9 48 24 44 43 C50 45 55 46 59 46 C56 30 57 13 61 2 Z" fill="#ffffff" opacity="0.15"/>
+      <path d="M27 44 C39 50 77 50 89 44 C91 48 90 52 88 53 C74 57 42 57 28 53 C26 52 25 48 27 44 Z" fill="url(#gnome-g-brim)" stroke="#57110b" stroke-width="1.6" stroke-linejoin="round"/>
     </svg>`;
 
   function renderAssemblerBubble() {
@@ -6649,14 +6679,11 @@
         return `<ul class="assembler-list">${block.ul.map((line) =>
           `<li>${esc(isolateLatinRuns(line))}</li>`).join("")}</ul>`;
       }
-      if (Array.isArray(block.dash)) {
-        return `<ul class="assembler-dashes">${block.dash.map((line) =>
-          `<li>${esc(isolateLatinRuns(line))}</li>`).join("")}</ul>`;
-      }
       return `<p>${esc(isolateLatinRuns(block.p || ""))}</p>`;
     }).join("");
     return `
       <section class="assembler-bubble" role="dialog" aria-label="אסמבלר">
+        ${renderAssemblerTeaser(page)}
         <button class="assembler-close" data-action="assembler-close" type="button" aria-label="סגירה">×</button>
         <div class="assembler-bubble-body">${body}</div>
         <div class="assembler-bubble-foot">
@@ -6665,6 +6692,45 @@
           ${navButton("assembler-next", "arrow-left", "המשך", { primary: true, disabled: page >= pages.length - 1 })}
         </div>
       </section>`;
+  }
+
+  // Shown over the first page only, and only until it is taken up or passed
+  // over: a red teaser in the corner, the same one story slides carry.
+  function assemblerTeaser() {
+    return typeof ASSEMBLER_TEASER !== "undefined" ? ASSEMBLER_TEASER : null;
+  }
+
+  function assemblerTeaserVisible() {
+    return Boolean(state.programAssembler
+      && (Number(state.programAssembler.page) || 0) === 0
+      && !state.assemblerTeaserDone
+      && assemblerTeaser());
+  }
+
+  function renderAssemblerTeaser(page) {
+    const teaser = assemblerTeaser();
+    if (!teaser || page !== 0 || state.assemblerTeaserDone) return "";
+    return `
+      <button class="story-corner-link assembler-teaser" data-action="assembler-teaser" type="button">
+        <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
+        <span>${esc(isolateLatinRuns(teaser.text))}</span>
+      </button>`;
+  }
+
+  function renderAssemblerInfo() {
+    const teaser = assemblerTeaser();
+    if (!state.assemblerInfo || !teaser) return "";
+    const url = teaser.dialog.url;
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="אסמבלר">
+          <p>${esc(isolateLatinRuns(teaser.dialog.text))}</p>
+          <p class="assembler-info-link"><a href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link" dir="ltr">${esc(url)}</a></p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="assembler-info-close" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   function renderAssembler() {
@@ -6681,6 +6747,7 @@
         ${hint}
         <button class="assembler-figure" data-action="assembler-open" type="button" aria-label="אסמבלר">${ASSEMBLER_FIGURE}</button>
         ${renderAssemblerBubble()}
+        ${renderAssemblerInfo()}
       </div>`;
   }
 
@@ -22919,6 +22986,15 @@
     }
 
     const button = event.target.closest("[data-action]");
+    // The assembler's teaser is a one-time offer: taking it up opens the window,
+    // and ANY other click passes it over for good. Marked here, before the click
+    // is acted on, and repainted on the next tick so a click that changes
+    // nothing else still clears it.
+    if (assemblerTeaserVisible() && !event.target.closest('[data-action="assembler-teaser"]')) {
+      state.assemblerTeaserDone = true;
+      saveState();
+      window.setTimeout(render, 0);
+    }
     // A plain click outside the object popover closes it — the same as the
     // warehouse reference popovers — and does nothing else.
     if (!button && state.panelObjectDialog && !event.target.closest(".panel-object-popover")) {
@@ -23380,6 +23456,8 @@
     }
     if (action === "assembler-open") return openAssembler();
     if (action === "assembler-close") return setState({ programAssembler: null });
+    if (action === "assembler-teaser") return setState({ assemblerTeaserDone: true, assemblerInfo: true });
+    if (action === "assembler-info-close") return setState({ assemblerInfo: false });
     if (action === "assembler-prev") return stepAssembler(-1);
     if (action === "assembler-next") return stepAssembler(1);
     if (action === "sheet-result-ok") {

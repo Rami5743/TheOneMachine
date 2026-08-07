@@ -1386,6 +1386,15 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
 
   // The assembler: the little fellow standing beside the ALU table on the 4.3
   // page. Clicking him opens his speech bubble; these are its pages.
+  // The red teaser above his first page, and the window it opens.
+  const ASSEMBLER_TEASER = {
+    text: "במציאות אין גמדים שעושים בשבילך את העבודה, אבל יש דבר כזה אסמבלר. לחץ כאן אם אתה רוצה לדעת מה זה",
+    dialog: {
+      text: "חלק זה של המשחק עדיין לא קיים, אתה יכול בינתיים ללמוד על זה כאן",
+      url: "https://www.youtube.com/watch?v=2iYOb9Uu7Mk"
+    }
+  };
+
   const ASSEMBLER_PAGES = [
     [{ p: "שלום, שמי אסמבלר, אני יכול לעזור לך לכתוב את הפקודות בביטים." }],
     [
@@ -1394,7 +1403,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
         "אם תרצה שה-ALU פשוט יחזיר את ההוראה שלו, אז תכתוב 0 בתחילת הפקודה, ואז תוכל לכתוב את המספר בצורה עשרונית ואני אתרגם אותו לבינרית ואמלא את הביטים המתאימים."
       ] },
       { p: "על אחריותך להחליט מי הכניסות עליהם ה-ALU פועל על ידי מילוי הביט שסמוך לששת הביטים של החישוב:" },
-      { dash: ["0 - D ו-A", "1 - D ו-*A"] }
+      { ul: ["0 - D ו-A", "1 - D ו-*A"] }
     ],
     [
       { p: "אתה גם יכול לבחור את היעד של ה-ALU ואני אמלא את הביטים המתאימים בפקודה." },

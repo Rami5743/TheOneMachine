@@ -5567,7 +5567,7 @@ object.panel-image.is-pending {
   position: fixed;
   z-index: 214;
   width: 112px;
-  height: 158px;
+  height: 168px;
 }
 
 .assembler-figure {
@@ -5629,16 +5629,12 @@ object.panel-image.is-pending {
 .assembler-bubble-body { max-height: 46vh; overflow-y: auto; }
 .assembler-bubble-body p { margin: 0 0 8px; }
 
-.assembler-list,
-.assembler-dashes {
+.assembler-list {
   margin: 0 0 8px;
   padding-inline-start: 1.1rem;
   display: grid;
   gap: 6px;
 }
-
-.assembler-dashes { list-style: none; padding-inline-start: 0.4rem; }
-.assembler-dashes li::before { content: "– "; }
 
 .assembler-bubble-foot {
   display: flex;
@@ -5662,3 +5658,27 @@ object.panel-image.is-pending {
 }
 
 .assembler-close:hover { color: #241d12; }
+
+/* The assembler's red teaser: the same frame a story slide carries, parked over
+   the top-right corner of his bubble and allowed to wrap (it is a sentence, not
+   a caption). */
+.assembler-teaser {
+  position: absolute;
+  right: 6px;
+  bottom: 100%;
+  top: auto;
+  margin-bottom: 10px;
+  max-width: min(26rem, 30vw);
+  white-space: normal;
+  align-items: flex-start;
+  text-align: right;
+  z-index: 8;
+}
+
+.assembler-info-link {
+  margin: 6px 0 0;
+  word-break: break-all;
+}
+
+.assembler-info-link a { color: #b3801a; font-weight: 700; }
+.assembler-info-link a:hover { color: #d8a63a; }
