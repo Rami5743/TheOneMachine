@@ -206,6 +206,48 @@ function renderAchievementIcon(id) {
            <g stroke="#7a4e0e" stroke-width="1.4" stroke-linecap="round">
              <line x1="33" y1="25" x2="37" y2="25"/><line x1="33" y1="31" x2="37" y2="31"/>
              <line x1="43" y1="25" x2="47" y2="25"/><line x1="43" y1="31" x2="47" y2="31"/></g>` });
+    case "prg-engineer": // green cup, a punched program tape feeding the memory (3.5)
+      return achievementTrophy(id, { top: "#9ad9a8", bot: "#1d6b39", rim: "#134b28", base: "#1d6b39", handle: "#2e8f50", emblem:
+        `<rect x="29" y="22" width="22" height="14" rx="1.6" fill="#fffdf3" stroke="#134b28" stroke-width="1.6"/>
+           <g fill="#1d6b39">
+             <circle cx="34" cy="26" r="1.5"/><circle cx="40" cy="26" r="1.5"/><circle cx="46" cy="26" r="1.5"/>
+             <circle cx="34" cy="32" r="1.5"/><circle cx="46" cy="32" r="1.5"/></g>
+           <g stroke="#2e8f50" stroke-width="1.4" stroke-linecap="round">
+             <line x1="29" y1="19" x2="51" y2="19"/><line x1="29" y1="39" x2="51" y2="39"/></g>` });
+    case "precise-prg-engineer": // green cup, the tape on a bullseye (3.5 first-try clean)
+      return achievementTrophy(id, { top: "#9ad9a8", bot: "#175c30", rim: "#f3d27a", base: "#175c30", handle: "#2e8f50", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="33" y="23" width="14" height="10" rx="1.4" fill="#fffdf3" stroke="#134b28" stroke-width="1.4"/>
+           <g fill="#175c30"><circle cx="36.5" cy="26" r="1.2"/><circle cx="40" cy="26" r="1.2"/><circle cx="43.5" cy="26" r="1.2"/>
+             <circle cx="36.5" cy="30.5" r="1.2"/><circle cx="43.5" cy="30.5" r="1.2"/></g>` });
+    case "computer-engineer": // steel-blue cup, a whole machine: a box and a screen (4.2)
+      return achievementTrophy(id, { top: "#8fb8d8", bot: "#254a68", rim: "#183449", base: "#254a68", handle: "#3d6d92", emblem:
+        `<rect x="30" y="19" width="20" height="13" rx="1.8" fill="#fffdf3" stroke="#183449" stroke-width="1.6"/>
+           <g stroke="#3d6d92" stroke-width="1.3" stroke-linecap="round">
+             <line x1="33" y1="23" x2="43" y2="23"/><line x1="33" y1="26" x2="46" y2="26"/><line x1="33" y1="29" x2="40" y2="29"/></g>
+           <path d="M37 32 H43 L44.5 37 H35.5 Z" fill="#fffdf3" stroke="#183449" stroke-width="1.4"/>
+           <line x1="32" y1="39" x2="48" y2="39" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>` });
+    case "precise-computer-engineer": // steel-blue cup, the machine on a bullseye (4.2 clean)
+      return achievementTrophy(id, { top: "#8fb8d8", bot: "#1e3f59", rim: "#f3d27a", base: "#1e3f59", handle: "#3d6d92", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="34" y="22" width="12" height="9" rx="1.4" fill="#fffdf3" stroke="#183449" stroke-width="1.4"/>
+           <path d="M38 31 H42 L43 34.5 H37 Z" fill="#fffdf3" stroke="#183449" stroke-width="1.2"/>` });
+    case "test-writer": // slate cup, the instruction page with its answered rows (4.1)
+      return achievementTrophy(id, { top: "#cbd5c0", bot: "#4a5340", rim: "#333a2c", base: "#4a5340", handle: "#6b7660", emblem:
+        `<rect x="31" y="18" width="18" height="22" rx="1.8" fill="#fffdf3" stroke="#333a2c" stroke-width="1.6"/>
+           <g stroke="#6b7660" stroke-width="1.3" stroke-linecap="round">
+             <line x1="34" y1="23" x2="46" y2="23"/><line x1="34" y1="27" x2="46" y2="27"/>
+             <line x1="34" y1="31" x2="46" y2="31"/><line x1="34" y1="35" x2="41" y2="35"/></g>
+           <path d="M42.5 34.5 L45 37 L49.5 31" fill="none" stroke="#1a9e4b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>` });
+    case "precise-test-writer": // slate cup, the page on a bullseye (4.1 with no slips)
+      return achievementTrophy(id, { top: "#cbd5c0", bot: "#414937", rim: "#f3d27a", base: "#414937", handle: "#6b7660", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="35" y="21" width="10" height="14" rx="1.4" fill="#fffdf3" stroke="#333a2c" stroke-width="1.4"/>
+           <g stroke="#6b7660" stroke-width="1.1" stroke-linecap="round">
+             <line x1="37" y1="25" x2="43" y2="25"/><line x1="37" y1="28" x2="43" y2="28"/><line x1="37" y1="31" x2="41" y2="31"/></g>` });
     case "equipment-destroyer": // burnt cup, cracked, with a flame
       return achievementTrophy(id, { top: "#c8492a", bot: "#5f1808", rim: "#3a1206", base: "#4a1608", handle: "#7a2410",
         emblem: `<path d="M40 19 C44 23 44 28 41 31 C43 31 45.5 29 45.5 26 C49 30 48 37 40 38 C32 37 32 30 35.5 27 C35.5 29.5 38 30.5 39 29.5 C36.5 26 38 22 40 19 Z" fill="#ffb038"/><path d="M40 24 C42 27 41.5 30 40 32 C38.5 30 38 27 40 24 Z" fill="#ff6a1e"/>`,

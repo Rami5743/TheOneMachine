@@ -21,6 +21,9 @@ const ACHIEVEMENTS = [
   { id: "memory-engineer", title: "מהנדס רגיסטרים", description: "השלמת את כל הכרטיסים של פרק 3.2.", category: "progress" },
   { id: "ram-engineer", title: "מהנדס RAM", description: "השלמת את כל הכרטיסים של פרק 3.3.", category: "progress" },
   { id: "ports-engineer", title: "מהנדס פורטים", description: "השלמת את כל הכרטיסים של פרק 3.4.", category: "progress" },
+  { id: "prg-engineer", title: "מהנדס זיכרון תוכנה", description: "השלמת את כל הכרטיסים של פרק 3.5.", category: "progress" },
+  { id: "test-writer", title: "יוצר בדיקות", description: "השלמת את כל המשימות של פרק 4.1.", category: "progress" },
+  { id: "computer-engineer", title: "מהנדס מחשבים", description: "השלמת את כל הכרטיסים של פרק 4.2.", category: "progress" },
   // Special: side accomplishments and mastery.
   { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
   { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
@@ -32,6 +35,9 @@ const ACHIEVEMENTS = [
   { id: "precise-memory-engineer", title: "מהנדס רגיסטרים מדויק", description: "השלמת את כל הכרטיסים של פרק 3.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-ram-engineer", title: "מהנדס RAM מדויק", description: "השלמת את כל הכרטיסים של פרק 3.3 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-ports-engineer", title: "מהנדס פורטים מדויק", description: "השלמת את כל הכרטיסים של פרק 3.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-prg-engineer", title: "מהנדס זיכרון תוכנה מדויק", description: "השלמת את כל הכרטיסים של פרק 3.5 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-test-writer", title: "יוצר בדיקות מדויק", description: "השלמת את כל המשימות של פרק 4.1 ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-computer-engineer", title: "מהנדס מחשבים מדויק", description: "השלמת את כל הכרטיסים של פרק 4.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
   { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
   { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
@@ -66,7 +72,9 @@ const MEDAL_CHAPTERS = [
   { num: "2.6", nick: "ALU", cards: (typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []) },
   { num: "3.2", nick: "רגיסטרים", cards: (typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []) },
   { num: "3.3", nick: "RAM", cards: (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []) },
-  { num: "3.4", nick: "פורטים", cards: (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []) }
+  { num: "3.4", nick: "פורטים", cards: (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []) },
+  { num: "3.5", nick: "זיכרון תוכנה", cards: (typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []) },
+  { num: "4.2", nick: "מחשבים", cards: (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []) }
 ];
 
 const MEDAL_ACHIEVEMENTS = [];

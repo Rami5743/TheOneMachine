@@ -57,7 +57,13 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     if (m >= 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
     return `${m}:${String(r).padStart(2, "0")}`;
   }
-  const fmt = (tab, v) => (tab.format ? tab.format(v) : String(v));
+  // A Nand count reaches five figures on the big cards, so it is written the way
+  // numbers are written — 12,345 — while the design tab keeps its own m:ss.
+  function withThousands(v) {
+    if (typeof v !== "number" || !isFinite(v)) return String(v);
+    return Math.round(v).toLocaleString("en-US");
+  }
+  const fmt = (tab, v) => (tab.format ? tab.format(v) : withThousands(v));
 
   // The buildable cards, in game order. Nand (the given primitive) is not listed.
   function rankingCards() {
@@ -77,7 +83,10 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     push(typeof ALU_TASKS !== "undefined" ? ALU_TASKS : []);
     push(typeof MEMORY_TASKS !== "undefined" ? MEMORY_TASKS : []); // 3.2 registers
     push(typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []);       // 3.3 RAM
-    push(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []);   // 3.4 ports (last chapter)
+    push(typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []);   // 3.4 ports
+    push(typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []);       // 3.5 program memory
+    // 4.2 — the processor's cards (PC0 / Cont0 / CPU0 / Computer0), the last ones.
+    push(typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []);
     return rows;
   }
 
