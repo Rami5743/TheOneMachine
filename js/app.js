@@ -3238,7 +3238,8 @@
   function saveState() {
     // The exercise page's own table is kept in its own slot no matter HOW it is
     // left — "חזרה לדף הפקודות", the topbar, or a refresh.
-    if (state.screen === "workspace" && state.workspace?.sheetReturn) {
+    if (state.screen === "workspace" && state.workspace?.sheetReturn
+        && state.workspace.sheetReturn.remember !== false) {
       state.sheetWorkbench = state.workspace;
     }
     try {
@@ -5755,54 +5756,15 @@
   // keep their build in the SAME private slot (it is one table, in one room) and
   // both leave the shared workbench untouched — only the way home differs, so
   // `sheetReturn.label` names the button that takes it.
-  // A נעץ with nothing wired to it does nothing at all — it is a routing point,
-  // not a component. One left behind on the shared free table comes back every
-  // time the table is opened, in chapter after chapter, as clutter nobody put
-  // there on purpose ("there are two spare נעצים in the work area"). Anything
-  // WIRED is real work and is kept untouched.
-  function dropLooseNails(workspace) {
-    if (!workspace || !Array.isArray(workspace.components)) return workspace;
-    const isNail = new Map(workspace.components.map((c) => [c.id, c.type === "nail"]));
-    // Who each component is wired to, so a CHAIN of nails that leads nowhere (two
-    // wired to each other and to nothing else) goes as well as a single loose one.
-    const neighbours = new Map();
-    for (const wire of (workspace.wires || [])) {
-      const a = String(wire.a).split(".")[0];
-      const b = String(wire.b).split(".")[0];
-      if (!neighbours.has(a)) neighbours.set(a, []);
-      if (!neighbours.has(b)) neighbours.set(b, []);
-      neighbours.get(a).push(b);
-      neighbours.get(b).push(a);
-    }
-    // A nail earns its place by carrying something: from it, following wires,
-    // SOMETHING that is not a nail must be reachable.
-    const carriesSomething = (id) => {
-      const seen = new Set([id]);
-      const queue = [id];
-      while (queue.length) {
-        const current = queue.shift();
-        for (const next of (neighbours.get(current) || [])) {
-          if (seen.has(next)) continue;
-          if (!isNail.get(next)) return true;
-          seen.add(next);
-          queue.push(next);
-        }
-      }
-      return false;
-    };
-    const keep = new Set(workspace.components
-      .filter((c) => c.type !== "nail" || carriesSomething(c.id))
-      .map((c) => c.id));
-    workspace.components = workspace.components.filter((c) => keep.has(c.id));
-    workspace.wires = (workspace.wires || []).filter((wire) =>
-      keep.has(String(wire.a).split(".")[0]) && keep.has(String(wire.b).split(".")[0]));
-    return workspace;
-  }
-
+  // `remember`: whether this table carries over from visit to visit. The ONE
+  // table that does is the exercise page's — the learner walks back and forth
+  // between the instructions and the table while working on the same question.
+  // The work area on the room's floor is a scratch table: it opens EMPTY every
+  // time, so nothing anyone left there weeks ago is still lying on it.
   function openSheetWorkbench(options) {
-    const { label = "חזרה לדף הפקודות", reopenSheet = true } = options || {};
-    const kept = state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
-    const workspace = dropLooseNails(normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) }));
+    const { label = "חזרה לדף הפקודות", reopenSheet = true, remember = true } = options || {};
+    const kept = remember && state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
+    const workspace = normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) });
     // The way home is always the page we are standing on right now.
     workspace.freeBuild = true;
     workspace.unlocked = true;
@@ -5810,26 +5772,30 @@
     workspace.exitTargetPanelIndex = state.panelIndex;
     workspace.sessionReturnChapterId = state.chapterId;
     workspace.sessionReturnPanelIndex = state.panelIndex;
-    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex, label, reopenSheet };
+    workspace.sheetReturn = { chapterId: state.chapterId, panelIndex: state.panelIndex, label, reopenSheet, remember };
     return setState({
       ...transientUiClearPatch(),
       screen: "workspace",
       // What the shared workbench held goes back when the page is returned to.
       sheetWorkbenchStash: state.workspace,
-      sheetWorkbench: workspace,
+      // A table that is not remembered must not take the remembered one's place
+      // either — the exercise page's table has to still be there afterwards.
+      ...(remember ? { sheetWorkbench: workspace } : {}),
       workspace
     });
   }
 
   // The work area on the room's floor: the same free table, but the way back is
-  // to the room itself and not to the page of instructions.
+  // to the room itself and not to the page of instructions — and it is NOT
+  // remembered, so walking onto the floor always finds a clean table.
   function openRoomWorkbench() {
-    return openSheetWorkbench({ label: "חזרה להאנגר", reopenSheet: false });
+    return openSheetWorkbench({ label: "חזרה להאנגר", reopenSheet: false, remember: false });
   }
 
   function returnFromSheetWorkbench() {
     const back = state.workspace?.sheetReturn || {};
-    const kept = normalizeWorkspace(state.workspace);
+    // The floor's scratch table is not kept; only the exercise page's is.
+    const kept = back.remember === false ? state.sheetWorkbench : normalizeWorkspace(state.workspace);
     const restored = normalizeWorkspace(state.sheetWorkbenchStash);
     restored.sheetReturn = null;
     restored.unlocked = true;
@@ -6307,10 +6273,11 @@
     };
   }
 
-  // Tapping a card on the note: locked says what is missing first, a built one
-  // reopens nothing (there is no walkthrough yet) and just rebuilds, and the two
-  // that are not implemented still say "המשך יבוא...". PC0's opening message —
-  // what a program counter IS — is read over the build table itself.
+  // Tapping a card on the note: locked says what is missing first, a card that is
+  // already BUILT replays its solution walkthrough (the same as every other note
+  // in the game — that is what re-entering a finished card is for), and the ones
+  // not implemented still say "המשך יבוא...". PC0's opening message — what a
+  // program counter IS — is read over the build table itself, first time only.
   function handleBuildNoteTask(id) {
     const task = simpleComputerTaskDefById(id);
     if (!task) return;
@@ -6319,6 +6286,11 @@
     }
     if (!simpleComputerTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
+    }
+    // completeOnClose:false — it is already done; closing must not re-run the
+    // completion (which would replay PC0's closing message every time).
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
     }
     const intro = Array.isArray(task.intro) && task.intro.length && !taskCompleted(task.id);
     openSimpleComputerTaskWorkspace(task.id, { intro });
