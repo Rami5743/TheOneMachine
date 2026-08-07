@@ -5755,10 +5755,54 @@
   // keep their build in the SAME private slot (it is one table, in one room) and
   // both leave the shared workbench untouched — only the way home differs, so
   // `sheetReturn.label` names the button that takes it.
+  // A נעץ with nothing wired to it does nothing at all — it is a routing point,
+  // not a component. One left behind on the shared free table comes back every
+  // time the table is opened, in chapter after chapter, as clutter nobody put
+  // there on purpose ("there are two spare נעצים in the work area"). Anything
+  // WIRED is real work and is kept untouched.
+  function dropLooseNails(workspace) {
+    if (!workspace || !Array.isArray(workspace.components)) return workspace;
+    const isNail = new Map(workspace.components.map((c) => [c.id, c.type === "nail"]));
+    // Who each component is wired to, so a CHAIN of nails that leads nowhere (two
+    // wired to each other and to nothing else) goes as well as a single loose one.
+    const neighbours = new Map();
+    for (const wire of (workspace.wires || [])) {
+      const a = String(wire.a).split(".")[0];
+      const b = String(wire.b).split(".")[0];
+      if (!neighbours.has(a)) neighbours.set(a, []);
+      if (!neighbours.has(b)) neighbours.set(b, []);
+      neighbours.get(a).push(b);
+      neighbours.get(b).push(a);
+    }
+    // A nail earns its place by carrying something: from it, following wires,
+    // SOMETHING that is not a nail must be reachable.
+    const carriesSomething = (id) => {
+      const seen = new Set([id]);
+      const queue = [id];
+      while (queue.length) {
+        const current = queue.shift();
+        for (const next of (neighbours.get(current) || [])) {
+          if (seen.has(next)) continue;
+          if (!isNail.get(next)) return true;
+          seen.add(next);
+          queue.push(next);
+        }
+      }
+      return false;
+    };
+    const keep = new Set(workspace.components
+      .filter((c) => c.type !== "nail" || carriesSomething(c.id))
+      .map((c) => c.id));
+    workspace.components = workspace.components.filter((c) => keep.has(c.id));
+    workspace.wires = (workspace.wires || []).filter((wire) =>
+      keep.has(String(wire.a).split(".")[0]) && keep.has(String(wire.b).split(".")[0]));
+    return workspace;
+  }
+
   function openSheetWorkbench(options) {
     const { label = "חזרה לדף הפקודות", reopenSheet = true } = options || {};
     const kept = state.sheetWorkbench && typeof state.sheetWorkbench === "object" ? state.sheetWorkbench : null;
-    const workspace = normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) });
+    const workspace = dropLooseNails(normalizeWorkspace({ ...emptySheetWorkbench(), ...(kept || {}) }));
     // The way home is always the page we are standing on right now.
     workspace.freeBuild = true;
     workspace.unlocked = true;
