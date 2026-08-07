@@ -6604,6 +6604,38 @@
     }, ASSEMBLER_HINT_DELAY);
   }
 
+  // Everything the assembler fills in for the learner is done with a flourish:
+  // he swings his wand at the cell and a spark flies from its tip to it.
+  function assemblerFlourish(selector) {
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return;
+    requestAnimationFrame(() => {
+      const gnome = app.querySelector(".assembler");
+      const target = app.querySelector(selector);
+      if (!gnome || !target) return;
+      gnome.classList.add("assembler-casting");
+      window.setTimeout(() => gnome.classList.remove("assembler-casting"), 620);
+      const tip = gnome.querySelector(".assembler-wand-tip") || gnome;
+      const from = tip.getBoundingClientRect();
+      const to = target.getBoundingClientRect();
+      const x0 = from.left + from.width / 2;
+      const y0 = from.top + from.height / 2;
+      const spark = document.createElement("div");
+      spark.className = "assembler-spark";
+      spark.style.left = `${Math.round(x0)}px`;
+      spark.style.top = `${Math.round(y0)}px`;
+      document.body.appendChild(spark);
+      requestAnimationFrame(() => {
+        spark.style.transform = `translate(${Math.round(to.left + to.width / 2 - x0)}px, ${Math.round(to.top + to.height / 2 - y0)}px) scale(1.7)`;
+        spark.style.opacity = "0.05";
+      });
+      window.setTimeout(() => spark.remove(), 760);
+      target.classList.add("prog-lit");
+      window.setTimeout(() => target.classList.remove("prog-lit"), 700);
+    });
+  }
+
   function openAssembler() {
     clearAssemblerHintTimer();
     return setState({ assemblerMet: true, assemblerHint: false, programAssembler: { page: 0 } });
@@ -6659,6 +6691,14 @@
       <path d="M88 108 C98 114 103 124 102 134 C101.5 138 97 139 95 135 C93 128 90 121 85 117 Z" fill="#3d6485" stroke="#22344a" stroke-width="1.6" stroke-linejoin="round"/>
       <ellipse cx="23.5" cy="137" rx="6.5" ry="6" fill="url(#gnome-g-skin)" stroke="#bd8760" stroke-width="1.3"/>
       <ellipse cx="96.5" cy="137" rx="6.5" ry="6" fill="url(#gnome-g-skin)" stroke="#bd8760" stroke-width="1.3"/>
+
+    <!-- his wand, held in the hand nearest the page -->
+    <g class="assembler-wand">
+      <path d="M95 138 L110 119" fill="none" stroke="#5a3d1d" stroke-width="3" stroke-linecap="round"/>
+      <g class="assembler-wand-tip">
+        <path d="M112 108.5 L113.9 114 L119.4 115.9 L113.9 117.8 L112 123.3 L110.1 117.8 L104.6 115.9 L110.1 114 Z" fill="#f7dd97" stroke="#b3801a" stroke-width="0.9" stroke-linejoin="round"/>
+      </g>
+    </g>
 
       <!-- belt -->
       <path d="M32 124 L88 124 L87 134 L33 134 Z" fill="#6b4a24" stroke="#3a2510" stroke-width="1.5"/>
@@ -6837,10 +6877,14 @@
     const patch = { [`${row}:${bit}`]: next };
     // Writing 1 into the first bit says "compute", and bits 2-5 then mean
     // nothing at all — the assembler zeroes them rather than leave them hanging.
+    let cast = null;
     if (bit === 1 && next === "1") {
       for (let spare = 2; spare <= 5; spare += 1) patch[`${row}:${spare}`] = "0";
+      cast = `[data-action="program-bit"][data-row="${row}"][data-bit="3"]`;
     }
-    return writeProgramBits(patch);
+    const done = writeProgramBits(patch);
+    if (cast) assemblerFlourish(cast);
+    return done;
   }
 
   // The destination a row is set to, read back off its two bits.
@@ -6853,10 +6897,12 @@
     const dest = PROGRAM_DESTINATIONS.find((d) => d.id === id);
     if (!dest) return setState({ programDestMenu: null });
     const progress = programSheetProgress();
-    return setState({
+    const done = setState({
       programSheet: { ...progress, bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1] } },
       programDestMenu: null
     });
+    assemblerFlourish(`[data-action="program-dest-open"][data-row="${row}"]`);
+    return done;
   }
 
   // With bit 1 set to 0 the ALU emits its own instruction, and bits 2-12 ARE the
@@ -6892,7 +6938,9 @@
     const progress = programSheetProgress();
     const next = { ...progress.bits };
     for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) next[`${row}:${i + 2}`] = bits[i];
-    return setState({ programSheet: { ...progress, bits: next }, programNumberEdit: null });
+    const done = setState({ programSheet: { ...progress, bits: next }, programNumberEdit: null });
+    assemblerFlourish(`[data-action="program-number-open"][data-row="${row}"]`);
+    return done;
   }
 
   // With bit 1 set to 1 the ALU computes: bits 2-5 are not used (the assembler
@@ -6929,7 +6977,9 @@
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     for (let i = 0; i < 6; i += 1) bits[`${row}:${i + 7}`] = match.bits[i];
-    return setState({ programSheet: { ...progress, bits }, programCalcMenu: null });
+    const done = setState({ programSheet: { ...progress, bits }, programCalcMenu: null });
+    assemblerFlourish(`[data-action="program-calc-open"][data-row="${row}"]`);
+    return done;
   }
 
   function renderProgramSheet() {
@@ -23733,7 +23783,9 @@
     if (action === "program-calc-pick") return chooseProgramCalc(Number(button.dataset.row), button.dataset.op);
     if (action === "program-spare-zero") {
       const row = Number(button.dataset.row);
-      return writeProgramBits({ [`${row}:15`]: "0", [`${row}:16`]: "0" });
+      const done = writeProgramBits({ [`${row}:15`]: "0", [`${row}:16`]: "0" });
+      assemblerFlourish(`[data-action="program-spare-zero"][data-row="${row}"]`);
+      return done;
     }
     if (action === "assembler-open") return openAssembler();
     if (action === "assembler-close") return setState({ programAssembler: null });
