@@ -115,6 +115,29 @@ In `js/data.js` a panel is `{ image, read, ... }`:
 - The renderer uses `<object type="image/svg+xml">`; `panelHeavyUrl()` guesses the `.jpg` for preloading (a wrong guess 404s harmlessly).
 - There is a helper generator approach for making many slide SVGs (wrap Hebrew text, size a rounded bubble+tail, embed the jpg). PIL is available for PNG→JPG.
 
+### Renaming a panel breaks behaviour SILENTLY — run the audit
+
+Code keys behaviour to panel **file stems**, in two places:
+- `js/app.js` — `panelIndexByImage(scene, "170_3.4_ports-worktable.svg")`,
+  `panelImageIs(panel, …)`, `String(panel.image).includes(…)`: "go back to the
+  build room", "is this the worktable slide", "which slide opens the booklet".
+- `js/warehouse-hotspots.js` — `warehouseKind()` maps a slide's stem to a ROOM
+  (`stem === "170_3.4_ports-worktable"`). No match = the slide has **no
+  click-zones at all**, so the table/note/converters simply cannot be clicked.
+  This is what "I can't click on the table in 3.4" was, twice.
+
+A stale name never throws: the lookup returns -1 and the fallback (usually the
+scene's last slide) or `null` quietly takes over. So after ANY rename, insert or
+delete of a panel:
+
+```
+node tools/audit-task-routes.js
+```
+
+It fails on any panel name in `js/*.js` that no longer exists in `data.js` (and
+also checks the task-return routers and the frame pin pairs). Fix every line it
+prints before committing.
+
 ## Feature areas (where things live)
 
 - **Achievements** (`ACHIEVEMENTS` in app-data.js; page = `renderAchievements`): two columns (progress/special), "X מתוך Y" counts, earned-first then greyed locked ones (in see-everything). `renderAchievementIcon(id)` returns a unique colourful trophy SVG per achievement. Most unlocks are DERIVED in `syncAchievements()` from persistent state; one-shot ones are unlocked at their event site (`unlockAchievement(id)`), which arms a "new achievement" fly-to-topbar animation. Sibling modules earn achievements via the `APP.unlockAchievement` bridge.

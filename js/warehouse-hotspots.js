@@ -68,31 +68,31 @@
   function warehouseKind() {
     if (overlaysActive()) return null;
     const stem = imageFileStem(currentImageName());
-    if (stem === "panel74a") return "chapter-4";
-    if (stem === "panel87_simple_gates_worktable") return "chapter-5";
-    if (stem === "panel93_chapter_2_3_worktable") return "chapter-6";
-    if (stem === "panel99_chapter_2_4_worktable") return "chapter-7";
-    if (stem === "panel99g_chapter_2_4_worktable_next") return "chapter-7";
+    if (stem === "077_2.1_nand-workshop-1943") return "chapter-4";
+    if (stem === "090_2.2_simple-gates-worktable") return "chapter-5";
+    if (stem === "096_2.3_worktable") return "chapter-6";
+    if (stem === "102_2.4_worktable") return "chapter-7";
+    if (stem === "109_2.4_worktable-next") return "chapter-7";
     // The 2.5 library / binary workshop: reference links only (no worktable /
     // free-build), driven entirely by the object rects the panel SVG posts.
-    if (stem === "panel101_chapter_2_5_library_inside_v2") return "library";
-    if (stem === "panel107_chapter_2_5_workshop") return "binary-workshop";
+    if (stem === "114_2.5_library-inside-v2") return "library";
+    if (stem === "120_2.5_workshop") return "binary-workshop";
     // The 2.5 arithmetic worktable (post-handover) is the same room: it carries
     // the free-build table and the reference-link objects too, alongside its
     // tasks note.
-    if (stem === "panel119_chapter_2_5_worktable") return "binary-workshop";
+    if (stem === "134_2.5_worktable") return "binary-workshop";
     // The 2.6 ALU worktable — same room and click-zones as panel119, but its own
     // kind so the free-build table returns to the ALU worktable (not the 2.5 one).
-    if (stem === "panel125_chapter_2_6_alu_worktable") return "alu-worktable";
+    if (stem === "140_2.6_alu-worktable") return "alu-worktable";
     // The 3.2 memory worktable — same room and click-zones as panel125, with its
     // own kind so the free-build table returns here (and its note is the memory one).
-    if (stem === "panel135_chapter_3_1_memory_worktable") return "memory-worktable";
+    if (stem === "153_3.2_memory-worktable") return "memory-worktable";
     // The 3.3 RAM worktable — the same room again, its own kind so the free-build
     // table returns here and its note is the RAM one.
-    if (stem === "panel141_chapter_3_3_ram_worktable") return "ram-worktable";
+    if (stem === "159_3.3_ram-worktable") return "ram-worktable";
     // The 3.4 ports worktable — same room again, its own kind so the free-build
     // table comes back here and the note it opens is the ports one.
-    if (stem === "panel152_chapter_3_4_ports_worktable") return "ports-worktable";
+    if (stem === "170_3.4_ports-worktable") return "ports-worktable";
     return null;
   }
 
