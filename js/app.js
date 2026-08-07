@@ -891,9 +891,12 @@
   // whole RAM1024 in front of the ports in its address space.
   const PORT_IN_XS = [-240, -80, 80, 240];
 
-  function portsFramePins(addressWidth) {
+  // addressCaption: what the address stub is called on the frame. The RAM says
+  // "כתובת (Adr)" — the same word the placed card writes on that pin — so a
+  // learner reading the requirements, the frame and the card sees one name.
+  function portsFramePins(addressWidth, addressCaption = "כתובת") {
     return {
-      inputExt3: { x: -460, y: -250, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: "כתובת", edge: "side" },
+      inputExt3: { x: -460, y: -250, direction: "in", width: addressWidth, label: "כניסת הכתובת", caption: addressCaption, edge: "side" },
       inputInt3: { x: -340, y: -250, direction: "out", width: addressWidth, label: "כניסת הכתובת פנימית", edge: "side" },
       inputExt1: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה", edge: "side" },
       inputInt1: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הדאטה פנימית", edge: "side" },
@@ -950,7 +953,7 @@
       busTask: true,
       routingMultibit: true,
       frameSize: { ...PORTS_FRAME_SIZE },
-      pins: portsFramePins(spec.addressWidth),
+      pins: portsFramePins(spec.addressWidth, spec.id === "RAM" ? "כתובת (Adr)" : "כתובת"),
       bounds: { left: 460, right: 460, top: 460, bottom: 300 }
     };
     WORKSPACE_COMPONENT_DEFS[`gate-${spec.id}`] = {
