@@ -4475,6 +4475,28 @@
     // Chapter 3.4 ports (OPorts / IPorts / Ports / RAM).
     const portsIds = (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id);
     if (portsIds.length > 0 && portsIds.every((id) => taskCompleted(id))) unlockAchievement("ports-engineer");
+    // Chapter 4.2, the processor (PC0 / Cont0 / CPU0 / Computer0).
+    const computerIds = (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id);
+    if (computerIds.length > 0 && computerIds.every((id) => taskCompleted(id))) unlockAchievement("computer-engineer");
+
+    // Chapter 4.1 — the exercise page, where the learner runs instructions by
+    // hand. "Done" is every instruction on the page revealed and answered right;
+    // "clean" is that with no failed check and no hint read. Both are DERIVED
+    // from the page's own progress, so clearing it takes the mistakes and the
+    // hints with it, exactly like clearing a task note does.
+    const sheetDefs = instructionSheetDefs();
+    const sheetColumns = instructionSheetColumns();
+    const sheet = instructionSheetProgress();
+    const sheetDone = sheetDefs.length > 0
+      && sheet.revealed >= sheetDefs.length
+      && sheetDefs.every((def, row) => sheetColumns.every((column) => {
+        const typed = String(sheet.values[`${row}:${column}`] ?? "").trim();
+        return typed !== "" && Number(typed) === Number(def.after[column]);
+      }));
+    if (sheetDone) unlockAchievement("test-writer");
+    const sheetClean = sheetDone && Object.values(sheet.hints || {}).every((entry) =>
+      !(Number(entry && entry.failures) > 0) && !(Number(entry && entry.seen) > 0));
+    if (sheetClean) unlockAchievement("precise-test-writer");
 
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
@@ -4488,6 +4510,7 @@
     if (chapterClean(memoryIds)) unlockAchievement("precise-memory-engineer");
     if (chapterClean(ramIds)) unlockAchievement("precise-ram-engineer");
     if (chapterClean(portsIds)) unlockAchievement("precise-ports-engineer");
+    if (chapterClean(computerIds)) unlockAchievement("precise-computer-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
