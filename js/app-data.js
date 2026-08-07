@@ -1069,7 +1069,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     },
     prgPort: { label: "PRG", note: "בס ברוחב 16 שמחזיק את הפקודה שרוצים לכתוב לזיכרון התוכנה. המחשב מתעלם ממנו כל עוד הריסט לא לחוץ." },
     prgAdrPort: { label: "ADR PRG", note: "בס ברוחב 16 שאומר לאיזו כתובת בזיכרון התוכנה נכתבת הפקודה." },
-    resetSwitch: { label: "המפסק של הריסט", note: "המפסק על הכבל שאין לו שם. כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
+    resetSwitch: { label: "המפסק של הריסט", note: "כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
     // The description of the program to be written, left on the table. The
     // description itself is not written yet, so it says so instead of opening
     // an empty page.
