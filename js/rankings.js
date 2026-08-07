@@ -57,7 +57,13 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     if (m >= 60) return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
     return `${m}:${String(r).padStart(2, "0")}`;
   }
-  const fmt = (tab, v) => (tab.format ? tab.format(v) : String(v));
+  // A Nand count reaches five figures on the big cards, so it is written the way
+  // numbers are written — 12,345 — while the design tab keeps its own m:ss.
+  function withThousands(v) {
+    if (typeof v !== "number" || !isFinite(v)) return String(v);
+    return Math.round(v).toLocaleString("en-US");
+  }
+  const fmt = (tab, v) => (tab.format ? tab.format(v) : withThousands(v));
 
   // The buildable cards, in game order. Nand (the given primitive) is not listed.
   function rankingCards() {

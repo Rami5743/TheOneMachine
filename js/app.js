@@ -4475,6 +4475,9 @@
     // Chapter 3.4 ports (OPorts / IPorts / Ports / RAM).
     const portsIds = (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []).map((t) => t.id);
     if (portsIds.length > 0 && portsIds.every((id) => taskCompleted(id))) unlockAchievement("ports-engineer");
+    // Chapter 3.5, the program memory (Prg).
+    const prgIds = (typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []).map((t) => t.id);
+    if (prgIds.length > 0 && prgIds.every((id) => taskCompleted(id))) unlockAchievement("prg-engineer");
     // Chapter 4.2, the processor (PC0 / Cont0 / CPU0 / Computer0).
     const computerIds = (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id);
     if (computerIds.length > 0 && computerIds.every((id) => taskCompleted(id))) unlockAchievement("computer-engineer");
@@ -4510,6 +4513,7 @@
     if (chapterClean(memoryIds)) unlockAchievement("precise-memory-engineer");
     if (chapterClean(ramIds)) unlockAchievement("precise-ram-engineer");
     if (chapterClean(portsIds)) unlockAchievement("precise-ports-engineer");
+    if (chapterClean(prgIds)) unlockAchievement("precise-prg-engineer");
     if (chapterClean(computerIds)) unlockAchievement("precise-computer-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then

@@ -206,6 +206,21 @@ function renderAchievementIcon(id) {
            <g stroke="#7a4e0e" stroke-width="1.4" stroke-linecap="round">
              <line x1="33" y1="25" x2="37" y2="25"/><line x1="33" y1="31" x2="37" y2="31"/>
              <line x1="43" y1="25" x2="47" y2="25"/><line x1="43" y1="31" x2="47" y2="31"/></g>` });
+    case "prg-engineer": // green cup, a punched program tape feeding the memory (3.5)
+      return achievementTrophy(id, { top: "#9ad9a8", bot: "#1d6b39", rim: "#134b28", base: "#1d6b39", handle: "#2e8f50", emblem:
+        `<rect x="29" y="22" width="22" height="14" rx="1.6" fill="#fffdf3" stroke="#134b28" stroke-width="1.6"/>
+           <g fill="#1d6b39">
+             <circle cx="34" cy="26" r="1.5"/><circle cx="40" cy="26" r="1.5"/><circle cx="46" cy="26" r="1.5"/>
+             <circle cx="34" cy="32" r="1.5"/><circle cx="46" cy="32" r="1.5"/></g>
+           <g stroke="#2e8f50" stroke-width="1.4" stroke-linecap="round">
+             <line x1="29" y1="19" x2="51" y2="19"/><line x1="29" y1="39" x2="51" y2="39"/></g>` });
+    case "precise-prg-engineer": // green cup, the tape on a bullseye (3.5 first-try clean)
+      return achievementTrophy(id, { top: "#9ad9a8", bot: "#175c30", rim: "#f3d27a", base: "#175c30", handle: "#2e8f50", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="33" y="23" width="14" height="10" rx="1.4" fill="#fffdf3" stroke="#134b28" stroke-width="1.4"/>
+           <g fill="#175c30"><circle cx="36.5" cy="26" r="1.2"/><circle cx="40" cy="26" r="1.2"/><circle cx="43.5" cy="26" r="1.2"/>
+             <circle cx="36.5" cy="30.5" r="1.2"/><circle cx="43.5" cy="30.5" r="1.2"/></g>` });
     case "computer-engineer": // steel-blue cup, a whole machine: a box and a screen (4.2)
       return achievementTrophy(id, { top: "#8fb8d8", bot: "#254a68", rim: "#183449", base: "#254a68", handle: "#3d6d92", emblem:
         `<rect x="30" y="19" width="20" height="13" rx="1.8" fill="#fffdf3" stroke="#183449" stroke-width="1.6"/>
