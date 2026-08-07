@@ -248,7 +248,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel141_chapter_3_3_ram_worktable";
+  var PANEL = "159_3.3_ram-worktable";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

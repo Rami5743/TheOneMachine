@@ -183,7 +183,7 @@
      type="text/javascript"
      id="script17"><![CDATA[
 (function () {
-  var PANEL = "panel93_chapter_2_3_worktable";
+  var PANEL = "096_2.3_worktable";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

@@ -191,7 +191,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel107_chapter_2_5_workshop";
+  var PANEL = "120_2.5_workshop";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

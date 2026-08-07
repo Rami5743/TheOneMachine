@@ -138,6 +138,32 @@ It fails on any panel name in `js/*.js` that no longer exists in `data.js` (and
 also checks the task-return routers and the frame pin pairs). Fix every line it
 prints before committing.
 
+### The click-zones come from the SVG — never from the fallback
+
+Every room's zones are `<rect data-hotspot="object|table|action">` inside its own
+panel SVG, placed in Inkscape. `js/warehouse-hotspots.js` reads them out of the
+panel document (same-origin over http) and also accepts them by postMessage (the
+file:// path). `FALLBACK_ITEMS`/`FALLBACK_TABLE` in that file are a LAST RESORT
+for a slide with no rects — they are not "the" zones, and a room quietly drawing
+them is a bug. Two things have caused exactly that:
+
+- the room lookup (`warehouseKind()`) keyed on the panel's OLD file stem;
+- every SVG announcing its old name in `var PANEL = "…"` — the zones arrived and
+  were filed under a name no slide has.
+
+An SVG must declare its OWN file name. After touching panel files or the room
+list, run (with the site served on 8199):
+
+```
+node tools/check-svg-zones.js
+```
+
+It reads the rects out of each room SVG, opens the slide, and fails unless every
+object/table zone AND every action button sits where the SVG puts it (±0.6%).
+A new worktable room also needs its stem in `warehouseKind()`, a `FREE_WORKSPACE`
+entry, and to be listed in `wantsTable` — chapter 3.5's worktable was missing all
+three and had no zones at all.
+
 ## Feature areas (where things live)
 
 - **Achievements** (`ACHIEVEMENTS` in app-data.js; page = `renderAchievements`): two columns (progress/special), "X מתוך Y" counts, earned-first then greyed locked ones (in see-everything). `renderAchievementIcon(id)` returns a unique colourful trophy SVG per achievement. Most unlocks are DERIVED in `syncAchievements()` from persistent state; one-shot ones are unlocked at their event site (`unlockAchievement(id)`), which arms a "new achievement" fly-to-topbar animation. Sibling modules earn achievements via the `APP.unlockAchievement` bridge.

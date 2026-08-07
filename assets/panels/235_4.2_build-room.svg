@@ -349,7 +349,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel217_chapter_4_1_build_room";
+  var PANEL = "235_4.2_build-room";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

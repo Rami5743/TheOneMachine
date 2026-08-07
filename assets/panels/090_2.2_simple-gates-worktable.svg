@@ -178,7 +178,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel87_simple_gates_worktable";
+  var PANEL = "090_2.2_simple-gates-worktable";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

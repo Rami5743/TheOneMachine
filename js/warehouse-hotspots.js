@@ -29,6 +29,8 @@
   // Geometry posted by the panel SVGs, keyed by panel file stem. Each value is
   // { objects: [...], table: {...}|null, actions: { <action>: {x,y,w,h} } }.
   const svgPosted = Object.create(null);
+  // Slides already moaned about for having no zones of their own (once each).
+  const warnedFallback = Object.create(null);
 
   function readState() {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
@@ -93,6 +95,11 @@
     // The 3.4 ports worktable — same room again, its own kind so the free-build
     // table comes back here and the note it opens is the ports one.
     if (stem === "170_3.4_ports-worktable") return "ports-worktable";
+    // The 3.5 program-memory worktable — the same room once more, its own kind so
+    // the free-build table comes back here and its note is the Prg one. It was
+    // missing entirely: the chapter was added after this list was written, so its
+    // worktable had no room and therefore none of the click-zones its SVG draws.
+    if (stem === "175_3.5_program-memory-worktable") return "prg-worktable";
     return null;
   }
 
@@ -102,16 +109,94 @@
     const data = event && event.data;
     if (!data || data.__warehouseHotspots !== true || !data.payload) return;
     const payload = data.payload;
-    const panel = imageFileStem(payload.panel);
+    // WHOSE geometry this is, is decided by WHO sent it — not by the name the SVG
+    // writes about itself. Each panel SVG carries `var PANEL = "<its own name>"`,
+    // and renaming the files left all seventeen of them announcing their old
+    // name: the zones arrived, were filed under a name no slide has, and every
+    // room quietly fell back to the hardcoded rectangles instead of the ones
+    // placed in Inkscape. The message comes from the displayed panel's own
+    // document, so file it under THAT panel and keep the declared name only as
+    // an alias.
+    const declared = imageFileStem(payload.panel);
+    const showing = imageFileStem(currentImageName());
+    const object = panelObject();
+    const fromShownPanel = Boolean(object && object.contentWindow && event.source === object.contentWindow);
+    const panel = fromShownPanel && showing ? showing : declared;
     if (!panel) return;
-    svgPosted[panel] = {
+    const geometry = {
       objects: Array.isArray(payload.objects) ? payload.objects : [],
       table: payload.table || null,
       actions: payload.actions || {}
     };
+    svgPosted[panel] = geometry;
+    if (declared && declared !== panel) svgPosted[declared] = geometry;
     // Apply immediately now that we have fresh positions for this panel.
     patch();
   });
+
+  // --- Reading the zones straight out of the panel document -----------------
+  // The SVG posts its rects a few times right after IT loads. If the page is not
+  // listening yet (a cached slide posts before this script has run), those
+  // messages are simply lost and the room falls back to the hardcoded rectangles
+  // — the same wrong zones, appearing at random. Over http the panel document is
+  // same-origin, so we can just READ the rects ourselves and never depend on the
+  // timing. The postMessage path stays for file://, where contentDocument is
+  // blocked.
+  function zonesFromPanelDocument() {
+    const object = panelObject();
+    let doc = null;
+    try { doc = object && object.contentDocument; } catch (e) { doc = null; }
+    if (!doc) return null;
+    const svg = doc.querySelector("svg") || doc.documentElement;
+    if (!svg || typeof svg.querySelectorAll !== "function") return null;
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const VW = vb && vb.width ? vb.width : 1448;
+    const VH = vb && vb.height ? vb.height : 1086;
+    let rootM = null;
+    try { rootM = svg.getScreenCTM(); } catch (e) { rootM = null; }
+    // A rect's box in viewBox units, following whatever transforms its layers add.
+    const box = (rect) => {
+      let bb;
+      try { bb = rect.getBBox(); } catch (e) { return null; }
+      let m = null;
+      try { if (rootM) m = rootM.inverse().multiply(rect.getScreenCTM()); } catch (e) { m = null; }
+      if (!m) return { x: bb.x, y: bb.y, w: bb.width, h: bb.height };
+      const map = (x, y) => ({ x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f });
+      const p = [map(bb.x, bb.y), map(bb.x + bb.width, bb.y), map(bb.x, bb.y + bb.height), map(bb.x + bb.width, bb.y + bb.height)];
+      const xs = p.map((q) => q.x), ys = p.map((q) => q.y);
+      const minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      const minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+    };
+    const pct = (rect) => {
+      const b = box(rect);
+      if (!b || !(b.w > 0) || !(b.h > 0)) return null;
+      return { x: b.x / VW * 100, y: b.y / VH * 100, w: b.w / VW * 100, h: b.h / VH * 100 };
+    };
+    const rects = svg.querySelectorAll("[data-hotspot]");
+    if (!rects.length) return null;
+    const out = { objects: [], table: null, actions: {} };
+    rects.forEach((rect) => {
+      const kind = rect.getAttribute("data-hotspot");
+      const g = pct(rect);
+      if (!g) return;
+      if (kind === "object") {
+        out.objects.push({
+          id: rect.getAttribute("data-id") || rect.id || "",
+          label: rect.getAttribute("data-label") || "",
+          url: rect.getAttribute("data-url") || "",
+          x: g.x, y: g.y, w: g.w, h: g.h
+        });
+      } else if (kind === "table") {
+        out.table = { label: rect.getAttribute("data-label") || "שולחן עבודה", x: g.x, y: g.y, w: g.w, h: g.h };
+      } else if (kind === "action") {
+        const action = rect.getAttribute("data-action");
+        if (action) out.actions[action] = { x: g.x, y: g.y, w: g.w, h: g.h };
+      }
+    });
+    if (!out.objects.length && !out.table && !Object.keys(out.actions).length) return null;
+    return out;
+  }
 
   function ensureStyle() {
     if (document.getElementById("warehouse-hotspots-style")) return;
@@ -274,7 +359,8 @@
     "memory-worktable": { chapterId: "chapter-11", sceneId: "registers", panelIndex: 4 },
     // The 3.3 RAM worktable is the last slide of its own scene.
     "ram-worktable": { chapterId: "chapter-12", sceneId: "ram", panelIndex: 3 },
-    "ports-worktable": { chapterId: "chapter-13", sceneId: "ports", panelIndex: 6 }
+    "ports-worktable": { chapterId: "chapter-13", sceneId: "ports", panelIndex: 6 },
+    "prg-worktable": { chapterId: "chapter-17", sceneId: "program-memory", panelIndex: 4 }
   };
 
   // The chapter 2.5 arithmetic worktable (panel119) — the post-von Neumann
@@ -321,7 +407,7 @@
     // could have built by now — including the "create new card" tool, enabled
     // here regardless of whether it was unlocked in this playthrough. cardIntroDone
     // is set too so enabling it does not re-arm the one-time scripted card intro.
-    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable") {
+    if (kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable" || kind === "prg-worktable") {
       state.createCardUnlocked = true;
       state.cardIntroDone = true;
       state.cardIntroPending = false;
@@ -364,7 +450,13 @@
     const shell = document.querySelector(".image-shell");
     const kind = warehouseKind();
     const stem = imageFileStem(currentImageName());
-    const svgHotspots = svgPosted[stem] || null;
+    // Prefer what the panel document itself says right now; fall back to whatever
+    // it managed to post (the file:// path), and only then to the hardcoded set.
+    let svgHotspots = svgPosted[stem] || null;
+    if (!svgHotspots && stem) {
+      const read = zonesFromPanelDocument();
+      if (read) { svgPosted[stem] = read; svgHotspots = read; }
+    }
 
     // Keep app.js's action buttons aligned with the SVG-defined rects, even
     // while an overlay is up (harmless: the buttons are invisible & disabled).
@@ -387,7 +479,20 @@
     const fallbackItems = isWorktable ? FALLBACK_ITEMS : [];
     const items = (svgHotspots && svgHotspots.objects.length) ? svgHotspots.objects : fallbackItems;
     const table = (svgHotspots && svgHotspots.table) ? svgHotspots.table : FALLBACK_TABLE;
-    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable");
+    // Falling back is not a normal state — every room slide has its zones drawn
+    // inside its SVG. Say so out loud ONCE per slide, so the next time the two
+    // drift apart it is visible in the console instead of showing rectangles in
+    // roughly-right places that nobody placed. The SVG posts as soon as it has
+    // laid out, which is a moment AFTER the slide appears, so only complain once
+    // that moment has clearly passed.
+    if (!svgHotspots && stem && !warnedFallback[stem]) {
+      warnedFallback[stem] = "pending";
+      window.setTimeout(() => {
+        if (svgPosted[stem] || imageFileStem(currentImageName()) !== stem) return;
+        console.warn(`[hotspots] ${stem} posted no zones — falling back to the hardcoded rectangles. Its SVG's zones are not reaching the page.`);
+      }, 3000);
+    }
+    const wantsTable = (kind === "chapter-5" || kind === "chapter-6" || kind === "chapter-7" || kind === "binary-workshop" || kind === "alu-worktable" || kind === "memory-worktable" || kind === "ram-worktable" || kind === "ports-worktable" || kind === "prg-worktable");
 
     // Signature of the geometry we intend to render. When a panel SVG posts new
     // positions (e.g. after an Inkscape edit) the signature changes and we

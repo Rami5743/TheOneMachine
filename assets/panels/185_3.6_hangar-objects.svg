@@ -89,7 +89,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel164_chapter_3_5_hangar_objects";
+  var PANEL = "185_3.6_hangar-objects";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

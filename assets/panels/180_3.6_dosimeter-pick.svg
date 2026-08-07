@@ -42,7 +42,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "panel157_chapter_3_5_dosimeter_pick";
+  var PANEL = "180_3.6_dosimeter-pick";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;
