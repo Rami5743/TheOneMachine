@@ -17170,9 +17170,9 @@
       // with the note reopened so the next one unlocks under the learner's eyes.
       if (family === "simple-computer") {
         return setState({
-          ...simpleComputerReturnTarget(),
+          ...simpleComputerCompletionPatch(taskId),
           taskDialog: null, notTest: null, muxTable: null,
-          completedTasks, buildNoteList: true,
+          completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
         }, true);
       }
@@ -18122,11 +18122,42 @@
   // one of the RAM task ids.
   const RAM_OUTRO_KEY = "ram-outro";
 
+  // Shown once PC0 is built, back in the 4.2 build room: why the counter cannot
+  // simply feed its own Inc, and what the register's timing is actually for.
+  const PC0_COMPLETE_PAGES = [
+    "כאן אתה יכול לראות את חשיבות התזמון של הזיכרון. מכיוון שהזיכרון כאן הוא כל הזמן במצב כתיבה, אפשר היה לחשוב שהוא בעצם לא שומר שום דבר ולכן אפשר לוותר עליו. זה יכול להיראות כאילו שאם מחברים את היציאה של ה-Inc לכניסה שלו אז ה-Inc יספור בעצמו.",
+    "אבל, אם נעשה את זה, ייווצר בלגן גדול. חלקים שונים ב-Inc פועלים במהירות שונה, וחלק מהביטים מחושבים לפני האחרים. בדרך כלל זאת לא בעיה בשבילנו, אנחנו פשוט מחכים עד שהכל יגמור לעבוד, אבל כאן, זה יגרום לכך שחלק מהיציאות של ה-Inc ישתנו לפני האחרות ובכך ישפיעו על הכניסות. החישוב ימשיך באופן מוזר כשחלק מהביטים מעודכנים יותר וחלק פחות. בפועל לא נקבל ספירה, אלא רצף מוזר של מספרים שקשה לצפות מראש, והוא תלוי בדרך הספציפית בה פועל כרטיס ה-Inc. בנוסף הם ישתנו מהר מדי, כך שגם יתר רכיבי המחשב שמשתמשים ברגיסטר PC לא יוכלו לעמוד בקצב.",
+    "לכן, בכל שלב אנחנו מעבירים את התוצאה לרגיסטר שממתין עם רישום התוצאה עד שכל החישובים של השלב יסתיימו. בשביל שזה יקרה בפועל, הפליפ-פלופים של הרגיסטרים צריכים להיות בנויים באופן שונה ממה שבנינו אותם. במשחק לא הסברנו איך בדיוק עושים את זה, אבל אתה יכול לקרוא על זה בתפריט הסברי ההעשרה."
+  ];
+  // Its own key, so it is told apart from PC0's OPENING message (which the card
+  // carries inline as `intro` and is read at the table before the build).
+  const PC0_DONE_KEY = "PC0-done";
+
+  // The key of a 4.2 card's CLOSING message, if it has one. PC0's closes with
+  // why the counter cannot feed its own Inc.
+  function simpleComputerDoneKey(taskId) {
+    return taskId === "PC0" ? PC0_DONE_KEY : null;
+  }
+
+  // Where a finished 4.2 card lands: the build room, with its closing message if
+  // it has one (the note opens when that is dismissed) and the note itself if it
+  // does not. All three completion paths — the check, the walkthrough and the dev
+  // shortcut — go through here, so a card's message cannot reach only some of them.
+  function simpleComputerCompletionPatch(taskId) {
+    const messageKey = simpleComputerDoneKey(taskId);
+    return {
+      ...simpleComputerReturnTarget(),
+      buildNoteList: !messageKey,
+      aluIntroDialog: messageKey ? { page: 0, taskId: messageKey } : null
+    };
+  }
+
   // The after-completion message pages for a card (null if it has none). ALU0 and
   // ALU1 in 2.6, RAM4 in 3.3 — all shown the same way: out at the worktable, in a
   // paged dialog, once the build (or its walkthrough) is behind the learner.
   // RAM16 in 3.3 has one too — about what its 4-bit address really is.
   function aluMessagePagesFor(taskId) {
+    if (taskId === PC0_DONE_KEY) return PC0_COMPLETE_PAGES;
     if (taskId === "ALU0") return ALU0_COMPLETE_PAGES;
     if (taskId === "ALU1") return ALU1_COMPLETE_PAGES;
     if (taskId === "RAM4") return RAM4_COMPLETE_PAGES;
@@ -18151,6 +18182,7 @@
     const label = taskId === RAM_OUTRO_KEY ? "על הזיכרון"
       : taskId === "RAM16" ? "על הכתובת"
       : isRamTask(taskId) ? "על הרגיסטר"
+      : taskId === PC0_DONE_KEY ? "על התזמון"
       : isSimpleComputerTask(taskId) ? `על ה-${taskId}`
       : "על ה-ALU";
     return `
@@ -18901,9 +18933,9 @@
     // branch that actually runs for them.
     if (family === "simple-computer") {
       return setState({
-        ...simpleComputerReturnTarget(),
+        ...simpleComputerCompletionPatch(taskId),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
-        completedTasks, buildNoteList: true,
+        completedTasks,
         workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
     }
@@ -19133,7 +19165,7 @@
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
     // land the learner on the BUSES note.
     if (family === "simple-computer") {
-      return setState({ ...simpleComputerReturnTarget(), ...base, buildNoteList: true }, true);
+      return setState({ ...simpleComputerCompletionPatch(taskId), ...base }, true);
     }
     // Memory cards (3.1): back to the memory worktable with its note. Once BOTH are
     // done, roll into the "good work" ending — same as finishing them for real.
@@ -22555,6 +22587,11 @@
           }, true);
         }
         return setState({ aluIntroDialog: null, infoDialog: "המשך יבוא..." });
+      }
+      // PC0's CLOSING message is read out in the build room, in front of the
+      // note — so dismissing it opens the note, the way the 3.3 messages do.
+      if (state.aluIntroDialog?.taskId === PC0_DONE_KEY) {
+        return setState({ aluIntroDialog: null, buildNoteList: true });
       }
       // A 4.2 card's opening message is read AT the work area, over the table it
       // belongs to — closing it just gets out of the way.

@@ -27,8 +27,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="2"
-     inkscape:cx="946.5"
-     inkscape:cy="447.25"
+     inkscape:cx="1144"
+     inkscape:cy="899.75"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1"
      inkscape:window-width="1920"
@@ -411,9 +411,9 @@
      data-aria-label="איזור העבודה"
      class="hotspot hotspot-action"
      pointer-events="none"
-     style="opacity:0;fill:#37d67a;stroke-width:1"
-     x="622.6"
-     y="722.2"
-     width="152.0"
-     height="103.2" />
+     style="opacity:0;fill:#37d67a;stroke-width:0.999999"
+     x="849.1001"
+     y="952.19995"
+     width="598.90002"
+     height="145.79999" />
 </svg>
