@@ -190,8 +190,15 @@
       } else if (kind === "table") {
         out.table = { label: rect.getAttribute("data-label") || "שולחן עבודה", x: g.x, y: g.y, w: g.w, h: g.h };
       } else if (kind === "action") {
+        // Same key the SVG's own script builds, and the one syncActionHotspots
+        // looks for: a zone that names an object is "<action>:<objectId>", so a
+        // slide with two dozen `panel-object` zones (the 4.1/4.2 rooms) can tell
+        // them apart. Without the id every one of them would be filed under the
+        // bare action and the last rect would win — all two dozen buttons on one
+        // spot.
         const action = rect.getAttribute("data-action");
-        if (action) out.actions[action] = { x: g.x, y: g.y, w: g.w, h: g.h };
+        const objectId = rect.getAttribute("data-object-id");
+        if (action) out.actions[objectId ? `${action}:${objectId}` : action] = { x: g.x, y: g.y, w: g.w, h: g.h };
       }
     });
     if (!out.objects.length && !out.table && !Object.keys(out.actions).length) return null;

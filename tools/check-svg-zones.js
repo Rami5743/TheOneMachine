@@ -30,7 +30,13 @@ const ROOMS = [
   ['153_3.2_memory-worktable.svg', 'chapter-11', 'registers'],
   ['159_3.3_ram-worktable.svg', 'chapter-12', 'ram'],
   ['170_3.4_ports-worktable.svg', 'chapter-13', 'ports'],
-  ['175_3.5_program-memory-worktable.svg', 'chapter-17', 'program-memory']
+  ['175_3.5_program-memory-worktable.svg', 'chapter-17', 'program-memory'],
+  // The two 4.x rooms are not worktables — they have no object/table zones of
+  // their own — but every clickable thing in them (the racks, each port, the
+  // note, and the floor that opens the free table) is an ACTION rect, so the
+  // same check applies.
+  ['231_4.1_empty-room.svg', 'chapter-15', 'simple-computer'],
+  ['235_4.2_build-room.svg', 'chapter-16', 'build-simple-computer']
 ];
 const ALL_TASKS = ['Not','And','Or','Xor','Mux','DMux','Not4','Not16','AND4','AND16','OR4','Neq0_4','Neq0_16','MUX4','MUX16','Dmux4way','Mux4way16','halfAdder','fullAdder','Add4','Add16','Inc','ALU0','PreperNum','ALU1','ALU2','ALU3','ALU4','Register4','Register','RAM4','RAM16','RAM64','RAM256','RAM1024','OPorts','IPorts','Ports','RAM','Prg'];
 
@@ -104,9 +110,12 @@ function svgZones(file) {
     if (displayed !== file) problems.push(`the app shows ${displayed || 'nothing'} instead of this slide`);
     // The SVG posts its rects once it has laid out, which can take a moment on a
     // heavy slide — wait for zones rather than guessing a delay.
-    await p.waitForSelector('.warehouse-object-hotspot,.warehouse-table-hotspot', { timeout: 12000 })
-      .catch(() => {});
-    await p.waitForTimeout(600);
+    const wantsOwnZones = info.zones.some((z) => z.kind !== 'action');
+    if (wantsOwnZones) {
+      await p.waitForSelector('.warehouse-object-hotspot,.warehouse-table-hotspot', { timeout: 12000 })
+        .catch(() => {});
+    }
+    await p.waitForTimeout(1200);
     const overlay = await p.$eval('body', (bd) => {
       const o = bd.querySelector('[class*="-overlay"]');
       return o ? o.className : '';

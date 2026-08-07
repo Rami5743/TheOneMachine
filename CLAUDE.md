@@ -158,8 +158,12 @@ list, run (with the site served on 8199):
 node tools/check-svg-zones.js
 ```
 
-It reads the rects out of each room SVG, opens the slide, and fails unless every
+It reads the rects out of each room SVG (the 4.1/4.2 rooms too, whose two dozen
+objects are all `action` rects), opens the slide, and fails unless every
 object/table zone AND every action button sits where the SVG puts it (±0.6%).
+A zone that names an object keys itself `<action>:<objectId>` — that is how a
+slide with two dozen `panel-object` zones tells them apart, and the id comes from
+the rect's own `data-object-id`, never from the action string.
 A new worktable room also needs its stem in `warehouseKind()`, a `FREE_WORKSPACE`
 entry, and to be listed in `wantsTable` — chapter 3.5's worktable was missing all
 three and had no zones at all.
