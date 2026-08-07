@@ -5679,3 +5679,80 @@ object.panel-image.is-pending {
 
 .assembler-info-link a { color: #b3801a; font-weight: 700; }
 .assembler-info-link a:hover { color: #d8a63a; }
+
+/* ---- The 4.3 program table ---------------------------------------------- */
+/* Two rows to an instruction: the assembler's merged cells on top, and under
+   them the sixteen squares that are actually written. Only the outer frame is
+   printed — the table has no foot and simply runs on down the page. */
+.prog-slot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #6b5a3a;
+  background: rgba(239, 228, 200, 0.45);
+}
+
+.prog-slot-alu { background: rgba(206, 190, 152, 0.34); }
+
+.prog-slot-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #241d12;
+  line-height: 1;
+}
+
+.prog-slot-btn:hover { background: rgba(179, 128, 26, 0.16); }
+
+.prog-bit {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--sq, 26px) * 0.56);
+  font-weight: 700;
+  color: #241d12;
+  line-height: 1;
+}
+
+.prog-bit:hover { background: rgba(179, 128, 26, 0.16); }
+
+/* The destination chooser: a small drop-down table over the cell it belongs to. */
+.prog-dest-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 12;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: calc(var(--sq, 26px) * 3);
+  border: 1px solid #3a2c17;
+  border-radius: 6px;
+  background: #fbf6e6;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.prog-dest-option {
+  display: block;
+  width: 100%;
+  padding: 3px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #241d12;
+  text-align: center;
+}
+
+.prog-dest-option:hover { background: #efe4c8; }

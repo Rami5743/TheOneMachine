@@ -1821,6 +1821,8 @@
     programSheet: null,
     programDialog: null,
     programClearConfirm: null,
+    // The destination chooser open over an instruction's middle cell: { row }.
+    programDestMenu: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3009,6 +3011,7 @@
       programDialog: null,
       programClearConfirm: null,
       programAssembler: null,
+      programDestMenu: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3256,7 +3259,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6228,12 +6231,13 @@
   // Four reference windows sit around it: the task itself in the bottom-left, and
   // in the bottom-right corner, bottom to top, "מבנה הפקודה" (folded away to
   // start), "מבנה הזיכרון" and the table of ALU1 calculations.
-  const PROGRAM_SHEET_ROWS = 30;
 
   function programSheetProgress() {
     const saved = state.programSheet && typeof state.programSheet === "object" ? state.programSheet : {};
     return {
-      scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {}
+      scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {},
+      // The program itself: "<instruction>:<bit>" -> "0" | "1".
+      bits: (saved.bits && typeof saved.bits === "object") ? saved.bits : {}
     };
   }
 
@@ -6770,36 +6774,106 @@
       </div>`;
   }
 
+  // How many instructions the page holds. The table has no foot — it runs on
+  // down the page and the page scrolls, so this is only how far "on" goes.
+  const PROGRAM_INSTRUCTIONS = 30;
+
+  // The four things the ALU's output can be written to, and the two bits that
+  // say so (bits 13-14 of the instruction).
+  const PROGRAM_DESTINATIONS = [
+    { id: "none", label: "כלום", bits: "00" },
+    { id: "D", label: "D", bits: "01" },
+    { id: "A", label: "A", bits: "10" },
+    { id: "*A", label: "*A", bits: "11" }
+  ];
+
+  function programBits() {
+    return programSheetProgress().bits;
+  }
+
+  function programBit(row, bit) {
+    const value = programBits()[`${row}:${bit}`];
+    return value === "0" || value === "1" ? value : "";
+  }
+
+  function writeProgramBits(patch) {
+    const progress = programSheetProgress();
+    const bits = { ...progress.bits };
+    Object.entries(patch).forEach(([key, value]) => {
+      if (value === "0" || value === "1") bits[key] = value;
+      else delete bits[key];
+    });
+    return setState({ programSheet: { ...progress, bits } });
+  }
+
+  // A square of an instruction: blank → 0 → 1 → blank, the way one writes on
+  // squared paper and rubs out.
+  function cycleProgramBit(row, bit) {
+    const now = programBit(row, bit);
+    const next = now === "" ? "0" : (now === "0" ? "1" : "");
+    return writeProgramBits({ [`${row}:${bit}`]: next });
+  }
+
+  // The destination a row is set to, read back off its two bits.
+  function programDestination(row) {
+    const bits = `${programBit(row, 13)}${programBit(row, 14)}`;
+    return PROGRAM_DESTINATIONS.find((dest) => dest.bits === bits) || null;
+  }
+
+  function chooseProgramDestination(row, id) {
+    const dest = PROGRAM_DESTINATIONS.find((d) => d.id === id);
+    if (!dest) return setState({ programDestMenu: null });
+    const progress = programSheetProgress();
+    return setState({
+      programSheet: { ...progress, bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1] } },
+      programDestMenu: null
+    });
+  }
+
   function renderProgramSheet() {
     if (!state.programDialog) return "";
     const cells = [];
     const bitColumn = sheetBitColumn;
-    const rows = PROGRAM_SHEET_ROWS;
-    // One wing only: the sixteen squares of an instruction, with the same
-    // headings the 4.1 page prints over them.
-    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">פקודות המחשב</div>`);
-    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:2 / span 2;">הוראות ה-ALU</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
-    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(15)} / span 2;grid-row:2 / span 2;">ביטים מיותרים</div>`);
-    const inner = `2 / span ${rows - 1}`;
+    // A bit's column: bit 1 is the rightmost of the sixteen.
+    const columnOf = (bit) => bitColumn(bit - 1);
+    const rows = 1 + PROGRAM_INSTRUCTIONS * 2;
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">התוכנה</div>`);
+    // Only the outer frame, and no foot: the two rules run down the page and the
+    // table simply carries on.
     const rules = [
       `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
-      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
-      `<div class="sheet-rule-foot" style="grid-column:1 / span 16;grid-row:${rows};"></div>`
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`
     ];
-    // Everything the learner has written — on the instruction squares and on the
-    // free paper beside them alike. Only the three heading rows are the page's.
+    // Two rows to an instruction: the assembler's row on top (three merged
+    // cells — the calculation, the destination, the spare bits) and the sixteen
+    // squares of the instruction itself underneath, which are what is written.
+    const menuRow = Number.isInteger(state.programDestMenu?.row) ? state.programDestMenu.row : null;
+    for (let row = 0; row < PROGRAM_INSTRUCTIONS; row += 1) {
+      const top = 2 + row * 2;
+      const bottom = top + 1;
+      const dest = programDestination(row);
+      cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(12)} / span 12;grid-row:${top};" aria-hidden="true"></div>`);
+      const menu = menuRow === row
+        ? `<ul class="prog-dest-menu" role="menu">${PROGRAM_DESTINATIONS.map((option) =>
+            `<li><button class="prog-dest-option" data-action="program-dest-pick" data-row="${row}" data-dest="${esc(option.id)}" type="button">${esc(isolateLatinRuns(option.label))}</button></li>`).join("")}</ul>`
+        : "";
+      cells.push(`<div class="prog-slot prog-slot-dest" style="grid-column:${columnOf(14)} / span 2;grid-row:${top};"><button class="prog-slot-btn" data-action="program-dest-open" data-row="${row}" type="button" aria-label="יעד הפקודה ${row + 1}">${dest ? esc(isolateLatinRuns(dest.label)) : ""}</button>${menu}</div>`);
+      cells.push(`<div class="prog-slot prog-slot-spare" style="grid-column:${columnOf(16)} / span 2;grid-row:${top};"><button class="prog-slot-btn" data-action="program-spare-zero" data-row="${row}" type="button" aria-label="איפוס הביטים המיותרים של פקודה ${row + 1}"></button></div>`);
+      for (let bit = 1; bit <= 16; bit += 1) {
+        const value = programBit(row, bit);
+        cells.push(`<button class="prog-bit${value === "" ? " prog-bit-empty" : ""}" data-action="program-bit" data-row="${row}" data-bit="${bit}" type="button" style="grid-column:${columnOf(bit)};grid-row:${bottom};" aria-label="ביט ${bit} של פקודה ${row + 1}">${esc(value)}</button>`);
+      }
+    }
+    // Whatever has been scribbled on the free paper beside the table.
     const scratch = programSheetProgress().scratch;
     Object.entries(scratch).forEach(([key, text]) => {
       const [r, c] = key.split(",").map(Number);
       if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
-      if (r <= 3 && c >= 1 && c <= 16) return;
+      if (c >= 1 && c <= 16) return;
       cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
     });
     const at = state.sheetScratchCell;
-    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
+    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col)) && !(at.col >= 1 && at.col <= 16)) {
       cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     cells.push(...rules);
@@ -23013,6 +23087,10 @@
     }
 
     const button = event.target.closest("[data-action]");
+    // A click anywhere but inside the destination chooser closes it.
+    if (state.programDestMenu && !event.target.closest(".prog-dest-menu, .prog-slot-dest")) {
+      setState({ programDestMenu: null }, false);
+    }
     // The assembler's teaser is a one-time offer: taking it up opens the window,
     // and ANY other click passes it over for good. Marked here, before the click
     // is acted on, and repainted on the next tick so a click that changes
@@ -23475,11 +23553,21 @@
     if (action === "program-clear-open") return setState({ programClearConfirm: true });
     if (action === "program-clear-cancel") return setState({ programClearConfirm: null });
     if (action === "program-clear-confirm") {
-      return setState({ programSheet: { scratch: {} }, programClearConfirm: null, sheetScratchCell: null });
+      return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null });
     }
     if (action === "program-close") {
       clearAssemblerHintTimer();
       return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null });
+    }
+    if (action === "program-bit") return cycleProgramBit(Number(button.dataset.row), Number(button.dataset.bit));
+    if (action === "program-dest-open") {
+      const row = Number(button.dataset.row);
+      return setState({ programDestMenu: state.programDestMenu?.row === row ? null : { row } });
+    }
+    if (action === "program-dest-pick") return chooseProgramDestination(Number(button.dataset.row), button.dataset.dest);
+    if (action === "program-spare-zero") {
+      const row = Number(button.dataset.row);
+      return writeProgramBits({ [`${row}:15`]: "0", [`${row}:16`]: "0" });
     }
     if (action === "assembler-open") return openAssembler();
     if (action === "assembler-close") return setState({ programAssembler: null });
