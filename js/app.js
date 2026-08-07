@@ -6337,6 +6337,22 @@
       figure.style.left = `${Math.round(aluRect.right + 26)}px`;
       figure.style.top = `${Math.round(Math.min(aluRect.bottom - figRect.height, area.bottom - PAD - figRect.height))}px`;
     }
+    // His bubble comes out of his mouth: it is placed so its tail lines up with
+    // it, and if the bubble had to be nudged to stay on the paper the tail slides
+    // along its edge to keep pointing there.
+    const bubble = app.querySelector(".assembler-bubble");
+    if (figure && bubble) {
+      const g = figure.getBoundingClientRect();
+      const mouthY = g.top + g.height * 0.46;
+      const height = bubble.getBoundingClientRect().height;
+      const TAIL_FROM_TOP = 34;
+      const wanted = mouthY - TAIL_FROM_TOP;
+      const top = Math.max(area.top + 8, Math.min(area.bottom - 8 - height, wanted));
+      bubble.style.bottom = "auto";
+      bubble.style.top = `${Math.round(top - g.top)}px`;
+      const tail = Math.max(12, Math.min(height - 26, mouthY - top - 9));
+      bubble.style.setProperty("--tail-top", `${Math.round(tail)}px`);
+    }
     const task = byName("task");
     if (task && !saved.task) {
       const rect = task.getBoundingClientRect();
@@ -6380,10 +6396,14 @@
   }
 
   function openProgramSheet() {
+    // Every visit starts from the default layout: the windows are back in their
+    // corners (where they were dragged to is a within-the-visit thing), and the
+    // task is read in the middle of the page again before it takes its seat.
     const opened = setState({
       panelObjectDialog: null,
       programSheet: programSheetProgress(),
-      programDialog: { intro: !state.programIntroSeen }
+      programPanels: { ...programPanelsState(), pos: {} },
+      programDialog: { intro: true }
     });
     startAssemblerHintTimer();
     return opened;
@@ -6683,7 +6703,6 @@
     }).join("");
     return `
       <section class="assembler-bubble" role="dialog" aria-label="אסמבלר">
-        ${renderAssemblerTeaser(page)}
         <button class="assembler-close" data-action="assembler-close" type="button" aria-label="סגירה">×</button>
         <div class="assembler-bubble-body">${body}</div>
         <div class="assembler-bubble-foot">
@@ -6707,9 +6726,9 @@
       && assemblerTeaser());
   }
 
-  function renderAssemblerTeaser(page) {
+  function renderAssemblerTeaser() {
     const teaser = assemblerTeaser();
-    if (!teaser || page !== 0 || state.assemblerTeaserDone) return "";
+    if (!assemblerTeaserVisible() || !teaser) return "";
     return `
       <button class="story-corner-link assembler-teaser" data-action="assembler-teaser" type="button">
         <svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg>
@@ -6800,6 +6819,7 @@
         ${renderProgramMemoryWindow()}
         ${renderProgramGuideWindow()}
         ${renderAssembler()}
+        ${renderAssemblerTeaser()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -22921,6 +22941,13 @@
     if (target.closest("button, a, input, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
     return win;
   }
+
+  // Resizing the browser moves the corners the windows are parked in, so they
+  // are laid out again (a window the learner dragged keeps its own place).
+  window.addEventListener("resize", () => {
+    if (!state.programDialog) return;
+    requestAnimationFrame(layoutProgramWindows);
+  });
 
   document.addEventListener("mousedown", (event) => {
     const win = sheetGuideDragHandle(event.target);
