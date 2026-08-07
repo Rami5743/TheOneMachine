@@ -7,12 +7,12 @@
 
 | הקובץ | מה מופיע בו | באילו שקפים |
 | --- | --- | --- |
-| `assets/panels/panel155_chapter_3_5_dosimeter_placed.jpg` | פון-נוימן נשען פנימה ומניח את תא העיפרון על השולחן | שקף 3 (ללא מילים) |
-| `assets/panels/panel156_chapter_3_5_dosimeter_table.jpg` | פון-נוימן עומד בדלת ותא העיפרון מונח על השולחן | שקפים 4 (התדריך) ו-5 (ההקלקה) |
-| `assets/panels/panel131_chapter_3_1_more_memory.jpg` | אותו חדר בלי תא העיפרון (הציור מפרק 3.1) | שקפים 1, 2 ו-6 |
-| `assets/panels/panel159_chapter_3_5_project_y.jpg` | ההאנגר במדבר — PROJECT Y, BLDG. 1, מאחורי שלטי הקרינה | שקף 7 (ללא מילים) |
-| `assets/panels/panel160_chapter_3_5_hangar.jpg` | מבפנים: פון-נוימן בין חביות הפסולת הרדיואקטיבית | שקפים 8, 9, 10 ו-11 |
-| `assets/panels/panel164_chapter_3_5_hangar_objects.jpg` | אותו האנגר אחרי שפון-נוימן הלך — החביות והפופי | שקף 12 (איזורי ההקלקה) |
+| `assets/panels/178_3.6_dosimeter-placed.jpg` | פון-נוימן נשען פנימה ומניח את תא העיפרון על השולחן | שקף 3 (ללא מילים) |
+| `assets/panels/179_3.6_dosimeter-brief.jpg` | פון-נוימן עומד בדלת ותא העיפרון מונח על השולחן | שקפים 4 (התדריך) ו-5 (ההקלקה) |
+| `assets/panels/149_3.2_more-memory.jpg` | אותו חדר בלי תא העיפרון (הציור מפרק 3.1) | שקפים 1, 2 ו-6 |
+| `assets/panels/182_3.6_project-y.jpg` | ההאנגר במדבר — PROJECT Y, BLDG. 1, מאחורי שלטי הקרינה | שקף 7 (ללא מילים) |
+| `assets/panels/183_3.6_hangar-space.jpg` | מבפנים: פון-נוימן בין חביות הפסולת הרדיואקטיבית | שקפים 8 ו-9 |
+| `assets/panels/185_3.6_hangar-objects.jpg` | אותו האנגר אחרי שפון-נוימן הלך — החביות והפופי | שקף 10 (איזורי ההקלקה) |
 
 > הציור של ההאנגר הגיע בגודל 1536×1024 (יחס 3:2) ולא בגודל השקף (4:3), אז חתכתי
 > אותו לרוחב המתאים — 100 פיקסלים מהצד השמאלי (מדבר ריק) ו-71 מימין — כך שכל
@@ -33,8 +33,8 @@
 
 ## בועות הדיבור
 
-בשקפי ההאנגר הבועה בנויה לפי הגאומטריה שציירת ידנית על
-`panel162_chapter_3_5_hangar_someday.svg`: הקצה השמאלי ב-x 580.67, פינה בעיגול
+בשקפי ההאנגר הבועה בנויה לפי הגאומטריה שציירת ידנית (השקף שעליו היא נמדדה,
+`panel162_chapter_3_5_hangar_someday.svg`, נמחק מאז): הקצה השמאלי ב-x 580.67, פינה בעיגול
 16.1388, ראש הבועה ב-y 238 (נמוך יותר מהשקפים האחרים), שורת הטקסט הראשונה ב-y
 278, והזנב בצד שמאל מצביע על ראשו של פון-נוימן.
 
@@ -55,8 +55,8 @@
 
 | השקף | המלבנים שבתוכו |
 | --- | --- |
-| `panel157_chapter_3_5_dosimeter_pick.svg` | `hotspot-panel-object-dosimeter` — תא העיפרון |
-| `panel164_chapter_3_5_hangar_objects.svg` | `hotspot-panel-object-nuclear-waste` (החביות בקיר הימני), `hotspot-panel-object-nuclear-waste-left` (החביות ליד הדלת), `hotspot-panel-object-popy` (המכשיר על השולחן) |
+| `180_3.6_dosimeter-pick.svg` | `hotspot-panel-object-dosimeter` — תא העיפרון |
+| `185_3.6_hangar-objects.svg` | `hotspot-panel-object-nuclear-waste` (החביות בקיר הימני), `hotspot-panel-object-nuclear-waste-left` (החביות ליד הדלת), `hotspot-panel-object-popy` (המכשיר על השולחן) |
 
 ### איך מזיזים אזור הקלקה
 

@@ -50,8 +50,8 @@ function createWorkspaceNavigation({
     }
     const chapter = simpleGatesChapter();
     const scene = sceneByChapter(chapter);
-    const panel87Index = panelIndexByImage(scene, "panel87.png");
-    return storyTarget(chapter, panel87Index >= 0 ? panel87Index : scene.panels.length - 1);
+    const worktableIndex = panelIndexByImage(scene, "090_2.2_simple-gates-worktable.svg");
+    return storyTarget(chapter, worktableIndex >= 0 ? worktableIndex : scene.panels.length - 1);
   }
 
   function isWorkspaceLaunchPoint() {

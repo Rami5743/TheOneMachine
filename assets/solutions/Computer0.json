@@ -1,0 +1,361 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Computer0",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Computer0",
+    "x": 660,
+    "y": 440,
+    "frameW": 1000,
+    "frameH": 700,
+    "pins": [
+      {
+        "id": "inputExt6",
+        "x": -560,
+        "y": -312,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת כתובת התוכנה",
+        "caption": "Prg-Adr"
+      },
+      {
+        "id": "inputInt6",
+        "x": -440,
+        "y": -312,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת כתובת התוכנה פנימית"
+      },
+      {
+        "id": "inputExt7",
+        "x": -560,
+        "y": -225,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הפקודה לכתיבה",
+        "caption": "Prg"
+      },
+      {
+        "id": "inputInt7",
+        "x": -440,
+        "y": -225,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הפקודה לכתיבה פנימית"
+      },
+      {
+        "id": "inputExt5",
+        "x": -271,
+        "y": -420,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת האיפוס",
+        "caption": "reset"
+      },
+      {
+        "id": "inputInt5",
+        "x": -271,
+        "y": -280,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת האיפוס פנימית",
+        "caption": "reset"
+      },
+      {
+        "id": "inputExt1",
+        "x": -560,
+        "y": 25,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט In0",
+        "caption": "In0"
+      },
+      {
+        "id": "inputInt1",
+        "x": -440,
+        "y": 25,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת פורט In0 פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -560,
+        "y": 100,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט In1",
+        "caption": "In1"
+      },
+      {
+        "id": "inputInt2",
+        "x": -440,
+        "y": 100,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת פורט In1 פנימית"
+      },
+      {
+        "id": "inputExt3",
+        "x": -560,
+        "y": 175,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט In2",
+        "caption": "In2"
+      },
+      {
+        "id": "inputInt3",
+        "x": -440,
+        "y": 175,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת פורט In2 פנימית"
+      },
+      {
+        "id": "inputExt4",
+        "x": -560,
+        "y": 250,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת פורט In3",
+        "caption": "In3"
+      },
+      {
+        "id": "inputInt4",
+        "x": -440,
+        "y": 250,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת פורט In3 פנימית"
+      },
+      {
+        "id": "outputInt1",
+        "x": 440,
+        "y": 25,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת פורט Out0 פנימית"
+      },
+      {
+        "id": "outputExt1",
+        "x": 560,
+        "y": 25,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט Out0",
+        "caption": "Out0"
+      },
+      {
+        "id": "outputInt2",
+        "x": 440,
+        "y": 100,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת פורט Out1 פנימית"
+      },
+      {
+        "id": "outputExt2",
+        "x": 560,
+        "y": 100,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט Out1",
+        "caption": "Out1"
+      },
+      {
+        "id": "outputInt3",
+        "x": 440,
+        "y": 175,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת פורט Out2 פנימית"
+      },
+      {
+        "id": "outputExt3",
+        "x": 560,
+        "y": 175,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט Out2",
+        "caption": "Out2"
+      },
+      {
+        "id": "outputInt4",
+        "x": 440,
+        "y": 250,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת פורט Out3 פנימית"
+      },
+      {
+        "id": "outputExt4",
+        "x": 560,
+        "y": 250,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת פורט Out3",
+        "caption": "Out3"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "program",
+      "type": "gate-Prg",
+      "x": 630,
+      "y": 230
+    },
+    {
+      "id": "cpu",
+      "type": "gate-CPU0",
+      "x": 390,
+      "y": 353
+    },
+    {
+      "id": "memory",
+      "type": "gate-RAM",
+      "x": 630,
+      "y": 560
+    },
+    {
+      "id": "instr-nail-1",
+      "type": "nail",
+      "x": 780,
+      "y": 230
+    },
+    {
+      "id": "instr-nail-2",
+      "type": "nail",
+      "x": 780,
+      "y": 115
+    },
+    {
+      "id": "instr-nail-3",
+      "type": "nail",
+      "x": 320,
+      "y": 115
+    },
+    {
+      "id": "mem-nail-1",
+      "type": "nail",
+      "x": 780,
+      "y": 480
+    },
+    {
+      "id": "mem-nail-2",
+      "type": "nail",
+      "x": 780,
+      "y": 750
+    },
+    {
+      "id": "mem-nail-3",
+      "type": "nail",
+      "x": 321,
+      "y": 757
+    }
+  ],
+  "wires": [
+    {
+      "a": "cpu.out2",
+      "b": "program.in3"
+    },
+    {
+      "a": "task-card-1.inputInt6",
+      "b": "program.in4"
+    },
+    {
+      "a": "task-card-1.inputInt7",
+      "b": "program.in1"
+    },
+    {
+      "a": "task-card-1.inputInt5",
+      "b": "program.in2"
+    },
+    {
+      "a": "task-card-1.inputInt5",
+      "b": "cpu.in3"
+    },
+    {
+      "a": "cpu.out1",
+      "b": "memory.in3"
+    },
+    {
+      "a": "cpu.out3",
+      "b": "memory.in1"
+    },
+    {
+      "a": "cpu.out4",
+      "b": "memory.in2"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "memory.inP1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "memory.inP2"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "memory.inP3"
+    },
+    {
+      "a": "task-card-1.inputInt4",
+      "b": "memory.inP4"
+    },
+    {
+      "a": "memory.outP1",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "memory.outP2",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "memory.outP3",
+      "b": "task-card-1.outputInt3"
+    },
+    {
+      "a": "memory.outP4",
+      "b": "task-card-1.outputInt4"
+    },
+    {
+      "a": "program.out",
+      "b": "instr-nail-1.in"
+    },
+    {
+      "a": "instr-nail-1.out",
+      "b": "instr-nail-2.in"
+    },
+    {
+      "a": "instr-nail-2.out",
+      "b": "instr-nail-3.in"
+    },
+    {
+      "a": "instr-nail-3.out",
+      "b": "cpu.in1"
+    },
+    {
+      "a": "memory.out",
+      "b": "mem-nail-1.in"
+    },
+    {
+      "a": "mem-nail-1.out",
+      "b": "mem-nail-2.in"
+    },
+    {
+      "a": "mem-nail-2.out",
+      "b": "mem-nail-3.in"
+    },
+    {
+      "a": "mem-nail-3.out",
+      "b": "cpu.in2"
+    }
+  ],
+  "check": {
+    "note": "כרטיס מתוזמן: הבדיקה כותבת תוכנית לזיכרון התוכנה (Prg) כשהריסט דלוק, מרפה ממנו ומריצה אותה פקודה בכל פעימה. הבנייה היא שלושה כרטיסים — CPU0, זיכרון התוכנה Prg וזיכרון הדאטה RAM — ושתי לולאות שחוזרות למעבד על נעצים: הפקודה מעל הלוח והמספר מהזיכרון מתחתיו."
+  },
+  "external": []
+}

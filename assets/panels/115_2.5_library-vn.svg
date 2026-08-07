@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="115_2.5_library-vn.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.75046041"
+     inkscape:cx="723.55583"
+     inkscape:cy="543"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="2552"
+     inkscape:window-y="341"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="115_2.5_library-vn.jpg"
+     xlink:href="115_2.5_library-vn.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="m 593.29915,169.64533 h 489.89165 c 13.3693,0 24.8288,10.84516 24.8288,23.49784 v 174.42624 c 0,12.65268 -11.4595,23.49784 -24.8288,23.49784 H 706.93874 l -253.61357,86.61003 184.28814,-86.61003 h -44.31416 c -13.36937,0 -24.82881,-10.84516 -24.82881,-23.49784 V 193.14317 c 0,-12.65268 11.45944,-23.49784 24.82881,-23.49784 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="4.11818"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssscccssss" />
+    <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:46px;line-height:1.4565;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:center;writing-mode:lr-tb;direction:rtl;unicode-bidi:plaintext;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none"
+     x="839.00000"
+     y="224.33694"
+     id="bubble-text"
+     ><tspan
+       sodipodi:role="line"
+       id="bubble-text-line1"
+       x="839.00000"
+       y="224.33694">אני מקווה שעברת על החומר</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line2"
+       x="839.00000"
+       y="291.33694">כמו שצריך. בוא, יש לנו</tspan><tspan
+       sodipodi:role="line"
+       id="bubble-text-line3"
+       x="839.00000"
+       y="358.33694">הרבה עבודה.</tspan></text>
+  </g>
+</svg>

@@ -38,7 +38,8 @@ function createToolbarView({ toolbarGateToolIds, taskDefById, toolCategoryOf, to
     { key: "routing", title: "ניתוב" },
     { key: "arith", title: "חיבור" },
     { key: "alu", title: "ALU" },
-    { key: "memory", title: "זכרון" },
+    { key: "memory", title: "זיכרון" },
+    { key: "computer", title: "מחשב" },
     { key: "usercards", title: "הכרטיסים שלי" },
     { key: "accessories", title: "אביזרים" }
   ];

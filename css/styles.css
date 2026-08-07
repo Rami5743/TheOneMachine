@@ -1065,10 +1065,14 @@ button { font: inherit; }
      them, not bigger ones. The hints window shares the measure. */
   --sq: clamp(15px, 2vw, 26px);
   --sheet-rows: 16;
+  /* The page takes the whole screen EXCEPT the menu bar above it (still there to
+     be used) and its own row of buttons below — and it sits in the same thin
+     rounded frame every other screen of the game sits in. */
+  --sheet-top: calc(var(--app-pad) + var(--topbar-h) + var(--gap));
   position: fixed;
-  inset: 0;
+  inset: var(--sheet-top) var(--app-pad) var(--app-pad);
   z-index: 200;
-  background: rgba(20, 14, 6, 0.72);
+  background: var(--bg);
 }
 
 .sheet-card {
@@ -1076,9 +1080,10 @@ button { font: inherit; }
   inset: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 14px 18px;
-  background: #f7f1de;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .sheet-scroll {
@@ -1201,7 +1206,8 @@ button { font: inherit; }
 /* The hints window sits over the page, which has no topbar of its own, right
    under the tables so the squares it is talking about stay visible. */
 .hint-overlay.sheet-hint-overlay {
-  inset: 0;
+  /* Same top edge as the page, so the padding below measures from the paper. */
+  inset: var(--sheet-top, 0px) 0 0 0;
   z-index: 210;
   place-items: start center;
   /* The bottom padding keeps the window clear of the row of buttons: a hint may
@@ -1406,7 +1412,7 @@ button { font: inherit; }
   height: 20px;
 }
 
-/* The arrow a hint points at "רוצה לבדוק דברים על שולחן העבודה?" with. Placed by
+/* The arrow a hint points at "רוצה לבדוק כרטיסים?" with. Placed by
    JS over the button (which sits under the hints window), bouncing towards it. */
 .sheet-wb-arrow {
   position: fixed;
@@ -1485,10 +1491,15 @@ button { font: inherit; }
   outline: none;
 }
 
+/* The row of buttons at the foot of the page — the same height and feel as the
+   controls row of every other screen. */
 .sheet-actions {
   display: flex;
   gap: 10px;
   justify-content: center;
+  align-items: center;
+  height: var(--controls-h);
+  flex: 0 0 auto;
 }
 
 .panel-hotspot:hover,

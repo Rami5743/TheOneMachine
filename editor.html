@@ -4,11 +4,21 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>עורך פתרונות — המכונה האחת</title>
-<!-- Reuse the game's own component styling + markup so the editor looks identical -->
-<link rel="stylesheet" href="css/styles.css?v=v166-tool-groups-2" />
-<script src="js/component-visuals.js?v=v78-pins-inside-1"></script>
-<!-- Embedded solutions so the editor loads them from file:// too (fetch is blocked there) -->
-<script src="assets/solutions/solutions.js?v=v52-oports-onenail-1"></script>
+<!-- Reuse the game's own component styling + markup so the editor looks identical.
+     The editor is a dev tool, so it takes its three shared files FRESH on every
+     load (?v=<timestamp>) instead of carrying its own ?v= tags. Those tags used
+     to be copies of index.html's and went stale without anyone noticing — and a
+     stale component-visuals.js draws every card added since as an empty box,
+     which is exactly what "the solution has no PC0 in it" looks like. -->
+<script>
+  (function () {
+    var v = "?v=" + Date.now();
+    document.write('<link rel="stylesheet" href="css/styles.css' + v + '" />');
+    document.write('<scr' + 'ipt src="js/component-visuals.js' + v + '"></scr' + 'ipt>');
+    // Embedded solutions so the editor loads them from file:// too (fetch is blocked there)
+    document.write('<scr' + 'ipt src="assets/solutions/solutions.js' + v + '"></scr' + 'ipt>');
+  }());
+</script>
 <style>
   :root { --bg:#2b2620; --panel:#38312a; --ink:#f3ead9; --muted:#b6a88f; --accent:#d8a24a; --line:#5a4f40; }
   * { box-sizing: border-box; }
@@ -94,7 +104,7 @@ const taskDefById = (id)=>({ id });
 // through the game's busGateMarkup (base symbol + bus bars), identical to the game.
 const DEFS = {
   "gate-AND16": { busGate:true, op:"And", busWidth:16, inputs:2, control:false },
-  "gate-Or16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
+  "gate-OR16":  { busGate:true, op:"Or",  busWidth:16, inputs:2, control:false },
   "gate-Not16": { busGate:true, op:"Not", busWidth:16, inputs:1, control:false },
   "gate-MUX16": { busGate:true, op:"Mux", busWidth:16, inputs:3, control:true },
   // The plain 2.3 routing cards, reused inside the 3.4 solutions.
@@ -115,10 +125,21 @@ const DEFS = {
   "gate-OPorts": { ramGate:true, portsCard:true, label:"OPorts", busWidth:16, addressWidth:2, slots:4, portOutputs:4 },
   "gate-IPorts": { wideRoutingGate:"mux4way16", portsCard:true, label:"IPorts", busWidth:16, addressWidth:2, portInputs:4 },
   "gate-Ports":  { ramGate:true, portsCard:true, label:"Ports", busWidth:16, addressWidth:3, slots:4, portOutputs:4, portInputs:4 },
-  "gate-RAM":    { ramGate:true, portsCard:true, label:"RAM", busWidth:16, addressWidth:11, slots:1028, portOutputs:4, portInputs:4 },
+  // The RAM's address PIN is 16 wide; only the last 11 bits address the bank
+  // (addressBits), the same split the game's own def uses.
+  "gate-RAM":    { ramGate:true, portsCard:true, label:"RAM", busWidth:16, addressWidth:16, addressBits:11, slots:1028, portOutputs:4, portInputs:4 },
   // The 2.4 wide-routing cards: a 2-bit control bus picks one of four.
   "gate-Dmux4way":  { wideRoutingGate:"dmux4way" },
-  "gate-Mux4way16": { wideRoutingGate:"mux4way16", busWidth:16 }
+  "gate-Mux4way16": { wideRoutingGate:"mux4way16", busWidth:16 },
+  // The 4.2 cards of the simple computer. They are drawn by name in
+  // componentMarkup (pcGateMarkup / contGateMarkup / cpuGateMarkup), so these
+  // entries only have to exist and carry their bus width.
+  "gate-PC0":   { pcGate:true, label:"PC0", busWidth:16 },
+  "gate-Cont0": { contGate:true, label:"Cont0", busWidth:2 },
+  "gate-CPU0":  { cpuGate:true, label:"CPU0", busWidth:16 },
+  // 3.5: the program memory. Two 16-bit address pins, of which only the last 10
+  // address the bank (addressBits), plus data in, control on top and the word out.
+  "gate-Prg":    { prgGate:true, label:"Prg", busWidth:16, addressWidth:16, addressBits:10, slots:1024 }
 };
 const busGateSpec = (type)=>{ const d=DEFS[type]; return d && d.busGate ? { op:d.op, inputs:d.inputs||1, width:d.busWidth, control:!!d.control } : null; };
 const ramGateSpec = (type)=>{ const d=DEFS[type]; return d && d.ramGate ? { width:d.busWidth, addressWidth:d.addressWidth, slots:d.slots, portOutputs:d.portOutputs||0, portInputs:d.portInputs||0 } : null; };
@@ -129,28 +150,41 @@ const CV = createComponentVisuals({ esc, gateComponentType, taskDefById, busGate
 const SPLIT_SPACING = 34;
 function splitterPin(comp, pinId) {
   const n = Math.min(16, Math.max(2, comp.outputs || 4)); const mir = !!comp.mirrored;
-  if (pinId === "single") return { x: mir?38:-38, y:0, w:(comp.width||1)*n };
+  // Legs need not be equal: legWidths[] gives each its own width (leg 0 = the low
+  // chunk) and the single side carries their sum. A splitter with only the legacy
+  // scalar `width` means every leg is that wide.
+  const legs = Array.isArray(comp.legWidths) ? comp.legWidths : null;
+  const legW = (i) => (legs ? (Number(legs[i]) || 1) : (comp.width || 1));
+  const singleW = legs ? legs.reduce((sum, w) => sum + (Number(w) || 1), 0) : (comp.width || 1) * n;
+  if (pinId === "single") return { x: mir?38:-38, y:0, w: comp.singleWidth || singleW };
   const m = pinId.match(/^leg(\d+)$/);
-  if (m) { const i=Math.min(n-1,Math.max(0,+m[1])); return { x: mir?-37:37, y:Math.round(((n-1)/2 - i)*SPLIT_SPACING), w:comp.width||1 }; }
+  if (m) { const i=Math.min(n-1,Math.max(0,+m[1])); return { x: mir?-37:37, y:Math.round(((n-1)/2 - i)*SPLIT_SPACING), w: legW(i) }; }
   return null;
 }
 const PINS = {
   source:{ out:{x:40,y:0,w:1} },
-  "gate-PreperNum":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:2}, out1:{x:66,y:0,w:16} },
+  "gate-PreperNum":{ in1:{x:-76,y:0,w:16}, in2:{x:0,y:-60,w:2}, out1:{x:80,y:0,w:16} },
   "gate-ALU0":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:1}, out1:{x:66,y:0,w:16} },
   "gate-ALU1":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} },
-  "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:7}, out1:{x:66,y:0,w:16} },
-  "gate-ALU3":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16} },
-  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-46,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:60,w:1}, out3:{x:20,y:60,w:1} },
+  "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:7}, out1:{x:66,y:0,w:16} },
+  "gate-ALU3":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16} },
+  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:66,w:1}, out3:{x:20,y:66,w:1} },
+  // Cards a solution may legitimately use that the mirror was missing.
+  "gate-AND3way":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out:{x:66,y:0,w:1} },
+  "gate-OR4way":{ in1:{x:-60.326107,y:-30,w:1}, in2:{x:-59.462559,y:-9.9898129,w:1}, in3:{x:-59.919762,y:10.020376,w:1}, in4:{x:-60.369907,y:30,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Not4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:4} },
+  "gate-AND4":{ in1:{x:-62,y:-23,w:4}, in2:{x:-62,y:23,w:4}, out:{x:66,y:0,w:4} },
+  "gate-OR4":{ in1:{x:-58,y:-23,w:4}, in2:{x:-58,y:23,w:4}, out:{x:80,y:0,w:4} },
+  "gate-MUX4":{ in1:{x:-62,y:-23,w:4}, in2:{x:-62,y:23,w:4}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
   "gate-AND16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
-  "gate-Or16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, out:{x:66,y:0,w:16} },
-  "gate-Add16":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, out1:{x:66,y:0,w:16} },
-  "gate-Not16":{ in1:{x:-62,y:0,w:16}, out:{x:66,y:0,w:16} },
+  "gate-OR16":{ in1:{x:-58,y:-23,w:16}, in2:{x:-58,y:23,w:16}, out:{x:80,y:0,w:16} },
+  "gate-Add16":{ in1:{x:-76,y:-26,w:16}, in2:{x:-76,y:26,w:16}, out1:{x:80,y:0,w:16} },
+  "gate-Not16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:16} },
   "gate-MUX16":{ in1:{x:-62,y:-23,w:16}, in2:{x:-62,y:23,w:16}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
   // The plain 2.3 cards: single-wire pins, control on top.
   "gate-DMux":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:1}, out1:{x:66,y:-23,w:1}, out2:{x:66,y:23,w:1} },
   "gate-Mux":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, in3:{x:0,y:-46,w:1}, out:{x:66,y:0,w:1} },
-  "gate-Inc":{ in1:{x:-62,y:0,w:16}, out1:{x:66,y:0,w:16} },
+  "gate-Inc":{ in1:{x:-76,y:0,w:16}, out1:{x:80,y:0,w:16} },
   "gate-Neq0_16":{ in1:{x:-60,y:0,w:16}, out:{x:80,y:0,w:1} },
   "gate-Neq0_4":{ in1:{x:-60,y:0,w:4}, out:{x:80,y:0,w:1} },
   // 2.5 arithmetic gates (single-bit unless noted) — so their solution wires draw.
@@ -160,36 +194,43 @@ const PINS = {
   "gate-Not":{ in1:{x:-60,y:0,w:1}, out:{x:80,y:0,w:1} },
   "gate-halfAdder":{ in1:{x:-62,y:-23,w:1}, in2:{x:-62,y:23,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
   "gate-fullAdder":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out2:{x:66,y:-23,w:1}, out1:{x:66,y:23,w:1} },
-  "gate-Add4":{ in1:{x:-62,y:-52,w:4}, in2:{x:-62,y:0,w:4}, in3:{x:-62,y:52,w:1}, out2:{x:66,y:-34,w:1}, out1:{x:66,y:34,w:4} },
+  "gate-Add4":{ in1:{x:-76,y:-52,w:4}, in2:{x:-76,y:0,w:4}, in3:{x:-76,y:52,w:1}, out2:{x:80,y:-34,w:1}, out1:{x:80,y:34,w:4} },
   // 3.1 memory: a data bus in, a single control on top, the stored bus out.
   // The נעץ: both pins sit at the dot's centre, so a cable through it is straight.
   nail:{ in:{x:0,y:0,w:1}, out:{x:0,y:0,w:1} },
   ffCard:{ in1:{x:-66,y:0,w:1}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:1} },
-  "gate-Register4":{ in1:{x:-62,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:4} },
-  "gate-Register":{ in1:{x:-62,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:66,y:0,w:16} },
+  "gate-Register4":{ in1:{x:-80,y:0,w:4}, in2:{x:0,y:-46,w:1}, out:{x:80,y:0,w:4} },
+  "gate-Register":{ in1:{x:-80,y:0,w:16}, in2:{x:0,y:-46,w:1}, out:{x:80,y:0,w:16} },
   // 3.3 RAM: data in (upper left), address in (lower left), control on top.
-  "gate-RAM4":{ in3:{x:-74,y:-24,w:2}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM16":{ in3:{x:-74,y:-24,w:4}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM64":{ in3:{x:-74,y:-24,w:6}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM256":{ in3:{x:-74,y:-24,w:8}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
-  "gate-RAM1024":{ in3:{x:-74,y:-24,w:10}, in1:{x:-74,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:78,y:0,w:16} },
+  "gate-RAM4":{ in3:{x:-92,y:-24,w:2}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM16":{ in3:{x:-92,y:-24,w:4}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM64":{ in3:{x:-92,y:-24,w:6}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM256":{ in3:{x:-92,y:-24,w:8}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
+  "gate-RAM1024":{ in3:{x:-92,y:-24,w:10}, in1:{x:-92,y:24,w:16}, in2:{x:0,y:-56,w:1}, out:{x:92,y:0,w:16} },
   // 3.4 ports: address + data + (for Ports/RAM) four device buses down the left,
   // the data output + four port buses down the right, control on top.
-  "gate-OPorts":{ in3:{x:-88,y:-170,w:2}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16} },
-  "gate-IPorts":{ in5:{x:-88,y:-130,w:2}, in1:{x:-88,y:8,w:16}, in2:{x:-88,y:68,w:16},
-    in3:{x:-88,y:128,w:16}, in4:{x:-88,y:188,w:16}, out:{x:92,y:-130,w:16} },
-  "gate-Ports":{ in3:{x:-88,y:-170,w:3}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
-    inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
-  "gate-RAM":{ in3:{x:-88,y:-170,w:11}, in1:{x:-88,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:92,y:-130,w:16},
-    outP1:{x:92,y:8,w:16}, outP2:{x:92,y:68,w:16}, outP3:{x:92,y:128,w:16}, outP4:{x:92,y:188,w:16},
-    inP1:{x:-88,y:8,w:16}, inP2:{x:-88,y:68,w:16}, inP3:{x:-88,y:128,w:16}, inP4:{x:-88,y:188,w:16} },
+  "gate-OPorts":{ in3:{x:-98,y:-170,w:2}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16} },
+  "gate-IPorts":{ in5:{x:-98,y:-130,w:2}, in1:{x:-98,y:8,w:16}, in2:{x:-98,y:68,w:16},
+    in3:{x:-98,y:128,w:16}, in4:{x:-98,y:188,w:16}, out:{x:98,y:-130,w:16} },
+  "gate-Ports":{ in3:{x:-98,y:-170,w:3}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16},
+    inP1:{x:-98,y:8,w:16}, inP2:{x:-98,y:68,w:16}, inP3:{x:-98,y:128,w:16}, inP4:{x:-98,y:188,w:16} },
+  "gate-RAM":{ in3:{x:-98,y:-170,w:16}, in1:{x:-98,y:-130,w:16}, in2:{x:0,y:-260,w:1}, out:{x:98,y:-130,w:16},
+    outP1:{x:98,y:8,w:16}, outP2:{x:98,y:68,w:16}, outP3:{x:98,y:128,w:16}, outP4:{x:98,y:188,w:16},
+    inP1:{x:-98,y:8,w:16}, inP2:{x:-98,y:68,w:16}, inP3:{x:-98,y:128,w:16}, inP4:{x:-98,y:188,w:16} },
   // 2.4 wide routing: a 2-bit control bus on top picks one of four.
   "gate-Dmux4way":{ in1:{x:-62,y:0,w:1}, in2:{x:0,y:-46,w:2},
     out1:{x:66,y:-30,w:1}, out2:{x:66,y:-10,w:1}, out3:{x:66,y:10,w:1}, out4:{x:66,y:30,w:1} },
   "gate-Mux4way16":{ in1:{x:-62,y:-60,w:16}, in2:{x:-62,y:-20,w:16}, in3:{x:-62,y:20,w:16}, in4:{x:-62,y:60,w:16},
-    in5:{x:0,y:-66,w:2}, out:{x:66,y:0,w:16} }
+    in5:{x:0,y:-66,w:2}, out:{x:66,y:0,w:16} },
+  // 4.2: the counter (reset on top, the count out), the control unit (the 2-bit
+  // destination field in, one wire per destination out) and the processor.
+  "gate-PC0":{ in1:{x:0,y:-46,w:1}, out:{x:80,y:0,w:16} },
+  "gate-Cont0":{ in1:{x:-90,y:0,w:2}, out1:{x:90,y:-30,w:1}, out2:{x:90,y:0,w:1}, out3:{x:90,y:30,w:1} },
+  "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
+    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} },
+  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
@@ -297,6 +338,22 @@ function render(){
     else { const c=(selected==="frame")?{x:f.x,y:f.y,__frame:true}:findComp(selected);
       if (c){ const b=c.__frame?{w:fw,h:fh}:compBox(c); board.appendChild(el("rect",{x:c.x-b.w/2-6,y:c.y-b.h/2-6,width:b.w+12,height:b.h+12,rx:8,class:"selected-outline"})); } }
   }
+  fitStage();
+}
+// The window follows the SOLUTION, never the other way round. The stage used to
+// carry a fixed viewBox, so every time a frame grew or a pin moved outward the
+// far edge of a big solution (Computer0, the ports cards) was quietly cut off —
+// which is what "the solution is broken in the editor" has looked like every
+// time. Measure what was actually drawn and show all of it, with a margin.
+function fitStage(){
+  const bb = stage.getBBox();
+  if (!bb || !bb.width) return;
+  const m = 30;
+  const x = Math.min(0, bb.x - m);
+  const y = Math.min(0, bb.y - m);
+  const w = Math.max(1200, bb.x + bb.width + m - x);
+  const h = Math.max(760, bb.y + bb.height + m - y);
+  stage.setAttribute("viewBox", `${Math.round(x)} ${Math.round(y)} ${Math.round(w)} ${Math.round(h)}`);
 }
 function harnessBox(e){ if(e.kind==="split"){ const n=Math.min(16,Math.max(2,e.w)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; }
   if(e.kind==="lamp") return {w:60,h:60}; return {w:120,h:96}; }
@@ -318,7 +375,7 @@ function txt(s){ return document.createTextNode(s==null?"":String(s)); }
 const BOX = {};
 function compBox(c){ if(c.type==="nail") return {w:40,h:40}; if(c.type==="splitter"){ const n=Math.min(16,Math.max(2,c.outputs||4)); return {w:150,h:(n-1)*SPLIT_SPACING+40}; } if(c.type==="source") return {w:92,h:100}; const s=edScale(c.type); const b=BOX[c.type]|| (String(c.type).startsWith("gate-Ram")?{w:180,h:150}:{w:130,h:110}); return {w:b.w*s,h:b.h*s}; }
 function drawComp(c){
-  const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width } : {};
+  const opts = c.type==="splitter" ? { outputs:c.outputs, mirrored:c.mirrored, width:c.width, legWidths:c.legWidths } : {};
   const s = edScale(c.type);
   const g = document.createElementNS(NS,"g");
   g.setAttribute("transform",`translate(${c.x} ${c.y})`+(s!==1?` scale(${s})`:""));

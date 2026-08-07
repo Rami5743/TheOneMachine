@@ -5,7 +5,7 @@
 //   node tools/make-slide.js <outSvgPath> <jpgBasename> "<line1>|<line2>|..."
 //
 // The geometry below is taken VERBATIM from the hand-corrected reference slide
-// (panel136_chapter_3_1_good_work.svg): a 621-wide bubble centred at x=774, with
+// (154_3.2_good-work.svg): a 621-wide bubble centred at x=774, with
 // soft cubic corners and a SLIM tail on the left edge pointing left toward the
 // speaker. Do not "improve" these numbers — the earlier generated bubbles were
 // rejected precisely because their tail was oversized and mis-shaped.
@@ -39,10 +39,19 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT) {
   const CX = (LEFT + RIGHT) / 2;
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
-  const tailUpperY = TOP + TAIL_UPPER;
-  const tailLowerY = TOP + TAIL_LOWER;
+  // The tail hangs off the LEFT edge at a fixed distance from the bubble's top,
+  // so it keeps pointing at the speaker however many lines there are. On a SHORT
+  // bubble (one or two lines) that distance runs past the bottom corner, and the
+  // tail comes out below the bubble pointing at nothing — so it slides up until
+  // it fits between the two corners.
+  let up = TAIL_UPPER, low = TAIL_LOWER, tip = TAIL_TIP;
+  const maxLow = (bottom - RY) - TOP;
+  if (low > maxLow) { const d = low - maxLow; up -= d; low -= d; tip -= d; }
+  if (up < RY) { const d = RY - up; up += d; low += d; tip += d; }
+  const tailUpperY = TOP + up;
+  const tailLowerY = TOP + low;
   const tipX = LEFT - TAIL_DX;
-  const tipY = TOP + TAIL_TIP;
+  const tipY = TOP + tip;
   const r = (v) => Number(v.toFixed(5));
   // Rounded rectangle with soft cubic corners; the left edge is interrupted by the
   // slim tail between tailLowerY and tailUpperY.

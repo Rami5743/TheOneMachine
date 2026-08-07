@@ -105,10 +105,12 @@ function createWorkbenchModel({
     const inputComponent = componentById(workspace, inputInfo.componentId);
     const outputComponent = componentById(workspace, outputInfo.componentId);
 
-    // A נעץ (nail) routes exactly ONE cable in and ONE cable out. Max-1-in is
-    // already covered by input vacancy above (its `in` pin is an input); here we
-    // cap its `out` pin at a single outgoing wire (output pins otherwise fan out).
-    if (outputComponent?.type === "nail" && wires.some((wire) => otherWireEnd(wire, outputRef))) return false;
+    // A נעץ (nail) takes ONE cable in — that cap comes from the input-vacancy
+    // rule above, since its `in` pin is an input. Its `out` pin fans out like any
+    // other output: several IDENTICAL cables (or buses) may leave the same nail,
+    // and what came in reaches each of them separately. "Identical" enforces
+    // itself — a nail's width is whatever it is already wired to (pinWidth), so
+    // wireWidthLegal rejects a second cable of a different width.
 
     const touchesTaskFrame = (component) => component?.type === "notCard" || component?.type === "cardFrame" || String(component?.type || "").startsWith("taskCard-");
     if (touchesTaskFrame(inputComponent) || touchesTaskFrame(outputComponent)) return true;

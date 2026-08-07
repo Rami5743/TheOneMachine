@@ -319,6 +319,14 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // Bus gates render at GATE_RENDER_SCALE (0.6) in chapter 2.4, which would
   // shrink the bars below normal bus thickness — so the bar/stripe/label sizes
   // are pre-divided by that scale to come out the same thickness as a real bus.
+  // THE STANDARD PIN LENGTH. Every stub a card draws sticks out this far from the
+  // body, and the wiring table (WORKSPACE_COMPONENT_DEFS in app.js, mirrored in
+  // editor.html) puts the pin at exactly the same place — so a cable always lands
+  // on the TIP of the stub and never part-way along it. 40 is chosen to hold the
+  // two-digit bus width that is printed over the bar ("16" at this font is about
+  // 27 wide); shorter, and the number spills over the end.
+  const PIN = 40;
+
   const BUS_GATE_SCALE = 0.6;
   // A bus bar must look EXACTLY as thick wherever it is drawn. The bar lives
   // inside the component's own <g>, which the board may scale (0.6 past chapter
@@ -389,6 +397,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const edge = 30;
     const bodyW = edge * 2;
     const bodyH = 64;
+    // ≠0 borrows the Not gate's terminals (it has no symbol of its own), so its
+    // stub ends where THAT card's pins are — not at the standard length.
     const inX = -60;
     const outX = 80;
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
@@ -408,14 +418,136 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const busPin = (x1, x2, y) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     // Pins FIRST, body over them, then the labels: a pin stops at the body's
     // edge instead of running into it, and the body cannot swallow a label.
-    let s = busPin(-74, -edge, 0);               // data bus in (left)
-    s += busPin(edge, 78, 0);                    // stored bus out (right)
+    let s = busPin(-(edge + PIN), -edge, 0);     // data bus in (left)
+    s += busPin(edge, edge + PIN, 0);            // stored bus out (right)
     s += pinLine(0, -46, 0, -bodyH / 2);         // control (top)
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // Both widths just say "Reg" — the 4 or the 16 is already on the pins.
     const regName = "Reg";
     const regFont = labelFontSize(regName, edge * 2, 20);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(regFont)}" text-anchor="middle" style="font-size:${regFont}px">${regName}</text>`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.2 counter card (gate-PC0): a labelled box with NO data input — only
+  // the reset stub on top — and the number it holds on a bus out to the right.
+  function pcGateMarkup(width, options = {}) {
+    const edge = 40;
+    const bodyH = 76;
+    let s = busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
+    s += pinLine(0, -46, 0, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "PC0";
+    const font = labelFontSize(name, edge * 2, 20);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 3.5 program memory (gate-Prg): three buses in on the left — the read
+  // address, the write address and the data — the control on top, and the word
+  // read out on the right. Each name is written ON the body beside its own pin.
+  function prgGateMarkup(width, options = {}) {
+    const edge = 56;
+    const bodyH = 170;
+    const inYs = [-60, 0, 60];
+    // The two addresses are named; the data bus is not — it is the only thing
+    // left it could be.
+    const inNames = ["RAdr", "WAdr", ""];
+    let s = "";
+    inYs.forEach((y) => { s += busGateBar({ x1: -(edge + PIN), x2: -edge, y }, width, !options.toolbar); });
+    s += busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
+    s += pinLine(0, -110, 0, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "Prg";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 16}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // direction:ltr — the page around this SVG is right-to-left, and in an RTL
+    // run "start"/"end" mean the opposite sides, so every name would leave the
+    // body through the wrong edge.
+    const nfont = Math.round(9 * k());
+    inYs.forEach((y, i) => {
+      if (!inNames[i]) return;
+      s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${y + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">${esc(inNames[i])}</text>`;
+    });
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.2 processor card (gate-CPU0): the instruction and the number from
+  // memory in on the left, reset on top, and four things out on the right, each
+  // captioned — A, PC, the number going out, and the write wire.
+  function cpuGateMarkup(width, options = {}) {
+    // The processor is the biggest card on the board: seven pins, and every one
+    // of them named ON the body — so the box has to be wide enough to hold a
+    // word and tall enough to space the four outputs apart.
+    const edge = 70;
+    const bodyH = 230;
+    const inYs = [-50, 50];
+    const outYs = [-85, -30, 30, 85];
+    // Short names, the way the guide says them out loud: the instruction and the
+    // number from memory in, then the PC, A, the number going back to memory and
+    // the write control out. A name that mixes Hebrew with Latin is fenced with
+    // LRM (U+200E) so "*A" keeps its order inside the right-to-left word.
+    const inNames = ["פקודה", "‎*A‎"];
+    const outNames = ["PC", "A", "‎*A‎", "בקרה"];
+    // Every bus out is a full word: each memory ignores the top of the address it
+    // is handed, so neither address leaves the processor cut down.
+    const outWidths = [width, width, width];
+    let s = "";
+    // The bars are LONG (40) on purpose: the width number is centred over the bar
+    // and the body is drawn on top of it, so a short bar leaves half the number
+    // under the card and it reads as cut off.
+    inYs.forEach((y) => { s += busGateBar({ x1: -(edge + PIN), x2: -edge, y }, width, !options.toolbar); });
+    // Three buses out, and the write wire as a plain cable.
+    outYs.slice(0, 3).forEach((y, i) => { s += busGateBar({ x1: edge, x2: edge + PIN, y }, outWidths[i], !options.toolbar); });
+    s += pinLine(edge, outYs[3], edge + PIN, outYs[3]);
+    s += pinLine(0, -170, 0, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    // The card's own name sits in the MIDDLE of the body — the one band no pin
+    // name uses (the pins sit at ±30 and ±50 either side of it). It is the FULL
+    // name, 0 and all: "CPU0" is what the chapter calls this card.
+    const name = "CPU0";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // Each pin's name is written INSIDE the body, on the side its pin leaves from
+    // and level with it, so a cable landing on the pin can never cover it.
+    const nfont = Math.round(11 * k());
+    // direction:ltr is NOT decoration: the page around this SVG is right-to-left,
+    // and in an RTL run "start"/"end" mean the opposite sides — every name flipped
+    // out through the wrong edge of the body and landed on the bus bars.
+    const nameText = (x, y, anchor, text) =>
+      `<text class="arith-gate-pin-letter" x="${x}" y="${y + Math.round(nfont * 0.35)}" text-anchor="${anchor}" style="font-size:${nfont}px;direction:ltr">${esc(text)}</text>`;
+    inYs.forEach((y, i) => { s += nameText(-edge + 10, y, "start", inNames[i]); });
+    outYs.forEach((y, i) => { s += nameText(edge - 10, y, "end", outNames[i]); });
+    s += nameText(0, -bodyH / 2 + 18, "middle", "Rst");
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.2 control card (gate-Cont0): the 2-bit bus in on the left and three
+  // single wires out on the right, each captioned with the register it writes to.
+  function contGateMarkup(options = {}) {
+    // Wide enough for the full name: "Cont0" on a 80-wide body had to shrink to
+    // two thirds of the size the other cards write at.
+    const edge = 50;
+    const bodyH = 96;
+    const outYs = [-30, 0, 30];
+    const captions = ["D", "A", "\u200e*A\u200e"];
+    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: 0 }, 2, !options.toolbar);
+    outYs.forEach((y) => { s += pinLine(edge, y, edge + PIN, y); });
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "Cont0";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // The captions sit ABOVE their own wire, outside the body, so a cable landing
+    // on the pin never covers the name of what it writes to.
+    if (!options.toolbar) {
+      // Each caption carries a halo the colour of the card: on a crowded board a
+      // cable often runs right under one, and without it the letter disappears.
+      const cfont = Math.round(12 * k());
+      outYs.forEach((y, i) => {
+        // Clear of the stub the cable lands on, not sitting across it.
+        s += `<text class="arith-gate-pin-letter" x="68" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
+      });
+    }
     return `<g class="usercard">${s}</g>`;
   }
 
@@ -435,25 +567,34 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const outs = spec.portOutputs || 0;
     const ins = spec.portInputs || 0;
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
+    // direction:ltr — the page around this SVG is right-to-left, and there
+    // "start"/"end" mean the opposite sides, so a name anchored at the body's
+    // left edge would run out through it.
     const cap = (x, y, text, anchor) =>
-      `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px">${esc(text)}</text>`;
+      `<text class="arith-gate-pin-letter" x="${x}" y="${y}" text-anchor="${anchor}" style="font-size:${Math.round(11 * k())}px;direction:ltr">${esc(text)}</text>`;
     let s = "";
     // A card with no data bus (IPorts) has its address where the data would be,
     // facing the output — the drawing has to follow the pin, or the cable lands
     // on a bar that is not there.
-    if (Number.isInteger(spec.addressWidth)) s += bar(-88, -edge, spec.dataIn === false ? -130 : -170, spec.addressWidth);
+    if (Number.isInteger(spec.addressWidth)) s += bar(-(edge + PIN), -edge, spec.dataIn === false ? -130 : -170, spec.addressWidth);
     // IPorts has no data input at all — everything it shows comes from outside —
     // so it must not grow a bus stub with no pin behind it.
-    if (spec.dataIn !== false) s += bar(-88, -edge, -130, spec.width);
-    s += bar(edge, 92, -130, spec.width);
+    if (spec.dataIn !== false) s += bar(-(edge + PIN), -edge, -130, spec.width);
+    s += bar(edge, edge + PIN, -130, spec.width);
     if (spec.clockedCard !== false) s += pinLine(0, -half - 40, 0, -half);
     // Inputs and outputs sit at the SAME heights, so a port's two ends line up
     // across the card.
-    for (let i = 0; i < outs; i += 1) s += bar(edge, 92, 8 + i * 60, spec.width);
-    for (let i = 0; i < ins; i += 1) s += bar(-88, -edge, 8 + i * 60, spec.width);
+    for (let i = 0; i < outs; i += 1) s += bar(edge, edge + PIN, 8 + i * 60, spec.width);
+    for (let i = 0; i < ins; i += 1) s += bar(-(edge + PIN), -edge, 8 + i * 60, spec.width);
     s += `<rect class="usercard-body" x="${-edge}" y="${-half}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const font = labelFontSize(label, edge * 2, 17);
-    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 180}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    // The name sits in the band BETWEEN the address/data buses at the top and the
+    // first port row, not squeezed up against the top edge with the bars.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font) - 60}" text-anchor="middle" style="font-size:${font}px">${esc(label)}</text>`;
+    // The address bus is named on the body, level with its own bar.
+    if (Number.isInteger(spec.addressWidth)) {
+      s += cap(-edge + 6, (spec.dataIn === false ? -130 : -170) + 4, "Adr", "start");
+    }
     for (let i = 0; i < outs; i += 1) s += cap(edge - 6, 8 + i * 60 + 4, String(i), "end");
     // The inputs are numbered in DECIMAL on the card — short enough to read at
     // this size, where a two-digit binary name is not.
@@ -467,9 +608,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const bar = (x1, x2, y, width) => busGateBar({ x1: Math.min(x1, x2), x2: Math.max(x1, x2), y }, width, !options.toolbar);
     // Pins FIRST, body over them, then the name: a pin stops at the body's edge
     // instead of running into it, and the body cannot swallow the name.
-    let s = bar(-88, -edge, -24, spec.addressWidth); // address bus in (upper left)
-    s += bar(-88, -edge, 24, spec.width);            // data bus in (lower left)
-    s += bar(edge, 92, 0, spec.width);               // stored bus out (right)
+    let s = bar(-(edge + PIN), -edge, -24, spec.addressWidth); // address bus in (upper left)
+    s += bar(-(edge + PIN), -edge, 24, spec.width);            // data bus in (lower left)
+    s += bar(edge, edge + PIN, 0, spec.width);                 // stored bus out (right)
     s += pinLine(0, -56, 0, -bodyH / 2);             // control (top)
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     // The longer names (RAM256, RAM1024) do not fit across the card on one line, so
@@ -577,6 +718,11 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // an EMPTY string — an invisible component on the board and in the palette.
       if (type === "gate-Register4") return registerGateMarkup(4, options);
       if (type === "gate-Register") return registerGateMarkup(16, options);
+      // The 4.2 cards of the simple computer, each drawn from its own box.
+      if (type === "gate-PC0") return pcGateMarkup(16, options);
+      if (type === "gate-Cont0") return contGateMarkup(options);
+      if (type === "gate-CPU0") return cpuGateMarkup(16, options);
+      if (type === "gate-Prg") return prgGateMarkup(16, options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).
       const portsDef = WORKSPACE_DEFS_FOR_VISUALS ? WORKSPACE_DEFS_FOR_VISUALS[type] : null;
@@ -612,7 +758,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // matches the viewBox 1:1 so the body/pins stay put.
       if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
-      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/nz
+      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/zr
       // pins and their captions below them aren't clipped; the image box matches
       // it 1:1 so the body/pins keep their positions.
       if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 158);
