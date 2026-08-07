@@ -6243,12 +6243,73 @@
       guide: saved.guide === true,
       guidePage: Number.isInteger(saved.guidePage)
         ? Math.min(Math.max(saved.guidePage, 0), Math.max(pages.length - 1, 0))
-        : 0
+        : 0,
+      // Where each window has been dragged to, by name. Empty until one is.
+      pos: (saved.pos && typeof saved.pos === "object") ? saved.pos : {}
     };
   }
 
   function setProgramPanels(patch) {
     return setState({ programPanels: { ...programPanelsState(), ...patch } });
+  }
+
+  // Where a window was dragged to, if it was. Until then it has no position of
+  // its own and layoutProgramWindows() parks it in its corner.
+  function programWindowPos(name) {
+    const saved = (programPanelsState().pos || {})[name];
+    if (!saved || !Number.isFinite(saved.left) || !Number.isFinite(saved.top)) return "";
+    // Both edges must be released: the corner the window is parked in is set in
+    // CSS with right/bottom, and leaving those in place while left/top are given
+    // stretches the window between the two instead of moving it.
+    return ` style="left:${Math.round(saved.left)}px;top:${Math.round(saved.top)}px;right:auto;bottom:auto;"`;
+  }
+
+  function setProgramWindowPos(name, pos) {
+    return setProgramPanels({ pos: { ...(programPanelsState().pos || {}), [name]: pos } });
+  }
+
+  // The windows float over the page, so they are placed rather than laid out:
+  // the task in the bottom-right corner, and the other three stacked up from the
+  // bottom-left one. A window the learner has dragged keeps where they put it.
+  function layoutProgramWindows() {
+    if (!state.programDialog) return;
+    const wins = Array.from(app.querySelectorAll("[data-prog-window]"));
+    if (!wins.length) return;
+    const saved = programPanelsState().pos || {};
+    const byName = (name) => wins.find((win) => win.dataset.progWindow === name);
+    const PAD = 16;
+    const ceiling = (document.querySelector(".topbar")?.getBoundingClientRect().bottom || 0) + 8;
+    let y = window.innerHeight - PAD;
+    ["guide", "memory", "alu"].forEach((name) => {
+      const win = byName(name);
+      if (!win || saved[name]) return;
+      // Each window takes what it needs and no more; one that would run off the
+      // top of the screen scrolls inside itself instead of covering the one
+      // below it.
+      const body = win.querySelector(".sheet-guide-body");
+      if (body) body.style.maxHeight = "";
+      let height = win.getBoundingClientRect().height;
+      const room = y - ceiling;
+      if (body && height > room) {
+        const chrome = height - body.getBoundingClientRect().height;
+        body.style.maxHeight = `${Math.max(90, Math.round(room - chrome))}px`;
+        height = win.getBoundingClientRect().height;
+      }
+      y -= height;
+      win.style.right = "auto";
+      win.style.bottom = "auto";
+      win.style.left = `${PAD}px`;
+      win.style.top = `${Math.max(ceiling, Math.round(y))}px`;
+      y -= 8;
+    });
+    const task = byName("task");
+    if (task && !saved.task) {
+      const rect = task.getBoundingClientRect();
+      task.style.right = "auto";
+      task.style.bottom = "auto";
+      task.style.left = `${Math.round(window.innerWidth - PAD - rect.width)}px`;
+      task.style.top = `${Math.max(ceiling, Math.round(window.innerHeight - PAD - rect.height))}px`;
+    }
   }
 
   function openProgramSheet() {
@@ -6273,9 +6334,9 @@
     if (!task || (state.programDialog && state.programDialog.intro)) return "";
     const open = programPanelsState().task;
     const head = programWindowHead(task.title, "task", open);
-    if (!open) return `<section class="sheet-guide prog-window prog-window-task sheet-guide-closed" aria-label="${esc(task.title)}">${head}</section>`;
+    if (!open) return `<section class="sheet-guide prog-window prog-window-task sheet-guide-closed" data-prog-window="task"${programWindowPos("task")} aria-label="${esc(task.title)}">${head}</section>`;
     return `
-      <section class="sheet-guide prog-window prog-window-task" aria-label="${esc(task.title)}">
+      <section class="sheet-guide prog-window prog-window-task" data-prog-window="task"${programWindowPos("task")} aria-label="${esc(task.title)}">
         ${head}
         <div class="sheet-guide-body">
           <p class="prog-task-text">${esc(isolateLatinRuns(task.text))}</p>
@@ -6288,9 +6349,9 @@
     if (!map) return "";
     const open = programPanelsState().memory;
     const head = programWindowHead(map.title, "memory", open);
-    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" aria-label="${esc(map.title)}">${head}</section>`;
+    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" data-prog-window="memory"${programWindowPos("memory")} aria-label="${esc(map.title)}">${head}</section>`;
     return `
-      <section class="sheet-guide prog-window" aria-label="${esc(map.title)}">
+      <section class="sheet-guide prog-window" data-prog-window="memory"${programWindowPos("memory")} aria-label="${esc(map.title)}">
         ${head}
         <div class="sheet-guide-body">
           <ul class="prog-map-list">${(map.items || []).map((item) =>
@@ -6304,20 +6365,25 @@
     if (!table) return "";
     const open = programPanelsState().alu;
     const head = programWindowHead(table.title, "alu", open);
-    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" aria-label="${esc(table.title)}">${head}</section>`;
+    if (!open) return `<section class="sheet-guide prog-window prog-window-alu sheet-guide-closed" data-prog-window="alu"${programWindowPos("alu")} aria-label="${esc(table.title)}">${head}</section>`;
     // Two operations to a line: eighteen of them one under the other would leave
     // the window taller than the screen, and the note under it out of sight.
     const list = table.rows || [];
     const half = Math.ceil(list.length / 2);
+    // The instruction is written on squares the size of the page's own, so it
+    // reads as what it is: six squares of the instruction, ready to be copied.
+    const bitsCell = (bits) => `<td class="prog-alu-bits"><span class="prog-alu-strip">${
+      String(bits).split("").map((bit) => `<span class="prog-alu-bit">${esc(bit)}</span>`).join("")
+    }</span></td>`;
     const cell = (row) => (row
-      ? `<td class="prog-alu-op" dir="ltr">${esc(row.op)}</td><td class="prog-alu-bits" dir="ltr">${esc(row.bits)}</td>`
+      ? `<td class="prog-alu-op" dir="ltr">${esc(row.op)}</td>${bitsCell(row.bits)}`
       : `<td></td><td></td>`);
     const rows = Array.from({ length: half }, (unused, i) =>
       `<tr>${cell(list[i])}${cell(list[i + half])}</tr>`).join("");
     const heads = (table.columns || []).concat(table.columns || [])
       .map((c) => `<th>${esc(c)}</th>`).join("");
     return `
-      <section class="sheet-guide prog-window" aria-label="${esc(table.title)}">
+      <section class="sheet-guide prog-window prog-window-alu" data-prog-window="alu"${programWindowPos("alu")} aria-label="${esc(table.title)}">
         ${head}
         <div class="sheet-guide-body prog-alu-body">
           <table class="prog-alu-table">
@@ -6339,7 +6405,7 @@
     if (!pages.length) return "";
     const { guide, guidePage } = programPanelsState();
     const head = programWindowHead("מבנה הפקודה", "guide", guide);
-    if (!guide) return `<section class="sheet-guide prog-window prog-window-guide sheet-guide-closed" aria-label="מבנה הפקודה">${head}</section>`;
+    if (!guide) return `<section class="sheet-guide prog-window prog-window-guide sheet-guide-closed" data-prog-window="guide"${programWindowPos("guide")} aria-label="מבנה הפקודה">${head}</section>`;
     const current = pages[guidePage] || pages[0];
     const colourOf = [];
     (current.groups || []).forEach((group, index) => {
@@ -6362,7 +6428,7 @@
       </li>`;
     }).join("");
     return `
-      <section class="sheet-guide prog-window prog-window-guide" aria-label="מבנה הפקודה">
+      <section class="sheet-guide prog-window prog-window-guide" data-prog-window="guide"${programWindowPos("guide")} aria-label="מבנה הפקודה">
         ${head}
         <div class="sheet-guide-body">
           <div class="sheet-guide-strip" aria-hidden="true">${strip}</div>
@@ -6454,11 +6520,9 @@
           </div>
         </section>
         ${renderProgramTaskWindow()}
-        <div class="prog-windows">
-          ${renderProgramAluWindow()}
-          ${renderProgramMemoryWindow()}
-          ${renderProgramGuideWindow()}
-        </div>
+        ${renderProgramAluWindow()}
+        ${renderProgramMemoryWindow()}
+        ${renderProgramGuideWindow()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -13699,6 +13763,7 @@
       requestAnimationFrame(() => app.querySelector("[data-action='dialog-yes']")?.focus());
     }
     if (state.sheetDialog) requestAnimationFrame(positionSheetWorkbenchArrow);
+    if (state.programDialog) requestAnimationFrame(layoutProgramWindows);
     // The square being written in on the exercise page. `autofocus` alone is not
     // enough on markup written with innerHTML — without this the square was only
     // marked and the typing went nowhere.
@@ -22610,7 +22675,10 @@
     if (!moved) return;
     const left = parseInt(win.style.left, 10);
     const top = parseInt(win.style.top, 10);
-    if (Number.isFinite(left) && Number.isFinite(top)) setSheetGuide({ pos: { left, top } });
+    if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+    // The 4.3 page has four of these windows, each remembering its own place.
+    if (win.dataset.progWindow) return setProgramWindowPos(win.dataset.progWindow, { left, top });
+    setSheetGuide({ pos: { left, top } });
   });
 
   // A converter digit distinguishes single-click (increment mod 10) from
@@ -23081,7 +23149,7 @@
     if (action === "program-panel-toggle") {
       const panel = button.dataset.panel;
       const panels = programPanelsState();
-      if (!Object.prototype.hasOwnProperty.call(panels, panel)) return;
+      if (!["task", "alu", "memory", "guide"].includes(panel)) return;
       return setProgramPanels({ [panel]: !panels[panel] });
     }
     if (action === "program-guide-prev" || action === "program-guide-next") {

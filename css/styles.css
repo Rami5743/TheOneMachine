@@ -5452,51 +5452,35 @@ object.panel-image.is-pending {
 }
 
 /* ---- Chapter 4.3: the programming page ---------------------------------- */
-/* Its reference windows are the same little folding windows as "מבנה הפקודה"
-   on the 4.1 page, only parked rather than dragged: the task in the bottom-left
-   corner, and the other three stacked up from the bottom-right one. Unlike the
-   paged window they carry, they are as tall as what is in them. */
+/* The page itself is the whole screen (inside the game's frame), exactly like
+   the 4.1 exercise. Its four reference windows FLOAT over the squares and can be
+   dragged anywhere: the task in the bottom-right corner, and "מבנה הפקודה",
+   "מבנה הזיכרון" and the ALU table stacked up from the bottom-left one.
+   layoutProgramWindows() parks them there; a dragged one keeps its own place. */
 .prog-window {
-  position: static;
+  position: fixed;
   inset: auto;
-  width: 100%;
-  flex: 0 0 auto;
+  left: 16px;
+  top: auto;
+  bottom: 16px;
+  z-index: 215;
+  width: min(24rem, 27vw);
 }
 
 .prog-window .sheet-guide-body {
   height: auto;
-  max-height: 47vh;
-}
-
-.prog-windows {
-  position: fixed;
-  right: 18px;
-  bottom: 16px;
-  z-index: 215;
-  width: min(24rem, 27vw);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  direction: rtl;
-  max-height: calc(100vh - var(--topbar-h) - 26px);
-  overflow-y: auto;
-}
-
-/* The paper keeps clear of both corners' windows, so the instruction wing (at
-   the right edge of a right-to-left page) is never hidden under them. */
-.sheet-overlay-prog .sheet-scroll {
-  padding-inline-start: min(25rem, 28vw);
-  padding-inline-end: min(23rem, 25vw);
+  max-height: 52vh;
 }
 
 .prog-window-task {
-  position: fixed;
-  left: 18px;
-  bottom: 16px;
-  top: auto;
-  z-index: 215;
+  left: auto;
+  right: 16px;
   width: min(22rem, 24vw);
 }
+
+/* The paged window keeps a fixed body height, so it does not jump from page to
+   page (the same reason it has one on the 4.1 page). */
+.prog-window-guide .sheet-guide-body { height: 300px; max-height: 36vh; }
 
 .prog-task-text {
   margin: 0;
@@ -5550,6 +5534,28 @@ object.panel-image.is-pending {
   font-weight: 800;
 }
 
-/* The paged window keeps its fixed body height, so it does not jump as the
-   pages change (the same reason it has one on the 4.1 page). */
-.prog-window-guide .sheet-guide-body { height: 320px; max-height: 40vh; }
+/* The instruction beside each operation is written on squares the size of the
+   page's own — six of them, the way it will be copied onto the paper. */
+.prog-window-alu { width: min(31rem, 34vw); }
+
+.prog-alu-bits { padding: 1px 3px; }
+
+.prog-alu-strip {
+  display: inline-grid;
+  grid-template-columns: repeat(6, var(--sq, 26px));
+  direction: ltr;
+  border: 1px solid #3a2c17;
+  background: #3a2c17;
+  gap: 1px;
+}
+
+.prog-alu-bit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--sq, 26px);
+  background: #fdfaf0;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--sq, 26px) * 0.56);
+  color: #241d12;
+}
