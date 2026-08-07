@@ -1377,6 +1377,10 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       { op: "D And X", bits: "000000" },
       { op: "D Or X", bits: "101010" }
     ],
+    // The order the assembler offers them in on the page: the ones this
+    // chapter's task actually needs first, the rest under them.
+    menuOrder: ["D+X", "D", "X", "D+1", "X+1", "0", "1", "-1", "D-1", "X-1",
+      "D-X", "X-D", "-D", "-X", "Not D", "Not X", "D And X", "D Or X"],
     noteTitle: "הערה:",
     note: [
       "D הוא הכניסה הראשונה של ה-ALU (כי היא תמיד תהיה התוכן של רגיסטר D).",

@@ -1823,6 +1823,10 @@
     programClearConfirm: null,
     // The destination chooser open over an instruction's middle cell: { row }.
     programDestMenu: null,
+    // The instruction whose number is being typed right now: { row }.
+    programNumberEdit: null,
+    // The calculation chooser open over an instruction: { row }.
+    programCalcMenu: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3012,6 +3016,8 @@
       programClearConfirm: null,
       programAssembler: null,
       programDestMenu: null,
+      programNumberEdit: null,
+      programCalcMenu: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3259,7 +3265,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6811,7 +6817,13 @@
   function cycleProgramBit(row, bit) {
     const now = programBit(row, bit);
     const next = now === "" ? "0" : (now === "0" ? "1" : "");
-    return writeProgramBits({ [`${row}:${bit}`]: next });
+    const patch = { [`${row}:${bit}`]: next };
+    // Writing 1 into the first bit says "compute", and bits 2-5 then mean
+    // nothing at all — the assembler zeroes them rather than leave them hanging.
+    if (bit === 1 && next === "1") {
+      for (let spare = 2; spare <= 5; spare += 1) patch[`${row}:${spare}`] = "0";
+    }
+    return writeProgramBits(patch);
   }
 
   // The destination a row is set to, read back off its two bits.
@@ -6828,6 +6840,79 @@
       programSheet: { ...progress, bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1] } },
       programDestMenu: null
     });
+  }
+
+  // With bit 1 set to 0 the ALU emits its own instruction, and bits 2-12 ARE the
+  // number. The eleven cells over them become one, and a number typed into it is
+  // turned into those eleven bits.
+  const PROGRAM_NUMBER_BITS = 11;
+  const PROGRAM_NUMBER_MAX = (1 << PROGRAM_NUMBER_BITS) - 1;
+
+  function programNumberOpen(row) {
+    return programBit(row, 1) === "0";
+  }
+
+  // What the merged cell shows: the number those eleven bits hold, once they all
+  // hold something.
+  function programNumberValue(row) {
+    let text = "";
+    for (let bit = 2; bit <= 12; bit += 1) {
+      const value = programBit(row, bit);
+      if (value === "") return "";
+      text += value;
+    }
+    return String(parseInt(text, 2));
+  }
+
+  function commitProgramNumber(row, raw) {
+    const text = String(raw ?? "").trim();
+    const value = /^\d+$/.test(text) ? Number(text) : NaN;
+    // Anything that is not a number these eleven bits can hold simply goes away.
+    if (!Number.isInteger(value) || value < 0 || value > PROGRAM_NUMBER_MAX) {
+      return setState({ programNumberEdit: null });
+    }
+    const bits = value.toString(2).padStart(PROGRAM_NUMBER_BITS, "0");
+    const progress = programSheetProgress();
+    const next = { ...progress.bits };
+    for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) next[`${row}:${i + 2}`] = bits[i];
+    return setState({ programSheet: { ...progress, bits: next }, programNumberEdit: null });
+  }
+
+  // With bit 1 set to 1 the ALU computes: bits 2-5 are not used (the assembler
+  // zeroes them), bit 6 is the learner's — which inputs — and the six over bits
+  // 7-12 become a chooser of the calculations from the ALU1 table.
+  function programAluOperations() {
+    const table = typeof ALU1_OPERATIONS !== "undefined" ? ALU1_OPERATIONS : null;
+    if (!table) return [];
+    const rows = table.rows || [];
+    const order = Array.isArray(table.menuOrder) ? table.menuOrder : [];
+    const byOp = new Map(rows.map((row) => [row.op, row]));
+    const ordered = order.map((op) => byOp.get(op)).filter(Boolean);
+    return ordered.concat(rows.filter((row) => !order.includes(row.op)));
+  }
+
+  function programCalcOpen(row) {
+    return programBit(row, 1) === "1";
+  }
+
+  function programCalcLabel(row) {
+    let bits = "";
+    for (let bit = 7; bit <= 12; bit += 1) {
+      const value = programBit(row, bit);
+      if (value === "") return "";
+      bits += value;
+    }
+    const match = programAluOperations().find((op) => op.bits === bits);
+    return match ? match.op : "";
+  }
+
+  function chooseProgramCalc(row, op) {
+    const match = programAluOperations().find((entry) => entry.op === op);
+    if (!match) return setState({ programCalcMenu: null });
+    const progress = programSheetProgress();
+    const bits = { ...progress.bits };
+    for (let i = 0; i < 6; i += 1) bits[`${row}:${i + 7}`] = match.bits[i];
+    return setState({ programSheet: { ...progress, bits }, programCalcMenu: null });
   }
 
   function renderProgramSheet() {
@@ -6852,7 +6937,28 @@
       const top = 2 + row * 2;
       const bottom = top + 1;
       const dest = programDestination(row);
-      cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(12)} / span 12;grid-row:${top};" aria-hidden="true"></div>`);
+      if (programNumberOpen(row)) {
+        // Bit 1 is written: its own cell stays inert, and the eleven beside it
+        // become the box the number is typed into.
+        cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(1)};grid-row:${top};" aria-hidden="true"></div>`);
+        const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
+        const shown = programNumberValue(row);
+        cells.push(`<div class="prog-slot prog-slot-number" style="grid-column:${columnOf(12)} / span 11;grid-row:${top};">${editing
+          ? `<input class="prog-number-input" type="text" inputmode="numeric" autofocus data-program-number="${row}" value="${esc(shown)}" aria-label="המספר של פקודה ${row + 1}" />`
+          : `<button class="prog-slot-btn" data-action="program-number-open" data-row="${row}" type="button" aria-label="המספר של פקודה ${row + 1}">${esc(shown)}</button>`}</div>`);
+      } else if (programCalcOpen(row)) {
+        // Bits 1-6 are the learner's own (bit 6 picks the inputs); the six over
+        // the calculation open the chooser.
+        cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(6)} / span 6;grid-row:${top};" aria-hidden="true"></div>`);
+        const label = programCalcLabel(row);
+        const calcMenu = state.programCalcMenu?.row === row
+          ? `<ul class="prog-dest-menu prog-calc-menu" role="menu">${programAluOperations().map((op) =>
+              `<li><button class="prog-dest-option" data-action="program-calc-pick" data-row="${row}" data-op="${esc(op.op)}" type="button" dir="ltr">${esc(op.op)}</button></li>`).join("")}</ul>`
+          : "";
+        cells.push(`<div class="prog-slot prog-slot-calc" style="grid-column:${columnOf(12)} / span 6;grid-row:${top};"><button class="prog-slot-btn" data-action="program-calc-open" data-row="${row}" type="button" dir="ltr" aria-label="החישוב של פקודה ${row + 1}">${esc(label)}</button>${calcMenu}</div>`);
+      } else {
+        cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(12)} / span 12;grid-row:${top};" aria-hidden="true"></div>`);
+      }
       const menu = menuRow === row
         ? `<ul class="prog-dest-menu" role="menu">${PROGRAM_DESTINATIONS.map((option) =>
             `<li><button class="prog-dest-option" data-action="program-dest-pick" data-row="${row}" data-dest="${esc(option.id)}" type="button">${esc(isolateLatinRuns(option.label))}</button></li>`).join("")}</ul>`
@@ -22883,6 +22989,21 @@
     saveState();
   });
 
+  // The number typed over an instruction: Enter turns it into the eleven bits
+  // under it, Escape (or a number these bits cannot hold) drops it.
+  document.addEventListener("keydown", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-number-input");
+    if (!box) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      return commitProgramNumber(Number(box.dataset.programNumber), box.value);
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      return setState({ programNumberEdit: null });
+    }
+  });
+
   // Rubbing out what was written on a square: Backspace or Delete clears it.
   // Backspace on a square that is already empty steps BACK to the one before it
   // (the way writing steps forward) and clears that one instead.
@@ -23090,6 +23211,13 @@
     // A click anywhere but inside the destination chooser closes it.
     if (state.programDestMenu && !event.target.closest(".prog-dest-menu, .prog-slot-dest")) {
       setState({ programDestMenu: null }, false);
+    }
+    if (state.programCalcMenu && !event.target.closest(".prog-calc-menu, .prog-slot-calc")) {
+      setState({ programCalcMenu: null }, false);
+    }
+    if (state.programNumberEdit && !event.target.closest(".prog-slot-number")) {
+      state.programNumberEdit = null;
+      window.setTimeout(render, 0);
     }
     // The assembler's teaser is a one-time offer: taking it up opens the window,
     // and ANY other click passes it over for good. Marked here, before the click
@@ -23553,7 +23681,7 @@
     if (action === "program-clear-open") return setState({ programClearConfirm: true });
     if (action === "program-clear-cancel") return setState({ programClearConfirm: null });
     if (action === "program-clear-confirm") {
-      return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null });
+      return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null });
     }
     if (action === "program-close") {
       clearAssemblerHintTimer();
@@ -23565,6 +23693,12 @@
       return setState({ programDestMenu: state.programDestMenu?.row === row ? null : { row } });
     }
     if (action === "program-dest-pick") return chooseProgramDestination(Number(button.dataset.row), button.dataset.dest);
+    if (action === "program-number-open") return setState({ programNumberEdit: { row: Number(button.dataset.row) }, programDestMenu: null });
+    if (action === "program-calc-open") {
+      const row = Number(button.dataset.row);
+      return setState({ programCalcMenu: state.programCalcMenu?.row === row ? null : { row }, programDestMenu: null });
+    }
+    if (action === "program-calc-pick") return chooseProgramCalc(Number(button.dataset.row), button.dataset.op);
     if (action === "program-spare-zero") {
       const row = Number(button.dataset.row);
       return writeProgramBits({ [`${row}:15`]: "0", [`${row}:16`]: "0" });

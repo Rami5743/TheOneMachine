@@ -5756,3 +5756,35 @@ object.panel-image.is-pending {
 }
 
 .prog-dest-option:hover { background: #efe4c8; }
+
+/* The number over an instruction whose first bit is 0: the eleven cells beside
+   that bit, merged into one box. */
+.prog-slot-number { background: rgba(239, 228, 200, 0.55); }
+
+.prog-slot-number .prog-slot-btn { text-align: center; }
+
+.prog-number-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
+  border: none;
+  background: #fffdf5;
+  outline: 2px solid #b3801a;
+  outline-offset: -2px;
+  font-family: inherit;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #241d12;
+  text-align: center;
+  direction: ltr;
+}
+
+/* The calculation chooser over bits 7-12, when the first bit says "compute". */
+.prog-slot-calc { background: rgba(239, 228, 200, 0.55); }
+.prog-slot-calc .prog-slot-btn { text-align: center; }
+
+.prog-calc-menu {
+  max-height: 46vh;
+  overflow-y: auto;
+  min-width: calc(var(--sq, 26px) * 4);
+}
