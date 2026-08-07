@@ -6406,6 +6406,7 @@
   }
 
   function openProgramSheet() {
+    programGrownInstructions = 0;
     // Every visit starts from the default layout: the windows are back in their
     // corners (where they were dragged to is a within-the-visit thing), and the
     // task is read in the middle of the page again before it takes its seat.
@@ -6780,9 +6781,25 @@
       </div>`;
   }
 
-  // How many instructions the page holds. The table has no foot — it runs on
-  // down the page and the page scrolls, so this is only how far "on" goes.
-  const PROGRAM_INSTRUCTIONS = 30;
+  // The table has no foot: it runs on down the page. How far "on" reaches is
+  // measured rather than fixed — enough instructions to fill whatever screen it
+  // is on, with a good stretch below — and it grows again as the learner scrolls
+  // towards the bottom, so it never ends under them.
+  const PROGRAM_INSTRUCTIONS_MIN = 30;
+  const PROGRAM_INSTRUCTIONS_SLACK = 24;
+  const PROGRAM_INSTRUCTIONS_STEP = 20;
+  let programGrownInstructions = 0;
+
+  function programSquareSize() {
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    const size = paper ? parseFloat(getComputedStyle(paper).backgroundSize) : NaN;
+    return Number.isFinite(size) && size > 0 ? size : 26;
+  }
+
+  function programInstructionCount() {
+    const fit = Math.ceil(window.innerHeight / (programSquareSize() * 2));
+    return Math.max(PROGRAM_INSTRUCTIONS_MIN, fit + PROGRAM_INSTRUCTIONS_SLACK) + programGrownInstructions;
+  }
 
   // The four things the ALU's output can be written to, and the two bits that
   // say so (bits 13-14 of the instruction).
@@ -6921,7 +6938,8 @@
     const bitColumn = sheetBitColumn;
     // A bit's column: bit 1 is the rightmost of the sixteen.
     const columnOf = (bit) => bitColumn(bit - 1);
-    const rows = 1 + PROGRAM_INSTRUCTIONS * 2;
+    const instructions = programInstructionCount();
+    const rows = 1 + instructions * 2;
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">התוכנה</div>`);
     // Only the outer frame, and no foot: the two rules run down the page and the
     // table simply carries on.
@@ -6933,7 +6951,7 @@
     // cells — the calculation, the destination, the spare bits) and the sixteen
     // squares of the instruction itself underneath, which are what is written.
     const menuRow = Number.isInteger(state.programDestMenu?.row) ? state.programDestMenu.row : null;
-    for (let row = 0; row < PROGRAM_INSTRUCTIONS; row += 1) {
+    for (let row = 0; row < instructions; row += 1) {
       const top = 2 + row * 2;
       const bottom = top + 1;
       const dest = programDestination(row);
@@ -23137,6 +23155,20 @@
     return win;
   }
 
+  // Scrolling towards the bottom of the program page adds more instructions, so
+  // the table never runs out under the learner. (Scroll does not bubble, hence
+  // the capture.)
+  document.addEventListener("scroll", (event) => {
+    if (!state.programDialog) return;
+    const box = event.target;
+    if (!box || !box.classList || !box.classList.contains("sheet-scroll")) return;
+    if (box.scrollTop + box.clientHeight < box.scrollHeight - 160) return;
+    programGrownInstructions += PROGRAM_INSTRUCTIONS_STEP;
+    const keep = box.scrollTop;
+    render();
+    const again = app.querySelector(".sheet-overlay-prog .sheet-scroll");
+    if (again) again.scrollTop = keep;
+  }, true);
   // Resizing the browser moves the corners the windows are parked in, so they
   // are laid out again (a window the learner dragged keeps its own place).
   window.addEventListener("resize", () => {
