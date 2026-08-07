@@ -1815,6 +1815,19 @@
     // shows and whether it is open. A preference, so it is persisted rather than
     // wiped with the transient dialogs.
     sheetGuide: null,
+    // The 4.3 programming page, opened from the note on the worktable: the same
+    // squared paper, with the program the learner writes on it ({ scratch }).
+    // Persisted like the 4.1 page; the open/closed flag itself is transient.
+    programSheet: null,
+    programDialog: null,
+    programClearConfirm: null,
+    // Its four reference windows (the task, the ALU table, the memory map and
+    // "מבנה הפקודה") — which are folded away, and which page the last one shows.
+    // A preference, so it is persisted.
+    programPanels: null,
+    // Whether the task has been read once: the first opening shows it as a
+    // dialog, and from then on it is only the window in the corner.
+    programIntroSeen: false,
     // The scratch table of the exercise page ("רוצה לבדוק כרטיסים?").
     // It is the page's OWN workbench: kept in its own slot so returning to the
     // page finds the table exactly as it was left, and so it neither disturbs nor
@@ -2983,6 +2996,8 @@
       sheetDialog: null,
       sheetClearConfirm: null,
       sheetScratchCell: null,
+      programDialog: null,
+      programClearConfirm: null,
       buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
@@ -3183,7 +3198,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-17" || chapter.id === "chapter-15" || chapter.id === "chapter-16") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-17" || chapter.id === "chapter-15" || chapter.id === "chapter-16" || chapter.id === "chapter-18") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -3228,7 +3243,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6184,6 +6199,271 @@
       </div>`;
   }
 
+
+  // ---- Chapter 4.3: the programming page -----------------------------------
+  // The note on the 4.3 worktable opens the same squared paper as the 4.1
+  // exercise — but here nothing is printed on it: the learner WRITES the program,
+  // one instruction to a row, in the sixteen squares of the instruction wing.
+  // Four reference windows sit around it: the task itself in the bottom-left, and
+  // in the bottom-right corner, bottom to top, "מבנה הפקודה" (folded away to
+  // start), "מבנה הזיכרון" and the table of ALU1 calculations.
+  const PROGRAM_SHEET_ROWS = 30;
+
+  function programSheetProgress() {
+    const saved = state.programSheet && typeof state.programSheet === "object" ? state.programSheet : {};
+    return {
+      scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {}
+    };
+  }
+
+  // Which squared page is open right now. The scribbling machinery (a click puts
+  // the pencil down, a character steps on to the next square, Backspace rubs out)
+  // is the same on both pages, so it asks here rather than knowing about either.
+  function sheetPageOpen() {
+    return Boolean(state.sheetDialog || state.programDialog);
+  }
+
+  function activeSheetProgress() {
+    return state.programDialog ? programSheetProgress() : instructionSheetProgress();
+  }
+
+  function writeActiveSheetProgress(next) {
+    if (state.programDialog) state.programSheet = next;
+    else state.instructionSheet = next;
+  }
+
+  function programPanelsState() {
+    const saved = state.programPanels && typeof state.programPanels === "object" ? state.programPanels : {};
+    const pages = instructionGuidePages();
+    return {
+      // The task and the two tables start open; "מבנה הפקודה" starts folded away.
+      task: saved.task !== false,
+      alu: saved.alu !== false,
+      memory: saved.memory !== false,
+      guide: saved.guide === true,
+      guidePage: Number.isInteger(saved.guidePage)
+        ? Math.min(Math.max(saved.guidePage, 0), Math.max(pages.length - 1, 0))
+        : 0
+    };
+  }
+
+  function setProgramPanels(patch) {
+    return setState({ programPanels: { ...programPanelsState(), ...patch } });
+  }
+
+  function openProgramSheet() {
+    return setState({
+      panelObjectDialog: null,
+      programSheet: programSheetProgress(),
+      programDialog: { intro: !state.programIntroSeen }
+    });
+  }
+
+  function programWindowHead(title, panel, open) {
+    return `
+      <div class="sheet-guide-head">
+        <span class="sheet-guide-title">${esc(isolateLatinRuns(title))}</span>
+        <button class="sheet-guide-toggle" data-action="program-panel-toggle" data-panel="${esc(panel)}" type="button" aria-expanded="${open ? "true" : "false"}">${open ? "הסתרה" : "הצגה"}</button>
+      </div>`;
+  }
+
+  // The task, once it has been read: the same words, in the corner, foldable.
+  function renderProgramTaskWindow() {
+    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    if (!task || (state.programDialog && state.programDialog.intro)) return "";
+    const open = programPanelsState().task;
+    const head = programWindowHead(task.title, "task", open);
+    if (!open) return `<section class="sheet-guide prog-window prog-window-task sheet-guide-closed" aria-label="${esc(task.title)}">${head}</section>`;
+    return `
+      <section class="sheet-guide prog-window prog-window-task" aria-label="${esc(task.title)}">
+        ${head}
+        <div class="sheet-guide-body">
+          <p class="prog-task-text">${esc(isolateLatinRuns(task.text))}</p>
+        </div>
+      </section>`;
+  }
+
+  function renderProgramMemoryWindow() {
+    const map = typeof PROGRAM_MEMORY_MAP !== "undefined" ? PROGRAM_MEMORY_MAP : null;
+    if (!map) return "";
+    const open = programPanelsState().memory;
+    const head = programWindowHead(map.title, "memory", open);
+    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" aria-label="${esc(map.title)}">${head}</section>`;
+    return `
+      <section class="sheet-guide prog-window" aria-label="${esc(map.title)}">
+        ${head}
+        <div class="sheet-guide-body">
+          <ul class="prog-map-list">${(map.items || []).map((item) =>
+            `<li>${esc(isolateLatinRuns(item))}</li>`).join("")}</ul>
+        </div>
+      </section>`;
+  }
+
+  function renderProgramAluWindow() {
+    const table = typeof ALU1_OPERATIONS !== "undefined" ? ALU1_OPERATIONS : null;
+    if (!table) return "";
+    const open = programPanelsState().alu;
+    const head = programWindowHead(table.title, "alu", open);
+    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" aria-label="${esc(table.title)}">${head}</section>`;
+    // Two operations to a line: eighteen of them one under the other would leave
+    // the window taller than the screen, and the note under it out of sight.
+    const list = table.rows || [];
+    const half = Math.ceil(list.length / 2);
+    const cell = (row) => (row
+      ? `<td class="prog-alu-op" dir="ltr">${esc(row.op)}</td><td class="prog-alu-bits" dir="ltr">${esc(row.bits)}</td>`
+      : `<td></td><td></td>`);
+    const rows = Array.from({ length: half }, (unused, i) =>
+      `<tr>${cell(list[i])}${cell(list[i + half])}</tr>`).join("");
+    const heads = (table.columns || []).concat(table.columns || [])
+      .map((c) => `<th>${esc(c)}</th>`).join("");
+    return `
+      <section class="sheet-guide prog-window" aria-label="${esc(table.title)}">
+        ${head}
+        <div class="sheet-guide-body prog-alu-body">
+          <table class="prog-alu-table">
+            <thead><tr>${heads}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div class="prog-alu-note">
+            <strong>${esc(table.noteTitle || "הערה:")}</strong>
+            <ul>${(table.note || []).map((line) => `<li>${esc(isolateLatinRuns(line))}</li>`).join("")}</ul>
+          </div>
+        </div>
+      </section>`;
+  }
+
+  // "מבנה הפקודה" again — the same four pages as on the 4.1 page, with their own
+  // open/closed state here (it starts folded away).
+  function renderProgramGuideWindow() {
+    const pages = instructionGuidePages();
+    if (!pages.length) return "";
+    const { guide, guidePage } = programPanelsState();
+    const head = programWindowHead("מבנה הפקודה", "guide", guide);
+    if (!guide) return `<section class="sheet-guide prog-window prog-window-guide sheet-guide-closed" aria-label="מבנה הפקודה">${head}</section>`;
+    const current = pages[guidePage] || pages[0];
+    const colourOf = [];
+    (current.groups || []).forEach((group, index) => {
+      for (let bit = Number(group.from); bit <= Number(group.to); bit += 1) colourOf[bit] = index;
+    });
+    const strip = Array.from({ length: 16 }, (unused, i) => {
+      const at = colourOf[i + 1];
+      const cls = Number.isInteger(at) ? ` sheet-guide-bit-c${at}` : "";
+      return `<span class="sheet-guide-bit${cls}"></span>`;
+    }).join("");
+    const legend = (current.groups || []).map((group, index) => {
+      const options = Array.isArray(group.options) && group.options.length
+        ? `<ul class="sheet-guide-options">${group.options.map((option) =>
+            `<li>${esc(isolateLatinRuns(option))}</li>`).join("")}</ul>`
+        : "";
+      return `
+      <li class="sheet-guide-item">
+        <span class="sheet-guide-swatch sheet-guide-bit-c${index}" aria-hidden="true"></span>
+        <div class="sheet-guide-text">${esc(isolateLatinRuns(group.text))}${options}</div>
+      </li>`;
+    }).join("");
+    return `
+      <section class="sheet-guide prog-window prog-window-guide" aria-label="מבנה הפקודה">
+        ${head}
+        <div class="sheet-guide-body">
+          <div class="sheet-guide-strip" aria-hidden="true">${strip}</div>
+          <h3 class="sheet-guide-page-title">${esc(isolateLatinRuns(current.title))}</h3>
+          <ul class="sheet-guide-list">${legend}</ul>
+        </div>
+        <div class="sheet-guide-foot">
+          ${navButton("program-guide-prev", "arrow-right", "הקודם", { disabled: guidePage === 0 })}
+          <span class="sheet-guide-count" dir="ltr">${guidePage + 1} / ${pages.length}</span>
+          ${navButton("program-guide-next", "arrow-left", "המשך", { primary: true, disabled: guidePage >= pages.length - 1 })}
+        </div>
+      </section>`;
+  }
+
+  // The task, the first time: centred, with "הבנתי". Dismissing it is what turns
+  // it into the window in the corner.
+  function renderProgramIntro() {
+    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    if (!task || !state.programDialog || !state.programDialog.intro) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
+          <h2 class="prog-intro-title">${esc(isolateLatinRuns(task.title))}</h2>
+          <p>${esc(isolateLatinRuns(task.text))}</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-intro-ok" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderProgramClearDialog() {
+    if (!state.programClearConfirm) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
+          <p>לנקות את מה שכתבת בדף?</p>
+          <p class="my-card-delete-warn">הפעולה תמחק את כל התוכנה שכתבת ותשאיר דף ריק.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-clear-confirm" type="button">נקה</button>
+            <button class="btn" data-action="program-clear-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderProgramSheet() {
+    if (!state.programDialog) return "";
+    const cells = [];
+    const bitColumn = sheetBitColumn;
+    const rows = PROGRAM_SHEET_ROWS;
+    // One wing only: the sixteen squares of an instruction, with the same
+    // headings the 4.1 page prints over them.
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">פקודות המחשב</div>`);
+    cells.push(`<div class="sheet-head" style="grid-column:${bitColumn(11)} / span 12;grid-row:2 / span 2;">הוראות ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(13)} / span 2;grid-row:2 / span 2;">יעד ה-ALU</div>`);
+    cells.push(`<div class="sheet-head sheet-head-span" style="grid-column:${bitColumn(15)} / span 2;grid-row:2 / span 2;">ביטים מיותרים</div>`);
+    const inner = `2 / span ${rows - 1}`;
+    const rules = [
+      `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(12)};grid-row:${inner};"></div>`,
+      `<div class="sheet-rule" style="grid-column:${bitColumn(14)};grid-row:${inner};"></div>`,
+      `<div class="sheet-rule-foot" style="grid-column:1 / span 16;grid-row:${rows};"></div>`
+    ];
+    // Everything the learner has written — on the instruction squares and on the
+    // free paper beside them alike. Only the three heading rows are the page's.
+    const scratch = programSheetProgress().scratch;
+    Object.entries(scratch).forEach(([key, text]) => {
+      const [r, c] = key.split(",").map(Number);
+      if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
+      if (r <= 3 && c >= 1 && c <= 16) return;
+      cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
+    });
+    const at = state.sheetScratchCell;
+    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col))) {
+      cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
+    }
+    cells.push(...rules);
+    return `
+      <div class="sheet-overlay sheet-overlay-prog" role="presentation">
+        <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התוכנה">
+          <div class="sheet-scroll">
+            <div class="sheet-paper" style="--rows:${rows};">${cells.join("")}</div>
+          </div>
+          <div class="sheet-actions">
+            ${navButton("program-clear-open", "restart", "נקה התקדמות")}
+            <button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>
+          </div>
+        </section>
+        ${renderProgramTaskWindow()}
+        <div class="prog-windows">
+          ${renderProgramAluWindow()}
+          ${renderProgramMemoryWindow()}
+          ${renderProgramGuideWindow()}
+        </div>
+        ${renderProgramIntro()}
+        ${renderProgramClearDialog()}
+      </div>`;
+  }
+
   // ---- Chapter 4.2: the cards of the simple computer -----------------------
   // The note von Neumann left on the worktable lists them in the order they must
   // be built, each unlocked by the one before it. PC0 and Cont0 have a real build
@@ -6616,7 +6896,8 @@
       ${renderPrgNoteList()}
       ${renderAluIntroDialog()}
       ${renderBuildNoteList()}
-      ${renderInstructionSheet()}`;
+      ${renderInstructionSheet()}
+      ${renderProgramSheet()}`;
 
     setupPanelStage(panelImage, preloadStoryNeighbors);
   }
@@ -13421,7 +13702,7 @@
     // The square being written in on the exercise page. `autofocus` alone is not
     // enough on markup written with innerHTML — without this the square was only
     // marked and the typing went nowhere.
-    if (state.sheetDialog && state.sheetScratchCell) {
+    if (sheetPageOpen() && state.sheetScratchCell) {
       requestAnimationFrame(() => {
         const box = app.querySelector(".sheet-scratch-input");
         if (!box) return;
@@ -22151,12 +22432,12 @@
   document.addEventListener("input", (event) => {
     const box = event.target.closest && event.target.closest(".sheet-scratch-input");
     if (!box || !box.dataset.sheetScratch) return;
-    const progress = instructionSheetProgress();
+    const progress = activeSheetProgress();
     const scratch = { ...progress.scratch };
     const typed = String(box.value).slice(0, 1);
     if (typed.trim() === "") delete scratch[box.dataset.sheetScratch];
     else scratch[box.dataset.sheetScratch] = typed;
-    state.instructionSheet = { ...progress, scratch };
+    writeActiveSheetProgress({ ...progress, scratch });
     // One character to a square: writing one steps on to the square beside it (to
     // the right), the way one fills in a squared page.
     if (typed.trim() !== "") {
@@ -22174,13 +22455,13 @@
     if (!box || !box.dataset.sheetScratch) return;
     if (event.key !== "Backspace" && event.key !== "Delete") return;
     event.preventDefault();
-    const progress = instructionSheetProgress();
+    const progress = activeSheetProgress();
     const scratch = { ...progress.scratch };
     const [row, col] = String(box.dataset.sheetScratch).split(",").map(Number);
     let at = { row, col };
     if (event.key === "Backspace" && !scratch[`${row},${col}`] && col + 1 <= 200) at = { row, col: col + 1 };
     delete scratch[`${at.row},${at.col}`];
-    state.instructionSheet = { ...progress, scratch };
+    writeActiveSheetProgress({ ...progress, scratch });
     return setState({ sheetScratchCell: at });
   });
 
@@ -22370,7 +22651,7 @@
       // A bare square of the exercise page: start writing on it, the way one
       // scribbles on the squared paper of a workbook. (Only the paper itself is
       // a free square — everything drawn on the page covers its own.)
-      if (state.sheetDialog && event.target.classList
+      if (sheetPageOpen() && event.target.classList
           && event.target.classList.contains("sheet-paper")) {
         event.preventDefault();
         return setState({ sheetScratchCell: sheetSquareAt(event.target, event.clientX, event.clientY) });
@@ -22378,7 +22659,7 @@
       // A square the learner has already written in opens again for editing.
       // What the PAGE itself wrote — an instruction's bits, a hint's note, a
       // heading — is not the learner's to edit, and carries no such handle.
-      if (state.sheetDialog && event.target.closest) {
+      if (sheetPageOpen() && event.target.closest) {
         const written = event.target.closest(".sheet-scratch[data-sheet-scratch]");
         if (written) {
           event.preventDefault();
@@ -22766,6 +23047,7 @@
       if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
       if (object && object.opens === "instruction-sheet") return openInstructionSheet();
       if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
+      if (object && object.opens === "program-sheet") return openProgramSheet();
       if (object && object.opens === "free-workbench") return openRoomWorkbench();
       return setState({ panelObjectDialog: objectId }, false);
     }
@@ -22794,6 +23076,27 @@
     if (action === "sheet-workbench") return openSheetWorkbench();
     if (action === "sheet-workbench-return") return returnFromSheetWorkbench();
     if (action === "sheet-close") return setState({ sheetDialog: null });
+    // The 4.3 programming page.
+    if (action === "program-intro-ok") return setState({ programIntroSeen: true, programDialog: { intro: false } });
+    if (action === "program-panel-toggle") {
+      const panel = button.dataset.panel;
+      const panels = programPanelsState();
+      if (!Object.prototype.hasOwnProperty.call(panels, panel)) return;
+      return setProgramPanels({ [panel]: !panels[panel] });
+    }
+    if (action === "program-guide-prev" || action === "program-guide-next") {
+      const pages = instructionGuidePages();
+      const { guidePage } = programPanelsState();
+      const next = Math.min(Math.max(guidePage + (action === "program-guide-next" ? 1 : -1), 0), Math.max(pages.length - 1, 0));
+      if (next === guidePage) return;
+      return setProgramPanels({ guidePage: next });
+    }
+    if (action === "program-clear-open") return setState({ programClearConfirm: true });
+    if (action === "program-clear-cancel") return setState({ programClearConfirm: null });
+    if (action === "program-clear-confirm") {
+      return setState({ programSheet: { scratch: {} }, programClearConfirm: null, sheetScratchCell: null });
+    }
+    if (action === "program-close") return setState({ programDialog: null, sheetScratchCell: null });
     if (action === "sheet-result-ok") {
       // The last instruction checked out: the page is done, so close it and walk
       // on to the next slide. (The work stays saved — coming back to the note,

@@ -1070,10 +1070,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     prgPort: { label: "PRG", note: "בס ברוחב 16 שמחזיק את הפקודה שרוצים לכתוב לזיכרון התוכנה. המחשב מתעלם ממנו כל עוד הריסט לא לחוץ." },
     prgAdrPort: { label: "ADR PRG", note: "בס ברוחב 16 שאומר לאיזו כתובת בזיכרון התוכנה נכתבת הפקודה." },
     resetSwitch: { label: "המפסק של הריסט", note: "כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
-    // The description of the program to be written, left on the table. The
-    // description itself is not written yet, so it says so instead of opening
-    // an empty page.
-    programNote: { label: "הפתק", todo: "המשך יבוא..." }
+    // The description of the program to be written, left on the table: it opens
+    // the 4.3 programming page.
+    programNote: { label: "הפתק", opens: "program-sheet" }
   };
 
   // The build tasks of chapter 4.1, to be done in this order. None of them has a
@@ -1329,3 +1328,58 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       ]
     }
   ];
+
+  // ---- Chapter 4.3, the programming page ----------------------------------
+  // The task itself, shown first as a dialog and then as the window in the
+  // bottom-left corner of the page.
+  const PROGRAM_TASK = {
+    title: "משימת תכנות",
+    text: "כתוב תוכנה שמכפילה את הערך בקלט In0 ב-8 וכותבת את התוצאה ב-Out0."
+  };
+
+  // "מבנה הזיכרון": which address is what, as the RAM card was built in 3.4 —
+  // 0-1023 are its own registers, and the eight ports sit above them: the first
+  // four are the ones the computer writes out through, the last four the ones it
+  // can only read from.
+  const PROGRAM_MEMORY_MAP = {
+    title: "מבנה הזיכרון",
+    items: [
+      "כתובות 0-1023  --  זיכרון",
+      "כתובות 1024-1027  --  פלט",
+      "כתובות 1028-1031  --  קלט"
+    ]
+  };
+
+  // "פקודות חישוב ב-ALU1": the six control bits (bits 7-12 of the instruction)
+  // for the calculations worth having at hand. Bit by bit, left to right:
+  // Not on the result, And/plus, Not and zero on the second input, Not and zero
+  // on the first — exactly the ALU1 the learner built in 2.6.
+  const ALU1_OPERATIONS = {
+    title: "פקודות חישוב ב-ALU1",
+    columns: ["הפעולה", "ההוראה"],
+    rows: [
+      { op: "0", bits: "010101" },
+      { op: "1", bits: "111111" },
+      { op: "-1", bits: "010111" },
+      { op: "D", bits: "001100" },
+      { op: "X", bits: "000011" },
+      { op: "!D", bits: "101100" },
+      { op: "!X", bits: "100011" },
+      { op: "-D", bits: "111100" },
+      { op: "-X", bits: "110011" },
+      { op: "D+1", bits: "111110" },
+      { op: "X+1", bits: "111011" },
+      { op: "D-1", bits: "011100" },
+      { op: "X-1", bits: "010011" },
+      { op: "D+X", bits: "010000" },
+      { op: "D-X", bits: "110010" },
+      { op: "X-D", bits: "111000" },
+      { op: "D&X", bits: "000000" },
+      { op: "D|X", bits: "101010" }
+    ],
+    noteTitle: "הערה:",
+    note: [
+      "D הוא הכניסה הראשונה של ה-ALU (כי היא תמיד תהיה התוכן של רגיסטר D).",
+      "X מסמן את הכניסה השנייה (הוא יכול להיות A או *A לפי הביט הסמוך לפקודת ה-ALU)."
+    ]
+  };

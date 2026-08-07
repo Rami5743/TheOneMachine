@@ -5450,3 +5450,106 @@ object.panel-image.is-pending {
   justify-content: flex-end;
   margin-bottom: 0.4rem;
 }
+
+/* ---- Chapter 4.3: the programming page ---------------------------------- */
+/* Its reference windows are the same little folding windows as "מבנה הפקודה"
+   on the 4.1 page, only parked rather than dragged: the task in the bottom-left
+   corner, and the other three stacked up from the bottom-right one. Unlike the
+   paged window they carry, they are as tall as what is in them. */
+.prog-window {
+  position: static;
+  inset: auto;
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+.prog-window .sheet-guide-body {
+  height: auto;
+  max-height: 47vh;
+}
+
+.prog-windows {
+  position: fixed;
+  right: 18px;
+  bottom: 16px;
+  z-index: 215;
+  width: min(24rem, 27vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  direction: rtl;
+  max-height: calc(100vh - var(--topbar-h) - 26px);
+  overflow-y: auto;
+}
+
+/* The paper keeps clear of both corners' windows, so the instruction wing (at
+   the right edge of a right-to-left page) is never hidden under them. */
+.sheet-overlay-prog .sheet-scroll {
+  padding-inline-start: min(25rem, 28vw);
+  padding-inline-end: min(23rem, 25vw);
+}
+
+.prog-window-task {
+  position: fixed;
+  left: 18px;
+  bottom: 16px;
+  top: auto;
+  z-index: 215;
+  width: min(22rem, 24vw);
+}
+
+.prog-task-text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: #241d12;
+}
+
+.prog-map-list,
+.prog-alu-note ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 4px;
+  font-size: 0.96rem;
+  line-height: 1.45;
+  color: #241d12;
+}
+
+.prog-alu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  color: #241d12;
+}
+
+.prog-alu-table th,
+.prog-alu-table td {
+  border: 1px solid #6b5a3a;
+  padding: 1px 6px;
+  text-align: center;
+}
+
+.prog-alu-table th { background: #efe4c8; font-weight: 800; }
+.prog-alu-op { font-weight: 700; }
+.prog-alu-bits { font-family: "Courier New", monospace; letter-spacing: 0.12em; }
+
+.prog-alu-note {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #6b5a3a;
+  font-size: 0.9rem;
+  color: #241d12;
+}
+
+.prog-alu-note strong { display: block; margin-bottom: 3px; }
+
+.prog-intro-title {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* The paged window keeps its fixed body height, so it does not jump as the
+   pages change (the same reason it has one on the 4.1 page). */
+.prog-window-guide .sheet-guide-body { height: 320px; max-height: 40vh; }
