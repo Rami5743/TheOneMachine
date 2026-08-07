@@ -8,10 +8,10 @@
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
      preserveAspectRatio="none" href="236_4.3_fantastic.jpg" xlink:href="236_4.3_fantastic.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 482.68338,40 H 1064.48831 C 1077.49611,40 1084,47.33333 1084,62 V 138.5 C 1084,153.16667 1077.4961,160.5 1064.48831,160.5 H 482.68338 C 469.67558,160.5 463.17169,153.16667 463.17169,138.5 V 123.23 L 417.64302,129.92 L 463.17169,101.21 V 62 C 463.17169,47.33333 469.67558,40 482.68338,40 Z" fill="#ffffff" stroke="#000000"
+    <path id="speech-bubble" d="M 482.68338,40 H 1064.48831 C 1077.49611,40 1084,47.33333 1084,62 V 239.5 C 1084,254.16667 1077.4961,261.5 1064.48831,261.5 H 482.68338 C 469.67558,261.5 463.17169,254.16667 463.17169,239.5 V 123.23 L 417.64302,129.92 L 463.17169,101.21 V 62 C 463.17169,47.33333 469.67558,40 482.68338,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="773.5858450000001" y="80" id="tspan1">כאן יש את התיאור של התוכנה שתצטרך</tspan><tspan x="773.5858450000001" y="130.5" id="tspan2">לכתוב. בהצלחה!</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="773.5858450000001" y="80" id="tspan1">כאן יש את התיאור של התוכנה שתצטרך</tspan><tspan x="773.5858450000001" y="130.5" id="tspan2">לכתוב. אני שמתי לך גם טבלה שאומרת לך</tspan><tspan x="773.5858450000001" y="181" id="tspan3">איך לעשות כמה חישובים נפוצים ב-ALU.</tspan><tspan x="773.5858450000001" y="231.5" id="tspan4">בהצלחה!</tspan></text>
   </g>
 </svg>

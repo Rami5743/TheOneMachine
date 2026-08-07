@@ -2337,10 +2337,10 @@ const SCENES = {
         "read": ""
       },
       {
-        "comment": "The description is on the table — and the learner is on their own.",
+        "comment": "The description is on the table, with a table of common ALU calculations beside it.",
         "image": "assets/panels/243_4.3_here-is-the-description.svg",
         "year": "1944",
-        "read": "כאן יש את התיאור של התוכנה שתצטרך לכתוב. בהצלחה!"
+        "read": "כאן יש את התיאור של התוכנה שתצטרך לכתוב. אני שמתי לך גם טבלה שאומרת לך איך לעשות כמה חישובים נפוצים ב-ALU. בהצלחה!"
       },
       {
         "comment": "Wordless: the room, with the computer built and the description on the table.",
