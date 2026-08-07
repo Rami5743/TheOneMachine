@@ -35,7 +35,11 @@ function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT) {
+// A bubble can instead point at a given spot on the art (the speaker's mouth).
+// The tail then leaves the LEFT edge near the BOTTOM of the bubble and runs to
+// that point, so a bubble parked in the top-right corner still speaks to a
+// figure standing lower and further left.
+function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
   const CX = (LEFT + RIGHT) / 2;
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
@@ -44,14 +48,24 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT) {
   // bubble (one or two lines) that distance runs past the bottom corner, and the
   // tail comes out below the bubble pointing at nothing — so it slides up until
   // it fits between the two corners.
-  let up = TAIL_UPPER, low = TAIL_LOWER, tip = TAIL_TIP;
-  const maxLow = (bottom - RY) - TOP;
-  if (low > maxLow) { const d = low - maxLow; up -= d; low -= d; tip -= d; }
-  if (up < RY) { const d = RY - up; up += d; low += d; tip += d; }
-  const tailUpperY = TOP + up;
-  const tailLowerY = TOP + low;
-  const tipX = LEFT - TAIL_DX;
-  const tipY = TOP + tip;
+  let tailUpperY, tailLowerY, tipX, tipY;
+  if (tip) {
+    // Aimed at a point on the art: the base sits just above the bottom-left
+    // corner, however many lines the bubble holds.
+    tailLowerY = Math.max(TOP + RY + 30, bottom - RY - 12);
+    tailUpperY = Math.max(TOP + RY, tailLowerY - 52);
+    tipX = Number(tip.x);
+    tipY = Number(tip.y);
+  } else {
+    let up = TAIL_UPPER, low = TAIL_LOWER, at = TAIL_TIP;
+    const maxLow = (bottom - RY) - TOP;
+    if (low > maxLow) { const d = low - maxLow; up -= d; low -= d; at -= d; }
+    if (up < RY) { const d = RY - up; up += d; low += d; at += d; }
+    tailUpperY = TOP + up;
+    tailLowerY = TOP + low;
+    tipX = LEFT - TAIL_DX;
+    tipY = TOP + at;
+  }
   const r = (v) => Number(v.toFixed(5));
   // Rounded rectangle with soft cubic corners; the left edge is interrupted by the
   // slim tail between tailLowerY and tailUpperY.
@@ -91,11 +105,12 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT) {
 `;
 }
 
-const [outPath, jpg, linesArg, leftArg, rightArg] = process.argv.slice(2);
+const [outPath, jpg, linesArg, leftArg, rightArg, tipArg] = process.argv.slice(2);
 if (!outPath || !jpg || !linesArg) {
-  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right]');
+  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right] [tipX,tipY]');
   process.exit(1);
 }
 const lines = linesArg.split("|");
-fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined));
+const tip = tipArg ? { x: Number(tipArg.split(",")[0]), y: Number(tipArg.split(",")[1]) } : null;
+fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined, tip));
 console.log("wrote", outPath, "(" + lines.length + " lines)");

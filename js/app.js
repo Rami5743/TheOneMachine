@@ -5565,7 +5565,15 @@
   // a bidi ISOLATE (U+2066 … U+2069) pins each one to itself, so the commas and
   // dashes stay in the Hebrew flow and the list reads right to left as written.
   function isolateLatinRuns(text) {
-    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.]*/g, "\u2066$&\u2069");
+    // A dot INSIDE a run belongs to it ("ALU3/4", "1.5"); one at its END is the
+    // Hebrew sentence's full stop and must stay outside the isolate — inside it
+    // the dot is carried to the isolate's right edge and lands between "ב-" and
+    // the word ("ב-.Out0" instead of "ב-Out0.").
+    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.]*/g, (run) => {
+      const trail = /[./]+$/.exec(run);
+      const core = trail ? run.slice(0, run.length - trail[0].length) : run;
+      return `\u2066${core}\u2069${trail ? trail[0] : ""}`;
+    });
   }
 
   function sheetHintsFor(row) {
@@ -6278,8 +6286,13 @@
     const saved = programPanelsState().pos || {};
     const byName = (name) => wins.find((win) => win.dataset.progWindow === name);
     const PAD = 16;
-    const ceiling = (document.querySelector(".topbar")?.getBoundingClientRect().bottom || 0) + 8;
-    let y = window.innerHeight - PAD;
+    // They live on the paper, not over the whole screen: the row of buttons at
+    // the foot of the page stays clear.
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-scroll");
+    const area = paper ? paper.getBoundingClientRect()
+      : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
+    const ceiling = area.top + PAD;
+    let y = area.bottom - PAD;
     ["guide", "memory", "alu"].forEach((name) => {
       const win = byName(name);
       if (!win || saved[name]) return;
@@ -6298,7 +6311,7 @@
       y -= height;
       win.style.right = "auto";
       win.style.bottom = "auto";
-      win.style.left = `${PAD}px`;
+      win.style.left = `${Math.round(area.left + PAD)}px`;
       win.style.top = `${Math.max(ceiling, Math.round(y))}px`;
       y -= 8;
     });
@@ -6307,8 +6320,8 @@
       const rect = task.getBoundingClientRect();
       task.style.right = "auto";
       task.style.bottom = "auto";
-      task.style.left = `${Math.round(window.innerWidth - PAD - rect.width)}px`;
-      task.style.top = `${Math.max(ceiling, Math.round(window.innerHeight - PAD - rect.height))}px`;
+      task.style.left = `${Math.round(area.right - PAD - rect.width)}px`;
+      task.style.top = `${Math.max(ceiling, Math.round(area.bottom - PAD - rect.height))}px`;
     }
   }
 
@@ -6323,8 +6336,11 @@
     if (!card || reduceMotion) return seat();
     const rect = card.getBoundingClientRect();
     const scale = 0.4;
-    const targetCX = window.innerWidth - 16 - (rect.width * scale) / 2;
-    const targetCY = window.innerHeight - 16 - (rect.height * scale) / 2;
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-scroll");
+    const area = paper ? paper.getBoundingClientRect()
+      : { bottom: window.innerHeight, right: window.innerWidth };
+    const targetCX = area.right - 16 - (rect.width * scale) / 2;
+    const targetCY = area.bottom - 16 - (rect.height * scale) / 2;
     const dx = Math.round(targetCX - (rect.left + rect.width / 2));
     const dy = Math.round(targetCY - (rect.top + rect.height / 2));
     card.style.pointerEvents = "none";
