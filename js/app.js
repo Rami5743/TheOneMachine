@@ -1828,6 +1828,12 @@
     // Whether the task has been read once: the first opening shows it as a
     // dialog, and from then on it is only the window in the corner.
     programIntroSeen: false,
+    // The assembler beside the ALU table: whether he has ever been clicked (he
+    // stops asking for attention once he has), whether the arrow over him is up
+    // right now, and his open bubble.
+    assemblerMet: false,
+    assemblerHint: false,
+    programAssembler: null,
     // The scratch table of the exercise page ("רוצה לבדוק כרטיסים?").
     // It is the page's OWN workbench: kept in its own slot so returning to the
     // page finds the table exactly as it was left, and so it neither disturbs nor
@@ -2998,6 +3004,8 @@
       sheetScratchCell: null,
       programDialog: null,
       programClearConfirm: null,
+      programAssembler: null,
+      assemblerHint: false,
       buildNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
@@ -3243,7 +3251,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, assemblerHint: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6315,6 +6323,15 @@
       win.style.top = `${Math.max(ceiling, Math.round(y))}px`;
       y -= 8;
     });
+    // The assembler stands on the paper just to the right of the ALU table.
+    const alu = byName("alu");
+    const figure = app.querySelector(".assembler");
+    if (figure && alu) {
+      const aluRect = alu.getBoundingClientRect();
+      const figRect = figure.getBoundingClientRect();
+      figure.style.left = `${Math.round(aluRect.right + 26)}px`;
+      figure.style.top = `${Math.round(Math.min(aluRect.bottom - figRect.height, area.bottom - PAD - figRect.height))}px`;
+    }
     const task = byName("task");
     if (task && !saved.task) {
       const rect = task.getBoundingClientRect();
@@ -6358,11 +6375,13 @@
   }
 
   function openProgramSheet() {
-    return setState({
+    const opened = setState({
       panelObjectDialog: null,
       programSheet: programSheetProgress(),
       programDialog: { intro: !state.programIntroSeen }
     });
+    startAssemblerHintTimer();
+    return opened;
   }
 
   function programWindowHead(title, panel, open) {
@@ -6520,6 +6539,151 @@
       </div>`;
   }
 
+
+  // ---- The assembler -------------------------------------------------------
+  // A small fellow standing on the page beside the table of ALU calculations.
+  // Clicking him opens his bubble (three pages, paged at its foot); if he is
+  // left alone for a minute an arrow bounces over him — once he has been
+  // clicked, that never happens again.
+  const ASSEMBLER_HINT_DELAY = 60000;
+  let assemblerHintTimer = null;
+
+  function assemblerPages() {
+    return typeof ASSEMBLER_PAGES !== "undefined" ? ASSEMBLER_PAGES : [];
+  }
+
+  function clearAssemblerHintTimer() {
+    if (assemblerHintTimer === null) return;
+    window.clearTimeout(assemblerHintTimer);
+    assemblerHintTimer = null;
+  }
+
+  function startAssemblerHintTimer() {
+    clearAssemblerHintTimer();
+    if (state.assemblerMet) return;
+    assemblerHintTimer = window.setTimeout(() => {
+      assemblerHintTimer = null;
+      if (!state.programDialog || state.assemblerMet) return;
+      setState({ assemblerHint: true });
+    }, ASSEMBLER_HINT_DELAY);
+  }
+
+  function openAssembler() {
+    clearAssemblerHintTimer();
+    return setState({ assemblerMet: true, assemblerHint: false, programAssembler: { page: 0 } });
+  }
+
+  function stepAssembler(delta) {
+    const pages = assemblerPages();
+    const page = Number(state.programAssembler?.page) || 0;
+    const next = Math.min(Math.max(page + delta, 0), Math.max(pages.length - 1, 0));
+    if (next === page) return;
+    return setState({ programAssembler: { page: next } });
+  }
+
+  // Drawn rather than photographed: a red pointed cap, a white beard, a blue
+  // tunic and a pair of boots, with enough shading to sit on the paper.
+  const ASSEMBLER_FIGURE = `
+    <svg viewBox="0 0 120 170" width="100%" height="100%" aria-hidden="true">
+      <defs>
+        <linearGradient id="gnome-hat" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#c8362c" />
+          <stop offset="0.55" stop-color="#a52a22" />
+          <stop offset="1" stop-color="#71190f" />
+        </linearGradient>
+        <linearGradient id="gnome-coat" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5b7ea1" />
+          <stop offset="0.6" stop-color="#3f5f80" />
+          <stop offset="1" stop-color="#2b425a" />
+        </linearGradient>
+        <radialGradient id="gnome-beard" cx="0.42" cy="0.3" r="0.8">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="0.65" stop-color="#e7e3da" />
+          <stop offset="1" stop-color="#c2bcb0" />
+        </radialGradient>
+        <radialGradient id="gnome-nose" cx="0.35" cy="0.32" r="0.75">
+          <stop offset="0" stop-color="#f0c3a4" />
+          <stop offset="1" stop-color="#c98f6c" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="60" cy="163" rx="34" ry="6" fill="rgba(0,0,0,0.22)" />
+      <path d="M60 96 C40 96 30 112 28 132 C27 143 30 152 34 156 L86 156 C90 152 93 143 92 132 C90 112 80 96 60 96 Z"
+            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="2" stroke-linejoin="round" />
+      <path d="M31 138 L89 138 L88 147 L32 147 Z" fill="#6b4a24" stroke="#3f2a11" stroke-width="1.6" />
+      <rect x="53" y="137" width="14" height="12" rx="2.5" fill="#d7b25a" stroke="#8a6c22" stroke-width="1.6" />
+      <path d="M36 156 L52 156 L52 164 C52 166 50 167 47 167 L41 167 C38 167 36 166 36 164 Z"
+            fill="#4a3218" stroke="#2c1c09" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M68 156 L84 156 L84 164 C84 166 82 167 79 167 L73 167 C70 167 68 166 68 164 Z"
+            fill="#4a3218" stroke="#2c1c09" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M30 118 C22 122 18 130 19 138 C19 141 23 142 25 139 C27 133 30 128 33 125 Z"
+            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M90 118 C98 122 102 130 101 138 C101 141 97 142 95 139 C93 133 90 128 87 125 Z"
+            fill="url(#gnome-coat)" stroke="#22364a" stroke-width="1.8" stroke-linejoin="round" />
+      <path d="M60 84 C42 84 32 98 32 114 C32 130 42 142 60 142 C78 142 88 130 88 114 C88 98 78 84 60 84 Z"
+            fill="url(#gnome-beard)" stroke="#a49c8e" stroke-width="1.6" />
+      <path d="M42 96 C46 116 52 130 60 138 C68 130 74 116 78 96 C72 104 66 108 60 108 C54 108 48 104 42 96 Z"
+            fill="#f3f0e8" opacity="0.75" />
+      <path d="M40 84 C40 72 48 64 60 64 C72 64 80 72 80 84 C80 90 74 94 60 94 C46 94 40 90 40 84 Z"
+            fill="#f0c9ac" stroke="#c79974" stroke-width="1.5" />
+      <ellipse cx="60" cy="92" rx="10" ry="9" fill="url(#gnome-nose)" stroke="#b6805e" stroke-width="1.4" />
+      <circle cx="50" cy="80" r="2.6" fill="#31221a" />
+      <circle cx="70" cy="80" r="2.6" fill="#31221a" />
+      <circle cx="50.9" cy="79.1" r="0.9" fill="#ffffff" />
+      <circle cx="70.9" cy="79.1" r="0.9" fill="#ffffff" />
+      <path d="M44 73 C47 70 52 70 55 72" fill="none" stroke="#8a7a63" stroke-width="2" stroke-linecap="round" />
+      <path d="M65 72 C68 70 73 70 76 73" fill="none" stroke="#8a7a63" stroke-width="2" stroke-linecap="round" />
+      <path d="M30 70 C30 70 40 16 60 8 C80 16 90 70 90 70 C78 76 42 76 30 70 Z"
+            fill="url(#gnome-hat)" stroke="#5e1409" stroke-width="2" stroke-linejoin="round" />
+      <path d="M60 8 C50 20 44 44 40 68 C46 70 52 71 58 71 C56 46 57 24 60 8 Z"
+            fill="#ffffff" opacity="0.13" />
+      <ellipse cx="60" cy="71" rx="30" ry="6" fill="#8f231a" stroke="#5e1409" stroke-width="1.6" />
+    </svg>`;
+
+  function renderAssemblerBubble() {
+    const pages = assemblerPages();
+    const open = state.programAssembler;
+    if (!open || !pages.length) return "";
+    const page = Math.min(Math.max(Number(open.page) || 0, 0), pages.length - 1);
+    const body = (pages[page] || []).map((block) => {
+      if (Array.isArray(block.ul)) {
+        return `<ul class="assembler-list">${block.ul.map((line) =>
+          `<li>${esc(isolateLatinRuns(line))}</li>`).join("")}</ul>`;
+      }
+      if (Array.isArray(block.dash)) {
+        return `<ul class="assembler-dashes">${block.dash.map((line) =>
+          `<li>${esc(isolateLatinRuns(line))}</li>`).join("")}</ul>`;
+      }
+      return `<p>${esc(isolateLatinRuns(block.p || ""))}</p>`;
+    }).join("");
+    return `
+      <section class="assembler-bubble" role="dialog" aria-label="אסמבלר">
+        <button class="assembler-close" data-action="assembler-close" type="button" aria-label="סגירה">×</button>
+        <div class="assembler-bubble-body">${body}</div>
+        <div class="assembler-bubble-foot">
+          ${navButton("assembler-prev", "arrow-right", "הקודם", { disabled: page === 0 })}
+          <span class="sheet-guide-count" dir="ltr">${page + 1} / ${pages.length}</span>
+          ${navButton("assembler-next", "arrow-left", "המשך", { primary: true, disabled: page >= pages.length - 1 })}
+        </div>
+      </section>`;
+  }
+
+  function renderAssembler() {
+    if (!state.programDialog || (state.programDialog && state.programDialog.intro)) return "";
+    const hint = state.assemblerHint && !state.assemblerMet
+      ? `<div class="sheet-wb-arrow assembler-arrow" aria-hidden="true">
+           <svg viewBox="0 0 24 24" width="46" height="46">
+             <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+         </div>`
+      : "";
+    return `
+      <div class="assembler" data-assembler>
+        ${hint}
+        <button class="assembler-figure" data-action="assembler-open" type="button" aria-label="אסמבלר">${ASSEMBLER_FIGURE}</button>
+        ${renderAssemblerBubble()}
+      </div>`;
+  }
+
   function renderProgramSheet() {
     if (!state.programDialog) return "";
     const cells = [];
@@ -6568,6 +6732,7 @@
         ${renderProgramAluWindow()}
         ${renderProgramMemoryWindow()}
         ${renderProgramGuideWindow()}
+        ${renderAssembler()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -23209,7 +23374,14 @@
     if (action === "program-clear-confirm") {
       return setState({ programSheet: { scratch: {} }, programClearConfirm: null, sheetScratchCell: null });
     }
-    if (action === "program-close") return setState({ programDialog: null, sheetScratchCell: null });
+    if (action === "program-close") {
+      clearAssemblerHintTimer();
+      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null });
+    }
+    if (action === "assembler-open") return openAssembler();
+    if (action === "assembler-close") return setState({ programAssembler: null });
+    if (action === "assembler-prev") return stepAssembler(-1);
+    if (action === "assembler-next") return stepAssembler(1);
     if (action === "sheet-result-ok") {
       // The last instruction checked out: the page is done, so close it and walk
       // on to the next slide. (The work stays saved — coming back to the note,

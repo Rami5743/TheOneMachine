@@ -5559,3 +5559,106 @@ object.panel-image.is-pending {
   font-size: calc(var(--sq, 26px) * 0.56);
   color: #241d12;
 }
+
+/* ---- The assembler ------------------------------------------------------- */
+/* He stands on the paper beside the ALU table; layoutProgramWindows() puts him
+   there. His bubble opens to his right, with its tail pointing back at him. */
+.assembler {
+  position: fixed;
+  z-index: 214;
+  width: 112px;
+  height: 158px;
+}
+
+.assembler-figure {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.assembler-figure:hover,
+.assembler-figure:focus-visible { transform: translateY(-3px) scale(1.04); }
+
+.assembler-arrow {
+  position: absolute;
+  left: 50%;
+  top: -54px;
+  margin-left: -23px;
+}
+
+.assembler-bubble {
+  position: absolute;
+  left: 100%;
+  bottom: 4px;
+  margin-left: 18px;
+  width: min(27rem, 30vw);
+  padding: 22px 14px 8px;
+  border: 2px solid #3a2c17;
+  border-radius: 14px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  direction: rtl;
+  color: #241d12;
+  font-size: 0.97rem;
+  line-height: 1.5;
+}
+
+/* The tail: a small triangle off the bubble's bottom-left, pointing at him. */
+.assembler-bubble::before,
+.assembler-bubble::after {
+  content: "";
+  position: absolute;
+  left: -18px;
+  bottom: 16px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 9px 18px 9px 0;
+  border-color: transparent #3a2c17 transparent transparent;
+}
+
+.assembler-bubble::after {
+  left: -14px;
+  border-color: transparent #fbf6e6 transparent transparent;
+}
+
+.assembler-bubble-body { max-height: 46vh; overflow-y: auto; }
+.assembler-bubble-body p { margin: 0 0 8px; }
+
+.assembler-list,
+.assembler-dashes {
+  margin: 0 0 8px;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 6px;
+}
+
+.assembler-dashes { list-style: none; padding-inline-start: 0.4rem; }
+.assembler-dashes li::before { content: "– "; }
+
+.assembler-bubble-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #cdbf9d;
+}
+
+.assembler-close {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  border: none;
+  background: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #6b5a3a;
+  cursor: pointer;
+}
+
+.assembler-close:hover { color: #241d12; }
