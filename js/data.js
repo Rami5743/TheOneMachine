@@ -128,6 +128,12 @@ const CHAPTERS = [
     "partId": "part-4",
     "title": "4.2 בניית מחשב פשוט",
     "sceneId": "build-simple-computer"
+  },
+  {
+    "id": "chapter-18",
+    "partId": "part-4",
+    "title": "4.3 תכנות פשוט",
+    "sceneId": "simple-programming"
   }
 ];
 
@@ -1139,7 +1145,9 @@ const SCENES = {
         "comment": "Reached once all five RAM cards are built: von Neumann back in the doorway (panel131's art, as in panel138/139). What 1000 registers are worth.",
         "image": "assets/panels/160_3.3_ram-thousand.svg",
         "year": "1943",
-        "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי."
+        "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי.",
+        "unlocksExplanation": "ram-story",
+        "announceExplanationLater": true
       },
       {
         "comment": "What the name RAM means, and why it is a silly one.",
@@ -1151,7 +1159,7 @@ const SCENES = {
         "comment": "The alternative: paper tape — cheap and big, but you cannot jump about in it.",
         "image": "assets/panels/162_3.3_ram-paper-tape.svg",
         "year": "1943",
-        "read": "יש לנו זיכרונות אחרים גדולים וזולים יותר, אבל אין להם את התכונה של גישה ישירה. למשל יש לנו סלילי נייר עליהם יש שורות שורות של נקבים. 16 מקומות לנקב בכל שורה, אך לא כל 16 המקומות מנוקבים. יש לנו מכשיר שאפשר להעביר דרכו את הסליל ובכל שורה הוא בודק איפה יש את הנקבים (לפי איפה שעובר החשמל; הנייר לא נותן לחשמל לעבור) ומוציא את המידע הזה לבס של 16 כבלים. אפשר להזין את המידע הזה למכונות חישוב כמו ה-ALU למשל. אם רוצים לעבור על כל השורות מהתחלה ועד הסוף, זה אפילו די מהיר (יותר איטי מהזיכרון שלנו, בגלל שזה מכני ולא חשמלי אבל עדיין סביר). אולם אם רוצים לגשת למקום ספציפי זה נהיה בעייתי, צריך לגלגל חלק ניכר מהסליל כדי להגיע למקום הרצוי. אם כל פעם רוצים לקפוץ לאיזור אחר בסליל זה נהיה לא מעשי בכלל. ב-RAM שלנו לעומת זאת, זה פשוט מאוד."
+        "read": "יש לנו זיכרונות אחרים גדולים וזולים יותר, אבל אין להם את התכונה של גישה ישירה. למשל יש לנו סרטי נייר עליהם יש שורות שורות של נקבים. 16 מקומות לנקב בכל שורה, אך לא כל 16 המקומות מנוקבים. יש לנו מכשיר שאפשר להעביר דרכו את הסרט ובכל שורה הוא בודק איפה יש את הנקבים (לפי איפה שעובר החשמל; הנייר לא נותן לחשמל לעבור) ומוציא את המידע הזה לבס של 16 כבלים. אפשר להזין את המידע הזה למכונות חישוב כמו ה-ALU למשל. אם רוצים לעבור על כל השורות מהתחלה ועד הסוף, זה אפילו די מהיר (יותר איטי מהזיכרון שלנו, בגלל שזה מכני ולא חשמלי אבל עדיין סביר). אולם אם רוצים לגשת למקום ספציפי זה נהיה בעייתי, צריך לגלגל חלק ניכר מהסרט כדי להגיע למקום הרצוי. אם כל פעם רוצים לקפוץ לאיזור אחר בסרט נייר זה נהיה לא מעשי בכלל. ב-RAM שלנו לעומת זאת, זה פשוט מאוד."
       },
       {
         "comment": "The rest of the trade: easy to write to, expensive to make, and volatile.",
@@ -1397,7 +1405,8 @@ const SCENES = {
         "comment": "What is left: turning the ALU into a processor.",
         "image": "assets/panels/188_4.1_alu-to-cpu.svg",
         "year": "1944",
-        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות."
+        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות.",
+        "unlocksExplanation": "computer-structure"
       },
       {
         "comment": "The fetch-execute cycle: processor and memory feed each other, forever.",
@@ -2277,6 +2286,224 @@ const SCENES = {
             "top": 66.5,
             "width": 10.5,
             "height": 9.5
+          }
+        ]
+      }
+    ]
+  },
+  "simple-programming": {
+    "id": "simple-programming",
+    "type": "story",
+    "chapterId": "chapter-18",
+    "year": "1944",
+    "panels": [
+      {
+        "comment": "The simple computer stands — but it is not yet THE one machine.",
+        "image": "assets/panels/236_4.3_fantastic.svg",
+        "year": "1944",
+        "read": "פנטסטי! יש לנו מחשב פשוט. זו עדיין לא המכונה האחת שתחליף את כולן, אבל אנחנו כבר קרובים."
+      },
+      {
+        "comment": "The tests written on the exercise page are not enough — the whole process needs checking.",
+        "image": "assets/panels/237_4.3_not-enough-tests.svg",
+        "year": "1944",
+        "read": "אנחנו צריכים לבדוק אותו טוב טוב לפני שאנחנו מתקדמים. הבדיקות שכתבת קודם הם טובות אבל לא מספיקות. אנחנו רוצים לכתוב תוכנה שתבדוק גם את הקלט והפלט ובכלל את כל התהליך מהתחלה ועד הסוף."
+      },
+      {
+        "comment": "The learner writes the program: a sequence of instructions, on paper.",
+        "image": "assets/panels/238_4.3_you-will-write.svg",
+        "year": "1944",
+        "read": "אתה תכתוב את התוכנה הזאת. זאת אומרת שאתה תכתוב על דף את רצף הפקודות של התוכנה."
+      },
+      {
+        "comment": "The two devices: a puncher for 16-hole rows, and a reader that puts a coil out on two buses.",
+        "image": "assets/panels/239_4.3_punch-and-reader.svg",
+        "year": "1944",
+        "read": "אני אתן לך מכשיר שמנקב סרטי נייר בשורות נקבים באורך 16 כל אחת. אני גם אתן לך מכשיר שקורא כאלה סרטים ומוציא את התוכן שלהם לשני באסים."
+      },
+      {
+        "comment": "The reader's buses go to Prg-Adr / Prg — and the reset must be held while loading.",
+        "image": "assets/panels/240_4.3_connect-the-buses.svg",
+        "year": "1944",
+        "read": "אתה תחבר את הבאסים האלה לבאסים שכותבים בזיכרון התוכנה. אל תשכח לוודא שה-reset לחוץ בזמן שאתה מזין את המחשב בתוכנה."
+      },
+      {
+        "comment": "Release the reset and the machine starts computing by the instructions.",
+        "image": "assets/panels/241_4.3_release-the-reset.svg",
+        "year": "1944",
+        "read": "לבסוף תשחרר את ה-reset ונראה שהמכונה מחשבת לפי ההוראות."
+      },
+      {
+        "comment": "Wordless: he lays the description of the program to be written on the worktable.",
+        "image": "assets/panels/242_4.3_paper-placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The description is on the table, with a table of common ALU calculations beside it.",
+        "image": "assets/panels/243_4.3_here-is-the-description.svg",
+        "year": "1944",
+        "read": "כאן יש את התיאור של התוכנה שתצטרך לכתוב. אני שמתי לך גם טבלה שאומרת לך איך לעשות כמה חישובים נפוצים ב-ALU. בהצלחה!"
+      },
+      {
+        "comment": "Wordless: the room, with the computer built and the description on the table.",
+        "image": "assets/panels/244_4.3_program-room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots":
+        [
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgPort",
+            "ariaLabel": "כניסת PRG",
+            "left": 61.88,
+            "top": 82.32,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgAdrPort",
+            "ariaLabel": "כניסת ADR PRG",
+            "left": 64.92,
+            "top": 81.77,
+            "width": 3.18,
+            "height": 4.79
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 69.06,
+            "top": 82.23,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.44,
+            "top": 81.31,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.52,
+            "top": 81.49,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 80.18,
+            "top": 81.68,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.77,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.04,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.78,
+            "top": 82.5,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.62,
+            "top": 82.69,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "programNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "איזור העבודה",
+            "left": 58.64,
+            "top": 87.68,
+            "width": 41.36,
+            "height": 13.43
           }
         ]
       }

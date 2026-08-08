@@ -5450,3 +5450,798 @@ object.panel-image.is-pending {
   justify-content: flex-end;
   margin-bottom: 0.4rem;
 }
+
+/* ---- Chapter 4.3: the programming page ---------------------------------- */
+/* The page itself is the whole screen (inside the game's frame), exactly like
+   the 4.1 exercise. Its four reference windows FLOAT over the squares and can be
+   dragged anywhere: the task in the bottom-right corner, and "מבנה הפקודה",
+   "מבנה הזיכרון" and the ALU table stacked up from the bottom-left one.
+   layoutProgramWindows() parks them there; a dragged one keeps its own place. */
+.prog-window {
+  position: fixed;
+  inset: auto;
+  left: 16px;
+  top: auto;
+  bottom: 16px;
+  z-index: 215;
+  width: min(34rem, 37vw);
+}
+
+.prog-window .sheet-guide-body {
+  height: auto;
+  max-height: 52vh;
+}
+
+.prog-window-task {
+  left: auto;
+  right: 16px;
+  width: min(22rem, 24vw);
+  /* What the learner is being asked for is never covered by anything else on
+     the page — it rides above every other window (the tables, the assembler,
+     both test benches and the solution walkthrough), wherever it is dragged. */
+  z-index: 250;
+}
+
+/* The paged window keeps a fixed body height, so it does not jump from page to
+   page (the same reason it has one on the 4.1 page). */
+.prog-window-guide .sheet-guide-body { height: 300px; max-height: 36vh; }
+
+.prog-task-text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: #241d12;
+}
+
+.prog-map-list,
+.prog-alu-note ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 4px;
+  font-size: 0.96rem;
+  line-height: 1.45;
+  color: #241d12;
+}
+
+.prog-alu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  color: #241d12;
+}
+
+.prog-alu-table th,
+.prog-alu-table td {
+  border: 1px solid #6b5a3a;
+  padding: 1px 6px;
+  text-align: center;
+}
+
+.prog-alu-table th { background: #efe4c8; font-weight: 800; }
+.prog-alu-op { font-weight: 700; white-space: nowrap; padding-inline: 10px; }
+.prog-alu-bits { font-family: "Courier New", monospace; letter-spacing: 0.12em; }
+
+.prog-alu-note {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #6b5a3a;
+  font-size: 0.9rem;
+  color: #241d12;
+}
+
+.prog-alu-note strong { display: block; margin-bottom: 3px; }
+
+.prog-intro-title {
+  margin: 0 0 6px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* The instruction beside each operation is written on squares the size of the
+   page's own — six of them, the way it will be copied onto the paper. */
+.prog-alu-bits { padding: 1px 3px; }
+
+.prog-alu-strip {
+  display: inline-grid;
+  grid-template-columns: repeat(6, var(--sq, 26px));
+  direction: ltr;
+  border: 1px solid #3a2c17;
+  background: #3a2c17;
+  gap: 1px;
+}
+
+.prog-alu-bit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--sq, 26px);
+  background: #fdfaf0;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--sq, 26px) * 0.56);
+  color: #241d12;
+}
+
+/* ---- The assembler ------------------------------------------------------- */
+/* He stands on the paper beside the ALU table; layoutProgramWindows() puts him
+   there. His bubble opens to his right, with its tail pointing back at him. */
+.assembler {
+  position: fixed;
+  /* Above the reference windows: he can be carried anywhere, including over
+     them, and must not disappear behind one. */
+  z-index: 218;
+  width: 112px;
+  height: 168px;
+}
+
+.assembler-figure {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: grab;
+  transition: transform 0.18s ease;
+}
+
+.assembler-figure:hover,
+.assembler-figure:focus-visible { transform: translateY(-3px) scale(1.04); }
+
+.assembler-arrow {
+  position: absolute;
+  left: 50%;
+  top: -54px;
+  margin-left: -23px;
+}
+
+.assembler-bubble {
+  position: absolute;
+  left: 100%;
+  top: 34px;
+  margin-left: 18px;
+  width: min(27rem, 30vw);
+  padding: 22px 14px 8px;
+  border: 2px solid #3a2c17;
+  border-radius: 14px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+  direction: rtl;
+  color: #241d12;
+  font-size: 0.97rem;
+  line-height: 1.5;
+}
+
+/* The tail: a small triangle off the bubble's bottom-left, pointing at him. */
+.assembler-bubble::before,
+.assembler-bubble::after {
+  content: "";
+  position: absolute;
+  left: -18px;
+  top: var(--tail-top, 34px);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 9px 18px 9px 0;
+  border-color: transparent #3a2c17 transparent transparent;
+}
+
+.assembler-bubble::after {
+  left: -14px;
+  border-color: transparent #fbf6e6 transparent transparent;
+}
+
+.assembler-bubble-body { max-height: 46vh; overflow-y: auto; }
+.assembler-bubble-body p { margin: 0 0 8px; }
+
+.assembler-list {
+  margin: 0 0 8px;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 6px;
+}
+
+.assembler-bubble-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid #cdbf9d;
+}
+
+.assembler-close {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  border: none;
+  background: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #6b5a3a;
+  cursor: pointer;
+}
+
+.assembler-close:hover { color: #241d12; }
+
+/* The assembler's red teaser: the same frame a story slide carries, parked over
+   the top-right corner of his bubble and allowed to wrap (it is a sentence, not
+   a caption). */
+.assembler-teaser {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  bottom: auto;
+  max-width: min(30rem, 34vw);
+  white-space: normal;
+  align-items: flex-start;
+  text-align: right;
+  z-index: 8;
+}
+
+.assembler-info-text a {
+  color: #b3801a;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.assembler-info-text a:hover { color: #d8a63a; }
+
+/* ---- The 4.3 program table ---------------------------------------------- */
+/* Two rows to an instruction: the assembler's merged cells on top, and under
+   them the sixteen squares that are actually written. Only the outer frame is
+   printed — the table has no foot and simply runs on down the page. */
+.prog-slot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #6b5a3a;
+  background: #f3ecd9;
+}
+
+.prog-slot-alu { background: #e8dfc4; }
+
+.prog-slot-btn {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #241d12;
+  line-height: 1;
+}
+
+.prog-slot-btn:hover { background: rgba(179, 128, 26, 0.16); }
+
+.prog-bit {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: "Courier New", monospace;
+  font-size: calc(var(--sq, 26px) * 0.56);
+  font-weight: 700;
+  color: #241d12;
+  line-height: 1;
+}
+
+.prog-bit:hover { background: rgba(179, 128, 26, 0.16); }
+
+/* The destination chooser: a small drop-down table over the cell it belongs to. */
+.prog-dest-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 12;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: calc(var(--sq, 26px) * 3);
+  border: 1px solid #3a2c17;
+  border-radius: 6px;
+  background: #fbf6e6;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.prog-dest-option {
+  display: block;
+  width: 100%;
+  padding: 3px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #241d12;
+  text-align: center;
+}
+
+.prog-dest-option:hover { background: #efe4c8; }
+
+/* The number over an instruction whose first bit is 0: the eleven cells beside
+   that bit, merged into one box. */
+.prog-slot-number { background: #f3ecd9; }
+
+.prog-slot-number .prog-slot-btn { text-align: center; }
+
+.prog-number-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
+  border: none;
+  background: #fffdf5;
+  outline: 2px solid #b3801a;
+  outline-offset: -2px;
+  font-family: inherit;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #241d12;
+  text-align: center;
+  direction: ltr;
+}
+
+/* The calculation chooser over bits 7-12, when the first bit says "compute". */
+.prog-slot-calc { background: #f3ecd9; }
+.prog-slot-calc .prog-slot-btn { text-align: center; }
+
+.prog-calc-menu {
+  max-height: 46vh;
+  overflow-y: auto;
+  min-width: calc(var(--sq, 26px) * 4);
+}
+
+/* The assembler's flourish: a swing of the wand and a spark on its way to the
+   cell he has just filled in. */
+.assembler-wand {
+  transform-box: view-box;
+  transform-origin: 95px 138px;
+}
+
+.assembler-casting .assembler-wand { animation: assembler-wave 0.6s ease-in-out; }
+
+@keyframes assembler-wave {
+  0% { transform: rotate(0deg); }
+  28% { transform: rotate(-26deg); }
+  62% { transform: rotate(15deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.assembler-spark {
+  position: fixed;
+  z-index: 260;
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffbe8 0%, #f7dd97 40%, rgba(247, 221, 151, 0) 72%);
+  box-shadow: 0 0 14px 5px rgba(243, 210, 122, 0.7);
+  pointer-events: none;
+  transition: transform 0.42s cubic-bezier(0.3, 0, 0.2, 1), opacity 0.42s ease-in;
+}
+
+.prog-lit { animation: prog-lit 0.7s ease-out; }
+
+@keyframes prog-lit {
+  0% { box-shadow: inset 0 0 0 40px rgba(247, 221, 151, 0.95); }
+  100% { box-shadow: inset 0 0 0 40px rgba(247, 221, 151, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assembler-casting .assembler-wand,
+  .prog-lit { animation: none; }
+}
+
+/* The X-is-which-input chooser, over bits 2-6 when the ALU computes. */
+.prog-slot-input { background: #f3ecd9; }
+.prog-slot-input .prog-slot-btn { text-align: center; }
+
+/* A rectangle of squares marked out on the program page, to be copied, pasted
+   over or rubbed out. */
+.prog-selection {
+  /* Positioned, so its z-index counts: the merged cells of the assembler's row
+     are relatively positioned and would otherwise paint over the mark. */
+  position: relative;
+  pointer-events: none;
+  z-index: 9;
+  background: rgba(179, 128, 26, 0.18);
+  border: 2px solid #b3801a;
+  border-radius: 2px;
+}
+
+/* Squares of the ALU table marked to be carried across to an instruction. */
+.prog-alu-bit { cursor: cell; user-select: none; }
+
+.prog-alu-bit-marked {
+  background: #f2dfa8;
+  box-shadow: inset 0 0 0 2px #b3801a;
+}
+
+/* Dragging on the program page marks squares — it must not also drag out the
+   browser's own text selection, whose blue is nothing to do with the mark.
+   Anything actually typed into stays selectable. */
+.sheet-overlay,
+.sheet-overlay * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sheet-overlay input,
+.sheet-overlay textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* The right-button menu on the program page. */
+.prog-context-menu {
+  position: fixed;
+  z-index: 260;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  min-width: 8rem;
+  border: 1px solid #3a2c17;
+  border-radius: 8px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  direction: rtl;
+}
+
+.prog-context-option {
+  display: block;
+  width: 100%;
+  padding: 5px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #241d12;
+  text-align: right;
+}
+
+.prog-context-option:hover:not(:disabled) { background: #efe4c8; }
+.prog-context-option:disabled { color: #a2977f; cursor: default; }
+
+/* A paste that cannot land says so with a short red flash of the mark. */
+.prog-selection-refused { animation: prog-refuse 0.42s ease-out; }
+
+@keyframes prog-refuse {
+  0%, 100% { background: rgba(179, 128, 26, 0.18); border-color: #b3801a; }
+  30%, 70% { background: rgba(190, 45, 35, 0.24); border-color: #be2d23; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prog-selection-refused { animation: none; }
+}
+
+/* The page itself takes the keyboard (so the copy/paste keys reach it), without
+   drawing a focus ring around the whole sheet. */
+.sheet-overlay-prog .sheet-paper:focus,
+.sheet-overlay-prog .sheet-paper:focus-visible { outline: none; }
+
+/* Opening a square selects what is in it, so typing replaces it — but that
+   selection is painted in the browser's blue, which reads as something the
+   learner did. On these pages it is the same gold as everything else. */
+.sheet-overlay ::selection {
+  background: rgba(179, 128, 26, 0.42);
+  color: #241d12;
+}
+
+.sheet-overlay ::-moz-selection {
+  background: rgba(179, 128, 26, 0.42);
+  color: #241d12;
+}
+
+/* The line numbers down the left of the program table: two squares wide, one to
+   each instruction, and the column closed on its outer edge. */
+.prog-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The same border as the table's own cells, so the lines meet rather than sit
+     a pixel apart; the outer edge of the column is a rule, like the table's. */
+  border: 1px solid #6b5a3a;
+  background: #f3ecd9;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #5b5140;
+  direction: ltr;
+}
+
+/* The line numbers are a handle for the whole instruction. */
+.prog-line { cursor: pointer; }
+.prog-line:hover { background: #ece1c4; }
+
+/* ---- The test benches on the 4.3 page ---------------------------------- */
+/* "בדיקה ידנית": a table of what the machine holds after each instruction. It
+   sits in the TOP-LEFT corner and over every other window there — it is looked
+   at while the page underneath is being written. */
+.prog-window-manual {
+  left: 16px;
+  right: auto;
+  top: 16px;
+  bottom: auto;
+  z-index: 230;
+  width: min(30rem, 32vw);
+}
+
+.prog-run-body { max-height: 46vh; overflow: auto; }
+
+.prog-run-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  color: #241d12;
+}
+
+.prog-run-table th,
+.prog-run-table td {
+  border: 1px solid #6b5a3a;
+  padding: 1px 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prog-run-table th { background: #efe4c8; font-weight: 800; }
+.prog-run-index { background: #f3ecd9; font-weight: 700; }
+.prog-run-row-next td { background: #fdf7e4; }
+
+.prog-run-in { padding: 0; width: 4.6rem; }
+
+.prog-run-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 0;
+  background: #fffdf4;
+  padding: 2px 4px;
+  text-align: center;
+  font: inherit;
+  color: #241d12;
+}
+
+.prog-run-input:focus { outline: 2px solid #7b5a1b; outline-offset: -2px; }
+
+/* The button never moves: it keeps its own place at the near edge, and a
+   message takes the room left over on the far side — an empty message leaves
+   that room empty rather than sliding the button across. */
+.prog-run-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.prog-run-note {
+  flex: 1;
+  min-width: 0;
+  text-align: end;
+  font-size: 0.9rem;
+  color: #8a2b1f;
+  font-weight: 700;
+}
+
+/* The instruction the test bench is about to run, marked across both its rows. */
+.prog-run-mark {
+  pointer-events: none;
+  border: 2px solid #2f7d46;
+  background: rgba(76, 175, 108, 0.18);
+  border-radius: 3px;
+  z-index: 3;
+}
+
+/* "בדיקה": the workbench animation that loads the program and runs it. It takes
+   most of the screen, over everything else on the page. */
+.prog-test-overlay {
+  position: fixed;
+  inset: 3vh 3vw;
+  z-index: 320;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  /* The workbench's own board, the same brown — this happens ON the table, and
+     everything on it is drawn the way it is drawn there. */
+  background: #735c3b;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  direction: rtl;
+}
+
+.prog-test-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.prog-test-svg {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 1200px;
+  /* The scene is laid out in its own coordinates: inside it "end" must mean the
+     left-hand side, whatever way round the page it hangs in. Hebrew words still
+     read right to left inside themselves. */
+  direction: ltr;
+}
+
+.prog-test-caption {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f4e6c2;
+}
+
+.prog-test-label { font-size: 18px; font-weight: 700; fill: #2b2118; }
+.prog-test-label-light { fill: #f7eeda; }
+.prog-test-card-title { font-size: 26px; font-weight: 800; fill: #2c2113; }
+.prog-test-pin { font-size: 17px; }
+.prog-test-verdict { font-size: 52px; font-weight: 800; text-anchor: middle; }
+.prog-test-verdict-ok { fill: #4cc46a; }
+.prog-test-verdict-bad { fill: #e05a45; }
+
+/* The punched card climbing into the drum. */
+.prog-test-punch-load { animation: progTestSwallow 3s cubic-bezier(0.45, 0, 0.7, 1) forwards; }
+
+@keyframes progTestSwallow {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(var(--travel) * -1)); }
+}
+
+/* The converters are only hooked on once the program is in. */
+.prog-test-conv { opacity: 0; transition: opacity 400ms ease; }
+.prog-test-conv-on { opacity: 1; }
+
+.prog-test-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* The verdict is the SAME card the workbench shows when a build is checked —
+   only lifted above the test bench, and with a line of detail under it. */
+.prog-test-verdict-overlay { z-index: 330; }
+
+.not-test-result-card p.prog-test-detail {
+  font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+/* The beat counter is the board's own clock: the same dark pill of numerals it
+   shows on a clocked table, in the same corner. */
+.prog-test-clock {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 4;
+}
+
+.prog-test-clock .clock-count { min-width: 4.5em; font-size: 24px; }
+
+/* The program page's own dialogs — the task as it is first stated, and the
+   are-you-sure before wiping the page — must sit above the windows floating over
+   the squares. The ordinary dialog overlay sits well below them, so the task
+   statement was coming up BEHIND the ALU table. */
+.prog-dialog-overlay { z-index: 260; }
+
+/* The hint that offers the helper task answers with buttons rather than words. */
+.prog-hint-offer {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* The worked solution is walked ON the page: the instructions are written into
+   the program table itself and the one being talked about is marked. The card
+   itself is the one the workbench shows when it walks a build's solution — the
+   same dark panel — sat at the foot of the page, between the reference windows
+   on one side and the task on the other. */
+.prog-solution-overlay {
+  z-index: 245;
+  place-items: center;
+}
+
+/* It opens in the middle of the screen; the game's own dialog-drag carries it
+   from there (a .solution-card is draggable everywhere else too). Its body keeps
+   a fixed height so stepping from one instruction to the next does not make the
+   card jump about under the pointer. */
+.prog-solution-overlay .solution-card {
+  gap: 8px;
+  /* A little wider than the workbench's, so the longest step still reads in a
+     few lines and the fixed body height does not have to be tall. */
+  width: min(30rem, 86vw);
+}
+
+.prog-solution-code {
+  margin: 0;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 800;
+  color: #ffe37a;
+}
+
+.prog-solution-text {
+  height: 11rem;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+/* Nothing on the page can be touched while a solution is up — what is written
+   there is the solution, not the learner's own program. */
+.prog-solution-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 244;
+}
+
+.prog-solution-overlay .solution-card h2 { font-size: clamp(1.05rem, 2vw, 1.3rem); }
+
+.prog-solution-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.82;
+}
+
+.prog-solution-actions {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.prog-solution-actions .sheet-guide-count { color: var(--text); opacity: 0.85; }
+
+/* The mark on the page: the instruction being explained, or just the bits of
+   the field being explained. */
+.prog-solution-mark {
+  pointer-events: none;
+  border: 2px solid #b8452f;
+  background: rgba(224, 90, 69, 0.16);
+  border-radius: 3px;
+  z-index: 4;
+}
+
+/* The rankings page splits in two: what was BUILT and what was WRITTEN. The
+   group sits above its own tabs, in the same family but a size up. */
+.rankings-groups {
+  display: flex;
+  gap: 8px;
+  margin: 0.9rem 0 0.2rem;
+}
+
+.rankings-group {
+  appearance: none;
+  border: 1px solid rgba(70, 50, 25, 0.5);
+  border-radius: 999px;
+  background: rgba(70, 50, 25, 0.14);
+  color: #cdbb92;
+  font-weight: 800;
+  font-size: 1.06rem;
+  padding: 7px 20px;
+  cursor: pointer;
+}
+
+.rankings-group:hover { background: rgba(255, 224, 138, 0.14); }
+
+.rankings-group.is-active {
+  background: #f3d488;
+  color: #2a2118;
+  border-color: #f3d488;
+}

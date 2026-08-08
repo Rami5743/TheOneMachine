@@ -599,6 +599,11 @@
     { id: "flipflop-what", title: "מה זה פליפ-פלופ" },
     { id: "flipflop-how", title: "איך עושים פליפ-פלופ" },
     { id: "clocking", title: "איך מתזמנים את הפעולה של המחשב" },
+    // Chapter 3.3: von Neumann's closing monologue after the last RAM card —
+    // what a thousand registers buy, where the name comes from, the punched tape
+    // it replaced, and what it costs. Unlocked by reaching its first slide, which
+    // only happens once RAM1024 is built.
+    { id: "ram-story", title: "RAM" },
     // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
     // "what is an ALU" message. Unlocked at the end of that message.
     { id: "alu-ALU0", title: "ALU" },
@@ -608,9 +613,15 @@
     // Enrichment: the "negative numbers" window (the two explainer videos), reached
     // from the demo's red teaser. Unlocked once that window has been opened.
     { id: "negative-numbers", title: "מספרים שליליים" },
-    // Enrichment (processor category): the "words & bytes" reading, opened either
+    // Enrichment (computer category): the "words & bytes" reading, opened either
     // from the red link on the last bits-range slide or from the explanations menu.
-    { id: "words-bytes", title: "מילים ובתים" }
+    { id: "words-bytes", title: "מילים ובתים" },
+    // Chapter 4.1: von Neumann's walk through what the simple computer is made
+    // of and how an instruction is laid out, ending with the worked examples.
+    { id: "computer-structure", title: "מבנה המחשב הפשוט" },
+    // Enrichment (software category): the assembler window, reached from the red
+    // teaser beside the gnome on the 4.3 page.
+    { id: "assembler", title: "אסמבלר" }
   ];
 
   // The "מילים ובתים" enrichment text, shown in a scrollable dialog.
@@ -1057,7 +1068,22 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The floor beside the worktable, facing the cables: the learner's own work
     // area. Clicking it walks over to the workbench in free build — a side trip,
     // not the way forward, so it does NOT block המשך.
-    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true }
+    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true },
+
+    // ---- Chapter 4.3, the same room once the computer is standing ----------
+    // The ALU rack has become the CPU rack, the first two cables are the ones
+    // that write the program into the program memory, and one unnamed cable
+    // carries the reset switch.
+    cpuRack: {
+      label: "CPU",
+      url: "https://he.wikipedia.org/wiki/יחידת_עיבוד_מרכזית"
+    },
+    prgPort: { label: "PRG", note: "בס ברוחב 16 שמחזיק את הפקודה שרוצים לכתוב לזיכרון התוכנה. המחשב מתעלם ממנו כל עוד הריסט לא לחוץ." },
+    prgAdrPort: { label: "ADR PRG", note: "בס ברוחב 16 שאומר לאיזו כתובת בזיכרון התוכנה נכתבת הפקודה." },
+    resetSwitch: { label: "המפסק של הריסט", note: "כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
+    // The description of the program to be written, left on the table: it opens
+    // the 4.3 programming page.
+    programNote: { label: "הפתק", opens: "program-sheet" }
   };
 
   // The build tasks of chapter 4.1, to be done in this order. None of them has a
@@ -1312,4 +1338,284 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
         }
       ]
     }
+  ];
+
+  // ---- Chapter 4.3, the programming page ----------------------------------
+  // The task itself, shown first as a dialog and then as the window in the
+  // bottom-left corner of the page.
+  const PROGRAM_TASK = {
+    title: "משימת תכנות",
+    text: "כתוב תוכנה שמכפילה את הערך בקלט In0 ב-8 וכותבת את התוצאה ב-Out0.",
+    // Its row in "דירוגי תוכנה": the shorter the program that passes, the better.
+    rankId: "prg-times-8",
+    rankLabel: "כפל ב-8"
+  };
+
+  // The little "טיפ" window beside the page, telling the learner the squares can
+  // be marked and copied.
+  const PROGRAM_TIP = {
+    title: "טיפ",
+    text: "אתה יכול לסמן ולהשתמש בפעולות העתק הדבק כדי להעתיק פקודות שכבר כתבת."
+  };
+
+  // "מבנה הזיכרון": which address is what, as the RAM card was built in 3.4 —
+  // 0-1023 are its own registers, and the eight ports sit above them: the first
+  // four are the ones the computer writes out through, the last four the ones it
+  // can only read from.
+  const PROGRAM_MEMORY_MAP = {
+    title: "מבנה הזיכרון",
+    items: [
+      "כתובות 0-1023  --  זיכרון",
+      "כתובות 1024-1027  --  פלט",
+      "כתובות 1028-1031  --  קלט"
+    ]
+  };
+
+  // "פקודות חישוב ב-ALU1": the six control bits (bits 7-12 of the instruction)
+  // for the calculations worth having at hand. Bit by bit, left to right:
+  // Not on the result, And/plus, Not and zero on the second input, Not and zero
+  // on the first — exactly the ALU1 the learner built in 2.6.
+  const ALU1_OPERATIONS = {
+    title: "פקודות חישוב ב-ALU1",
+    columns: ["הפעולה", "ההוראה"],
+    rows: [
+      { op: "0", bits: "010101" },
+      { op: "1", bits: "111111" },
+      { op: "-1", bits: "010111" },
+      { op: "D", bits: "001100" },
+      { op: "X", bits: "000011" },
+      { op: "Not D", bits: "101100" },
+      { op: "Not X", bits: "100011" },
+      { op: "-D", bits: "111100" },
+      { op: "-X", bits: "110011" },
+      { op: "D+1", bits: "111110" },
+      { op: "X+1", bits: "111011" },
+      { op: "D-1", bits: "011100" },
+      { op: "X-1", bits: "010011" },
+      { op: "D+X", bits: "010000" },
+      { op: "D-X", bits: "110010" },
+      { op: "X-D", bits: "111000" },
+      { op: "D And X", bits: "000000" },
+      { op: "D Or X", bits: "101010" }
+    ],
+    // The order the assembler offers them in on the page: the ones this
+    // chapter's task actually needs first, the rest under them.
+    menuOrder: ["D+X", "D", "X", "D+1", "X+1", "0", "1", "-1", "D-1", "X-1",
+      "D-X", "X-D", "-D", "-X", "Not D", "Not X", "D And X", "D Or X"],
+    noteTitle: "הערה:",
+    note: [
+      "D הוא הכניסה הראשונה של ה-ALU (כי היא תמיד תהיה התוכן של רגיסטר D).",
+      "X מסמן את הכניסה השנייה (הוא יכול להיות A או *A לפי הביט הסמוך לפקודת ה-ALU)."
+    ]
+  };
+
+  // "בדיקה במכונה": the test bench that loads the program into the machine and
+  // runs it on its own. The numbers it feeds In0, and what Out0 is supposed to
+  // hold afterwards — the task asks for the input times eight.
+  //
+  // The machine is beaten once for every line of the program (there are no
+  // jumps, so that is exactly how long a run takes); `cycles` is only a ceiling,
+  // so a program that somehow never ends cannot hang the bench.
+  const PROGRAM_TEST = {
+    title: "בדיקת התוכנה",
+    cycles: 50,
+    inputs: [3, 7, 12],
+    multiplier: 8,
+    passTitle: "הבדיקה הצליחה",
+    passText: "התוכנה החזירה את התוצאה הנכונה בכל הבדיקות.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    // The stages of the animation, and what is written under it at each one.
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק, והממירים מתחברים ל-In0 ול-Out0",
+      run: "המכונה רצה",
+      check: "בודקים את Out0",
+      reset: "הריסט מתחבר מחדש, והמספר בקלט מתחלף"
+    }
+  };
+
+  // The helper task, reached from the fourth hint: the same page, the same
+  // benches, one instruction's worth of work — move In0 across to Out0. Its
+  // program is kept apart from the main one, so neither loses its place.
+  const PROGRAM_HELPER_TASK = {
+    title: "משימת עזר",
+    text: "כתוב תוכנה שמעבירה את התוכן של In0 ל-Out0."
+  };
+
+  const PROGRAM_HELPER_TEST = {
+    title: "בדיקת התוכנה",
+    cycles: 50,
+    inputs: [3, 7, 12],
+    multiplier: 1,
+    passTitle: "הבדיקה הצליחה",
+    passText: "התוכנה החזירה את התוצאה הנכונה בכל הבדיקות.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק, והממירים מתחברים ל-In0 ול-Out0",
+      run: "המכונה רצה",
+      check: "בודקים את Out0",
+      reset: "הריסט מתחבר מחדש, והמספר בקלט מתחלף"
+    }
+  };
+
+  // The hints for the main task, in the order they unlock — one more after each
+  // failed run of the machine, the way every hinted task in the game works.
+  // The fourth one offers the helper task rather than telling anything.
+  const PROGRAM_HINTS = [
+    { title: "רמז 1", text: "להכפיל מספר ב-8 זה לחבר אותו ל-0 8 פעמים." },
+    { title: "רמז 2", text: "תנסה לכתוב תוכנה שמחברת את IN0 לרגיסטר D." },
+    { title: "רמז 3", text: "אתה יכול לבדוק מה קורה כשאתה לוחץ על בדיקה ידנית." },
+    {
+      title: "רמז 4",
+      text: "אם הסתבכת עם הרמז הקודם, אתה יכול לעבור למשימת עזר.",
+      offerHelper: true
+    },
+    { title: "רמז 5", text: "אם הסתדרת עם ההוספה ל-D, עכשיו אתה יכול לבצע את זה שוב ושוב 8 פעמים. אתה יכול לעשות פעולות העתק הדבק כדי לא לכתוב סתם את אותו הדבר שוב ושוב." },
+    { title: "רמז 6", text: "בסוף כל מה שנשאר לך זה להעביר את התוכן של D ל-Out0." },
+    { title: "רמז 7", text: "בשביל זה תצטרך לקבוע את הערך של A להיות הכתובת של Out0. אתה יכול לבדוק מהי, בחלונית מבנה הזיכרון משמאל." }
+  ];
+
+  // The helper task's hints. The fourth one writes the two instructions itself
+  // rather than describing them — the words are the instruction bit by bit:
+  //   A=1028  ->  0 10000000100 10 00
+  //   D=*A    ->  1 0000 1 000011 01 00
+  const PROGRAM_HELPER_HINTS = [
+    { title: "רמז 1", text: "אתה לא יכול להעביר ישירות תכנים בין רגיסטרים בזיכרון. זאת מכיוון שבכל רגע אתה קורא רק דבר אחד בזיכרון. תנסה להעביר למקום אחר כשלב ביניים." },
+    { title: "רמז 2", text: "בדיוק בשביל דברים כאלה נועד רגיסטר D. תתחיל מלהעביר את In0 לרגיסטר D." },
+    { title: "רמז 3", text: "בשביל זה תצטרך לקבוע את A להיות הכתובת של In0. אתה יכול לבדוק מהי בחלונית מבנה הזיכרון מצד שמאל. אחרי זה פשוט תצטרך לשים את ‎*A ב-D." },
+    {
+      title: "רמז 4",
+      text: "רוצה שאני אכתוב לך את 2 הפקודות שמעבירות את In0 לרגיסטר D (זה ימחק את כל מה שכתבת)?",
+      writes: ["0100000001001000", "1000010000110100"]
+    },
+    { title: "רמז 5", text: "עכשיו נשאר להעביר את D ל-Out0. זה מאוד דומה למה שכבר עשית." }
+  ];
+
+  // A solution is walked ON THE PAGE: each step writes its instruction into the
+  // program table and marks it. `bits` is that instruction, bit by bit; `parts`
+  // (the helper task only) then walks the instruction's own fields, marking the
+  // bits each field is written on.
+  const PROGRAM_HELPER_SOLUTIONS = [
+    {
+      title: "פתרון",
+      lead: "אין דרך להעביר מספר מרגיסטר אחד בזיכרון לאחר בפקודה אחת — בכל רגע קוראים רק כתובת אחת. לכן עוברים דרך D.",
+      steps: [
+        {
+          code: "1028 → A",
+          bits: "0100000001001000",
+          text: "כתובת הקלט In0 היא 1028. נכניס אותה ל-A, וכך ‎*A הוא הקלט.",
+          parts: [
+            { from: 1, to: 1, text: "הביט הראשון הוא 0, ולכן ה-ALU לא מחשב כלום אלא פשוט מוציא את המספר שכתוב בפקודה עצמה." },
+            { from: 2, to: 12, text: "אחד עשר הביטים האלה הם המספר עצמו — 1028 בבינארית. את זה האסמבלר מילא במקומנו." },
+            { from: 13, to: 14, text: "שני הביטים האלה אומרים לאן הולכת התוצאה. כאן 10, כלומר לרגיסטר A." }
+          ]
+        },
+        {
+          code: "*A → D",
+          bits: "1000010000110100",
+          text: "לוקחים את הקלט אל רגיסטר D. עכשיו המספר נמצא במעבד, לא בזיכרון.",
+          parts: [
+            { from: 1, to: 1, text: "הפעם הביט הראשון הוא 1: ה-ALU מחשב." },
+            { from: 6, to: 6, text: "הביט הזה בוחר על מי ה-ALU עובד חוץ מ-D. הוא 1, כלומר X הוא ‎*A — מה שנמצא בכתובת שב-A." },
+            { from: 7, to: 12, text: "ששת הביטים האלה הם ההוראה ל-ALU. זאת ההוראה שאומרת לו להוציא את X כמו שהוא." },
+            { from: 13, to: 14, text: "01 — התוצאה נכתבת לרגיסטר D." }
+          ]
+        },
+        {
+          code: "1024 → A",
+          bits: "0100000000001000",
+          text: "עכשיו משנים את A לכתובת הפלט, 1024. הקלט כבר לא נחוץ לנו — הוא שמור ב-D.",
+          parts: [
+            { from: 1, to: 1, text: "שוב 0: הפקודה מוציאה מספר, לא מחשבת." },
+            { from: 2, to: 12, text: "המספר הפעם הוא 1024 — הכתובת של Out0." },
+            { from: 13, to: 14, text: "10, כלומר שוב לרגיסטר A." }
+          ]
+        },
+        {
+          code: "D → *A",
+          bits: "1000000011001100",
+          text: "כותבים את מה שב-D לכתובת שב-A, כלומר ל-Out0.",
+          parts: [
+            { from: 1, to: 1, text: "1: ה-ALU מחשב." },
+            { from: 7, to: 12, text: "ההוראה שאומרת ל-ALU להוציא את D כמו שהוא." },
+            { from: 13, to: 14, text: "11 — וזה החלק החשוב: התוצאה נכתבת ל-‎*A, כלומר לכתובת שנמצאת ב-A." }
+          ]
+        }
+      ],
+      close: "ארבע פקודות: שתיים כדי לקרוא, שתיים כדי לכתוב. רגיסטר D הוא תחנת הביניים."
+    }
+  ];
+
+  const PROGRAM_SOLUTIONS = [
+    {
+      title: "פתרון",
+      lead: "להכפיל ב-8 זה לחבר את המספר ל-0 שמונה פעמים. נעשה בדיוק את זה.",
+      steps: [
+        { code: "1028 → A", bits: "0100000001001000", text: "כתובת הקלט In0 היא 1028. קודם כל נכניס אותה ל-A, כדי שנוכל לקרוא את הקלט עם ‎*A." },
+        { code: "0 → D", bits: "0000000000000100", text: "מתחילים מאפס. אין כאן שום חישוב — הפקודה פשוט מוציאה את המספר 0 וכותבת אותו ל-D. זה המספר שאליו נחבר את הקלט שוב ושוב." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור הראשון. עכשיו ב-D יש את הקלט פעם אחת." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור השני. ב-D יש פי 2." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור השלישי. ב-D יש פי 3." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור הרביעי. ב-D יש פי 4. שים לב שכל השורות האלה זהות — אפשר לסמן אחת ולהדביק אותה שוב ושוב במקום לכתוב אותה מחדש." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור החמישי. ב-D יש פי 5." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור השישי. ב-D יש פי 6." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור השביעי. ב-D יש פי 7." },
+        { code: "D+*A → D", bits: "1000010100000100", text: "החיבור השמיני. ב-D יש פי 8 — זאת התשובה." },
+        { code: "1024 → A", bits: "0100000000001000", text: "סיימנו לחשב. כתובת הפלט Out0 היא 1024, ולכן נכניס אותה ל-A." },
+        { code: "D → *A", bits: "1000000011001100", text: "כותבים את מה שב-D לכתובת שנמצאת ב-A, כלומר ל-Out0. זהו." }
+      ],
+      close: "שתים עשרה פקודות, שמונה מהן אותה פקודה בדיוק."
+    },
+    {
+      title: "פתרון נוסף",
+      lead: "אפשר להגיע לאותה תשובה מהר יותר: במקום לחבר שמונה פעמים, נכפיל פי 2 שלוש פעמים.",
+      steps: [
+        { code: "1028 → A", bits: "0100000001001000", text: "שוב מתחילים מכתובת הקלט." },
+        { code: "*A → D", bits: "1000010000110100", text: "הפעם פשוט לוקחים את הקלט אל D." },
+        { code: "D → A", bits: "1000000011001000", text: "וזה הטריק: מעתיקים את D גם ל-A. עכשיו אותו מספר נמצא בשני הרגיסטרים." },
+        { code: "D+A → D", bits: "1000000100000100", text: "מחברים את D לעצמו, ובזה הכפלנו אותו. ב-D יש פי 2." },
+        { code: "D → A", bits: "1000000011001000", text: "שוב מעתיקים את D ל-A..." },
+        { code: "D+A → D", bits: "1000000100000100", text: "...ומכפילים שוב. ב-D יש פי 4." },
+        { code: "D → A", bits: "1000000011001000", text: "ובפעם השלישית." },
+        { code: "D+A → D", bits: "1000000100000100", text: "ב-D יש פי 8 — אחרי שלוש הכפלות בלבד." },
+        { code: "1024 → A", bits: "0100000000001000", text: "כתובת הפלט." },
+        { code: "D → *A", bits: "1000000011001100", text: "וכותבים אותה החוצה." }
+      ],
+      close: "‎8 = 2 בחזקת 3, ולכן שלוש הכפלות הספיקו. אילו היינו צריכים להכפיל ב-1024 היינו צריכים עשר הכפלות — במקום 1024 חיבורים."
+    }
+  ];
+
+  // The assembler: the little fellow standing beside the ALU table on the 4.3
+  // page. Clicking him opens his speech bubble; these are its pages.
+  // The red teaser above his first page, and the window it opens.
+  const ASSEMBLER_TEASER = {
+    text: "במציאות אין גמדים שעושים בשבילך את העבודה, אבל יש דבר כזה אסמבלר. לחץ כאן אם אתה רוצה לדעת מה זה",
+    dialog: {
+      text: "חלק זה של המשחק עדיין לא קיים, אתה יכול בינתיים ללמוד על זה כאן",
+      // The word in that sentence that carries the link; the address itself is
+      // not written out.
+      linkWord: "כאן",
+      url: "https://www.youtube.com/watch?v=2iYOb9Uu7Mk"
+    }
+  };
+
+  const ASSEMBLER_PAGES = [
+    [{ p: "שלום, שמי אסמבלר, אני יכול לעזור לך לכתוב את הפקודות בביטים." }],
+    [
+      { ul: [
+        "אם אתה רוצה שה-ALU יבצע חישוב, אז תכתוב 1 בתחילת הפקודה, ואז תוכל לבחור את החישוב שתרצה לבצע ואני אמלא את הביטים המתאימים.",
+        "אם תרצה שה-ALU פשוט יחזיר את ההוראה שלו, אז תכתוב 0 בתחילת הפקודה, ואז תוכל לכתוב את המספר בצורה עשרונית ואני אתרגם אותו לבינרית ואמלא את הביטים המתאימים."
+      ] },
+      { p: "אני גם יכול לעזור לך לבחור על מי ה-ALU יבצע את החישוב (מלבד D)." }
+    ],
+    [
+      { p: "אתה גם יכול לבחור את היעד של ה-ALU ואני אמלא את הביטים המתאימים בפקודה." },
+      { p: "אני גם אדאג למלא באפסים את הביטים שלא משפיעים על כלום" }
+    ],
+    [
+      { p: "רק אל תספר לג'ון שאני עוזר לך. הוא לא אוהב שאנשים מתעצלים. הוא רוצה שאנשים יכתבו בעצמם את הביטים" }
+    ]
   ];

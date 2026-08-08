@@ -1,14 +1,20 @@
-// rankings.js — the "דירוגים" screen. One page, three tabs:
+// rankings.js — the "דירוגים" screen. Two groups of tabs:
+//
+//   דירוגי חומרה — what the player BUILT, one row per card:
 //   • "דירוגי יעילות" (default) — ranks by the TOTAL recursive Nand count of the
 //     player's build (fewer = more efficient).
 //   • "דירוגי מהירות" — ranks by the SERIAL Nand count: the most Nands in series
 //     on any input→output path (the critical-path depth; fewer = faster).
 //   • "מהירות תכנון" — ranks by DESIGN TIME (seconds): how long the player spent
 //     designing the card, plus the creation time of each distinct user card used.
-// Each tab is a table with one row per built-in card: card name | the metric's
-// count | the player's rank among registered users | the current record.
-// Clicking a card opens its records page, which mirrors the same two tabs and
-// opens on the tab you came from.
+//
+//   דירוגי תוכנה — what the player WROTE, one row per programming task:
+//   • "עורך תוכנה" — ranks by the LENGTH of the program that passed the machine
+//     (fewer instructions = a tighter program).
+//
+// Each tab is a table: the name | the metric's count | the player's rank among
+// registered users | the current record. Clicking a row opens its records page,
+// which mirrors the same tabs and opens on the tab you came from.
 //
 // Loaded BEFORE app.js. createRankings(deps) -> { rankingCards,
 //   renderRankingsScreen, renderCardRecordsScreen }.
@@ -43,10 +49,27 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       recordsSub: "רשימת השיאנים — זמן התכנון הקצר ביותר קודם.",
       map: "cardDesignCounts",
       format: formatTime
+    },
+    // The software side. Its rows are the programming tasks, not the cards.
+    software: {
+      key: "software", ldim: "program", label: "עורך תוכנה",
+      countHead: "פקודות",
+      nameHead: "משימה",
+      sub: "אורך התוכנה שכתבת — מספר הפקודות שהמכונה הריצה — ככל שקצר יותר כך התוכנה יעילה יותר. לחץ על משימה לרשימת השיאים שלה.",
+      recordsSub: "רשימת השיאנים — התוכנה הקצרה ביותר קודם.",
+      map: "programCounts",
+      rows: "programs"
     }
   };
-  const TAB_ORDER = ["efficiency", "speed", "design"];
+
+  // The two groups of tabs, and which tabs are in each.
+  const GROUPS = [
+    { key: "hardware", label: "דירוגי חומרה", tabs: ["efficiency", "speed", "design"] },
+    { key: "software", label: "דירוגי תוכנה", tabs: ["software"] }
+  ];
+  const TAB_ORDER = GROUPS.flatMap((g) => g.tabs);
   const activeTab = () => TABS[TAB_ORDER.includes(typeof getTab === "function" && getTab()) ? getTab() : "efficiency"];
+  const groupOf = (key) => GROUPS.find((g) => g.tabs.includes(key)) || GROUPS[0];
 
   // Seconds → m:ss (or h:mm:ss). Used only by the design tab; other tabs render
   // their count as a plain number.
@@ -90,6 +113,19 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     return rows;
   }
 
+  // The programming tasks that carry a ranking — one row each, the way a card is
+  // a row on the hardware side.
+  function rankingPrograms() {
+    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    if (!task || !task.rankId) return [];
+    return [{ id: task.rankId, label: task.rankLabel || task.title || task.rankId }];
+  }
+
+  // Whatever the active tab lists.
+  function tabRows(tab) {
+    return tab.rows === "programs" ? rankingPrograms() : rankingCards();
+  }
+
   // The player's count for a card in the active metric, or null when undefined.
   function countFor(cardId, tab) {
     if (cardId === "Nand") return 1; // one Nand: 1 total, 1 in series
@@ -108,19 +144,27 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     return `<span class="rank-plain">${rank}</span>`;
   }
 
-  // The two-tab strip. `active` is the current tab key; each button switches tabs.
+  // Two strips: the group above (חומרה / תוכנה), and that group's own tabs under
+  // it. Picking a group lands on its first tab.
   function tabsBar(active) {
+    const group = groupOf(active);
+    const groupBtn = (g) => `
+      <button class="rankings-group${g.key === group.key ? " is-active" : ""}" data-action="rankings-tab" data-tab="${g.tabs[0]}" type="button">
+        ${esc(g.label)}
+      </button>`;
     const btn = (key) => `
       <button class="rankings-tab${key === active ? " is-active" : ""}" data-action="rankings-tab" data-tab="${key}" type="button">
         ${esc(TABS[key].label)}
       </button>`;
-    return `<div class="rankings-tabs" role="tablist">${TAB_ORDER.map(btn).join("")}</div>`;
+    return `
+      <div class="rankings-groups" role="tablist">${GROUPS.map(groupBtn).join("")}</div>
+      <div class="rankings-tabs" role="tablist">${group.tabs.map(btn).join("")}</div>`;
   }
 
   function renderRankingsScreen(app) {
     const tab = activeTab();
     const registered = typeof isRegistered === "function" ? Boolean(isRegistered()) : false;
-    const rows = rankingCards().map((card) => {
+    const rows = tabRows(tab).map((card) => {
       const count = countFor(card.id, tab);
       const countText = count == null ? `<span class="rank-undef">—</span>` : esc(fmt(tab, count));
       const lb = typeof leaderboardFor === "function" ? leaderboardFor(card.id, tab.ldim) : null;
@@ -153,7 +197,7 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
             <table class="rankings-table">
               <thead>
                 <tr>
-                  <th class="rank-card-name">כרטיס</th>
+                  <th class="rank-card-name">${esc(tab.nameHead || "כרטיס")}</th>
                   <th class="rank-count">${esc(tab.countHead)}</th>
                   <th class="rank-rank">דירוג</th>
                   <th class="rank-record">שיא נוכחי</th>
@@ -192,7 +236,8 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     const tab = activeTab();
     const state = getState();
     const cardId = state.rankingsCardId;
-    const card = rankingCards().find((c) => c.id === cardId) || { id: cardId, label: cardId };
+    const card = [...rankingCards(), ...rankingPrograms()].find((c) => c.id === cardId)
+      || { id: cardId, label: cardId };
     const rows = (typeof leaderboardRows === "function" ? leaderboardRows(cardId, tab.ldim) : null) || [];
     const body = rows.length
       ? rows.map((r) => `
@@ -201,7 +246,8 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
             <td class="rank-count">${typeof r.count === "number" ? esc(fmt(tab, r.count)) : "—"}</td>
             <td class="rank-nick">${esc(r.nickname || DEFAULT_NICKNAME)}</td>
           </tr>`).join("")
-      : `<tr><td colspan="3" class="rankings-empty-row">אין עדיין שיאים לכרטיס זה.</td></tr>`;
+      : `<tr><td colspan="3" class="rankings-empty-row">${tab.rows === "programs"
+          ? "אין עדיין שיאים למשימה זו." : "אין עדיין שיאים לכרטיס זה."}</td></tr>`;
     app.innerHTML = `
       ${topbar()}
       <main class="screen menu-screen rankings-screen">
@@ -228,5 +274,5 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       </main>`;
   }
 
-  return { rankingCards, renderRankingsScreen, renderCardRecordsScreen };
+  return { rankingCards, rankingPrograms, renderRankingsScreen, renderCardRecordsScreen };
 }

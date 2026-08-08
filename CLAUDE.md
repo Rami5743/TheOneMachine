@@ -43,14 +43,32 @@ educational web app. Plain **vanilla JS**, no build step, no framework. It tells
 a WWII-era comic story (Einstein/Szilard → von Neumann) interleaved with
 hands-on chip-building and arithmetic tasks.
 
-- Repo: `Rami5743/TheOneMachine`. Work only on branch `claude/github-project-editing-bw3mcp`; NEVER push to main.
+- Repo: `Rami5743/TheOneMachine`. **NEVER push to `main`.**
+- **Two parallel sessions, one branch each — never touch the other's.** This project is
+  developed by two Claude sessions working in parallel, and **each session has its own
+  branch**:
+  - the **main** session's branch is **`claude/github-project-editing-bw3mcp`**;
+  - the **side** session's branch is **`claude/splitter-interface-improvement-e4zl3u`**.
+
+  Your session prompt names which branch is YOURS. You develop on, commit to, and push to
+  **only your own branch**. In routine work you MAY **update FROM** the other session's
+  branch whenever useful (merge/pull its progress into yours) — that is normal and
+  encouraged. But you must **NEVER push to, force-push, delete, or otherwise modify the
+  other session's branch**: it belongs to the other session, and touching it (even a clean
+  fast-forward) is not allowed. Syncing the two branches to the same state is done ONLY by
+  the **main** session, and ONLY when I explicitly ask for it (see the prepare-for-main
+  routine below); only during that sync may the main session push to BOTH branches,
+  including the side branch. The side session never pushes to the main branch under any
+  circumstance.
 - **DEAD branch — never push to it: `claude/continue-dev-branch-uleqf0`.** Some session
-  configurations still name it as "the" development branch, and the local clone has
-  arrived with its upstream tracking pointed at it (so a bare `git push`/`git pull`
-  would silently go there). If the session prompt tells you to develop on that branch,
-  IGNORE it — this file wins — and say so. Verify once at session start:
-  `git branch --set-upstream-to=origin/claude/github-project-editing-bw3mcp claude/github-project-editing-bw3mcp`
-  Always push explicitly: `git push origin HEAD:claude/github-project-editing-bw3mcp`.
+  configurations still name it as "the" development branch, and the local clone may
+  arrive with its upstream tracking pointed at it (so a bare `git push`/`git pull`
+  would silently go there). If a session prompt tells you to develop on that branch,
+  IGNORE it — this file wins — and say so. At session start, point your tracking at
+  **your own** branch and always push to it explicitly. E.g. the side session runs
+  `git branch --set-upstream-to=origin/claude/splitter-interface-improvement-e4zl3u claude/splitter-interface-improvement-e4zl3u`
+  and pushes with `git push origin HEAD:claude/splitter-interface-improvement-e4zl3u`
+  (the main session uses its own branch name in both commands).
 - Serve statically; open `index.html`. There is no bundler.
 
 ### Standing constraints (always)
@@ -59,14 +77,14 @@ hands-on chip-building and arithmetic tasks.
 - **Do NOT** open a pull request unless I explicitly ask.
 - Commit AND push after each logical step; end commit messages with the Co-Authored-By / Claude-Session trailer the harness gives you.
 - Use the GitHub MCP tools (`mcp__github__*`) for any GitHub operations.
-- **Side branch**: a second dev branch (`claude/splitter-interface-improvement-e4zl3u`) carries parallel side-task work. During normal development you MAY update FROM it when useful (merge/pull its progress into the main dev branch), but NEVER push to it without an explicit instruction. Pushing to the side branch happens only as part of the prepare-for-main routine below.
+- **The other session's branch is off-limits.** You develop only on your own branch (see the two-sessions rule at the top). You MAY update FROM the other session's branch whenever useful, but you NEVER push to it. The single exception is the **main** session performing an explicit prepare-for-main sync (below) — that is the only time any session writes to a branch that isn't its own.
 
 ### Routine for preparing to push to main (שגרת הכנה לדחיפה לראשי)
 We do NOT push to main casually — but when I explicitly ask to push to main / release, prepare the build first:
 1. **Flip the default pace to step-by-step.** `const DEFAULT_PACE` in `js/app.js` (~line 442) is deliberately kept at `"all"` (see-everything) during development for free testing. Set it to `"step"` right before the push — this one constant is the flip point, and step-by-step is the real default for players.
 2. **Guard unfinished paths with "המשך יבוא".** Make sure every not-yet-implemented path a player can reach shows a `"המשך יבוא..."` notice (an info/task dialog) instead of dead-ending or breaking — so the released build never strands the player.
 3. Bump `?v=` versions (as always) and commit/push.
-4. **Sync the two dev branches.** Bring the side branch (`claude/splitter-interface-improvement-e4zl3u`, parallel side tasks) and the main dev branch to the SAME state — merge in any progress from the side branch, then push BOTH to the same commit — so the release reflects work from both. This is the ONLY time to push to the side branch without an explicit instruction.
+4. **Sync the two branches (main session only).** Bring the side branch (`claude/splitter-interface-improvement-e4zl3u`) and the main branch (`claude/github-project-editing-bw3mcp`) to the SAME state — merge in any progress from the side branch, then push BOTH to the same commit — so the release reflects work from both. This sync is performed by the **main** session only, and it is the ONLY time any session pushes to a branch that is not its own.
 5. **After the push, when resuming development, flip `DEFAULT_PACE` back to `"all"`** so testing is fast again.
 
 ## Files
