@@ -7159,39 +7159,50 @@
     programClipboard = rows;
   }
 
-  // Can this value be written where it is going? A bit's square holds 0, 1 or
-  // nothing; free paper holds one character; the page's own squares hold nothing
-  // the learner puts there.
-  function programCanWrite(cell, value) {
-    if (cell.kind === "locked") return value === "";
-    if (cell.kind === "bit") return value === "" || value === "0" || value === "1";
-    return true;
+  // Can this go where it is going? A bit's square holds 0, 1 or nothing; the
+  // page's own squares hold nothing the learner puts there; and a bit taken from
+  // an instruction may not be dropped on the free paper — which is what stops a
+  // sixteen-square instruction from spilling out past the squares it belongs in.
+  function programCanPlace(source, cell) {
+    if (cell.kind === "locked") return source.value === "";
+    if (cell.kind === "bit") return source.value === "" || source.value === "0" || source.value === "1";
+    return source.kind !== "bit";
+  }
+
+  // A refused paste says so rather than doing nothing quietly.
+  function programRefuse() {
+    const mark = app.querySelector(".prog-selection");
+    if (!mark) return;
+    mark.classList.remove("prog-selection-refused");
+    void mark.offsetWidth;
+    mark.classList.add("prog-selection-refused");
   }
 
   function programPasteSelection() {
     const box = programSelectionBox();
     if (!box || !programClipboard || !programClipboard.length) return;
-    // What was taken has to fit inside what is marked, or it would spill out of
-    // it and over squares nobody chose. Mark at least as much as you copied.
+    // It lands on a corner of the mark, however small that mark is, and runs on
+    // from there. Which corner is whichever one it fits from: a mark made at the
+    // far end of a row would send it off the end if it only ever ran one way.
     const height = programClipboard.length;
     const width = Math.max(...programClipboard.map((line) => line.length));
-    if (height > box.r2 - box.r1 + 1 || width > box.c2 - box.c1 + 1) return;
-    // Check the whole paste before writing any of it: one square that cannot
-    // take what is coming stops the lot.
-    for (let i = 0; i < programClipboard.length; i += 1) {
-      for (let j = 0; j < programClipboard[i].length; j += 1) {
-        const source = programClipboard[i][j];
-        const cell = programCellKind(box.r1 + i, box.c1 + j);
-        if (!programCanWrite(cell, source.value)) return;
-      }
-    }
+    const fits = (r0, c0) => programClipboard.every((line, i) =>
+      line.every((source, j) => programCanPlace(source, programCellKind(r0 + i, c0 + j))));
+    const corners = [
+      { r: box.r1, c: box.c1 },
+      { r: box.r1, c: box.c2 - width + 1 },
+      { r: box.r2 - height + 1, c: box.c1 },
+      { r: box.r2 - height + 1, c: box.c2 - width + 1 }
+    ];
+    const landing = corners.find((corner) => corner.r >= 1 && corner.c >= 1 && fits(corner.r, corner.c));
+    if (!landing) return programRefuse();
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     const scratch = { ...progress.scratch };
     programClipboard.forEach((line, i) => {
       line.forEach((source, j) => {
-        const r = box.r1 + i;
-        const c = box.c1 + j;
+        const r = landing.r + i;
+        const c = landing.c + j;
         const cell = programCellKind(r, c);
         if (cell.kind === "bit") {
           if (source.value === "") delete bits[`${cell.instruction}:${cell.bit}`];
@@ -7328,7 +7339,7 @@
       <div class="sheet-overlay sheet-overlay-prog" role="presentation">
         <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התוכנה">
           <div class="sheet-scroll">
-            <div class="sheet-paper" style="--rows:${rows};">${cells.join("")}</div>
+            <div class="sheet-paper" tabindex="-1" style="--rows:${rows};">${cells.join("")}</div>
           </div>
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
@@ -23601,6 +23612,10 @@
     // The release must not also count as a click on the square underneath.
     suppressNextClick = true;
     window.setTimeout(() => { suppressNextClick = false; }, 0);
+    // And the page takes the keyboard, so Ctrl+C and Ctrl+V reach it wherever
+    // the focus happened to be (a story panel's own document, say).
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    if (paper) { try { paper.focus({ preventScroll: true }); } catch (e) { paper.focus(); } }
   });
 
   // What can be done with a marked rectangle: copy it, paste it, rub it out.

@@ -5902,3 +5902,20 @@ object.panel-image.is-pending {
 
 .prog-context-option:hover:not(:disabled) { background: #efe4c8; }
 .prog-context-option:disabled { color: #a2977f; cursor: default; }
+
+/* A paste that cannot land says so with a short red flash of the mark. */
+.prog-selection-refused { animation: prog-refuse 0.42s ease-out; }
+
+@keyframes prog-refuse {
+  0%, 100% { background: rgba(179, 128, 26, 0.18); border-color: #b3801a; }
+  30%, 70% { background: rgba(190, 45, 35, 0.24); border-color: #be2d23; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prog-selection-refused { animation: none; }
+}
+
+/* The page itself takes the keyboard (so the copy/paste keys reach it), without
+   drawing a focus ring around the whole sheet. */
+.sheet-overlay-prog .sheet-paper:focus,
+.sheet-overlay-prog .sheet-paper:focus-visible { outline: none; }
