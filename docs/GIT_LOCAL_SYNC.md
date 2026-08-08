@@ -12,7 +12,37 @@ fatal: Exiting because of an unresolved conflict.
 
 ---
 
-## שלב 1 — לראות מה קורה (לא משנה כלום)
+## הדרך הקצרה — בלוק אחד להעתיק ולהדביק
+
+פתח טרמינל, היכנס לתיקיית הפרויקט (`cd <התיקייה שבה שמור TheOneMachine>`),
+והדבק את כל הבלוק הזה בבת אחת:
+
+```bash
+git merge --abort 2>/dev/null; git rebase --abort 2>/dev/null; \
+git fetch origin claude/github-project-editing-bw3mcp && \
+git reset --hard FETCH_HEAD && \
+git checkout -B claude/github-project-editing-bw3mcp origin/claude/github-project-editing-bw3mcp && \
+git branch --set-upstream-to=origin/claude/github-project-editing-bw3mcp && \
+git log --oneline -1
+```
+
+בסוף תודפס שורה אחת עם הקומיט האחרון — זה סימן שהכול הסתדר.
+
+**שים לב:** הבלוק הזה **מוחק שינויים מקומיים** שלא נדחפו. אם כתבת משהו
+בעצמך בעותק המקומי וחשוב לך לשמור אותו, הרץ קודם `git status --short`
+והעתק את הקבצים לתיקייה מחוץ לפרויקט.
+
+מכאן והלאה, כדי למשוך עדכונים:
+
+```bash
+git pull origin claude/github-project-editing-bw3mcp
+```
+
+---
+
+## הדרך הארוכה — שלב אחרי שלב
+
+### שלב 1 — לראות מה קורה (לא משנה כלום)
 
 פתח טרמינל, והיכנס לתיקייה של הפרויקט:
 
@@ -45,7 +75,7 @@ git branch -vv
 
 ---
 
-## שלב 2 — לבטל את המיזוג התקוע
+### שלב 2 — לבטל את המיזוג התקוע
 
 ```
 git merge --abort
@@ -61,7 +91,7 @@ git rebase --abort
 
 ---
 
-## שלב 3 — לוודא שאין לך עבודה מקומית שחבל עליה
+### שלב 3 — לוודא שאין לך עבודה מקומית שחבל עליה
 
 ```
 git status --short
@@ -74,7 +104,7 @@ git status --short
 
 ---
 
-## שלב 4 — למשוך מחדש את הענף הנכון
+### שלב 4 — למשוך מחדש את הענף הנכון
 
 ```
 git fetch origin claude/github-project-editing-bw3mcp
@@ -87,7 +117,7 @@ git reset --hard origin/claude/github-project-editing-bw3mcp
 
 ---
 
-## שלב 5 — לתקן את החיבור לענף, כדי שזה לא יקרה שוב
+### שלב 5 — לתקן את החיבור לענף, כדי שזה לא יקרה שוב
 
 ```
 git branch --set-upstream-to=origin/claude/github-project-editing-bw3mcp claude/github-project-editing-bw3mcp
