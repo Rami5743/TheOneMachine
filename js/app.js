@@ -4152,7 +4152,11 @@
   // from the chapter's SECOND slide (the first is 1.3's closing art) to the last
   // of the worked instruction examples.
   function computerStructureStartIndex() {
-    return 1;
+    const scene = SCENES["simple-computer"] || { panels: [] };
+    // It opens on "what is left to build" — the slide before it is the closing
+    // word of chapter 4.0's work, not part of this.
+    const index = panelIndexByImage(scene, "188_4.1_alu-to-cpu.svg");
+    return Number.isInteger(index) && index >= 0 ? index : 1;
   }
 
   function computerStructureEndIndex() {
@@ -5194,6 +5198,7 @@
         ${renderWordsBytesDialog()}
         ${renderSubtractionDemoLinks()}
         ${renderFfClockLinks()}
+        ${renderAssemblerInfo()}
       </main>`;
   }
 

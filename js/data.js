@@ -1399,14 +1399,14 @@ const SCENES = {
         "comment": "4.1 opens in the finished computer room: the RAM shelves are wired and working.",
         "image": "assets/panels/187_4.1_memory-works.svg",
         "year": "1944",
-        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה.",
-        "unlocksExplanation": "computer-structure"
+        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה."
       },
       {
         "comment": "What is left: turning the ALU into a processor.",
         "image": "assets/panels/188_4.1_alu-to-cpu.svg",
         "year": "1944",
-        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות."
+        "read": "יש לנו גם ALU שיכול לעשות חישובים רבים. מה שנשאר עכשיו זה להפוך את ה-ALU למעבד. המעבד יוכל לא רק לעשות חישובים אלא גם לכתוב בזיכרון את התוצאה וגם לקרוא ממנו את הפקודה הבאה שהוא צריך לעשות.",
+        "unlocksExplanation": "computer-structure"
       },
       {
         "comment": "The fetch-execute cycle: processor and memory feed each other, forever.",
