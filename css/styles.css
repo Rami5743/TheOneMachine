@@ -5563,7 +5563,9 @@ object.panel-image.is-pending {
    there. His bubble opens to his right, with its tail pointing back at him. */
 .assembler {
   position: fixed;
-  z-index: 214;
+  /* Above the reference windows: he can be carried anywhere, including over
+     them, and must not disappear behind one. */
+  z-index: 218;
   width: 112px;
   height: 168px;
 }
@@ -5574,7 +5576,7 @@ object.panel-image.is-pending {
   padding: 0;
   border: none;
   background: none;
-  cursor: pointer;
+  cursor: grab;
   transition: transform 0.18s ease;
 }
 
@@ -5689,10 +5691,10 @@ object.panel-image.is-pending {
   display: flex;
   align-items: stretch;
   border: 1px solid #6b5a3a;
-  background: rgba(239, 228, 200, 0.45);
+  background: #f3ecd9;
 }
 
-.prog-slot-alu { background: rgba(206, 190, 152, 0.34); }
+.prog-slot-alu { background: #e8dfc4; }
 
 .prog-slot-btn {
   flex: 1;
@@ -5759,7 +5761,7 @@ object.panel-image.is-pending {
 
 /* The number over an instruction whose first bit is 0: the eleven cells beside
    that bit, merged into one box. */
-.prog-slot-number { background: rgba(239, 228, 200, 0.55); }
+.prog-slot-number { background: #f3ecd9; }
 
 .prog-slot-number .prog-slot-btn { text-align: center; }
 
@@ -5780,7 +5782,7 @@ object.panel-image.is-pending {
 }
 
 /* The calculation chooser over bits 7-12, when the first bit says "compute". */
-.prog-slot-calc { background: rgba(239, 228, 200, 0.55); }
+.prog-slot-calc { background: #f3ecd9; }
 .prog-slot-calc .prog-slot-btn { text-align: center; }
 
 .prog-calc-menu {
@@ -5831,12 +5833,15 @@ object.panel-image.is-pending {
 }
 
 /* The X-is-which-input chooser, over bits 2-6 when the ALU computes. */
-.prog-slot-input { background: rgba(239, 228, 200, 0.55); }
+.prog-slot-input { background: #f3ecd9; }
 .prog-slot-input .prog-slot-btn { text-align: center; }
 
 /* A rectangle of squares marked out on the program page, to be copied, pasted
    over or rubbed out. */
 .prog-selection {
+  /* Positioned, so its z-index counts: the merged cells of the assembler's row
+     are relatively positioned and would otherwise paint over the mark. */
+  position: relative;
   pointer-events: none;
   z-index: 9;
   background: rgba(179, 128, 26, 0.18);

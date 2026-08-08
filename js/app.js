@@ -6348,7 +6348,10 @@
     // The assembler stands on the paper just to the right of the ALU table.
     const alu = byName("alu");
     const figure = app.querySelector(".assembler");
-    if (figure && alu) {
+    if (figure && saved.assembler) {
+      figure.style.left = `${Math.round(saved.assembler.left)}px`;
+      figure.style.top = `${Math.round(saved.assembler.top)}px`;
+    } else if (figure && alu) {
       const aluRect = alu.getBoundingClientRect();
       const figRect = figure.getBoundingClientRect();
       figure.style.left = `${Math.round(aluRect.right + 26)}px`;
@@ -7051,13 +7054,55 @@
     return { kind: "bit", instruction, bit: 17 - col };
   }
 
+  // Which instruction's assembler row this is, if it is one.
+  function programAssemblerRow(row) {
+    if (row <= 1) return null;
+    const within = row - 2;
+    if (within % 2 !== 0) return null;
+    const instruction = within / 2;
+    return instruction < programInstructionCount() ? instruction : null;
+  }
+
+  // The merged cells of an assembler row, as column ranges. What they are
+  // depends on what its first bit says: nothing yet, a number, or a calculation.
+  function programAssemblerRegions(instruction) {
+    const col = (bit) => 17 - bit;
+    const regions = [{ c1: col(16), c2: col(13) }];
+    const lead = programBit(instruction, 1);
+    if (lead === "0") {
+      regions.push({ c1: col(12), c2: col(2) });
+      regions.push({ c1: col(1), c2: col(1) });
+    } else if (lead === "1") {
+      regions.push({ c1: col(12), c2: col(7) });
+      regions.push({ c1: col(6), c2: col(2) });
+      regions.push({ c1: col(1), c2: col(1) });
+    } else {
+      regions.push({ c1: col(12), c2: col(1) });
+    }
+    return regions;
+  }
+
   function programSelectionBox() {
     const sel = state.programSelection;
     if (!sel) return null;
-    return {
+    const box = {
       r1: Math.min(sel.r1, sel.r2), r2: Math.max(sel.r1, sel.r2),
       c1: Math.min(sel.c1, sel.c2), c2: Math.max(sel.c1, sel.c2)
     };
+    // An assembler row has no squares of its own — only the merged cells the
+    // assembler writes in. Touching one marks the whole of it.
+    let low = box.c1;
+    let high = box.c2;
+    for (let r = box.r1; r <= box.r2; r += 1) {
+      const instruction = programAssemblerRow(r);
+      if (instruction === null) continue;
+      programAssemblerRegions(instruction).forEach((region) => {
+        if (region.c2 < box.c1 || region.c1 > box.c2) return;
+        low = Math.min(low, region.c1);
+        high = Math.max(high, region.c2);
+      });
+    }
+    return { ...box, c1: low, c2: high };
   }
 
   function programCopySelection() {
@@ -23369,6 +23414,49 @@
     return win;
   }
 
+  // The assembler can be picked up and carried about the page — his bubble comes
+  // with him, being drawn beside him. A press that never moves is still the
+  // click that opens him.
+  let assemblerDrag = null;
+
+  document.addEventListener("mousedown", (event) => {
+    if (!state.programDialog || event.button !== 0) return;
+    const figure = event.target.closest && event.target.closest(".assembler-figure");
+    if (!figure) return;
+    const win = figure.closest(".assembler");
+    if (!win) return;
+    const rect = win.getBoundingClientRect();
+    assemblerDrag = { win, dx: event.clientX - rect.left, dy: event.clientY - rect.top,
+      x: event.clientX, y: event.clientY, moved: false };
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!assemblerDrag) return;
+    if (!assemblerDrag.moved) {
+      const far = Math.abs(event.clientX - assemblerDrag.x) + Math.abs(event.clientY - assemblerDrag.y);
+      if (far < 5) return;
+      assemblerDrag.moved = true;
+    }
+    const win = assemblerDrag.win;
+    const rect = win.getBoundingClientRect();
+    const x = Math.max(0, Math.min(window.innerWidth - Math.min(rect.width, 60), event.clientX - assemblerDrag.dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 40, event.clientY - assemblerDrag.dy));
+    win.style.left = `${Math.round(x)}px`;
+    win.style.top = `${Math.round(y)}px`;
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!assemblerDrag) return;
+    const { win, moved } = assemblerDrag;
+    assemblerDrag = null;
+    if (!moved) return;
+    suppressNextClick = true;
+    window.setTimeout(() => { suppressNextClick = false; }, 0);
+    const left = parseInt(win.style.left, 10);
+    const top = parseInt(win.style.top, 10);
+    if (Number.isFinite(left) && Number.isFinite(top)) setProgramWindowPos("assembler", { left, top });
+  });
+
   // Dragging out a rectangle of squares on the program page. A press that never
   // moves is left alone — it is a click on whatever is under it.
   document.addEventListener("mousedown", (event) => {
@@ -23997,6 +24085,8 @@
     if (action === "program-clear-open") return setState({ programClearConfirm: true });
     if (action === "program-clear-cancel") return setState({ programClearConfirm: null });
     if (action === "program-clear-confirm") {
+      // Only ever from the question itself — nothing else may wipe the page.
+      if (!state.programClearConfirm) return;
       return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
     }
     if (action === "program-close") {
