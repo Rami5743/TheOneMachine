@@ -23543,7 +23543,32 @@
     if (!overlay) return;
     if (event.target.closest("input, textarea")) return;
     event.preventDefault();
-    setState({ programContextMenu: { x: event.clientX, y: event.clientY } });
+    const patch = { programContextMenu: { x: event.clientX, y: event.clientY } };
+    // One press of the right button is enough to mark a single square: if it
+    // lands outside whatever is marked (or on nothing marked at all), that
+    // square becomes the mark, and the menu opens on it.
+    const square = event.target.closest(".prog-alu-bit[data-alu-op]");
+    if (square) {
+      const op = square.dataset.aluOp;
+      const index = Number(square.dataset.aluBit);
+      const now = state.programTableSelection;
+      const inside = now && now.op === op
+        && index >= Math.min(now.i1, now.i2) && index <= Math.max(now.i1, now.i2);
+      if (!inside) { patch.programTableSelection = { op, i1: index, i2: index }; patch.programSelection = null; }
+    } else {
+      const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+      const at = paper && paper.contains(event.target)
+        ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
+      if (at) {
+        const box = programSelectionBox();
+        const inside = box && at.row >= box.r1 && at.row <= box.r2 && at.col >= box.c1 && at.col <= box.c2;
+        if (!inside) {
+          patch.programSelection = { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
+          patch.programTableSelection = null;
+        }
+      }
+    }
+    setState(patch);
   });
 
   // Dragging across the squares of one operation in the ALU table marks them.
@@ -23749,6 +23774,25 @@
     }
 
     const button = event.target.closest("[data-action]");
+    // On the program page, Ctrl+click marks the square clicked and Shift+click
+    // stretches the mark out to it — without the click doing anything else.
+    if (state.programDialog && (event.ctrlKey || event.metaKey || event.shiftKey)
+        && !event.target.closest("input, textarea, .sheet-actions, .prog-context-menu")) {
+      const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+      const at = paper && paper.contains(event.target)
+        ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
+      if (at) {
+        event.preventDefault();
+        const now = event.shiftKey ? state.programSelection : null;
+        return setState({
+          programSelection: now
+            ? { r1: now.r1, c1: now.c1, r2: at.row, c2: at.col }
+            : { r1: at.row, c1: at.col, r2: at.row, c2: at.col },
+          programTableSelection: null,
+          sheetScratchCell: null
+        });
+      }
+    }
     // A click anywhere but inside the destination chooser closes it.
     if (state.programDestMenu && !event.target.closest(".prog-dest-menu, .prog-slot-dest")) {
       setState({ programDestMenu: null }, false);
