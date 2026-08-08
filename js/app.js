@@ -6900,19 +6900,24 @@
     const back = walk.finished && programHelperOpen()
       ? `<button class="btn btn-primary" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
       : "";
-    const heading = walk.finished
-      ? esc(walk.solution.title)
-      : `${esc(walk.solution.title)} — <span dir="ltr">${esc(walk.at?.code || "")}</span>`;
+    // The instruction's line is always drawn, empty on the closing word, so the
+    // card is the same size from the first step to the last and does not jump
+    // about under the pointer.
+    const heading = `<h2>${esc(walk.solution.title)}</h2>
+          <p class="prog-solution-code" dir="ltr">${walk.finished ? "&nbsp;" : esc(walk.at?.code || "")}</p>`;
     const lead = walk.part < 0 && !walk.finished && open.step === 0 && walk.solution.lead
       ? `<p class="prog-solution-lead">${esc(isolateLatinRuns(walk.solution.lead))}</p>` : "";
+
     // The same card the workbench shows when it walks a build's solution.
     return `
       <div class="prog-solution-shield" aria-hidden="true"></div>
       <div class="solution-overlay prog-solution-overlay" role="presentation">
-        <section class="solution-card" role="dialog" aria-modal="false" aria-label="${esc(walk.solution.title)}">
-          <h2>${heading}</h2>
-          ${lead}
-          <p>${esc(isolateLatinRuns(walk.say))}</p>
+        <section class="solution-card prog-solution-card" role="dialog" aria-modal="false" aria-label="${esc(walk.solution.title)}">
+          ${heading}
+          <div class="prog-solution-text">
+            ${lead}
+            <p>${esc(isolateLatinRuns(walk.say))}</p>
+          </div>
           <div class="solution-actions prog-solution-actions">
             ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
             <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>

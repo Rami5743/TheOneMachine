@@ -6152,9 +6152,35 @@ object.panel-image.is-pending {
    on one side and the task on the other. */
 .prog-solution-overlay {
   z-index: 245;
-  align-items: end;
-  justify-items: center;
-  padding-bottom: calc(var(--controls-h) + var(--gap));
+  place-items: center;
+}
+
+/* It opens in the middle of the screen; the game's own dialog-drag carries it
+   from there (a .solution-card is draggable everywhere else too). Its body keeps
+   a fixed height so stepping from one instruction to the next does not make the
+   card jump about under the pointer. */
+.prog-solution-overlay .solution-card {
+  gap: 8px;
+  /* A little wider than the workbench's, so the longest step still reads in a
+     few lines and the fixed body height does not have to be tall. */
+  width: min(30rem, 86vw);
+}
+
+.prog-solution-code {
+  margin: 0;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+  font-weight: 800;
+  color: #ffe37a;
+}
+
+.prog-solution-text {
+  height: 11rem;
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  align-content: start;
 }
 
 /* Nothing on the page can be touched while a solution is up — what is written
