@@ -7493,7 +7493,6 @@
           <ellipse cx="${page.x2 - 14}" cy="280" rx="14" ry="36" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
           <rect x="${page.x1 + 20}" y="308" width="${width - 40}" height="8" rx="3" fill="#2b2f34" />
         </g>
-        <text x="500" y="288" class="prog-test-label prog-test-label-light" text-anchor="middle">זיכרון התוכנה</text>
 
         <!-- the punched page climbing into it -->
         <g clip-path="url(#progTestSlot)">
