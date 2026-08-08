@@ -5940,8 +5940,9 @@ object.panel-image.is-pending {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-left: 2px solid #3a2c17;
-  border-bottom: 1px solid #6b5a3a;
+  /* The same border as the table's own cells, so the lines meet rather than sit
+     a pixel apart; the outer edge of the column is a rule, like the table's. */
+  border: 1px solid #6b5a3a;
   background: #f3ecd9;
   font-size: calc(var(--sq, 26px) * 0.5);
   font-weight: 700;
@@ -5949,4 +5950,6 @@ object.panel-image.is-pending {
   direction: ltr;
 }
 
-.prog-line-head { border-left: 2px solid #3a2c17; }
+/* The line numbers are a handle for the whole instruction. */
+.prog-line { cursor: pointer; }
+.prog-line:hover { background: #ece1c4; }

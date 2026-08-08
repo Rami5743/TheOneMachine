@@ -7117,13 +7117,33 @@
     return regions;
   }
 
-  function programSelectionBox() {
+  // The two columns of line numbers down the left of the table. They hold
+  // nothing of their own — clicking one is a way of taking hold of the whole
+  // instruction beside it.
+  const PROGRAM_LINE_COLUMNS = [17, 18];
+
+  // The rectangle that covers whole instructions, from the one beside `fromRow`
+  // to the one beside `toRow`.
+  function programLineBox(fromRow, toRow) {
+    const top = Math.min(fromRow, toRow);
+    const bottom = Math.max(fromRow, toRow);
+    const first = Math.max(0, Math.floor((top - 2) / 2));
+    const last = Math.min(programInstructionCount() - 1, Math.floor((bottom - 2) / 2));
+    if (last < first) return null;
+    return { r1: 2 + first * 2, c1: 1, r2: 3 + last * 2, c2: 16 };
+  }
+
+  // `snap` off gives the rectangle exactly as it was dragged out. A paste needs
+  // that: it lands from the mark's own corner, and widening the mark to a whole
+  // assembler row would send it off somewhere the learner never pointed at.
+  function programSelectionBox(snap = true) {
     const sel = state.programSelection;
     if (!sel) return null;
     const box = {
       r1: Math.min(sel.r1, sel.r2), r2: Math.max(sel.r1, sel.r2),
       c1: Math.min(sel.c1, sel.c2), c2: Math.max(sel.c1, sel.c2)
     };
+    if (!snap) return box;
     // An assembler row has no squares of its own — only the merged cells the
     // assembler writes in. Touching one marks the whole of it.
     let low = box.c1;
@@ -7196,7 +7216,7 @@
   }
 
   function programPasteSelection() {
-    const box = programSelectionBox();
+    const box = programSelectionBox(false);
     if (!box || !programClipboard || !programClipboard.length) return;
     // It lands on a corner of the mark, however small that mark is, and runs on
     // from there. Which corner is whichever one it fits from: a mark made at the
@@ -7287,12 +7307,14 @@
     // A column of line numbers down the left of the table, two squares wide, one
     // number to each instruction (which is two rows tall).
     const LINE_COLUMN = 17;
-    cells.push(`<div class="sheet-head sheet-head-top prog-line-head" style="grid-column:${LINE_COLUMN} / span 2;grid-row:1;">#</div>`);
+    cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${LINE_COLUMN} / span 2;grid-row:1;">#</div>`);
     // Only the outer frame, and no foot: the two rules run down the page and the
     // table simply carries on.
     const rules = [
       `<div class="sheet-rule sheet-rule-thin sheet-rule-right" style="grid-column:${bitColumn(15)};grid-row:1 / span ${rows};"></div>`,
-      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${bitColumn(0)};grid-row:1 / span ${rows};"></div>`,
+      // the outer edge of the line-number column, drawn the same way
+      `<div class="sheet-rule sheet-rule-thin" style="grid-column:${LINE_COLUMN + 1};grid-row:1 / span ${rows};"></div>`
     ];
     // Two rows to an instruction: the assembler's row on top (three merged
     // cells — the calculation, the destination, the spare bits) and the sixteen
@@ -23609,8 +23631,11 @@
       if (at) {
         const box = programSelectionBox();
         const inside = box && at.row >= box.r1 && at.row <= box.r2 && at.col >= box.c1 && at.col <= box.c2;
-        if (!inside) {
-          patch.programSelection = { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
+        const want = PROGRAM_LINE_COLUMNS.includes(at.col)
+          ? programLineBox(at.row, at.row)
+          : { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
+        if (!inside && want) {
+          patch.programSelection = want;
           patch.programTableSelection = null;
         }
       }
@@ -23674,7 +23699,12 @@
     const at = sheetSquareAt(paper, event.clientX, event.clientY);
     if (!at) return;
     const anchor = programDragSelect.anchor;
-    const box = { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
+    // Dragging down the line-number column takes hold of whole instructions,
+    // not of the numbers themselves.
+    const box = PROGRAM_LINE_COLUMNS.includes(anchor.col)
+      ? programLineBox(anchor.row, at.row)
+      : { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
+    if (!box) return;
     const now = state.programSelection;
     if (now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2) return;
     setState({ programSelection: box, programTableSelection: null, sheetScratchCell: null });
@@ -23872,10 +23902,14 @@
       const at = paper && paper.contains(event.target)
         ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
       if (at) {
+        // A click on a line number marks the whole instruction beside it.
+        const box = PROGRAM_LINE_COLUMNS.includes(at.col)
+          ? programLineBox(at.row, at.row)
+          : { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
         const now = state.programSelection;
-        const same = now && now.r1 === at.row && now.c1 === at.col && now.r2 === at.row && now.c2 === at.col;
-        if (!same) {
-          state.programSelection = { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
+        const same = box && now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2;
+        if (box && !same) {
+          state.programSelection = box;
           state.programTableSelection = null;
           window.setTimeout(render, 0);
         }
