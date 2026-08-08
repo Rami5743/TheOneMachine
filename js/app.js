@@ -14612,6 +14612,18 @@
     // The square being written in on the exercise page. `autofocus` alone is not
     // enough on markup written with innerHTML — without this the square was only
     // marked and the typing went nowhere.
+    // The number typed over an instruction. Like the scratch square, `autofocus`
+    // alone is not enough on markup written with innerHTML — and the page itself
+    // takes the keyboard on a click, so without this the box was left unfocused
+    // and the typing went nowhere.
+    if (state.programDialog && state.programNumberEdit) {
+      requestAnimationFrame(() => {
+        const box = app.querySelector(".prog-number-input");
+        if (!box) return;
+        if (document.activeElement !== box) box.focus();
+        try { box.select(); } catch (e) { /* not a text input */ }
+      });
+    }
     if (sheetPageOpen() && state.sheetScratchCell) {
       requestAnimationFrame(() => {
         const box = app.querySelector(".sheet-scratch-input");
@@ -23847,8 +23859,11 @@
           state.programTableSelection = null;
           window.setTimeout(render, 0);
         }
-        // and the page takes the keyboard, so Ctrl+V reaches it.
-        try { paper.focus({ preventScroll: true }); } catch (e) { paper.focus(); }
+        // and the page takes the keyboard, so Ctrl+V reaches it — unless the
+        // click is opening something to type in, which needs it more.
+        if (!event.target.closest(".prog-slot-number, .prog-slot-dest, .prog-slot-calc, .prog-slot-input")) {
+          try { paper.focus({ preventScroll: true }); } catch (e) { paper.focus(); }
+        }
       }
     }
     if (state.programNumberEdit && !event.target.closest(".prog-slot-number")) {
