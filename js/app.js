@@ -6848,9 +6848,14 @@
     const at = Math.min(Math.max(variant, 0), Math.max(list.length - 1, 0));
     const solution = list[at];
     if (!solution) return;
+    // The test bench goes away with it: its verdict card stands above
+    // everything, so a solution opened underneath one could not be seen or
+    // touched.
+    clearProgramTestTimers();
     const last = (solution.steps || []).length;
     return setState({
       programHintOpen: null,
+      programRunTest: null,
       programSolution: { variant: at, step: Math.min(Math.max(step, 0), last), part: -1 },
       programSolutionSeen: true,
       // Being shown the helper task's answer counts as having been through it.
@@ -6955,6 +6960,7 @@
     clearProgramTestTimers();
     return setState({
       programDialog: { intro: false },
+      programRunTest: null,
       programHintOpen: null,
       programSolution: null,
       programManualTest: null,
@@ -8013,12 +8019,12 @@
               <p>${esc(result.title)}</p>
               <p class="prog-test-detail">${esc(isolateLatinRuns(result.text))}</p>
               <div class="not-test-result-actions">
-                <button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>
+                ${result.ok ? "" : `<button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>`}
                 ${programHelperOpen() && result.ok
                   ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
                   : ""}
                 ${result.ok && programSolutionSteps().length
-                  ? `<button class="btn" data-action="program-solution-open" type="button">הצג פתרון</button>`
+                  ? `<button class="btn btn-primary" data-action="program-solution-open" type="button">הצג פתרון</button>`
                   : ""}
               </div>
             </section>
