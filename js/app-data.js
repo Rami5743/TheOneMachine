@@ -1334,7 +1334,10 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // bottom-left corner of the page.
   const PROGRAM_TASK = {
     title: "משימת תכנות",
-    text: "כתוב תוכנה שמכפילה את הערך בקלט In0 ב-8 וכותבת את התוצאה ב-Out0."
+    text: "כתוב תוכנה שמכפילה את הערך בקלט In0 ב-8 וכותבת את התוצאה ב-Out0.",
+    // Its row in "דירוגי תוכנה": the shorter the program that passes, the better.
+    rankId: "prg-times-8",
+    rankLabel: "כפל ב-8"
   };
 
   // The little "טיפ" window beside the page, telling the learner the squares can

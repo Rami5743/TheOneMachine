@@ -1768,6 +1768,9 @@
     rankingsCardId: null,
     // Active rankings tab: "efficiency" (default) or "speed".
     rankingsTab: "efficiency",
+    // How long the program that passed each programming task was, in
+    // instructions — the counts behind "דירוגי תוכנה".
+    programCounts: null,
     // Transient: a nickname validation/uniqueness error to show under the field.
     rankingsNicknameError: null,
     createCardUnlocked: false,
@@ -7782,8 +7785,18 @@
   function programTestVerdictPatch(now) {
     const result = programTestResult(now);
     if (!result) return {};
-    if (result.ok) return programHelperOpen() ? { programHelperDone: true } : { programTaskDone: true };
-    return noteProgramFailure() || {};
+    if (!result.ok) return noteProgramFailure() || {};
+    if (programHelperOpen()) return { programHelperDone: true };
+    // What the machine actually ran, in instructions — the number "עורך תוכנה"
+    // ranks by. The current program's length, the way a card's Nand count is the
+    // current build's.
+    const patch = { programTaskDone: true };
+    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const ran = (now.runs || [])[0];
+    if (task && task.rankId && ran && Number.isInteger(ran.steps) && ran.steps > 0) {
+      patch.programCounts = { ...(state.programCounts || {}), [task.rankId]: ran.steps };
+    }
+    return patch;
   }
 
   function programTestTick() {
@@ -17141,7 +17154,7 @@
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
-    getTab: () => (state.rankingsTab === "speed" || state.rankingsTab === "design" ? state.rankingsTab : "efficiency"),
+    getTab: () => (["speed", "design", "software"].includes(state.rankingsTab) ? state.rankingsTab : "efficiency"),
     // The 2.3/2.4 intermediate cards (DMux4Way, Mux4Way16) live in MULTIBIT_TASKS
     // inside this IIFE, so rankings.js can't see them as a global — hand them in.
     // (Lazy: only read at render time, well after the const is initialised.)
@@ -25222,7 +25235,7 @@
     // Switch the efficiency/speed tab on either rankings page.
     if (action === "rankings-tab") {
       const t = button.dataset.tab;
-      const tab = (t === "speed" || t === "design") ? t : "efficiency";
+      const tab = ["speed", "design", "software"].includes(t) ? t : "efficiency";
       return setState({ rankingsTab: tab }, false);
     }
     // Opening a card's records keeps the current tab (arrive on the tab you came from).

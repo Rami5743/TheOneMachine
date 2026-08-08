@@ -6217,3 +6217,31 @@ object.panel-image.is-pending {
   border-radius: 3px;
   z-index: 4;
 }
+
+/* The rankings page splits in two: what was BUILT and what was WRITTEN. The
+   group sits above its own tabs, in the same family but a size up. */
+.rankings-groups {
+  display: flex;
+  gap: 8px;
+  margin: 0.9rem 0 0.2rem;
+}
+
+.rankings-group {
+  appearance: none;
+  border: 1px solid rgba(70, 50, 25, 0.5);
+  border-radius: 999px;
+  background: rgba(70, 50, 25, 0.14);
+  color: #cdbb92;
+  font-weight: 800;
+  font-size: 1.06rem;
+  padding: 7px 20px;
+  cursor: pointer;
+}
+
+.rankings-group:hover { background: rgba(255, 224, 138, 0.14); }
+
+.rankings-group.is-active {
+  background: #f3d488;
+  color: #2a2118;
+  border-color: #f3d488;
+}
