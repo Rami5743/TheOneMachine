@@ -5829,3 +5829,7 @@ object.panel-image.is-pending {
   .assembler-casting .assembler-wand,
   .prog-lit { animation: none; }
 }
+
+/* The X-is-which-input chooser, over bits 2-6 when the ALU computes. */
+.prog-slot-input { background: rgba(239, 228, 200, 0.55); }
+.prog-slot-input .prog-slot-btn { text-align: center; }
