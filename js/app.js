@@ -7204,11 +7204,12 @@
     const width = Math.max(...programClipboard.map((line) => line.length));
     const fits = (r0, c0) => programClipboard.every((line, i) =>
       line.every((source, j) => programCanPlace(source, programCellKind(r0 + i, c0 + j))));
-    // Always from the mark's first square, running the way the page is written:
-    // leftwards along the row and downwards through the rows. Never back to the
-    // right of where it was aimed.
-    const landing = { r: box.r1, c: box.c1 };
-    if (!fits(landing.r, landing.c)) return programRefuse();
+    // It always runs RIGHTWARDS from the mark, and downwards through the rows:
+    // the marked square is the left-hand end of what lands, so what was copied
+    // keeps its order. (The page's columns are numbered right to left, so the
+    // left-hand end is the mark's highest column.)
+    const landing = { r: box.r1, c: box.c2 - width + 1 };
+    if (landing.c < 1 || !fits(landing.r, landing.c)) return programRefuse();
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     const scratch = { ...progress.scratch };
@@ -23592,6 +23593,7 @@
     if (!state.programDialog || event.button !== 0) return;
     const square = event.target.closest && event.target.closest(".prog-alu-bit[data-alu-op]");
     if (!square) return;
+    try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
     programTableDrag = { op: square.dataset.aluOp, from: Number(square.dataset.aluBit) };
     setState({ programTableSelection: { op: programTableDrag.op, i1: programTableDrag.from, i2: programTableDrag.from }, programSelection: null });
   });
@@ -23618,6 +23620,9 @@
   document.addEventListener("mousedown", (event) => {
     if (!state.programDialog || event.button !== 0) return;
     if (event.target.closest(".prog-dest-menu, .prog-number-input, .sheet-actions, .sheet-guide, .assembler")) return;
+    // Whatever the browser had selected, drop it: the only mark on this page is
+    // the one the learner drags out, and a stray blue highlight only confuses it.
+    try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
     const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
     if (!paper || !paper.contains(event.target)) return;
     const at = sheetSquareAt(paper, event.clientX, event.clientY);
