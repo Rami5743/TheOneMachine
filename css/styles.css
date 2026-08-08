@@ -5953,3 +5953,71 @@ object.panel-image.is-pending {
 /* The line numbers are a handle for the whole instruction. */
 .prog-line { cursor: pointer; }
 .prog-line:hover { background: #ece1c4; }
+
+/* ---- The test benches on the 4.3 page ---------------------------------- */
+/* "בדיקה ידנית": a table of what the machine holds after each instruction. It
+   sits in the TOP-LEFT corner and over every other window there — it is looked
+   at while the page underneath is being written. */
+.prog-window-manual {
+  left: 16px;
+  right: auto;
+  top: 16px;
+  bottom: auto;
+  z-index: 230;
+  width: min(30rem, 32vw);
+}
+
+.prog-run-body { max-height: 46vh; overflow: auto; }
+
+.prog-run-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  color: #241d12;
+}
+
+.prog-run-table th,
+.prog-run-table td {
+  border: 1px solid #6b5a3a;
+  padding: 1px 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.prog-run-table th { background: #efe4c8; font-weight: 800; }
+.prog-run-index { background: #f3ecd9; font-weight: 700; }
+.prog-run-row-next td { background: #fdf7e4; }
+
+.prog-run-in { padding: 0; width: 4.6rem; }
+
+.prog-run-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 0;
+  background: #fffdf4;
+  padding: 2px 4px;
+  text-align: center;
+  font: inherit;
+  color: #241d12;
+}
+
+.prog-run-input:focus { outline: 2px solid #7b5a1b; outline-offset: -2px; }
+
+.prog-run-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.prog-run-note { font-size: 0.9rem; color: #8a2b1f; font-weight: 700; }
+
+/* The instruction the test bench is about to run, marked across both its rows. */
+.prog-run-mark {
+  pointer-events: none;
+  border: 2px solid #2f7d46;
+  background: rgba(76, 175, 108, 0.18);
+  border-radius: 3px;
+  z-index: 3;
+}

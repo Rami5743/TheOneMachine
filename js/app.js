@@ -1835,6 +1835,12 @@
     programTableSelection: null,
     // The right-button menu, where it was opened: { x, y }.
     programContextMenu: null,
+    // The manual test bench: how many instructions have been run, and what was
+    // typed into In0 on each line — { steps, in0: {line: text}, note }.
+    programManualTest: null,
+    // The test bench that runs the whole program by itself: which stage of the
+    // animation it is at and how the runs have gone so far.
+    programRunTest: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3031,6 +3037,8 @@
       programSelection: null,
       programTableSelection: null,
       programContextMenu: null,
+      programManualTest: null,
+      programRunTest: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3278,7 +3286,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -7067,6 +7075,224 @@
   }
 
 
+  // ---- Running the program -------------------------------------------------
+  // The machine the learner is writing for, as it was built: a D register, an A
+  // register, and the memory the RAM card gave it — 0-1023 its own registers,
+  // 1024-1027 the output ports, 1028-1031 the input ones (which can only be
+  // read). There is no jump in this instruction, so a program is simply its
+  // instructions one after the other.
+  const PROGRAM_OUT_BASE = 1024;
+  const PROGRAM_IN_BASE = 1028;
+  const PROGRAM_PORTS = 4;
+  const PROGRAM_MASK = 0xffff;
+
+  // The sixteen bits of an instruction as one string, or null while any of them
+  // is still blank — an instruction only half written cannot be run.
+  function programWord(row) {
+    let word = "";
+    for (let bit = 1; bit <= 16; bit += 1) {
+      const value = programBit(row, bit);
+      if (value === "") return null;
+      word += value;
+    }
+    return word;
+  }
+
+  function programRowEmpty(row) {
+    for (let bit = 1; bit <= 16; bit += 1) if (programBit(row, bit) !== "") return false;
+    return true;
+  }
+
+  // The registers hold sixteen bits; what they hold is READ as a whole number,
+  // negatives and all, which is how the learner wrote it down in 2.5.
+  function programSigned(value) {
+    const v = value & PROGRAM_MASK;
+    return v >= 0x8000 ? v - 0x10000 : v;
+  }
+
+  function programMemRead(machine, address) {
+    const addr = address & PROGRAM_MASK;
+    if (addr >= PROGRAM_IN_BASE && addr < PROGRAM_IN_BASE + PROGRAM_PORTS) {
+      return addr === PROGRAM_IN_BASE ? (machine.in0 & PROGRAM_MASK) : 0;
+    }
+    return (machine.mem[addr] || 0) & PROGRAM_MASK;
+  }
+
+  // What an address is called at the head of a column: the ports by their names,
+  // and any other cell of the RAM by its own number.
+  function programAddressLabel(address) {
+    if (address >= PROGRAM_OUT_BASE && address < PROGRAM_OUT_BASE + PROGRAM_PORTS) {
+      return `Out${address - PROGRAM_OUT_BASE}`;
+    }
+    if (address >= PROGRAM_IN_BASE && address < PROGRAM_IN_BASE + PROGRAM_PORTS) {
+      return `In${address - PROGRAM_IN_BASE}`;
+    }
+    return `[${address}]`;
+  }
+
+  // One instruction. Bit 1 says which of the two it is: 0 and the ALU simply
+  // hands out the number written in bits 2-12; 1 and it computes, with D as its
+  // first input, A or *A (bit 6) as its second, and bits 7-12 the calculation
+  // itself — the six control bits of the ALU1 built in 2.6, written in the order
+  // the table shows them (Not the answer, plus-or-And, then the second input's
+  // two and the first input's two).
+  function programExecuteRow(machine, row) {
+    const word = programWord(row);
+    if (!word) return { error: "incomplete" };
+    const touched = [];
+    let value;
+    if (word[0] === "0") {
+      value = parseInt(word.slice(1, 12), 2);
+    } else {
+      const address = machine.a & PROGRAM_MASK;
+      const useMem = word[5] === "1";
+      let x = machine.d & PROGRAM_MASK;
+      let y = useMem ? programMemRead(machine, address) : address;
+      if (useMem) touched.push(address);
+      const [zx, nx, zy, ny, f, no] = word.slice(6, 12).split("").reverse().map((b) => b === "1");
+      if (zx) x = 0;
+      if (nx) x = ~x & PROGRAM_MASK;
+      if (zy) y = 0;
+      if (ny) y = ~y & PROGRAM_MASK;
+      value = f ? (x + y) : (x & y);
+      if (no) value = ~value;
+    }
+    value &= PROGRAM_MASK;
+    const next = { d: machine.d, a: machine.a, in0: machine.in0, mem: { ...machine.mem } };
+    const dest = `${word[12]}${word[13]}`;
+    if (dest === "01") next.d = value;
+    else if (dest === "10") next.a = value;
+    else if (dest === "11") {
+      const address = machine.a & PROGRAM_MASK;
+      touched.push(address);
+      // The input ports are wired the other way round — writing to one does
+      // nothing at all.
+      if (!(address >= PROGRAM_IN_BASE && address < PROGRAM_IN_BASE + PROGRAM_PORTS)) {
+        next.mem[address] = value;
+      }
+    }
+    return { machine: next, touched };
+  }
+
+  // Running the whole program on its own, for the test bench: it stops at the
+  // first instruction that was never written, or after `cycles` beats.
+  function programRunAll(input, cycles) {
+    let machine = { d: 0, a: 0, in0: input & PROGRAM_MASK, mem: {} };
+    const total = programInstructionCount();
+    let steps = 0;
+    for (let row = 0; row < total && steps < cycles; row += 1) {
+      if (programRowEmpty(row)) break;
+      const step = programExecuteRow(machine, row);
+      if (step.error) return { error: step.error, row, machine };
+      machine = step.machine;
+      steps += 1;
+    }
+    return { machine, steps };
+  }
+
+  // ---- The manual test bench ----------------------------------------------
+  // A table of what the machine holds after each instruction, filled one press
+  // of a button at a time, so a program can be followed by hand. In0 is the
+  // learner's to set: what is typed on a line holds from that line on, and the
+  // lines already run keep what they ran with.
+  function programManualState() {
+    const saved = state.programManualTest && typeof state.programManualTest === "object"
+      ? state.programManualTest : null;
+    return {
+      steps: Number.isInteger(saved?.steps) ? Math.max(0, saved.steps) : 0,
+      in0: (saved && saved.in0 && typeof saved.in0 === "object") ? saved.in0 : {},
+      note: typeof saved?.note === "string" ? saved.note : ""
+    };
+  }
+
+  function setProgramManual(patch) {
+    return setState({ programManualTest: { ...programManualState(), ...patch } });
+  }
+
+  // What In0 holds on a line: whatever was last typed at or above it.
+  function programManualInput(overrides, index) {
+    for (let i = index; i >= 0; i -= 1) {
+      const value = overrides[i];
+      if (typeof value === "string") return value;
+    }
+    return "";
+  }
+
+  function programManualNumber(text) {
+    const value = Number(String(text ?? "").trim());
+    return Number.isFinite(value) ? (Math.trunc(value) & PROGRAM_MASK) : 0;
+  }
+
+  // The table, worked out afresh every time: the lines that have been run, then
+  // the one waiting to be. Because it is re-run from the beginning, changing In0
+  // on a line changes that line and the ones under it and nothing above it.
+  function programManualRows() {
+    const { steps, in0 } = programManualState();
+    const rows = [];
+    const extras = [];
+    let machine = { d: 0, a: 0, in0: 0, mem: {} };
+    let error = null;
+    for (let i = 0; i < steps; i += 1) {
+      const typed = programManualInput(in0, i);
+      machine = { ...machine, in0: programManualNumber(typed) };
+      const step = programExecuteRow(machine, i);
+      if (step.error) { error = i; break; }
+      step.touched.forEach((address) => {
+        if (address === PROGRAM_IN_BASE) return;
+        if (!extras.includes(address)) extras.push(address);
+      });
+      machine = step.machine;
+      rows.push({ index: i, in0: typed, done: true, d: machine.d, a: machine.a, mem: machine.mem });
+    }
+    const at = rows.length;
+    rows.push({ index: at, in0: programManualInput(in0, at), done: false, mem: {} });
+    extras.sort((one, two) => one - two);
+    return { rows, extras, error, at };
+  }
+
+  // The press that runs the next instruction. An instruction that was never
+  // written, or only half written, says so instead of running.
+  function programManualStep() {
+    const { steps } = programManualState();
+    if (steps >= programInstructionCount()) return setProgramManual({ note: "אין עוד פקודות" });
+    if (programRowEmpty(steps)) return setProgramManual({ note: `פקודה ${steps + 1} ריקה` });
+    if (!programWord(steps)) return setProgramManual({ note: `פקודה ${steps + 1} לא הושלמה` });
+    return setProgramManual({ steps: steps + 1, note: "" });
+  }
+
+  function renderProgramManualWindow() {
+    if (!state.programManualTest) return "";
+    const { rows, extras, error } = programManualRows();
+    const { note } = programManualState();
+    const heads = ["#", "D", "A", "IN0"].concat(extras.map(programAddressLabel));
+    const cell = (value) => `<td dir="ltr">${value === undefined ? "" : esc(String(programSigned(value)))}</td>`;
+    const body = rows.map((row) => `
+      <tr class="${row.done ? "" : "prog-run-row-next"}">
+        <td class="prog-run-index" dir="ltr">${row.index + 1}</td>
+        ${row.done ? `${cell(row.d)}${cell(row.a)}` : "<td></td><td></td>"}
+        <td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual="${row.index}" value="${esc(row.in0)}" aria-label="In0 בשורה ${row.index + 1}" /></td>
+        ${extras.map((address) => (row.done ? cell(row.mem[address] || 0) : "<td></td>")).join("")}
+      </tr>`).join("");
+    const message = error !== null ? `פקודה ${error + 1} לא הושלמה` : note;
+    return `
+      <section class="sheet-guide prog-window prog-window-manual" data-prog-window="manual" aria-label="בדיקה ידנית">
+        <div class="sheet-guide-head">
+          <span class="sheet-guide-title">בדיקה ידנית</span>
+          <button class="sheet-guide-toggle" data-action="program-manual-close" type="button" aria-label="סגירה">סגירה</button>
+        </div>
+        <div class="sheet-guide-body prog-run-body">
+          <table class="prog-run-table">
+            <thead><tr>${heads.map((head) => `<th dir="ltr">${esc(head)}</th>`).join("")}</tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+        <div class="sheet-guide-foot prog-run-foot">
+          ${message ? `<span class="prog-run-note">${esc(message)}</span>` : ""}
+          <button class="btn btn-primary" data-action="program-manual-step" type="button">בצע פקודה</button>
+        </div>
+      </section>`;
+  }
+
   // ---- Selecting, copying and pasting on the page --------------------------
   // A rectangle of squares can be dragged out anywhere on the page — over the
   // free paper, over the squares of the instructions, or across both — and then
@@ -7376,6 +7602,14 @@
       cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     cells.push(...rules);
+    // While the manual test bench is open, the instruction it is about to run is
+    // marked across both its rows — the line number with them.
+    if (state.programManualTest) {
+      const at = programManualState().steps;
+      if (at < instructions) {
+        cells.push(`<div class="prog-run-mark" aria-hidden="true" style="grid-column:1 / span 18;grid-row:${2 + at * 2} / span 2;"></div>`);
+      }
+    }
     cells.push(renderProgramSelection());
     return `
       <div class="sheet-overlay sheet-overlay-prog" role="presentation">
@@ -7385,9 +7619,12 @@
           </div>
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
+            <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
+            <button class="btn" data-action="program-run-open" type="button">בדיקה</button>
             <button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
+        ${renderProgramManualWindow()}
         ${renderProgramTaskWindow()}
         ${renderProgramAluWindow()}
         ${renderProgramMemoryWindow()}
@@ -23426,6 +23663,32 @@
     }
   });
 
+  // In0 on a line of the test bench. It is kept as it is typed without redrawing
+  // (the caret would jump), and the table is worked out again when the box is
+  // left or Enter is pressed — the whole run is repeated from the top, so the
+  // new number holds from that line downwards and the lines above keep theirs.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-run-input");
+    if (!box || !state.programManualTest) return;
+    const line = Number(box.dataset.programManual);
+    if (!Number.isInteger(line)) return;
+    const now = programManualState();
+    state.programManualTest = { ...now, in0: { ...now.in0, [line]: box.value } };
+    saveState();
+  });
+
+  document.addEventListener("change", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-run-input");
+    if (!box || !state.programManualTest) return;
+    render();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-run-input");
+    if (!box) return;
+    if (event.key === "Enter") { event.preventDefault(); box.blur(); render(); }
+  });
+
   // Rubbing out what was written on a square: Backspace or Delete clears it.
   // Backspace on a square that is already empty steps BACK to the one before it
   // (the way writing steps forward) and clears that one instead.
@@ -23557,7 +23820,7 @@
     // Text and buttons belong to themselves.
     // The ALU table's own squares are marked by dragging across them, so a drag
     // there must never carry the window off with it.
-    if (target.closest("button, a, input, .prog-alu-table, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
+    if (target.closest("button, a, input, .prog-alu-table, .prog-run-table, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
     return win;
   }
 
@@ -24399,9 +24662,14 @@
       if (!state.programClearConfirm) return;
       return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
     }
+    if (action === "program-manual-open") {
+      return setState({ programManualTest: { steps: 0, in0: {}, note: "" }, programSelection: null });
+    }
+    if (action === "program-manual-close") return setState({ programManualTest: null });
+    if (action === "program-manual-step") return programManualStep();
     if (action === "program-close") {
       clearAssemblerHintTimer();
-      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null });
+      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null, programManualTest: null });
     }
     if (action === "program-bit") return cycleProgramBit(Number(button.dataset.row), Number(button.dataset.bit));
     if (action === "program-dest-open") {
