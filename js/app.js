@@ -6900,6 +6900,11 @@
     const back = walk.finished && programHelperOpen()
       ? `<button class="btn btn-primary" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
       : "";
+    // And the main task's very last word — past the second solution — is the end
+    // of what is built so far.
+    const leave = walk.finished && !programHelperOpen() && open.variant + 1 >= list.length
+      ? `<button class="btn btn-primary" data-action="program-solution-finish" type="button">בחזרה להאנגר</button>`
+      : "";
     // The instruction's line is always drawn, empty on the closing word, so the
     // card is the same size from the first step to the last and does not jump
     // about under the pointer.
@@ -6922,7 +6927,7 @@
             ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
             <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
             ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
-            ${more}${back}
+            ${more}${back}${leave}
             <button class="btn" data-action="program-solution-close" type="button">סגור</button>
           </div>
         </section>
@@ -25448,6 +25453,15 @@
       return openProgramSolution((state.programSolution?.variant ?? 0) + 1, 0);
     }
     if (action === "program-solution-close") return setState({ programSolution: null });
+    if (action === "program-solution-finish") {
+      clearAssemblerHintTimer();
+      clearProgramTestTimers();
+      return setState({
+        programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
+        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
+        infoDialog: "המשך יבוא..."
+      });
+    }
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
     if (action === "program-hint-close") return setState({ programHintOpen: null });
     if (action === "program-hint-apply") return applyProgramHint(Number(button.dataset.hintIndex));
