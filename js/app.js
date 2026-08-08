@@ -23811,9 +23811,26 @@
       state.programTableSelection = null;
       window.setTimeout(render, 0);
     }
-    if (state.programSelection && !event.target.closest(".sheet-actions, .prog-context-menu")) {
-      state.programSelection = null;
-      window.setTimeout(render, 0);
+    // An ordinary click on a square of the page marks it — as well as doing
+    // whatever the click does anyway (writing a bit, opening a chooser). No menu,
+    // just the mark, so a paste from the keyboard afterwards lands right there.
+    // Nothing is UNmarked by a click; Escape and the next mark do that.
+    if (state.programDialog
+        && !event.target.closest(".sheet-actions, .prog-context-menu, .prog-alu-bit, .sheet-guide, .assembler")) {
+      const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+      const at = paper && paper.contains(event.target)
+        ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
+      if (at) {
+        const now = state.programSelection;
+        const same = now && now.r1 === at.row && now.c1 === at.col && now.r2 === at.row && now.c2 === at.col;
+        if (!same) {
+          state.programSelection = { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
+          state.programTableSelection = null;
+          window.setTimeout(render, 0);
+        }
+        // and the page takes the keyboard, so Ctrl+V reaches it.
+        try { paper.focus({ preventScroll: true }); } catch (e) { paper.focus(); }
+      }
     }
     if (state.programNumberEdit && !event.target.closest(".prog-slot-number")) {
       state.programNumberEdit = null;
