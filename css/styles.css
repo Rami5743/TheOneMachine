@@ -5833,3 +5833,13 @@ object.panel-image.is-pending {
 /* The X-is-which-input chooser, over bits 2-6 when the ALU computes. */
 .prog-slot-input { background: rgba(239, 228, 200, 0.55); }
 .prog-slot-input .prog-slot-btn { text-align: center; }
+
+/* A rectangle of squares marked out on the program page, to be copied, pasted
+   over or rubbed out. */
+.prog-selection {
+  pointer-events: none;
+  z-index: 9;
+  background: rgba(179, 128, 26, 0.18);
+  border: 2px solid #b3801a;
+  border-radius: 2px;
+}

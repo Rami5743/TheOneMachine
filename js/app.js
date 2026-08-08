@@ -1829,6 +1829,8 @@
     programCalcMenu: null,
     // The X-is-which-input chooser open over an instruction: { row }.
     programInputMenu: null,
+    // The rectangle of squares marked out on the page: { r1, c1, r2, c2 }.
+    programSelection: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3022,6 +3024,7 @@
       programNumberEdit: null,
       programCalcMenu: null,
       programInputMenu: null,
+      programSelection: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3269,7 +3272,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -7026,6 +7029,117 @@
     return done;
   }
 
+
+  // ---- Selecting, copying and pasting on the page --------------------------
+  // A rectangle of squares can be dragged out anywhere on the page — over the
+  // free paper, over the squares of the instructions, or across both — and then
+  // copied, pasted or rubbed out. A paste only lands if EVERY square it would
+  // write to can hold what is coming: a letter cannot go into an instruction's
+  // square, and nothing at all can go into the assembler's own row.
+  let programClipboard = null;
+  let programDragSelect = null;
+
+  // What a square of the page is: an instruction's bit, free paper, or one of
+  // the squares the page itself owns (the heading and the assembler's rows).
+  function programCellKind(row, col) {
+    if (!(col >= 1 && col <= 16)) return { kind: "free" };
+    if (row <= 1) return { kind: "locked" };
+    const within = row - 2;
+    const instruction = Math.floor(within / 2);
+    if (instruction >= programInstructionCount()) return { kind: "free" };
+    if (within % 2 === 0) return { kind: "locked" };
+    return { kind: "bit", instruction, bit: 17 - col };
+  }
+
+  function programSelectionBox() {
+    const sel = state.programSelection;
+    if (!sel) return null;
+    return {
+      r1: Math.min(sel.r1, sel.r2), r2: Math.max(sel.r1, sel.r2),
+      c1: Math.min(sel.c1, sel.c2), c2: Math.max(sel.c1, sel.c2)
+    };
+  }
+
+  function programCopySelection() {
+    const box = programSelectionBox();
+    if (!box) return;
+    const rows = [];
+    for (let r = box.r1; r <= box.r2; r += 1) {
+      const line = [];
+      for (let c = box.c1; c <= box.c2; c += 1) {
+        const cell = programCellKind(r, c);
+        if (cell.kind === "bit") line.push({ kind: "bit", value: programBit(cell.instruction, cell.bit) });
+        else if (cell.kind === "free") line.push({ kind: "free", value: String(programSheetProgress().scratch[`${r},${c}`] ?? "") });
+        else line.push({ kind: "locked", value: "" });
+      }
+      rows.push(line);
+    }
+    programClipboard = rows;
+  }
+
+  // Can this value be written where it is going? A bit's square holds 0, 1 or
+  // nothing; free paper holds one character; the page's own squares hold nothing
+  // the learner puts there.
+  function programCanWrite(cell, value) {
+    if (cell.kind === "locked") return value === "";
+    if (cell.kind === "bit") return value === "" || value === "0" || value === "1";
+    return true;
+  }
+
+  function programPasteSelection() {
+    const box = programSelectionBox();
+    if (!box || !programClipboard || !programClipboard.length) return;
+    // Check the whole paste before writing any of it: one square that cannot
+    // take what is coming stops the lot.
+    for (let i = 0; i < programClipboard.length; i += 1) {
+      for (let j = 0; j < programClipboard[i].length; j += 1) {
+        const source = programClipboard[i][j];
+        const cell = programCellKind(box.r1 + i, box.c1 + j);
+        if (!programCanWrite(cell, source.value)) return;
+      }
+    }
+    const progress = programSheetProgress();
+    const bits = { ...progress.bits };
+    const scratch = { ...progress.scratch };
+    programClipboard.forEach((line, i) => {
+      line.forEach((source, j) => {
+        const r = box.r1 + i;
+        const c = box.c1 + j;
+        const cell = programCellKind(r, c);
+        if (cell.kind === "bit") {
+          if (source.value === "") delete bits[`${cell.instruction}:${cell.bit}`];
+          else bits[`${cell.instruction}:${cell.bit}`] = source.value;
+        } else if (cell.kind === "free") {
+          if (source.value === "") delete scratch[`${r},${c}`];
+          else scratch[`${r},${c}`] = source.value;
+        }
+      });
+    });
+    return setState({ programSheet: { ...progress, bits, scratch } });
+  }
+
+  function programClearSelection() {
+    const box = programSelectionBox();
+    if (!box) return;
+    const progress = programSheetProgress();
+    const bits = { ...progress.bits };
+    const scratch = { ...progress.scratch };
+    for (let r = box.r1; r <= box.r2; r += 1) {
+      for (let c = box.c1; c <= box.c2; c += 1) {
+        const cell = programCellKind(r, c);
+        if (cell.kind === "bit") delete bits[`${cell.instruction}:${cell.bit}`];
+        else if (cell.kind === "free") delete scratch[`${r},${c}`];
+      }
+    }
+    return setState({ programSheet: { ...progress, bits, scratch } });
+  }
+
+  function renderProgramSelection() {
+    const box = programSelectionBox();
+    if (!box) return "";
+    return `<div class="prog-selection" aria-hidden="true" style="grid-column:${box.c1} / span ${box.c2 - box.c1 + 1};grid-row:${box.r1} / span ${box.r2 - box.r1 + 1};"></div>`;
+  }
+
   function renderProgramSheet() {
     if (!state.programDialog) return "";
     const cells = [];
@@ -7100,6 +7214,7 @@
       cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     cells.push(...rules);
+    cells.push(renderProgramSelection());
     return `
       <div class="sheet-overlay sheet-overlay-prog" role="presentation">
         <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התוכנה">
@@ -23254,6 +23369,69 @@
     return win;
   }
 
+  // Dragging out a rectangle of squares on the program page. A press that never
+  // moves is left alone — it is a click on whatever is under it.
+  document.addEventListener("mousedown", (event) => {
+    if (!state.programDialog || event.button !== 0) return;
+    if (event.target.closest(".prog-dest-menu, .prog-number-input, .sheet-actions, .sheet-guide, .assembler")) return;
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    if (!paper || !paper.contains(event.target)) return;
+    const at = sheetSquareAt(paper, event.clientX, event.clientY);
+    if (!at) return;
+    programDragSelect = { anchor: at, x: event.clientX, y: event.clientY, moved: false };
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!programDragSelect) return;
+    if (!programDragSelect.moved) {
+      const far = Math.abs(event.clientX - programDragSelect.x) + Math.abs(event.clientY - programDragSelect.y);
+      if (far < 6) return;
+      programDragSelect.moved = true;
+    }
+    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    if (!paper) return;
+    const at = sheetSquareAt(paper, event.clientX, event.clientY);
+    if (!at) return;
+    const anchor = programDragSelect.anchor;
+    const box = { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
+    const now = state.programSelection;
+    if (now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2) return;
+    setState({ programSelection: box, sheetScratchCell: null });
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!programDragSelect) return;
+    const moved = programDragSelect.moved;
+    programDragSelect = null;
+    if (!moved) return;
+    // The release must not also count as a click on the square underneath.
+    suppressNextClick = true;
+    window.setTimeout(() => { suppressNextClick = false; }, 0);
+  });
+
+  // What can be done with a marked rectangle: copy it, paste it, rub it out.
+  document.addEventListener("keydown", (event) => {
+    if (!state.programDialog || !state.programSelection) return;
+    if (event.target.closest && event.target.closest("input, textarea")) return;
+    const meta = event.ctrlKey || event.metaKey;
+    if (meta && (event.key === "c" || event.key === "C")) {
+      event.preventDefault();
+      return programCopySelection();
+    }
+    if (meta && (event.key === "v" || event.key === "V")) {
+      event.preventDefault();
+      return programPasteSelection();
+    }
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      return programClearSelection();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      return setState({ programSelection: null });
+    }
+  });
+
   // Scrolling towards the bottom of the program page adds more instructions, so
   // the table never runs out under the learner. (Scroll does not bubble, hence
   // the capture.)
@@ -23348,6 +23526,10 @@
     }
     if (state.programInputMenu && !event.target.closest(".prog-input-menu, .prog-slot-input")) {
       setState({ programInputMenu: null }, false);
+    }
+    if (state.programSelection && !event.target.closest(".sheet-actions")) {
+      state.programSelection = null;
+      window.setTimeout(render, 0);
     }
     if (state.programNumberEdit && !event.target.closest(".prog-slot-number")) {
       state.programNumberEdit = null;
