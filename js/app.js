@@ -6903,25 +6903,25 @@
     const heading = walk.finished
       ? esc(walk.solution.title)
       : `${esc(walk.solution.title)} — <span dir="ltr">${esc(walk.at?.code || "")}</span>`;
+    const lead = walk.part < 0 && !walk.finished && open.step === 0 && walk.solution.lead
+      ? `<p class="prog-solution-lead">${esc(isolateLatinRuns(walk.solution.lead))}</p>` : "";
+    // The same card the workbench shows when it walks a build's solution.
     return `
       <div class="prog-solution-shield" aria-hidden="true"></div>
-      <section class="sheet-guide prog-window prog-solution-window" role="dialog" aria-modal="false" aria-label="${esc(walk.solution.title)}">
-        <div class="sheet-guide-head">
-          <span class="sheet-guide-title">${heading}</span>
-          <button class="sheet-guide-toggle" data-action="program-solution-close" type="button">סגור</button>
-        </div>
-        <div class="sheet-guide-body">
-          ${walk.part < 0 && !walk.finished && open.step === 0 && walk.solution.lead
-            ? `<p class="prog-solution-lead">${esc(isolateLatinRuns(walk.solution.lead))}</p>` : ""}
-          <p class="prog-solution-say">${esc(isolateLatinRuns(walk.say))}</p>
-        </div>
-        <div class="sheet-guide-foot">
-          ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
-          <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
-          ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
-          ${more}${back}
-        </div>
-      </section>`;
+      <div class="solution-overlay prog-solution-overlay" role="presentation">
+        <section class="solution-card" role="dialog" aria-modal="false" aria-label="${esc(walk.solution.title)}">
+          <h2>${heading}</h2>
+          ${lead}
+          <p>${esc(isolateLatinRuns(walk.say))}</p>
+          <div class="solution-actions prog-solution-actions">
+            ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
+            <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
+            ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
+            ${more}${back}
+            <button class="btn" data-action="program-solution-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
   }
 
   // ---- The helper task -----------------------------------------------------
