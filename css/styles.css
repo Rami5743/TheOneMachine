@@ -6021,3 +6021,90 @@ object.panel-image.is-pending {
   border-radius: 3px;
   z-index: 3;
 }
+
+/* "בדיקה": the workbench animation that loads the program and runs it. It takes
+   most of the screen, over everything else on the page. */
+.prog-test-overlay {
+  position: fixed;
+  inset: 3vh 3vw;
+  z-index: 320;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid #3a2c17;
+  border-radius: 14px;
+  background: #1a140c;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  direction: rtl;
+}
+
+.prog-test-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.prog-test-svg {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 1200px;
+  /* The scene is laid out in its own coordinates: inside it "end" must mean the
+     left-hand side, whatever way round the page it hangs in. Hebrew words still
+     read right to left inside themselves. */
+  direction: ltr;
+}
+
+.prog-test-caption {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f4e6c2;
+}
+
+.prog-test-label { font-size: 17px; font-weight: 700; fill: #2b2118; }
+.prog-test-label-light { fill: #f4efe2; }
+.prog-test-card-title { font-size: 26px; font-weight: 800; fill: #2b2118; }
+.prog-test-digits { font-size: 26px; font-weight: 800; fill: #8ef29a; font-family: "Courier New", monospace; }
+.prog-test-verdict { font-size: 46px; font-weight: 800; text-anchor: middle; }
+.prog-test-verdict-ok { fill: #4cc46a; }
+.prog-test-verdict-bad { fill: #e05a45; }
+
+/* The punched card climbing into the drum. */
+.prog-test-punch-load { animation: progTestSwallow 3s cubic-bezier(0.45, 0, 0.7, 1) forwards; }
+
+@keyframes progTestSwallow {
+  from { transform: translateY(0); }
+  to { transform: translateY(calc(var(--travel) * -1)); }
+}
+
+/* The converters are only hooked on once the program is in. */
+.prog-test-conv { opacity: 0; transition: opacity 400ms ease; }
+.prog-test-conv-on { opacity: 1; }
+
+.prog-test-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.prog-test-result {
+  min-width: min(30rem, 80%);
+  text-align: center;
+  padding: 14px 20px;
+  border: 3px solid #3a2c17;
+  border-radius: 12px;
+  background: #fbf6e6;
+}
+
+.prog-test-result h3 { margin: 0 0 6px; font-size: 1.4rem; }
+.prog-test-result p { margin: 0 0 10px; font-size: 1.05rem; color: #241d12; }
+.prog-test-result-ok h3 { color: #1f6b36; }
+.prog-test-result-bad h3 { color: #8a2b1f; }

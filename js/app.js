@@ -7293,6 +7293,278 @@
       </section>`;
   }
 
+  // ---- The automatic test bench -------------------------------------------
+  // The whole thing, played out on the workbench: the program is punched onto a
+  // card, the card is swallowed by the program memory, the reset is unhooked and
+  // converters are hooked onto In0 and Out0, and the machine is given fifty
+  // beats for each number in turn. Everything the animation shows has already
+  // happened — the runs are worked out the moment it starts, and the stages only
+  // tell the story of them.
+  const PROGRAM_TEST_STAGES = { load: 3000, connect: 900, run: 1900, check: 1000, reset: 700 };
+  const PROGRAM_TEST_PULSE = 34;
+  let programTestTimer = null;
+  let programTestPulseTimer = null;
+
+  function clearProgramTestTimers() {
+    if (programTestTimer) window.clearTimeout(programTestTimer);
+    if (programTestPulseTimer) window.clearInterval(programTestPulseTimer);
+    programTestTimer = null;
+    programTestPulseTimer = null;
+  }
+
+  function programTestData() {
+    return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
+  }
+
+  // Every run, worked out at once. It stops at the first number the program gets
+  // wrong — there is nothing to learn from the ones after it.
+  function programTestRuns() {
+    const test = programTestData();
+    if (!test) return [];
+    const runs = [];
+    for (const input of (test.inputs || [])) {
+      const outcome = programRunAll(input, test.cycles || 50);
+      const want = input * (test.multiplier || 1);
+      if (outcome.error) {
+        runs.push({ input, want, got: null, ok: false, badRow: outcome.row });
+        break;
+      }
+      const got = programSigned(outcome.machine.mem[PROGRAM_OUT_BASE] || 0);
+      runs.push({ input, want, got, ok: got === want, badRow: null });
+      if (got !== want) break;
+    }
+    return runs;
+  }
+
+  function startProgramTest() {
+    const test = programTestData();
+    if (!test) return;
+    clearProgramTestTimers();
+    if (programRowEmpty(0)) {
+      return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true } });
+    }
+    const runs = programTestRuns();
+    const done = setState({ programRunTest: { phase: "load", index: 0, runs, empty: false } });
+    programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES.load);
+    return done;
+  }
+
+  function programTestNext(now) {
+    const { phase, index, runs } = now;
+    if (phase === "load") return { ...now, phase: "connect", index: 0 };
+    if (phase === "connect") return { ...now, phase: "run" };
+    if (phase === "run") return { ...now, phase: "check" };
+    if (phase === "check") {
+      const run = runs[index];
+      if (!run || !run.ok || index + 1 >= runs.length) return { ...now, phase: "done" };
+      return { ...now, phase: "reset" };
+    }
+    if (phase === "reset") return { ...now, phase: "connect", index: index + 1 };
+    return null;
+  }
+
+  function programTestTick() {
+    clearProgramTestTimers();
+    const now = state.programRunTest;
+    if (!now || now.phase === "done") return;
+    const next = programTestNext(now);
+    if (!next) return;
+    setState({ programRunTest: next });
+    if (next.phase === "done") return;
+    programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES[next.phase] || 800);
+    if (next.phase === "run") programTestPulses();
+  }
+
+  // The beats themselves: counted out in the corner of the machine rather than
+  // through the state, so fifty of them do not redraw the page fifty times.
+  function programTestPulses() {
+    const test = programTestData();
+    const total = (test && test.cycles) || 50;
+    let beat = 0;
+    programTestPulseTimer = window.setInterval(() => {
+      beat += 1;
+      const label = app.querySelector("[data-prog-test-pulse]");
+      const lamp = app.querySelector("[data-prog-test-lamp]");
+      if (label) label.textContent = `${Math.min(beat, total)}/${total}`;
+      if (lamp) lamp.setAttribute("fill", beat % 2 ? "#ffd76a" : "#7a6b46");
+      if (beat >= total) { window.clearInterval(programTestPulseTimer); programTestPulseTimer = null; }
+    }, PROGRAM_TEST_PULSE);
+  }
+
+  function endProgramTest() {
+    clearProgramTestTimers();
+    return setState({ programRunTest: null });
+  }
+
+  function skipProgramTest() {
+    const now = state.programRunTest;
+    if (!now) return;
+    clearProgramTestTimers();
+    return setState({ programRunTest: { ...now, phase: "done", index: Math.max(now.runs.length - 1, 0) } });
+  }
+
+  // The card the program is punched on: one row to an instruction, a hole for
+  // every 1 and an empty ring for every 0.
+  function programTestCard() {
+    const total = programInstructionCount();
+    const rows = [];
+    for (let row = 0; row < total && rows.length < 12; row += 1) {
+      if (programRowEmpty(row)) break;
+      rows.push(Array.from({ length: 16 }, (unused, i) => programBit(row, i + 1)));
+    }
+    return rows.length ? rows : [Array.from({ length: 16 }, () => "")];
+  }
+
+  function renderProgramTestScene(phase, run) {
+    const rows = programTestCard();
+    const rowH = 10;
+    const height = rows.length * rowH + 18;
+    const bottom = 518;
+    const top = bottom - height;
+    // How far up the card has travelled: at the end of the loading it has gone
+    // right through the mouth of the cylinder and is out of sight.
+    const travel = height + (bottom - 340);
+    const loading = phase === "load";
+    const holes = rows.map((bits, r) => bits.map((bit, c) => {
+      const cx = 392 + c * 14;
+      const cy = top + 9 + r * rowH + rowH / 2;
+      return bit === "1"
+        ? `<circle cx="${cx}" cy="${cy.toFixed(1)}" r="3.4" fill="#2b2118" />`
+        : `<circle cx="${cx}" cy="${cy.toFixed(1)}" r="3.4" fill="none" stroke="#c3b48f" stroke-width="1" />`;
+    }).join("")).join("");
+    const live = phase !== "load";
+    const resetOn = phase === "load" || phase === "reset";
+    const resetCable = resetOn
+      ? `<path d="M140,296 C140,190 210,132 378,132" fill="none" stroke="#b8452f" stroke-width="7" stroke-linecap="round" />`
+      : `<path d="M140,296 C140,210 186,168 268,186" fill="none" stroke="#b8452f" stroke-width="7" stroke-linecap="round" />
+         <circle cx="268" cy="186" r="7" fill="#b8452f" />`;
+    const shown = (value) => (value === null || value === undefined ? "" : String(value));
+    const inValue = run ? shown(run.input) : "";
+    const outValue = (phase === "check" || phase === "done") && run ? shown(run.got) : "";
+    const verdict = (phase === "check" || phase === "done") && run
+      ? (run.ok
+        ? `<text x="840" y="378" class="prog-test-verdict prog-test-verdict-ok">✓</text>`
+        : `<text x="840" y="378" class="prog-test-verdict prog-test-verdict-bad">✗</text>`)
+      : "";
+    return `
+      <svg class="prog-test-svg" viewBox="0 0 1000 640" role="img" aria-label="שולחן העבודה עם המכונה">
+        <defs>
+          <clipPath id="progTestSlot"><rect x="0" y="342" width="1000" height="300" /></clipPath>
+          <linearGradient id="progTestDrum" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#6e747c" /><stop offset="0.45" stop-color="#aeb6bf" />
+            <stop offset="1" stop-color="#5d636b" />
+          </linearGradient>
+        </defs>
+
+        <rect x="30" y="520" width="940" height="20" rx="6" fill="#96652f" />
+        <rect x="30" y="540" width="940" height="12" fill="#70491f" />
+        <rect x="120" y="552" width="26" height="88" fill="#70491f" />
+        <rect x="854" y="552" width="26" height="88" fill="#70491f" />
+
+        <g class="prog-test-stand">
+          <rect x="330" y="296" width="340" height="14" rx="5" fill="#6b7078" />
+          <rect x="330" y="296" width="16" height="228" fill="#6b7078" />
+          <rect x="654" y="296" width="16" height="228" fill="#6b7078" />
+        </g>
+
+        <g class="prog-test-cables">
+          <line x1="556" y1="200" x2="556" y2="250" stroke="#3d4c6b" stroke-width="9" stroke-linecap="round" />
+          <line x1="426" y1="200" x2="426" y2="252" stroke="#3f7a52" stroke-width="5" stroke-linecap="round" />
+          <line x1="450" y1="200" x2="450" y2="254" stroke="#3f7a52" stroke-width="5" stroke-linecap="round" />
+        </g>
+        <text class="prog-test-label prog-test-label-light" text-anchor="end"><tspan x="372" y="228">כניסות</tspan><tspan x="372" y="250">זיכרון התוכנה</tspan></text>
+
+        <g class="prog-test-drum">
+          <rect x="385" y="252" width="230" height="98" fill="url(#progTestDrum)" />
+          <ellipse cx="500" cy="350" rx="115" ry="24" fill="#5d636b" />
+          <ellipse cx="500" cy="252" rx="115" ry="24" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
+          <rect x="410" y="344" width="180" height="9" rx="4" fill="#2b2f34" />
+        </g>
+        <text x="500" y="305" class="prog-test-label prog-test-label-light" text-anchor="middle">זיכרון התוכנה</text>
+
+        <g clip-path="url(#progTestSlot)">
+          <g class="prog-test-punch${loading ? " prog-test-punch-load" : ""}"${loading ? ` style="--travel:${travel}px;"` : ` style="transform:translateY(-${travel}px);"`}>
+            <rect x="378" y="${top}" width="244" height="${height}" rx="5" fill="#f3e6c4" stroke="#8a7444" stroke-width="2" />
+            ${holes}
+          </g>
+        </g>
+
+        <g class="prog-test-computer">
+          <rect x="380" y="90" width="240" height="110" rx="10" fill="#f0e3c2" stroke="#3a2c17" stroke-width="3" />
+          <text x="500" y="140" class="prog-test-card-title" text-anchor="middle">Computer0</text>
+          <circle cx="378" cy="132" r="8" fill="${resetOn ? "#b8452f" : "#8d8577"}" stroke="#3a2c17" stroke-width="2" />
+          <text x="366" y="102" class="prog-test-label prog-test-label-light" text-anchor="end">reset</text>
+          <circle data-prog-test-lamp="1" cx="596" cy="112" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#3a2c17" stroke-width="2" />
+          <text data-prog-test-pulse="1" x="596" y="192" class="prog-test-label" text-anchor="middle">${phase === "run" ? "0/50" : ""}</text>
+        </g>
+
+        <g class="prog-test-power">
+          ${resetCable}
+          <rect x="90" y="296" width="100" height="86" rx="8" fill="#2f3a4a" stroke="#16202c" stroke-width="3" />
+          <rect x="112" y="284" width="18" height="14" fill="#c9ced6" />
+          <rect x="150" y="288" width="18" height="10" fill="#c9ced6" />
+          <text x="140" y="346" class="prog-test-label prog-test-label-light" text-anchor="middle">מקור מתח</text>
+        </g>
+
+        <g class="prog-test-conv${live ? " prog-test-conv-on" : ""}">
+          <path d="M620,126 C700,126 700,150 756,150" fill="none" stroke="#3d4c6b" stroke-width="6" />
+          <path d="M620,178 C700,178 700,292 756,292" fill="none" stroke="#3d4c6b" stroke-width="6" />
+          <rect x="756" y="110" width="168" height="80" rx="8" fill="#efe4c8" stroke="#3a2c17" stroke-width="3" />
+          <text x="840" y="136" class="prog-test-label" text-anchor="middle">In0</text>
+          <rect x="776" y="144" width="128" height="34" rx="5" fill="#1d2a20" />
+          <text x="840" y="170" class="prog-test-digits" text-anchor="middle">${esc(inValue)}</text>
+          <rect x="756" y="252" width="168" height="80" rx="8" fill="#efe4c8" stroke="#3a2c17" stroke-width="3" />
+          <text x="840" y="278" class="prog-test-label" text-anchor="middle">Out0</text>
+          <rect x="776" y="286" width="128" height="34" rx="5" fill="#1d2a20" />
+          <text x="840" y="312" class="prog-test-digits" text-anchor="middle">${esc(outValue)}</text>
+          ${verdict}
+        </g>
+      </svg>`;
+  }
+
+  function programTestResult(now) {
+    const test = programTestData();
+    if (!test) return null;
+    if (now.empty) return { ok: false, title: test.failTitle, text: test.emptyText };
+    const runs = now.runs || [];
+    const bad = runs.find((run) => !run.ok);
+    if (!bad) return { ok: true, title: test.passTitle, text: test.passText };
+    if (bad.badRow !== null && bad.badRow !== undefined) {
+      return { ok: false, title: test.failTitle, text: `פקודה ${bad.badRow + 1} לא הושלמה.` };
+    }
+    return {
+      ok: false,
+      title: test.failTitle,
+      text: `כשהקלט In0 היה ${bad.input}, ב-Out0 התקבל ${bad.got} במקום ${bad.want}.`
+    };
+  }
+
+  function renderProgramRunTest() {
+    const now = state.programRunTest;
+    const test = programTestData();
+    if (!now || !test) return "";
+    const run = (now.runs || [])[now.index] || null;
+    const result = now.phase === "done" ? programTestResult(now) : null;
+    const caption = (test.captions || {})[now.phase] || "";
+    return `
+      <div class="prog-test-overlay" role="dialog" aria-modal="true" aria-label="${esc(test.title)}">
+        <div class="prog-test-stage">
+          ${now.empty ? "" : renderProgramTestScene(now.phase, run)}
+          ${caption ? `<p class="prog-test-caption">${esc(isolateLatinRuns(caption))}</p>` : ""}
+        </div>
+        ${result ? `
+          <div class="prog-test-result ${result.ok ? "prog-test-result-ok" : "prog-test-result-bad"}" role="alert">
+            <h3>${esc(result.title)}</h3>
+            <p>${esc(isolateLatinRuns(result.text))}</p>
+            <button class="btn btn-primary" data-action="program-test-close" type="button">סגירה</button>
+          </div>` : `
+          <div class="prog-test-actions">
+            ${navButton("program-test-skip", "skip-rtl", "דלג לתוצאה")}
+            <button class="btn" data-action="program-test-close" type="button">סגירה</button>
+          </div>`}
+      </div>`;
+  }
+
   // ---- Selecting, copying and pasting on the page --------------------------
   // A rectangle of squares can be dragged out anywhere on the page — over the
   // free paper, over the squares of the instructions, or across both — and then
@@ -7633,6 +7905,7 @@
         ${renderAssembler()}
         ${renderAssemblerTeaser()}
         ${renderProgramContextMenu()}
+        ${renderProgramRunTest()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -23991,6 +24264,12 @@
   // Listened for on the way DOWN, so nothing else can swallow the keys first.
   window.addEventListener("keydown", (event) => {
     if (!state.programDialog) return;
+    // While a test bench is running over the page, Escape shuts it and the page
+    // itself hears nothing.
+    if (state.programRunTest) {
+      if (event.key === "Escape") { event.preventDefault(); endProgramTest(); }
+      return;
+    }
     if (!state.programSelection && !state.programTableSelection && !programClipboard) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
@@ -24667,9 +24946,13 @@
     }
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();
+    if (action === "program-run-open") return startProgramTest();
+    if (action === "program-test-skip") return skipProgramTest();
+    if (action === "program-test-close") return endProgramTest();
     if (action === "program-close") {
       clearAssemblerHintTimer();
-      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null, programManualTest: null });
+      clearProgramTestTimers();
+      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null, programManualTest: null, programRunTest: null });
     }
     if (action === "program-bit") return cycleProgramBit(Number(button.dataset.row), Number(button.dataset.bit));
     if (action === "program-dest-open") {

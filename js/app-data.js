@@ -1395,6 +1395,29 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     ]
   };
 
+  // "בדיקה": the test bench that loads the program into the machine and runs it
+  // on its own. The numbers it feeds In0, how many beats it gives the machine
+  // for each of them, and what Out0 is supposed to hold afterwards — the task
+  // asks for the input times eight.
+  const PROGRAM_TEST = {
+    title: "בדיקת התוכנה",
+    cycles: 50,
+    inputs: [3, 7, 12],
+    multiplier: 8,
+    passTitle: "הצלחה!",
+    passText: "התוכנה החזירה את התוצאה הנכונה בכל הבדיקות.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    // The stages of the animation, and what is written under it at each one.
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק, והממירים מתחברים ל-In0 ול-Out0",
+      run: "המכונה רצה",
+      check: "בודקים את Out0",
+      reset: "הריסט מתחבר מחדש, והמספר בקלט מתחלף"
+    }
+  };
+
   // The assembler: the little fellow standing beside the ALU table on the 4.3
   // page. Clicking him opens his speech bubble; these are its pages.
   // The red teaser above his first page, and the window it opens.
