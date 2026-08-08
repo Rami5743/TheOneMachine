@@ -1838,6 +1838,8 @@
     // The helper task's own program, kept apart from the main one so neither
     // loses its place while the other is worked on.
     programHelperSheet: null,
+    // The helper task's own hint tally, kept apart from the main task's.
+    programHelperHints: null,
     // The hints for the programming task: { failures, seen }, the usual rules.
     programHints: null,
     // The worked solution on screen, if any: { variant, step }.
@@ -6641,12 +6643,21 @@
   // another is waiting, and the solution is offered two failures past the last
   // hint. The helper task has none of its own yet.
   function programHints() {
-    if (programHelperOpen()) return [];
+    if (programHelperOpen()) {
+      return typeof PROGRAM_HELPER_HINTS !== "undefined" ? PROGRAM_HELPER_HINTS : [];
+    }
     return typeof PROGRAM_HINTS !== "undefined" ? PROGRAM_HINTS : [];
   }
 
+  // Each task keeps its own tally, so failing one does not hand out the other's
+  // hints.
+  function programHintKey() {
+    return programHelperOpen() ? "programHelperHints" : "programHints";
+  }
+
   function programHintProgress() {
-    const raw = state.programHints && typeof state.programHints === "object" ? state.programHints : {};
+    const raw = state[programHintKey()] && typeof state[programHintKey()] === "object"
+      ? state[programHintKey()] : {};
     return {
       failures: Number.isInteger(raw.failures) ? Math.max(0, raw.failures) : 0,
       seen: Number.isInteger(raw.seen) ? Math.max(0, raw.seen) : 0
@@ -6663,13 +6674,20 @@
   // task — it is what the fourth hint sends them to, and the walkthrough leans
   // on having done it. Solving the main task opens it by another door.
   function programSolutionSteps() {
+    if (programHelperOpen()) {
+      return typeof PROGRAM_HELPER_SOLUTIONS !== "undefined" ? PROGRAM_HELPER_SOLUTIONS : [];
+    }
     return typeof PROGRAM_SOLUTIONS !== "undefined" ? PROGRAM_SOLUTIONS : [];
   }
 
   function programSolutionAvailable() {
-    if (programHelperOpen() || !programSolutionSteps().length) return false;
-    if (state.programTaskDone) return false;
-    if (!state.programHelperDone) return false;
+    if (!programSolutionSteps().length) return false;
+    const done = programHelperOpen() ? state.programHelperDone : state.programTaskDone;
+    if (done) return false;
+    // The main task's solution also waits on having been through the helper
+    // task: it is what the fourth hint sends the learner to, and the walkthrough
+    // leans on having done it.
+    if (!programHelperOpen() && !state.programHelperDone) return false;
     return programHintProgress().failures >= programHints().length + 2;
   }
 
@@ -6680,7 +6698,6 @@
   }
 
   function programHintButtonVisible() {
-    if (programHelperOpen()) return false;
     return programUnlockedHintCount() > 0 || programSolutionAvailable();
   }
 
@@ -6691,9 +6708,8 @@
 
   // A failed run is what moves the hints along.
   function noteProgramFailure() {
-    if (programHelperOpen()) return null;
     const progress = programHintProgress();
-    return { programHints: { ...progress, failures: progress.failures + 1 } };
+    return { [programHintKey()]: { ...progress, failures: progress.failures + 1 } };
   }
 
   function openProgramHints(index) {
@@ -6702,7 +6718,31 @@
     const progress = programHintProgress();
     const at = Number.isInteger(index) ? Math.min(Math.max(index, 0), unlocked - 1) : progress.seen;
     const seen = Math.max(progress.seen, Math.min(at + 1, unlocked));
-    return setState({ programHintOpen: { index: Math.min(at, unlocked - 1) }, programHints: { ...progress, seen } });
+    return setState({
+      programHintOpen: { index: Math.min(at, unlocked - 1) },
+      [programHintKey()]: { ...progress, seen }
+    });
+  }
+
+  // The hint that writes the instructions itself instead of describing them.
+  // It says so plainly: what was on the page goes.
+  function applyProgramHint(index) {
+    const raw = programHints()[index];
+    const words = Array.isArray(raw?.writes) ? raw.writes : null;
+    if (!words) return setState({ programHintOpen: null });
+    const bits = {};
+    words.forEach((word, row) => {
+      String(word).split("").forEach((value, i) => {
+        if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
+      });
+    });
+    return setState({
+      [programSheetKey()]: { scratch: {}, bits },
+      programHintOpen: null,
+      programSelection: null,
+      programManualTest: null,
+      sheetScratchCell: null
+    });
   }
 
   function renderProgramHintWindow() {
@@ -6719,7 +6759,12 @@
            <button class="btn btn-primary" data-action="program-helper-enter" type="button">כן</button>
            <button class="btn" data-action="program-hint-close" type="button">לא</button>
          </div>`
-      : "";
+      : (raw.writes
+        ? `<div class="prog-hint-offer">
+             <button class="btn btn-primary" data-action="program-hint-apply" data-hint-index="${open.index}" type="button">כן</button>
+             <button class="btn" data-action="program-hint-close" type="button">לא</button>
+           </div>`
+        : "");
     return `
       <div class="hint-overlay sheet-hint-overlay" role="presentation">
         <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
@@ -6748,7 +6793,9 @@
     return setState({
       programHintOpen: null,
       programSolution: { variant: at, step: Math.min(Math.max(step, 0), last) },
-      programSolutionSeen: true
+      programSolutionSeen: true,
+      // Being shown the helper task's answer counts as having been through it.
+      ...(programHelperOpen() ? { programHelperDone: true } : {})
     });
   }
 
@@ -7876,7 +7923,7 @@
                 ${programHelperOpen() && result.ok
                   ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
                   : ""}
-                ${!programHelperOpen() && result.ok && programSolutionSteps().length
+                ${result.ok && programSolutionSteps().length
                   ? `<button class="btn" data-action="program-solution-open" type="button">הצג פתרון</button>`
                   : ""}
               </div>
@@ -25298,6 +25345,7 @@
     if (action === "program-solution-close") return setState({ programSolution: null });
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
     if (action === "program-hint-close") return setState({ programHintOpen: null });
+    if (action === "program-hint-apply") return applyProgramHint(Number(button.dataset.hintIndex));
     if (action === "program-helper-enter") return enterProgramHelper();
     if (action === "program-helper-leave") return leaveProgramHelper();
     if (action === "program-test-skip") return skipProgramTest();

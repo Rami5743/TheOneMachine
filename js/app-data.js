@@ -1464,6 +1464,36 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     { title: "רמז 7", text: "בשביל זה תצטרך לקבוע את הערך של A להיות הכתובת של Out0. אתה יכול לבדוק מהי, בחלונית מבנה הזיכרון משמאל." }
   ];
 
+  // The helper task's hints. The fourth one writes the two instructions itself
+  // rather than describing them — the words are the instruction bit by bit:
+  //   A=1028  ->  0 10000000100 10 00
+  //   D=*A    ->  1 0000 1 000011 01 00
+  const PROGRAM_HELPER_HINTS = [
+    { title: "רמז 1", text: "אתה לא יכול להעביר ישירות תכנים בין רגיסטרים בזיכרון. זאת מכיוון שבכל רגע אתה קורא רק דבר אחד בזיכרון. תנסה להעביר למקום אחר כשלב ביניים." },
+    { title: "רמז 2", text: "בדיוק בשביל דברים כאלה נועד רגיסטר D. תתחיל מלהעביר את In0 לרגיסטר D." },
+    { title: "רמז 3", text: "בשביל זה תצטרך לקבוע את A להיות הכתובת של In0. אתה יכול לבדוק מהי בחלונית מבנה הזיכרון מצד שמאל. אחרי זה פשוט תצטרך לשים את ‎*A ב-D." },
+    {
+      title: "רמז 4",
+      text: "רוצה שאני אכתוב לך את 2 הפקודות שמעבירות את In0 לרגיסטר D (זה ימחק את כל מה שכתבת)?",
+      writes: ["0100000001001000", "1000010000110100"]
+    },
+    { title: "רמז 5", text: "עכשיו נשאר להעביר את D ל-Out0. זה מאוד דומה למה שכבר עשית." }
+  ];
+
+  const PROGRAM_HELPER_SOLUTIONS = [
+    {
+      title: "פתרון",
+      lead: "אין דרך להעביר מספר מרגיסטר אחד בזיכרון לאחר בפקודה אחת — בכל רגע קוראים רק כתובת אחת. לכן עוברים דרך D.",
+      steps: [
+        { code: "A=1028", text: "כתובת הקלט In0 היא 1028. נכניס אותה ל-A, וכך ‎*A הוא הקלט." },
+        { code: "D=*A", text: "לוקחים את הקלט אל רגיסטר D. עכשיו המספר נמצא במעבד, לא בזיכרון." },
+        { code: "A=1024", text: "עכשיו משנים את A לכתובת הפלט, 1024. הקלט כבר לא נחוץ לנו — הוא שמור ב-D." },
+        { code: "*A=D", text: "כותבים את מה שב-D לכתובת שב-A, כלומר ל-Out0." }
+      ],
+      close: "ארבע פקודות: שתיים כדי לקרוא, שתיים כדי לכתוב. רגיסטר D הוא תחנת הביניים."
+    }
+  ];
+
   // The worked solutions, walked one instruction at a time. The first is the one
   // the hints lead to — add the input to zero eight times. The second is the
   // same answer reached by doubling, which is where the idea actually pays.
