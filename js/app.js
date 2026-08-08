@@ -1835,6 +1835,16 @@
     programTableSelection: null,
     // The right-button menu, where it was opened: { x, y }.
     programContextMenu: null,
+    // The helper task's own program, kept apart from the main one so neither
+    // loses its place while the other is worked on.
+    programHelperSheet: null,
+    // The hints for the programming task: { failures, seen }, the usual rules.
+    programHints: null,
+    // Which hint is open on screen, if any: { index }.
+    programHintOpen: null,
+    // Whether each of the two tasks has ever passed its test.
+    programTaskDone: false,
+    programHelperDone: false,
     // The manual test bench: how many instructions have been run, and what was
     // typed into In0 on each line — { steps, in0: {line: text}, note }.
     programManualTest: null,
@@ -3042,6 +3052,7 @@
       programContextMenu: null,
       programManualTest: null,
       programRunTest: null,
+      programHintOpen: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3289,7 +3300,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6262,8 +6273,20 @@
   // in the bottom-right corner, bottom to top, "מבנה הפקודה" (folded away to
   // start), "מבנה הזיכרון" and the table of ALU1 calculations.
 
+  // The helper task is the same page with a different program on it. Everything
+  // that reads or writes "the program" goes through these two, so neither task
+  // can lose its place while the other is being worked on.
+  function programHelperOpen() {
+    return Boolean(state.programDialog && state.programDialog.helper);
+  }
+
+  function programSheetKey() {
+    return programHelperOpen() ? "programHelperSheet" : "programSheet";
+  }
+
   function programSheetProgress() {
-    const saved = state.programSheet && typeof state.programSheet === "object" ? state.programSheet : {};
+    const saved = state[programSheetKey()] && typeof state[programSheetKey()] === "object"
+      ? state[programSheetKey()] : {};
     return {
       scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {},
       // The program itself: "<instruction>:<bit>" -> "0" | "1".
@@ -6283,7 +6306,7 @@
   }
 
   function writeActiveSheetProgress(next) {
-    if (state.programDialog) state.programSheet = next;
+    if (state.programDialog) state[programSheetKey()] = next;
     else state.instructionSheet = next;
   }
 
@@ -6408,7 +6431,11 @@
     const overlay = card ? card.closest(".pace-dialog-overlay") : null;
     const reduceMotion = typeof window !== "undefined" && window.matchMedia
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const seat = () => setState({ programIntroSeen: true, programDialog: { intro: false } });
+    // Keep whatever else the page is set to — above all WHICH task it is showing.
+    const seat = () => setState({
+      programIntroSeen: true,
+      programDialog: { ...(state.programDialog || {}), intro: false }
+    });
     if (!card || reduceMotion) return seat();
     const rect = card.getBoundingClientRect();
     const scale = 0.4;
@@ -6440,7 +6467,7 @@
     // task is read in the middle of the page again before it takes its seat.
     const opened = setState({
       panelObjectDialog: null,
-      programSheet: programSheetProgress(),
+      [programSheetKey()]: programSheetProgress(),
       programPanels: { ...programPanelsState(), pos: {} },
       // His red teaser is offered once a visit, not once ever: coming back to
       // the page and clicking him shows it again.
@@ -6461,7 +6488,7 @@
 
   // The task, once it has been read: the same words, in the corner, foldable.
   function renderProgramTaskWindow() {
-    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const task = programTaskData();
     if (!task || (state.programDialog && state.programDialog.intro)) return "";
     const open = programPanelsState().task;
     const head = programWindowHead(task.title, "task", open);
@@ -6596,8 +6623,146 @@
 
   // The task, the first time: centred, with "הבנתי". Dismissing it is what turns
   // it into the window in the corner.
+  // Which task the page is set to — the chapter's own, or the helper task the
+  // fourth hint offers.
+  function programTaskData() {
+    if (programHelperOpen()) return typeof PROGRAM_HELPER_TASK !== "undefined" ? PROGRAM_HELPER_TASK : null;
+    return typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+  }
+
+  // ---- The hints -----------------------------------------------------------
+  // The usual rules: one more hint unlocks after each failed run of the machine
+  // (from the second), the button says "רוצה רמז" until one has been read and
+  // another is waiting, and the solution is offered two failures past the last
+  // hint. The helper task has none of its own yet.
+  function programHints() {
+    if (programHelperOpen()) return [];
+    return typeof PROGRAM_HINTS !== "undefined" ? PROGRAM_HINTS : [];
+  }
+
+  function programHintProgress() {
+    const raw = state.programHints && typeof state.programHints === "object" ? state.programHints : {};
+    return {
+      failures: Number.isInteger(raw.failures) ? Math.max(0, raw.failures) : 0,
+      seen: Number.isInteger(raw.seen) ? Math.max(0, raw.seen) : 0
+    };
+  }
+
+  function programUnlockedHintCount() {
+    const total = programHints().length;
+    if (!total) return 0;
+    return Math.min(total, Math.max(0, programHintProgress().failures - 1));
+  }
+
+  // The solution is only offered once the learner has been through the helper
+  // task — it is what the fourth hint sends them to, and the walkthrough leans
+  // on having done it. Solving the main task opens it by another door.
+  function programSolutionSteps() {
+    return typeof PROGRAM_SOLUTIONS !== "undefined" ? PROGRAM_SOLUTIONS : [];
+  }
+
+  function programSolutionAvailable() {
+    if (programHelperOpen() || !programSolutionSteps().length) return false;
+    if (state.programTaskDone) return false;
+    if (!state.programHelperDone) return false;
+    return programHintProgress().failures >= programHints().length + 2;
+  }
+
+  function programHintButtonLabel() {
+    if (programSolutionAvailable()) return "רוצה לראות את הפתרון";
+    const progress = programHintProgress();
+    return (progress.seen >= 1 && programUnlockedHintCount() > progress.seen) ? "רוצה עוד רמז" : "רוצה רמז";
+  }
+
+  function programHintButtonVisible() {
+    if (programHelperOpen()) return false;
+    return programUnlockedHintCount() > 0 || programSolutionAvailable();
+  }
+
+  function programHintButtonFresh() {
+    if (programSolutionAvailable()) return true;
+    return programHintProgress().seen < programUnlockedHintCount();
+  }
+
+  // A failed run is what moves the hints along.
+  function noteProgramFailure() {
+    if (programHelperOpen()) return null;
+    const progress = programHintProgress();
+    return { programHints: { ...progress, failures: progress.failures + 1 } };
+  }
+
+  function openProgramHints(index) {
+    const unlocked = programUnlockedHintCount();
+    if (unlocked <= 0) return;
+    const progress = programHintProgress();
+    const at = Number.isInteger(index) ? Math.min(Math.max(index, 0), unlocked - 1) : progress.seen;
+    const seen = Math.max(progress.seen, Math.min(at + 1, unlocked));
+    return setState({ programHintOpen: { index: Math.min(at, unlocked - 1) }, programHints: { ...progress, seen } });
+  }
+
+  function renderProgramHintWindow() {
+    const open = state.programHintOpen;
+    if (!open) return "";
+    const hints = programHints();
+    const unlocked = programUnlockedHintCount();
+    const list = hints.slice(0, unlocked).map((hint, index) => `
+      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
+    const raw = hints[open.index] || {};
+    // The one hint that does something rather than says something.
+    const offer = raw.offerHelper
+      ? `<div class="prog-hint-offer">
+           <button class="btn btn-primary" data-action="program-helper-enter" type="button">כן</button>
+           <button class="btn" data-action="program-hint-close" type="button">לא</button>
+         </div>`
+      : "";
+    return `
+      <div class="hint-overlay sheet-hint-overlay" role="presentation">
+        <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
+          <h2>רמזים</h2>
+          <div class="hint-layout">
+            <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
+            <div class="hint-content">${hintParagraphsHtml(raw.text || "")}${offer}</div>
+          </div>
+          <div class="hint-actions">
+            <button class="btn" data-action="program-hint-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // ---- The helper task -----------------------------------------------------
+  // It opens on the same page, with its own program, its own task window and its
+  // own benches. Both programs are kept, so going either way loses nothing.
+  function enterProgramHelper() {
+    clearProgramTestTimers();
+    return setState({
+      programDialog: { intro: true, helper: true },
+      programHintOpen: null,
+      programManualTest: null,
+      programRunTest: null,
+      programSelection: null,
+      programTableSelection: null,
+      sheetScratchCell: null,
+      programPanels: { ...programPanelsState(), pos: {}, task: true }
+    });
+  }
+
+  function leaveProgramHelper() {
+    clearProgramTestTimers();
+    return setState({
+      programDialog: { intro: false },
+      programHintOpen: null,
+      programManualTest: null,
+      programRunTest: null,
+      programSelection: null,
+      programTableSelection: null,
+      sheetScratchCell: null,
+      programPanels: { ...programPanelsState(), pos: {} }
+    });
+  }
+
   function renderProgramIntro() {
-    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const task = programTaskData();
     if (!task || !state.programDialog || !state.programDialog.intro) return "";
     return `
       <div class="pace-dialog-overlay" role="presentation">
@@ -6932,7 +7097,7 @@
       if (value === "0" || value === "1") bits[key] = value;
       else delete bits[key];
     });
-    return setState({ programSheet: { ...progress, bits } });
+    return setState({ [programSheetKey()]: { ...progress, bits } });
   }
 
   // A square of an instruction: blank → 0 → 1 → blank, the way one writes on
@@ -6974,7 +7139,7 @@
     // The destination cell spans the last four bits: the two that say where the
     // answer goes, and the two spare ones, which it simply zeroes.
     const done = setState({
-      programSheet: {
+      [programSheetKey()]: {
         ...progress,
         bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1], [`${row}:15`]: "0", [`${row}:16`]: "0" }
       },
@@ -7017,7 +7182,7 @@
     const progress = programSheetProgress();
     const next = { ...progress.bits };
     for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) next[`${row}:${i + 2}`] = bits[i];
-    const done = setState({ programSheet: { ...progress, bits: next }, programNumberEdit: null });
+    const done = setState({ [programSheetKey()]: { ...progress, bits: next }, programNumberEdit: null });
     assemblerFlourish(`[data-action="program-number-open"][data-row="${row}"]`);
     return done;
   }
@@ -7061,7 +7226,7 @@
     const progress = programSheetProgress();
     const bits = { ...progress.bits, [`${row}:6`]: match.bit };
     for (let spare = 2; spare <= 5; spare += 1) bits[`${row}:${spare}`] = "0";
-    const done = setState({ programSheet: { ...progress, bits }, programInputMenu: null });
+    const done = setState({ [programSheetKey()]: { ...progress, bits }, programInputMenu: null });
     assemblerFlourish(`[data-action="program-input-open"][data-row="${row}"]`);
     return done;
   }
@@ -7072,7 +7237,7 @@
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     for (let i = 0; i < 6; i += 1) bits[`${row}:${i + 7}`] = match.bits[i];
-    const done = setState({ programSheet: { ...progress, bits }, programCalcMenu: null });
+    const done = setState({ [programSheetKey()]: { ...progress, bits }, programCalcMenu: null });
     assemblerFlourish(`[data-action="program-calc-open"][data-row="${row}"]`);
     return done;
   }
@@ -7331,6 +7496,9 @@
   }
 
   function programTestData() {
+    if (programHelperOpen()) {
+      return typeof PROGRAM_HELPER_TEST !== "undefined" ? PROGRAM_HELPER_TEST : null;
+    }
     return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
   }
 
@@ -7359,7 +7527,7 @@
     if (!test) return;
     clearProgramTestTimers();
     if (programRowEmpty(0)) {
-      return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true } });
+      return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true }, ...(noteProgramFailure() || {}) });
     }
     const runs = programTestRuns();
     const done = setState({ programRunTest: { phase: "load", index: 0, runs, empty: false } });
@@ -7381,13 +7549,22 @@
     return null;
   }
 
+  // What a finished run leaves behind: a failure moves the hints along, and a
+  // pass is remembered for whichever task was being run.
+  function programTestVerdictPatch(now) {
+    const result = programTestResult(now);
+    if (!result) return {};
+    if (result.ok) return programHelperOpen() ? { programHelperDone: true } : { programTaskDone: true };
+    return noteProgramFailure() || {};
+  }
+
   function programTestTick() {
     clearProgramTestTimers();
     const now = state.programRunTest;
     if (!now || now.phase === "done") return;
     const next = programTestNext(now);
     if (!next) return;
-    setState({ programRunTest: next });
+    setState({ programRunTest: next, ...(next.phase === "done" ? programTestVerdictPatch(next) : {}) });
     if (next.phase === "done") return;
     programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES[next.phase] || 800);
     if (next.phase === "run") programTestPulses();
@@ -7432,7 +7609,8 @@
     const now = state.programRunTest;
     if (!now) return;
     clearProgramTestTimers();
-    return setState({ programRunTest: { ...now, phase: "done", index: Math.max(now.runs.length - 1, 0) } });
+    const done = { ...now, phase: "done", index: Math.max(now.runs.length - 1, 0) };
+    return setState({ programRunTest: done, ...programTestVerdictPatch(done) });
   }
 
   // The card the program is punched on: one row to an instruction, a hole for
@@ -7626,6 +7804,9 @@
               <p class="prog-test-detail">${esc(isolateLatinRuns(result.text))}</p>
               <div class="not-test-result-actions">
                 <button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>
+                ${programHelperOpen() && result.ok
+                  ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
+                  : ""}
               </div>
             </section>
           </div>` : `
@@ -7817,7 +7998,7 @@
         }
       });
     });
-    return setState({ programSheet: { ...progress, bits, scratch } });
+    return setState({ [programSheetKey()]: { ...progress, bits, scratch } });
   }
 
   function programClearSelection() {
@@ -7833,7 +8014,7 @@
         else if (cell.kind === "free") delete scratch[`${r},${c}`];
       }
     }
-    return setState({ programSheet: { ...progress, bits, scratch } });
+    return setState({ [programSheetKey()]: { ...progress, bits, scratch } });
   }
 
   // The right-button menu on the page: what can be done with the mark right now.
@@ -7964,7 +8145,12 @@
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
             <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
             <button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>
-            <button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>
+            ${programHintButtonVisible()
+              ? `<button class="btn hint-btn ${programHintButtonFresh() ? "hint-btn-ready" : "hint-btn-seen"}" data-action="program-hint-open" type="button">${esc(programHintButtonLabel())}</button>`
+              : ""}
+            ${programHelperOpen()
+              ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
+              : `<button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>`}
           </div>
         </section>
         ${renderProgramManualWindow()}
@@ -7977,6 +8163,7 @@
         ${renderAssemblerTeaser()}
         ${renderProgramContextMenu()}
         ${renderProgramRunTest()}
+        ${renderProgramHintWindow()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -25013,7 +25200,7 @@
     if (action === "program-clear-confirm") {
       // Only ever from the question itself — nothing else may wipe the page.
       if (!state.programClearConfirm) return;
-      return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
+      return setState({ [programSheetKey()]: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
     }
     if (action === "program-manual-open") {
       // Whatever In0 held when the bench was last put away is what it opens on.
@@ -25026,6 +25213,11 @@
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();
     if (action === "program-run-open") return startProgramTest();
+    if (action === "program-hint-open") return openProgramHints();
+    if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
+    if (action === "program-hint-close") return setState({ programHintOpen: null });
+    if (action === "program-helper-enter") return enterProgramHelper();
+    if (action === "program-helper-leave") return leaveProgramHelper();
     if (action === "program-test-skip") return skipProgramTest();
     if (action === "program-test-close") return endProgramTest();
     if (action === "program-close") {

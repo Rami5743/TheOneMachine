@@ -1421,6 +1421,49 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   };
 
+  // The helper task, reached from the fourth hint: the same page, the same
+  // benches, one instruction's worth of work — move In0 across to Out0. Its
+  // program is kept apart from the main one, so neither loses its place.
+  const PROGRAM_HELPER_TASK = {
+    title: "משימת עזר",
+    text: "כתוב תוכנה שמעבירה את התוכן של In0 ל-Out0."
+  };
+
+  const PROGRAM_HELPER_TEST = {
+    title: "בדיקת התוכנה",
+    cycles: 50,
+    inputs: [3, 7, 12],
+    multiplier: 1,
+    passTitle: "הבדיקה הצליחה",
+    passText: "התוכנה החזירה את התוצאה הנכונה בכל הבדיקות.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק, והממירים מתחברים ל-In0 ול-Out0",
+      run: "המכונה רצה",
+      check: "בודקים את Out0",
+      reset: "הריסט מתחבר מחדש, והמספר בקלט מתחלף"
+    }
+  };
+
+  // The hints for the main task, in the order they unlock — one more after each
+  // failed run of the machine, the way every hinted task in the game works.
+  // The fourth one offers the helper task rather than telling anything.
+  const PROGRAM_HINTS = [
+    { title: "רמז 1", text: "להכפיל מספר ב-8 זה לחבר אותו ל-0 8 פעמים." },
+    { title: "רמז 2", text: "תנסה לכתוב תוכנה שמחברת את IN0 לרגיסטר D." },
+    { title: "רמז 3", text: "אתה יכול לבדוק מה קורה כשאתה לוחץ על בדיקה ידנית." },
+    {
+      title: "רמז 4",
+      text: "אם הסתבכת עם הרמז הקודם, אתה יכול לעבור למשימת עזר.",
+      offerHelper: true
+    },
+    { title: "רמז 5", text: "אם הסתדרת עם ההוספה ל-D, עכשיו אתה יכול לבצע את זה שוב ושוב 8 פעמים. אתה יכול לעשות פעולות העתק הדבק כדי לא לכתוב סתם את אותו הדבר שוב ושוב." },
+    { title: "רמז 6", text: "בסוף כל מה שנשאר לך זה להעביר את התוכן של D ל-Out0." },
+    { title: "רמז 7", text: "בשביל זה תצטרך לקבוע את הערך של A להיות הכתובת של Out0. אתה יכול לבדוק מהי, בחלונית מבנה הזיכרון משמאל." }
+  ];
+
   // The assembler: the little fellow standing beside the ALU table on the 4.3
   // page. Clicking him opens his speech bubble; these are its pages.
   // The red teaser above his first page, and the window it opens.

@@ -6127,3 +6127,10 @@ object.panel-image.is-pending {
 }
 
 .prog-test-clock .clock-count { min-width: 4.5em; font-size: 24px; }
+
+/* The hint that offers the helper task answers with buttons rather than words. */
+.prog-hint-offer {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
