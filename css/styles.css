@@ -5848,3 +5848,11 @@ object.panel-image.is-pending {
   border: 2px solid #b3801a;
   border-radius: 2px;
 }
+
+/* Squares of the ALU table marked to be carried across to an instruction. */
+.prog-alu-bit { cursor: cell; user-select: none; }
+
+.prog-alu-bit-marked {
+  background: #f2dfa8;
+  box-shadow: inset 0 0 0 2px #b3801a;
+}

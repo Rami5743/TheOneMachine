@@ -1831,6 +1831,8 @@
     programInputMenu: null,
     // The rectangle of squares marked out on the page: { r1, c1, r2, c2 }.
     programSelection: null,
+    // The run of squares marked in the ALU table: { op, i1, i2 }.
+    programTableSelection: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3025,6 +3027,7 @@
       programCalcMenu: null,
       programInputMenu: null,
       programSelection: null,
+      programTableSelection: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3272,7 +3275,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6485,11 +6488,16 @@
     const half = Math.ceil(list.length / 2);
     // The instruction is written on squares the size of the page's own, so it
     // reads as what it is: six squares of the instruction, ready to be copied.
-    const bitsCell = (bits) => `<td class="prog-alu-bits"><span class="prog-alu-strip">${
-      String(bits).split("").map((bit) => `<span class="prog-alu-bit">${esc(bit)}</span>`).join("")
+    const marked = state.programTableSelection;
+    const litFor = (op, index) => (marked && marked.op === op
+      && index >= Math.min(marked.i1, marked.i2) && index <= Math.max(marked.i1, marked.i2))
+      ? " prog-alu-bit-marked" : "";
+    const bitsCell = (op, bits) => `<td class="prog-alu-bits"><span class="prog-alu-strip">${
+      String(bits).split("").map((bit, index) =>
+        `<span class="prog-alu-bit${litFor(op, index)}" data-alu-op="${esc(op)}" data-alu-bit="${index}">${esc(bit)}</span>`).join("")
     }</span></td>`;
     const cell = (row) => (row
-      ? `<td class="prog-alu-op" dir="ltr">${esc(row.op)}</td>${bitsCell(row.bits)}`
+      ? `<td class="prog-alu-op" dir="ltr">${esc(row.op)}</td>${bitsCell(row.op, row.bits)}`
       : `<td></td><td></td>`);
     const rows = Array.from({ length: half }, (unused, i) =>
       `<tr>${cell(list[i])}${cell(list[i + half])}</tr>`).join("");
@@ -7112,6 +7120,25 @@
     return { ...box, c1: low, c2: high };
   }
 
+  // The six squares of an operation in the ALU table can be marked and taken
+  // just like the page's own — that is how a calculation is carried across to an
+  // instruction without reading the bits off one by one.
+  function programCopyTableSelection() {
+    const marked = state.programTableSelection;
+    if (!marked) return;
+    const table = typeof ALU1_OPERATIONS !== "undefined" ? ALU1_OPERATIONS : null;
+    const row = table && (table.rows || []).find((entry) => entry.op === marked.op);
+    if (!row) return;
+    const from = Math.min(marked.i1, marked.i2);
+    const to = Math.max(marked.i1, marked.i2);
+    // The table's strip reads left to right, the page's squares right to left —
+    // so what is taken is turned round, and lands on the page the way it reads
+    // in the table.
+    const line = [];
+    for (let i = to; i >= from; i -= 1) line.push({ kind: "bit", value: String(row.bits)[i] || "" });
+    programClipboard = [line];
+  }
+
   function programCopySelection() {
     const box = programSelectionBox();
     if (!box) return;
@@ -7141,6 +7168,11 @@
   function programPasteSelection() {
     const box = programSelectionBox();
     if (!box || !programClipboard || !programClipboard.length) return;
+    // What was taken has to fit inside what is marked, or it would spill out of
+    // it and over squares nobody chose. Mark at least as much as you copied.
+    const height = programClipboard.length;
+    const width = Math.max(...programClipboard.map((line) => line.length));
+    if (height > box.r2 - box.r1 + 1 || width > box.c2 - box.c1 + 1) return;
     // Check the whole paste before writing any of it: one square that cannot
     // take what is coming stops the lot.
     for (let i = 0; i < programClipboard.length; i += 1) {
@@ -23464,6 +23496,34 @@
     if (Number.isFinite(left) && Number.isFinite(top)) setProgramWindowPos("assembler", { left, top });
   });
 
+  // Dragging across the squares of one operation in the ALU table marks them.
+  let programTableDrag = null;
+
+  document.addEventListener("mousedown", (event) => {
+    if (!state.programDialog || event.button !== 0) return;
+    const square = event.target.closest && event.target.closest(".prog-alu-bit[data-alu-op]");
+    if (!square) return;
+    programTableDrag = { op: square.dataset.aluOp, from: Number(square.dataset.aluBit) };
+    setState({ programTableSelection: { op: programTableDrag.op, i1: programTableDrag.from, i2: programTableDrag.from }, programSelection: null });
+  });
+
+  document.addEventListener("mousemove", (event) => {
+    if (!programTableDrag) return;
+    const square = event.target.closest && event.target.closest(".prog-alu-bit[data-alu-op]");
+    if (!square || square.dataset.aluOp !== programTableDrag.op) return;
+    const to = Number(square.dataset.aluBit);
+    const now = state.programTableSelection;
+    if (now && now.i2 === to) return;
+    setState({ programTableSelection: { op: programTableDrag.op, i1: programTableDrag.from, i2: to } });
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!programTableDrag) return;
+    programTableDrag = null;
+    suppressNextClick = true;
+    window.setTimeout(() => { suppressNextClick = false; }, 0);
+  });
+
   // Dragging out a rectangle of squares on the program page. A press that never
   // moves is left alone — it is a click on whatever is under it.
   document.addEventListener("mousedown", (event) => {
@@ -23491,7 +23551,7 @@
     const box = { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
     const now = state.programSelection;
     if (now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2) return;
-    setState({ programSelection: box, sheetScratchCell: null });
+    setState({ programSelection: box, programTableSelection: null, sheetScratchCell: null });
   });
 
   document.addEventListener("mouseup", () => {
@@ -23506,12 +23566,13 @@
 
   // What can be done with a marked rectangle: copy it, paste it, rub it out.
   document.addEventListener("keydown", (event) => {
-    if (!state.programDialog || !state.programSelection) return;
+    if (!state.programDialog) return;
+    if (!state.programSelection && !state.programTableSelection) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
     if (meta && (event.key === "c" || event.key === "C")) {
       event.preventDefault();
-      return programCopySelection();
+      return state.programTableSelection ? programCopyTableSelection() : programCopySelection();
     }
     if (meta && (event.key === "v" || event.key === "V")) {
       event.preventDefault();
@@ -23523,7 +23584,7 @@
     }
     if (event.key === "Escape") {
       event.preventDefault();
-      return setState({ programSelection: null });
+      return setState({ programSelection: null, programTableSelection: null });
     }
   });
 
@@ -23621,6 +23682,10 @@
     }
     if (state.programInputMenu && !event.target.closest(".prog-input-menu, .prog-slot-input")) {
       setState({ programInputMenu: null }, false);
+    }
+    if (state.programTableSelection && !event.target.closest(".prog-alu-bit")) {
+      state.programTableSelection = null;
+      window.setTimeout(render, 0);
     }
     if (state.programSelection && !event.target.closest(".sheet-actions")) {
       state.programSelection = null;
