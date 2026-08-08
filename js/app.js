@@ -7287,8 +7287,8 @@
           </table>
         </div>
         <div class="sheet-guide-foot prog-run-foot">
-          ${message ? `<span class="prog-run-note">${esc(message)}</span>` : ""}
           <button class="btn btn-primary" data-action="program-manual-step" type="button">בצע פקודה</button>
+          <span class="prog-run-note">${message ? esc(message) : ""}</span>
         </div>
       </section>`;
   }

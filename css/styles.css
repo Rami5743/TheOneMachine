@@ -6004,14 +6004,24 @@ object.panel-image.is-pending {
 
 .prog-run-input:focus { outline: 2px solid #7b5a1b; outline-offset: -2px; }
 
+/* The button never moves: it keeps its own place at the near edge, and a
+   message takes the room left over on the far side — an empty message leaves
+   that room empty rather than sliding the button across. */
 .prog-run-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 8px;
 }
 
-.prog-run-note { font-size: 0.9rem; color: #8a2b1f; font-weight: 700; }
+.prog-run-note {
+  flex: 1;
+  min-width: 0;
+  text-align: end;
+  font-size: 0.9rem;
+  color: #8a2b1f;
+  font-weight: 700;
+}
 
 /* The instruction the test bench is about to run, marked across both its rows. */
 .prog-run-mark {
