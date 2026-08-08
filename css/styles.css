@@ -5920,3 +5920,16 @@ object.panel-image.is-pending {
    drawing a focus ring around the whole sheet. */
 .sheet-overlay-prog .sheet-paper:focus,
 .sheet-overlay-prog .sheet-paper:focus-visible { outline: none; }
+
+/* Opening a square selects what is in it, so typing replaces it — but that
+   selection is painted in the browser's blue, which reads as something the
+   learner did. On these pages it is the same gold as everything else. */
+.sheet-overlay ::selection {
+  background: rgba(179, 128, 26, 0.42);
+  color: #241d12;
+}
+
+.sheet-overlay ::-moz-selection {
+  background: rgba(179, 128, 26, 0.42);
+  color: #241d12;
+}
