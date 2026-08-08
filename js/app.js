@@ -1838,6 +1838,9 @@
     // The manual test bench: how many instructions have been run, and what was
     // typed into In0 on each line — { steps, in0: {line: text}, note }.
     programManualTest: null,
+    // The last thing In0 held on the bench. It is kept between visits, so a
+    // second run starts with the number the first one ended on.
+    programManualIn0: "",
     // The test bench that runs the whole program by itself: which stage of the
     // animation it is at and how the runs have gone so far.
     programRunTest: null,
@@ -7415,111 +7418,120 @@
     return rows.length ? rows : [Array.from({ length: 16 }, () => "")];
   }
 
+  // The scene is the WORKBENCH, not a room: the board's own brown, and every
+  // part drawn the way it is drawn when it is standing on the table — the power
+  // source, the converters, and the computer's card with its bus stubs. The one
+  // thing that is not a part is the drum the program is fed into: a cylinder
+  // lying on its side, exactly as wide as the punched page that climbs into it.
+  const PROGRAM_TEST_PAGE = { x1: 370, x2: 630, bottom: 486 };
+  const PROGRAM_TEST_SLOT = 314;
+
+  // A converter's window takes a fixed number of wheels, so a number is written
+  // out to that many digits.
+  function programTestDigits(value) {
+    if (value === null || value === undefined) return "     ";
+    const text = String(value);
+    return text.length >= 5 ? text.slice(-5) : text.padStart(5, "0");
+  }
+
+  // A bus, drawn the way the board draws one: a thick black bar with a light
+  // dashed stripe running down it.
+  function programTestBus(x1, y1, x2, y2) {
+    return `
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="11" stroke-linecap="butt" />
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d8d8d8" stroke-width="3" stroke-dasharray="6 3" />`;
+  }
+
   function renderProgramTestScene(phase, run) {
     const rows = programTestCard();
     const rowH = 10;
+    const page = PROGRAM_TEST_PAGE;
+    const width = page.x2 - page.x1;
     const height = rows.length * rowH + 18;
-    const bottom = 518;
-    const top = bottom - height;
-    // How far up the card has travelled: at the end of the loading it has gone
-    // right through the mouth of the cylinder and is out of sight.
-    const travel = height + (bottom - 340);
+    const top = page.bottom - height;
+    // How far the page has to climb before the last of it is through the slot.
+    const travel = height + (page.bottom - PROGRAM_TEST_SLOT);
     const loading = phase === "load";
+    const cell = width / 17;
     const holes = rows.map((bits, r) => bits.map((bit, c) => {
-      const cx = 392 + c * 14;
-      const cy = top + 9 + r * rowH + rowH / 2;
+      const cx = (page.x1 + cell * (c + 1)).toFixed(1);
+      const cy = (top + 9 + r * rowH + rowH / 2).toFixed(1);
       return bit === "1"
-        ? `<circle cx="${cx}" cy="${cy.toFixed(1)}" r="3.4" fill="#2b2118" />`
-        : `<circle cx="${cx}" cy="${cy.toFixed(1)}" r="3.4" fill="none" stroke="#c3b48f" stroke-width="1" />`;
+        ? `<circle cx="${cx}" cy="${cy}" r="3.4" fill="#2b2118" />`
+        : `<circle cx="${cx}" cy="${cy}" r="3.4" fill="none" stroke="#c3b48f" stroke-width="1" />`;
     }).join("")).join("");
     const live = phase !== "load";
     const resetOn = phase === "load" || phase === "reset";
+    // The reset cable: hooked onto the card, or pulled off and hanging.
     const resetCable = resetOn
-      ? `<path d="M140,296 C140,190 210,132 378,132" fill="none" stroke="#b8452f" stroke-width="7" stroke-linecap="round" />`
-      : `<path d="M140,296 C140,210 186,168 268,186" fill="none" stroke="#b8452f" stroke-width="7" stroke-linecap="round" />
-         <circle cx="268" cy="186" r="7" fill="#b8452f" />`;
-    const shown = (value) => (value === null || value === undefined ? "" : String(value));
-    const inValue = run ? shown(run.input) : "";
-    const outValue = (phase === "check" || phase === "done") && run ? shown(run.got) : "";
+      ? `<path d="M212,400 C300,400 318,286 344,164" fill="none" stroke="#46545f" stroke-width="5" stroke-linecap="round" />`
+      : `<path d="M212,400 C288,400 302,330 308,268" fill="none" stroke="#46545f" stroke-width="5" stroke-linecap="round" />
+         <circle cx="308" cy="268" r="6" fill="#46545f" />`;
     const verdict = (phase === "check" || phase === "done") && run
       ? (run.ok
-        ? `<text x="840" y="378" class="prog-test-verdict prog-test-verdict-ok">✓</text>`
-        : `<text x="840" y="378" class="prog-test-verdict prog-test-verdict-bad">✗</text>`)
+        ? `<text x="838" y="208" class="prog-test-verdict prog-test-verdict-ok">✓</text>`
+        : `<text x="838" y="208" class="prog-test-verdict prog-test-verdict-bad">✗</text>`)
       : "";
     return `
-      <svg class="prog-test-svg" viewBox="0 0 1000 640" role="img" aria-label="שולחן העבודה עם המכונה">
+      <svg class="prog-test-svg" viewBox="0 0 1000 500" role="img" aria-label="שולחן העבודה עם המכונה">
         <defs>
-          <clipPath id="progTestSlot"><rect x="0" y="342" width="1000" height="300" /></clipPath>
-          <linearGradient id="progTestDrum" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#6e747c" /><stop offset="0.45" stop-color="#aeb6bf" />
+          <clipPath id="progTestSlot"><rect x="0" y="${PROGRAM_TEST_SLOT}" width="1000" height="300" /></clipPath>
+          <linearGradient id="progTestDrum" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#c8d0d8" /><stop offset="0.45" stop-color="#8f979f" />
             <stop offset="1" stop-color="#5d636b" />
           </linearGradient>
         </defs>
 
-        <rect x="30" y="520" width="940" height="20" rx="6" fill="#96652f" />
-        <rect x="30" y="540" width="940" height="12" fill="#70491f" />
-        <rect x="120" y="552" width="26" height="88" fill="#70491f" />
-        <rect x="854" y="552" width="26" height="88" fill="#70491f" />
+        <!-- the two buses the program is written in through, card to drum -->
+        ${programTestBus(460, 196, 460, 254)}
+        ${programTestBus(540, 196, 540, 254)}
 
-        <g class="prog-test-stand">
-          <rect x="330" y="296" width="340" height="14" rx="5" fill="#6b7078" />
-          <rect x="330" y="296" width="16" height="228" fill="#6b7078" />
-          <rect x="654" y="296" width="16" height="228" fill="#6b7078" />
-        </g>
-
-        <g class="prog-test-cables">
-          <line x1="556" y1="200" x2="556" y2="250" stroke="#3d4c6b" stroke-width="9" stroke-linecap="round" />
-          <line x1="426" y1="200" x2="426" y2="252" stroke="#3f7a52" stroke-width="5" stroke-linecap="round" />
-          <line x1="450" y1="200" x2="450" y2="254" stroke="#3f7a52" stroke-width="5" stroke-linecap="round" />
-        </g>
-        <text class="prog-test-label prog-test-label-light" text-anchor="end"><tspan x="372" y="228">כניסות</tspan><tspan x="372" y="250">זיכרון התוכנה</tspan></text>
-
+        <!-- the drum, lying on its side, exactly as wide as the punched page -->
         <g class="prog-test-drum">
-          <rect x="385" y="252" width="230" height="98" fill="url(#progTestDrum)" />
-          <ellipse cx="500" cy="350" rx="115" ry="24" fill="#5d636b" />
-          <ellipse cx="500" cy="252" rx="115" ry="24" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
-          <rect x="410" y="344" width="180" height="9" rx="4" fill="#2b2f34" />
+          <rect x="${page.x1 + 14}" y="244" width="${width - 28}" height="72" fill="url(#progTestDrum)" />
+          <ellipse cx="${page.x1 + 14}" cy="280" rx="14" ry="36" fill="#7d858d" />
+          <ellipse cx="${page.x2 - 14}" cy="280" rx="14" ry="36" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
+          <rect x="${page.x1 + 20}" y="308" width="${width - 40}" height="8" rx="3" fill="#2b2f34" />
         </g>
-        <text x="500" y="305" class="prog-test-label prog-test-label-light" text-anchor="middle">זיכרון התוכנה</text>
+        <text x="500" y="288" class="prog-test-label prog-test-label-light" text-anchor="middle">זיכרון התוכנה</text>
 
+        <!-- the punched page climbing into it -->
         <g clip-path="url(#progTestSlot)">
           <g class="prog-test-punch${loading ? " prog-test-punch-load" : ""}"${loading ? ` style="--travel:${travel}px;"` : ` style="transform:translateY(-${travel}px);"`}>
-            <rect x="378" y="${top}" width="244" height="${height}" rx="5" fill="#f3e6c4" stroke="#8a7444" stroke-width="2" />
+            <rect x="${page.x1}" y="${top}" width="${width}" height="${height}" rx="5" fill="#f3e6c4" stroke="#8a7444" stroke-width="2" />
             ${holes}
           </g>
         </g>
 
-        <g class="prog-test-computer">
-          <rect x="380" y="90" width="240" height="110" rx="10" fill="#f0e3c2" stroke="#3a2c17" stroke-width="3" />
-          <text x="500" y="140" class="prog-test-card-title" text-anchor="middle">Computer0</text>
-          <circle cx="378" cy="132" r="8" fill="${resetOn ? "#b8452f" : "#8d8577"}" stroke="#3a2c17" stroke-width="2" />
-          <text x="366" y="102" class="prog-test-label prog-test-label-light" text-anchor="end">reset</text>
-          <circle data-prog-test-lamp="1" cx="596" cy="112" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#3a2c17" stroke-width="2" />
-          <text data-prog-test-pulse="1" x="596" y="192" class="prog-test-label" text-anchor="middle">${phase === "run" ? "0/50" : ""}</text>
-        </g>
-
+        <!-- the power source, and the reset cable that comes off it -->
         <g class="prog-test-power">
           ${resetCable}
-          <rect x="90" y="296" width="100" height="86" rx="8" fill="#2f3a4a" stroke="#16202c" stroke-width="3" />
-          <rect x="112" y="284" width="18" height="14" fill="#c9ced6" />
-          <rect x="150" y="288" width="18" height="10" fill="#c9ced6" />
-          <text x="140" y="346" class="prog-test-label prog-test-label-light" text-anchor="middle">מקור מתח</text>
+          <g transform="translate(150,400) scale(1.25)">${componentMarkup("source")}</g>
+          <text x="336" y="152" class="prog-test-label prog-test-label-light" text-anchor="end">reset</text>
         </g>
 
+        <!-- the converters: In0 dialled in on the left, Out0 read off on the right -->
         <g class="prog-test-conv${live ? " prog-test-conv-on" : ""}">
-          <path d="M620,126 C700,126 700,150 756,150" fill="none" stroke="#3d4c6b" stroke-width="6" />
-          <path d="M620,178 C700,178 700,292 756,292" fill="none" stroke="#3d4c6b" stroke-width="6" />
-          <rect x="756" y="110" width="168" height="80" rx="8" fill="#efe4c8" stroke="#3a2c17" stroke-width="3" />
-          <text x="840" y="136" class="prog-test-label" text-anchor="middle">In0</text>
-          <rect x="776" y="144" width="128" height="34" rx="5" fill="#1d2a20" />
-          <text x="840" y="170" class="prog-test-digits" text-anchor="middle">${esc(inValue)}</text>
-          <rect x="756" y="252" width="168" height="80" rx="8" fill="#efe4c8" stroke="#3a2c17" stroke-width="3" />
-          <text x="840" y="278" class="prog-test-label" text-anchor="middle">Out0</text>
-          <rect x="776" y="286" width="128" height="34" rx="5" fill="#1d2a20" />
-          <text x="840" y="312" class="prog-test-digits" text-anchor="middle">${esc(outValue)}</text>
+          ${programTestBus(302, 96, 380, 96)}
+          ${programTestBus(620, 126, 706, 126)}
+          <g transform="translate(170,96)">${componentMarkup("converter-out", { digits: programTestDigits(run ? run.input : null) })}</g>
+          <text x="170" y="26" class="prog-test-label prog-test-label-light" text-anchor="middle">In0</text>
+          <g transform="translate(838,126)">${componentMarkup("converter-in", { digits: programTestDigits((phase === "check" || phase === "done") && run ? run.got : null) })}</g>
+          <text x="838" y="56" class="prog-test-label prog-test-label-light" text-anchor="middle">Out0</text>
           ${verdict}
         </g>
-      </svg>`;
+
+        <!-- the computer's card, drawn the way a card is drawn on the board -->
+        <g class="prog-test-computer">
+          <line class="usercard-pin" x1="380" y1="164" x2="344" y2="164" />
+          <rect class="usercard-body" x="380" y="56" width="240" height="140" rx="12" />
+          <text x="500" y="120" class="prog-test-card-title" text-anchor="middle">Computer0</text>
+          <text x="500" y="184" class="arith-gate-pin-letter prog-test-pin" text-anchor="middle">Prg</text>
+          <circle data-prog-test-lamp="1" cx="600" cy="76" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#111" stroke-width="2" />
+        </g>
+        <text data-prog-test-pulse="1" x="620" y="224" class="prog-test-label prog-test-label-light" text-anchor="end">${phase === "run" ? "0/50" : ""}</text>
+      </svg>
+      `;
   }
 
   function programTestResult(now) {
@@ -7553,10 +7565,14 @@
           ${caption ? `<p class="prog-test-caption">${esc(isolateLatinRuns(caption))}</p>` : ""}
         </div>
         ${result ? `
-          <div class="prog-test-result ${result.ok ? "prog-test-result-ok" : "prog-test-result-bad"}" role="alert">
-            <h3>${esc(result.title)}</h3>
-            <p>${esc(isolateLatinRuns(result.text))}</p>
-            <button class="btn btn-primary" data-action="program-test-close" type="button">סגירה</button>
+          <div class="not-test-result-overlay prog-test-verdict-overlay" role="presentation">
+            <section class="not-test-result-card ${result.ok ? "not-test-result-pass" : "not-test-result-fail"}" role="alertdialog" aria-label="${esc(result.title)}">
+              <p>${esc(result.title)}</p>
+              <p class="prog-test-detail">${esc(isolateLatinRuns(result.text))}</p>
+              <div class="not-test-result-actions">
+                <button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>
+              </div>
+            </section>
           </div>` : `
           <div class="prog-test-actions">
             ${navButton("program-test-skip", "skip-rtl", "דלג לתוצאה")}
@@ -7892,7 +7908,7 @@
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
             <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
-            <button class="btn" data-action="program-run-open" type="button">בדיקה</button>
+            <button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>
             <button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>
           </div>
         </section>
@@ -23946,7 +23962,10 @@
     const line = Number(box.dataset.programManual);
     if (!Number.isInteger(line)) return;
     const now = programManualState();
-    state.programManualTest = { ...now, in0: { ...now.in0, [line]: box.value } };
+    const next = { ...now, in0: { ...now.in0, [line]: box.value } };
+    state.programManualTest = next;
+    // What In0 ends on is what the next visit will start on.
+    state.programManualIn0 = programManualInput(next.in0, next.steps);
     saveState();
   });
 
@@ -24942,7 +24961,12 @@
       return setState({ programSheet: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
     }
     if (action === "program-manual-open") {
-      return setState({ programManualTest: { steps: 0, in0: {}, note: "" }, programSelection: null });
+      // Whatever In0 held when the bench was last put away is what it opens on.
+      const last = typeof state.programManualIn0 === "string" ? state.programManualIn0 : "";
+      return setState({
+        programManualTest: { steps: 0, in0: last ? { 0: last } : {}, note: "" },
+        programSelection: null
+      });
     }
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();

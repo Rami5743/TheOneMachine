@@ -6043,9 +6043,10 @@ object.panel-image.is-pending {
   align-items: center;
   gap: 10px;
   padding: 14px;
-  border: 2px solid #3a2c17;
-  border-radius: 14px;
-  background: #1a140c;
+  border-radius: 10px;
+  /* The workbench's own board, the same brown — this happens ON the table, and
+     everything on it is drawn the way it is drawn there. */
+  background: #735c3b;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
   direction: rtl;
 }
@@ -6079,11 +6080,11 @@ object.panel-image.is-pending {
   color: #f4e6c2;
 }
 
-.prog-test-label { font-size: 17px; font-weight: 700; fill: #2b2118; }
-.prog-test-label-light { fill: #f4efe2; }
-.prog-test-card-title { font-size: 26px; font-weight: 800; fill: #2b2118; }
-.prog-test-digits { font-size: 26px; font-weight: 800; fill: #8ef29a; font-family: "Courier New", monospace; }
-.prog-test-verdict { font-size: 46px; font-weight: 800; text-anchor: middle; }
+.prog-test-label { font-size: 18px; font-weight: 700; fill: #2b2118; }
+.prog-test-label-light { fill: #f7eeda; }
+.prog-test-card-title { font-size: 26px; font-weight: 800; fill: #2c2113; }
+.prog-test-pin { font-size: 17px; }
+.prog-test-verdict { font-size: 52px; font-weight: 800; text-anchor: middle; }
 .prog-test-verdict-ok { fill: #4cc46a; }
 .prog-test-verdict-bad { fill: #e05a45; }
 
@@ -6105,16 +6106,12 @@ object.panel-image.is-pending {
   align-items: center;
 }
 
-.prog-test-result {
-  min-width: min(30rem, 80%);
-  text-align: center;
-  padding: 14px 20px;
-  border: 3px solid #3a2c17;
-  border-radius: 12px;
-  background: #fbf6e6;
-}
+/* The verdict is the SAME card the workbench shows when a build is checked —
+   only lifted above the test bench, and with a line of detail under it. */
+.prog-test-verdict-overlay { z-index: 330; }
 
-.prog-test-result h3 { margin: 0 0 6px; font-size: 1.4rem; }
-.prog-test-result p { margin: 0 0 10px; font-size: 1.05rem; color: #241d12; }
-.prog-test-result-ok h3 { color: #1f6b36; }
-.prog-test-result-bad h3 { color: #8a2b1f; }
+.not-test-result-card p.prog-test-detail {
+  font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
