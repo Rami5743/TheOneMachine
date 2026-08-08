@@ -1337,6 +1337,13 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     text: "כתוב תוכנה שמכפילה את הערך בקלט In0 ב-8 וכותבת את התוצאה ב-Out0."
   };
 
+  // The little "טיפ" window beside the page, telling the learner the squares can
+  // be marked and copied.
+  const PROGRAM_TIP = {
+    title: "טיפ",
+    text: "אתה יכול לסמן ולהשתמש בפעולות העתק הדבק כדי להעתיק פקודות שכבר כתבת."
+  };
+
   // "מבנה הזיכרון": which address is what, as the RAM card was built in 3.4 —
   // 0-1023 are its own registers, and the eight ports sit above them: the first
   // four are the ones the computer writes out through, the last four the ones it

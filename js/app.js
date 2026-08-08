@@ -6282,6 +6282,7 @@
     return {
       // The task and the two tables start open; "מבנה הפקודה" starts folded away.
       task: saved.task !== false,
+      tip: saved.tip !== false,
       alu: saved.alu !== false,
       memory: saved.memory !== false,
       guide: saved.guide === true,
@@ -6329,7 +6330,7 @@
       : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
     const ceiling = area.top + PAD;
     let y = area.bottom - PAD;
-    ["guide", "memory", "alu"].forEach((name) => {
+    ["tip", "guide", "memory", "alu"].forEach((name) => {
       const win = byName(name);
       if (!win || saved[name]) return;
       // Each window takes what it needs and no more; one that would run off the
@@ -6459,6 +6460,21 @@
         ${head}
         <div class="sheet-guide-body">
           <p class="prog-task-text">${esc(isolateLatinRuns(task.text))}</p>
+        </div>
+      </section>`;
+  }
+
+  function renderProgramTipWindow() {
+    const tip = typeof PROGRAM_TIP !== "undefined" ? PROGRAM_TIP : null;
+    if (!tip) return "";
+    const open = programPanelsState().tip;
+    const head = programWindowHead(tip.title, "tip", open);
+    if (!open) return `<section class="sheet-guide prog-window sheet-guide-closed" data-prog-window="tip"${programWindowPos("tip")} aria-label="${esc(tip.title)}">${head}</section>`;
+    return `
+      <section class="sheet-guide prog-window" data-prog-window="tip"${programWindowPos("tip")} aria-label="${esc(tip.title)}">
+        ${head}
+        <div class="sheet-guide-body">
+          <p class="prog-task-text">${esc(isolateLatinRuns(tip.text))}</p>
         </div>
       </section>`;
   }
@@ -7188,14 +7204,11 @@
     const width = Math.max(...programClipboard.map((line) => line.length));
     const fits = (r0, c0) => programClipboard.every((line, i) =>
       line.every((source, j) => programCanPlace(source, programCellKind(r0 + i, c0 + j))));
-    const corners = [
-      { r: box.r1, c: box.c1 },
-      { r: box.r1, c: box.c2 - width + 1 },
-      { r: box.r2 - height + 1, c: box.c1 },
-      { r: box.r2 - height + 1, c: box.c2 - width + 1 }
-    ];
-    const landing = corners.find((corner) => corner.r >= 1 && corner.c >= 1 && fits(corner.r, corner.c));
-    if (!landing) return programRefuse();
+    // Always from the mark's first square, running the way the page is written:
+    // leftwards along the row and downwards through the rows. Never back to the
+    // right of where it was aimed.
+    const landing = { r: box.r1, c: box.c1 };
+    if (!fits(landing.r, landing.c)) return programRefuse();
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     const scratch = { ...progress.scratch };
@@ -7350,6 +7363,7 @@
         ${renderProgramAluWindow()}
         ${renderProgramMemoryWindow()}
         ${renderProgramGuideWindow()}
+        ${renderProgramTipWindow()}
         ${renderAssembler()}
         ${renderAssemblerTeaser()}
         ${renderProgramContextMenu()}
@@ -24285,7 +24299,7 @@
     if (action === "program-panel-toggle") {
       const panel = button.dataset.panel;
       const panels = programPanelsState();
-      if (!["task", "alu", "memory", "guide"].includes(panel)) return;
+      if (!["task", "tip", "alu", "memory", "guide"].includes(panel)) return;
       return setProgramPanels({ [panel]: !panels[panel] });
     }
     if (action === "program-guide-prev" || action === "program-guide-next") {
