@@ -5477,8 +5477,9 @@ object.panel-image.is-pending {
   right: 16px;
   width: min(22rem, 24vw);
   /* What the learner is being asked for is never covered by anything else on
-     the page — it rides above every other window, wherever it is dragged. */
-  z-index: 240;
+     the page — it rides above every other window (the tables, the assembler,
+     both test benches and the solution walkthrough), wherever it is dragged. */
+  z-index: 250;
 }
 
 /* The paged window keeps a fixed body height, so it does not jump from page to

@@ -6682,8 +6682,11 @@
 
   function programSolutionAvailable() {
     if (!programSolutionSteps().length) return false;
+    // Solved it? Then the solution is on offer straight away, and STAYS on
+    // offer — a task that has been passed used to lose its walkthrough, so
+    // anyone who solved the helper task could never read how it worked.
     const done = programHelperOpen() ? state.programHelperDone : state.programTaskDone;
-    if (done) return false;
+    if (done) return true;
     // The main task's solution also waits on having been through the helper
     // task: it is what the fourth hint sends the learner to, and the walkthrough
     // leans on having done it.
