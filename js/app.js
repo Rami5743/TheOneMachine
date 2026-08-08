@@ -7323,6 +7323,11 @@
     if (programTestPulseTimer) window.clearInterval(programTestPulseTimer);
     programTestTimer = null;
     programTestPulseTimer = null;
+    // And the machine is back at rest. Leaving the last run's beat behind made
+    // Out0 flash the answer for an instant at the START of the next run: the
+    // stage was drawn before the beats began, and it drew the number that beat
+    // had left. Every stage change comes through here, so this is where it goes.
+    programTestBeat = 0;
   }
 
   function programTestData() {
