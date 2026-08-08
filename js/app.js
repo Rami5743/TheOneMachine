@@ -6714,12 +6714,14 @@
 
   function openProgramHints(index) {
     const unlocked = programUnlockedHintCount();
-    if (unlocked <= 0) return;
+    const hasSolution = programSolutionAvailable();
+    if (unlocked <= 0 && !hasSolution) return;
     const progress = programHintProgress();
-    const at = Number.isInteger(index) ? Math.min(Math.max(index, 0), unlocked - 1) : progress.seen;
+    const top = hasSolution ? programHints().length : Math.max(unlocked - 1, 0);
+    const at = Number.isInteger(index) ? Math.min(Math.max(index, 0), top) : Math.min(progress.seen, top);
     const seen = Math.max(progress.seen, Math.min(at + 1, unlocked));
     return setState({
-      programHintOpen: { index: Math.min(at, unlocked - 1) },
+      programHintOpen: { index: at },
       [programHintKey()]: { ...progress, seen }
     });
   }
@@ -6750,8 +6752,32 @@
     if (!open) return "";
     const hints = programHints();
     const unlocked = programUnlockedHintCount();
+    const hasSolution = programSolutionAvailable();
+    // The solution is reached from the hints, like every other task in the game:
+    // the last item in the list, and a button inside it.
+    const onSolution = hasSolution && open.index === hints.length;
     const list = hints.slice(0, unlocked).map((hint, index) => `
-      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("");
+      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("")
+      + (hasSolution ? `
+      <button class="hint-list-item hint-solution-item ${onSolution ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${hints.length}" type="button">פתרון</button>` : "");
+    if (onSolution) {
+      return `
+        <div class="hint-overlay sheet-hint-overlay" role="presentation">
+          <section class="hint-card" role="dialog" aria-modal="false" aria-label="רמזים">
+            <h2>רמזים</h2>
+            <div class="hint-layout">
+              <nav class="hint-list" aria-label="רשימת רמזים">${list}</nav>
+              <div class="hint-content">
+                <p>אפשר לראות את הפתרון המלא, פקודה אחר פקודה, על הדף עצמו.</p>
+                <button class="btn btn-primary" data-action="program-solution-open" type="button">הצג פתרון</button>
+              </div>
+            </div>
+            <div class="hint-actions">
+              <button class="btn" data-action="program-hint-close" type="button">סגור</button>
+            </div>
+          </section>
+        </div>`;
+    }
     const raw = hints[open.index] || {};
     // The one hint that does something rather than says something.
     const offer = raw.offerHelper
@@ -6784,6 +6810,36 @@
   // Two of them, walked one instruction at a time: the program so far on the
   // left with the newest line lit, and what that line is for beside it. The
   // second is reached from the end of the first.
+  // Where the walkthrough has got to, and the program it is showing: every
+  // instruction up to the one being talked about.
+  function programSolutionWalk() {
+    const open = state.programSolution;
+    if (!open) return null;
+    const solution = programSolutionSteps()[open.variant];
+    if (!solution) return null;
+    const steps = solution.steps || [];
+    const finished = open.step >= steps.length;
+    const shown = finished ? steps.length : open.step + 1;
+    const bits = {};
+    steps.slice(0, shown).forEach((entry, row) => {
+      String(entry.bits || "").split("").forEach((value, i) => {
+        if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
+      });
+    });
+    const at = finished ? null : steps[open.step];
+    const parts = Array.isArray(at?.parts) ? at.parts : [];
+    const part = Number.isInteger(open.part) && open.part >= 0 ? Math.min(open.part, parts.length - 1) : -1;
+    // What is marked: the whole instruction, or the run of bits one of its
+    // fields is written on.
+    const mark = finished ? null
+      : (part >= 0 && parts[part]
+        ? { row: open.step, from: parts[part].from, to: parts[part].to }
+        : { row: open.step, from: 1, to: 16 });
+    const say = finished ? (solution.close || "")
+      : (part >= 0 && parts[part] ? parts[part].text : (at?.text || ""));
+    return { solution, steps, finished, bits, mark, say, part, parts, at };
+  }
+
   function openProgramSolution(variant = 0, step = 0) {
     const list = programSolutionSteps();
     const at = Math.min(Math.max(variant, 0), Math.max(list.length - 1, 0));
@@ -6792,58 +6848,77 @@
     const last = (solution.steps || []).length;
     return setState({
       programHintOpen: null,
-      programSolution: { variant: at, step: Math.min(Math.max(step, 0), last) },
+      programSolution: { variant: at, step: Math.min(Math.max(step, 0), last), part: -1 },
       programSolutionSeen: true,
       // Being shown the helper task's answer counts as having been through it.
       ...(programHelperOpen() ? { programHelperDone: true } : {})
     });
   }
 
+  // Forwards: through the instruction, then through its parts (where it has
+  // them), then on to the next instruction. Backwards is the same road.
   function stepProgramSolution(by) {
     const open = state.programSolution;
     if (!open) return;
     const solution = programSolutionSteps()[open.variant];
     if (!solution) return;
-    const last = (solution.steps || []).length;
-    return setState({ programSolution: { ...open, step: Math.min(Math.max(open.step + by, 0), last) } });
+    const steps = solution.steps || [];
+    const partsOf = (i) => (Array.isArray(steps[i]?.parts) ? steps[i].parts.length : 0);
+    let step = open.step;
+    let part = Number.isInteger(open.part) ? open.part : -1;
+    if (by > 0) {
+      if (step < steps.length && part + 1 < partsOf(step)) part += 1;
+      else { step += 1; part = -1; }
+      if (step > steps.length) return;
+    } else {
+      if (part >= 0) part -= 1;
+      else if (step <= 0) return;
+      else { step -= 1; part = partsOf(step) - 1; }
+    }
+    return setState({ programSolution: { ...open, step, part } });
+  }
+
+  function programSolutionAtStart() {
+    const open = state.programSolution;
+    return !open || (open.step <= 0 && (open.part ?? -1) < 0);
   }
 
   function renderProgramSolution() {
+    const walk = programSolutionWalk();
+    if (!walk) return "";
     const open = state.programSolution;
-    if (!open) return "";
     const list = programSolutionSteps();
-    const solution = list[open.variant];
-    if (!solution) return "";
-    const steps = solution.steps || [];
-    // The last "step" is the closing word, with the whole program on show.
-    const finished = open.step >= steps.length;
-    const shown = finished ? steps.length : open.step + 1;
-    const lines = steps.slice(0, shown).map((entry, index) => `
-      <li class="prog-solution-line${!finished && index === open.step ? " prog-solution-line-now" : ""}">
-        <span class="prog-solution-num">${index + 1}</span>
-        <code dir="ltr">${esc(entry.code)}</code>
-      </li>`).join("");
-    const say = finished ? (solution.close || "") : (steps[open.step]?.text || "");
-    const more = finished && open.variant + 1 < list.length
+    const total = walk.steps.length;
+    const shown = walk.finished ? total : open.step + 1;
+    const more = walk.finished && open.variant + 1 < list.length
       ? `<button class="btn btn-primary" data-action="program-solution-next-variant" type="button">${esc(list[open.variant + 1].title)}</button>`
       : "";
+    // The helper task's last word is also the way back.
+    const back = walk.finished && programHelperOpen()
+      ? `<button class="btn btn-primary" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
+      : "";
+    const heading = walk.finished
+      ? esc(walk.solution.title)
+      : `${esc(walk.solution.title)} — <span dir="ltr">${esc(walk.at?.code || "")}</span>`;
     return `
-      <div class="hint-overlay prog-solution-overlay" role="presentation">
-        <section class="hint-card prog-solution-card" role="dialog" aria-modal="false" aria-label="${esc(solution.title)}">
-          <h2>${esc(solution.title)}</h2>
-          <p class="prog-solution-lead">${esc(isolateLatinRuns(solution.lead || ""))}</p>
-          <div class="prog-solution-layout">
-            <ol class="prog-solution-list">${lines}</ol>
-            <p class="prog-solution-say">${esc(isolateLatinRuns(say))}</p>
-          </div>
-          <div class="hint-actions prog-solution-actions">
-            <button class="btn" data-action="program-solution-prev" type="button"${open.step <= 0 ? " disabled" : ""}>הקודם</button>
-            <button class="btn" data-action="program-solution-next" type="button"${finished ? " disabled" : ""}>הבא</button>
-            ${more}
-            <button class="btn" data-action="program-solution-close" type="button">סגור</button>
-          </div>
-        </section>
-      </div>`;
+      <div class="prog-solution-shield" aria-hidden="true"></div>
+      <section class="sheet-guide prog-window prog-solution-window" role="dialog" aria-modal="false" aria-label="${esc(walk.solution.title)}">
+        <div class="sheet-guide-head">
+          <span class="sheet-guide-title">${heading}</span>
+          <button class="sheet-guide-toggle" data-action="program-solution-close" type="button">סגור</button>
+        </div>
+        <div class="sheet-guide-body">
+          ${walk.part < 0 && !walk.finished && open.step === 0 && walk.solution.lead
+            ? `<p class="prog-solution-lead">${esc(isolateLatinRuns(walk.solution.lead))}</p>` : ""}
+          <p class="prog-solution-say">${esc(isolateLatinRuns(walk.say))}</p>
+        </div>
+        <div class="sheet-guide-foot">
+          ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
+          <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
+          ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
+          ${more}${back}
+        </div>
+      </section>`;
   }
 
   // ---- The helper task -----------------------------------------------------
@@ -6868,6 +6943,7 @@
     return setState({
       programDialog: { intro: false },
       programHintOpen: null,
+      programSolution: null,
       programManualTest: null,
       programRunTest: null,
       programSelection: null,
@@ -7198,6 +7274,11 @@
   ];
 
   function programBits() {
+    // While a solution is being walked, the page shows THE SOLUTION — written
+    // in its own place, one instruction at a time. Nothing the learner wrote is
+    // touched; it comes straight back when the walkthrough closes.
+    const walk = programSolutionWalk();
+    if (walk) return walk.bits;
     return programSheetProgress().bits;
   }
 
@@ -8245,6 +8326,15 @@
       cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     cells.push(...rules);
+    // While a solution is being walked, the instruction it is talking about is
+    // marked across both its rows — or, when it is going through the fields of
+    // an instruction, just the bits that field is written on.
+    const walkMark = programSolutionWalk()?.mark;
+    if (walkMark) {
+      const first = columnOf(walkMark.to);
+      const span = walkMark.to - walkMark.from + 1;
+      cells.push(`<div class="prog-solution-mark" aria-hidden="true" style="grid-column:${first} / span ${span};grid-row:${2 + walkMark.row * 2} / span 2;"></div>`);
+    }
     // While the manual test bench is open, the instruction it is about to run is
     // marked across both its rows — the line number with them.
     if (state.programManualTest) {
@@ -24651,6 +24741,15 @@
       if (event.key === "Escape") { event.preventDefault(); endProgramTest(); }
       return;
     }
+    // A solution is walked with the arrow keys too — the page is read-only while
+    // it is up, so the keys have nothing else to do. (Right-to-left: the LEFT
+    // arrow goes on, the same way round as the buttons.)
+    if (state.programSolution) {
+      if (event.key === "ArrowLeft") { event.preventDefault(); stepProgramSolution(1); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); stepProgramSolution(-1); }
+      else if (event.key === "Escape") { event.preventDefault(); setState({ programSolution: null }); }
+      return;
+    }
     if (!state.programSelection && !state.programTableSelection && !programClipboard) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
@@ -25333,9 +25432,7 @@
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();
     if (action === "program-run-open") return startProgramTest();
-    if (action === "program-hint-open") {
-      return programSolutionAvailable() ? openProgramSolution(0) : openProgramHints();
-    }
+    if (action === "program-hint-open") return openProgramHints();
     if (action === "program-solution-open") return openProgramSolution(0);
     if (action === "program-solution-prev") return stepProgramSolution(-1);
     if (action === "program-solution-next") return stepProgramSolution(1);

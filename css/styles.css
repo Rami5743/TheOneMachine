@@ -6138,60 +6138,47 @@ object.panel-image.is-pending {
   margin-top: 12px;
 }
 
-/* The worked solution: the program so far down one side, what the newest line
-   is for down the other. */
-.prog-solution-overlay { z-index: 300; }
-.prog-solution-card { width: min(52rem, 92vw); }
+/* The worked solution is walked ON the page: the instructions are written into
+   the program table itself and the one being talked about is marked. The window
+   carries only the words and the two arrows. */
+.prog-solution-window {
+  left: 50%;
+  right: auto;
+  bottom: 24px;
+  top: auto;
+  transform: translateX(-50%);
+  z-index: 245;
+  width: min(38rem, 60vw);
+}
+
+/* Nothing on the page can be touched while a solution is up — what is written
+   there is the solution, not the learner's own program. */
+.prog-solution-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 244;
+}
 
 .prog-solution-lead {
-  margin: 0 0 10px;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.prog-solution-layout {
-  display: grid;
-  grid-template-columns: minmax(9rem, 14rem) 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.prog-solution-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 42vh;
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-
-.prog-solution-line {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 3px 8px;
+  margin: 0 0 8px;
   font-size: 0.98rem;
-}
-
-.prog-solution-line code { font-family: "Courier New", monospace; font-weight: 700; }
-
-.prog-solution-num {
-  min-width: 1.6em;
-  text-align: end;
-  opacity: 0.6;
-  font-variant-numeric: tabular-nums;
-}
-
-.prog-solution-line-now {
-  background: rgba(255, 227, 122, 0.18);
-  border-inline-start: 3px solid #ffe37a;
+  line-height: 1.5;
+  color: #4a3d27;
 }
 
 .prog-solution-say {
   margin: 0;
   font-size: 1.05rem;
   line-height: 1.6;
+  color: #241d12;
 }
 
-.prog-solution-actions { flex-wrap: wrap; gap: 8px; }
+/* The mark on the page: the instruction being explained, or just the bits of
+   the field being explained. */
+.prog-solution-mark {
+  pointer-events: none;
+  border: 2px solid #b8452f;
+  background: rgba(224, 90, 69, 0.16);
+  border-radius: 3px;
+  z-index: 4;
+}
