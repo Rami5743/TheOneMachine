@@ -7182,15 +7182,19 @@
   function programRunAll(input, cycles) {
     let machine = { d: 0, a: 0, in0: input & PROGRAM_MASK, mem: {} };
     const total = programInstructionCount();
+    // What Out0 held after each beat — the test bench shows it changing as the
+    // machine runs, rather than only what it settled on.
+    const trace = [];
     let steps = 0;
     for (let row = 0; row < total && steps < cycles; row += 1) {
       if (programRowEmpty(row)) break;
       const step = programExecuteRow(machine, row);
-      if (step.error) return { error: step.error, row, machine };
+      if (step.error) return { error: step.error, row, machine, trace };
       machine = step.machine;
       steps += 1;
+      trace.push(programSigned(machine.mem[PROGRAM_OUT_BASE] || 0));
     }
-    return { machine, steps };
+    return { machine, steps, trace };
   }
 
   // ---- The manual test bench ----------------------------------------------
@@ -7299,12 +7303,14 @@
   // ---- The automatic test bench -------------------------------------------
   // The whole thing, played out on the workbench: the program is punched onto a
   // card, the card is swallowed by the program memory, the reset is unhooked and
-  // converters are hooked onto In0 and Out0, and the machine is given fifty
-  // beats for each number in turn. Everything the animation shows has already
+  // converters are hooked onto In0 and Out0, and the machine is beaten once for
+  // every line of the program. Everything the animation shows has already
   // happened — the runs are worked out the moment it starts, and the stages only
   // tell the story of them.
-  const PROGRAM_TEST_STAGES = { load: 3000, connect: 900, run: 1900, check: 1000, reset: 700 };
-  const PROGRAM_TEST_PULSE = 34;
+  //
+  // A run always takes the same few seconds, however long the program is: the
+  // beats are spread across that time rather than each taking a fixed tick.
+  const PROGRAM_TEST_STAGES = { load: 3000, connect: 900, run: 2100, check: 1000, reset: 700 };
   let programTestTimer = null;
   let programTestPulseTimer = null;
 
@@ -7329,11 +7335,11 @@
       const outcome = programRunAll(input, test.cycles || 50);
       const want = input * (test.multiplier || 1);
       if (outcome.error) {
-        runs.push({ input, want, got: null, ok: false, badRow: outcome.row });
+        runs.push({ input, want, got: null, ok: false, badRow: outcome.row, steps: 0, trace: [] });
         break;
       }
       const got = programSigned(outcome.machine.mem[PROGRAM_OUT_BASE] || 0);
-      runs.push({ input, want, got, ok: got === want, badRow: null });
+      runs.push({ input, want, got, ok: got === want, badRow: null, steps: outcome.steps, trace: outcome.trace });
       if (got !== want) break;
     }
     return runs;
@@ -7378,20 +7384,28 @@
     if (next.phase === "run") programTestPulses();
   }
 
-  // The beats themselves: counted out in the corner of the machine rather than
-  // through the state, so fifty of them do not redraw the page fifty times.
+  // The beats themselves: one to a line of the program, counted out on the board
+  // rather than through the state, so a long program does not redraw the page
+  // once per beat. Out0 is rewritten as they go — what the converter shows is
+  // what the machine had written by that beat, not just where it ended.
   function programTestPulses() {
-    const test = programTestData();
-    const total = (test && test.cycles) || 50;
+    const now = state.programRunTest;
+    const run = now ? (now.runs || [])[now.index] : null;
+    const total = Math.max(1, run && run.steps ? run.steps : 1);
+    const every = Math.max(20, Math.round(PROGRAM_TEST_STAGES.run / total));
     let beat = 0;
     programTestPulseTimer = window.setInterval(() => {
       beat += 1;
       const label = app.querySelector("[data-prog-test-pulse]");
       const lamp = app.querySelector("[data-prog-test-lamp]");
+      const out = app.querySelector("[data-prog-test-out]");
       if (label) label.textContent = `${Math.min(beat, total)}/${total}`;
       if (lamp) lamp.setAttribute("fill", beat % 2 ? "#ffd76a" : "#7a6b46");
+      if (out && run && run.trace) {
+        out.innerHTML = componentMarkup("converter-in", { digits: programTestDigits(run.trace[beat - 1] ?? 0) });
+      }
       if (beat >= total) { window.clearInterval(programTestPulseTimer); programTestPulseTimer = null; }
-    }, PROGRAM_TEST_PULSE);
+    }, every);
   }
 
   function endProgramTest() {
@@ -7423,8 +7437,8 @@
   // source, the converters, and the computer's card with its bus stubs. The one
   // thing that is not a part is the drum the program is fed into: a cylinder
   // lying on its side, exactly as wide as the punched page that climbs into it.
-  const PROGRAM_TEST_PAGE = { x1: 370, x2: 630, bottom: 486 };
-  const PROGRAM_TEST_SLOT = 314;
+  const PROGRAM_TEST_PAGE = { x1: 370, x2: 630, bottom: 600 };
+  const PROGRAM_TEST_SLOT = 380;
 
   // A converter's window takes a fixed number of wheels, so a number is written
   // out to that many digits.
@@ -7462,36 +7476,59 @@
     }).join("")).join("");
     const live = phase !== "load";
     const resetOn = phase === "load" || phase === "reset";
-    // The reset cable: hooked onto the card, or pulled off and hanging.
-    const resetCable = resetOn
-      ? `<path d="M212,400 C300,400 318,286 344,164" fill="none" stroke="#46545f" stroke-width="5" stroke-linecap="round" />`
-      : `<path d="M212,400 C288,400 302,330 308,268" fill="none" stroke="#46545f" stroke-width="5" stroke-linecap="round" />
-         <circle cx="308" cy="268" r="6" fill="#46545f" />`;
+    // The card, drawn the way the board draws a card: the body, its name in the
+    // middle, and every pin named inside the edge it comes out of.
+    const CARD = { x1: 380, x2: 620, y1: 30, y2: 262 };
+    const portYs = [100, 132, 164, 196];
+    const RESET_Y = 234;
+    // Pins first, then the body over them, then the names — the way every card
+    // on the board is put together, so a pin stops at the edge and a name is
+    // never swallowed.
+    let card = "";
+    let names = "";
+    portYs.forEach((y, i) => {
+      card += programTestBus(CARD.x1 - 40, y, CARD.x1, y);
+      card += programTestBus(CARD.x2, y, CARD.x2 + 40, y);
+      names += `<text x="${CARD.x1 + 12}" y="${y + 5}" class="arith-gate-pin-letter prog-test-pin" text-anchor="start">In${i}</text>`;
+      names += `<text x="${CARD.x2 - 12}" y="${y + 5}" class="arith-gate-pin-letter prog-test-pin" text-anchor="end">Out${i}</text>`;
+    });
+    // The two the program is written in through, running down into the drum.
+    card += programTestBus(456, CARD.y2, 456, 318);
+    card += programTestBus(560, CARD.y2, 560, 318);
+    card += `<line class="usercard-pin" x1="${CARD.x1}" y1="${RESET_Y}" x2="${CARD.x1 - 44}" y2="${RESET_Y}" />`;
+    card += `<rect class="usercard-body" x="${CARD.x1}" y="${CARD.y1}" width="${CARD.x2 - CARD.x1}" height="${CARD.y2 - CARD.y1}" rx="12" />`;
+    card += `<text x="500" y="68" class="prog-test-card-title" text-anchor="middle">Computer0</text>`;
+    card += names;
+    card += `<text x="${CARD.x1 + 12}" y="${RESET_Y + 5}" class="arith-gate-pin-letter prog-test-pin" text-anchor="start">reset</text>`;
+    card += `<text x="456" y="${CARD.y2 - 10}" class="arith-gate-pin-letter prog-test-pin" text-anchor="middle">Prg</text>`;
+    card += `<text x="560" y="${CARD.y2 - 10}" class="arith-gate-pin-letter prog-test-pin" text-anchor="middle">PrgAdr</text>`;
+    card += `<circle data-prog-test-lamp="1" cx="598" cy="52" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#111" stroke-width="2" />`;
+    // Out0 as the machine actually left it: nothing before the program is in,
+    // zero once the reset is off, and then whatever each beat wrote.
+    const outValue = phase === "load" ? null
+      : (phase === "check" || phase === "done") ? (run ? run.got : 0)
+      : 0;
     const verdict = (phase === "check" || phase === "done") && run
       ? (run.ok
-        ? `<text x="838" y="208" class="prog-test-verdict prog-test-verdict-ok">✓</text>`
-        : `<text x="838" y="208" class="prog-test-verdict prog-test-verdict-bad">✗</text>`)
+        ? `<text x="830" y="182" class="prog-test-verdict prog-test-verdict-ok">✓</text>`
+        : `<text x="830" y="182" class="prog-test-verdict prog-test-verdict-bad">✗</text>`)
       : "";
     return `
-      <svg class="prog-test-svg" viewBox="0 0 1000 500" role="img" aria-label="שולחן העבודה עם המכונה">
+      <svg class="prog-test-svg" viewBox="0 0 1000 620" role="img" aria-label="שולחן העבודה עם המכונה">
         <defs>
-          <clipPath id="progTestSlot"><rect x="0" y="${PROGRAM_TEST_SLOT}" width="1000" height="300" /></clipPath>
+          <clipPath id="progTestSlot"><rect x="0" y="${PROGRAM_TEST_SLOT}" width="1000" height="360" /></clipPath>
           <linearGradient id="progTestDrum" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#c8d0d8" /><stop offset="0.45" stop-color="#8f979f" />
             <stop offset="1" stop-color="#5d636b" />
           </linearGradient>
         </defs>
 
-        <!-- the two buses the program is written in through, card to drum -->
-        ${programTestBus(460, 196, 460, 254)}
-        ${programTestBus(540, 196, 540, 254)}
-
         <!-- the drum, lying on its side, exactly as wide as the punched page -->
         <g class="prog-test-drum">
-          <rect x="${page.x1 + 14}" y="244" width="${width - 28}" height="72" fill="url(#progTestDrum)" />
-          <ellipse cx="${page.x1 + 14}" cy="280" rx="14" ry="36" fill="#7d858d" />
-          <ellipse cx="${page.x2 - 14}" cy="280" rx="14" ry="36" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
-          <rect x="${page.x1 + 20}" y="308" width="${width - 40}" height="8" rx="3" fill="#2b2f34" />
+          <rect x="${page.x1 + 14}" y="312" width="${width - 28}" height="72" fill="url(#progTestDrum)" />
+          <ellipse cx="${page.x1 + 14}" cy="348" rx="14" ry="36" fill="#7d858d" />
+          <ellipse cx="${page.x2 - 14}" cy="348" rx="14" ry="36" fill="#c8d0d8" stroke="#5d636b" stroke-width="2" />
+          <rect x="${page.x1 + 20}" y="376" width="${width - 40}" height="8" rx="3" fill="#2b2f34" />
         </g>
 
         <!-- the punched page climbing into it -->
@@ -7502,33 +7539,24 @@
           </g>
         </g>
 
-        <!-- the power source, and the reset cable that comes off it -->
+        <!-- the power source and the reset cable: one straight run between them,
+             and when the reset comes off there is simply no cable there -->
         <g class="prog-test-power">
-          ${resetCable}
-          <g transform="translate(150,400) scale(1.25)">${componentMarkup("source")}</g>
-          <text x="336" y="152" class="prog-test-label prog-test-label-light" text-anchor="end">reset</text>
+          ${resetOn ? `<line x1="275" y1="${RESET_Y}" x2="${CARD.x1 - 44}" y2="${RESET_Y}" stroke="#46545f" stroke-width="5" stroke-linecap="round" />` : ""}
+          <g transform="translate(220,${RESET_Y}) scale(1.2)">${componentMarkup("source")}</g>
         </g>
 
-        <!-- the converters: In0 dialled in on the left, Out0 read off on the right -->
+        <!-- the converters: the number dialled into In0, and Out0 read off -->
         <g class="prog-test-conv${live ? " prog-test-conv-on" : ""}">
-          ${programTestBus(302, 96, 380, 96)}
-          ${programTestBus(620, 126, 706, 126)}
-          <g transform="translate(170,96)">${componentMarkup("converter-out", { digits: programTestDigits(run ? run.input : null) })}</g>
-          <text x="170" y="26" class="prog-test-label prog-test-label-light" text-anchor="middle">In0</text>
-          <g transform="translate(838,126)">${componentMarkup("converter-in", { digits: programTestDigits((phase === "check" || phase === "done") && run ? run.got : null) })}</g>
-          <text x="838" y="56" class="prog-test-label prog-test-label-light" text-anchor="middle">Out0</text>
+          ${programTestBus(311, 100, 340, 100)}
+          ${programTestBus(660, 100, 699, 100)}
+          <g transform="translate(180,100)">${componentMarkup("converter-out", { digits: programTestDigits(run ? run.input : null) })}</g>
+          <g data-prog-test-out="1" transform="translate(830,100)">${componentMarkup("converter-in", { digits: programTestDigits(outValue) })}</g>
           ${verdict}
         </g>
 
-        <!-- the computer's card, drawn the way a card is drawn on the board -->
-        <g class="prog-test-computer">
-          <line class="usercard-pin" x1="380" y1="164" x2="344" y2="164" />
-          <rect class="usercard-body" x="380" y="56" width="240" height="140" rx="12" />
-          <text x="500" y="120" class="prog-test-card-title" text-anchor="middle">Computer0</text>
-          <text x="500" y="184" class="arith-gate-pin-letter prog-test-pin" text-anchor="middle">Prg</text>
-          <circle data-prog-test-lamp="1" cx="600" cy="76" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#111" stroke-width="2" />
-        </g>
-        <text data-prog-test-pulse="1" x="620" y="224" class="prog-test-label prog-test-label-light" text-anchor="end">${phase === "run" ? "0/50" : ""}</text>
+        ${card}
+        <text data-prog-test-pulse="1" x="500" y="304" class="prog-test-label prog-test-label-light" text-anchor="middle">${phase === "run" ? `0/${run && run.steps ? run.steps : 1}` : ""}</text>
       </svg>
       `;
   }

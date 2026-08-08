@@ -1395,10 +1395,13 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     ]
   };
 
-  // "בדיקה": the test bench that loads the program into the machine and runs it
-  // on its own. The numbers it feeds In0, how many beats it gives the machine
-  // for each of them, and what Out0 is supposed to hold afterwards — the task
-  // asks for the input times eight.
+  // "בדיקה במכונה": the test bench that loads the program into the machine and
+  // runs it on its own. The numbers it feeds In0, and what Out0 is supposed to
+  // hold afterwards — the task asks for the input times eight.
+  //
+  // The machine is beaten once for every line of the program (there are no
+  // jumps, so that is exactly how long a run takes); `cycles` is only a ceiling,
+  // so a program that somehow never ends cannot hang the bench.
   const PROGRAM_TEST = {
     title: "בדיקת התוכנה",
     cycles: 50,
