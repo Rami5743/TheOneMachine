@@ -23449,7 +23449,9 @@
     const win = target.closest(".sheet-guide");
     if (!win) return null;
     // Text and buttons belong to themselves.
-    if (target.closest("button, a, input, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
+    // The ALU table's own squares are marked by dragging across them, so a drag
+    // there must never carry the window off with it.
+    if (target.closest("button, a, input, .prog-alu-table, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
     return win;
   }
 
@@ -23570,13 +23572,25 @@
     if (!state.programSelection && !state.programTableSelection) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
-    if (meta && (event.key === "c" || event.key === "C")) {
+    // Which PHYSICAL key was pressed, not which letter it produces: on a Hebrew
+    // keyboard Ctrl+C and Ctrl+V arrive as "ב" and "ה", and matching the letter
+    // meant copy and paste quietly did nothing while the letter went on to be
+    // written somewhere.
+    const pressed = (letter) => event.code === `Key${letter.toUpperCase()}`
+      || String(event.key).toLowerCase() === letter;
+    if (meta && pressed("c")) {
       event.preventDefault();
       return state.programTableSelection ? programCopyTableSelection() : programCopySelection();
     }
-    if (meta && (event.key === "v" || event.key === "V")) {
+    if (meta && pressed("v")) {
       event.preventDefault();
       return programPasteSelection();
+    }
+    if (meta && pressed("x")) {
+      event.preventDefault();
+      if (state.programTableSelection) return programCopyTableSelection();
+      programCopySelection();
+      return programClearSelection();
     }
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
