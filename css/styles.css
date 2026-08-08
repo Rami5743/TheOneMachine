@@ -5933,3 +5933,20 @@ object.panel-image.is-pending {
   background: rgba(179, 128, 26, 0.42);
   color: #241d12;
 }
+
+/* The line numbers down the left of the program table: two squares wide, one to
+   each instruction, and the column closed on its outer edge. */
+.prog-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 2px solid #3a2c17;
+  border-bottom: 1px solid #6b5a3a;
+  background: #f3ecd9;
+  font-size: calc(var(--sq, 26px) * 0.5);
+  font-weight: 700;
+  color: #5b5140;
+  direction: ltr;
+}
+
+.prog-line-head { border-left: 2px solid #3a2c17; }

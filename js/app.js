@@ -7079,6 +7079,7 @@
   // What a square of the page is: an instruction's bit, free paper, or one of
   // the squares the page itself owns (the heading and the assembler's rows).
   function programCellKind(row, col) {
+    if (col === 17 || col === 18) return { kind: "locked" };
     if (!(col >= 1 && col <= 16)) return { kind: "free" };
     if (row <= 1) return { kind: "locked" };
     const within = row - 2;
@@ -7283,6 +7284,10 @@
     const instructions = programInstructionCount();
     const rows = 1 + instructions * 2;
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">התוכנה</div>`);
+    // A column of line numbers down the left of the table, two squares wide, one
+    // number to each instruction (which is two rows tall).
+    const LINE_COLUMN = 17;
+    cells.push(`<div class="sheet-head sheet-head-top prog-line-head" style="grid-column:${LINE_COLUMN} / span 2;grid-row:1;">#</div>`);
     // Only the outer frame, and no foot: the two rules run down the page and the
     // table simply carries on.
     const rules = [
@@ -7297,6 +7302,7 @@
       const top = 2 + row * 2;
       const bottom = top + 1;
       const dest = programDestination(row);
+      cells.push(`<div class="prog-line" style="grid-column:${LINE_COLUMN} / span 2;grid-row:${top} / span 2;" aria-hidden="true">${row + 1}</div>`);
       if (programNumberOpen(row)) {
         // Bit 1 is written: its own cell stays inert, and the eleven beside it
         // become the box the number is typed into.
@@ -7304,7 +7310,7 @@
         const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
         const shown = programNumberValue(row);
         cells.push(`<div class="prog-slot prog-slot-number" style="grid-column:${columnOf(12)} / span 11;grid-row:${top};">${editing
-          ? `<input class="prog-number-input" type="text" inputmode="numeric" autofocus data-program-number="${row}" value="${esc(shown)}" aria-label="המספר של פקודה ${row + 1}" />`
+          ? `<input class="prog-number-input" type="text" inputmode="numeric" autofocus data-program-number="${row}" value="${esc(typeof state.programNumberEdit.text === "string" ? state.programNumberEdit.text : shown)}" aria-label="המספר של פקודה ${row + 1}" />`
           : `<button class="prog-slot-btn" data-action="program-number-open" data-row="${row}" type="button" aria-label="המספר של פקודה ${row + 1}">${esc(shown)}</button>`}</div>`);
       } else if (programCalcOpen(row)) {
         // Bit 1 is the learner's own; the five beside it choose which input X
@@ -7340,11 +7346,11 @@
     Object.entries(scratch).forEach(([key, text]) => {
       const [r, c] = key.split(",").map(Number);
       if (!Number.isFinite(r) || !Number.isFinite(c) || !String(text)) return;
-      if (c >= 1 && c <= 16) return;
+      if (c >= 1 && c <= 18) return;
       cells.push(`<span class="sheet-scratch" data-sheet-scratch="${r},${c}" style="grid-column:${c};grid-row:${r};">${esc(String(text))}</span>`);
     });
     const at = state.sheetScratchCell;
-    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col)) && !(at.col >= 1 && at.col <= 16)) {
+    if (at && Number.isFinite(Number(at.row)) && Number.isFinite(Number(at.col)) && !(at.col >= 1 && at.col <= 18)) {
       cells.push(`<input class="sheet-scratch-input" type="text" maxlength="1" autofocus data-sheet-scratch="${at.row},${at.col}" value="${esc(String(scratch[`${at.row},${at.col}`] ?? ""))}" aria-label="כתיבה חופשית" style="grid-column:${at.col};grid-row:${at.row};" />`);
     }
     cells.push(...rules);
@@ -14617,12 +14623,16 @@
     // takes the keyboard on a click, so without this the box was left unfocused
     // and the typing went nowhere.
     if (state.programDialog && state.programNumberEdit) {
-      requestAnimationFrame(() => {
+      // Tried twice: a redraw scheduled for the next tick can replace the box
+      // between the frame and the tick, and whichever runs last must find it.
+      const takeTheBox = () => {
         const box = app.querySelector(".prog-number-input");
-        if (!box) return;
-        if (document.activeElement !== box) box.focus();
+        if (!box || document.activeElement === box) return;
+        box.focus();
         try { box.select(); } catch (e) { /* not a text input */ }
-      });
+      };
+      requestAnimationFrame(takeTheBox);
+      window.setTimeout(takeTheBox, 0);
     }
     if (sheetPageOpen() && state.sheetScratchCell) {
       requestAnimationFrame(() => {
@@ -23369,6 +23379,16 @@
     saveState();
   });
 
+  // What is being typed into the number box is kept in state as it is typed (no
+  // re-render, so the caret stays put) — so a redraw cannot lose it, and leaving
+  // the box can write it whether or not the box itself is still there.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-number-input");
+    if (!box || !state.programNumberEdit) return;
+    state.programNumberEdit = { row: Number(box.dataset.programNumber), text: box.value };
+    saveState();
+  });
+
   // The number typed over an instruction: Enter turns it into the eleven bits
   // under it, Escape (or a number these bits cannot hold) drops it.
   document.addEventListener("keydown", (event) => {
@@ -23866,9 +23886,18 @@
         }
       }
     }
+    // Leaving the number box writes what is in it, the same as Enter does —
+    // there is no reason to make the learner press a key to be taken at their
+    // word. (A number these eleven bits cannot hold still just goes away, and
+    // Escape still leaves without writing.)
     if (state.programNumberEdit && !event.target.closest(".prog-slot-number")) {
+      const box = app.querySelector(".prog-number-input");
+      const open = state.programNumberEdit;
+      const row = Number.isInteger(open.row) ? open.row : (box ? Number(box.dataset.programNumber) : null);
+      const typed = box ? box.value : (typeof open.text === "string" ? open.text : "");
       state.programNumberEdit = null;
-      window.setTimeout(render, 0);
+      if (Number.isInteger(row)) window.setTimeout(() => commitProgramNumber(row, typed), 0);
+      else window.setTimeout(render, 0);
     }
     // The assembler's teaser is a one-time offer: taking it up opens the window,
     // and ANY other click passes it over for good. Marked here, before the click
