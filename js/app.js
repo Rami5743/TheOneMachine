@@ -1833,6 +1833,8 @@
     programSelection: null,
     // The run of squares marked in the ALU table: { op, i1, i2 }.
     programTableSelection: null,
+    // The right-button menu, where it was opened: { x, y }.
+    programContextMenu: null,
     // Its four reference windows (the task, the ALU table, the memory map and
     // "מבנה הפקודה") — which are folded away, and which page the last one shows.
     // A preference, so it is persisted.
@@ -3028,6 +3030,7 @@
       programInputMenu: null,
       programSelection: null,
       programTableSelection: null,
+      programContextMenu: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3275,7 +3278,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -7218,6 +7221,28 @@
     return setState({ programSheet: { ...progress, bits, scratch } });
   }
 
+  // The right-button menu on the page: what can be done with the mark right now.
+  function programContextItems() {
+    const hasMark = Boolean(state.programSelection || state.programTableSelection);
+    const canPaste = Boolean(programClipboard && programClipboard.length && state.programSelection);
+    return [
+      { action: "program-menu-copy", label: "העתק", enabled: hasMark },
+      { action: "program-menu-cut", label: "גזור", enabled: Boolean(state.programSelection) },
+      { action: "program-menu-paste", label: "הדבק", enabled: canPaste },
+      { action: "program-menu-delete", label: "מחק", enabled: Boolean(state.programSelection) }
+    ];
+  }
+
+  function renderProgramContextMenu() {
+    const at = state.programContextMenu;
+    if (!at) return "";
+    return `
+      <ul class="prog-context-menu" role="menu" style="left:${Math.round(at.x)}px;top:${Math.round(at.y)}px;">
+        ${programContextItems().map((item) => `
+          <li><button class="prog-context-option" data-action="${esc(item.action)}" type="button"${item.enabled ? "" : " disabled"}>${esc(item.label)}</button></li>`).join("")}
+      </ul>`;
+  }
+
   function renderProgramSelection() {
     const box = programSelectionBox();
     if (!box) return "";
@@ -7316,6 +7341,7 @@
         ${renderProgramGuideWindow()}
         ${renderAssembler()}
         ${renderAssemblerTeaser()}
+        ${renderProgramContextMenu()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -23498,6 +23524,17 @@
     if (Number.isFinite(left) && Number.isFinite(top)) setProgramWindowPos("assembler", { left, top });
   });
 
+  // The right button over the program page opens the copy/paste menu instead of
+  // the browser's own.
+  document.addEventListener("contextmenu", (event) => {
+    if (!state.programDialog) return;
+    const overlay = event.target.closest && event.target.closest(".sheet-overlay-prog");
+    if (!overlay) return;
+    if (event.target.closest("input, textarea")) return;
+    event.preventDefault();
+    setState({ programContextMenu: { x: event.clientX, y: event.clientY } });
+  });
+
   // Dragging across the squares of one operation in the ALU table marks them.
   let programTableDrag = null;
 
@@ -23567,9 +23604,10 @@
   });
 
   // What can be done with a marked rectangle: copy it, paste it, rub it out.
-  document.addEventListener("keydown", (event) => {
+  // Listened for on the way DOWN, so nothing else can swallow the keys first.
+  window.addEventListener("keydown", (event) => {
     if (!state.programDialog) return;
-    if (!state.programSelection && !state.programTableSelection) return;
+    if (!state.programSelection && !state.programTableSelection && !programClipboard) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
     // Which PHYSICAL key was pressed, not which letter it produces: on a Hebrew
@@ -23592,15 +23630,24 @@
       programCopySelection();
       return programClearSelection();
     }
+    // The old pair, which some keyboards and habits still use.
+    if (event.key === "Insert" && (event.ctrlKey || event.metaKey)) {
+      event.preventDefault();
+      return state.programTableSelection ? programCopyTableSelection() : programCopySelection();
+    }
+    if (event.key === "Insert" && event.shiftKey) {
+      event.preventDefault();
+      return programPasteSelection();
+    }
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
       return programClearSelection();
     }
     if (event.key === "Escape") {
       event.preventDefault();
-      return setState({ programSelection: null, programTableSelection: null });
+      return setState({ programSelection: null, programTableSelection: null, programContextMenu: null });
     }
-  });
+  }, true);
 
   // Scrolling towards the bottom of the program page adds more instructions, so
   // the table never runs out under the learner. (Scroll does not bubble, hence
@@ -23697,11 +23744,15 @@
     if (state.programInputMenu && !event.target.closest(".prog-input-menu, .prog-slot-input")) {
       setState({ programInputMenu: null }, false);
     }
-    if (state.programTableSelection && !event.target.closest(".prog-alu-bit")) {
+    if (state.programContextMenu && !event.target.closest(".prog-context-menu")) {
+      state.programContextMenu = null;
+      window.setTimeout(render, 0);
+    }
+    if (state.programTableSelection && !event.target.closest(".prog-alu-bit, .prog-context-menu")) {
       state.programTableSelection = null;
       window.setTimeout(render, 0);
     }
-    if (state.programSelection && !event.target.closest(".sheet-actions")) {
+    if (state.programSelection && !event.target.closest(".sheet-actions, .prog-context-menu")) {
       state.programSelection = null;
       window.setTimeout(render, 0);
     }
@@ -24196,6 +24247,24 @@
       return setState({ programInputMenu: state.programInputMenu?.row === row ? null : { row }, programDestMenu: null, programCalcMenu: null });
     }
     if (action === "program-input-pick") return chooseProgramInput(Number(button.dataset.row), button.dataset.input);
+    if (action === "program-menu-copy") {
+      if (state.programTableSelection) programCopyTableSelection();
+      else programCopySelection();
+      return setState({ programContextMenu: null });
+    }
+    if (action === "program-menu-cut") {
+      programCopySelection();
+      programClearSelection();
+      return setState({ programContextMenu: null });
+    }
+    if (action === "program-menu-paste") {
+      programPasteSelection();
+      return setState({ programContextMenu: null });
+    }
+    if (action === "program-menu-delete") {
+      programClearSelection();
+      return setState({ programContextMenu: null });
+    }
     if (action === "assembler-open") return openAssembler();
     if (action === "assembler-close") return setState({ programAssembler: null });
     if (action === "assembler-teaser") return setState({ assemblerTeaserDone: true, assemblerInfo: true });

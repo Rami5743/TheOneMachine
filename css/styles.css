@@ -5870,3 +5870,35 @@ object.panel-image.is-pending {
   -webkit-user-select: text;
   user-select: text;
 }
+
+/* The right-button menu on the program page. */
+.prog-context-menu {
+  position: fixed;
+  z-index: 260;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  min-width: 8rem;
+  border: 1px solid #3a2c17;
+  border-radius: 8px;
+  background: #fbf6e6;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+  direction: rtl;
+}
+
+.prog-context-option {
+  display: block;
+  width: 100%;
+  padding: 5px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #241d12;
+  text-align: right;
+}
+
+.prog-context-option:hover:not(:disabled) { background: #efe4c8; }
+.prog-context-option:disabled { color: #a2977f; cursor: default; }
