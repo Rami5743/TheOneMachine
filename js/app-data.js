@@ -1395,6 +1395,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     text: "במציאות אין גמדים שעושים בשבילך את העבודה, אבל יש דבר כזה אסמבלר. לחץ כאן אם אתה רוצה לדעת מה זה",
     dialog: {
       text: "חלק זה של המשחק עדיין לא קיים, אתה יכול בינתיים ללמוד על זה כאן",
+      // The word in that sentence that carries the link; the address itself is
+      // not written out.
+      linkWord: "כאן",
       url: "https://www.youtube.com/watch?v=2iYOb9Uu7Mk"
     }
   };

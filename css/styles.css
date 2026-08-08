@@ -5674,13 +5674,13 @@ object.panel-image.is-pending {
   z-index: 8;
 }
 
-.assembler-info-link {
-  margin: 6px 0 0;
-  word-break: break-all;
+.assembler-info-text a {
+  color: #b3801a;
+  font-weight: 800;
+  text-decoration: underline;
 }
 
-.assembler-info-link a { color: #b3801a; font-weight: 700; }
-.assembler-info-link a:hover { color: #d8a63a; }
+.assembler-info-text a:hover { color: #d8a63a; }
 
 /* ---- The 4.3 program table ---------------------------------------------- */
 /* Two rows to an instruction: the assembler's merged cells on top, and under

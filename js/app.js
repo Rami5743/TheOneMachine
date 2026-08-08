@@ -6804,11 +6804,18 @@
     const teaser = assemblerTeaser();
     if (!state.assemblerInfo || !teaser) return "";
     const url = teaser.dialog.url;
+    // The address is not written out: the word that stands for it carries it.
+    const text = String(teaser.dialog.text || "");
+    const word = String(teaser.dialog.linkWord || "");
+    const at = word ? text.lastIndexOf(word) : -1;
+    const link = `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(word)}</a>`;
+    const sentence = at < 0
+      ? `${esc(isolateLatinRuns(text))} ${link}`
+      : `${esc(isolateLatinRuns(text.slice(0, at)))}${link}${esc(isolateLatinRuns(text.slice(at + word.length)))}`;
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="אסמבלר">
-          <p>${esc(isolateLatinRuns(teaser.dialog.text))}</p>
-          <p class="assembler-info-link"><a href="${esc(url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link" dir="ltr">${esc(url)}</a></p>
+          <p class="assembler-info-text">${sentence}</p>
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="assembler-info-close" type="button">הבנתי</button>
           </div>
