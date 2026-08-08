@@ -6132,6 +6132,12 @@ object.panel-image.is-pending {
 
 .prog-test-clock .clock-count { min-width: 4.5em; font-size: 24px; }
 
+/* The program page's own dialogs — the task as it is first stated, and the
+   are-you-sure before wiping the page — must sit above the windows floating over
+   the squares. The ordinary dialog overlay sits well below them, so the task
+   statement was coming up BEHIND the ALU table. */
+.prog-dialog-overlay { z-index: 260; }
+
 /* The hint that offers the helper task answers with buttons rather than words. */
 .prog-hint-offer {
   display: flex;

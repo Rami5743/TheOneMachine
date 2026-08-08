@@ -6960,7 +6960,7 @@
     const task = programTaskData();
     if (!task || !state.programDialog || !state.programDialog.intro) return "";
     return `
-      <div class="pace-dialog-overlay" role="presentation">
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
         <section class="pace-dialog-card prog-intro-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
           <h2 class="prog-intro-title">${esc(isolateLatinRuns(task.title))}</h2>
           <p>${esc(isolateLatinRuns(task.text))}</p>
@@ -6974,7 +6974,7 @@
   function renderProgramClearDialog() {
     if (!state.programClearConfirm) return "";
     return `
-      <div class="pace-dialog-overlay" role="presentation">
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
         <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="ניקוי התקדמות">
           <p>לנקות את מה שכתבת בדף?</p>
           <p class="my-card-delete-warn">הפעולה תמחק את כל התוכנה שכתבת ותשאיר דף ריק.</p>
