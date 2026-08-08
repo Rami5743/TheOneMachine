@@ -5856,3 +5856,17 @@ object.panel-image.is-pending {
   background: #f2dfa8;
   box-shadow: inset 0 0 0 2px #b3801a;
 }
+
+/* Dragging on the program page marks squares — it must not also drag out the
+   browser's own text selection, whose blue is nothing to do with the mark.
+   Anything actually typed into stays selectable. */
+.sheet-overlay-prog {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.sheet-overlay-prog input,
+.sheet-overlay-prog textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
