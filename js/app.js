@@ -7313,6 +7313,10 @@
   const PROGRAM_TEST_STAGES = { load: 3000, connect: 900, run: 2100, check: 1000, reset: 700 };
   let programTestTimer = null;
   let programTestPulseTimer = null;
+  // Which beat the machine is on. Kept here rather than in the state so a run
+  // does not redraw the page once a beat — and so a redraw from anywhere else
+  // (a window folding, the assembler's arrow) cannot lose it.
+  let programTestBeat = 0;
 
   function clearProgramTestTimers() {
     if (programTestTimer) window.clearTimeout(programTestTimer);
@@ -7388,14 +7392,20 @@
   // rather than through the state, so a long program does not redraw the page
   // once per beat. Out0 is rewritten as they go — what the converter shows is
   // what the machine had written by that beat, not just where it ended.
+  // The last beat has to land INSIDE the run, not on the instant it ends — it is
+  // the beat that writes the answer, and it was being swallowed by the stage
+  // change, so Out0 only ever showed the answer once the checking had started.
+  const PROGRAM_TEST_SETTLE = 320;
+
   function programTestPulses() {
     const now = state.programRunTest;
     const run = now ? (now.runs || [])[now.index] : null;
     const total = Math.max(1, run && run.steps ? run.steps : 1);
-    const every = Math.max(20, Math.round(PROGRAM_TEST_STAGES.run / total));
-    let beat = 0;
+    const every = Math.max(20, Math.floor((PROGRAM_TEST_STAGES.run - PROGRAM_TEST_SETTLE) / total));
+    programTestBeat = 0;
     programTestPulseTimer = window.setInterval(() => {
-      beat += 1;
+      programTestBeat += 1;
+      const beat = programTestBeat;
       const label = app.querySelector("[data-prog-test-pulse]");
       const lamp = app.querySelector("[data-prog-test-lamp]");
       const out = app.querySelector("[data-prog-test-out]");
@@ -7448,12 +7458,19 @@
     return text.length >= 5 ? text.slice(-5) : text.padStart(5, "0");
   }
 
-  // A bus, drawn the way the board draws one: a thick black bar with a light
-  // dashed stripe running down it.
-  function programTestBus(x1, y1, x2, y2) {
+  // A bus, drawn and named the way the board draws one: a thick black bar with a
+  // light dashed stripe down it, and its width written above it (beside it, when
+  // it runs up and down).
+  const PROGRAM_TEST_BUS_WIDTH = 16;
+  function programTestBus(x1, y1, x2, y2, label = true) {
+    const vertical = x1 === x2;
+    const at = vertical
+      ? { x: x1 + 16, y: (y1 + y2) / 2 }
+      : { x: (x1 + x2) / 2, y: Math.min(y1, y2) - 11 };
     return `
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="11" stroke-linecap="butt" />
-      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d8d8d8" stroke-width="3" stroke-dasharray="6 3" />`;
+      <line class="splitter-bar-line" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#111" stroke-width="11" stroke-linecap="butt" />
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#d8d8d8" stroke-width="3" stroke-dasharray="6 3" />
+      ${label ? `<text class="splitter-width-label" x="${at.x}" y="${at.y}">${PROGRAM_TEST_BUS_WIDTH}</text>` : ""}`;
   }
 
   function renderProgramTestScene(phase, run) {
@@ -7505,8 +7522,11 @@
     card += `<circle data-prog-test-lamp="1" cx="598" cy="52" r="8" fill="${phase === "run" ? "#ffd76a" : "#7a6b46"}" stroke="#111" stroke-width="2" />`;
     // Out0 as the machine actually left it: nothing before the program is in,
     // zero once the reset is off, and then whatever each beat wrote.
+    const beats = run && run.steps ? run.steps : 1;
+    const beat = Math.min(programTestBeat, beats);
     const outValue = phase === "load" ? null
       : (phase === "check" || phase === "done") ? (run ? run.got : 0)
+      : (phase === "run" && run && run.trace && beat > 0) ? (run.trace[beat - 1] ?? 0)
       : 0;
     const verdict = (phase === "check" || phase === "done") && run
       ? (run.ok
@@ -7542,21 +7562,20 @@
         <!-- the power source and the reset cable: one straight run between them,
              and when the reset comes off there is simply no cable there -->
         <g class="prog-test-power">
-          ${resetOn ? `<line x1="275" y1="${RESET_Y}" x2="${CARD.x1 - 44}" y2="${RESET_Y}" stroke="#46545f" stroke-width="5" stroke-linecap="round" />` : ""}
-          <g transform="translate(220,${RESET_Y}) scale(1.2)">${componentMarkup("source")}</g>
+          ${resetOn ? `<line x1="234" y1="${RESET_Y}" x2="${CARD.x1 - 44}" y2="${RESET_Y}" stroke="#46545f" stroke-width="5" stroke-linecap="round" />` : ""}
+          <g transform="translate(160,${RESET_Y}) scale(1.6)">${componentMarkup("source")}</g>
         </g>
 
         <!-- the converters: the number dialled into In0, and Out0 read off -->
         <g class="prog-test-conv${live ? " prog-test-conv-on" : ""}">
-          ${programTestBus(311, 100, 340, 100)}
-          ${programTestBus(660, 100, 699, 100)}
+          ${programTestBus(311, 100, 340, 100, false)}
+          ${programTestBus(660, 100, 699, 100, false)}
           <g transform="translate(180,100)">${componentMarkup("converter-out", { digits: programTestDigits(run ? run.input : null) })}</g>
           <g data-prog-test-out="1" transform="translate(830,100)">${componentMarkup("converter-in", { digits: programTestDigits(outValue) })}</g>
           ${verdict}
         </g>
 
         ${card}
-        <text data-prog-test-pulse="1" x="500" y="304" class="prog-test-label prog-test-label-light" text-anchor="middle">${phase === "run" ? `0/${run && run.steps ? run.steps : 1}` : ""}</text>
       </svg>
       `;
   }
@@ -7588,6 +7607,10 @@
     return `
       <div class="prog-test-overlay" role="dialog" aria-modal="true" aria-label="${esc(test.title)}">
         <div class="prog-test-stage">
+          ${now.phase === "run" ? `
+            <div class="clock-display prog-test-clock" aria-label="שעון המכונה" role="status">
+              <span class="clock-count" data-prog-test-pulse="1">0/${run && run.steps ? run.steps : 1}</span>
+            </div>` : ""}
           ${now.empty ? "" : renderProgramTestScene(now.phase, run)}
           ${caption ? `<p class="prog-test-caption">${esc(isolateLatinRuns(caption))}</p>` : ""}
         </div>

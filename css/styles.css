@@ -6052,6 +6052,7 @@ object.panel-image.is-pending {
 }
 
 .prog-test-stage {
+  position: relative;
   flex: 1;
   min-height: 0;
   width: 100%;
@@ -6115,3 +6116,14 @@ object.panel-image.is-pending {
   font-weight: 600;
   opacity: 0.92;
 }
+
+/* The beat counter is the board's own clock: the same dark pill of numerals it
+   shows on a clocked table, in the same corner. */
+.prog-test-clock {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 4;
+}
+
+.prog-test-clock .clock-count { min-width: 4.5em; font-size: 24px; }
