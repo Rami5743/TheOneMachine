@@ -4156,12 +4156,11 @@
   }
 
   function computerStructureEndIndex() {
-    const panels = (SCENES["simple-computer"] || {}).panels || [];
-    let last = panels.length - 1;
-    for (let i = panels.length - 1; i >= 0; i -= 1) {
-      if (panels[i] && panels[i].instruction && panels[i].instruction.bits) { last = i; break; }
-    }
-    return last;
+    const scene = SCENES["simple-computer"] || { panels: [] };
+    // It ends on the control unit — what the computer is MADE of. What follows
+    // (the instruction's layout and the worked examples) is another subject.
+    const index = panelIndexByImage(scene, "199_4.1_control-unit.svg");
+    return Number.isInteger(index) && index >= 0 ? index : Math.max(scene.panels.length - 1, 0);
   }
 
   // The first slide AFTER the run of examples the learner is standing in.
