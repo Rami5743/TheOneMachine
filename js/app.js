@@ -6892,13 +6892,21 @@
     const patch = { [`${row}:${bit}`]: next };
     // Writing 1 into the first bit says "compute", and bits 2-5 then mean
     // nothing at all — the assembler zeroes them rather than leave them hanging.
-    let cast = null;
+    const casts = [];
+    if (bit === 1 && next !== "") {
+      // The moment the first bit is chosen the last two mean nothing whichever
+      // way it went, so the assembler zeroes them straight away.
+      patch[`${row}:15`] = "0";
+      patch[`${row}:16`] = "0";
+      casts.push(`[data-action="program-dest-open"][data-row="${row}"]`);
+    }
     if (bit === 1 && next === "1") {
+      // "Compute" also empties bits 2-5 of any meaning.
       for (let spare = 2; spare <= 5; spare += 1) patch[`${row}:${spare}`] = "0";
-      cast = `[data-action="program-bit"][data-row="${row}"][data-bit="3"]`;
+      casts.push(`[data-action="program-bit"][data-row="${row}"][data-bit="3"]`);
     }
     const done = writeProgramBits(patch);
-    if (cast) assemblerFlourish(cast);
+    casts.forEach(assemblerFlourish);
     return done;
   }
 
