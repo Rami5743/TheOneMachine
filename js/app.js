@@ -1840,6 +1840,10 @@
     programHelperSheet: null,
     // The hints for the programming task: { failures, seen }, the usual rules.
     programHints: null,
+    // The worked solution on screen, if any: { variant, step }.
+    programSolution: null,
+    // Whether a worked solution has ever been shown.
+    programSolutionSeen: false,
     // Which hint is open on screen, if any: { index }.
     programHintOpen: null,
     // Whether each of the two tasks has ever passed its test.
@@ -3053,6 +3057,7 @@
       programManualTest: null,
       programRunTest: null,
       programHintOpen: null,
+      programSolution: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3300,7 +3305,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6730,6 +6735,70 @@
       </div>`;
   }
 
+  // ---- The worked solutions ------------------------------------------------
+  // Two of them, walked one instruction at a time: the program so far on the
+  // left with the newest line lit, and what that line is for beside it. The
+  // second is reached from the end of the first.
+  function openProgramSolution(variant = 0, step = 0) {
+    const list = programSolutionSteps();
+    const at = Math.min(Math.max(variant, 0), Math.max(list.length - 1, 0));
+    const solution = list[at];
+    if (!solution) return;
+    const last = (solution.steps || []).length;
+    return setState({
+      programHintOpen: null,
+      programSolution: { variant: at, step: Math.min(Math.max(step, 0), last) },
+      programSolutionSeen: true
+    });
+  }
+
+  function stepProgramSolution(by) {
+    const open = state.programSolution;
+    if (!open) return;
+    const solution = programSolutionSteps()[open.variant];
+    if (!solution) return;
+    const last = (solution.steps || []).length;
+    return setState({ programSolution: { ...open, step: Math.min(Math.max(open.step + by, 0), last) } });
+  }
+
+  function renderProgramSolution() {
+    const open = state.programSolution;
+    if (!open) return "";
+    const list = programSolutionSteps();
+    const solution = list[open.variant];
+    if (!solution) return "";
+    const steps = solution.steps || [];
+    // The last "step" is the closing word, with the whole program on show.
+    const finished = open.step >= steps.length;
+    const shown = finished ? steps.length : open.step + 1;
+    const lines = steps.slice(0, shown).map((entry, index) => `
+      <li class="prog-solution-line${!finished && index === open.step ? " prog-solution-line-now" : ""}">
+        <span class="prog-solution-num">${index + 1}</span>
+        <code dir="ltr">${esc(entry.code)}</code>
+      </li>`).join("");
+    const say = finished ? (solution.close || "") : (steps[open.step]?.text || "");
+    const more = finished && open.variant + 1 < list.length
+      ? `<button class="btn btn-primary" data-action="program-solution-next-variant" type="button">${esc(list[open.variant + 1].title)}</button>`
+      : "";
+    return `
+      <div class="hint-overlay prog-solution-overlay" role="presentation">
+        <section class="hint-card prog-solution-card" role="dialog" aria-modal="false" aria-label="${esc(solution.title)}">
+          <h2>${esc(solution.title)}</h2>
+          <p class="prog-solution-lead">${esc(isolateLatinRuns(solution.lead || ""))}</p>
+          <div class="prog-solution-layout">
+            <ol class="prog-solution-list">${lines}</ol>
+            <p class="prog-solution-say">${esc(isolateLatinRuns(say))}</p>
+          </div>
+          <div class="hint-actions prog-solution-actions">
+            <button class="btn" data-action="program-solution-prev" type="button"${open.step <= 0 ? " disabled" : ""}>הקודם</button>
+            <button class="btn" data-action="program-solution-next" type="button"${finished ? " disabled" : ""}>הבא</button>
+            ${more}
+            <button class="btn" data-action="program-solution-close" type="button">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   // ---- The helper task -----------------------------------------------------
   // It opens on the same page, with its own program, its own task window and its
   // own benches. Both programs are kept, so going either way loses nothing.
@@ -7807,6 +7876,9 @@
                 ${programHelperOpen() && result.ok
                   ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
                   : ""}
+                ${!programHelperOpen() && result.ok && programSolutionSteps().length
+                  ? `<button class="btn" data-action="program-solution-open" type="button">הצג פתרון</button>`
+                  : ""}
               </div>
             </section>
           </div>` : `
@@ -8164,6 +8236,7 @@
         ${renderProgramContextMenu()}
         ${renderProgramRunTest()}
         ${renderProgramHintWindow()}
+        ${renderProgramSolution()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
       </div>`;
@@ -25213,7 +25286,16 @@
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();
     if (action === "program-run-open") return startProgramTest();
-    if (action === "program-hint-open") return openProgramHints();
+    if (action === "program-hint-open") {
+      return programSolutionAvailable() ? openProgramSolution(0) : openProgramHints();
+    }
+    if (action === "program-solution-open") return openProgramSolution(0);
+    if (action === "program-solution-prev") return stepProgramSolution(-1);
+    if (action === "program-solution-next") return stepProgramSolution(1);
+    if (action === "program-solution-next-variant") {
+      return openProgramSolution((state.programSolution?.variant ?? 0) + 1, 0);
+    }
+    if (action === "program-solution-close") return setState({ programSolution: null });
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
     if (action === "program-hint-close") return setState({ programHintOpen: null });
     if (action === "program-helper-enter") return enterProgramHelper();

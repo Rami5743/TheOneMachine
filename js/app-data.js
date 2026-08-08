@@ -1464,6 +1464,48 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     { title: "רמז 7", text: "בשביל זה תצטרך לקבוע את הערך של A להיות הכתובת של Out0. אתה יכול לבדוק מהי, בחלונית מבנה הזיכרון משמאל." }
   ];
 
+  // The worked solutions, walked one instruction at a time. The first is the one
+  // the hints lead to — add the input to zero eight times. The second is the
+  // same answer reached by doubling, which is where the idea actually pays.
+  const PROGRAM_SOLUTIONS = [
+    {
+      title: "פתרון",
+      lead: "להכפיל ב-8 זה לחבר את המספר ל-0 שמונה פעמים. נעשה בדיוק את זה.",
+      steps: [
+        { code: "A=1028", text: "כתובת הקלט In0 היא 1028. קודם כל נכניס אותה ל-A, כדי שנוכל לקרוא את הקלט עם ‎*A." },
+        { code: "D=0", text: "מתחילים מאפס. זה המספר שאליו נחבר את הקלט שוב ושוב." },
+        { code: "D=D+*A", text: "החיבור הראשון. עכשיו ב-D יש את הקלט פעם אחת." },
+        { code: "D=D+*A", text: "החיבור השני. ב-D יש פי 2." },
+        { code: "D=D+*A", text: "החיבור השלישי. ב-D יש פי 3." },
+        { code: "D=D+*A", text: "החיבור הרביעי. ב-D יש פי 4. שים לב שכל השורות האלה זהות — אפשר לסמן אחת ולהדביק אותה שוב ושוב במקום לכתוב אותה מחדש." },
+        { code: "D=D+*A", text: "החיבור החמישי. ב-D יש פי 5." },
+        { code: "D=D+*A", text: "החיבור השישי. ב-D יש פי 6." },
+        { code: "D=D+*A", text: "החיבור השביעי. ב-D יש פי 7." },
+        { code: "D=D+*A", text: "החיבור השמיני. ב-D יש פי 8 — זאת התשובה." },
+        { code: "A=1024", text: "סיימנו לחשב. כתובת הפלט Out0 היא 1024, ולכן נכניס אותה ל-A." },
+        { code: "*A=D", text: "כותבים את מה שב-D לכתובת שנמצאת ב-A, כלומר ל-Out0. זהו." }
+      ],
+      close: "שתים עשרה פקודות, שמונה מהן אותה פקודה בדיוק."
+    },
+    {
+      title: "פתרון נוסף",
+      lead: "אפשר להגיע לאותה תשובה מהר יותר: במקום לחבר שמונה פעמים, נכפיל פי 2 שלוש פעמים.",
+      steps: [
+        { code: "A=1028", text: "שוב מתחילים מכתובת הקלט." },
+        { code: "D=*A", text: "הפעם פשוט לוקחים את הקלט אל D." },
+        { code: "A=D", text: "וזה הטריק: מעתיקים את D גם ל-A. עכשיו אותו מספר נמצא בשני הרגיסטרים." },
+        { code: "D=D+A", text: "מחברים את D לעצמו, ובזה הכפלנו אותו. ב-D יש פי 2." },
+        { code: "A=D", text: "שוב מעתיקים את D ל-A..." },
+        { code: "D=D+A", text: "...ומכפילים שוב. ב-D יש פי 4." },
+        { code: "A=D", text: "ובפעם השלישית." },
+        { code: "D=D+A", text: "ב-D יש פי 8 — אחרי שלוש הכפלות בלבד." },
+        { code: "A=1024", text: "כתובת הפלט." },
+        { code: "*A=D", text: "וכותבים אותה החוצה." }
+      ],
+      close: "‎8 = 2 בחזקת 3, ולכן שלוש הכפלות הספיקו. אילו היינו צריכים להכפיל ב-1024 היינו צריכים עשר הכפלות — במקום 1024 חיבורים."
+    }
+  ];
+
   // The assembler: the little fellow standing beside the ALU table on the 4.3
   // page. Clicking him opens his speech bubble; these are its pages.
   // The red teaser above his first page, and the window it opens.

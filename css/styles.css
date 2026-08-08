@@ -6134,3 +6134,61 @@ object.panel-image.is-pending {
   gap: 10px;
   margin-top: 12px;
 }
+
+/* The worked solution: the program so far down one side, what the newest line
+   is for down the other. */
+.prog-solution-overlay { z-index: 300; }
+.prog-solution-card { width: min(52rem, 92vw); }
+
+.prog-solution-lead {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.prog-solution-layout {
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.prog-solution-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 42vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.prog-solution-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 8px;
+  font-size: 0.98rem;
+}
+
+.prog-solution-line code { font-family: "Courier New", monospace; font-weight: 700; }
+
+.prog-solution-num {
+  min-width: 1.6em;
+  text-align: end;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.prog-solution-line-now {
+  background: rgba(255, 227, 122, 0.18);
+  border-inline-start: 3px solid #ffe37a;
+}
+
+.prog-solution-say {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.prog-solution-actions { flex-wrap: wrap; gap: 8px; }
