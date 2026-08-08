@@ -1145,7 +1145,8 @@ const SCENES = {
         "comment": "Reached once all five RAM cards are built: von Neumann back in the doorway (panel131's art, as in panel138/139). What 1000 registers are worth.",
         "image": "assets/panels/160_3.3_ram-thousand.svg",
         "year": "1943",
-        "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי."
+        "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי.",
+        "unlocksExplanation": "ram-story"
       },
       {
         "comment": "What the name RAM means, and why it is a silly one.",

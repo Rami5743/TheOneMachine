@@ -4848,6 +4848,23 @@
       }, true);
     }
 
+    // Chapter 3.3's closing monologue, replayed from the menu: the four slides,
+    // then the closing message, then back here.
+    if (id === "ram-story") {
+      if (!explanationUnlocked("ram-story")) return;
+      const chapter = chapterById("chapter-12");
+      return setState({
+        ...transientUiClearPatch(),
+        screen: "story",
+        chapterId: chapter.id,
+        sceneId: chapter.sceneId,
+        panelIndex: ramStoryStartIndex(),
+        started: true,
+        replayNonce: state.replayNonce + 1,
+        explanationReplay: { id: "ram-story" }
+      }, true);
+    }
+
     // A pure-text enrichment reading: opens a scrollable dialog over the current
     // screen (the explanations menu) rather than replaying a story scene.
     if (id === "words-bytes") {
@@ -4955,6 +4972,10 @@
 
   function previousExplanationPanel() {
     if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
+    if (explanationReplayActive("ram-story")) {
+      if (state.panelIndex <= ramStoryStartIndex()) return returnToExplanationsMenuFromReplay();
+      return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
+    }
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex <= nandIntroStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
@@ -4972,6 +4993,14 @@
   function nextExplanationPanel() {
     // Single-panel replays (e.g. "why-route") just return to the menu.
     if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
+    if (explanationReplayActive("ram-story")) {
+      // Its last slide is not the end of it: the closing message comes after,
+      // and dismissing THAT is what returns to the menu.
+      if (state.panelIndex >= ramStoryEndIndex()) {
+        return setState({ aluIntroDialog: { page: 0, taskId: RAM_OUTRO_KEY, returnToExplanations: true }, infoDialog: null });
+      }
+      return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
+    }
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex >= nandIntroEndIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
@@ -5027,7 +5056,7 @@
     // made (the MUX-latch demo), and the clocking enrichment videos.
     {
       title: "זיכרון",
-      inGame: ["flipflop-what", "flipflop-how"],
+      inGame: ["flipflop-what", "flipflop-how", "ram-story"],
       enrichment: ["clocking"]
     },
     // Processor: currently holds the "מילים ובתים" enrichment reading.
@@ -8825,7 +8854,7 @@
         ${panel.question ? renderPanelQuestion(panel) : ""}
         ${renderWordsBytesDialog()}
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
-        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route")) ? renderNandIntroExplanationControls() : `
+        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route") || explanationReplayActive("ram-story")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
@@ -19575,6 +19604,19 @@
   // Where the 3.3 story picks up once every RAM card is built: von Neumann's
   // closing monologue (what 1000 registers buy, what RAM's name means, the paper
   // tape it beats, and what it costs).
+  // The 3.3 closing monologue, as the explanations menu replays it: from the
+  // slide that opens once the last RAM card is built, to the last slide of the
+  // chapter — whose "המשך" opens the closing message rather than walking on.
+  function ramStoryStartIndex() {
+    const index = panelIndexByImage(SCENES["ram"], "160_3.3_ram-thousand.svg");
+    return Number.isInteger(index) && index >= 0 ? index : 0;
+  }
+
+  function ramStoryEndIndex() {
+    const index = panelIndexByImage(SCENES["ram"], "163_3.3_ram-volatile.svg");
+    return Number.isInteger(index) && index >= 0 ? index : SCENES["ram"].panels.length - 1;
+  }
+
   function ramEpilogueTarget() {
     const chapter = chapterById("chapter-12");
     const index = panelIndexByImage(SCENES["ram"], "160_3.3_ram-thousand.svg");
@@ -25277,6 +25319,13 @@
       if ((state.aluIntroDialog?.taskId || "ALU0") === "ALU0") {
         unlockExplanation("alu-ALU0", { silent: true });
         announceExplanationUnlock("alu-ALU0");
+      }
+      // The 3.3 closing message, reached by replaying "RAM" from the menu: back
+      // to the menu, and the workspace is left exactly as it was — this replay
+      // never went near the workbench.
+      if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY && explanationReplayActive("ram-story")) {
+        setState({ aluIntroDialog: null }, false);
+        return returnToExplanationsMenuFromReplay();
       }
       // When the message was reached by replaying the ALU0 explanation from the
       // menu, closing it returns to the menu instead of the ALU worktable note.

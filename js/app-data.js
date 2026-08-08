@@ -599,6 +599,11 @@
     { id: "flipflop-what", title: "מה זה פליפ-פלופ" },
     { id: "flipflop-how", title: "איך עושים פליפ-פלופ" },
     { id: "clocking", title: "איך מתזמנים את הפעולה של המחשב" },
+    // Chapter 3.3: von Neumann's closing monologue after the last RAM card —
+    // what a thousand registers buy, where the name comes from, the punched tape
+    // it replaced, and what it costs. Unlocked by reaching its first slide, which
+    // only happens once RAM1024 is built.
+    { id: "ram-story", title: "RAM" },
     // The ALU0 explanation (chapter 2.6): replays the ALU0 solution then the
     // "what is an ALU" message. Unlocked at the end of that message.
     { id: "alu-ALU0", title: "ALU" },
