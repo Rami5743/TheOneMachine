@@ -1146,7 +1146,8 @@ const SCENES = {
         "image": "assets/panels/160_3.3_ram-thousand.svg",
         "year": "1943",
         "read": "מצוין. בנית זיכרון גדול למדי שיכול לשמור 1000 רגיסטרים. זה אולי לא מספיק בשביל לשמור את כל המידע שצריך לשמור, אך בהחלט מספיק כדי לבצע חישובים רב שלביים מורכבים למדי.",
-        "unlocksExplanation": "ram-story"
+        "unlocksExplanation": "ram-story",
+        "announceExplanationLater": true
       },
       {
         "comment": "What the name RAM means, and why it is a silly one.",
@@ -1398,7 +1399,8 @@ const SCENES = {
         "comment": "4.1 opens in the finished computer room: the RAM shelves are wired and working.",
         "image": "assets/panels/187_4.1_memory-works.svg",
         "year": "1944",
-        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה."
+        "read": "נהדר! יש לנו זיכרון מתפקד. זה בסדר שלא בנית את כל הרגיסטרים, זה יספיק לנו כדי להדגים יכולת. אחר כך יהיה לנו הרבה יותר קל להשלים את העבודה.",
+        "unlocksExplanation": "computer-structure"
       },
       {
         "comment": "What is left: turning the ALU into a processor.",

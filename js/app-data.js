@@ -613,9 +613,15 @@
     // Enrichment: the "negative numbers" window (the two explainer videos), reached
     // from the demo's red teaser. Unlocked once that window has been opened.
     { id: "negative-numbers", title: "מספרים שליליים" },
-    // Enrichment (processor category): the "words & bytes" reading, opened either
+    // Enrichment (computer category): the "words & bytes" reading, opened either
     // from the red link on the last bits-range slide or from the explanations menu.
-    { id: "words-bytes", title: "מילים ובתים" }
+    { id: "words-bytes", title: "מילים ובתים" },
+    // Chapter 4.1: von Neumann's walk through what the simple computer is made
+    // of and how an instruction is laid out, ending with the worked examples.
+    { id: "computer-structure", title: "מבנה המחשב הפשוט" },
+    // Enrichment (software category): the assembler window, reached from the red
+    // teaser beside the gnome on the 4.3 page.
+    { id: "assembler", title: "אסמבלר" }
   ];
 
   // The "מילים ובתים" enrichment text, shown in a scrollable dialog.

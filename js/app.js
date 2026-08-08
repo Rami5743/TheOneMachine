@@ -3094,6 +3094,8 @@
       }
     }
     if (state.ffClockLinks) ids.push("clocking");
+    // The assembler window, left open when the learner walks away from it.
+    if (state.assemblerInfo) ids.push("assembler");
     return ids;
   }
 
@@ -4146,6 +4148,22 @@
     return state.screen === "story" && Boolean(currentPanel()?.instruction?.bits);
   }
 
+  // Chapter 4.1's walk through the computer, as the explanations menu replays it:
+  // from the chapter's SECOND slide (the first is 1.3's closing art) to the last
+  // of the worked instruction examples.
+  function computerStructureStartIndex() {
+    return 1;
+  }
+
+  function computerStructureEndIndex() {
+    const panels = (SCENES["simple-computer"] || {}).panels || [];
+    let last = panels.length - 1;
+    for (let i = panels.length - 1; i >= 0; i -= 1) {
+      if (panels[i] && panels[i].instruction && panels[i].instruction.bits) { last = i; break; }
+    }
+    return last;
+  }
+
   // The first slide AFTER the run of examples the learner is standing in.
   function afterInstructionExamples() {
     const panels = currentScene().panels;
@@ -4865,6 +4883,29 @@
       }, true);
     }
 
+    // Chapter 4.1's walk through the simple computer, replayed from the menu.
+    if (id === "computer-structure") {
+      if (!explanationUnlocked("computer-structure")) return;
+      const chapter = chapterById("chapter-15");
+      return setState({
+        ...transientUiClearPatch(),
+        screen: "story",
+        chapterId: chapter.id,
+        sceneId: chapter.sceneId,
+        panelIndex: computerStructureStartIndex(),
+        started: true,
+        replayNonce: state.replayNonce + 1,
+        explanationReplay: { id: "computer-structure" }
+      }, true);
+    }
+
+    // Opens the assembler window over the menu — the same one the gnome's red
+    // teaser opens on the 4.3 page.
+    if (id === "assembler") {
+      if (!explanationUnlocked("assembler")) return;
+      return setState({ assemblerInfo: true }, false);
+    }
+
     // A pure-text enrichment reading: opens a scrollable dialog over the current
     // screen (the explanations menu) rather than replaying a story scene.
     if (id === "words-bytes") {
@@ -4976,6 +5017,10 @@
       if (state.panelIndex <= ramStoryStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
     }
+    if (explanationReplayActive("computer-structure")) {
+      if (state.panelIndex <= computerStructureStartIndex()) return returnToExplanationsMenuFromReplay();
+      return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
+    }
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex <= nandIntroStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
@@ -4993,6 +5038,10 @@
   function nextExplanationPanel() {
     // Single-panel replays (e.g. "why-route") just return to the menu.
     if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
+    if (explanationReplayActive("computer-structure")) {
+      if (state.panelIndex >= computerStructureEndIndex()) return returnToExplanationsMenuFromReplay();
+      return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
+    }
     if (explanationReplayActive("ram-story")) {
       // Its last slide is not the end of it: the closing message comes after,
       // and dismissing THAT is what returns to the menu.
@@ -5059,11 +5108,18 @@
       inGame: ["flipflop-what", "flipflop-how", "ram-story"],
       enrichment: ["clocking"]
     },
-    // Processor: currently holds the "מילים ובתים" enrichment reading.
+    // The computer (chapters 4.1-4.2): what it is made of and how an instruction
+    // is laid out, plus the "מילים ובתים" enrichment reading.
     {
-      title: "מעבד",
-      inGame: [],
+      title: "מחשב",
+      inGame: ["computer-structure"],
       enrichment: ["words-bytes"]
+    },
+    // Software (chapter 4.3): the assembler, reached from the gnome's red teaser.
+    {
+      title: "תוכנה",
+      inGame: [],
+      enrichment: ["assembler"]
     }
   ];
 
@@ -8854,7 +8910,7 @@
         ${panel.question ? renderPanelQuestion(panel) : ""}
         ${renderWordsBytesDialog()}
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
-        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route") || explanationReplayActive("ram-story")) ? renderNandIntroExplanationControls() : `
+        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route") || explanationReplayActive("ram-story") || explanationReplayActive("computer-structure")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
@@ -15804,7 +15860,12 @@
     // when they closed the reading, so this is a no-op then.
     if (state.screen === "story") {
       const leaving = currentPanel();
-      if (leaving && leaving.unlocksExplanation) announceExplanationUnlock(leaving.unlocksExplanation);
+      // …unless the slide says its explanation only ENDS later on (the RAM
+      // epilogue runs from this slide through its closing message), in which
+      // case whoever owns that end announces it.
+      if (leaving && leaving.unlocksExplanation && !leaving.announceExplanationLater) {
+        announceExplanationUnlock(leaving.unlocksExplanation);
+      }
     }
 
     const scene = currentScene();
@@ -25048,6 +25109,10 @@
     if (assemblerTeaserVisible() && !event.target.closest('[data-action="assembler-teaser"]')) {
       state.assemblerTeaserDone = true;
       saveState();
+      // Passing it over is still having been offered it: it joins the menu, and
+      // the flourish plays now rather than never.
+      unlockExplanation("assembler", { silent: true });
+      announceExplanationUnlock("assembler");
       window.setTimeout(render, 0);
     }
     // A plain click outside the object popover closes it — the same as the
@@ -25323,6 +25388,12 @@
       // The 3.3 closing message, reached by replaying "RAM" from the menu: back
       // to the menu, and the workspace is left exactly as it was — this replay
       // never went near the workbench.
+      if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY) {
+        // The end of the RAM explanation — where its flourish belongs, not at
+        // the first slide of it.
+        unlockExplanation("ram-story", { silent: true });
+        announceExplanationUnlock("ram-story");
+      }
       if (state.aluIntroDialog?.taskId === RAM_OUTRO_KEY && explanationReplayActive("ram-story")) {
         setState({ aluIntroDialog: null }, false);
         return returnToExplanationsMenuFromReplay();
@@ -25599,8 +25670,16 @@
     }
     if (action === "assembler-open") return openAssembler();
     if (action === "assembler-close") return setState({ programAssembler: null });
-    if (action === "assembler-teaser") return setState({ assemblerTeaserDone: true, assemblerInfo: true });
-    if (action === "assembler-info-close") return setState({ assemblerInfo: false });
+    if (action === "assembler-teaser") {
+      unlockExplanation("assembler", { silent: true });
+      return setState({ assemblerTeaserDone: true, assemblerInfo: true });
+    }
+    if (action === "assembler-info-close") {
+      // The end of it — where the flourish belongs.
+      unlockExplanation("assembler", { silent: true });
+      announceExplanationUnlock("assembler");
+      return setState({ assemblerInfo: false });
+    }
     if (action === "assembler-prev") return stepAssembler(-1);
     if (action === "assembler-next") return stepAssembler(1);
     if (action === "sheet-result-ok") {
