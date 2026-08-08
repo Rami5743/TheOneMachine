@@ -4580,6 +4580,18 @@
       !(Number(entry && entry.failures) > 0) && !(Number(entry && entry.seen) > 0));
     if (sheetClean) unlockAchievement("precise-test-writer");
 
+    // Chapter 4.3 — the programming task. "Done" is its test having passed once
+    // (that is kept even when the page is cleared, so the milestone stands);
+    // "clean" is that with no failed run of the machine and no hint read. The
+    // manual bench is not a run of the machine and costs nothing, and clearing
+    // the page's progress takes the failures and the hints with it — so a fresh
+    // start really is a fresh start.
+    if (state.programTaskDone) unlockAchievement("simple-programmer");
+    const prgHints = state.programHints && typeof state.programHints === "object" ? state.programHints : {};
+    if (state.programTaskDone && !(Number(prgHints.failures) > 0) && !(Number(prgHints.seen) > 0)) {
+      unlockAchievement("precise-simple-programmer");
+    }
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);
@@ -25438,7 +25450,15 @@
     if (action === "program-clear-confirm") {
       // Only ever from the question itself — nothing else may wipe the page.
       if (!state.programClearConfirm) return;
-      return setState({ [programSheetKey()]: { scratch: {}, bits: {} }, programClearConfirm: null, sheetScratchCell: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null });
+      // An empty page starts over completely: the hints go back to none read and
+      // none earned, and with them the tally of failed runs that unlocks them.
+      return setState({
+        [programSheetKey()]: { scratch: {}, bits: {} },
+        [programHintKey()]: { failures: 0, seen: 0 },
+        programClearConfirm: null, sheetScratchCell: null, programDestMenu: null,
+        programNumberEdit: null, programCalcMenu: null, programInputMenu: null,
+        programHintOpen: null, programSelection: null, programManualTest: null
+      });
     }
     if (action === "program-manual-open") {
       // Whatever In0 held when the bench was last put away is what it opens on.

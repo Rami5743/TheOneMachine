@@ -234,6 +234,22 @@ function renderAchievementIcon(id) {
            <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
            <rect x="34" y="22" width="12" height="9" rx="1.4" fill="#fffdf3" stroke="#183449" stroke-width="1.4"/>
            <path d="M38 31 H42 L43 34.5 H37 Z" fill="#fffdf3" stroke="#183449" stroke-width="1.2"/>` });
+    case "simple-programmer": // parchment cup, a punched program feeding a drum (4.3)
+      return achievementTrophy(id, { top: "#e6d7ae", bot: "#7a5f2c", rim: "#4d3a15", base: "#7a5f2c", handle: "#a3813f", emblem:
+        `<rect x="30" y="27" width="20" height="13" rx="1.6" fill="#fffdf3" stroke="#4d3a15" stroke-width="1.5"/>
+           <g fill="#4d3a15">
+             <circle cx="34" cy="31" r="1.3"/><circle cx="40" cy="31" r="1.3"/><circle cx="46" cy="31" r="1.3"/>
+             <circle cx="37" cy="36" r="1.3"/><circle cx="43" cy="36" r="1.3"/></g>
+           <ellipse cx="40" cy="21" rx="12" ry="4.2" fill="#cdd4da" stroke="#4d3a15" stroke-width="1.4"/>
+           <path d="M28 21 V24.5 A12 4.2 0 0 0 52 24.5 V21" fill="#9aa3ac" stroke="#4d3a15" stroke-width="1.4"/>` });
+    case "precise-simple-programmer": // the same program on a bullseye (4.3 with no slips)
+      return achievementTrophy(id, { top: "#e6d7ae", bot: "#6b5326", rim: "#f3d27a", base: "#6b5326", handle: "#a3813f", emblem:
+        `<circle cx="40" cy="28" r="10" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="33" y="23" width="14" height="10" rx="1.4" fill="#fffdf3" stroke="#4d3a15" stroke-width="1.4"/>
+           <g fill="#4d3a15">
+             <circle cx="36.5" cy="26.5" r="1.15"/><circle cx="40" cy="26.5" r="1.15"/><circle cx="43.5" cy="26.5" r="1.15"/>
+             <circle cx="38" cy="30" r="1.15"/><circle cx="42" cy="30" r="1.15"/></g>` });
     case "test-writer": // slate cup, the instruction page with its answered rows (4.1)
       return achievementTrophy(id, { top: "#cbd5c0", bot: "#4a5340", rim: "#333a2c", base: "#4a5340", handle: "#6b7660", emblem:
         `<rect x="31" y="18" width="18" height="22" rx="1.8" fill="#fffdf3" stroke="#333a2c" stroke-width="1.6"/>
