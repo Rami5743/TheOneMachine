@@ -7009,10 +7009,12 @@
     const back = walk.finished && programHelperOpen()
       ? `<button class="btn btn-primary" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
       : "";
-    // And the main task's very last word — past the second solution — is the end
-    // of what is built so far.
-    const leave = walk.finished && !programHelperOpen() && open.variant + 1 >= list.length
-      ? `<button class="btn btn-primary" data-action="program-solution-finish" type="button">בחזרה להאנגר</button>`
+    // The main task's very last word — past the second solution — leads back to
+    // the hangar. Like the workbench task solutions, it ends on a single "המשך"
+    // button rather than a close + return pair.
+    const atFinalEnd = walk.finished && !programHelperOpen() && open.variant + 1 >= list.length;
+    const leave = atFinalEnd
+      ? navButton("program-solution-finish", "arrow-left", "המשך", { primary: true })
       : "";
     // The instruction's line is always drawn, empty on the closing word, so the
     // card is the same size from the first step to the last and does not jump
@@ -7035,9 +7037,9 @@
           <div class="solution-actions prog-solution-actions">
             ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
             <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
-            ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
+            ${atFinalEnd ? "" : navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
             ${more}${back}${leave}
-            <button class="btn" data-action="program-solution-close" type="button">סגור</button>
+            ${atFinalEnd ? "" : `<button class="btn" data-action="program-solution-close" type="button">סגור</button>`}
           </div>
         </section>
       </div>`;
@@ -8747,6 +8749,11 @@
       </div>`;
   }
 
+  // The "המשך יבוא..." placeholder — a not-yet-built path — is shown over the
+  // Los Alamos night-desert interstitial (the same raster the chapter breaks
+  // use), so a dead end reads as a quiet nightfall rather than a bare popup.
+  const CONTINUE_SOON_TEXT = "המשך יבוא...";
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -8754,6 +8761,22 @@
     const discard = isObj && state.infoDialog.discardCard
       ? `<button class="btn" data-action="card-discard-exit" type="button">השלך את הכרטיס</button>`
       : "";
+    if (message === CONTINUE_SOON_TEXT) {
+      return `
+        <div class="pace-dialog-overlay info-night-overlay" role="presentation">
+          <section class="image-stage image-stage-no-year info-night-stage" aria-hidden="true">
+            <div class="image-frame"><div class="image-shell">
+              <object class="panel-image" data="assets/panels/112_2.4_night.svg" type="image/svg+xml" width="1448" height="1086" role="img"></object>
+            </div></div>
+          </section>
+          <section class="pace-dialog-card info-night-card" role="dialog" aria-modal="false" aria-label="הודעה">
+            <p>${esc(message)}</p>
+            <div class="pace-dialog-actions">
+              <button class="btn btn-primary" data-action="info-dialog-ok">הבנתי</button>
+            </div>
+          </section>
+        </div>`;
+    }
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="הודעה">
