@@ -3449,6 +3449,17 @@
     return chapterIndexById(state.chapterId) > 0;
   }
 
+  // The very last slide of the very last chapter IS the "המשך יבוא" card, so
+  // המשך has nowhere to go — better a spent button than a dialog repeating what
+  // the slide already says.
+  function globalHasNext() {
+    if (state.screen !== "story") return true;
+    const scene = currentScene();
+    if (!scene) return true;
+    if (state.panelIndex < scene.panels.length - 1) return true;
+    return chapterIndexById(state.chapterId) < CHAPTERS.length - 1;
+  }
+
   function speakCurrent() {
     if (state.hintSlides) return speak(currentHintSlideReadText());
     if (state.screen !== "story" || state.dialog) return;
@@ -6990,6 +7001,20 @@
     return setState({ programSolution: { ...open, step, part } });
   }
 
+  // "בחזרה להאנגר", once the machine has actually run the program: the story
+  // does not stop at the room any more — von Neumann is standing in it with a
+  // word about General Groves. A learner who only read the solution goes back to
+  // the room itself and can still run the program.
+  function programStoryOnPatch() {
+    if (!state.programTaskDone) return {};
+    const chapter = chapterById("chapter-18");
+    const scene = chapter ? sceneByChapter(chapter) : null;
+    if (!scene) return {};
+    const idx = panelIndexByImage(scene, "245_4.3_groves-message.svg");
+    if (idx < 0) return {};
+    return { ...storyTarget(chapter, idx), replayNonce: state.replayNonce + 1 };
+  }
+
   function programSolutionAtStart() {
     const open = state.programSolution;
     return !open || (open.step <= 0 && (open.part ?? -1) < 0);
@@ -8884,6 +8909,10 @@
       // drums, the popy, a cable tag — is there to be read about, so the learner
       // still walks on normally.
       if (h.action === "panel-object") {
+        // 4.3's note is the way forward only until the machine has run the
+        // program — after that the room is just a room and המשך walks on to the
+        // slides that close the chapter.
+        if (h.objectId === "programNote" && state.programTaskDone) return false;
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
         return Boolean(object && !object.optional && (object.takeLabel || object.opens));
       }
@@ -8892,7 +8921,7 @@
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
     const questionGate = Boolean(panel.question);
-    const nextDisabled = (blockingHotspots.length || questionGate) ? "disabled" : "";
+    const nextDisabled = (blockingHotspots.length || questionGate || !globalHasNext()) ? "disabled" : "";
     const skipDisabled = (isSkipDisabled() || questionGate) ? "disabled" : "";
 
     app.innerHTML = `
@@ -15930,9 +15959,9 @@
       }, true);
     }
 
-    // Past the last slide of the last chapter there is no next chapter yet, so
-    // the story says so instead of dumping the learner on the chapters screen.
-    return setState({ infoDialog: "המשך יבוא..." });
+    // Past the last slide of the last chapter there is nowhere to go — that
+    // slide is itself the "המשך יבוא" card, and המשך is drawn spent on it, so a
+    // keypress does not raise a dialog repeating it.
   }
 
   function previousPanel() {
@@ -25621,7 +25650,8 @@
       clearProgramTestTimers();
       return setState({
         programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
-        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null
+        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
+        ...programStoryOnPatch()
       });
     }
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
