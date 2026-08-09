@@ -8973,22 +8973,19 @@
       </main>`;
   }
 
-  function renderStory() {
-    const scene = currentScene();
-    const panel = currentPanel();
-    const panelImage = displayPanelImage(panel);
-    const imageSrc = `${panelImage}?r=${state.replayNonce}`;
-    const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
-    const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
-    // A "navigational" hotspot (e.g. the return-to-Nand panel) IS the way
-    // forward, so it disables the plain המשך button. Hotspots that merely open
-    // an external reference, or the reserved Stone-Millis book, do not — the
-    // learner still advances normally.
-    // The Stone-Millis book is the ONLY way forward from the library slide, so it
-    // disables המשך (and דלג, below) — the learner must go through the notebook.
-    // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
+  // A "navigational" hotspot (e.g. the return-to-Nand panel) IS the way
+  // forward, so it disables the plain המשך button. Hotspots that merely open
+  // an external reference, or the reserved Stone-Millis book, do not — the
+  // learner still advances normally.
+  // The Stone-Millis book is the ONLY way forward from the library slide, so it
+  // disables המשך (and דלג) — the learner must go through the notebook.
+  // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
+  // The forward KEY asks this too, so it is blocked exactly where the button is:
+  // a slide whose only zones are things to read about (3.6's hangar objects, the
+  // waste drums, the popy) is walked on from with the keyboard like any other.
+  function blockingPanelHotspots(panel) {
     const nonBlockingActions = ["binary-booklet", "nail-box"];
-    const blockingHotspots = panelHotspots(panel).filter((h) => {
+    return panelHotspots(panel).filter((h) => {
       if (h.url || nonBlockingActions.includes(h.action)) return false;
       // A story object blocks המשך when it IS the way forward: taking it (the
       // dosimeter), or opening what it holds (the note on the table — the page of
@@ -9005,6 +9002,16 @@
       }
       return true;
     });
+  }
+
+  function renderStory() {
+    const scene = currentScene();
+    const panel = currentPanel();
+    const panelImage = displayPanelImage(panel);
+    const imageSrc = `${panelImage}?r=${state.replayNonce}`;
+    const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
+    const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
+    const blockingHotspots = blockingPanelHotspots(panel);
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
     const questionGate = Boolean(panel.question);
@@ -26484,7 +26491,7 @@
       event.preventDefault();
       return previousPanel();
     }
-    if ((event.key === "ArrowLeft" || event.key === " ") && panelHotspots(currentPanel()).length) {
+    if ((event.key === "ArrowLeft" || event.key === " ") && blockingPanelHotspots(currentPanel()).length) {
       event.preventDefault();
       return;
     }
