@@ -133,6 +133,88 @@ git pull origin claude/github-project-editing-bw3mcp
 
 ---
 
+## תקלה אחרת: `Permission denied` בזמן `git pull`
+
+אם `git pull` נכשל עם משהו כזה:
+
+```
+error: unable to write file .git/objects/6a/1f00f7cb8be2...: Permission denied
+fatal: failed to write object
+fatal: unpack-objects failed
+```
+
+זו **לא** בעיה בענף ולא בשרת. גיט הוריד את הקבצים בהצלחה ונכשל רק כשניסה
+לכתוב אותם לתיקייה `.git/objects` שבעותק המקומי שלך — כלומר אין לך הרשאת
+כתיבה שם. הסיבה כמעט תמיד אחת: בשלב כלשהו הורצה פקודת גיט עם `sudo`,
+ומאז חלק מהקבצים בתוך `.git` שייכים למשתמש `root` ולא לך.
+
+### הדרך הקצרה — בלוק אחד להעתיק ולהדביק (macOS / Linux)
+
+פתח טרמינל, היכנס לתיקיית הפרויקט (`cd <התיקייה שבה שמור TheOneMachine>`),
+והדבק את כל הבלוק. הוא יבקש ממך את סיסמת המחשב שלך (זה מה ש-`sudo` עושה):
+
+```bash
+sudo chown -R "$(id -un)":"$(id -gn)" . && \
+find .git -type d -exec chmod u+rwx {} + && \
+git pull origin claude/github-project-editing-bw3mcp && \
+git log --oneline -1
+```
+
+בסוף תודפס שורה אחת עם הקומיט האחרון — זה סימן שהכול הסתדר.
+
+### מה כל שורה עושה
+
+1. `sudo chown -R ...` — מחזיר את הבעלות על כל קבצי הפרויקט (כולל `.git`)
+   אליך במקום ל-`root`. זה התיקון האמיתי.
+2. `find .git -type d -exec chmod u+rwx {} +` — מוודא שיש לך הרשאת כתיבה
+   לכל התיקיות בתוך `.git`.
+3. `git pull ...` — מושך שוב. הפעם זה יעבוד.
+
+### לבדוק לפני, אם אתה רוצה לראות מה קורה (לא משנה כלום)
+
+```bash
+ls -ld .git .git/objects
+```
+
+בכל שורה, השדה השלישי הוא שם הבעלים. אם כתוב שם `root` במקום שם המשתמש
+שלך — זו בדיוק התקלה.
+
+### על Windows (Git Bash / PowerShell)
+
+ל-Windows אין `sudo`, ושם הסיבה בדרך כלל שונה: או שהאנטי-וירוס נעל את
+התיקייה, או שיש חלון של תוכנה אחרת (VS Code, GitHub Desktop, סייר הקבצים)
+שמחזיק קובץ בתוך `.git`. סדר הפעולות:
+
+1. סגור את VS Code, את GitHub Desktop ואת כל חלונות סייר הקבצים שפתוחים
+   על תיקיית הפרויקט.
+2. פתח **PowerShell כמנהל**: לחץ על כפתור "התחל" (Start) בפינה השמאלית
+   התחתונה, הקלד `powershell`, ואז לחץ ימני על "Windows PowerShell"
+   שמופיע ברשימה ובחר **"Run as administrator"** בתפריט שנפתח.
+3. הדבק (עם הנתיב שלך):
+
+```powershell
+cd <התיקייה שבה שמור TheOneMachine>
+takeown /F .git /R /D Y
+icacls .git /grant "$env:USERNAME:(OI)(CI)F" /T
+git pull origin claude/github-project-editing-bw3mcp
+```
+
+### אם עדיין נכשל — הפתרון האחרון שתמיד עובד
+
+לשכפל את הפרויקט מחדש לתיקייה נקייה. **זה מוחק שינויים מקומיים שלא נדחפו** —
+אם יש כאלה, הרץ קודם `git status --short` והעתק את הקבצים לתיקייה מחוץ
+לפרויקט.
+
+```bash
+cd <התיקייה שמעל תיקיית הפרויקט>
+mv TheOneMachine TheOneMachine-old
+git clone https://github.com/Rami5743/TheOneMachine.git
+cd TheOneMachine
+git checkout claude/github-project-editing-bw3mcp
+```
+
+---
+
 ## למה זה קרה
 
 הקלון המקומי מגיע כשהוא מחובר לענף `claude/continue-dev-branch-uleqf0`,
