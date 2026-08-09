@@ -25621,8 +25621,7 @@
       clearProgramTestTimers();
       return setState({
         programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
-        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
-        infoDialog: "המשך יבוא..."
+        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null
       });
     }
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));

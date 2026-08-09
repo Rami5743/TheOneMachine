@@ -2506,6 +2506,24 @@ const SCENES = {
             "height": 13.43
           }
         ]
+      },
+      {
+        "comment": "The program ran. Von Neumann is called away by General Groves.",
+        "image": "assets/panels/245_4.3_groves-message.svg",
+        "year": "1944",
+        "read": "נהדר! הכל עבד. נמשיך מחר. עכשיו רק 11 בערב, אבל הגנרל גרובס רוצה לספר לנו משהו דחוף. למזלך אתה פטור מביזבוזי הזמן האלה, אני לא. טוב, אין לי מה להתלונן, הוא כמעט ולא מפריע לעבוד בזכותו כל הבסיס הזה מתקתק כמו שעון."
+      },
+      {
+        "comment": "He says goodnight before leaving.",
+        "image": "assets/panels/246_4.3_see-you-tomorrow.svg",
+        "year": "1944",
+        "read": "נתראה מחר ב-07:00"
+      },
+      {
+        "comment": "The empty hangar at night — end of what is written so far.",
+        "image": "assets/panels/247_4.3_night.svg",
+        "year": "1944",
+        "read": "המשך יבוא..."
       }
     ]
   }
