@@ -25002,6 +25002,21 @@
 
   // What can be done with a marked rectangle: copy it, paste it, rub it out.
   // Listened for on the way DOWN, so nothing else can swallow the keys first.
+  // The exercise page at the end of 4.1: its "מבנה הפקודה" window is paged with
+  // the arrow keys as well as its buttons — the same way the 4.3 solution card
+  // is walked. Right-to-left, so the LEFT arrow goes on. Typing into a square or
+  // an answer box keeps the arrows for the caret, and the hint window and the
+  // verdict box, which are modal over the page, keep them for themselves.
+  window.addEventListener("keydown", (event) => {
+    if (!state.sheetDialog || state.sheetDialog.hint || state.sheetDialog.result) return;
+    if (state.sheetClearConfirm || state.sheetScratchCell) return;
+    if (event.target.closest && event.target.closest("input, textarea")) return;
+    const pages = instructionGuidePages();
+    if (!pages.length || !sheetGuideState().open) return;
+    if (event.key === "ArrowLeft") { event.preventDefault(); return stepSheetGuide(1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); return stepSheetGuide(-1); }
+  });
+
   window.addEventListener("keydown", (event) => {
     if (!state.programDialog) return;
     // While a test bench is running over the page, Escape shuts it and the page
@@ -25706,10 +25721,15 @@
       // Only ever from the question itself — nothing else may wipe the page.
       if (!state.programClearConfirm) return;
       // An empty page starts over completely: the hints go back to none read and
-      // none earned, and with them the tally of failed runs that unlocks them.
+      // none earned, with them the tally of failed runs that unlocks them, and
+      // with THEM the solution — a page that was never solved has not earned its
+      // walkthrough back either. Only the page being cleared is touched: the
+      // helper task keeps its own progress, and the other way round.
       return setState({
         [programSheetKey()]: { scratch: {}, bits: {} },
         [programHintKey()]: { failures: 0, seen: 0 },
+        ...(programHelperOpen() ? { programHelperDone: false } : { programTaskDone: false }),
+        programSolution: null, programSolutionSeen: false,
         programClearConfirm: null, sheetScratchCell: null, programDestMenu: null,
         programNumberEdit: null, programCalcMenu: null, programInputMenu: null,
         programHintOpen: null, programSelection: null, programManualTest: null
