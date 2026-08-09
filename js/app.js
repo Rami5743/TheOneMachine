@@ -7943,6 +7943,70 @@
     return setState({ programRunTest: done, ...programTestVerdictPatch(done) });
   }
 
+  // ---- Dev secret-solve (Ctrl+Shift+9) for the 4.3 programming task ---------
+  // Write the worked solution's instructions onto the page as bits and settle
+  // its bench straight to a pass. The bit layout is the assembler's own (see
+  // programExecuteRow): bit 1 picks number vs compute, bits 2-12 hold a number,
+  // bit 6 the second input, bits 7-12 the ALU1 op, bits 13-14 the destination.
+  // Instructions are given structurally and encoded through the SAME tables the
+  // page uses, so they stay correct if a table changes.
+  function programEncodeInstruction(instr) {
+    const cells = Array(16).fill("0");
+    const dest = PROGRAM_DESTINATIONS.find((d) => d.id === instr.dest) || PROGRAM_DESTINATIONS[0];
+    if (typeof instr.num === "number") {
+      cells[0] = "0"; // number instruction
+      const n = (instr.num & PROGRAM_NUMBER_MAX).toString(2).padStart(PROGRAM_NUMBER_BITS, "0");
+      for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) cells[i + 1] = n[i]; // bits 2-12
+    } else {
+      cells[0] = "1"; // compute instruction
+      const input = PROGRAM_INPUTS.find((x) => x.id === instr.input) || PROGRAM_INPUTS[0];
+      cells[5] = input.bit; // bit 6: X = A or *A
+      const op = programAluOperations().find((o) => o.op === instr.op);
+      const opBits = op ? op.bits : "000000";
+      for (let i = 0; i < 6; i += 1) cells[i + 6] = opBits[i]; // bits 7-12: the ALU1 op
+    }
+    cells[12] = dest.bits[0]; // bit 13
+    cells[13] = dest.bits[1]; // bit 14
+    return cells.join("");
+  }
+
+  // Main task = In0 * 8: point A at In0, add *A into D eight times, write D to
+  // Out0. Helper task = In0 -> Out0 in four (through D). Addresses come from the
+  // memory map (PROGRAM_IN_BASE / PROGRAM_OUT_BASE).
+  const PROGRAM_SOLVE_MAIN = [
+    { dest: "A", num: PROGRAM_IN_BASE },
+    { dest: "D", num: 0 },
+    ...Array.from({ length: 8 }, () => ({ dest: "D", op: "D+X", input: "*A" })),
+    { dest: "A", num: PROGRAM_OUT_BASE },
+    { dest: "*A", op: "D", input: "A" }
+  ];
+  const PROGRAM_SOLVE_HELPER = [
+    { dest: "A", num: PROGRAM_IN_BASE },
+    { dest: "D", op: "X", input: "*A" },
+    { dest: "A", num: PROGRAM_OUT_BASE },
+    { dest: "*A", op: "D", input: "A" }
+  ];
+
+  function programSecretSolve() {
+    const helper = programHelperOpen();
+    const program = helper ? PROGRAM_SOLVE_HELPER : PROGRAM_SOLVE_MAIN;
+    const bits = {};
+    program.forEach((instr, row) => {
+      const word = programEncodeInstruction(instr);
+      for (let i = 0; i < 16; i += 1) bits[`${row}:${i + 1}`] = word[i];
+    });
+    const progress = programSheetProgress();
+    // Lay the finished program on the page, then run its bench straight to a
+    // passing verdict (no animation) and mark whichever task is open done.
+    setState({ [programSheetKey()]: { ...progress, scratch: {}, bits } }, false);
+    clearProgramTestTimers();
+    const runs = programTestRuns();
+    return setState({
+      programRunTest: { phase: "done", index: Math.max(runs.length - 1, 0), runs, empty: false },
+      ...(helper ? { programHelperDone: true } : { programTaskDone: true })
+    });
+  }
+
   // The card the program is punched on: one row to an instruction, a hole for
   // every 1 and an empty ring for every 0.
   function programTestCard() {
@@ -24647,6 +24711,8 @@
       event.preventDefault();
       // The 4.1 exercise page: one instruction per press.
       if (state.sheetDialog) sheetSecretSolve();
+      // The 4.3 programming page: write the worked solution and pass its bench.
+      else if (state.programDialog) programSecretSolve();
       else if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
       // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
       // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
