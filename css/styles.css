@@ -3626,6 +3626,47 @@ g.component-ffCard.ff-materialize .ff-card {
   direction: ltr;
 }
 
+/* A 16-row table (JmpCnt) has to be shorter per row, or the panel grows past the
+   top of the workbench and takes its own corner buttons with it. */
+.mux-scratch-table-tight th,
+.mux-scratch-table-tight td {
+  padding: 2px 5px;
+}
+
+.mux-scratch-table-tight .mux-truth-cell {
+  min-height: 21px;
+  padding: 2px 6px;
+  font-size: 0.86rem;
+}
+
+/* The bus column holds a PAIR of bits ("01"), so it needs room for two digits
+   and reads as one thing rather than two. */
+.mux-truth-cell-bus {
+  min-width: 46px;
+  letter-spacing: 0.12em;
+}
+
+/* "הסתר טבלה" — under the table, because the panel's own buttons are pinned to
+   its top corner and a tall table can push them off-screen. */
+.mux-hint-table-col {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.mux-hint-table-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: 6px;
+  pointer-events: auto;
+}
+
+.requirements-table-toggle {
+  padding: 3px 12px;
+  font-size: 0.85rem;
+}
+
 /* Thick divider between the output column (leftmost) and the inputs. */
 .mux-scratch-table th.truth-output-cell,
 .mux-scratch-table td.truth-output-cell {

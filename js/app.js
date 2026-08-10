@@ -1874,6 +1874,12 @@
     // "הקטנה" puts it back to its authored width for the current build; each new
     // build starts wide again, beside the requirementsPanelHidden reset.
     requirementsPanelCompact: false,
+    // The empty scratch truth table under the requirements (Cont0, JmpCnt).
+    // JmpCnt's is 16 rows, tall enough to push the panel's own hide/shrink
+    // buttons off the top of the workbench — so it can be put away from a button
+    // UNDER it. Per-build, like the two flags above: every new build starts with
+    // the table showing.
+    scratchTableHidden: false,
     // The bottom-left "why do we need this?" panel. It starts OPEN on every task
     // — hiding it applies to the current build only, and each new build reopens
     // it (see the whyNoteHidden reset beside requirementsPanelHidden).
@@ -8951,6 +8957,7 @@
       aluIntroDialog: withIntro ? { page: 0, taskId: task.id } : null,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -9071,6 +9078,7 @@
       jumpNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -17756,6 +17764,23 @@
     return null;
   }
 
+  // JmpCnt's condition column is ONE cell for a width-2 bus, so its two bits
+  // move together: empty → 00 → 01 → 10 → 11 → empty. The bus is not a number,
+  // and this is what keeps the table from ever showing it as one.
+  function handleJmpBusCell(rowIndex) {
+    const spec = scratchTableSpec();
+    if (!spec || !spec.columns.includes("j1")) return;
+    if (!Number.isInteger(rowIndex) || rowIndex < 0 || rowIndex >= spec.count) return;
+    const current = Array.isArray(state.muxTable) && state.muxTable.length === spec.count ? state.muxTable : spec.empty();
+    const table = current.map((row) => ({ ...row }));
+    const row = table[rowIndex];
+    const pair = (Number.isInteger(row.j1) && Number.isInteger(row.j2)) ? (row.j1 << 1) | row.j2 : null;
+    const next = pair === null ? 0 : (pair >= 3 ? null : pair + 1);
+    row.j1 = next === null ? null : (next >> 1) & 1;
+    row.j2 = next === null ? null : next & 1;
+    setState({ muxTable: table }, false);
+  }
+
   function handleMuxTruthCell(rowIndex, column) {
     const spec = scratchTableSpec();
     if (!spec) return;
@@ -18945,13 +18970,23 @@
   }
   function jmpCntHarnessWorkspace(base, { cond, zr, ng }) {
     const ws = normalizeWorkspace(clonePlain(base));
-    const mine = ["jc-cond", "jc-zr", "jc-ng", "jc-out"];
+    const mine = ["jc-split", "jc-src", "jc-zr", "jc-ng", "jc-out"];
     ws.components = ws.components.filter((c) => !mine.includes(c.id));
     ws.wires = ws.wires.filter((w) => !/^jc-/.test(w.a) && !/^jc-/.test(w.b));
     // The learner's own source drives nothing while the check is running.
     ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
-    ws.components.push({ id: "jc-cond", type: "converter-out", value: cond, width: 2, x: 90, y: 260 });
-    ws.wires.push({ a: "jc-cond.out", b: "task-card-1.inputExt1" });
+    // The condition input is a BUS, not a number: a converter would put a digit
+    // on it, and the whole point of the card is that those two wires are two
+    // separate yes/no answers. So the check drives it the way the learner would
+    // — the power source into a merging splitter, one leg per bit. leg0 is the
+    // LOW leg, so the FIRST bit of the bus (the one paired with zr) is leg1.
+    ws.components.push({ id: "jc-split", type: "splitter", x: 210, y: 280, mirrored: true, outputs: 2, legWidths: [1, 1], singleWidth: 2, width: 1 });
+    ws.wires.push({ a: "jc-split.single", b: "task-card-1.inputExt1" });
+    if (cond & 2 || cond & 1) {
+      ws.components.push({ id: "jc-src", type: "source", x: 90, y: 280 });
+      if (cond & 2) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg1" });
+      if (cond & 1) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg0" });
+    }
     if (zr) {
       ws.components.push({ id: "jc-zr", type: "source", x: 90, y: 470 });
       ws.wires.push({ a: "jc-zr.out", b: "task-card-1.inputExt2" });
@@ -21374,6 +21409,7 @@
       arithNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: bus ? null : arithEmptyScratchTable(task.id),
       workspace
@@ -21592,6 +21628,7 @@
       aluNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -21870,6 +21907,7 @@
       prgNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -21989,6 +22027,7 @@
       prgNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -22137,6 +22176,7 @@
       prgNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -22286,6 +22326,7 @@
       prgNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -23736,6 +23777,7 @@
       taskDialog: null,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: taskId === "Mux" ? createEmptyMuxTable() : taskId === "DMux" ? createEmptyDmuxTable() : null,
       workspace
@@ -23794,6 +23836,7 @@
       busesNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -23843,6 +23886,7 @@
       busesNoteList: false,
       requirementsPanelHidden: false,
       requirementsPanelCompact: false,
+      scratchTableHidden: false,
       whyNoteHidden: false,
       muxTable: null,
       workspace
@@ -27090,6 +27134,8 @@
     }
     if (action === "card-creation-intro-ok") return dismissCardCreationIntro();
     if (action === "toggle-requirements") return setState({ requirementsPanelHidden: !state.requirementsPanelHidden }, false);
+    if (action === "toggle-scratch-table") return setState({ scratchTableHidden: !state.scratchTableHidden }, false);
+    if (action === "jmp-bus-cell") return handleJmpBusCell(Number(button.dataset.row));
     if (action === "requirements-size-toggle") return setState({ requirementsPanelCompact: !state.requirementsPanelCompact }, false);
     if (action === "why-note-toggle") return setState({ whyNoteHidden: !state.whyNoteHidden }, false);
     if (action === "build-help-later") return dismissBuildHelpPrompt();

@@ -449,29 +449,38 @@ function createTaskModeView({
       ? state.muxTable
       : Array.from({ length: 16 }, () => ({ j1: null, j2: null, zr: null, ng: null, out: null }));
     const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
-    // LTR DOM == visual left-to-right; read right-to-left: the first condition
-    // bit, the second, zr, ng, ┃ (divider) then the answer.
+    // LTR DOM == visual left-to-right; read right-to-left: the condition bus,
+    // zr, ng, ┃ (divider) then the answer. The bus is ONE column, not two — it
+    // is a single width-2 bus, and it is not numeric, so its cell holds a PAIR
+    // of bits ("01"), never the number 1.
     const rows = table.map((row, index) => `
       <tr class="${activeRow === index ? "truth-row-active" : ""}">
         ${muxScratchCell(index, "out", row.out)}
         ${muxScratchCell(index, "ng", row.ng)}
         ${muxScratchCell(index, "zr", row.zr)}
-        ${muxScratchCell(index, "j2", row.j2)}
-        ${muxScratchCell(index, "j1", row.j1)}
+        ${jmpBusCell(index, row.j1, row.j2)}
       </tr>`).join("");
     return `
-      <table class="workspace-task-hint-table mux-scratch-table">
+      <table class="workspace-task-hint-table mux-scratch-table mux-scratch-table-tight">
         <thead>
           <tr>
             <th class="truth-output-cell">קפיצה</th>
             <th>ng</th>
             <th>zr</th>
-            <th>ביט 2</th>
-            <th>ביט 1</th>
+            <th>בס כניסה</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
+  }
+
+  // One cell for the whole width-2 bus. Empty until touched, then it cycles
+  // through the four bit pairs — 00, 01, 10, 11 — and back to empty. The left
+  // digit is the FIRST bit of the bus (the one paired with zr).
+  function jmpBusCell(row, j1, j2) {
+    const filled = Number.isInteger(j1) && Number.isInteger(j2);
+    const shown = filled ? `${j1}${j2}` : "";
+    return `<td><button type="button" class="mux-truth-cell mux-truth-cell-bus ${filled ? "" : "mux-cell-empty"}" data-action="jmp-bus-cell" data-row="${row}" aria-label="שורה ${row + 1} בס כניסה">${shown}</button></td>`;
   }
 
   // The MUX/DMUX build requirements panel (description + editable table) with a
@@ -529,11 +538,28 @@ function createTaskModeView({
       const numericTable = numericRow ? renderMultibitCheckRow(numericRow) : "";
       // Cont0 is the one multibit card small enough to reason about in a table,
       // so it gets an empty editable one under its requirements.
+      // A card with a scratch table can put it away: 16 rows push the panel past
+      // the top of the workbench and take the הסתרה/הקטנה buttons in its corner
+      // out of reach, so the way back has to be at the BOTTOM, under the table.
+      const tableHidden = Boolean(state.scratchTableHidden);
+      const tableFor = (html) => (tableHidden
+        ? ""
+        : `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${html}</div>`);
       const scratchTable = mbDef.id === "Cont0"
-        ? `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${renderContScratchTable()}</div>`
+        ? tableFor(renderContScratchTable())
         : mbDef.id === "JmpCnt"
-          ? `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${renderJmpScratchTable()}</div>`
+          ? tableFor(renderJmpScratchTable())
           : "";
+      // The table and its button are ONE column of the panel's flex row — the
+      // button belongs under the table, not beside it.
+      const scratchColumn = (mbDef.id === "Cont0" || mbDef.id === "JmpCnt")
+        ? `<div class="mux-hint-table-col">
+             ${scratchTable}
+             <div class="mux-hint-table-actions">
+               <button class="btn requirements-table-toggle" data-action="toggle-scratch-table" type="button">${tableHidden ? "הצג טבלה" : "הסתר טבלה"}</button>
+             </div>
+           </div>`
+        : "";
       // While the check row is up, let the panel grow to fit it (capped at the
       // workbench width by CSS).
       const wideClass = numericTable ? " workspace-task-hint-check-wide" : "";
@@ -541,7 +567,7 @@ function createTaskModeView({
         <section class="workspace-task-hint workspace-task-hint-mux workspace-task-hint-multibit${wideClass}" aria-label="דרישות ${esc(mbDef.label)}">
           ${toggle}
           <div class="mux-hint-text">${paragraphs}</div>
-          ${scratchTable}
+          ${scratchColumn}
           ${numericTable}
         </section>`;
     }
