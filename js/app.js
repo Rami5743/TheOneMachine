@@ -18983,21 +18983,15 @@
     // separate yes/no answers. So the check drives it the way the learner would
     // — the power source into a merging splitter, one leg per bit. leg0 is the
     // LOW leg, so the FIRST bit of the bus (the one paired with zr) is leg1.
+    // ONE power source, like every other check of this kind: whatever has to be
+    // 1 this round is wired to it, and what has to be 0 is simply left unwired.
     ws.components.push({ id: "jc-split", type: "splitter", x: 210, y: 280, mirrored: true, outputs: 2, legWidths: [1, 1], singleWidth: 2, width: 1 });
     ws.wires.push({ a: "jc-split.single", b: "task-card-1.inputExt1" });
-    if (cond & 2 || cond & 1) {
-      ws.components.push({ id: "jc-src", type: "source", x: 90, y: 280 });
-      if (cond & 2) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg1" });
-      if (cond & 1) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg0" });
-    }
-    if (zr) {
-      ws.components.push({ id: "jc-zr", type: "source", x: 90, y: 470 });
-      ws.wires.push({ a: "jc-zr.out", b: "task-card-1.inputExt2" });
-    }
-    if (ng) {
-      ws.components.push({ id: "jc-ng", type: "source", x: 90, y: 620 });
-      ws.wires.push({ a: "jc-ng.out", b: "task-card-1.inputExt3" });
-    }
+    ws.components.push({ id: "jc-src", type: "source", x: 90, y: 430 });
+    if (cond & 2) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg1" });
+    if (cond & 1) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg0" });
+    if (zr) ws.wires.push({ a: "jc-src.out", b: "task-card-1.inputExt2" });
+    if (ng) ws.wires.push({ a: "jc-src.out", b: "task-card-1.inputExt3" });
     ws.components.push({ id: "jc-out", type: "lamp", x: 1160, y: 430 });
     ws.wires.push({ a: "task-card-1.outputExt1", b: "jc-out.in" });
     removeInvalidWires(ws);

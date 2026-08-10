@@ -474,15 +474,19 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // instruction as one width-2 bus on the upper left, zr and ng as plain wires
   // below it, and one wire out — jump, or don't.
   function jmpCntGateMarkup(options = {}) {
-    // Wider than the pins strictly need (they sit at ±80, and a stub is 40): at
-    // edge 40 the six letters of "JmpCnt" ran off both sides of the body, since
-    // labelFontSize never shrinks below its base size.
+    // Wider than the pins strictly need: at edge 40 the six letters of "JmpCnt"
+    // ran off both sides of the body, since labelFontSize never shrinks below
+    // its base size. A wider body means the stubs must be drawn from the PINS
+    // (which stay at ±80, where the def puts them) to the body edge — not the
+    // default edge+PIN, which overshot them and left every cable landing in the
+    // middle of a stub instead of at its end.
     const edge = 56;
+    const REACH = 80;
     const bodyH = 170;
-    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 2, !options.toolbar);
-    s += pinLine(-(edge + PIN), 0, -edge, 0);
-    s += pinLine(-(edge + PIN), 40, -edge, 40);
-    s += pinLine(edge, 0, edge + PIN, 0);
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: -40 }, 2, !options.toolbar);
+    s += pinLine(-REACH, 0, -edge, 0);
+    s += pinLine(-REACH, 40, -edge, 40);
+    s += pinLine(edge, 0, REACH, 0);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "JmpCnt";
     const font = labelFontSize(name, edge * 2, 15);
@@ -505,15 +509,17 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // on the left, and four wires out — write to D, to A, to *A, and to the PC
   // (which is to say: jump).
   function contJumpGateMarkup(options = {}) {
-    // Same reason as JmpCnt: at edge 40 the name filled the body edge to edge.
+    // Same reason as JmpCnt, stubs included: the pins live at ±80 and the body
+    // is wider than the default, so each stub is drawn pin-to-body.
     const edge = 48;
+    const REACH = 80;
     const bodyH = 170;
     const outYs = [-60, -20, 20, 60];
     const captions = ["D", "A", "‎*A‎", "PC"];
-    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 4, !options.toolbar);
-    s += pinLine(-(edge + PIN), 0, -edge, 0);
-    s += pinLine(-(edge + PIN), 40, -edge, 40);
-    outYs.forEach((y) => { s += pinLine(edge, y, edge + PIN, y); });
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: -40 }, 4, !options.toolbar);
+    s += pinLine(-REACH, 0, -edge, 0);
+    s += pinLine(-REACH, 40, -edge, 40);
+    outYs.forEach((y) => { s += pinLine(edge, y, REACH, y); });
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "Cont";
     const font = labelFontSize(name, edge * 2, 18);
