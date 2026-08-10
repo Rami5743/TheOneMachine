@@ -62,6 +62,15 @@
   .ed-pin { fill:#c9bda2; }
   .ed-pin-bus { fill:#d8a24a; }
   .ed-pin-label { fill:#9c8f77; font-size:11px; }
+  /* wiring mode: every pin of every card becomes a target, and the cable being
+     drawn follows the pointer until its second pin is picked. */
+  .ed-wire-pin { fill:#2e2721; stroke:#d8a24a; stroke-width:2; }
+  .ed-wire-pin-bus { fill:#2e2721; stroke:#8fd7a8; stroke-width:2.5; }
+  .ed-wire-pin-armed { fill:#d8a24a; stroke:#fff3d6; stroke-width:2.5; }
+  .ed-wire-pin-label { fill:#f3ead9; font-size:10px; paint-order:stroke; stroke:#2b2620; stroke-width:3px; }
+  .ed-wire-ghost { stroke:#d8a24a; stroke-width:3; stroke-dasharray:7 5; fill:none; pointer-events:none; }
+  .ed-wire-selected { stroke:#d8a24a; stroke-width:3; fill:none; pointer-events:none; }
+  .wiring #stage { cursor: crosshair; }
 </style>
 </head>
 <body>
@@ -71,6 +80,7 @@
       <span class="title">עורך פתרונות</span>
       <label class="toggle"><input type="checkbox" id="snap" checked> הצמדה</label>
       <label class="toggle"><input type="checkbox" id="showcheck"> מנגנוני בדיקה</label>
+      <label class="toggle"><input type="checkbox" id="wiremode"> חיווט</label>
       <button class="ghost" id="btn-load">טען JSON…</button>
       <button id="btn-save">שמור JSON</button>
       <button id="btn-bundle" title="מייצר את assets/solutions/solutions.js עם הפתרון הנוכחי ממוזג לשאר">שמור חבילה</button>
@@ -294,9 +304,55 @@ function setHarnessPos(e,x,y){ const h=harnessStore(); h[e.side][e.ref]={x:Math.
 
 // ---- document ----
 let doc=null, selected=null, dragging=null;
+// Wiring mode: pendingPin holds the first pin of the cable being drawn, ghostAt
+// the pointer, so the half-drawn cable is visible while the second pin is picked.
+let pendingPin=null, ghostAt=null;
+const wiring = () => document.getElementById("wiremode").checked;
 const stage=document.getElementById("stage");
 function movable(){ return [...(doc.external||[]), ...(doc.components||[])]; }
 function findComp(id){ if (doc.frame && id===doc.frame.id) return {...doc.frame,__frame:true}; return movable().find(c=>c.id===id)||null; }
+
+// ---- wiring ----------------------------------------------------------------
+// Every pin a cable may land on, as the "<componentId>.<pinId>" refs the wires
+// themselves use. The frame's come from the doc; a splitter's are generated from
+// its leg count; everything else reads the PINS table above.
+function pinIdsOf(comp){
+  if (comp.__frame) return (doc.frame.pins||[]).map(p=>p.id);
+  if (comp.type==="splitter"){
+    const n=Math.min(16,Math.max(2,comp.outputs||4));
+    return ["single", ...Array.from({length:n},(_,i)=>"leg"+i)];
+  }
+  return Object.keys(PINS[comp.type]||{});
+}
+function allPinRefs(){
+  const out=[];
+  if (doc.frame) for (const id of pinIdsOf({...doc.frame,__frame:true})) out.push(doc.frame.id+"."+id);
+  for (const c of movable()) for (const id of pinIdsOf(c)) out.push(c.id+"."+id);
+  return out;
+}
+function wireExists(a,b){ return (doc.wires||[]).some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a)); }
+function cancelWire(){ pendingPin=null; ghostAt=null; }
+
+// Click a pin in wiring mode: the first click arms the cable, the second lays
+// it. A cable between pins of DIFFERENT widths is refused — in the game that is
+// not a cable at all, and a solution carrying one silently fails to evaluate.
+function pinClick(ref){
+  if (!pendingPin){ pendingPin=ref; status("נבחר "+ref+" — עכשיו בחר את הפין השני (Esc לביטול)"); render(); renderProps(); return; }
+  if (pendingPin===ref){ cancelWire(); status("בוטל"); render(); return; }
+  const a=absPin(pendingPin), b=absPin(ref);
+  if (!a||!b){ cancelWire(); status("אחד הפינים לא נמצא"); render(); return; }
+  if ((a.w||1)!==(b.w||1)){ status("רוחב לא תואם: "+pendingPin+" ["+(a.w||1)+"] מול "+ref+" ["+(b.w||1)+"] — לא נוצר חיבור"); cancelWire(); render(); return; }
+  if (wireExists(pendingPin,ref)){ status("החיבור כבר קיים"); cancelWire(); render(); return; }
+  doc.wires.push({ a:pendingPin, b:ref });
+  status("נוסף חיבור: "+pendingPin+" ↔ "+ref+" ("+doc.wires.length+" חיבורים)");
+  cancelWire(); render(); renderProps(); syncJsonBox();
+}
+function deleteWire(index){
+  if (!doc.wires[index]) return;
+  const w=doc.wires.splice(index,1)[0];
+  status("נמחק חיבור: "+w.a+" ↔ "+w.b+" ("+doc.wires.length+" חיבורים)");
+  selected=null; render(); renderProps(); syncJsonBox();
+}
 function absPin(ref){ const dot=ref.lastIndexOf("."); const cid=ref.slice(0,dot), pid=ref.slice(dot+1);
   const comp = (cid===doc.frame.id)?{...doc.frame,__frame:true}:findComp(cid); if(!comp) return null;
   const off = pinOffset(comp,pid); if(!off) return null; return {x:comp.x+off.x, y:comp.y+off.y, w:off.w}; }
@@ -323,11 +379,12 @@ function render(){
       board.appendChild(el("line",{x1:ax,y1:ay,x2:ix,y2:ay, class:w>1?"ed-frame-bus":"ed-frame-cable"})); }
   }
   // wires
-  for (const wire of (doc.wires||[])){ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) continue;
+  (doc.wires||[]).forEach((wire, i)=>{ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) return;
     const wide=(a.w&&a.w>1)||(b.w&&b.w>1);
     board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:wide?"ed-bus":"ed-cable"}));
     if (wide) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-bus-stripe"}));
-  }
+    if (selected==="wire:"+i) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-wire-selected"}));
+  });
   // frame pin dots + labels
   for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
     board.appendChild(el("circle",{cx:ax,cy:ay,r:(p.w>1)?6:4, class:(p.w>1)?"ed-pin-bus":"ed-pin"}));
@@ -341,10 +398,37 @@ function render(){
   if (document.getElementById("showcheck").checked){
     for (const e of harnessElements()) board.appendChild(drawHarnessEl(e));
   }
-  // frame pin drag-targets (on top, so a pin is grabbable over any cable)
-  for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
+  // frame pin drag-targets (on top, so a pin is grabbable over any cable). In
+  // wiring mode the frame's pins are wiring targets instead of drag handles —
+  // otherwise picking one would move it.
+  if (!wiring()) for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
     const hit=el("circle",{cx:ax,cy:ay,r:12,fill:"transparent",class:"drag-hit"});
     hit.addEventListener("pointerdown",(ev)=>startPinDrag(ev,p)); board.appendChild(hit); }
+
+  // Wiring mode: a dot on EVERY pin of every card (and the frame), named, so a
+  // cable can be laid without hunting for invisible geometry.
+  if (wiring()){
+    // A cable is clickable ABOVE the cards — otherwise a card body sitting over
+    // its middle swallows the click and the cable can never be selected.
+    (doc.wires||[]).forEach((wire, i)=>{ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) return;
+      const hit=el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, stroke:"transparent","stroke-width":16, class:"drag-hit"});
+      hit.addEventListener("pointerdown",(ev)=>{ ev.stopPropagation(); cancelWire(); selected="wire:"+i; renderProps(); render(); });
+      board.appendChild(hit);
+    });
+    if (pendingPin && ghostAt){ const a=absPin(pendingPin);
+      if (a) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:ghostAt.x,y2:ghostAt.y, class:"ed-wire-ghost"})); }
+    for (const ref of allPinRefs()){
+      const at=absPin(ref); if(!at) continue;
+      const armed = pendingPin===ref;
+      const cls = armed ? "ed-wire-pin-armed" : ((at.w||1)>1 ? "ed-wire-pin-bus" : "ed-wire-pin");
+      board.appendChild(el("circle",{cx:at.x,cy:at.y,r:armed?8:6, class:cls}));
+      board.appendChild(el("text",{x:at.x,y:at.y-11,"text-anchor":"middle",class:"ed-wire-pin-label"},
+        [txt(ref.slice(ref.lastIndexOf(".")+1)+((at.w||1)>1?(" ["+at.w+"]"):""))]));
+      const hit=el("circle",{cx:at.x,cy:at.y,r:14,fill:"transparent",class:"drag-hit"});
+      hit.addEventListener("pointerdown",(ev)=>{ ev.stopPropagation(); pinClick(ref); });
+      board.appendChild(hit);
+    }
+  }
   // selection outline
   if (selected){
     if (selected.startsWith("pin:")){ const p=(f.pins||[]).find(pp=>pp.id===selected.slice(4));
@@ -397,7 +481,9 @@ function drawComp(c){
   g.setAttribute("transform",`translate(${c.x} ${c.y})`+(s!==1?` scale(${s})`:""));
   g.innerHTML = CV.componentMarkup(c.type, opts);
   g.classList.add("drag-hit");
-  g.addEventListener("pointerdown",(ev)=>startDrag(ev,c,false));
+  // In wiring mode a card is not a drag handle: the pins on it are the targets,
+  // and dragging the body would move the card out from under the cable.
+  g.addEventListener("pointerdown",(ev)=>{ if(wiring()){ ev.stopPropagation(); return; } startDrag(ev,c,false); });
   return g;
 }
 
@@ -409,7 +495,10 @@ function startPinDrag(ev, pin){ ev.stopPropagation(); selected="pin:"+pin.id;
   const s=svgPoint(ev); dragging={pin,ox:pin.x,oy:pin.y,sx:s.x,sy:s.y,kind:"pin"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
 function startHarnessDrag(ev, e){ ev.stopPropagation(); selected="harness:"+e.side+":"+e.ref;
   const pos=harnessPos(e); const s=svgPoint(ev); dragging={harnessEl:e,ox:pos.x,oy:pos.y,sx:s.x,sy:s.y,kind:"harness"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
-stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoint(ev);
+stage.addEventListener("pointermove",(ev)=>{
+  // The half-drawn cable follows the pointer.
+  if(!dragging && wiring() && pendingPin){ ghostAt=svgPoint(ev); render(); return; }
+  if(!dragging)return; const p=svgPoint(ev);
   let nx=dragging.ox+(p.x-dragging.sx), ny=dragging.oy+(p.y-dragging.sy);
   if(document.getElementById("snap").checked){ nx=Math.round(nx/5)*5; ny=Math.round(ny/5)*5; }
   if(dragging.kind==="pin"){ dragging.pin.x=Math.round(nx); dragging.pin.y=Math.round(ny); }
@@ -417,14 +506,38 @@ stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoi
   else { dragging.comp.x=Math.round(nx); dragging.comp.y=Math.round(ny); }
   render(); syncJsonBox(); renderProps(); });
 stage.addEventListener("pointerup",()=>{ dragging=null; });
-stage.addEventListener("pointerdown",()=>{ selected=null; renderProps(); render(); });
+stage.addEventListener("pointerdown",()=>{ cancelWire(); selected=null; renderProps(); render(); });
+document.getElementById("wiremode").addEventListener("change",()=>{
+  cancelWire(); selected=null;
+  document.body.classList.toggle("wiring", wiring());
+  status(wiring() ? "מצב חיווט: לחץ על פין, ואז על הפין השני. לחיצה על כבל בוחרת אותו (Delete מוחק)." : "");
+  renderProps(); render();
+});
+document.addEventListener("keydown",(ev)=>{
+  if(ev.key==="Escape" && pendingPin){ cancelWire(); status("בוטל"); render(); renderProps(); return; }
+  const tag=(ev.target&&ev.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea") return;
+  if((ev.key==="Delete"||ev.key==="Backspace") && selected && selected.startsWith("wire:")){
+    ev.preventDefault(); deleteWire(+selected.slice(5));
+  }
+});
 
 // ---- props ----
 function renderProps(){
   const host=document.getElementById("props"); host.innerHTML="";
   if(!doc){ host.innerHTML='<p class="hint">אין מסמך.</p>'; return; }
-  if(!selected){ host.innerHTML='<p class="hint">בחר רכיב או פין. גרירה מזיזה. סמן "מנגנוני בדיקה" כדי להזיז ממירים/מנורות.</p>'; return; }
+  if(!selected){ host.innerHTML = wiring()
+      ? '<p class="hint">מצב חיווט: לחץ על פין ואז על הפין השני כדי למתוח כבל. Esc מבטל. לחיצה על כבל קיים בוחרת אותו, ואז אפשר למחוק אותו (Delete).</p>'
+      : '<p class="hint">בחר רכיב או פין. גרירה מזיזה. סמן "מנגנוני בדיקה" כדי להזיז ממירים/מנורות. סמן "חיווט" כדי למתוח כבלים.</p>'; return; }
   const add0=(h)=>{ const d=document.createElement("div"); d.innerHTML=h; while(d.firstChild)host.appendChild(d.firstChild); };
+  // A selected cable: what it joins, and the way to remove it.
+  if(selected.startsWith("wire:")){ const i=+selected.slice(5); const w=doc.wires[i]; if(!w){host.innerHTML="";return;}
+    const a=absPin(w.a), b=absPin(w.b);
+    add0(`<div class="badge">חיבור · ${esc(w.a)} ↔ ${esc(w.b)}${a&&(a.w||1)>1?(" ["+a.w+"]"):""}</div>`);
+    add0(`<button class="ghost" id="wp-del" style="margin-top:10px">מחק חיבור</button>`);
+    document.getElementById("wp-del").onclick=()=>deleteWire(i);
+    return;
+  }
   // A frame pin (position is relative to the frame centre; width fixed).
   if(selected.startsWith("pin:")){ const p=(doc.frame.pins||[]).find(pp=>pp.id===selected.slice(4)); if(!p){host.innerHTML="";return;}
     add0(`<div class="badge">פין · ${esc(p.id)}${p.w>1?(" ["+p.w+"]"):""}</div>`);
