@@ -408,7 +408,7 @@
      data-hotspot="action"
      data-action="panel-object"
      data-object-id="workArea"
-     data-aria-label="איזור העבודה"
+     data-aria-label="אזור העבודה"
      class="hotspot hotspot-action"
      pointer-events="none"
      style="opacity:0;fill:#37d67a;stroke-width:1"

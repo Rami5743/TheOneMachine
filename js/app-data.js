@@ -1068,7 +1068,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The floor beside the worktable, facing the cables: the learner's own work
     // area. Clicking it walks over to the workbench in free build — a side trip,
     // not the way forward, so it does NOT block המשך.
-    workArea: { label: "איזור העבודה", opens: "free-workbench", optional: true },
+    workArea: { label: "אזור העבודה", opens: "free-workbench", optional: true },
 
     // ---- Chapter 4.3, the same room once the computer is standing ----------
     // The ALU rack has become the CPU rack, the first two cables are the ones
@@ -1189,7 +1189,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       // the program-writing inputs, and the reset last, because it is the one
       // wire with two jobs.
       hints: [
-        { kind: "text", title: "רמז 1", text: "המחשב בנוי משלושה חלקים: זיכרון הדאטה, זיכרון התוכנה והמעבד. תניח אותם תחילה על איזור העבודה, זה יעזור לך לחשוב." },
+        { kind: "text", title: "רמז 1", text: "המחשב בנוי משלושה חלקים: זיכרון הדאטה, זיכרון התוכנה והמעבד. תניח אותם תחילה על אזור העבודה, זה יעזור לך לחשוב." },
         { kind: "text", title: "רמז 2", text: "בשלב הראשון התעלם מהקלט והפלט של המחשב (מהכניסות והיציאות שלו) ותתרכז באיך אתה מחבר את המעבד לשני הזיכרונות." },
         { kind: "text", title: "רמז 3", text: "תסתכל על הכניסות של המעבד. מה צריך להתחבר לשם?" },
         { kind: "text", title: "רמז 4", text: "המעבד צריך את הפקודה שהוא מבצע, הוא מקבל אותה מזיכרון התוכנה. הוא גם צריך את התוכן של הרגיסטר בזיכרון שהוא עובד עליו. הוא מקבל אותו מזיכרון הדאטה." },
