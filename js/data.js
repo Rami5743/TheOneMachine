@@ -1001,7 +1001,7 @@ const SCENES = {
         "comment": "The monologue continues: what the ALU's control bus IS — the 12-bit \"instructions\".",
         "image": "assets/panels/142_2.6_alu-instructions.svg",
         "year": "1943",
-        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותם על שני בסים של 16 ביט כל אחד."
+        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותן על שני בסים של 16 ביט כל אחד."
       },
       {
         "comment": "And what those 64 operations are worth: some duplicates, some odd ones, still plenty that matter.",
@@ -1241,7 +1241,7 @@ const SCENES = {
         "comment": "Chapter 3.5 program memory: von Neumann in the doorway again (the 3.4 opening art). The data memory is done; now the machine needs somewhere to keep its instructions.",
         "image": "assets/panels/171_3.5_program-memory-intro.svg",
         "year": "1943",
-        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים (קוראים לזה זיכרון מידע או זיכרון דאטה). אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותם כדי שהוא יוכל לקרוא אותם. אולי פעם נלמד להשתמש ב-RAM גם למטרה הזאת. כרגע, יותר פשוט לנו להפריד בין זיכרון התוכנה לזיכרון הדאטה."
+        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים (קוראים לזה זיכרון מידע או זיכרון דאטה). אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותן כדי שהוא יוכל לקרוא אותן. אולי פעם נלמד להשתמש ב-RAM גם למטרה הזאת. כרגע, יותר פשוט לנו להפריד בין זיכרון התוכנה לזיכרון הדאטה."
       },
       {
         "comment": "The whole design of the program memory in one breath: like the RAM but no ports, read-only to the computer, and a SECOND address just for writing — which the control input switches to.",
@@ -1819,7 +1819,7 @@ const SCENES = {
         "comment": "He goes back to work, and lets slip what the other team is building.",
         "image": "assets/panels/230_4.1_back-to-work.svg",
         "year": "1944",
-        "read": "טוב. אני חוזר לעבודה. החברה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
+        "read": "טוב. אני חוזר לעבודה. החבר'ה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
       },
       {
         "comment": "Wordless: von Neumann is gone; the room, the racks and the note are left behind.",
@@ -2313,7 +2313,7 @@ const SCENES = {
         "comment": "The tests written on the exercise page are not enough — the whole process needs checking.",
         "image": "assets/panels/237_4.3_not-enough-tests.svg",
         "year": "1944",
-        "read": "אנחנו צריכים לבדוק אותו טוב טוב לפני שאנחנו מתקדמים. הבדיקות שכתבת קודם הם טובות אבל לא מספיקות. אנחנו רוצים לכתוב תוכנה שתבדוק גם את הקלט והפלט ובכלל את כל התהליך מהתחלה ועד הסוף."
+        "read": "אנחנו צריכים לבדוק אותו טוב טוב לפני שאנחנו מתקדמים. הבדיקות שכתבת קודם הן טובות אבל לא מספיקות. אנחנו רוצים לכתוב תוכנה שתבדוק גם את הקלט והפלט ובכלל את כל התהליך מהתחלה ועד הסוף."
       },
       {
         "comment": "The learner writes the program: a sequence of instructions, on paper.",
