@@ -6444,8 +6444,7 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 0,
           "w": 1,
           "dir": "in",
-          "label": "יציאת הקפיצה פנימית",
-          "caption": "קפיצה"
+          "label": "יציאת הקפיצה פנימית"
         },
         {
           "id": "outputExt1",
@@ -6453,8 +6452,7 @@ window.EMBEDDED_SOLUTIONS = {
           "y": 0,
           "w": 1,
           "dir": "out",
-          "label": "יציאת הקפיצה",
-          "caption": "קפיצה"
+          "label": "יציאת הקפיצה"
         }
       ]
     },

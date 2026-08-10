@@ -1349,8 +1349,8 @@
       inputInt2: { x: -260, y: 20, direction: "out", width: 1, label: "כניסת zr פנימית", caption: "zr" },
       inputExt3: { x: -340, y: 150, direction: "in", width: 1, label: "כניסת ng", caption: "ng" },
       inputInt3: { x: -260, y: 150, direction: "out", width: 1, label: "כניסת ng פנימית", caption: "ng" },
-      outputInt1: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת הקפיצה פנימית", caption: "קפיצה" },
-      outputExt1: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת הקפיצה", caption: "קפיצה" }
+      outputInt1: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת הקפיצה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת הקפיצה" }
     },
     bounds: { left: 340, right: 340, top: 250, bottom: 250 }
   };
@@ -2394,6 +2394,9 @@
     if (has(typeof PRG_TASKS !== "undefined" ? PRG_TASKS : null)) return "memory";
     // The 4.2 cards are the computer itself — not accessories beside the lamp.
     if (has(typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : null)) return "computer";
+    // …and so are the 4.4 ones. Without this they fell through to "accessories"
+    // and a finished PC/JmpCnt sat at the bottom of the palette beside the lamp.
+    if (has(typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : null)) return "computer";
     return "accessories";
   }
 
@@ -8899,8 +8902,7 @@
     const chapter = chapterById("chapter-16");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
-    const cardX = 640;
-    const cardY = SIMPLE_COMPUTER_CARD_Y;
+    const { x: cardX, y: cardY } = buildCardSpot(task.id);
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
@@ -9032,7 +9034,7 @@
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
-        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: SIMPLE_COMPUTER_CARD_Y },
+        { id: "task-card-1", type: taskCardComponentType(task.id), ...buildCardSpot(task.id) },
         { id: "source-1", type: "source", x: 90, y: 140 }
       ],
       wires: [],
@@ -9128,8 +9130,10 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="jump-note-close">סגור</button>
+            ${noteClearProgressButton("jump")}
           </div>
         </section>
+        ${renderNoteClearDialog()}
       </div>`;
   }
 
@@ -12173,7 +12177,7 @@
       <div class="solution-overlay" role="presentation">
         <section class="solution-card" role="dialog" aria-modal="false" aria-label="פתרון ${esc(task?.label || taskId)}">
           <h2>פתרון</h2>
-          <p>${esc(adaptGender(step.text))}</p>
+          <p>${esc(isolateLatinRuns(adaptGender(step.text)))}</p>
           <div class="solution-actions">
             ${toggleButton}
             ${primaryButton}
@@ -17698,6 +17702,31 @@
     return snap;
   }
 
+  // JmpCnt's scratch table (4.4): sixteen rows, one per combination of the two
+  // condition bits and the ALU's two answers. The condition BUS is not a number
+  // here — it is two separate bits, each with its own column — so every cell in
+  // this table is a wire, 0 or 1.
+  const JMPCNT_TABLE_COLUMNS = ["j1", "j2", "zr", "ng", "out"];
+  function createEmptyJmpTable() {
+    return Array.from({ length: 16 }, () => ({ j1: null, j2: null, zr: null, ng: null, out: null }));
+  }
+  // Row i spelled out: its four input bits, and whether that means jump.
+  function jmpRowInputs(i) {
+    return { j1: (i >> 3) & 1, j2: (i >> 2) & 1, zr: (i >> 1) & 1, ng: i & 1 };
+  }
+  function jmpRowDisplay(i) {
+    const bits = jmpRowInputs(i);
+    const jump = (bits.j1 && bits.zr) || (bits.j2 && bits.ng);
+    return { ...bits, out: jump ? 1 : 0 };
+  }
+  function jmpCheckDisplayTable(rowIndex) {
+    const snap = Array.isArray(muxTableSnapshot) && muxTableSnapshot.length === 16
+      ? muxTableSnapshot.map((row) => ({ ...row }))
+      : createEmptyJmpTable();
+    if (rowIndex >= 0 && rowIndex < 16) snap[rowIndex] = jmpRowDisplay(rowIndex);
+    return snap;
+  }
+
   // The table the learner is looking at right now: their own if they have written
   // in it, the untouched empty one if they have not. The check overwrites the row
   // under test, so this is what has to be given back when it ends — and "they
@@ -17718,6 +17747,7 @@
     if (taskId === "Mux") return { columns: MUX_TABLE_COLUMNS, count: 8, empty: createEmptyMuxTable };
     if (taskId === "DMux") return { columns: DMUX_TABLE_COLUMNS, count: 4, empty: createEmptyDmuxTable };
     if (taskId === "Cont0") return { columns: CONT0_TABLE_COLUMNS, count: 4, empty: createEmptyContTable, max: { in: 3 } };
+    if (taskId === "JmpCnt") return { columns: JMPCNT_TABLE_COLUMNS, count: 16, empty: createEmptyJmpTable };
     if (isArithTask(taskId)) return { columns: arithScratchColumns(taskId), count: arithScratchRowCount(taskId), empty: () => arithEmptyScratchTable(taskId) };
     return null;
   }
@@ -17877,11 +17907,29 @@
   // corrected at run time (see showTaskSolution), and console.warn says so; but
   // opening a finished card's solution from its note has no build to compare
   // against, so the branch still has to be right.
+  // The frame-built cards of part 4 — 4.2's and 4.4's — all stand at the same
+  // spot. Their build openers ask buildCardSpot() for it rather than writing it
+  // down again, so the build and the walkthrough cannot drift apart: that drift
+  // is exactly what made a 4.4 walkthrough open with its frame 142px above the
+  // build the learner was standing in.
+  function isFrameBuiltPart4Task(taskId) {
+    return (typeof isSimpleComputerTask === "function" && isSimpleComputerTask(taskId))
+      || (typeof jumpTaskDefById === "function" && Boolean(jumpTaskDefById(taskId)));
+  }
+
   function buildCardX(taskId) {
     if (isRamTask(taskId)) return RAM_BUILD_CARD_X;
     if (typeof isPortsTask === "function" && isPortsTask(taskId)) return PORTS_BUILD_CARD_X;
     if (typeof isPrgTask === "function" && isPrgTask(taskId)) return PRG_BUILD_CARD_X;
+    if (isFrameBuiltPart4Task(taskId)) return ALU_BUILD_CARD_X;
     return (taskId === "halfAdder" || taskId === "fullAdder") ? 500 : ALU_BUILD_CARD_X;
+  }
+
+  // WHERE A CARD'S FRAME LIVES — the one answer, for the build table, for the
+  // walkthrough and for the build hints alike. Ask here; never write a spot down
+  // a second time.
+  function buildCardSpot(taskId) {
+    return { x: buildCardX(taskId), y: aluBuildCardY(taskId) };
   }
   function aluBuildCardY(taskId) {
     // The 3.4 ports cards build at the same spot the RAM cards do; their
@@ -17891,7 +17939,8 @@
     if (typeof isPrgTask === "function" && isPrgTask(taskId)) return PRG_BUILD_CARD_Y;
     // The 4.2 cards: the SAME y their build uses, so a solution laid out in the
     // editor lands exactly where the learner's own frame sat.
-    if (typeof isSimpleComputerTask === "function" && isSimpleComputerTask(taskId)) return SIMPLE_COMPUTER_CARD_Y;
+    // The 4.2 cards AND 4.4's — every frame-built card of part 4 stands here.
+    if (isFrameBuiltPart4Task(taskId)) return SIMPLE_COMPUTER_CARD_Y;
     return taskId === "ALU3" ? 520
       : taskId === "ALU2" ? 440
       // ALU4 has two extra outputs BELOW the card; its frame is short and it sits
@@ -18912,27 +18961,35 @@
     removeInvalidWires(ws);
     return ws;
   }
-  function runJmpCntTest(base) {
-    for (let i = 0; i < 16; i += 1) {
-      const cond = i >> 2;                 // the two condition bits, as a number
-      const zr = Boolean(i & 2);
-      const ng = Boolean(i & 1);
-      // The FIRST bit of the bus is the top one — it is the one paired with zr.
-      const jumpIfZero = Boolean(cond & 2);
-      const jumpIfNeg = Boolean(cond & 1);
-      const expected = (jumpIfZero && zr) || (jumpIfNeg && ng);
-      const flat = flattenWorkspaceForEval(jmpCntHarnessWorkspace(base, { cond, zr, ng }));
-      const got = Boolean(__circuitEngine.evaluateWorkspaceBits(flat).lamps.get("jc-out"));
-      if (got !== expected) return { ok: false, index: i, expected: expected ? 1 : 0, got: got ? 1 : 0 };
-    }
-    return { ok: true };
+  // One row of the table per tick, the way the simple cards' checks walk theirs:
+  // the row under test is filled in with the right answer and highlighted, and
+  // the learner's own table comes back when the check ends.
+  function runJmpCntCase(base, i) {
+    if (i >= 16) return showNotTestResult("success", base, "JmpCnt");
+    const bits = jmpRowInputs(i);
+    // The FIRST bit of the bus is the top one — it is the one paired with zr.
+    const cond = (bits.j1 << 1) | bits.j2;
+    const workspace = jmpCntHarnessWorkspace(base, { cond, zr: Boolean(bits.zr), ng: Boolean(bits.ng) });
+    setState({
+      workspace,
+      notTest: { active: true, taskId: "JmpCnt", rowIndex: i },
+      muxTable: jmpCheckDisplayTable(i)
+    }, false);
+    notTestTimer = window.setTimeout(() => {
+      const expected = Boolean(jmpRowDisplay(i).out);
+      const got = Boolean(evaluateWorkspaceBits(flattenWorkspaceForEval(workspace)).lamps.get("jc-out"));
+      if (got !== expected) return showNotTestResult("failure", workspace, "JmpCnt", i);
+      runJmpCntCase(base, i + 1);
+    }, 420);
   }
   function startJmpCntTaskTest() {
     if (notTestActive()) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
-    const result = runJmpCntTest(state.workspace);
-    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "JmpCnt");
+    // The check writes into the scratch table, so the learner's own is kept to
+    // give back afterwards.
+    muxTableSnapshot = scratchTableSnapshot();
+    runJmpCntCase(state.workspace, 0);
   }
 
   // --- Chapter 4.4 Cont check ------------------------------------------------
@@ -23525,6 +23582,7 @@
     if (kind === "ports") return portsTaskDefs().map((t) => t.id);
     if (kind === "prg") return prgTaskDefs().map((t) => t.id);
     if (kind === "build") return simpleComputerTaskDefs().map((t) => t.id);
+    if (kind === "jump") return jumpTaskDefs().map((t) => t.id);
     return [];
   }
 

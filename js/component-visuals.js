@@ -443,6 +443,90 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The 4.4 counter card (gate-PC): PC0 that can also be JUMPED. Same box, but
+  // the reset stub on top has a load stub beside it and a data bus comes in on
+  // the left — the number to jump to. Pin geometry copied from its def:
+  // in2 (-30,-46) load, in1 (30,-46) reset, in3 (-80,0) data, out (80,0).
+  function jumpPcGateMarkup(width, options = {}) {
+    const edge = 40;
+    const bodyH = 76;
+    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: 0 }, width, !options.toolbar);
+    s += busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
+    s += pinLine(-30, -46, -30, -bodyH / 2);
+    s += pinLine(30, -46, 30, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "PC";
+    const font = labelFontSize(name, edge * 2, 20);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // The two stubs on top look alike, so each says which one it is — written
+    // INSIDE the body under its own stub. direction:ltr, or the Latin names
+    // would be laid out from the wrong side by the right-to-left page.
+    if (!options.toolbar) {
+      const nfont = Math.round(9 * k());
+      const top = -bodyH / 2 + nfont + 2;
+      s += `<text class="arith-gate-pin-letter" x="-30" y="${top}" text-anchor="middle" style="font-size:${nfont}px;direction:ltr">Ld</text>`;
+      s += `<text class="arith-gate-pin-letter" x="30" y="${top}" text-anchor="middle" style="font-size:${nfont}px;direction:ltr">Rst</text>`;
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.4 jump decider (gate-JmpCnt): the two condition bits of the
+  // instruction as one width-2 bus on the upper left, zr and ng as plain wires
+  // below it, and one wire out — jump, or don't.
+  function jmpCntGateMarkup(options = {}) {
+    const edge = 40;
+    const bodyH = 110;
+    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 2, !options.toolbar);
+    s += pinLine(-(edge + PIN), 0, -edge, 0);
+    s += pinLine(-(edge + PIN), 40, -edge, 40);
+    s += pinLine(edge, 0, edge + PIN, 0);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "JmpCnt";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // zr and ng are two identical single wires — without their names on the
+    // body there is nothing on the card to tell them apart.
+    if (!options.toolbar) {
+      const nfont = Math.round(10 * k());
+      const nameText = (y, text) =>
+        `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${y + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">${esc(text)}</text>`;
+      s += nameText(0, "zr");
+      s += nameText(40, "ng");
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.4 control unit (gate-Cont): the width-4 control bus plus zr and ng in
+  // on the left, and four wires out — write to D, to A, to *A, and to the PC
+  // (which is to say: jump).
+  function contJumpGateMarkup(options = {}) {
+    const edge = 40;
+    const bodyH = 150;
+    const outYs = [-60, -20, 20, 60];
+    const captions = ["D", "A", "‎*A‎", "PC"];
+    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 4, !options.toolbar);
+    s += pinLine(-(edge + PIN), 0, -edge, 0);
+    s += pinLine(-(edge + PIN), 40, -edge, 40);
+    outYs.forEach((y) => { s += pinLine(edge, y, edge + PIN, y); });
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "Cont";
+    const font = labelFontSize(name, edge * 2, 18);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    if (!options.toolbar) {
+      const nfont = Math.round(10 * k());
+      s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">zr</text>`;
+      s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${40 + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">ng</text>`;
+      // Like Cont0, the four outputs are captioned ABOVE their own stub, outside
+      // the body, each with a halo the colour of the card so a cable running
+      // under it cannot swallow the letter.
+      const cfont = Math.round(12 * k());
+      outYs.forEach((y, i) => {
+        s += `<text class="arith-gate-pin-letter" x="${edge + 18}" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
+      });
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // The 3.5 program memory (gate-Prg): three buses in on the left — the read
   // address, the write address and the data — the control on top, and the word
   // read out on the right. Each name is written ON the body beside its own pin.
@@ -475,7 +559,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // The 4.2 processor card (gate-CPU0): the instruction and the number from
   // memory in on the left, reset on top, and four things out on the right, each
   // captioned — A, PC, the number going out, and the write wire.
-  function cpuGateMarkup(width, options = {}) {
+  // 4.4's processor (gate-CPU) has exactly the same terminals — the chapter says
+  // so out loud — so it draws from here too, under its own name.
+  function cpuGateMarkup(width, options = {}, cardName = "CPU0") {
     // The processor is the biggest card on the board: seven pins, and every one
     // of them named ON the body — so the box has to be wide enough to hold a
     // word and tall enough to space the four outputs apart.
@@ -505,7 +591,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The card's own name sits in the MIDDLE of the body — the one band no pin
     // name uses (the pins sit at ±30 and ±50 either side of it). It is the FULL
     // name, 0 and all: "CPU0" is what the chapter calls this card.
-    const name = "CPU0";
+    const name = cardName;
     const font = labelFontSize(name, edge * 2, 18);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // Each pin's name is written INSIDE the body, on the side its pin leaves from
@@ -722,6 +808,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (type === "gate-PC0") return pcGateMarkup(16, options);
       if (type === "gate-Cont0") return contGateMarkup(options);
       if (type === "gate-CPU0") return cpuGateMarkup(16, options);
+      // The 4.4 cards. Without an entry here they fall through to gateMarkup,
+      // which has no symbol file for them and returns an EMPTY string — the card
+      // is then invisible on the board AND in the palette.
+      if (type === "gate-PC") return jumpPcGateMarkup(16, options);
+      if (type === "gate-JmpCnt") return jmpCntGateMarkup(options);
+      if (type === "gate-Cont") return contJumpGateMarkup(options);
+      if (type === "gate-CPU") return cpuGateMarkup(16, options, "CPU");
       if (type === "gate-Prg") return prgGateMarkup(16, options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).

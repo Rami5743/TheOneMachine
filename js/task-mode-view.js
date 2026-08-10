@@ -438,6 +438,42 @@ function createTaskModeView({
       </table>`;
   }
 
+  // The editable scratch table for JmpCnt (4.4): sixteen rows, one per
+  // combination of the two condition bits and the ALU's two answers. The
+  // condition bus is NOT a number here — each of its two bits gets its own
+  // column, so every cell is a wire. Empty; the learner fills it in, and the
+  // check walks it row by row.
+  function renderJmpScratchTable() {
+    const state = getState();
+    const table = Array.isArray(state.muxTable) && state.muxTable.length === 16
+      ? state.muxTable
+      : Array.from({ length: 16 }, () => ({ j1: null, j2: null, zr: null, ng: null, out: null }));
+    const activeRow = Number.isInteger(state.notTest?.rowIndex) ? state.notTest.rowIndex : null;
+    // LTR DOM == visual left-to-right; read right-to-left: the first condition
+    // bit, the second, zr, ng, ┃ (divider) then the answer.
+    const rows = table.map((row, index) => `
+      <tr class="${activeRow === index ? "truth-row-active" : ""}">
+        ${muxScratchCell(index, "out", row.out)}
+        ${muxScratchCell(index, "ng", row.ng)}
+        ${muxScratchCell(index, "zr", row.zr)}
+        ${muxScratchCell(index, "j2", row.j2)}
+        ${muxScratchCell(index, "j1", row.j1)}
+      </tr>`).join("");
+    return `
+      <table class="workspace-task-hint-table mux-scratch-table">
+        <thead>
+          <tr>
+            <th class="truth-output-cell">קפיצה</th>
+            <th>ng</th>
+            <th>zr</th>
+            <th>ביט 2</th>
+            <th>ביט 1</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
   // The MUX/DMUX build requirements panel (description + editable table) with a
   // hide/show toggle in its top-left corner. When hidden it collapses to just a
   // title bar ("דרישות כרטיס ה-…").
@@ -495,7 +531,9 @@ function createTaskModeView({
       // so it gets an empty editable one under its requirements.
       const scratchTable = mbDef.id === "Cont0"
         ? `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${renderContScratchTable()}</div>`
-        : "";
+        : mbDef.id === "JmpCnt"
+          ? `<div class="mux-hint-table workspace-task-hint-scroll" data-check-scroll>${renderJmpScratchTable()}</div>`
+          : "";
       // While the check row is up, let the panel grow to fit it (capped at the
       // workbench width by CSS).
       const wideClass = numericTable ? " workspace-task-hint-check-wide" : "";
