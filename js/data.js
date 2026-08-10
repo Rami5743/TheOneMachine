@@ -1242,7 +1242,7 @@ const SCENES = {
         "comment": "Chapter 3.5 program memory: von Neumann in the doorway again (the 3.4 opening art). The data memory is done; now the machine needs somewhere to keep its instructions.",
         "image": "assets/panels/171_3.5_program-memory-intro.svg",
         "year": "1943",
-        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים. אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותם כדי שהוא יוכל לקרוא אותם."
+        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים (קוראים לזה זיכרון מידע או זיכרון דאטא). אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותם כדי שהוא יוכל לקרוא אותם. אולי פעם נלמד להשתמש ב-RAM גם למטרה הזאת. כרגע, יותר פשוט לנו להפריד בין זיכרון התוכנה לזיכרון הדאטה."
       },
       {
         "comment": "The whole design of the program memory in one breath: like the RAM but no ports, read-only to the computer, and a SECOND address just for writing — which the control input switches to.",
