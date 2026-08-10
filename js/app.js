@@ -1371,6 +1371,47 @@
     bounds: { left: 96, right: 96, top: 62, bottom: 50 }
   };
 
+  // taskCard-Computer: 4.4's machine. Same ports, same reset, same two program
+  // inputs as the simple computer — only the processor inside it is the one
+  // that jumps. Nothing is built out of it, so it has no placeable card.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Computer"] = {
+    label: "מסגרת Computer",
+    fixed: true,
+    taskId: "Computer",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    // Only a fallback: the solution JSON's frameW/frameH win (solutionFrameSize).
+    frameSize: { w: 1000, h: 700 },
+    pins: {
+      // As wide as the program memory's own address bus, so it goes straight in.
+      inputExt6: { x: -460, y: -250, direction: "in", width: 16, label: "כניסת כתובת התוכנה", caption: "Prg-Adr", edge: "side" },
+      inputInt6: { x: -340, y: -250, direction: "out", width: 16, label: "כניסת כתובת התוכנה פנימית", edge: "side" },
+      inputExt7: { x: -460, y: -180, direction: "in", width: 16, label: "כניסת הפקודה לכתיבה", caption: "Prg", edge: "side" },
+      inputInt7: { x: -340, y: -180, direction: "out", width: 16, label: "כניסת הפקודה לכתיבה פנימית", edge: "side" },
+      inputExt5: { x: -217, y: -350, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt5: { x: -217, y: -210, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      inputExt1: { x: -460, y: 20, direction: "in", width: 16, label: "כניסת פורט In0", caption: "In0", edge: "side" },
+      inputInt1: { x: -340, y: 20, direction: "out", width: 16, label: "כניסת פורט In0 פנימית", edge: "side" },
+      inputExt2: { x: -460, y: 80, direction: "in", width: 16, label: "כניסת פורט In1", caption: "In1", edge: "side" },
+      inputInt2: { x: -340, y: 80, direction: "out", width: 16, label: "כניסת פורט In1 פנימית", edge: "side" },
+      inputExt3: { x: -460, y: 140, direction: "in", width: 16, label: "כניסת פורט In2", caption: "In2", edge: "side" },
+      inputInt3: { x: -340, y: 140, direction: "out", width: 16, label: "כניסת פורט In2 פנימית", edge: "side" },
+      inputExt4: { x: -460, y: 200, direction: "in", width: 16, label: "כניסת פורט In3", caption: "In3", edge: "side" },
+      inputInt4: { x: -340, y: 200, direction: "out", width: 16, label: "כניסת פורט In3 פנימית", edge: "side" },
+      outputInt1: { x: 340, y: 20, direction: "in", width: 16, label: "יציאת פורט Out0 פנימית", edge: "side" },
+      outputExt1: { x: 460, y: 20, direction: "out", width: 16, label: "יציאת פורט Out0", caption: "Out0", edge: "side" },
+      outputInt2: { x: 340, y: 80, direction: "in", width: 16, label: "יציאת פורט Out1 פנימית", edge: "side" },
+      outputExt2: { x: 460, y: 80, direction: "out", width: 16, label: "יציאת פורט Out1", caption: "Out1", edge: "side" },
+      outputInt3: { x: 340, y: 140, direction: "in", width: 16, label: "יציאת פורט Out2 פנימית", edge: "side" },
+      outputExt3: { x: 460, y: 140, direction: "out", width: 16, label: "יציאת פורט Out2", caption: "Out2", edge: "side" },
+      outputInt4: { x: 340, y: 200, direction: "in", width: 16, label: "יציאת פורט Out3 פנימית", edge: "side" },
+      outputExt4: { x: 460, y: 200, direction: "out", width: 16, label: "יציאת פורט Out3", caption: "Out3", edge: "side" }
+    },
+    bounds: { left: 460, right: 460, top: 370, bottom: 300 }
+  };
+
+
   // taskCard-CPU: 4.4's processor. Same terminals as CPU0 exactly — the
   // chapter says so — but inside it the counter can be jumped and the control
   // unit decides when.
@@ -8976,7 +9017,7 @@
 
   // Which of them has a build table so far. The rest say "המשך יבוא...".
   function jumpTaskImplemented(id) {
-    return ["PC", "JmpCnt", "Cont", "CPU"].includes(id);
+    return ["PC", "JmpCnt", "Cont", "CPU", "Computer"].includes(id);
   }
 
   // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
@@ -10063,6 +10104,54 @@
           terminals: ["task-card-1.inputInt1", "zero-mux.in3", "zero-mux.in1"],
           wires: [wireKey("load-mux.out", "zero-mux.in1"), wireKey("task-card-1.inputInt1", "zero-mux.in3"),
                   wireKey("zero-mux.out", "counter.in1")]
+        }
+      }
+    ],
+    // 4.4 — the machine: Computer0 with one card swapped.
+    Computer: [
+      {
+        text: "המחשב כולו הוא שלושה כרטיסים שכבר בנית: המעבד CPU — זה שיודע לקפוץ — זיכרון התוכנה Prg, וזיכרון הדאטה RAM עם הפורטים שלו. אין כאן שום דבר נוסף, רק החיווט ביניהם.",
+        highlight: {
+          components: ["cpu", "program", "memory"],
+          terminals: [],
+          wires: []
+        }
+      },
+      {
+        text: "והחיווט הוא בדיוק זה של המחשב הפשוט: ה-PC של המעבד הוא כתובת הקריאה של זיכרון התוכנה, והפקודה שיוצאת ממנו חוזרת לכניסת הפקודה של המעבד. זה מחזור הפעולה שג'ון תיאר.",
+        highlight: {
+          components: ["program", "instr-nail-1", "instr-nail-2", "instr-nail-3"],
+          terminals: ["program.in3", "cpu.in1"],
+          wires: [wireKey("cpu.out2", "program.in3"), wireKey("program.out", "instr-nail-1.in"),
+                  wireKey("instr-nail-1.out", "instr-nail-2.in"), wireKey("instr-nail-2.out", "instr-nail-3.in"),
+                  wireKey("instr-nail-3.out", "cpu.in1")]
+        }
+      },
+      {
+        text: "רגיסטר A הוא הכתובת בזיכרון הדאטה, הפלט של המעבד הוא מה שנכתב לשם, וכבל הבקרה אומר האם לכתוב. מה שיוצא מהזיכרון חוזר לכניסת הקלט של המעבד — הבס ‎*A‎.",
+        highlight: {
+          components: ["memory", "mem-nail-1", "mem-nail-2", "mem-nail-3"],
+          terminals: ["memory.in3", "memory.in1", "memory.in2", "cpu.in2"],
+          wires: [wireKey("cpu.out1", "memory.in3"), wireKey("cpu.out3", "memory.in1"),
+                  wireKey("cpu.out4", "memory.in2"), wireKey("memory.out", "mem-nail-1.in"),
+                  wireKey("mem-nail-3.out", "cpu.in2")]
+        }
+      },
+      {
+        text: "הפורטים של הזיכרון הם הכניסות והיציאות של המחשב, וכניסות התוכנה נכנסות ישר ל-Prg — עם הריסט ככניסת הבקרה שלו, ולכן אפשר לכתוב תוכנה רק כשהמחשב עצור.",
+        highlight: {
+          components: ["memory", "program"],
+          terminals: ["program.in4", "program.in1", "program.in2", "cpu.in3"],
+          wires: [wireKey("task-card-1.inputInt6", "program.in4"), wireKey("task-card-1.inputInt7", "program.in1"),
+                  wireKey("task-card-1.inputInt5", "program.in2"), wireKey("task-card-1.inputInt5", "cpu.in3")]
+        }
+      },
+      {
+        text: "כל ההבדל מהמחשב הפשוט הוא הכרטיס האמצעי: במקום CPU0 יושב כאן CPU. אף כבל לא זז — הכניסות והיציאות שלו זהות. מה שהשתנה הוא רק מה שקורה בפנים כשהפקודה אומרת לקפוץ.",
+        highlight: {
+          components: ["cpu"],
+          terminals: [],
+          wires: []
         }
       }
     ],
@@ -17676,7 +17765,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt", "Cont", "CPU"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt", "Cont", "CPU", "Computer"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -18578,6 +18667,8 @@
     if (isContJumpTaskWorkspace()) return startContJumpTaskTest();
     // CPU (4.4) is clocked and runs a little program that jumps.
     if (isCpuJumpTaskWorkspace()) return startCpuJumpTaskTest();
+    // Computer (4.4): the same run as Computer0, with one more program that jumps.
+    if (isComputerJumpTaskWorkspace()) return startComputerJumpTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
     // Computer0 (4.2): the whole machine, run as a program over ticks.
@@ -19145,7 +19236,7 @@
   // Between them they use every destination, both of the ALU's operand choices,
   // addition and subtraction, an ordinary memory cell as scratch, and a sum that
   // runs off the end of sixteen bits.
-  function computerTestPrograms() {
+  function computerTestPrograms(withJump) {
     const copy = {
       name: "copy",
       program: [
@@ -19206,7 +19297,29 @@
       setA(OUT), emit(0, CPU_DEST.star), setA(OUT + 1), emit(0, CPU_DEST.star),
       setA(OUT + 2), emit(0, CPU_DEST.star), setA(OUT + 3), emit(0, CPU_DEST.star)
     ];
-    return [copy, add, subtract, everything].map((test) => ({ ...test, program: [...clearPorts, ...test.program] }));
+    // 4.4 only: a program that JUMPS. It writes Out0, then computes 0 minus a
+    // positive number — negative, so the "jump if negative" bit sends the PC to
+    // what A holds — and lands past the pair of instructions that would have
+    // written Out1. A machine that ignores the last two bits runs them and fails.
+    // The jump target is an absolute address in the program memory, so it counts
+    // the eight port-clearing instructions in front: local 8 is really 16. That
+    // same 16 is also the cell the ALU reads as *A, which is untouched and 0.
+    const TARGET = clearPorts.length + 8;
+    const jump = {
+      name: "jump",
+      program: [
+        setA(IN), alu(ALU_OP.star, CPU_DEST.D),          // D = In0 (positive)
+        setA(OUT), alu(ALU_OP.D, CPU_DEST.star),         // Out0 = In0
+        setA(TARGET),                                    // A = the address to jump to
+        alu(ALU_OP.star_minus_D, CPU_DEST.none) | 1,     // 0 - D is negative -> jump
+        setA(OUT + 1), alu(ALU_OP.D, CPU_DEST.star),     // skipped: Out1 stays 0
+        setA(OUT + 2), alu(ALU_OP.D, CPU_DEST.star)      // Out2 = In0
+      ],
+      in0: 4321, in1: 0,
+      outs: (a) => [a, 0, a, 0]
+    };
+    const tests = withJump ? [copy, add, subtract, everything, jump] : [copy, add, subtract, everything];
+    return tests.map((test) => ({ ...test, program: [...clearPorts, ...test.program] }));
   }
   // The learner's build + temporary drivers: dec→bin converters on Prg-Adr, Prg and
   // the two input ports, a source on reset, bin→dec readers on all four outputs.
@@ -19238,7 +19351,7 @@
     };
     return { outs: [read(0), read(1), read(2), read(3)], next: result.next };
   }
-  function runComputerTest(base) {
+  function runComputerTest(base, withJump) {
     const idle = { cdAdr: 0, cd: 0, in0: 0, in1: 0, reset: false };
     const want = (got, expected, where) => {
       if (expected.every((v, i) => got[i] === v)) return null;
@@ -19272,7 +19385,8 @@
     let prev = new Map();
     let phase = null;
     let first = null;
-    for (const test of computerTestPrograms()) {
+    const programs = computerTestPrograms(withJump);
+    for (const test of programs) {
       prev = load(prev, test.program, 0, 0);
       phase = run(prev, test.program, test.in0, test.in1);
       const bad = want(phase.outs, test.outs(test.in0, test.in1), `the "${test.name}" program`);
@@ -19282,7 +19396,7 @@
     }
 
     // The last program is still loaded and its numbers are still on the ports.
-    const last = computerTestPrograms()[computerTestPrograms().length - 1];
+    const last = programs[programs.length - 1];
     const settled = last.outs(last.in0, last.in1);
 
     // cd is ignored while it runs: writing a "put 9 in A" word over the program's
@@ -19304,6 +19418,17 @@
     if (bad) return bad;
     return { ok: true };
   }
+  function isComputerJumpTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "Computer";
+  }
+  function startComputerJumpTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runComputerTest(state.workspace, true);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "Computer");
+  }
+
   function startComputerTaskTest() {
     if (notTestActive()) return;
     clearNotTestTimer();
@@ -19810,7 +19935,7 @@
     if (isPrgTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "Cont" || taskId === "CPU" || taskId === "CPU0" || taskId === "Computer0") return [];
+    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "Cont" || taskId === "CPU" || taskId === "CPU0" || taskId === "Computer0" || taskId === "Computer") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
