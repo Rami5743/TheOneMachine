@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec, contJumpGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -622,6 +622,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             for (let k = 1; k <= 3; k += 1) {
               if (setBits(outputs, `${component.id}.out${k}`, [sel === k])) changed = true;
             }
+            continue;
+          }
+          // The 4.4 control unit (gate-Cont): the top two bits of its bus are the
+          // destination (as Cont0 reads them) and the bottom two are the jump
+          // conditions (as JmpCnt reads them).
+          if (typeof contJumpGateSpec === "function" && contJumpGateSpec(type)) {
+            const all = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), 4);
+            const sel = bitsToIndex(all.slice(2), 2);
+            const zr = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+            const ng = Boolean(inputBits(workspace, `${component.id}.in3`, outputs)[0]);
+            for (let k = 1; k <= 3; k += 1) {
+              if (setBits(outputs, `${component.id}.out${k}`, [sel === k])) changed = true;
+            }
+            const jump = (Boolean(all[1]) && zr) || (Boolean(all[0]) && ng);
+            if (setBits(outputs, `${component.id}.out4`, [jump])) changed = true;
             continue;
           }
           // The 4.4 jump decider (gate-JmpCnt): jump when the "jump if zero" bit is

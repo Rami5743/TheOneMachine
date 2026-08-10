@@ -1134,7 +1134,19 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
         { kind: "text", title: "רמז 6", text: "בשביל זה יש לך את Or." }
       ]
     },
-    { id: "Cont", label: "Cont", requires: ["JmpCnt"], inputs: 1, outputs: 1, busWidth: 16 },
+    {
+      id: "Cont",
+      label: "Cont",
+      requires: ["JmpCnt"],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 4,
+      requirements: "זוהי יחידת הבקרה של המחשב. יש לה כניסה שהיא בס ברוחב 4, שאליה נכנסים 2 הביטים שאומרים לאן לרשום את פלט ה-ALU ושני הביטים שאומרים באילו תנאים לקפוץ.\n\nהיא מקבלת גם את zr ואת ng מה-ALU.\n\nל-Cont יש 4 יציאות שאומרות:\n\n1. האם לרשום ל-D\n\n2. האם לרשום ל-A\n\n3. האם לרשום ל-‎*A‎\n\n4. האם לרשום ל-PC (זאת אומרת - האם לבצע קפיצה)",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "אתה יכול להשתמש ב-Cont0 שיטפל בנושא רישום התוצאה של ה-ALU, וב-JmpCnt שיטפל בקפיצה." },
+        { kind: "text", title: "רמז 2", text: "אל תשכח לפצל את הבס לשני החלקים שרלוונטיים לכל אחד מהתפקידים השונים שלו." }
+      ]
+    },
     { id: "CPU", label: "CPU", requires: ["PC", "Cont"], inputs: 1, outputs: 1, busWidth: 16, clocked: true },
     { id: "Computer", label: "Computer", requires: ["CPU"], inputs: 1, outputs: 1, busWidth: 16, clocked: true }
   ];

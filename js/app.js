@@ -1371,6 +1371,55 @@
     bounds: { left: 96, right: 96, top: 62, bottom: 50 }
   };
 
+  // taskCard-Cont: 4.4's whole control unit. One width-4 bus in — the two
+  // destination bits of the instruction and the two jump-condition bits — plus
+  // the ALU's zr and ng. Four wires out: write to D, to A, to *A, and to the PC
+  // (which is to say, jump). Combinational.
+  WORKSPACE_COMPONENT_DEFS["taskCard-Cont"] = {
+    label: "מסגרת Cont",
+    fixed: true,
+    taskId: "Cont",
+    busWidth: 4,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 4, label: "כניסת הבקרה" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 4, label: "כניסת הבקרה פנימית" },
+      inputExt2: { x: -340, y: 20, direction: "in", width: 1, label: "כניסת zr", caption: "zr" },
+      inputInt2: { x: -260, y: 20, direction: "out", width: 1, label: "כניסת zr פנימית", caption: "zr" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 1, label: "כניסת ng", caption: "ng" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 1, label: "כניסת ng פנימית", caption: "ng" },
+      outputInt1: { x: 260, y: -180, direction: "in", width: 1, label: "יציאת D פנימית", caption: "D" },
+      outputExt1: { x: 340, y: -180, direction: "out", width: 1, label: "יציאת D", caption: "D" },
+      outputInt2: { x: 260, y: -60, direction: "in", width: 1, label: "יציאת A פנימית", caption: "A" },
+      outputExt2: { x: 340, y: -60, direction: "out", width: 1, label: "יציאת A", caption: "A" },
+      outputInt3: { x: 260, y: 60, direction: "in", width: 1, label: "יציאת *A פנימית", caption: "*A" },
+      outputExt3: { x: 340, y: 60, direction: "out", width: 1, label: "יציאת *A", caption: "*A" },
+      outputInt4: { x: 260, y: 180, direction: "in", width: 1, label: "יציאת PC פנימית", caption: "PC" },
+      outputExt4: { x: 340, y: 180, direction: "out", width: 1, label: "יציאת PC", caption: "PC" }
+    },
+    bounds: { left: 340, right: 340, top: 280, bottom: 280 }
+  };
+
+  // gate-Cont: the placeable control unit, for building the CPU that jumps.
+  WORKSPACE_COMPONENT_DEFS["gate-Cont"] = {
+    label: "Cont",
+    taskId: "Cont",
+    gate: true,
+    contJumpGate: true,
+    busWidth: 4,
+    pins: {
+      in1: { x: -80, y: -40, direction: "in", width: 4, label: "כניסת הבקרה" },
+      in2: { x: -80, y: 0, direction: "in", width: 1, label: "כניסת zr" },
+      in3: { x: -80, y: 40, direction: "in", width: 1, label: "כניסת ng" },
+      out1: { x: 80, y: -60, direction: "out", width: 1, label: "יציאת D", caption: "D" },
+      out2: { x: 80, y: -20, direction: "out", width: 1, label: "יציאת A", caption: "A" },
+      out3: { x: 80, y: 20, direction: "out", width: 1, label: "יציאת *A", caption: "*A" },
+      out4: { x: 80, y: 60, direction: "out", width: 1, label: "יציאת PC", caption: "PC" }
+    },
+    bounds: { left: 96, right: 96, top: 80, bottom: 80 }
+  };
+
   // taskCard-Cont0: the control unit's build frame. One width-2 bus in on the
   // left (the two destination bits of the instruction), and three single wires
   // out on the right — write to A, to D, to *A. Combinational.
@@ -2343,7 +2392,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec, contJumpGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -8864,7 +8913,7 @@
 
   // Which of them has a build table so far. The rest say "המשך יבוא...".
   function jumpTaskImplemented(id) {
-    return ["PC", "JmpCnt"].includes(id);
+    return ["PC", "JmpCnt", "Cont"].includes(id);
   }
 
   // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
@@ -9951,6 +10000,43 @@
           terminals: ["task-card-1.inputInt1", "zero-mux.in3", "zero-mux.in1"],
           wires: [wireKey("load-mux.out", "zero-mux.in1"), wireKey("task-card-1.inputInt1", "zero-mux.in3"),
                   wireKey("zero-mux.out", "counter.in1")]
+        }
+      }
+    ],
+    // 4.4 — the whole control unit: Cont0 and JmpCnt, side by side.
+    Cont: [
+      {
+        text: "ארבעת ביטי הבקרה מגיעים כבס אחד, אבל הם שני דברים שונים: שני הביטים הראשונים אומרים לאן לרשום, ושני האחרונים מתי לקפוץ. אז קודם כל מפצלים את הבס לשני חצאים.",
+        highlight: {
+          components: ["bus-split"],
+          terminals: ["task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "bus-split.single")]
+        }
+      },
+      {
+        text: "החצי הראשון — שני הביטים העליונים — הוא בדיוק מה שה-Cont0 שבנית כבר יודע לקרוא, והוא נותן את שלוש היציאות של הכתיבה: D, A ו-‎*A‎.",
+        highlight: {
+          components: ["dest"],
+          terminals: ["dest.in1", "task-card-1.outputInt1", "task-card-1.outputInt2", "task-card-1.outputInt3"],
+          wires: [wireKey("bus-split.leg1", "dest.in1"), wireKey("dest.out1", "task-card-1.outputInt1"),
+                  wireKey("dest.out2", "task-card-1.outputInt2"), wireKey("dest.out3", "task-card-1.outputInt3")]
+        }
+      },
+      {
+        text: "והחצי השני הוא בדיוק מה שה-JmpCnt יודע לקרוא. יחד איתו נכנסים גם zr ו-ng, שמגיעים ישר מכניסות הכרטיס.",
+        highlight: {
+          components: ["jump"],
+          terminals: ["jump.in1", "task-card-1.inputInt2", "task-card-1.inputInt3"],
+          wires: [wireKey("bus-split.leg0", "jump.in1"), wireKey("task-card-1.inputInt2", "jump.in2"),
+                  wireKey("task-card-1.inputInt3", "jump.in3")]
+        }
+      },
+      {
+        text: "היציאה שלו היא היציאה הרביעית של הכרטיס: האם לכתוב ל-PC — כלומר האם לקפוץ. שני הכרטיסים לא מדברים זה עם זה בכלל; כל אחד קורא את החצי שלו.",
+        highlight: {
+          components: ["jump"],
+          terminals: ["task-card-1.outputInt4"],
+          wires: [wireKey("jump.out", "task-card-1.outputInt4")]
         }
       }
     ],
@@ -17470,7 +17556,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt", "Cont"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -18368,6 +18454,8 @@
     if (isJumpPcTaskWorkspace()) return startJumpPcTaskTest();
     // JmpCnt (4.4) is combinational but has its own four-bit shape.
     if (isJmpCntTaskWorkspace()) return startJmpCntTaskTest();
+    // Cont (4.4) is combinational too, with its own six-bit shape.
+    if (isContJumpTaskWorkspace()) return startContJumpTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
     // Computer0 (4.2): the whole machine, run as a program over ticks.
@@ -18632,6 +18720,61 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runJmpCntTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "JmpCnt");
+  }
+
+  // --- Chapter 4.4 Cont check ------------------------------------------------
+  // Six input bits — two destination, two jump conditions, zr and ng — so all 64
+  // combinations are walked. The destination bits are the TOP half of the bus
+  // (they come first in the instruction word), the jump conditions the bottom.
+  function isContJumpTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "Cont";
+  }
+  function contJumpHarnessWorkspace(base, { control, zr, ng }) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const mine = ["ct-bus", "ct-zr", "ct-ng", "ct-d", "ct-a", "ct-m", "ct-pc"];
+    ws.components = ws.components.filter((c) => !mine.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^ct-/.test(w.a) && !/^ct-/.test(w.b));
+    ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
+    ws.components.push({ id: "ct-bus", type: "converter-out", value: control, width: 4, x: 90, y: 260 });
+    ws.wires.push({ a: "ct-bus.out", b: "task-card-1.inputExt1" });
+    if (zr) {
+      ws.components.push({ id: "ct-zr", type: "source", x: 90, y: 470 });
+      ws.wires.push({ a: "ct-zr.out", b: "task-card-1.inputExt2" });
+    }
+    if (ng) {
+      ws.components.push({ id: "ct-ng", type: "source", x: 90, y: 620 });
+      ws.wires.push({ a: "ct-ng.out", b: "task-card-1.inputExt3" });
+    }
+    ["d", "a", "m", "pc"].forEach((name, i) => {
+      ws.components.push({ id: `ct-${name}`, type: "lamp", x: 1180, y: 250 + i * 130 });
+      ws.wires.push({ a: `task-card-1.outputExt${i + 1}`, b: `ct-${name}.in` });
+    });
+    removeInvalidWires(ws);
+    return ws;
+  }
+  function runContJumpTest(base) {
+    for (let i = 0; i < 64; i += 1) {
+      const control = i >> 2;               // four bits: dest on top, jump below
+      const zr = Boolean(i & 2);
+      const ng = Boolean(i & 1);
+      const dest = control >> 2;            // the top two bits
+      const jumpIfZero = Boolean(control & 2);
+      const jumpIfNeg = Boolean(control & 1);
+      const want = [dest === 1, dest === 2, dest === 3, (jumpIfZero && zr) || (jumpIfNeg && ng)];
+      const flat = flattenWorkspaceForEval(contJumpHarnessWorkspace(base, { control, zr, ng }));
+      const lamps = __circuitEngine.evaluateWorkspaceBits(flat).lamps;
+      const got = ["ct-d", "ct-a", "ct-m", "ct-pc"].map((id) => Boolean(lamps.get(id)));
+      const bad = want.findIndex((bit, k) => bit !== got[k]);
+      if (bad >= 0) return { ok: false, index: i, expected: want[bad] ? 1 : 0, got: got[bad] ? 1 : 0 };
+    }
+    return { ok: true };
+  }
+  function startContJumpTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runContJumpTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "Cont");
   }
 
   // --- Chapter 4.2 CPU0 check ------------------------------------------------
@@ -19467,7 +19610,7 @@
     if (isPrgTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "CPU0" || taskId === "Computer0") return [];
+    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "Cont" || taskId === "CPU0" || taskId === "Computer0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
@@ -24099,6 +24242,13 @@
     // 4.4's PC can also be jumped: with load high it takes its data bus instead
     // of growing by 1. PC0 has no such pins, so it stays a plain counter.
     return { width: def.busWidth || 16, load: Boolean(def.pcLoad) };
+  }
+
+  // The 4.4 control unit (gate-Cont): Cont0 and JmpCnt in one card.
+  function contJumpGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.contJumpGate) return null;
+    return { width: 4 };
   }
 
   // The 4.4 jump decider (gate-JmpCnt) — combinational; the engine's jmpGate
