@@ -19029,28 +19029,53 @@
   }
 
   // --- Chapter 4.4 Cont check ------------------------------------------------
-  // Six input bits — two destination, two jump conditions, zr and ng — so all 64
-  // combinations are walked. The destination bits are the TOP half of the bus
-  // (they come first in the instruction word), the jump conditions the bottom.
+  // Cont is COMBINATIONAL — no clock, no program: every case is one board, read
+  // straight off the lamps. But it has six input bits, and a 64-row walk is a
+  // minute of watching, so the check SAMPLES: the cases below cover all four
+  // destinations, all four condition pairs, and the ALU's answers both ways.
   function isContJumpTaskWorkspace() {
     return state.screen === "workspace" && state.workspace?.taskId === "Cont";
   }
-  function contJumpHarnessWorkspace(base, { control, zr, ng }) {
+  // dest = which register the result is written to (0..3), jz/jn = the two jump
+  // condition bits of the instruction, zr/ng = what the ALU says about the result.
+  const CONT_TEST_CASES = [
+    { dest: 0, jz: 0, jn: 0, zr: 0, ng: 0 },  // an instruction that writes nowhere
+    { dest: 1, jz: 0, jn: 0, zr: 1, ng: 1 },  // D only — the ALU's answers must not reach it
+    { dest: 2, jz: 0, jn: 0, zr: 0, ng: 1 },  // A only
+    { dest: 3, jz: 0, jn: 0, zr: 1, ng: 0 },  // *A only
+    { dest: 0, jz: 1, jn: 0, zr: 1, ng: 0 },  // jump if zero, and it IS zero
+    { dest: 0, jz: 1, jn: 0, zr: 0, ng: 1 },  // jump if zero, but it came out negative
+    { dest: 0, jz: 0, jn: 1, zr: 0, ng: 1 },  // jump if negative, and it IS negative
+    { dest: 0, jz: 0, jn: 1, zr: 1, ng: 0 },  // jump if negative, but it came out zero
+    { dest: 0, jz: 1, jn: 1, zr: 0, ng: 0 },  // both conditions, neither holds
+    { dest: 0, jz: 1, jn: 1, zr: 1, ng: 0 },  // both conditions, the zero one holds
+    { dest: 0, jz: 1, jn: 1, zr: 0, ng: 1 },  // both conditions, the negative one holds
+    { dest: 1, jz: 1, jn: 0, zr: 1, ng: 1 },  // writing AND jumping in one instruction
+    { dest: 2, jz: 0, jn: 1, zr: 1, ng: 1 },
+    { dest: 3, jz: 1, jn: 1, zr: 1, ng: 1 }   // write everywhere and jump
+  ];
+  function contJumpHarnessWorkspace(base, { dest, jz, jn, zr, ng }) {
     const ws = normalizeWorkspace(clonePlain(base));
-    const mine = ["ct-bus", "ct-zr", "ct-ng", "ct-d", "ct-a", "ct-m", "ct-pc"];
+    const mine = ["ct-bus", "ct-conv", "ct-merge", "ct-src", "ct-zr", "ct-ng", "ct-d", "ct-a", "ct-m", "ct-pc"];
     ws.components = ws.components.filter((c) => !mine.includes(c.id));
     ws.wires = ws.wires.filter((w) => !/^ct-/.test(w.a) && !/^ct-/.test(w.b));
     ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
-    ws.components.push({ id: "ct-bus", type: "converter-out", value: control, width: 4, x: 90, y: 260 });
-    ws.wires.push({ a: "ct-bus.out", b: "task-card-1.inputExt1" });
-    if (zr) {
-      ws.components.push({ id: "ct-zr", type: "source", x: 90, y: 470 });
-      ws.wires.push({ a: "ct-zr.out", b: "task-card-1.inputExt2" });
-    }
-    if (ng) {
-      ws.components.push({ id: "ct-ng", type: "source", x: 90, y: 620 });
-      ws.wires.push({ a: "ct-ng.out", b: "task-card-1.inputExt3" });
-    }
+    // The input bus is two different things at once: its TOP half is a NUMBER
+    // (which of the four destinations to write to) and its bottom half is two
+    // separate yes/no wires (the jump conditions). So the check builds it the way
+    // the learner would: a converter makes the number, a merger joins it to the
+    // two condition wires. leg0 is the LOW chunk, so the legs run jn, jz, dest.
+    ws.components.push({ id: "ct-conv", type: "converter-out", value: dest, width: 2, x: 90, y: 200 });
+    ws.components.push({ id: "ct-merge", type: "splitter", x: 250, y: 300, mirrored: true, outputs: 3, legWidths: [1, 1, 2], singleWidth: 4, width: 1 });
+    ws.wires.push({ a: "ct-conv.out", b: "ct-merge.leg2" });
+    ws.wires.push({ a: "ct-merge.single", b: "task-card-1.inputExt1" });
+    // One power source for every wire that has to be 1 this round, as in every
+    // check of this kind; a wire that has to be 0 is simply left unwired.
+    ws.components.push({ id: "ct-src", type: "source", x: 90, y: 470 });
+    if (jn) ws.wires.push({ a: "ct-src.out", b: "ct-merge.leg0" });
+    if (jz) ws.wires.push({ a: "ct-src.out", b: "ct-merge.leg1" });
+    if (zr) ws.wires.push({ a: "ct-src.out", b: "task-card-1.inputExt2" });
+    if (ng) ws.wires.push({ a: "ct-src.out", b: "task-card-1.inputExt3" });
     ["d", "a", "m", "pc"].forEach((name, i) => {
       ws.components.push({ id: `ct-${name}`, type: "lamp", x: 1180, y: 250 + i * 130 });
       ws.wires.push({ a: `task-card-1.outputExt${i + 1}`, b: `ct-${name}.in` });
@@ -19058,29 +19083,30 @@
     removeInvalidWires(ws);
     return ws;
   }
-  function runContJumpTest(base) {
-    for (let i = 0; i < 64; i += 1) {
-      const control = i >> 2;               // four bits: dest on top, jump below
-      const zr = Boolean(i & 2);
-      const ng = Boolean(i & 1);
-      const dest = control >> 2;            // the top two bits
-      const jumpIfZero = Boolean(control & 2);
-      const jumpIfNeg = Boolean(control & 1);
-      const want = [dest === 1, dest === 2, dest === 3, (jumpIfZero && zr) || (jumpIfNeg && ng)];
-      const flat = flattenWorkspaceForEval(contJumpHarnessWorkspace(base, { control, zr, ng }));
-      const lamps = __circuitEngine.evaluateWorkspaceBits(flat).lamps;
+  // What the four lamps must show for one case: write to D / A / *A per the
+  // destination number, and jump when a condition the instruction asked for holds.
+  function contCaseExpected(c) {
+    return [c.dest === 1, c.dest === 2, c.dest === 3, Boolean((c.jz && c.zr) || (c.jn && c.ng))];
+  }
+  // One case per tick, on the board, the way a combinational card is checked.
+  function runContJumpCase(base, i) {
+    if (i >= CONT_TEST_CASES.length) return showNotTestResult("success", base, "Cont");
+    const testCase = CONT_TEST_CASES[i];
+    const workspace = contJumpHarnessWorkspace(base, testCase);
+    setState({ workspace, notTest: { active: true, taskId: "Cont", rowIndex: i } }, false);
+    notTestTimer = window.setTimeout(() => {
+      const want = contCaseExpected(testCase);
+      const lamps = evaluateWorkspaceBits(flattenWorkspaceForEval(workspace)).lamps;
       const got = ["ct-d", "ct-a", "ct-m", "ct-pc"].map((id) => Boolean(lamps.get(id)));
-      const bad = want.findIndex((bit, k) => bit !== got[k]);
-      if (bad >= 0) return { ok: false, index: i, expected: want[bad] ? 1 : 0, got: got[bad] ? 1 : 0 };
-    }
-    return { ok: true };
+      if (want.some((bit, k) => bit !== got[k])) return showNotTestResult("failure", workspace, "Cont", i);
+      runContJumpCase(base, i + 1);
+    }, 420);
   }
   function startContJumpTaskTest() {
     if (notTestActive()) return;
     clearNotTestTimer();
     notTestSnapshot = clonePlain(state.workspace);
-    const result = runContJumpTest(state.workspace);
-    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "Cont");
+    runContJumpCase(state.workspace, 0);
   }
 
   // --- Chapter 4.2 CPU0 check ------------------------------------------------

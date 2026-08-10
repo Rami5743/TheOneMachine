@@ -490,9 +490,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "JmpCnt";
     const font = labelFontSize(name, edge * 2, 15);
-    // At the BOTTOM, not the middle: zr comes in at y=0, and a centred name sat
-    // exactly on top of its label.
-    s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 14}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // At the TOP, where a card's name belongs — not the middle, where zr comes in
+    // at y=0 and a centred name would sit exactly on its label.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + 20}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // zr and ng are two identical single wires — without their names on the
     // body there is nothing on the card to tell them apart.
     if (!options.toolbar) {
