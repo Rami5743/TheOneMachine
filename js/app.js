@@ -1771,6 +1771,11 @@
     // How long the program that passed each programming task was, in
     // instructions — the counts behind "דירוגי תוכנה".
     programCounts: null,
+    // Set for good once the player takes an INTERACTIVE hint — one that writes
+    // instructions onto the page for them (applyProgramHint). A program written
+    // with that help is out of the "עורך תוכנה" ranking: its length is never
+    // recorded, and a later clear + retype does not bring it back.
+    programHintUsed: false,
     // Transient: a nickname validation/uniqueness error to show under the field.
     rankingsNicknameError: null,
     createCardUnlocked: false,
@@ -6856,8 +6861,15 @@
         if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
       });
     });
+    // An interactive hint takes the player out of the ranking: mark it for good,
+    // and drop any program length already recorded for the ranked task.
+    const rankTask = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const counts = { ...(state.programCounts || {}) };
+    if (rankTask && rankTask.rankId) delete counts[rankTask.rankId];
     return setState({
       [programSheetKey()]: { scratch: {}, bits },
+      programHintUsed: true,
+      programCounts: counts,
       programHintOpen: null,
       programSelection: null,
       programManualTest: null,
@@ -7909,7 +7921,9 @@
     const patch = { programTaskDone: true };
     const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
     const ran = (now.runs || [])[0];
-    if (task && task.rankId && ran && Number.isInteger(ran.steps) && ran.steps > 0) {
+    // An interactive hint (one that wrote instructions for the player) takes the
+    // program out of the ranking — its length is not recorded.
+    if (task && task.rankId && ran && Number.isInteger(ran.steps) && ran.steps > 0 && !state.programHintUsed) {
       patch.programCounts = { ...(state.programCounts || {}), [task.rankId]: ran.steps };
     }
     return patch;
