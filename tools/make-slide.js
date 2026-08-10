@@ -51,9 +51,11 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
   let tailUpperY, tailLowerY, tipX, tipY;
   if (tip) {
     // Aimed at a point on the art: the base sits just above the bottom-left
-    // corner, however many lines the bubble holds.
-    tailLowerY = Math.max(TOP + RY + 30, bottom - RY - 12);
-    tailUpperY = Math.max(TOP + RY, tailLowerY - 52);
+    // corner, however many lines the bubble holds. Its base is the SAME width as
+    // the reference slide's (TAIL_LOWER - TAIL_UPPER ≈ 22) — a wider one reads as
+    // a wedge of white laid over the art rather than as a tail.
+    tailLowerY = Math.max(TOP + RY + 22, bottom - RY - 12);
+    tailUpperY = Math.max(TOP + RY, tailLowerY - (TAIL_LOWER - TAIL_UPPER));
     tipX = Number(tip.x);
     tipY = Number(tip.y);
   } else {

@@ -706,6 +706,24 @@ button { font: inherit; }
   justify-content: center;
 }
 
+/* "המשך יבוא..." over the night-desert interstitial: the night panel fills the
+   overlay full-bleed (like a chapter break), and the message card floats above
+   it instead of the plain 55%-black scrim. */
+.info-night-overlay {
+  padding: 0;
+  background: #0d0d0d;
+}
+.info-night-stage {
+  position: absolute;
+  inset: 0;
+}
+.info-night-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(20, 20, 20, 0.9);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+}
+
 /* A story object's reference window. Deliberately identical to the warehouse
    reference popovers ("מקור מתח" and friends, styled in warehouse-hotspots.js):
    a small parchment window pinned beside the object, with its link — and, when

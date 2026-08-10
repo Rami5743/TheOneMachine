@@ -3449,6 +3449,17 @@
     return chapterIndexById(state.chapterId) > 0;
   }
 
+  // The very last slide of the very last chapter IS the "המשך יבוא" card, so
+  // המשך has nowhere to go — better a spent button than a dialog repeating what
+  // the slide already says.
+  function globalHasNext() {
+    if (state.screen !== "story") return true;
+    const scene = currentScene();
+    if (!scene) return true;
+    if (state.panelIndex < scene.panels.length - 1) return true;
+    return chapterIndexById(state.chapterId) < CHAPTERS.length - 1;
+  }
+
   function speakCurrent() {
     if (state.hintSlides) return speak(currentHintSlideReadText());
     if (state.screen !== "story" || state.dialog) return;
@@ -6990,6 +7001,20 @@
     return setState({ programSolution: { ...open, step, part } });
   }
 
+  // "בחזרה להאנגר", once the machine has actually run the program: the story
+  // does not stop at the room any more — von Neumann is standing in it with a
+  // word about General Groves. A learner who only read the solution goes back to
+  // the room itself and can still run the program.
+  function programStoryOnPatch() {
+    if (!state.programTaskDone) return {};
+    const chapter = chapterById("chapter-18");
+    const scene = chapter ? sceneByChapter(chapter) : null;
+    if (!scene) return {};
+    const idx = panelIndexByImage(scene, "245_4.3_groves-message.svg");
+    if (idx < 0) return {};
+    return { ...storyTarget(chapter, idx), replayNonce: state.replayNonce + 1 };
+  }
+
   function programSolutionAtStart() {
     const open = state.programSolution;
     return !open || (open.step <= 0 && (open.part ?? -1) < 0);
@@ -7009,10 +7034,12 @@
     const back = walk.finished && programHelperOpen()
       ? `<button class="btn btn-primary" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
       : "";
-    // And the main task's very last word — past the second solution — is the end
-    // of what is built so far.
-    const leave = walk.finished && !programHelperOpen() && open.variant + 1 >= list.length
-      ? `<button class="btn btn-primary" data-action="program-solution-finish" type="button">בחזרה להאנגר</button>`
+    // The main task's very last word — past the second solution — leads back to
+    // the hangar. Like the workbench task solutions, it ends on a single "המשך"
+    // button rather than a close + return pair.
+    const atFinalEnd = walk.finished && !programHelperOpen() && open.variant + 1 >= list.length;
+    const leave = atFinalEnd
+      ? navButton("program-solution-finish", "arrow-left", "המשך", { primary: true })
       : "";
     // The instruction's line is always drawn, empty on the closing word, so the
     // card is the same size from the first step to the last and does not jump
@@ -7035,9 +7062,9 @@
           <div class="solution-actions prog-solution-actions">
             ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
             <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
-            ${navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
+            ${atFinalEnd ? "" : navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
             ${more}${back}${leave}
-            <button class="btn" data-action="program-solution-close" type="button">סגור</button>
+            ${atFinalEnd ? "" : `<button class="btn" data-action="program-solution-close" type="button">סגור</button>`}
           </div>
         </section>
       </div>`;
@@ -7943,6 +7970,70 @@
     return setState({ programRunTest: done, ...programTestVerdictPatch(done) });
   }
 
+  // ---- Dev secret-solve (Ctrl+Shift+9) for the 4.3 programming task ---------
+  // Write the worked solution's instructions onto the page as bits and settle
+  // its bench straight to a pass. The bit layout is the assembler's own (see
+  // programExecuteRow): bit 1 picks number vs compute, bits 2-12 hold a number,
+  // bit 6 the second input, bits 7-12 the ALU1 op, bits 13-14 the destination.
+  // Instructions are given structurally and encoded through the SAME tables the
+  // page uses, so they stay correct if a table changes.
+  function programEncodeInstruction(instr) {
+    const cells = Array(16).fill("0");
+    const dest = PROGRAM_DESTINATIONS.find((d) => d.id === instr.dest) || PROGRAM_DESTINATIONS[0];
+    if (typeof instr.num === "number") {
+      cells[0] = "0"; // number instruction
+      const n = (instr.num & PROGRAM_NUMBER_MAX).toString(2).padStart(PROGRAM_NUMBER_BITS, "0");
+      for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) cells[i + 1] = n[i]; // bits 2-12
+    } else {
+      cells[0] = "1"; // compute instruction
+      const input = PROGRAM_INPUTS.find((x) => x.id === instr.input) || PROGRAM_INPUTS[0];
+      cells[5] = input.bit; // bit 6: X = A or *A
+      const op = programAluOperations().find((o) => o.op === instr.op);
+      const opBits = op ? op.bits : "000000";
+      for (let i = 0; i < 6; i += 1) cells[i + 6] = opBits[i]; // bits 7-12: the ALU1 op
+    }
+    cells[12] = dest.bits[0]; // bit 13
+    cells[13] = dest.bits[1]; // bit 14
+    return cells.join("");
+  }
+
+  // Main task = In0 * 8: point A at In0, add *A into D eight times, write D to
+  // Out0. Helper task = In0 -> Out0 in four (through D). Addresses come from the
+  // memory map (PROGRAM_IN_BASE / PROGRAM_OUT_BASE).
+  const PROGRAM_SOLVE_MAIN = [
+    { dest: "A", num: PROGRAM_IN_BASE },
+    { dest: "D", num: 0 },
+    ...Array.from({ length: 8 }, () => ({ dest: "D", op: "D+X", input: "*A" })),
+    { dest: "A", num: PROGRAM_OUT_BASE },
+    { dest: "*A", op: "D", input: "A" }
+  ];
+  const PROGRAM_SOLVE_HELPER = [
+    { dest: "A", num: PROGRAM_IN_BASE },
+    { dest: "D", op: "X", input: "*A" },
+    { dest: "A", num: PROGRAM_OUT_BASE },
+    { dest: "*A", op: "D", input: "A" }
+  ];
+
+  function programSecretSolve() {
+    const helper = programHelperOpen();
+    const program = helper ? PROGRAM_SOLVE_HELPER : PROGRAM_SOLVE_MAIN;
+    const bits = {};
+    program.forEach((instr, row) => {
+      const word = programEncodeInstruction(instr);
+      for (let i = 0; i < 16; i += 1) bits[`${row}:${i + 1}`] = word[i];
+    });
+    const progress = programSheetProgress();
+    // Lay the finished program on the page, then run its bench straight to a
+    // passing verdict (no animation) and mark whichever task is open done.
+    setState({ [programSheetKey()]: { ...progress, scratch: {}, bits } }, false);
+    clearProgramTestTimers();
+    const runs = programTestRuns();
+    return setState({
+      programRunTest: { phase: "done", index: Math.max(runs.length - 1, 0), runs, empty: false },
+      ...(helper ? { programHelperDone: true } : { programTaskDone: true })
+    });
+  }
+
   // The card the program is punched on: one row to an instruction, a hole for
   // every 1 and an empty ring for every 0.
   function programTestCard() {
@@ -8683,6 +8774,11 @@
       </div>`;
   }
 
+  // The "המשך יבוא..." placeholder — a not-yet-built path — is shown over the
+  // Los Alamos night-desert interstitial (the same raster the chapter breaks
+  // use), so a dead end reads as a quiet nightfall rather than a bare popup.
+  const CONTINUE_SOON_TEXT = "המשך יבוא...";
+
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
     const isObj = typeof state.infoDialog === "object";
@@ -8690,6 +8786,22 @@
     const discard = isObj && state.infoDialog.discardCard
       ? `<button class="btn" data-action="card-discard-exit" type="button">השלך את הכרטיס</button>`
       : "";
+    if (message === CONTINUE_SOON_TEXT) {
+      return `
+        <div class="pace-dialog-overlay info-night-overlay" role="presentation">
+          <section class="image-stage image-stage-no-year info-night-stage" aria-hidden="true">
+            <div class="image-frame"><div class="image-shell">
+              <object class="panel-image" data="assets/panels/112_2.4_night.svg" type="image/svg+xml" width="1448" height="1086" role="img"></object>
+            </div></div>
+          </section>
+          <section class="pace-dialog-card info-night-card" role="dialog" aria-modal="false" aria-label="הודעה">
+            <p>${esc(message)}</p>
+            <div class="pace-dialog-actions">
+              <button class="btn btn-primary" data-action="info-dialog-ok">הבנתי</button>
+            </div>
+          </section>
+        </div>`;
+    }
     return `
       <div class="pace-dialog-overlay" role="presentation">
         <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="הודעה">
@@ -8861,22 +8973,19 @@
       </main>`;
   }
 
-  function renderStory() {
-    const scene = currentScene();
-    const panel = currentPanel();
-    const panelImage = displayPanelImage(panel);
-    const imageSrc = `${panelImage}?r=${state.replayNonce}`;
-    const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
-    const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
-    // A "navigational" hotspot (e.g. the return-to-Nand panel) IS the way
-    // forward, so it disables the plain המשך button. Hotspots that merely open
-    // an external reference, or the reserved Stone-Millis book, do not — the
-    // learner still advances normally.
-    // The Stone-Millis book is the ONLY way forward from the library slide, so it
-    // disables המשך (and דלג, below) — the learner must go through the notebook.
-    // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
+  // A "navigational" hotspot (e.g. the return-to-Nand panel) IS the way
+  // forward, so it disables the plain המשך button. Hotspots that merely open
+  // an external reference, or the reserved Stone-Millis book, do not — the
+  // learner still advances normally.
+  // The Stone-Millis book is the ONLY way forward from the library slide, so it
+  // disables המשך (and דלג) — the learner must go through the notebook.
+  // Reference-link and the reserved binary-booklet hotspots stay non-blocking.
+  // The forward KEY asks this too, so it is blocked exactly where the button is:
+  // a slide whose only zones are things to read about (3.6's hangar objects, the
+  // waste drums, the popy) is walked on from with the keyboard like any other.
+  function blockingPanelHotspots(panel) {
     const nonBlockingActions = ["binary-booklet", "nail-box"];
-    const blockingHotspots = panelHotspots(panel).filter((h) => {
+    return panelHotspots(panel).filter((h) => {
       if (h.url || nonBlockingActions.includes(h.action)) return false;
       // A story object blocks המשך when it IS the way forward: taking it (the
       // dosimeter), or opening what it holds (the note on the table — the page of
@@ -8884,15 +8993,29 @@
       // drums, the popy, a cable tag — is there to be read about, so the learner
       // still walks on normally.
       if (h.action === "panel-object") {
+        // 4.3's note is the way forward only until the machine has run the
+        // program — after that the room is just a room and המשך walks on to the
+        // slides that close the chapter.
+        if (h.objectId === "programNote" && state.programTaskDone) return false;
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
         return Boolean(object && !object.optional && (object.takeLabel || object.opens));
       }
       return true;
     });
+  }
+
+  function renderStory() {
+    const scene = currentScene();
+    const panel = currentPanel();
+    const panelImage = displayPanelImage(panel);
+    const imageSrc = `${panelImage}?r=${state.replayNonce}`;
+    const year = Object.prototype.hasOwnProperty.call(panel, "year") ? panel.year : (scene.year || "");
+    const imageStageClass = year ? "image-stage" : "image-stage image-stage-no-year";
+    const blockingHotspots = blockingPanelHotspots(panel);
     // A panel with a numeric question is the way forward: המשך (and דלג) are
     // blocked until the learner types the right answer (see checkPanelAnswer).
     const questionGate = Boolean(panel.question);
-    const nextDisabled = (blockingHotspots.length || questionGate) ? "disabled" : "";
+    const nextDisabled = (blockingHotspots.length || questionGate || !globalHasNext()) ? "disabled" : "";
     const skipDisabled = (isSkipDisabled() || questionGate) ? "disabled" : "";
 
     app.innerHTML = `
@@ -15930,9 +16053,9 @@
       }, true);
     }
 
-    // Past the last slide of the last chapter there is no next chapter yet, so
-    // the story says so instead of dumping the learner on the chapters screen.
-    return setState({ infoDialog: "המשך יבוא..." });
+    // Past the last slide of the last chapter there is nowhere to go — that
+    // slide is itself the "המשך יבוא" card, and המשך is drawn spent on it, so a
+    // keypress does not raise a dialog repeating it.
   }
 
   function previousPanel() {
@@ -24647,6 +24770,8 @@
       event.preventDefault();
       // The 4.1 exercise page: one instruction per press.
       if (state.sheetDialog) sheetSecretSolve();
+      // The 4.3 programming page: write the worked solution and pass its bench.
+      else if (state.programDialog) programSecretSolve();
       else if (state.screen === "notebook") (state.notebook?.variant === "binary" ? binSecretSolve() : secretSolveNotebook());
       // On the FREE clocked table (the NOT/MUX scenes) it fast-forwards through the
       // flip-flop explanation phases. A clocked TASK build (the memory cards) is a
@@ -24884,6 +25009,21 @@
 
   // What can be done with a marked rectangle: copy it, paste it, rub it out.
   // Listened for on the way DOWN, so nothing else can swallow the keys first.
+  // The exercise page at the end of 4.1: its "מבנה הפקודה" window is paged with
+  // the arrow keys as well as its buttons — the same way the 4.3 solution card
+  // is walked. Right-to-left, so the LEFT arrow goes on. Typing into a square or
+  // an answer box keeps the arrows for the caret, and the hint window and the
+  // verdict box, which are modal over the page, keep them for themselves.
+  window.addEventListener("keydown", (event) => {
+    if (!state.sheetDialog || state.sheetDialog.hint || state.sheetDialog.result) return;
+    if (state.sheetClearConfirm || state.sheetScratchCell) return;
+    if (event.target.closest && event.target.closest("input, textarea")) return;
+    const pages = instructionGuidePages();
+    if (!pages.length || !sheetGuideState().open) return;
+    if (event.key === "ArrowLeft") { event.preventDefault(); return stepSheetGuide(1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); return stepSheetGuide(-1); }
+  });
+
   window.addEventListener("keydown", (event) => {
     if (!state.programDialog) return;
     // While a test bench is running over the page, Escape shuts it and the page
@@ -25588,10 +25728,15 @@
       // Only ever from the question itself — nothing else may wipe the page.
       if (!state.programClearConfirm) return;
       // An empty page starts over completely: the hints go back to none read and
-      // none earned, and with them the tally of failed runs that unlocks them.
+      // none earned, with them the tally of failed runs that unlocks them, and
+      // with THEM the solution — a page that was never solved has not earned its
+      // walkthrough back either. Only the page being cleared is touched: the
+      // helper task keeps its own progress, and the other way round.
       return setState({
         [programSheetKey()]: { scratch: {}, bits: {} },
         [programHintKey()]: { failures: 0, seen: 0 },
+        ...(programHelperOpen() ? { programHelperDone: false } : { programTaskDone: false }),
+        programSolution: null, programSolutionSeen: false,
         programClearConfirm: null, sheetScratchCell: null, programDestMenu: null,
         programNumberEdit: null, programCalcMenu: null, programInputMenu: null,
         programHintOpen: null, programSelection: null, programManualTest: null
@@ -25622,7 +25767,7 @@
       return setState({
         programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
         sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
-        infoDialog: "המשך יבוא..."
+        ...programStoryOnPatch()
       });
     }
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
@@ -26346,7 +26491,7 @@
       event.preventDefault();
       return previousPanel();
     }
-    if ((event.key === "ArrowLeft" || event.key === " ") && panelHotspots(currentPanel()).length) {
+    if ((event.key === "ArrowLeft" || event.key === " ") && blockingPanelHotspots(currentPanel()).length) {
       event.preventDefault();
       return;
     }
