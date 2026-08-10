@@ -138,9 +138,8 @@ const CHAPTERS = [
   {
     "id": "chapter-19",
     "partId": "part-4",
-    "title": "4.4 קפיצה מותנת",
-    "sceneId": "conditional-jump",
-    "story": true
+    "title": "4.4 המכונה האחת",
+    "sceneId": "conditional-jump"
   }
 ];
 
@@ -2581,12 +2580,6 @@ const SCENES = {
         "image": "assets/panels/254_4.4_ng-and-zr.svg",
         "year": "1944",
         "read": "אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4 בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב יצא 0 והאם הוא יצא שלילי, כך שאתה יכול להשתמש בו."
-      },
-      {
-        "comment": "Night again — end of what is written so far.",
-        "image": "assets/panels/255_4.4_night.svg",
-        "year": "1944",
-        "read": "המשך יבוא..."
       }
     ]
   }

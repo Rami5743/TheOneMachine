@@ -8,7 +8,7 @@
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
      preserveAspectRatio="none" href="245_4.3_groves-message.jpg" xlink:href="245_4.3_groves-message.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 492 C 1420,506.66667 1413.4961,514 1400.48831,514 H 719.51169 C 706.50389,514 700,506.66667 700,492 V 480 L 614,300 L 700,457.98 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
+    <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 492 C 1420,506.66667 1413.4961,514 1400.48831,514 H 719.51169 C 706.50389,514 700,506.66667 700,492 V 288.01 L 614,300 L 700,265.99 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"

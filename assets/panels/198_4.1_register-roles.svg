@@ -44,13 +44,12 @@
      inkscape:label="Text bubble">
     <path
        id="speech-bubble"
-       d="M 738.94870,36 H 1405.05130 A 18.9487,25.23331 0 0 1 1424,61.23331 V 583.76849 A 18.9487,25.23331 0 0 1 1405.05130,609.00180 H 738.94870 A 18.9487,25.23331 0 0 1 720,533.26849 V 314.25090 L 600,374 L 720,280.25090 V 61.23331 A 18.9487,25.23331 0 0 1 738.94870,36 Z"
+       d="M 739.51169,36 H 1404.48831 C 1417.49611,36 1424,43.33333 1424,58 V 587 C 1424,601.66667 1417.49610,609 1404.48831,609 H 739.51169 C 726.50389,609 720,601.66667 720,587 V 314.25090 L 600,374 L 720,280.25090 V 58 C 720,43.33333 726.50389,36 739.51169,36 Z"
        fill="#ffffff"
        stroke="#000000"
        stroke-width="3.44993"
        stroke-linejoin="round"
-       stroke-linecap="round"
-       sodipodi:nodetypes="ssssssccssss" />
+       stroke-linecap="round" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:34px;line-height:1.4853;font-family:'Noto Sans Hebrew', Arial, sans-serif;text-align:start;writing-mode:lr-tb;direction:rtl;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"

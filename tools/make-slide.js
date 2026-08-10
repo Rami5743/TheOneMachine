@@ -50,12 +50,15 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
   // it fits between the two corners.
   let tailUpperY, tailLowerY, tipX, tipY;
   if (tip) {
-    // Aimed at a point on the art: the base sits just above the bottom-left
-    // corner, however many lines the bubble holds. Its base is the SAME width as
-    // the reference slide's (TAIL_LOWER - TAIL_UPPER ≈ 22) — a wider one reads as
-    // a wedge of white laid over the art rather than as a tail.
-    tailLowerY = Math.max(TOP + RY + 22, bottom - RY - 12);
-    tailUpperY = Math.max(TOP + RY, tailLowerY - (TAIL_LOWER - TAIL_UPPER));
+    // Aimed at a point on the art: the base sits at the MIDDLE of the left edge,
+    // however many lines the bubble holds — a tail leaving the bottom corner
+    // reads as the bubble drooping rather than as speech coming out of its side.
+    // Its base is the SAME width as the reference slide's
+    // (TAIL_LOWER - TAIL_UPPER ≈ 22); a wider one is a wedge of white, not a tail.
+    const base = TAIL_LOWER - TAIL_UPPER;
+    const middle = (TOP + bottom) / 2;
+    tailLowerY = Math.min(bottom - RY, Math.max(TOP + RY + base, middle + base / 2));
+    tailUpperY = tailLowerY - base;
     tipX = Number(tip.x);
     tipY = Number(tip.y);
   } else {
