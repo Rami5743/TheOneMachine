@@ -969,9 +969,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const held = fitBits(prevMap.get(`${component.id}.out`) || zeroBits(pcSpec.width), pcSpec.width);
           let n = 0;
           for (let i = 0; i < pcSpec.width; i += 1) n += (held[i] ? 1 : 0) * (2 ** i);
-          const value = reset ? 0 : (n + 1) % (2 ** pcSpec.width);
-          const vec = [];
-          for (let i = 0; i < pcSpec.width; i += 1) vec.push(Boolean(Math.floor(value / (2 ** i)) & 1));
+          // 4.4's counter can be JUMPED: load (in2) high stores the data bus
+          // (in3) instead of counting. Reset still beats both.
+          let vec;
+          if (!reset && pcSpec.load && Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0])) {
+            vec = fitBits(inputBits(workspace, `${component.id}.in3`, outputs), pcSpec.width);
+          } else {
+            const value = reset ? 0 : (n + 1) % (2 ** pcSpec.width);
+            vec = [];
+            for (let i = 0; i < pcSpec.width; i += 1) vec.push(Boolean(Math.floor(value / (2 ** i)) & 1));
+          }
           next.set(`${component.id}.out`, vec);
           continue;
         }

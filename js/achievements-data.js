@@ -76,7 +76,8 @@ const MEDAL_CHAPTERS = [
   { num: "3.3", nick: "RAM", cards: (typeof RAM_TASKS !== "undefined" ? RAM_TASKS : []) },
   { num: "3.4", nick: "פורטים", cards: (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []) },
   { num: "3.5", nick: "זיכרון תוכנה", cards: (typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []) },
-  { num: "4.2", nick: "מחשבים", cards: (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []) }
+  { num: "4.2", nick: "מחשבים", cards: (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []) },
+  { num: "4.4", nick: "קפיצות", cards: (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []) }
 ];
 
 const MEDAL_ACHIEVEMENTS = [];

@@ -171,6 +171,8 @@
       // The 4.2 cards of the simple computer (PC0, Cont0 …) — only the ones with a
       // real shape; CPU0/Computer0 are still just names on the note.
       || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
+      // The 4.4 cards (PC, JumpCont …) — again only the ones with a real shape.
+      || (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
       || null;
   }
 
@@ -1284,6 +1286,49 @@
       out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
     },
     bounds: { left: 76, right: 96, top: 62, bottom: 50 }
+  };
+
+  // taskCard-PC: chapter 4.4's counter — PC0 that can also be JUMPED. Same
+  // reset straddling the top, plus a load control beside it and a width-16 data
+  // bus in on the left: when load is 1 the counter takes that bus instead of
+  // growing by 1, and reset still beats both.
+  WORKSPACE_COMPONENT_DEFS["taskCard-PC"] = {
+    label: "מסגרת PC",
+    fixed: true,
+    taskId: "PC",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt3: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
+      inputInt3: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
+      inputExt1: { x: -260, y: -240, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt1: { x: -260, y: -160, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      inputExt2: { x: -60, y: -240, direction: "in", width: 1, label: "כניסת הבקרה", caption: "בקרה" },
+      inputInt2: { x: -60, y: -160, direction: "out", width: 1, label: "כניסת הבקרה פנימית", caption: "בקרה" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת המונה פנימית" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+    },
+    bounds: { left: 340, right: 340, top: 250, bottom: 220 }
+  };
+
+  // gate-PC: the placeable jumping counter. Reset and load on top, the number to
+  // jump to in on the left, the count out on the right. Sequential — see the
+  // pcGate branch in circuit-engine.js, which reads pcLoad off this def.
+  WORKSPACE_COMPONENT_DEFS["gate-PC"] = {
+    label: "PC",
+    taskId: "PC",
+    gate: true,
+    pcGate: true,
+    pcLoad: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -30, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
+      in2: { x: 30, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      in3: { x: -80, y: 0, direction: "in", width: 16, label: "כניסת הדאטה" },
+      out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+    },
+    bounds: { left: 96, right: 96, top: 62, bottom: 50 }
   };
 
   // taskCard-Cont0: the control unit's build frame. One width-2 bus in on the
@@ -2809,6 +2854,8 @@
       // The 4.2 cards: they are frame-built and bus-shaped like the rest, so they
       // share the multi-bit shell and (for the combinational ones) its harness.
       || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === id && task.busWidth) : null)
+      // The 4.4 cards, for the same reason.
+      || (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS.find((task) => task.id === id && task.busWidth) : null)
       || null;
   }
   function isMultibitTaskWorkspace() {
@@ -3269,7 +3316,7 @@
     const workspaceAllowed = (
       chapter.id === "chapter-4" && (workspace.unlocked || panelIndex >= chapter4Scene.panels.length - 1)
     ) || (
-      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-17" || chapter.id === "chapter-15" || chapter.id === "chapter-16" || chapter.id === "chapter-18") && workspace.unlocked
+      (chapter.id === "chapter-5" || chapter.id === "chapter-6" || chapter.id === "chapter-7" || chapter.id === "chapter-8" || chapter.id === "chapter-9" || chapter.id === "chapter-10" || chapter.id === "chapter-11" || chapter.id === "chapter-12" || chapter.id === "chapter-13" || chapter.id === "chapter-17" || chapter.id === "chapter-15" || chapter.id === "chapter-16" || chapter.id === "chapter-18" || chapter.id === "chapter-19") && workspace.unlocked
     );
 
     const effectiveScreen = (["workspace", "nandBuildHelp"].includes(screen) && !workspaceAllowed) ? "story" : screen;
@@ -3798,7 +3845,9 @@
     { chapter: "chapter-17", ids: () => (typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
     // The 4.2 cards of the simple computer — same rule: a finished PC0/Cont0 is
     // there to build the CPU out of.
-    { chapter: "chapter-16", ids: () => (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
+    { chapter: "chapter-16", ids: () => (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) },
+    // The 4.4 cards — a finished PC is on the table for the CPU that jumps.
+    { chapter: "chapter-19", ids: () => (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []).map((t) => t.id).filter((id) => WORKSPACE_COMPONENT_DEFS[gateComponentType(id)]) }
   ];
   // The order every card appears in the GAME, flattened once from the groups.
   // The palette is sorted by it, so a card always sits in the same place no
@@ -3921,6 +3970,9 @@
     // The 4.2 cards carry theirs inline too.
     const simpleDef = (typeof SIMPLE_COMPUTER_TASKS !== "undefined") ? SIMPLE_COMPUTER_TASKS.find((t) => t.id === taskId) : null;
     if (simpleDef && Array.isArray(simpleDef.hints)) return simpleDef.hints;
+    // And so do the 4.4 ones.
+    const jumpDef = (typeof JUMP_TASKS !== "undefined") ? JUMP_TASKS.find((t) => t.id === taskId) : null;
+    if (jumpDef && Array.isArray(jumpDef.hints)) return jumpDef.hints;
     return [];
   }
 
@@ -8771,8 +8823,80 @@
   }
 
   // Which of them has a build table so far. The rest say "המשך יבוא...".
-  function jumpTaskImplemented() {
-    return false;
+  function jumpTaskImplemented(id) {
+    return ["PC"].includes(id);
+  }
+
+  // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
+  // board, the frame in the middle, a source to play with — but it comes back to
+  // 4.4's room, not 4.2's.
+  function openJumpTaskWorkspace(taskId) {
+    const task = jumpTaskDefById(taskId);
+    if (!task) return;
+    const chapter = chapterById("chapter-19");
+    const returnChapterId = state.chapterId;
+    const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const workspace = {
+      ...createDefaultWorkspace(),
+      components: [
+        { id: "task-card-1", type: taskCardComponentType(task.id), x: 640, y: SIMPLE_COMPUTER_CARD_Y },
+        { id: "source-1", type: "source", x: 90, y: 140 }
+      ],
+      wires: [],
+      nextId: 2,
+      unlocked: true,
+      helpPromptSeen: true,
+      buildHelpButtonVisible: false,
+      understoodPromptShown: false,
+      understoodButtonVisible: false,
+      nandOutputObserved: { zero: false, one: false },
+      nandMonologueStep: null,
+      workspaceCompleted: false,
+      workspaceSession: 2,
+      clocked: true,
+      busClocked: true,
+      exitTargetPanelIndex: returnPanelIndex,
+      sessionReturnChapterId: returnChapterId,
+      sessionReturnPanelIndex: returnPanelIndex,
+      taskId: task.id,
+      taskIntroSeen: true
+    };
+    clockedUnderstoodResolved = true;
+    setState({
+      screen: "workspace",
+      chapterId: chapter ? chapter.id : state.chapterId,
+      sceneId: chapter ? chapter.sceneId : state.sceneId,
+      started: true,
+      dialog: null,
+      taskDialog: null,
+      jumpNoteList: false,
+      requirementsPanelHidden: false,
+      requirementsPanelCompact: false,
+      whyNoteHidden: false,
+      muxTable: null,
+      workspace
+    }, false);
+  }
+
+  // Back to the room the 4.4 note is lying in — the last slide of the chapter.
+  function jumpReturnTarget() {
+    const chapter = chapterById("chapter-19");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    if (!chapter || !scene) return { screen: "story" };
+    const idx = panelIndexByImage(scene, "258_4.4_build-room.svg");
+    return {
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true
+    };
+  }
+
+  // Where a finished 4.4 card lands: back in the room with the note open, so the
+  // next card is one tap away.
+  function jumpCompletionPatch() {
+    return { ...jumpReturnTarget(), jumpNoteList: true, infoDialog: null };
   }
 
   function handleJumpNoteTask(id) {
@@ -8784,7 +8908,10 @@
     if (!jumpTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
     }
-    return setState({ infoDialog: "המשך יבוא..." });
+    if (taskCompleted(task.id) && taskHasSolutionWalkthrough(task.id)) {
+      return showTaskSolution(task.id, { completeOnClose: false });
+    }
+    return openJumpTaskWorkspace(task.id);
   }
 
   function renderJumpNoteList() {
@@ -9739,6 +9866,51 @@
           terminals: ["zero-mux.in1"],
           wires: [wireKey("plus-one.out1", "loop-right.in"), wireKey("loop-right.out", "loop-left.in"),
                   wireKey("loop-left.out", "loop-up.in"), wireKey("loop-up.out", "zero-mux.in1")]
+        }
+      }
+    ],
+    // 4.4 — the counter that can jump: PC0 with one more MUX16 in front.
+    PC: [
+      {
+        text: "ה-PC הוא ה-PC0 שכבר בנית: רגיסטר אחד שמחזיק את המספר, פתוח לכתיבה תמיד, והיציאה שלו היא היציאה של הכרטיס.",
+        highlight: {
+          components: ["counter", "always-one"],
+          terminals: ["task-card-1.outputInt1", "counter.in2"],
+          wires: [wireKey("counter.out", "task-card-1.outputInt1"), wireKey("always-one.out", "counter.in2")]
+        }
+      },
+      {
+        text: "וכמו קודם, מה שנכתב אליו הוא מה שיש בו ועוד 1: היציאה חוזרת דרך ה-Inc והמחברים אל תחילת השרשרת.",
+        highlight: {
+          components: ["plus-one", "loop-right", "loop-left", "loop-up"],
+          terminals: ["plus-one.in1"],
+          wires: [wireKey("counter.out", "plus-one.in1"), wireKey("plus-one.out1", "loop-right.in"),
+                  wireKey("loop-right.out", "loop-left.in"), wireKey("loop-left.out", "loop-up.in")]
+        }
+      },
+      {
+        text: "כל ההבדל הוא MUX16 נוסף, לפני זה של הריסט. הוא בוחר בין הספירה — היציאה ועוד 1 — ובין כניסת הדאטה של הכרטיס, המספר שאליו רוצים לקפוץ.",
+        highlight: {
+          components: ["load-mux"],
+          terminals: ["load-mux.in1", "task-card-1.inputInt3"],
+          wires: [wireKey("loop-up.out", "load-mux.in1"), wireKey("task-card-1.inputInt3", "load-mux.in2")]
+        }
+      },
+      {
+        text: "מי בוחר? כניסת הבקרה. כשהיא 0 ממשיכים לספור, וכשהיא 1 הכרטיס לוקח את כניסת הדאטה — זאת הקפיצה.",
+        highlight: {
+          components: ["load-mux"],
+          terminals: ["task-card-1.inputInt2", "load-mux.in3"],
+          wires: [wireKey("task-card-1.inputInt2", "load-mux.in3")]
+        }
+      },
+      {
+        text: "והריסט נשאר האחרון שאומר את דברו. ה-MUX16 השני מקבל את התוצאה של הראשון בכניסה אחת, ולא כלום — כלומר 0 — בשנייה, וכניסת הריסט היא שבוחרת. לכן ריסט דלוק מאפס, לא חשוב מה קורה בבקרה.",
+        highlight: {
+          components: ["zero-mux"],
+          terminals: ["task-card-1.inputInt1", "zero-mux.in3", "zero-mux.in1"],
+          wires: [wireKey("load-mux.out", "zero-mux.in1"), wireKey("task-card-1.inputInt1", "zero-mux.in3"),
+                  wireKey("zero-mux.out", "counter.in1")]
         }
       }
     ],
@@ -17222,7 +17394,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -18115,6 +18287,9 @@
     // PC0 (4.2) is clocked and drives itself — its own harness, before the
     // multibit one (it is bus-shaped too).
     if (isPcTaskWorkspace()) return startPcTaskTest();
+    // PC (4.4) is the same counter with a jump — its own harness, which drives
+    // the load control and the address bus too.
+    if (isJumpPcTaskWorkspace()) return startJumpPcTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
     // Computer0 (4.2): the whole machine, run as a program over ticks.
@@ -18249,6 +18424,83 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runPcTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "PC0");
+  }
+
+  // --- Chapter 4.4 PC check --------------------------------------------------
+  // The same counter, now with a jump. Three things have to hold: it counts by 1
+  // like PC0 did, load makes it take the address bus on the next tick, and reset
+  // beats both. The drivers are a source on each control and a dec→bin writer on
+  // the data bus, added and removed the way PC0's harness does it.
+  function isJumpPcTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "PC";
+  }
+  function jumpPcHarnessWorkspace(base, { reset, load, value }) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const mine = ["pcj-read", "pcj-reset", "pcj-load", "pcj-data"];
+    ws.components = ws.components.filter((c) => !mine.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^pcj-/.test(w.a) && !/^pcj-/.test(w.b));
+    ws.components.push({ id: "pcj-read", type: "converter-in", x: 1160, y: 700 });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "pcj-read.in" });
+    if (reset) {
+      ws.components.push({ id: "pcj-reset", type: "source", x: 640, y: 60 });
+      ws.wires.push({ a: "pcj-reset.out", b: "task-card-1.inputExt1" });
+    }
+    if (load) {
+      ws.components.push({ id: "pcj-load", type: "source", x: 840, y: 60 });
+      ws.wires.push({ a: "pcj-load.out", b: "task-card-1.inputExt2" });
+    }
+    // The number to jump to always sits on the bus; only the control decides
+    // whether the counter takes it.
+    ws.components.push({ id: "pcj-data", type: "converter-out", value, width: 16, x: 120, y: 700 });
+    ws.wires.push({ a: "pcj-data.out", b: "task-card-1.inputExt3" });
+    return ws;
+  }
+  function jumpPcTick(base, drive, prev) {
+    const flat = flattenWorkspaceForEval(jumpPcHarnessWorkspace(base, drive));
+    const result = __circuitEngine.evaluateWorkspaceBits(flat, prev);
+    const info = result.converters.get("pcj-read");
+    return { value: info ? Number(info.value) : -1, next: result.next };
+  }
+  function runJumpPcTest(base) {
+    const WRAP = 2 ** 16;
+    const JUMP = 1000;
+    const step = (drive, prev) => jumpPcTick(base, { reset: false, load: false, value: JUMP, ...drive }, prev);
+    // Start from a known zero, then read where a freshly reset counter sits —
+    // the chapter never says whether it shows the count it holds or the one it
+    // just made, so both starting points are accepted (as in PC0's check).
+    let prev = step({ reset: true }, new Map()).next;
+    const first = step({}, prev);
+    const start = first.value;
+    if (!Number.isFinite(start) || start < 0) return { ok: false, index: 0, expected: 0, got: start };
+    prev = first.next;
+    // 1. it still counts.
+    for (let i = 1; i <= 4; i += 1) {
+      const tick = step({}, prev);
+      const want = (start + i) % WRAP;
+      if (tick.value !== want) return { ok: false, index: i, expected: want, got: tick.value };
+      prev = tick.next;
+    }
+    // 2. load takes the bus, and counting carries on from there.
+    prev = step({ load: true }, prev).next;
+    const landed = step({}, prev);
+    const jumped = (JUMP + (start === 0 ? 0 : 1)) % WRAP;
+    if (landed.value !== jumped) return { ok: false, index: 5, expected: jumped, got: landed.value };
+    prev = landed.next;
+    const onward = step({}, prev);
+    if (onward.value !== (jumped + 1) % WRAP) return { ok: false, index: 6, expected: (jumped + 1) % WRAP, got: onward.value };
+    prev = onward.next;
+    // 3. reset beats load.
+    prev = step({ reset: true, load: true }, prev).next;
+    const back = step({}, prev);
+    if (back.value !== start) return { ok: false, index: 7, expected: start, got: back.value };
+    return { ok: true };
+  }
+  function startJumpPcTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runJumpPcTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "PC");
   }
 
   // --- Chapter 4.2 CPU0 check ------------------------------------------------
@@ -19084,7 +19336,7 @@
     if (isPrgTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "CPU0" || taskId === "Computer0") return [];
+    if (taskId === "PC0" || taskId === "PC" || taskId === "CPU0" || taskId === "Computer0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
@@ -19749,6 +20001,16 @@
       if (family === "ports") {
         return setState({
           ...portsCompletionPatch(completedTasks),
+          taskDialog: null, notTest: null, muxTable: null,
+          completedTasks,
+          workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+        }, true);
+      }
+
+      // The 4.4 cards: the same, back to 4.4's room with its note reopened.
+      if (family === "jump") {
+        return setState({
+          ...jumpCompletionPatch(),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -21479,6 +21741,7 @@
     if (isPrgTask(taskId)) return "prg";
     if (isPortsTask(taskId)) return "ports";
     if (isSimpleComputerTask(taskId)) return "simple-computer";
+    if (jumpTaskDefById(taskId)) return "jump";
     if (isMemoryTask(taskId)) return "memory";
     if (isArithTask(taskId)) return "arith";
     if (isAluTask(taskId)) return "alu";
@@ -21544,6 +21807,16 @@
         ...portsCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks, workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
+      }, true);
+    }
+
+    // The 4.4 cards: back to 4.4's room with its note reopened.
+    if (family === "jump") {
+      return setState({
+        ...jumpCompletionPatch(),
+        taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
+        completedTasks,
+        workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
       }, true);
     }
 
@@ -21780,6 +22053,11 @@
     if (family === "ram") {
       return setState({ ...ramCompletionPatch(completedTasks, taskId), ...base }, true);
     }
+    // The 4.4 cards: back to 4.4's room with its note open. Checked first for the
+    // same reason as the 4.2 ones below — they are multibit-shaped too.
+    if (family === "jump") {
+      return setState({ ...jumpCompletionPatch(), ...base }, true);
+    }
     // The 4.2 cards of the simple computer: back to the room with the build note
     // open. Checked FIRST for the same reason as the cards below — they are
     // multibit-shaped, so they would otherwise fall into the 2.4 bus branch and
@@ -21960,6 +22238,43 @@
     // with in1/in2/in3 wired and NOTHING else (the instruction field, the result
     // and the control unit are the parts the learner still has to think about).
     // Like every build hint it rebuilds the workspace, so it warns first.
+    // PC build hint (4.4): lay PC0's finished build on the table, so the learner
+    // starts from the counter they already made and only has to add the jump.
+    // Like every build hint it rebuilds the workspace, so it warns first.
+    if (taskId === "PC" && hint.action === "pc-restore-pc0") {
+      const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.PC0 : null;
+      if (doc) {
+        const ws = workspaceFromSolutionDoc(clonePlain(doc));
+        // The learner's own frame does not move: shift the laid-down circuit onto
+        // it, and keep the frame that is already there (PC's, not PC0's).
+        const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+        const laid = ws.components.find((c) => c.id === "task-card-1");
+        if (here && laid) {
+          const dx = here.x - laid.x;
+          const dy = here.y - laid.y;
+          if (dx || dy) ws.components.forEach((c) => {
+            if (Number.isFinite(c.x)) c.x += dx;
+            if (Number.isFinite(c.y)) c.y += dy;
+          });
+          laid.type = here.type;
+        }
+        ws.clocked = Boolean(state.workspace?.clocked);
+        ws.busClocked = Boolean(state.workspace?.busClocked);
+        ws.workspaceCompleted = false;
+        ws.taskId = "PC";
+        ws.taskIntroSeen = true;
+        ws.locked = false;
+        ws.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || null;
+        ws.sessionReturnPanelIndex = state.workspace?.sessionReturnPanelIndex ?? null;
+        const patch = {
+          workspace: normalizeWorkspace(ws),
+          hintDialog: hint.appliedText ? { taskId, index: hintIndex, applied: true } : null
+        };
+        if (hintStateOverride) patch.hintState = hintStateOverride;
+        return setState(patch, false);
+      }
+    }
+
     if (taskId === "CPU0" && hint.action === "cpu0-place-alu") {
       const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.CPU0 : null;
       if (doc) {
@@ -23644,7 +23959,9 @@
   function pcGateSpec(type) {
     const def = WORKSPACE_COMPONENT_DEFS[type];
     if (!def || !def.pcGate) return null;
-    return { width: def.busWidth || 16 };
+    // 4.4's PC can also be jumped: with load high it takes its data bus instead
+    // of growing by 1. PC0 has no such pins, so it stays a plain counter.
+    return { width: def.busWidth || 16, load: Boolean(def.pcLoad) };
   }
 
   // The 4.2 processor card (gate-CPU0): sequential — it holds A, D and the PC.

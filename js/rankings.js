@@ -110,6 +110,8 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     push(typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []);       // 3.5 program memory
     // 4.2 — the processor's cards (PC0 / Cont0 / CPU0 / Computer0), the last ones.
     push(typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []);
+    // 4.4 — the cards that add the conditional jump.
+    push(typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []);
     return rows;
   }
 
