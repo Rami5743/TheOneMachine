@@ -134,6 +134,13 @@ const CHAPTERS = [
     "partId": "part-4",
     "title": "4.3 תכנות פשוט",
     "sceneId": "simple-programming"
+  },
+  {
+    "id": "chapter-19",
+    "partId": "part-4",
+    "title": "4.4 קפיצה מותנת",
+    "sceneId": "conditional-jump",
+    "story": true
   }
 ];
 
@@ -2520,8 +2527,64 @@ const SCENES = {
         "read": "נתראה מחר ב-07:00"
       },
       {
-        "comment": "The empty hangar at night — end of what is written so far.",
+        "comment": "Night over Los Alamos — the day is over; 4.4 opens the next morning.",
         "image": "assets/panels/247_4.3_night.svg",
+        "year": "1944",
+        "read": ""
+      }
+    ]
+  },
+  "conditional-jump": {
+    "id": "conditional-jump",
+    "type": "story",
+    "chapterId": "chapter-19",
+    "year": "1944",
+    "panels": [
+      {
+        "comment": "The next morning: Normandy. The war is won — the question is when.",
+        "image": "assets/panels/248_4.4_normandy.svg",
+        "year": "1944",
+        "read": "בוקר טוב, שמעת את החדשות? הכוחות שלנו נחתו בנורמנדי. אלה חדשות נהדרות, זו כבר לא שאלה של האם ננצח אלא מתי ננצח. אבל זה לא הופך את הפרויקט שלנו למיותר. להפך, רק לדחוף יותר. בפלישה עצמה נהרגו לנו אלפי חיילים, אנחנו עוד לא יודעים בדיוק כמה. בכל יום נהרגים הרבה אלפים של אנשים. ככל שנגמור מוקדם יותר, נציל יותר אנשים."
+      },
+      {
+        "comment": "Why it is personal: his family is in occupied Hungary.",
+        "image": "assets/panels/249_4.4_hungary.svg",
+        "year": "1944",
+        "read": "לפני כמה חודשים הנאצים כבשו את הונגריה. אבד לי הקשר עם המשפחה שלי שם. לא יודע כמה מהם שרדו, אבל אני יודע שאם לא נמהר הנאצים ירצחו את כולם. זה שנדבר על זה לא יעזור. הדבר היחיד שאנחנו יכולים לעשות בשבילם עכשיו זה להמשיך לעבוד בכל הכוח."
+      },
+      {
+        "comment": "Turing's analysis: the machine as built cannot do every computation.",
+        "image": "assets/panels/250_4.4_turing-limits.svg",
+        "year": "1944",
+        "read": "כשטיורינג ניתח מה יכולה לעשות מכונת חישוב, הוא הבין שכדי שמכונה אחת תוכל לבצע את כל החישובים צריכות להיות לה מספר יכולות בסיסיות. למחשב שבנינו אין את כל היכולות האלה. הפעולות הבסיסיות של ה-ALU מספיקות כדי לבצע כל חישוב, אבל העובדה שההוראות שהוא מקבל תלויות מראש ולא יכולות להיות תלויות בתוצאות ביניים של החישוב מגבילה אותנו יותר מדי"
+      },
+      {
+        "comment": "What is missing: a conditional jump.",
+        "image": "assets/panels/251_4.4_conditional-jump.svg",
+        "year": "1944",
+        "read": "מתברר שכל מה שצריך להוסיף למכונה שלנו כדי שתוכל לבצע כל חישוב, זה מה שנקרא יכולת קפיצה מותנת. זה אומר שצריך להוסיף פקודה שאומרת שבמקום לבצע את הפקודה הבאה המכונה תקפוץ למקום אחר בתוכנה ותמשיך משם. יתר על כן, צריך לאפשר למכונה להחליט האם היא עושה את זה, לפי תוצאת החישוב."
+      },
+      {
+        "comment": "Register A holds the jump address — the same A that addresses the RAM.",
+        "image": "assets/panels/252_4.4_a-as-address.svg",
+        "year": "1944",
+        "read": "מכיוון שאין לנו מקום בפקודה גם להגיד לאן אנחנו קופצים וגם לבצע חישוב, אנחנו נשתמש בתוכן של רגיסטר A בתור הכתובת של הקפיצה. שים לב שרגיסטר A בדרך כלל משמש אותנו ככתובת ב-RAM אבל אנחנו גם יכולים להשתמש בו ככתובת בזיכרון התוכנה. זה מה שנעשה כאן."
+      },
+      {
+        "comment": "The two spare bits of the instruction become the jump conditions.",
+        "image": "assets/panels/253_4.4_jump-bits.svg",
+        "year": "1944",
+        "read": "אנחנו נשתמש בשני הביטים של הפקודה כדי להגיד למחשב האם לקפוץ: הביט הראשון מביניהם יגיד האם לקפוץ כשהחישוב יצא 0. הביט השני יגיד האם לקפוץ כשהחישוב יצא מספר שלילי."
+      },
+      {
+        "comment": "And the ALU4 already hands out exactly those two wires: ng and zr.",
+        "image": "assets/panels/254_4.4_ng-and-zr.svg",
+        "year": "1944",
+        "read": "אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4 בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב יצא 0 והאם הוא יצא שלילי, כך שאתה יכול להשתמש בו."
+      },
+      {
+        "comment": "Night again — end of what is written so far.",
+        "image": "assets/panels/255_4.4_night.svg",
         "year": "1944",
         "read": "המשך יבוא..."
       }
