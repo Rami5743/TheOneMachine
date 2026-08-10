@@ -1089,8 +1089,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     jumpNote: { label: "הפתק", opens: "jump-tasks" }
   };
 
-  // The build tasks of chapter 4.4 — the conditional jump. PC and JumpCont can
-  // both be started at once; Cont waits on JumpCont, CPU on PC and Cont, and
+  // The build tasks of chapter 4.4 — the conditional jump. PC and JmpCnt can
+  // both be started at once; Cont waits on JmpCnt, CPU on PC and Cont, and
   // Computer on CPU.
   const JUMP_TASKS = [
     {
@@ -1117,8 +1117,24 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
         { kind: "text", title: "רמז 7", text: "אחת האפשרויות היא ריקה (רגיסטר של אפסים), זה מה שקורה אם הריסט הוא 1. האפשרות השנייה תלויה בכניסת הבקרה, זאת אומרת שהיא היציאה של mux אחר. זה ה-mux שבוחר בין כניסת הדאטה ובין היציאה ועוד אחד." }
       ]
     },
-    { id: "JumpCont", label: "JumpCont", requires: [], inputs: 1, outputs: 1, busWidth: 16 },
-    { id: "Cont", label: "Cont", requires: ["JumpCont"], inputs: 1, outputs: 1, busWidth: 16 },
+    {
+      id: "JmpCnt",
+      label: "JmpCnt",
+      requires: [],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 2,
+      requirements: "זהו החלק של יחידת הבקרה שאחראי על הקפיצה.\n\nהוא מקבל בס ברוחב 2 שמורכב מהביטים שאומרים מהם תנאי הקפיצה:\n\nאם הביט הראשון הוא 1 אז קופצים אם התוצאה יצאה 0.\n\nאם הביט השני הוא 1 אז קופצים אם התוצאה יצאה שלילית.\n\nשים לב שיכול להיות ששני הביטים הם 1, ואז קופצים בכל אחד משני המקרים.\n\nה-JmpCnt מקבל גם את שני הביטים מה-ALU שנותנים את המידע הרלוונטי מתוצאת החישוב:\n\nzr - האם יצא 0\n\nng - האם יצא שלילי\n\nהיציאה של הכרטיס היא ביט אחד שאומר האם לבצע קפיצה.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "זה כרטיס חישוב, אין לו שום זיכרון, ואין לו גם מאוד הרבה אפשרויות לקלט. אתה יכול פשוט לפתור אותו עם טבלת אמת, בשיטה הכללית (אתה יכול להציץ בתפריט ההסברים אם שכחת אותה). אבל מצד שני זה די מיותר, אתה יכול גם לנסות לחשוב קצת וזה יחסוך לך זמן." },
+        { kind: "text", title: "רמז 2", text: "יש שתי אפשרויות לקפיצה. טפל קודם בכל אחת מהן בנפרד ואז תבין מה עושים עם שתיהן." },
+        { kind: "text", title: "רמז 3", text: "אפשרות קפיצה ראשונה - הביט שאמר האם לקפוץ כשהתוצאה היא 0 הוא 1 והתוצאה היא באמת 0.\n\nאפשרות קפיצה שנייה - הביט שאמר האם לקפוץ כשהתוצאה היא שלילית הוא 1 והתוצאה היא באמת שלילית.\n\nכל אחת מהאפשרויות האלה אומרת ששני דברים שונים צריכים להתקיים. יש לך כרטיס שבודק האם שני דברים שונים מתקיימים." },
+        { kind: "text", title: "רמז 4", text: "אתה יכול להשתמש ב-And עבור כל אחת מהאפשרויות." },
+        { kind: "text", title: "רמז 5", text: "אחרי שטיפלת בכל אחת מהאפשרויות, קיבלת 2 ביטים. מספיק שאחד מהם הוא 1 כדי שתהיה קפיצה." },
+        { kind: "text", title: "רמז 6", text: "בשביל זה יש לך את Or." }
+      ]
+    },
+    { id: "Cont", label: "Cont", requires: ["JmpCnt"], inputs: 1, outputs: 1, busWidth: 16 },
     { id: "CPU", label: "CPU", requires: ["PC", "Cont"], inputs: 1, outputs: 1, busWidth: 16, clocked: true },
     { id: "Computer", label: "Computer", requires: ["CPU"], inputs: 1, outputs: 1, busWidth: 16, clocked: true }
   ];

@@ -171,7 +171,7 @@
       // The 4.2 cards of the simple computer (PC0, Cont0 …) — only the ones with a
       // real shape; CPU0/Computer0 are still just names on the note.
       || (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
-      // The 4.4 cards (PC, JumpCont …) — again only the ones with a real shape.
+      // The 4.4 cards (PC, JmpCnt …) — again only the ones with a real shape.
       || (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS.find((task) => task.id === taskId && task.busWidth) : null)
       || null;
   }
@@ -1302,10 +1302,10 @@
     pins: {
       inputExt3: { x: -340, y: 0, direction: "in", width: 16, label: "כניסת הדאטה", caption: "דאטה" },
       inputInt3: { x: -260, y: 0, direction: "out", width: 16, label: "כניסת הדאטה פנימית" },
-      inputExt1: { x: -260, y: -240, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
-      inputInt1: { x: -260, y: -160, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
-      inputExt2: { x: -60, y: -240, direction: "in", width: 1, label: "כניסת הבקרה", caption: "בקרה" },
-      inputInt2: { x: -60, y: -160, direction: "out", width: 1, label: "כניסת הבקרה פנימית", caption: "בקרה" },
+      inputExt2: { x: -260, y: -240, direction: "in", width: 1, label: "כניסת הבקרה", caption: "בקרה" },
+      inputInt2: { x: -260, y: -160, direction: "out", width: 1, label: "כניסת הבקרה פנימית", caption: "בקרה" },
+      inputExt1: { x: -60, y: -240, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt1: { x: -60, y: -160, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
       outputInt1: { x: 260, y: 0, direction: "in", width: 16, label: "יציאת המונה פנימית" },
       outputExt1: { x: 340, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
     },
@@ -1323,10 +1323,50 @@
     pcLoad: true,
     busWidth: 16,
     pins: {
-      in1: { x: -30, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
-      in2: { x: 30, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      in2: { x: -30, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
+      in1: { x: 30, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
       in3: { x: -80, y: 0, direction: "in", width: 16, label: "כניסת הדאטה" },
       out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+    },
+    bounds: { left: 96, right: 96, top: 62, bottom: 50 }
+  };
+
+  // taskCard-JmpCnt: 4.4's jump decider. On the left the two condition bits of
+  // the instruction as one width-2 bus, and below them the ALU's two answers —
+  // zr (was it 0) and ng (was it negative). One wire out: jump, or don't.
+  // Combinational.
+  WORKSPACE_COMPONENT_DEFS["taskCard-JmpCnt"] = {
+    label: "מסגרת JmpCnt",
+    fixed: true,
+    taskId: "JmpCnt",
+    busWidth: 2,
+    busTask: true,
+    routingMultibit: true,
+    pins: {
+      inputExt1: { x: -340, y: -150, direction: "in", width: 2, label: "כניסת תנאי הקפיצה" },
+      inputInt1: { x: -260, y: -150, direction: "out", width: 2, label: "כניסת תנאי הקפיצה פנימית" },
+      inputExt2: { x: -340, y: 20, direction: "in", width: 1, label: "כניסת zr", caption: "zr" },
+      inputInt2: { x: -260, y: 20, direction: "out", width: 1, label: "כניסת zr פנימית", caption: "zr" },
+      inputExt3: { x: -340, y: 150, direction: "in", width: 1, label: "כניסת ng", caption: "ng" },
+      inputInt3: { x: -260, y: 150, direction: "out", width: 1, label: "כניסת ng פנימית", caption: "ng" },
+      outputInt1: { x: 260, y: 0, direction: "in", width: 1, label: "יציאת הקפיצה פנימית", caption: "קפיצה" },
+      outputExt1: { x: 340, y: 0, direction: "out", width: 1, label: "יציאת הקפיצה", caption: "קפיצה" }
+    },
+    bounds: { left: 340, right: 340, top: 250, bottom: 250 }
+  };
+
+  // gate-JmpCnt: the placeable jump decider, for building the control unit out of.
+  WORKSPACE_COMPONENT_DEFS["gate-JmpCnt"] = {
+    label: "JmpCnt",
+    taskId: "JmpCnt",
+    gate: true,
+    jmpGate: true,
+    busWidth: 2,
+    pins: {
+      in1: { x: -80, y: -40, direction: "in", width: 2, label: "כניסת תנאי הקפיצה" },
+      in2: { x: -80, y: 0, direction: "in", width: 1, label: "כניסת zr" },
+      in3: { x: -80, y: 40, direction: "in", width: 1, label: "כניסת ng" },
+      out: { x: 80, y: 0, direction: "out", width: 1, label: "יציאת הקפיצה" }
     },
     bounds: { left: 96, right: 96, top: 62, bottom: 50 }
   };
@@ -2303,7 +2343,7 @@
   // host dependencies it needs (terminalDirection, taskDefById); taskOutput and
   // otherWireEnd are pure globals from that file. The thin wrappers below keep
   // every existing call site (and evaluateWorkspace's default arg) unchanged.
-  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec });
+  const __circuitEngine = createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins: componentPins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec });
   const connectedOutputRefs = (workspace, inputRef, outputs) => __circuitEngine.connectedOutputRefs(workspace, inputRef, outputs);
   const inputSignal = (workspace, inputRef, outputs) => __circuitEngine.inputSignal(workspace, inputRef, outputs);
   const evaluateWorkspace = (workspace = state.workspace) => __circuitEngine.evaluateWorkspace(workspace);
@@ -8798,7 +8838,7 @@
 
   // ---- Chapter 4.4's note: the cards that add the conditional jump ----------
   // Same shape as 4.2's note, but the tasks are not a single chain: PC and
-  // JumpCont both open from the start, Cont waits on JumpCont, CPU on PC and
+  // JmpCnt both open from the start, Cont waits on JmpCnt, CPU on PC and
   // Cont, Computer on CPU.
   function jumpTaskDefs() {
     return typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : [];
@@ -8824,7 +8864,7 @@
 
   // Which of them has a build table so far. The rest say "המשך יבוא...".
   function jumpTaskImplemented(id) {
-    return ["PC"].includes(id);
+    return ["PC", "JmpCnt"].includes(id);
   }
 
   // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
@@ -9911,6 +9951,42 @@
           terminals: ["task-card-1.inputInt1", "zero-mux.in3", "zero-mux.in1"],
           wires: [wireKey("load-mux.out", "zero-mux.in1"), wireKey("task-card-1.inputInt1", "zero-mux.in3"),
                   wireKey("zero-mux.out", "counter.in1")]
+        }
+      }
+    ],
+    // 4.4 — the jump decider: two Ands and an Or.
+    JmpCnt: [
+      {
+        text: "שני ביטי התנאי מגיעים כבס אחד, אז קודם כל מפצלים אותו. הביט הראשון — העליון — הוא זה שאומר \"לקפוץ אם התוצאה 0\", והשני אומר \"לקפוץ אם היא שלילית\".",
+        highlight: {
+          components: ["cond-split"],
+          terminals: ["task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "cond-split.single")]
+        }
+      },
+      {
+        text: "האפשרות הראשונה דורשת ששני דברים יתקיימו יחד: שביקשו לקפוץ על 0, ושה-ALU באמת אומר zr. זה בדיוק And.",
+        highlight: {
+          components: ["and-zero"],
+          terminals: ["and-zero.in1", "and-zero.in2", "task-card-1.inputInt2"],
+          wires: [wireKey("cond-split.leg1", "and-zero.in1"), wireKey("task-card-1.inputInt2", "and-zero.in2")]
+        }
+      },
+      {
+        text: "והאפשרות השנייה בדיוק אותו דבר, עם הביט השני ועם ng: And נוסף.",
+        highlight: {
+          components: ["and-neg"],
+          terminals: ["and-neg.in1", "and-neg.in2", "task-card-1.inputInt3"],
+          wires: [wireKey("cond-split.leg0", "and-neg.in1"), wireKey("task-card-1.inputInt3", "and-neg.in2")]
+        }
+      },
+      {
+        text: "עכשיו יש שני ביטים, אחד לכל אפשרות, ומספיק שאחד מהם הוא 1 כדי לקפוץ. Or אחד מחבר ביניהם, והיציאה שלו היא היציאה של הכרטיס. כששני ביטי התנאי דלוקים, כל אחד מהמקרים לבדו מספיק — וזה יוצא מעצמו.",
+        highlight: {
+          components: ["or-jump"],
+          terminals: ["or-jump.in1", "or-jump.in2", "task-card-1.outputInt1"],
+          wires: [wireKey("and-zero.out", "or-jump.in1"), wireKey("and-neg.out", "or-jump.in2"),
+                  wireKey("or-jump.out", "task-card-1.outputInt1")]
         }
       }
     ],
@@ -17394,7 +17470,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -18290,6 +18366,8 @@
     // PC (4.4) is the same counter with a jump — its own harness, which drives
     // the load control and the address bus too.
     if (isJumpPcTaskWorkspace()) return startJumpPcTaskTest();
+    // JmpCnt (4.4) is combinational but has its own four-bit shape.
+    if (isJmpCntTaskWorkspace()) return startJmpCntTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
     // Computer0 (4.2): the whole machine, run as a program over ticks.
@@ -18501,6 +18579,59 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runJumpPcTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "PC");
+  }
+
+  // --- Chapter 4.4 JmpCnt check ----------------------------------------------
+  // Four input bits — the two condition bits of the instruction, zr and ng — so
+  // the check just walks all sixteen combinations. Jump when the "if zero" bit
+  // is set and the ALU says zero, or the "if negative" bit is set and it says
+  // negative; both bits set means either one is enough.
+  function isJmpCntTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "JmpCnt";
+  }
+  function jmpCntHarnessWorkspace(base, { cond, zr, ng }) {
+    const ws = normalizeWorkspace(clonePlain(base));
+    const mine = ["jc-cond", "jc-zr", "jc-ng", "jc-out"];
+    ws.components = ws.components.filter((c) => !mine.includes(c.id));
+    ws.wires = ws.wires.filter((w) => !/^jc-/.test(w.a) && !/^jc-/.test(w.b));
+    // The learner's own source drives nothing while the check is running.
+    ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
+    ws.components.push({ id: "jc-cond", type: "converter-out", value: cond, width: 2, x: 90, y: 260 });
+    ws.wires.push({ a: "jc-cond.out", b: "task-card-1.inputExt1" });
+    if (zr) {
+      ws.components.push({ id: "jc-zr", type: "source", x: 90, y: 470 });
+      ws.wires.push({ a: "jc-zr.out", b: "task-card-1.inputExt2" });
+    }
+    if (ng) {
+      ws.components.push({ id: "jc-ng", type: "source", x: 90, y: 620 });
+      ws.wires.push({ a: "jc-ng.out", b: "task-card-1.inputExt3" });
+    }
+    ws.components.push({ id: "jc-out", type: "lamp", x: 1160, y: 430 });
+    ws.wires.push({ a: "task-card-1.outputExt1", b: "jc-out.in" });
+    removeInvalidWires(ws);
+    return ws;
+  }
+  function runJmpCntTest(base) {
+    for (let i = 0; i < 16; i += 1) {
+      const cond = i >> 2;                 // the two condition bits, as a number
+      const zr = Boolean(i & 2);
+      const ng = Boolean(i & 1);
+      // The FIRST bit of the bus is the top one — it is the one paired with zr.
+      const jumpIfZero = Boolean(cond & 2);
+      const jumpIfNeg = Boolean(cond & 1);
+      const expected = (jumpIfZero && zr) || (jumpIfNeg && ng);
+      const flat = flattenWorkspaceForEval(jmpCntHarnessWorkspace(base, { cond, zr, ng }));
+      const got = Boolean(__circuitEngine.evaluateWorkspaceBits(flat).lamps.get("jc-out"));
+      if (got !== expected) return { ok: false, index: i, expected: expected ? 1 : 0, got: got ? 1 : 0 };
+    }
+    return { ok: true };
+  }
+  function startJmpCntTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runJmpCntTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "JmpCnt");
   }
 
   // --- Chapter 4.2 CPU0 check ------------------------------------------------
@@ -19336,7 +19467,7 @@
     if (isPrgTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "PC" || taskId === "CPU0" || taskId === "Computer0") return [];
+    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "CPU0" || taskId === "Computer0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
@@ -22257,6 +22388,12 @@
             if (Number.isFinite(c.y)) c.y += dy;
           });
           laid.type = here.type;
+          // PC0's build fills the frame from its left edge, and PC needs one more
+          // MUX16 in front of it. Slide everything but the frame to the right so
+          // there is somewhere to put it.
+          ws.components.forEach((c) => {
+            if (c.id !== "task-card-1" && Number.isFinite(c.x)) c.x += 110;
+          });
         }
         ws.clocked = Boolean(state.workspace?.clocked);
         ws.busClocked = Boolean(state.workspace?.busClocked);
@@ -23962,6 +24099,14 @@
     // 4.4's PC can also be jumped: with load high it takes its data bus instead
     // of growing by 1. PC0 has no such pins, so it stays a plain counter.
     return { width: def.busWidth || 16, load: Boolean(def.pcLoad) };
+  }
+
+  // The 4.4 jump decider (gate-JmpCnt) — combinational; the engine's jmpGate
+  // branch spells out what it does.
+  function jmpGateSpec(type) {
+    const def = WORKSPACE_COMPONENT_DEFS[type];
+    if (!def || !def.jmpGate) return null;
+    return { width: 2 };
   }
 
   // The 4.2 processor card (gate-CPU0): sequential — it holds A, D and the PC.

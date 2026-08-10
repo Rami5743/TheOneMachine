@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -622,6 +622,18 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             for (let k = 1; k <= 3; k += 1) {
               if (setBits(outputs, `${component.id}.out${k}`, [sel === k])) changed = true;
             }
+            continue;
+          }
+          // The 4.4 jump decider (gate-JmpCnt): jump when the "jump if zero" bit is
+          // set and the ALU says zero, or the "jump if negative" bit is set and it
+          // says negative. The first bit of a split bus is the TOP one, so it is
+          // the one paired with zr.
+          if (typeof jmpGateSpec === "function" && jmpGateSpec(type)) {
+            const cond = inputBits(workspace, `${component.id}.in1`, outputs);
+            const zr = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+            const ng = Boolean(inputBits(workspace, `${component.id}.in3`, outputs)[0]);
+            const jump = (Boolean(cond[1]) && zr) || (Boolean(cond[0]) && ng);
+            if (setBits(outputs, `${component.id}.out`, [jump])) changed = true;
             continue;
           }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is
