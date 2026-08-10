@@ -20807,7 +20807,13 @@
     const ports = isPortsTask(taskId);
     // …and so is the 3.5 program memory.
     const cd = isPrgTask(taskId);
-    const chapter = cd ? chapterById("chapter-17")
+    // …and so are 4.2's cards and 4.4's, which would otherwise replay under the
+    // 2.4 heading like every other multibit-shaped card.
+    const jump = Boolean(typeof jumpTaskDefById === "function" && jumpTaskDefById(taskId));
+    const simpleComputer = isSimpleComputerTask(taskId);
+    const chapter = jump ? chapterById("chapter-19")
+      : simpleComputer ? chapterById("chapter-16")
+      : cd ? chapterById("chapter-17")
       : ports ? chapterById("chapter-13")
       : ram ? chapterById("chapter-12")
       : memory ? chapterById("chapter-11")
@@ -22891,6 +22897,20 @@
       }
     }
 
+    // Where each part of PC's build sits — shared by hint 2 (which lays PC0's
+    // half of it) and by PC's solution doc, so the two never drift apart. The
+    // gap on the left, around x=470, is where the extra MUX16 goes.
+    const PC_BUILD_LAYOUT = {
+      "load-mux": { x: 470, y: 435 },
+      "zero-mux": { x: 610, y: 435 },
+      counter: { x: 745, y: 435 },
+      "plus-one": { x: 830, y: 505 },
+      "always-one": { x: 745, y: 300 },
+      "loop-right": { x: 880, y: 580 },
+      "loop-left": { x: 380, y: 580 },
+      "loop-up": { x: 380, y: 470 }
+    };
+
     // PC build hint (4.4): lay PC0's finished build on the table, so the learner
     // starts from the counter they already made and only has to add the jump.
     // Like every build hint it rebuilds the workspace, so it warns first.
@@ -22910,13 +22930,16 @@
             if (Number.isFinite(c.y)) c.y += dy;
           });
           laid.type = here.type;
-          // PC0's build fills the frame from its left edge, and PC needs one more
-          // MUX16 in front of it. Slide everything but the frame to the right so
-          // there is somewhere to put it.
-          ws.components.forEach((c) => {
-            if (c.id !== "task-card-1" && Number.isFinite(c.x)) c.x += 110;
-          });
         }
+        // PC0's build fills the frame from its left edge, and PC needs one more
+        // MUX16 in front of it. Lay it out at the spots PC's OWN solution uses,
+        // so the gap on the left is exactly where the extra card goes and the
+        // finished build sits where the walkthrough will draw it. The free source
+        // outside the frame is the table's, not the build's — it stays put.
+        ws.components.forEach((c) => {
+          const at = PC_BUILD_LAYOUT[c.id];
+          if (at) { c.x = at.x; c.y = at.y; }
+        });
         ws.clocked = Boolean(state.workspace?.clocked);
         ws.busClocked = Boolean(state.workspace?.busClocked);
         ws.workspaceCompleted = false;

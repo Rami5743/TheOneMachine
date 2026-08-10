@@ -6274,50 +6274,50 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "load-mux",
         "type": "gate-MUX16",
-        "x": 380,
+        "x": 470,
         "y": 435
       },
       {
         "id": "zero-mux",
         "type": "gate-MUX16",
-        "x": 510,
+        "x": 610,
         "y": 435
       },
       {
         "id": "counter",
         "type": "gate-Register",
-        "x": 630,
+        "x": 745,
         "y": 435
       },
       {
         "id": "plus-one",
         "type": "gate-Inc",
-        "x": 719,
-        "y": 490
+        "x": 830,
+        "y": 505
       },
       {
         "id": "always-one",
         "type": "source",
-        "x": 585,
-        "y": 315
+        "x": 745,
+        "y": 300
       },
       {
         "id": "loop-right",
         "type": "nail",
-        "x": 767,
-        "y": 566
+        "x": 880,
+        "y": 580
       },
       {
         "id": "loop-left",
         "type": "nail",
-        "x": 300,
-        "y": 566
+        "x": 380,
+        "y": 580
       },
       {
         "id": "loop-up",
         "type": "nail",
-        "x": 300,
-        "y": 416
+        "x": 380,
+        "y": 470
       }
     ],
     "wires": [
