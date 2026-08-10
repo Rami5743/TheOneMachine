@@ -3206,9 +3206,12 @@
   // the hangar, and everything they build (a task, a free table, a new card of
   // their own) is built at the work area on its floor. So the way out is named
   // for where it actually leads.
-  const HANGAR_CHAPTERS = ["chapter-15", "chapter-16"];
+  // Keyed on the PART, not on a list of chapter ids: every chapter of part 4 is
+  // in the hangar, and a hardcoded list silently left 4.4's builds saying
+  // "חזרה למחסן" the day the chapter was added.
+  const HANGAR_PART_ID = "part-4";
   function inHangarChapter(chapterId = state.chapterId) {
-    return HANGAR_CHAPTERS.includes(chapterId);
+    return chapterById(chapterId)?.partId === HANGAR_PART_ID;
   }
   function workspaceExitLabel() {
     return inHangarChapter() ? "חזרה להאנגר" : "חזרה למחסן";
