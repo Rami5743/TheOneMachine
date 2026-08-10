@@ -25,6 +25,7 @@ const ACHIEVEMENTS = [
   { id: "test-writer", title: "יוצר בדיקות", description: "השלמת את כל המשימות של פרק 4.1.", category: "progress" },
   { id: "computer-engineer", title: "מהנדס מחשבים", description: "השלמת את כל הכרטיסים של פרק 4.2.", category: "progress" },
   { id: "simple-programmer", title: "מתכנת פשוט", description: "השלמת את משימת התכנות של פרק 4.3.", category: "progress" },
+  { id: "advanced-computer-engineer", title: "מהנדס מחשבים מתקדם", description: "השלמת את כל הכרטיסים של פרק 4.4.", category: "progress" },
   // Special: side accomplishments and mastery.
   { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
   { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
@@ -40,6 +41,7 @@ const ACHIEVEMENTS = [
   { id: "precise-test-writer", title: "יוצר בדיקות מדויק", description: "השלמת את כל המשימות של פרק 4.1 ללא טעויות ורמזים.", category: "special" },
   { id: "precise-computer-engineer", title: "מהנדס מחשבים מדויק", description: "השלמת את כל הכרטיסים של פרק 4.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-simple-programmer", title: "מתכנת פשוט מדויק", description: "השלמת את משימת התכנות של פרק 4.3 ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-advanced-computer-engineer", title: "מהנדס מחשבים מתקדם מדויק", description: "השלמת את כל הכרטיסים של פרק 4.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
   { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
   { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },
@@ -77,7 +79,7 @@ const MEDAL_CHAPTERS = [
   { num: "3.4", nick: "פורטים", cards: (typeof PORTS_TASKS !== "undefined" ? PORTS_TASKS : []) },
   { num: "3.5", nick: "זיכרון תוכנה", cards: (typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []) },
   { num: "4.2", nick: "מחשבים", cards: (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []) },
-  { num: "4.4", nick: "קפיצות", cards: (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []) }
+  { num: "4.4", nick: "מחשבים מתקדם", cards: (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []) }
 ];
 
 const MEDAL_ACHIEVEMENTS = [];

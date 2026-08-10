@@ -4845,6 +4845,9 @@
     // Chapter 4.2, the processor (PC0 / Cont0 / CPU0 / Computer0).
     const computerIds = (typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []).map((t) => t.id);
     if (computerIds.length > 0 && computerIds.every((id) => taskCompleted(id))) unlockAchievement("computer-engineer");
+    // Chapter 4.4, the machine that jumps (PC / JmpCnt / Cont / CPU / Computer).
+    const jumpIds = (typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []).map((t) => t.id);
+    if (jumpIds.length > 0 && jumpIds.every((id) => taskCompleted(id))) unlockAchievement("advanced-computer-engineer");
 
     // Chapter 4.1 — the exercise page, where the learner runs instructions by
     // hand. "Done" is every instruction on the page revealed and answered right;
@@ -4891,6 +4894,7 @@
     if (chapterClean(portsIds)) unlockAchievement("precise-ports-engineer");
     if (chapterClean(prgIds)) unlockAchievement("precise-prg-engineer");
     if (chapterClean(computerIds)) unlockAchievement("precise-computer-engineer");
+    if (chapterClean(jumpIds)) unlockAchievement("precise-advanced-computer-engineer");
 
     // "מהנדס יסודי": a task that was completed, cleared from its note, and then
     // completed again.
