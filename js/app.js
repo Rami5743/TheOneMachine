@@ -23002,19 +23002,17 @@
       }
     }
 
-    // Where each part of PC's build sits — shared by hint 2 (which lays PC0's
-    // half of it) and by PC's solution doc, so the two never drift apart. The
-    // gap on the left, around x=470, is where the extra MUX16 goes.
-    const PC_BUILD_LAYOUT = {
-      "load-mux": { x: 470, y: 435 },
-      "zero-mux": { x: 610, y: 435 },
-      counter: { x: 745, y: 435 },
-      "plus-one": { x: 830, y: 505 },
-      "always-one": { x: 745, y: 300 },
-      "loop-right": { x: 880, y: 580 },
-      "loop-left": { x: 380, y: 580 },
-      "loop-up": { x: 380, y: 470 }
-    };
+    // Where each part of PC's build sits: READ OFF PC's own solution doc, never
+    // written down twice. Hint 2 lays PC0's half of the build at these spots, so
+    // the gap on the left is exactly where the extra MUX16 goes and the finished
+    // build sits where the walkthrough will draw it — and re-authoring the
+    // solution in the editor moves the hint with it, instead of quietly leaving
+    // the two a hundred pixels apart.
+    const PC_BUILD_LAYOUT = Object.fromEntries(
+      ((typeof SOLUTION_DOCS !== "undefined" && SOLUTION_DOCS.PC ? SOLUTION_DOCS.PC.components : []) || [])
+        .filter((c) => Number.isFinite(c.x) && Number.isFinite(c.y))
+        .map((c) => [c.id, { x: c.x, y: c.y }])
+    );
 
     // PC build hint (4.4): lay PC0's finished build on the table, so the learner
     // starts from the counter they already made and only has to add the jump.

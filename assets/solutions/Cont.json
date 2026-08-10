@@ -148,8 +148,8 @@
     {
       "id": "bus-split",
       "type": "splitter",
-      "x": 450,
-      "y": 300,
+      "x": 455,
+      "y": 280,
       "outputs": 2,
       "legWidths": [
         2,
@@ -160,8 +160,8 @@
     {
       "id": "dest",
       "type": "gate-Cont0",
-      "x": 700,
-      "y": 300
+      "x": 690,
+      "y": 265
     },
     {
       "id": "jump",

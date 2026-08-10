@@ -137,6 +137,13 @@ const DEFS = {
   "gate-PC0":   { pcGate:true, label:"PC0", busWidth:16 },
   "gate-Cont0": { contGate:true, label:"Cont0", busWidth:2 },
   "gate-CPU0":  { cpuGate:true, label:"CPU0", busWidth:16 },
+  // The 4.4 cards. Same story — componentMarkup draws them by name, so these
+  // entries only have to exist; without them the editor drew an empty box and
+  // the wires had nowhere to land.
+  "gate-PC":     { pcGate:true, pcLoad:true, label:"PC", busWidth:16 },
+  "gate-JmpCnt": { jmpGate:true, label:"JmpCnt", busWidth:2 },
+  "gate-Cont":   { contJumpGate:true, label:"Cont", busWidth:4 },
+  "gate-CPU":    { cpuGate:true, cpuJump:true, label:"CPU", busWidth:16 },
   // 3.5: the program memory. Two 16-bit address pins, of which only the last 10
   // address the bank (addressBits), plus data in, control on top and the word out.
   "gate-Prg":    { prgGate:true, label:"Prg", busWidth:16, addressWidth:16, addressBits:10, slots:1024 }
@@ -230,7 +237,16 @@ const PINS = {
   "gate-Cont0":{ in1:{x:-90,y:0,w:2}, out1:{x:90,y:-30,w:1}, out2:{x:90,y:0,w:1}, out3:{x:90,y:30,w:1} },
   "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
     out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} },
-  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} }
+  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} },
+  // 4.4: the counter that jumps (load beside reset on top, the number to jump to
+  // in on the left), the jump decider, the whole control unit, and the processor
+  // — whose terminals are CPU0's exactly.
+  "gate-PC":{ in2:{x:-30,y:-46,w:1}, in1:{x:30,y:-46,w:1}, in3:{x:-80,y:0,w:16}, out:{x:80,y:0,w:16} },
+  "gate-JmpCnt":{ in1:{x:-80,y:-40,w:2}, in2:{x:-80,y:0,w:1}, in3:{x:-80,y:40,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Cont":{ in1:{x:-80,y:-40,w:4}, in2:{x:-80,y:0,w:1}, in3:{x:-80,y:40,w:1},
+    out1:{x:80,y:-60,w:1}, out2:{x:80,y:-20,w:1}, out3:{x:80,y:20,w:1}, out4:{x:80,y:60,w:1} },
+  "gate-CPU":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
+    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits

@@ -6274,38 +6274,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "load-mux",
         "type": "gate-MUX16",
-        "x": 470,
-        "y": 435
+        "x": 465,
+        "y": 430
       },
       {
         "id": "zero-mux",
         "type": "gate-MUX16",
-        "x": 610,
-        "y": 435
+        "x": 585,
+        "y": 430
       },
       {
         "id": "counter",
         "type": "gate-Register",
         "x": 745,
-        "y": 435
+        "y": 430
       },
       {
         "id": "plus-one",
         "type": "gate-Inc",
-        "x": 830,
+        "x": 840,
         "y": 505
       },
       {
         "id": "always-one",
         "type": "source",
-        "x": 745,
+        "x": 705,
         "y": 300
       },
       {
         "id": "loop-right",
         "type": "nail",
-        "x": 880,
-        "y": 580
+        "x": 890,
+        "y": 575
       },
       {
         "id": "loop-left",
@@ -6684,8 +6684,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "bus-split",
         "type": "splitter",
-        "x": 450,
-        "y": 300,
+        "x": 455,
+        "y": 280,
         "outputs": 2,
         "legWidths": [
           2,
@@ -6696,8 +6696,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "dest",
         "type": "gate-Cont0",
-        "x": 700,
-        "y": 300
+        "x": 690,
+        "y": 265
       },
       {
         "id": "jump",
