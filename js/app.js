@@ -1368,7 +1368,7 @@
       in3: { x: -80, y: 40, direction: "in", width: 1, label: "כניסת ng" },
       out: { x: 80, y: 0, direction: "out", width: 1, label: "יציאת הקפיצה" }
     },
-    bounds: { left: 96, right: 96, top: 62, bottom: 50 }
+    bounds: { left: 96, right: 96, top: 92, bottom: 92 }
   };
 
   // taskCard-Computer: 4.4's machine. Same ports, same reset, same two program
@@ -1521,7 +1521,7 @@
       out3: { x: 80, y: 20, direction: "out", width: 1, label: "יציאת *A", caption: "*A" },
       out4: { x: 80, y: 60, direction: "out", width: 1, label: "יציאת PC", caption: "PC" }
     },
-    bounds: { left: 96, right: 96, top: 80, bottom: 80 }
+    bounds: { left: 96, right: 96, top: 92, bottom: 92 }
   };
 
   // taskCard-Cont0: the control unit's build frame. One width-2 bus in on the

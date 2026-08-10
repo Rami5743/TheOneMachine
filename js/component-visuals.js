@@ -474,16 +474,21 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // instruction as one width-2 bus on the upper left, zr and ng as plain wires
   // below it, and one wire out — jump, or don't.
   function jmpCntGateMarkup(options = {}) {
-    const edge = 40;
-    const bodyH = 110;
+    // Wider than the pins strictly need (they sit at ±80, and a stub is 40): at
+    // edge 40 the six letters of "JmpCnt" ran off both sides of the body, since
+    // labelFontSize never shrinks below its base size.
+    const edge = 56;
+    const bodyH = 170;
     let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 2, !options.toolbar);
     s += pinLine(-(edge + PIN), 0, -edge, 0);
     s += pinLine(-(edge + PIN), 40, -edge, 40);
     s += pinLine(edge, 0, edge + PIN, 0);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "JmpCnt";
-    const font = labelFontSize(name, edge * 2, 18);
-    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    const font = labelFontSize(name, edge * 2, 15);
+    // At the BOTTOM, not the middle: zr comes in at y=0, and a centred name sat
+    // exactly on top of its label.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 14}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // zr and ng are two identical single wires — without their names on the
     // body there is nothing on the card to tell them apart.
     if (!options.toolbar) {
@@ -500,8 +505,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // on the left, and four wires out — write to D, to A, to *A, and to the PC
   // (which is to say: jump).
   function contJumpGateMarkup(options = {}) {
-    const edge = 40;
-    const bodyH = 150;
+    // Same reason as JmpCnt: at edge 40 the name filled the body edge to edge.
+    const edge = 48;
+    const bodyH = 170;
     const outYs = [-60, -20, 20, 60];
     const captions = ["D", "A", "‎*A‎", "PC"];
     let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: -40 }, 4, !options.toolbar);
@@ -511,7 +517,8 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "Cont";
     const font = labelFontSize(name, edge * 2, 18);
-    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // Same as JmpCnt: the middle band belongs to the zr wire.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 14}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     if (!options.toolbar) {
       const nfont = Math.round(10 * k());
       s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">zr</text>`;
