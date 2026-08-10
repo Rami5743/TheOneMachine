@@ -2580,6 +2580,24 @@ const SCENES = {
         "image": "assets/panels/254_4.4_ng-and-zr.svg",
         "year": "1944",
         "read": "אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4 בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב יצא 0 והאם הוא יצא שלילי, כך שאתה יכול להשתמש בו."
+      },
+      {
+        "comment": "What actually has to change in the machine: the PC and the control unit.",
+        "image": "assets/panels/255_4.4_pc-and-control.svg",
+        "year": "1944",
+        "read": "האפשרות של קפיצה מותנת תהפוך את המכונה שלנו להרבה יותר חזקה, אבל לא קשה להוסיף אותה: עיקר ההבדל הוא ב-PC וביחידת הבקרה. צריך להוסיף כניסה ל-PC שתאפשר לכתוב לתוכו, במקום שהוא יגדל סתם ב-1. זה יאפשר לנו לקפוץ. צריך גם להרחיב את יחידת הבקרה כדי שהיא תוכל לפתוח את ה-PC לכתיבה מתי שצריך."
+      },
+      {
+        "comment": "Wordless: he lays the note of tasks on the worktable.",
+        "image": "assets/panels/256_4.4_note-placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The tasks are on the table, and the end is in sight.",
+        "image": "assets/panels/257_4.4_here-are-the-tasks.svg",
+        "year": "1944",
+        "read": "זהו. אלה המשימות שלך. נראה שאנחנו קרובים לסיום."
       }
     ]
   }
