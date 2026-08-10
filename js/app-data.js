@@ -1083,8 +1083,40 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     resetSwitch: { label: "המפסק של הריסט", note: "כשהוא לחוץ אפשר לכתוב לזיכרון התוכנה והמחשב לא מריץ; כשמשחררים אותו המחשב מתחיל לבצע את הפקודות מההתחלה." },
     // The description of the program to be written, left on the table: it opens
     // the 4.3 programming page.
-    programNote: { label: "הפתק", opens: "program-sheet" }
+    programNote: { label: "הפתק", opens: "program-sheet" },
+    // The note von Neumann leaves at the end of 4.4: the cards that turn the
+    // simple computer into a machine that can jump.
+    jumpNote: { label: "הפתק", opens: "jump-tasks" }
   };
+
+  // The build tasks of chapter 4.4 — the conditional jump. PC and JumpCont can
+  // both be started at once; Cont waits on JumpCont, CPU on PC and Cont, and
+  // Computer on CPU.
+  const JUMP_TASKS = [
+    {
+      id: "PC",
+      label: "PC",
+      requires: [],
+      inputs: 1,
+      outputs: 1,
+      busWidth: 16,
+      clocked: true,
+      requirements: "ל-PC יש כניסת דאטה אחת שהיא בס בגודל 16, ויציאה אחת שהיא בס בגודל 16 שאומרת מה רשום בו. בדרך כלל המספר הזה גדל ב-1 בכל שלב.\n\nיש לו מלמעלה גם כניסת reset וכניסת בקרה: אם כניסת הבקרה היא 1, אז במקום לגדול ב-1 בשלב הבא, ה-PC שומר את כניסת הדאטה שלו. אם כניסת ה-reset היא 1 אז ה-PC מתעלם מכל השאר והתוכן שלו מתאפס.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "ה-PC מאוד דומה ל-PC0. אתה יכול להתחיל ממנו ואז לשנות." },
+        { kind: "build", title: "רמז 2", text: "אתה רוצה שאשחזר לך את בניית ה-PC0? אם תלחץ כן, זה ימחק את כל מה שבנית.", solutionOf: "PC0" },
+        { kind: "text", title: "רמז 3", text: "תחשוב על הכניסה של הרגיסטר. מה צריך להיכנס לשם?" },
+        { kind: "text", title: "רמז 4", text: "לפעמים אתה צריך לרשום את היציאה ועוד אחד, לפעמים את כניסת הדאטה ולפעמים לאפס. יש לך כרטיסים שיודעים לבחור. תשתמש בהם." },
+        { kind: "text", title: "רמז 5", text: "תחשוב באיזה סדר אתה צריך לבחור." },
+        { kind: "text", title: "רמז 6", text: "הריסט הוא זה שאומר את המילה האחרונה: אם הוא 1 אז השאר לא חשוב, סימן שהבחירה שלו צריכה להיות אחרונה. עכשיו תחשוב מה האפשרויות שלו." },
+        { kind: "text", title: "רמז 7", text: "אחת האפשרויות היא ריקה (רגיסטר של אפסים), זה מה שקורה אם הריסט הוא 1. האפשרות השנייה תלויה בכניסת הבקרה, זאת אומרת שהיא היציאה של mux אחר. זה ה-mux שבוחר בין כניסת הדאטה ובין היציאה ועוד אחד." }
+      ]
+    },
+    { id: "JumpCont", label: "JumpCont", requires: [], inputs: 1, outputs: 1, busWidth: 16 },
+    { id: "Cont", label: "Cont", requires: ["JumpCont"], inputs: 1, outputs: 1, busWidth: 16 },
+    { id: "CPU", label: "CPU", requires: ["PC", "Cont"], inputs: 1, outputs: 1, busWidth: 16, clocked: true },
+    { id: "Computer", label: "Computer", requires: ["CPU"], inputs: 1, outputs: 1, busWidth: 16, clocked: true }
+  ];
 
   // The build tasks of chapter 4.1, to be done in this order. None of them has a
   // workspace yet — opening one says so.

@@ -1805,6 +1805,7 @@
     maxPanelReached: {},
     // The 4.1 build-task note (transient, like the other worktable notes).
     buildNoteList: false,
+    jumpNoteList: false,
     // "נקה התקדמות" on the exercise page, waiting for a yes.
     sheetClearConfirm: null,
     // The free square of the page being written in right now: { row, col }.
@@ -3066,6 +3067,7 @@
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
+      jumpNoteList: false,
       // The subtraction demo is a workbench-screen mode; leaving it via any topbar
       // navigation (all of which apply this patch) must end it, so its bubble and
       // board lock don't bleed onto the next workbench you open (a task build, the
@@ -3312,7 +3314,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -8742,6 +8744,75 @@
     openSimpleComputerTaskWorkspace(task.id, { intro });
   }
 
+  // ---- Chapter 4.4's note: the cards that add the conditional jump ----------
+  // Same shape as 4.2's note, but the tasks are not a single chain: PC and
+  // JumpCont both open from the start, Cont waits on JumpCont, CPU on PC and
+  // Cont, Computer on CPU.
+  function jumpTaskDefs() {
+    return typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : [];
+  }
+
+  function jumpTaskDefById(id) {
+    return jumpTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  function jumpTaskUnlocked(id) {
+    const def = jumpTaskDefById(id);
+    if (!def) return false;
+    return (def.requires || []).every((req) => taskCompleted(req));
+  }
+
+  function jumpTaskLockedMessage(id) {
+    const def = jumpTaskDefById(id);
+    const missing = (def?.requires || []).filter((req) => !taskCompleted(req))
+      .map((req) => jumpTaskDefById(req)?.label || req);
+    if (!missing.length) return "המשך יבוא...";
+    return `קודם צריך לבנות את ${missing.join(", ")}.`;
+  }
+
+  // Which of them has a build table so far. The rest say "המשך יבוא...".
+  function jumpTaskImplemented() {
+    return false;
+  }
+
+  function handleJumpNoteTask(id) {
+    const task = jumpTaskDefById(id);
+    if (!task) return;
+    if (!jumpTaskUnlocked(task.id)) {
+      return setState({ infoDialog: jumpTaskLockedMessage(task.id) });
+    }
+    if (!jumpTaskImplemented(task.id)) {
+      return setState({ infoDialog: "המשך יבוא..." });
+    }
+    return setState({ infoDialog: "המשך יבוא..." });
+  }
+
+  function renderJumpNoteList() {
+    if (!state.jumpNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${jumpTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          const locked = !jumpTaskUnlocked(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""} ${locked ? "task-locked" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="jump-note-task" data-task-id="${esc(task.id)}" type="button" aria-disabled="${locked ? "true" : "false"}">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="jump-note-close">סגור</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   // The 4.2 build-task note. The tasks are listed in the order they must be done,
   // each unlocked by the one before it. The two that have a build table open it;
   // the rest still say "המשך יבוא...".
@@ -9067,6 +9138,7 @@
       ${renderPrgNoteList()}
       ${renderAluIntroDialog()}
       ${renderBuildNoteList()}
+      ${renderJumpNoteList()}
       ${renderInstructionSheet()}
       ${renderProgramSheet()}`;
 
@@ -25678,6 +25750,7 @@
       if (object && object.todo) return setState({ panelObjectDialog: null, infoDialog: object.todo });
       if (object && object.opens === "instruction-sheet") return openInstructionSheet();
       if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
+      if (object && object.opens === "jump-tasks") return setState({ panelObjectDialog: null, jumpNoteList: true });
       if (object && object.opens === "program-sheet") return openProgramSheet();
       if (object && object.opens === "free-workbench") return openRoomWorkbench();
       return setState({ panelObjectDialog: objectId }, false);
@@ -25691,6 +25764,8 @@
     if (action === "sheet-hint-close") return setState({ sheetDialog: { ...state.sheetDialog, hint: null } });
     if (action === "build-note-task") return handleBuildNoteTask(button.dataset.taskId);
     if (action === "build-note-close") return setState({ buildNoteList: false });
+    if (action === "jump-note-task") return handleJumpNoteTask(button.dataset.taskId);
+    if (action === "jump-note-close") return setState({ jumpNoteList: false });
     if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
     if (action === "sheet-guide-prev") return stepSheetGuide(-1);
     if (action === "sheet-guide-next") return stepSheetGuide(1);

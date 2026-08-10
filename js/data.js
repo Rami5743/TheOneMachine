@@ -2599,6 +2599,167 @@ const SCENES = {
         "image": "assets/panels/257_4.4_here-are-the-tasks.svg",
         "year": "1944",
         "read": "זהו. אלה המשימות שלך. נראה שאנחנו קרובים לסיום."
+      },
+      {
+        "comment": "Wordless: the 4.4 room, the note of jump tasks on the worktable. Same camera and zones as 4.3's room.",
+        "image": "assets/panels/258_4.4_build-room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgPort",
+            "ariaLabel": "כניסת PRG",
+            "left": 61.88,
+            "top": 82.32,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgAdrPort",
+            "ariaLabel": "כניסת ADR PRG",
+            "left": 64.92,
+            "top": 81.77,
+            "width": 3.18,
+            "height": 4.79
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 69.06,
+            "top": 82.23,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.44,
+            "top": 81.31,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.52,
+            "top": 81.49,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 80.18,
+            "top": 81.68,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.77,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.04,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.78,
+            "top": 82.5,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.62,
+            "top": 82.69,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "jumpNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 58.64,
+            "top": 87.68,
+            "width": 41.36,
+            "height": 13.43
+          }
+        ]
       }
     ]
   }
