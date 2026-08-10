@@ -1371,6 +1371,69 @@
     bounds: { left: 96, right: 96, top: 62, bottom: 50 }
   };
 
+  // taskCard-CPU: 4.4's processor. Same terminals as CPU0 exactly — the
+  // chapter says so — but inside it the counter can be jumped and the control
+  // unit decides when.
+  WORKSPACE_COMPONENT_DEFS["taskCard-CPU"] = {
+    label: "מסגרת CPU",
+    fixed: true,
+    taskId: "CPU",
+    busWidth: 16,
+    busTask: true,
+    routingMultibit: true,
+    // Only a fallback: the solution JSON's frameW/frameH win (solutionFrameSize).
+    frameSize: { w: 800, h: 680 },
+    pins: {
+      inputExt1: { x: -340, y: -140, direction: "in", width: 16, label: "כניסת הפקודה", caption: "פקודה" },
+      inputInt1: { x: -260, y: -140, direction: "out", width: 16, label: "כניסת הפקודה פנימית" },
+      // A caption that mixes Hebrew with Latin is wrapped in a RIGHT-TO-LEFT
+      // ISOLATE (U+2067…U+2069): the SVG text around it runs left-to-right, so
+      // without it "קלט *A" comes out with the Hebrew on the left and reads
+      // backwards. The isolate sets the run's own direction without touching
+      // how the label is anchored.
+      inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "\u2067קלט \u200e*A\u200e\u2069" },
+      inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
+      inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      // BOTH addresses go out WHOLE. Each memory takes a 16-bit address bus and
+      // ignores the top of it itself — five bits on the data memory, six on the
+      // program memory — so nothing has to be cut here at all.
+      // All four outputs leave through the card's SIDE, however high or low they
+      // sit — without saying so the shell reads a pin past ±150 as poking out of
+      // the top or bottom edge and stands it on end.
+      outputInt1: { x: 260, y: -70, direction: "in", width: 16, label: "יציאת A פנימית", edge: "side" },
+      outputExt1: { x: 340, y: -70, direction: "out", width: 16, label: "יציאת A", caption: "A", edge: "side" },
+      outputInt2: { x: 260, y: -200, direction: "in", width: 16, label: "יציאת PC פנימית", edge: "side" },
+      outputExt2: { x: 340, y: -200, direction: "out", width: 16, label: "יציאת PC", caption: "PC", edge: "side" },
+      outputInt3: { x: 260, y: 70, direction: "in", width: 16, label: "יציאת הפלט פנימית" },
+      outputExt3: { x: 340, y: 70, direction: "out", width: 16, label: "יציאת הפלט", caption: "\u2067פלט \u200e*A\u200e\u2069" },
+      outputInt4: { x: 260, y: 200, direction: "in", width: 1, label: "יציאת הכתיבה פנימית", edge: "side" },
+      outputExt4: { x: 340, y: 200, direction: "out", width: 1, label: "יציאת הכתיבה", caption: "\u2067בקרת \u200e*A\u200e\u2069", edge: "side" }
+    },
+    bounds: { left: 340, right: 340, top: 310, bottom: 280 }
+  };
+
+  // gate-CPU: the placeable processor that jumps, for building the computer.
+  WORKSPACE_COMPONENT_DEFS["gate-CPU"] = {
+    label: "CPU",
+    taskId: "CPU",
+    gate: true,
+    cpuGate: true,
+    cpuJump: true,
+    busWidth: 16,
+    pins: {
+      in1: { x: -110, y: -50, direction: "in", width: 16, label: "כניסת הפקודה" },
+      in2: { x: -110, y: 50, direction: "in", width: 16, label: "כניסת הקלט" },
+      in3: { x: 0, y: -170, direction: "in", width: 1, label: "כניסת האיפוס" },
+      out1: { x: 110, y: -30, direction: "out", width: 16, label: "יציאת A" },
+      out2: { x: 110, y: -85, direction: "out", width: 16, label: "יציאת PC" },
+      out3: { x: 110, y: 30, direction: "out", width: 16, label: "יציאת הפלט" },
+      out4: { x: 110, y: 85, direction: "out", width: 1, label: "יציאת הכתיבה" }
+    },
+    bounds: { left: 114, right: 114, top: 186, bottom: 130 }
+  };
+
+
   // taskCard-Cont: 4.4's whole control unit. One width-4 bus in — the two
   // destination bits of the instruction and the two jump-condition bits — plus
   // the ALU's zr and ng. Four wires out: write to D, to A, to *A, and to the PC
@@ -8913,7 +8976,7 @@
 
   // Which of them has a build table so far. The rest say "המשך יבוא...".
   function jumpTaskImplemented(id) {
-    return ["PC", "JmpCnt", "Cont"].includes(id);
+    return ["PC", "JmpCnt", "Cont", "CPU"].includes(id);
   }
 
   // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
@@ -10000,6 +10063,63 @@
           terminals: ["task-card-1.inputInt1", "zero-mux.in3", "zero-mux.in1"],
           wires: [wireKey("load-mux.out", "zero-mux.in1"), wireKey("task-card-1.inputInt1", "zero-mux.in3"),
                   wireKey("zero-mux.out", "counter.in1")]
+        }
+      }
+    ],
+    // 4.4 — the processor that jumps: CPU0 with two cards swapped and three
+    // wires added.
+    CPU: [
+      {
+        text: "החוץ של הכרטיס זהה ל-CPU0: אותה פקודה נכנסת, אותו קלט מהזיכרון, אותו ריסט, ואותן ארבע יציאות. גם הפנים כמעט זהה — ה-ALU עובד תמיד על אותן שלוש כניסות, ושני הרגיסטרים A ו-D יושבים במקומם.",
+        highlight: {
+          components: ["alu", "reg-a", "reg-d"],
+          terminals: ["alu.in1", "alu.in2", "alu.in3"],
+          wires: [wireKey("alu.in1", "reg-d.out"), wireKey("alu.in2", "reg-a.out"),
+                  wireKey("task-card-1.inputInt2", "alu.in3")]
+        }
+      },
+      {
+        text: "ההבדל הראשון הוא בפיצול הפקודה. קודם הופרדו שני ביטי היעד מ-12 ביטי ההוראה; עכשיו ארבעת הביטים האחרונים יוצאים יחד — היעד ותנאי הקפיצה — כי כולם הולכים לאותו מקום.",
+        highlight: {
+          components: ["word-split"],
+          terminals: ["task-card-1.inputInt1"],
+          wires: [wireKey("task-card-1.inputInt1", "word-split.single"),
+                  wireKey("word-split.leg1", "ctrl-nail-in.in")]
+        }
+      },
+      {
+        text: "ההבדל השני: במקום Cont0 יושב כאן Cont, והוא מקבל את כל ארבעת הביטים. הוא צריך גם לדעת מה יצא בחישוב — ולכן zr ו-ng של ה-ALU4 נכנסים אליו. זאת הסיבה שכאן צריך ALU4 ולא ALU3.",
+        highlight: {
+          components: ["control", "alu"],
+          terminals: ["control.in1", "control.in2", "control.in3"],
+          wires: [wireKey("control.in1", "word-split.leg0"),
+                  wireKey("alu.out3", "control.in2"), wireKey("alu.out2", "control.in3")]
+        }
+      },
+      {
+        text: "שלוש היציאות הראשונות שלו עושות בדיוק מה שעשו קודם — אומרות לאן לרשום את התוצאה.",
+        highlight: {
+          components: ["control", "reg-a", "reg-d"],
+          terminals: ["control.out1", "control.out2", "control.out3"],
+          wires: [wireKey("control.out1", "reg-d.in2"), wireKey("control.out2", "reg-a.in2"),
+                  wireKey("control.out3", "write-nail-out.in")]
+        }
+      },
+      {
+        text: "וההבדל האחרון: במקום PC0 יושב PC, והיציאה הרביעית של ה-Cont — זו שאומרת האם לקפוץ — היא כניסת הבקרה שלו. כשהיא דלוקה הוא לא סופר הלאה אלא לוקח את מה שבכניסת הדאטה שלו.",
+        highlight: {
+          components: ["counter", "control"],
+          terminals: ["counter.in2"],
+          wires: [wireKey("control.out4", "counter.in2")]
+        }
+      },
+      {
+        text: "ולאן קופצים? לכתובת שבתוך A — בדיוק כמו שהסביר ג'ון. אז היציאה של רגיסטר A מגיעה גם לכניסת הדאטה של ה-PC. הריסט נשאר כפי שהיה, והוא עדיין גובר על הכול.",
+        highlight: {
+          components: ["counter", "reg-a"],
+          terminals: ["counter.in3", "counter.in1", "task-card-1.outputInt2"],
+          wires: [wireKey("reg-a.out", "counter.in3"), wireKey("task-card-1.inputInt3", "counter.in1"),
+                  wireKey("counter.out", "task-card-1.outputInt2")]
         }
       }
     ],
@@ -17556,7 +17676,7 @@
   const SOLUTION_DOC_STATUS = {}; // task -> "loaded" | "error: <why>"
   // Tasks whose geometry + check live in assets/solutions/<task>.json (only the
   // ones that actually have a file — the 2.5 arith tasks are still code-backed).
-  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt", "Cont"];
+  const SOLUTION_JSON_TASKS = ["Inc", "ALU0", "PreperNum", "ALU1", "ALU2", "ALU3", "ALU4", "Add16", "Add4", "halfAdder", "fullAdder", "Register4", "Register", "RAM4", "RAM16", "RAM64", "RAM256", "RAM1024", "OPorts", "IPorts", "Ports", "RAM", "Prg", "PC0", "Cont0", "CPU0", "Computer0", "PC", "JmpCnt", "Cont", "CPU"];
   // When true the game REFUSES to fall back to hardcoded geometry / check cases
   // for a JSON-backed task: if its JSON did not load, the build shell, the check
   // and the solution all fail loudly (console + on-screen) instead of silently
@@ -18456,6 +18576,8 @@
     if (isJmpCntTaskWorkspace()) return startJmpCntTaskTest();
     // Cont (4.4) is combinational too, with its own six-bit shape.
     if (isContJumpTaskWorkspace()) return startContJumpTaskTest();
+    // CPU (4.4) is clocked and runs a little program that jumps.
+    if (isCpuJumpTaskWorkspace()) return startCpuJumpTaskTest();
     // CPU0 (4.2) is clocked too — it runs a little program instead of a table.
     if (isCpuTaskWorkspace()) return startCpuTaskTest();
     // Computer0 (4.2): the whole machine, run as a program over ticks.
@@ -18893,6 +19015,84 @@
     notTestSnapshot = clonePlain(state.workspace);
     const result = runCpuTest(state.workspace);
     return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "CPU0");
+  }
+
+  // --- Chapter 4.4 CPU check -------------------------------------------------
+  // The same harness CPU0 uses — the four outputs read off converters and a lamp
+  // — over a program that jumps. The last two bits of each instruction are no
+  // longer spare: they say on which result to jump, and the address jumped to is
+  // whatever A holds.
+  function isCpuJumpTaskWorkspace() {
+    return state.screen === "workspace" && state.workspace?.taskId === "CPU";
+  }
+  // instr, the number arriving from memory, and the reset wire — as CPU0's, plus
+  // a jump on the end.
+  function cpuJumpTestSteps() {
+    return [
+      { instr: 0b0000000000011000, mem: 0, reset: false },  // A = 1
+      { instr: 0b0000000100011100, mem: 0, reset: false },  // *A = 17
+      { instr: 0b0000000001010100, mem: 17, reset: false }, // D = 5
+      { instr: 0b1000011110000100, mem: 17, reset: false }, // D = *A - D  (= 12)
+      { instr: 0b0000000010100000, mem: 0, reset: false },  // A = 10, no jump
+      // D - D is 0, and the "jump if zero" bit is on: the PC must take A (10).
+      { instr: 0b1000010011000010, mem: 0, reset: false },
+      { instr: 0b0000000000011000, mem: 0, reset: false },  // A = 1, counting on from 10
+      // A negative result with only the "jump if zero" bit on: NO jump.
+      { instr: 0b1000001111000010, mem: 0, reset: false },  // 0 - D … with D = 12
+      // The same result with the "jump if negative" bit on: jump to what A holds.
+      { instr: 0b1000001111000001, mem: 0, reset: false },
+      { instr: 0b0000000000000000, mem: 0, reset: false },  // nothing, counting on
+      // Both condition bits on, over a zero result: either one is enough.
+      { instr: 0b0000000010100000, mem: 0, reset: false },  // A = 10
+      { instr: 0b1000101010000011, mem: 0, reset: false },  // 0 → jump to 10
+      { instr: 0b0000000000011000, mem: 0, reset: true }    // and reset beats a jump
+    ];
+  }
+  function cpuJumpExpectedRun() {
+    const rows = [];
+    let a = 0, d = 0, pc = 0;
+    for (const step of cpuJumpTestSteps()) {
+      const control = (step.instr >> 4) & 0xfff;
+      const dest = (step.instr >> 2) & 3;
+      const result = cpuAluResult(control, d, a, step.mem);
+      rows.push({ a: a & 0xffff, pc: pc & 0xffff, out: result, write: dest === 3 });
+      const zr = (result & 0xffff) === 0;
+      const ng = Boolean((result >> 15) & 1);
+      const jump = (Boolean((step.instr >> 1) & 1) && zr) || (Boolean(step.instr & 1) && ng);
+      if (dest === 1) d = result;
+      if (dest === 2) a = result;
+      pc = step.reset ? 0 : (jump ? a : (pc + 1) % 65536);
+      // A jump takes what A holds AT THE END of the tick — the same A the
+      // instruction may just have written.
+    }
+    return rows;
+  }
+  function runCpuJumpTest(base) {
+    const steps = cpuJumpTestSteps();
+    const want = cpuJumpExpectedRun();
+    let prev = new Map();
+    for (let i = 0; i < steps.length; i += 1) {
+      const flat = flattenWorkspaceForEval(cpuHarnessWorkspace(base, steps[i]));
+      const result = __circuitEngine.evaluateWorkspaceBits(flat, prev);
+      const read = (id) => {
+        const info = result.converters.get(id);
+        return info ? Number(info.value) : -1;
+      };
+      const got = { a: read("cpu-a"), pc: read("cpu-pc"), out: read("cpu-out"), write: Boolean(result.lamps.get("cpu-write")) };
+      const expect = want[i];
+      if (got.a !== expect.a || got.pc !== expect.pc || got.out !== expect.out || got.write !== expect.write) {
+        return { ok: false, index: i, expected: expect, got };
+      }
+      prev = result.next;
+    }
+    return { ok: true };
+  }
+  function startCpuJumpTaskTest() {
+    if (notTestActive()) return;
+    clearNotTestTimer();
+    notTestSnapshot = clonePlain(state.workspace);
+    const result = runCpuJumpTest(state.workspace);
+    return showNotTestResult(result.ok ? "success" : "failure", state.workspace, "CPU");
   }
 
   // --- Chapter 4.2 Computer0 check -------------------------------------------
@@ -19610,7 +19810,7 @@
     if (isPrgTask(taskId)) return [];
     // PC0 and CPU0 are clocked too — they are run over ticks (runPcTest /
     // runCpuTest), never as a table of combinational cases.
-    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "Cont" || taskId === "CPU0" || taskId === "Computer0") return [];
+    if (taskId === "PC0" || taskId === "PC" || taskId === "JmpCnt" || taskId === "Cont" || taskId === "CPU" || taskId === "CPU0" || taskId === "Computer0") return [];
     // Cont0: all four values of its 2-bit input, so every destination is seen —
     // including 0, where nothing at all is written.
     if (taskId === "Cont0") return [0, 1, 2, 3].map((control) => ({ control }));
@@ -22512,6 +22712,60 @@
     // with in1/in2/in3 wired and NOTHING else (the instruction field, the result
     // and the control unit are the parts the learner still has to think about).
     // Like every build hint it rebuilds the workspace, so it warns first.
+    // CPU build hints (4.4). Hint 2 lays CPU0's finished build down as-is; hint 4
+    // lays it down with the two cards already swapped for their 4.4 versions,
+    // their new terminals left loose for the learner to wire. Both rebuild the
+    // workspace, so both warn first.
+    if (taskId === "CPU" && (hint.action === "cpu-restore-cpu0" || hint.action === "cpu-swap-cards")) {
+      const doc = typeof SOLUTION_DOCS !== "undefined" ? SOLUTION_DOCS.CPU0 : null;
+      if (doc) {
+        const laidDoc = clonePlain(doc);
+        if (hint.action === "cpu-swap-cards") {
+          laidDoc.components.forEach((component) => {
+            if (component.id === "counter") component.type = "gate-PC";
+            if (component.id === "control") component.type = "gate-Cont";
+            // The control unit reads four bits now, not two.
+            if (component.id === "word-split") {
+              component.outputs = 2;
+              component.legWidths = [4, 12];
+            }
+          });
+          // With the splitter cut differently the two legs are renumbered.
+          laidDoc.wires = laidDoc.wires.map((wire) => {
+            const swap = (ref) => (ref === "word-split.leg1" ? "word-split.leg0"
+              : ref === "word-split.leg2" ? "word-split.leg1" : ref);
+            return { a: swap(wire.a), b: swap(wire.b) };
+          });
+        }
+        const ws = workspaceFromSolutionDoc(laidDoc);
+        const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
+        const laid = ws.components.find((c) => c.id === "task-card-1");
+        if (here && laid) {
+          const dx = here.x - laid.x;
+          const dy = here.y - laid.y;
+          if (dx || dy) ws.components.forEach((c) => {
+            if (Number.isFinite(c.x)) c.x += dx;
+            if (Number.isFinite(c.y)) c.y += dy;
+          });
+          laid.type = here.type;
+        }
+        ws.clocked = Boolean(state.workspace?.clocked);
+        ws.busClocked = Boolean(state.workspace?.busClocked);
+        ws.workspaceCompleted = false;
+        ws.taskId = "CPU";
+        ws.taskIntroSeen = true;
+        ws.locked = false;
+        ws.sessionReturnChapterId = state.workspace?.sessionReturnChapterId || null;
+        ws.sessionReturnPanelIndex = state.workspace?.sessionReturnPanelIndex ?? null;
+        const patch = {
+          workspace: normalizeWorkspace(ws),
+          hintDialog: hint.appliedText ? { taskId, index: hintIndex, applied: true } : null
+        };
+        if (hintStateOverride) patch.hintState = hintStateOverride;
+        return setState(patch, false);
+      }
+    }
+
     // PC build hint (4.4): lay PC0's finished build on the table, so the learner
     // starts from the counter they already made and only has to add the jump.
     // Like every build hint it rebuilds the workspace, so it warns first.
@@ -24268,6 +24522,7 @@
     // Its two address buses are narrower than the registers behind them — they
     // carry the LAST bits only, which is exactly what each memory can address.
     return {
+      jump: Boolean(def.cpuJump),
       width: def.busWidth || 16,
       addressWidth: def.pins.out1.width,
       programWidth: def.pins.out2.width

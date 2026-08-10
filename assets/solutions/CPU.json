@@ -1,0 +1,319 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "CPU",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-CPU",
+    "x": 640,
+    "y": 430,
+    "frameW": 800,
+    "frameH": 680,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -440,
+        "y": -176,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הפקודה",
+        "caption": "פקודה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -360,
+        "y": -176,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הפקודה פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -440,
+        "y": 176,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הקלט",
+        "caption": "⁧קלט ‎*A‎⁩"
+      },
+      {
+        "id": "inputInt2",
+        "x": -360,
+        "y": 176,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הקלט פנימית"
+      },
+      {
+        "id": "inputExt3",
+        "x": -347,
+        "y": -370,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת האיפוס",
+        "caption": "reset"
+      },
+      {
+        "id": "inputInt3",
+        "x": -347,
+        "y": -290,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת האיפוס פנימית",
+        "caption": "reset"
+      },
+      {
+        "id": "outputInt1",
+        "x": 360,
+        "y": -88,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת A פנימית"
+      },
+      {
+        "id": "outputExt1",
+        "x": 440,
+        "y": -88,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת A",
+        "caption": "A"
+      },
+      {
+        "id": "outputInt2",
+        "x": 360,
+        "y": -252,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת PC פנימית"
+      },
+      {
+        "id": "outputExt2",
+        "x": 440,
+        "y": -252,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת PC",
+        "caption": "PC"
+      },
+      {
+        "id": "outputInt3",
+        "x": 360,
+        "y": 88,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת הפלט פנימית"
+      },
+      {
+        "id": "outputExt3",
+        "x": 440,
+        "y": 88,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת הפלט",
+        "caption": "⁧פלט ‎*A‎⁩"
+      },
+      {
+        "id": "outputInt4",
+        "x": 360,
+        "y": 252,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת הכתיבה פנימית"
+      },
+      {
+        "id": "outputExt4",
+        "x": 440,
+        "y": 252,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת הכתיבה",
+        "caption": "⁧בקרת ‎*A‎⁩"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 140
+    }
+  ],
+  "components": [
+    {
+      "id": "counter",
+      "type": "gate-PC",
+      "x": 520,
+      "y": 175
+    },
+    {
+      "id": "control",
+      "type": "gate-Cont",
+      "x": 535,
+      "y": 360
+    },
+    {
+      "id": "alu",
+      "type": "gate-ALU4",
+      "x": 835,
+      "y": 520
+    },
+    {
+      "id": "reg-a",
+      "type": "gate-Register",
+      "x": 705,
+      "y": 480
+    },
+    {
+      "id": "reg-d",
+      "type": "gate-Register",
+      "x": 700,
+      "y": 370
+    },
+    {
+      "id": "word-split",
+      "type": "splitter",
+      "x": 320,
+      "y": 300,
+      "outputs": 2,
+      "mirrored": false,
+      "legWidths": [
+        4,
+        12
+      ],
+      "singleWidth": 16
+    },
+    {
+      "id": "write-nail-out",
+      "type": "nail",
+      "x": 595,
+      "y": 685
+    },
+    {
+      "id": "ctrl-nail-in",
+      "type": "nail",
+      "x": 830,
+      "y": 265
+    },
+    {
+      "id": "res-nail-1",
+      "type": "nail",
+      "x": 875,
+      "y": 600
+    },
+    {
+      "id": "res-nail-2",
+      "type": "nail",
+      "x": 630,
+      "y": 605
+    },
+    {
+      "id": "res-nail-3",
+      "type": "nail",
+      "x": 625,
+      "y": 425
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "word-split.single"
+    },
+    {
+      "a": "control.out1",
+      "b": "reg-d.in2"
+    },
+    {
+      "a": "control.out2",
+      "b": "reg-a.in2"
+    },
+    {
+      "a": "task-card-1.outputInt3",
+      "b": "alu.out1"
+    },
+    {
+      "a": "control.out3",
+      "b": "write-nail-out.in"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "alu.in3"
+    },
+    {
+      "a": "alu.in2",
+      "b": "reg-a.out"
+    },
+    {
+      "a": "alu.in4",
+      "b": "ctrl-nail-in.out"
+    },
+    {
+      "a": "alu.in1",
+      "b": "reg-d.out"
+    },
+    {
+      "a": "alu.out1",
+      "b": "res-nail-1.in"
+    },
+    {
+      "a": "res-nail-1.out",
+      "b": "res-nail-2.in"
+    },
+    {
+      "a": "res-nail-2.out",
+      "b": "res-nail-3.in"
+    },
+    {
+      "a": "reg-a.in1",
+      "b": "res-nail-3.out"
+    },
+    {
+      "a": "reg-d.in1",
+      "b": "res-nail-3.out"
+    },
+    {
+      "a": "task-card-1.outputInt1",
+      "b": "reg-a.out"
+    },
+    {
+      "a": "write-nail-out.out",
+      "b": "task-card-1.outputInt4"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "counter.in1"
+    },
+    {
+      "a": "counter.out",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "control.in1",
+      "b": "word-split.leg0"
+    },
+    {
+      "a": "word-split.leg1",
+      "b": "ctrl-nail-in.in"
+    },
+    {
+      "a": "alu.out3",
+      "b": "control.in2"
+    },
+    {
+      "a": "alu.out2",
+      "b": "control.in3"
+    },
+    {
+      "a": "control.out4",
+      "b": "counter.in2"
+    },
+    {
+      "a": "reg-a.out",
+      "b": "counter.in3"
+    }
+  ],
+  "check": {
+    "note": "תוכנית קצרה שמסתיימת בקפיצות: על 0, על שלילי, על שניהם, ואיפוס שגובר על קפיצה."
+  }
+}

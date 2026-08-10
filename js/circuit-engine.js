@@ -981,7 +981,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const result = alu4Vec(d, a, mem, ctrl, w);
           let n = 0;
           for (let i = 0; i < w; i += 1) n += (pc[i] ? 1 : 0) * (2 ** i);
-          const counted = reset ? 0 : (n + 1) % (2 ** w);
+          let counted = reset ? 0 : (n + 1) % (2 ** w);
+          // 4.4's processor can JUMP: the last two bits of the instruction say on
+          // which results, and the ALU's own zr/ng say what the result was. When
+          // they agree, the PC takes what A holds instead of counting on. Reset
+          // still wins.
+          if (cpuSpec.jump && !reset) {
+            const zr = result.every((bit) => !bit);
+            const ng = Boolean(result[w - 1]);
+            const jump = (Boolean(instr[1]) && zr) || (Boolean(instr[0]) && ng);
+            if (jump) {
+              let target = 0;
+              for (let i = 0; i < w; i += 1) target += (a[i] ? 1 : 0) * (2 ** i);
+              counted = target % (2 ** w);
+            }
+          }
           // The destination field: 1 writes to D, 2 to A, 3 to *A (0 nowhere).
           next.set(`${component.id}.a`, dest === 2 ? result : a);
           next.set(`${component.id}.d`, dest === 1 ? result : d);
