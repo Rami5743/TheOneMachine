@@ -6894,38 +6894,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "counter",
         "type": "gate-PC",
-        "x": 478,
-        "y": 180
+        "x": 472,
+        "y": 178
       },
       {
         "id": "control",
         "type": "gate-Cont",
-        "x": 407,
-        "y": 377
+        "x": 403,
+        "y": 377.8
       },
       {
         "id": "alu",
         "type": "gate-ALU4",
-        "x": 835,
-        "y": 520
+        "x": 835.1,
+        "y": 518
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
         "x": 707,
-        "y": 492
+        "y": 493.5
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
         "x": 700,
-        "y": 370
+        "y": 369.4
       },
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 320,
-        "y": 276,
+        "x": 318,
+        "y": 279,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [
@@ -6938,97 +6938,97 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "write-nail-out",
         "type": "nail",
         "x": 621,
-        "y": 680
+        "y": 682
       },
       {
         "id": "ctrl-nail-in",
         "type": "nail",
-        "x": 830,
-        "y": 265
+        "x": 835.1,
+        "y": 262
       },
       {
         "id": "res-nail-1",
         "type": "nail",
-        "x": 875,
-        "y": 600
+        "x": 874.7,
+        "y": 602.5
       },
       {
         "id": "res-nail-2",
         "type": "nail",
-        "x": 630,
-        "y": 605
+        "x": 629.5,
+        "y": 602.5
       },
       {
         "id": "res-nail-3",
         "type": "nail",
-        "x": 629,
-        "y": 495
+        "x": 629.5,
+        "y": 493.5
       },
       {
         "id": "nail-5",
         "type": "nail",
-        "x": 943,
-        "y": 372
+        "x": 943.5,
+        "y": 375
       },
       {
         "id": "nail-6",
         "type": "nail",
-        "x": 942,
-        "y": 225
+        "x": 943.5,
+        "y": 222.5
       },
       {
         "id": "nail-7",
         "type": "nail",
-        "x": 430,
-        "y": 222
+        "x": 414.4,
+        "y": 222.5
       },
       {
         "id": "nail-8",
         "type": "nail",
-        "x": 459,
-        "y": 470
+        "x": 451,
+        "y": 470.5
       },
       {
         "id": "nail-9",
         "type": "nail",
-        "x": 296,
-        "y": 471
+        "x": 295.5,
+        "y": 470.5
       },
       {
         "id": "nail-10",
         "type": "nail",
-        "x": 296,
-        "y": 161
+        "x": 295.5,
+        "y": 150.4
       },
       {
         "id": "nail-11",
         "type": "nail",
-        "x": 825,
+        "x": 823.1,
         "y": 705
       },
       {
         "id": "nail-12",
         "type": "nail",
-        "x": 358,
-        "y": 700
+        "x": 355,
+        "y": 705
       },
       {
         "id": "nail-13",
         "type": "nail",
-        "x": 850,
-        "y": 744
+        "x": 847.1,
+        "y": 737.5
       },
       {
         "id": "nail-14",
         "type": "nail",
-        "x": 323,
-        "y": 743
+        "x": 325.5,
+        "y": 737.5
       },
       {
         "id": "nail-15",
         "type": "nail",
-        "x": 326,
-        "y": 378
+        "x": 325.5,
+        "y": 377.8
       }
     ],
     "wires": [
