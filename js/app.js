@@ -18976,22 +18976,27 @@
     const mine = ["jc-split", "jc-src", "jc-zr", "jc-ng", "jc-out"];
     ws.components = ws.components.filter((c) => !mine.includes(c.id));
     ws.wires = ws.wires.filter((w) => !/^jc-/.test(w.a) && !/^jc-/.test(w.b));
-    // The learner's own source drives nothing while the check is running.
-    ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
+    // Whatever the learner wired their own source to, it drives nothing while the
+    // check is running — but the source ITSELF is what the check then drives its
+    // 1s from. It is already on the table, placed where these cables want it, so
+    // there is no reason to stand a second one up beside it.
+    const SRC = "source-1";
+    ws.wires = ws.wires.filter((w) => w.a !== `${SRC}.out` && w.b !== `${SRC}.out`);
+    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 440 });
     // The condition input is a BUS, not a number: a converter would put a digit
     // on it, and the whole point of the card is that those two wires are two
     // separate yes/no answers. So the check drives it the way the learner would
     // — the power source into a merging splitter, one leg per bit. leg0 is the
     // LOW leg, so the FIRST bit of the bus (the one paired with zr) is leg1.
-    // ONE power source, like every other check of this kind: whatever has to be
-    // 1 this round is wired to it, and what has to be 0 is simply left unwired.
-    ws.components.push({ id: "jc-split", type: "splitter", x: 210, y: 280, mirrored: true, outputs: 2, legWidths: [1, 1], singleWidth: 2, width: 1 });
+    // That one source feeds whatever has to be 1 this round; what has to be 0 is
+    // simply left unwired. The merger sits clear of the source's own column so
+    // the four cables fan out instead of running through it.
+    ws.components.push({ id: "jc-split", type: "splitter", x: 260, y: 280, mirrored: true, outputs: 2, legWidths: [1, 1], singleWidth: 2, width: 1 });
     ws.wires.push({ a: "jc-split.single", b: "task-card-1.inputExt1" });
-    ws.components.push({ id: "jc-src", type: "source", x: 90, y: 430 });
-    if (cond & 2) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg1" });
-    if (cond & 1) ws.wires.push({ a: "jc-src.out", b: "jc-split.leg0" });
-    if (zr) ws.wires.push({ a: "jc-src.out", b: "task-card-1.inputExt2" });
-    if (ng) ws.wires.push({ a: "jc-src.out", b: "task-card-1.inputExt3" });
+    if (cond & 2) ws.wires.push({ a: `${SRC}.out`, b: "jc-split.leg1" });
+    if (cond & 1) ws.wires.push({ a: `${SRC}.out`, b: "jc-split.leg0" });
+    if (zr) ws.wires.push({ a: `${SRC}.out`, b: "task-card-1.inputExt2" });
+    if (ng) ws.wires.push({ a: `${SRC}.out`, b: "task-card-1.inputExt3" });
     ws.components.push({ id: "jc-out", type: "lamp", x: 1160, y: 430 });
     ws.wires.push({ a: "task-card-1.outputExt1", b: "jc-out.in" });
     removeInvalidWires(ws);
@@ -19065,7 +19070,7 @@
     // standing a second one up beside it. Only a workspace that somehow has none
     // gets one added.
     const SRC = "source-1";
-    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 510 });
+    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 460 });
     // The input bus is two different things at once: its TOP half is a NUMBER
     // (which of the four destinations to write to) and its bottom half is two
     // separate yes/no wires (the jump conditions). So the check builds it the way

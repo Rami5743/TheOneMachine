@@ -6460,8 +6460,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 90,
-        "y": 140
+        "x": 195,
+        "y": 440
       }
     ],
     "components": [
@@ -6677,7 +6677,7 @@ window.EMBEDDED_SOLUTIONS = {
         "id": "source-1",
         "type": "source",
         "x": 195,
-        "y": 510
+        "y": 460
       }
     ],
     "components": [
@@ -6963,6 +6963,78 @@ window.EMBEDDED_SOLUTIONS = {
         "type": "nail",
         "x": 623,
         "y": 481
+      },
+      {
+        "id": "zr-nail-1",
+        "type": "nail",
+        "x": 855,
+        "y": 700
+      },
+      {
+        "id": "zr-nail-2",
+        "type": "nail",
+        "x": 408,
+        "y": 700
+      },
+      {
+        "id": "ng-nail-1",
+        "type": "nail",
+        "x": 831,
+        "y": 740
+      },
+      {
+        "id": "ng-nail-2",
+        "type": "nail",
+        "x": 368,
+        "y": 740
+      },
+      {
+        "id": "ng-nail-3",
+        "type": "nail",
+        "x": 368,
+        "y": 427
+      },
+      {
+        "id": "apc-nail-1",
+        "type": "nail",
+        "x": 760,
+        "y": 540
+      },
+      {
+        "id": "apc-nail-2",
+        "type": "nail",
+        "x": 509,
+        "y": 540
+      },
+      {
+        "id": "apc-nail-3",
+        "type": "nail",
+        "x": 326,
+        "y": 540
+      },
+      {
+        "id": "apc-nail-4",
+        "type": "nail",
+        "x": 322,
+        "y": 172
+      },
+      {
+        "id": "apc-nail-5",
+        "type": "nail",
+        "x": 468,
+        "y": 246
+      },
+      {
+        "id": "ldpc-nail-1",
+        "type": "nail",
+        "x": 580,
+        "y": 439
+      },
+      {
+        "id": "ldpc-nail-2",
+        "type": "nail",
+        "x": 580,
+        "y": 140
       }
     ],
     "wires": [
@@ -7048,18 +7120,66 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "alu.out3",
+        "b": "zr-nail-1.in"
+      },
+      {
+        "a": "zr-nail-1.out",
+        "b": "zr-nail-2.in"
+      },
+      {
+        "a": "zr-nail-2.out",
         "b": "control.in2"
       },
       {
         "a": "alu.out2",
+        "b": "ng-nail-1.in"
+      },
+      {
+        "a": "ng-nail-1.out",
+        "b": "ng-nail-2.in"
+      },
+      {
+        "a": "ng-nail-2.out",
+        "b": "ng-nail-3.in"
+      },
+      {
+        "a": "ng-nail-3.out",
         "b": "control.in3"
       },
       {
         "a": "control.out4",
+        "b": "ldpc-nail-1.in"
+      },
+      {
+        "a": "ldpc-nail-1.out",
+        "b": "ldpc-nail-2.in"
+      },
+      {
+        "a": "ldpc-nail-2.out",
         "b": "counter.in2"
       },
       {
         "a": "reg-a.out",
+        "b": "apc-nail-1.in"
+      },
+      {
+        "a": "apc-nail-1.out",
+        "b": "apc-nail-2.in"
+      },
+      {
+        "a": "apc-nail-2.out",
+        "b": "apc-nail-3.in"
+      },
+      {
+        "a": "apc-nail-3.out",
+        "b": "apc-nail-4.in"
+      },
+      {
+        "a": "apc-nail-4.out",
+        "b": "apc-nail-5.in"
+      },
+      {
+        "a": "apc-nail-5.out",
         "b": "counter.in3"
       }
     ],
