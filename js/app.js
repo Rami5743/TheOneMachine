@@ -22977,21 +22977,19 @@
       if (doc) {
         const laidDoc = clonePlain(doc);
         if (hint.action === "cpu-swap-cards") {
+          // ONLY the two cards are swapped. The instruction splitter is left
+          // exactly as CPU0 cut it, and the control unit is left UNWIRED from it:
+          // the new Cont reads four bits where Cont0 read two, and working out
+          // how the word has to be cut for that — and wiring it — is the task.
+          // A hint that did it for them handed over the answer.
           laidDoc.components.forEach((component) => {
             if (component.id === "counter") component.type = "gate-PC";
             if (component.id === "control") component.type = "gate-Cont";
-            // The control unit reads four bits now, not two.
-            if (component.id === "word-split") {
-              component.outputs = 2;
-              component.legWidths = [4, 12];
-            }
           });
-          // With the splitter cut differently the two legs are renumbered.
-          laidDoc.wires = laidDoc.wires.map((wire) => {
-            const swap = (ref) => (ref === "word-split.leg1" ? "word-split.leg0"
-              : ref === "word-split.leg2" ? "word-split.leg1" : ref);
-            return { a: swap(wire.a), b: swap(wire.b) };
-          });
+          const splitToControl = (wire) =>
+            [wire.a, wire.b].some((ref) => String(ref).startsWith("word-split."))
+            && [wire.a, wire.b].some((ref) => String(ref).startsWith("control."));
+          laidDoc.wires = laidDoc.wires.filter((wire) => !splitToControl(wire));
         }
         const ws = workspaceFromSolutionDoc(laidDoc);
         const here = (state.workspace?.components || []).find((c) => c.id === "task-card-1");
