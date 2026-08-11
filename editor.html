@@ -331,6 +331,41 @@ function allPinRefs(){
   return out;
 }
 function wireExists(a,b){ return (doc.wires||[]).some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a)); }
+function partOfRef(ref){ const d=String(ref).lastIndexOf("."); return d<0?String(ref):String(ref).slice(0,d); }
+function nailIds(){ return new Set(movable().filter(c=>c.type==="nail").map(c=>c.id)); }
+
+// How wide each cable actually is. A נעץ has NO width of its own — it carries
+// whatever arrives, and the game works that out by propagation. The editor used
+// to read the nail's nominal w:1 and draw a 16-bit bus running through one as a
+// thin single wire, which is why so much of a solution looked like it was made
+// of the wrong thing. Propagate widths across nails to a fixpoint instead.
+function wireWidths(){
+  const wires = doc.wires||[];
+  const w = wires.map((wire)=>{ const a=absPin(wire.a), b=absPin(wire.b);
+    return Math.max((a&&a.w)||1, (b&&b.w)||1); });
+  const nails = nailIds();
+  if (!nails.size) return w;
+  for (let pass=0; pass<12; pass+=1){
+    const widest=new Map();
+    wires.forEach((wire,i)=>{ for(const ref of [wire.a,wire.b]){ const id=partOfRef(ref);
+      if(nails.has(id)) widest.set(id, Math.max(widest.get(id)||1, w[i])); } });
+    let changed=false;
+    wires.forEach((wire,i)=>{ for(const ref of [wire.a,wire.b]){ const id=partOfRef(ref);
+      if(!nails.has(id)) continue; const nw=widest.get(id)||1;
+      if(nw>w[i]){ w[i]=nw; changed=true; } } });
+    if(!changed) break;
+  }
+  return w;
+}
+// The width a pin presents for wiring: a nail's is whatever its cables carry.
+function effectivePinWidth(ref){
+  const at=absPin(ref); if(!at) return null;
+  const id=partOfRef(ref);
+  if(!nailIds().has(id)) return at.w||1;
+  const w=wireWidths(); let best=0;
+  (doc.wires||[]).forEach((wire,i)=>{ if(partOfRef(wire.a)===id||partOfRef(wire.b)===id) best=Math.max(best,w[i]); });
+  return best||null;   // null = "carries anything", so any width may join it
+}
 function cancelWire(){ pendingPin=null; ghostAt=null; }
 
 // Click a pin in wiring mode: the first click arms the cable, the second lays
@@ -341,7 +376,10 @@ function pinClick(ref){
   if (pendingPin===ref){ cancelWire(); status("בוטל"); render(); return; }
   const a=absPin(pendingPin), b=absPin(ref);
   if (!a||!b){ cancelWire(); status("אחד הפינים לא נמצא"); render(); return; }
-  if ((a.w||1)!==(b.w||1)){ status("רוחב לא תואם: "+pendingPin+" ["+(a.w||1)+"] מול "+ref+" ["+(b.w||1)+"] — לא נוצר חיבור"); cancelWire(); render(); return; }
+  // A נעץ carries whatever arrives, so it never mismatches; everything else must
+  // agree, or the "cable" is not a cable the game can evaluate.
+  const wa=effectivePinWidth(pendingPin), wb=effectivePinWidth(ref);
+  if (wa && wb && wa!==wb){ status("רוחב לא תואם: "+pendingPin+" ["+wa+"] מול "+ref+" ["+wb+"] — לא נוצר חיבור"); cancelWire(); render(); return; }
   if (wireExists(pendingPin,ref)){ status("החיבור כבר קיים"); cancelWire(); render(); return; }
   doc.wires.push({ a:pendingPin, b:ref });
   status("נוסף חיבור: "+pendingPin+" ↔ "+ref+" ("+doc.wires.length+" חיבורים)");
@@ -379,8 +417,9 @@ function render(){
       board.appendChild(el("line",{x1:ax,y1:ay,x2:ix,y2:ay, class:w>1?"ed-frame-bus":"ed-frame-cable"})); }
   }
   // wires
+  const wWidths = wireWidths();
   (doc.wires||[]).forEach((wire, i)=>{ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) return;
-    const wide=(a.w&&a.w>1)||(b.w&&b.w>1);
+    const wide=(wWidths[i]||1)>1;
     board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:wide?"ed-bus":"ed-cable"}));
     if (wide) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-bus-stripe"}));
     if (selected==="wire:"+i) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-wire-selected"}));
@@ -420,10 +459,11 @@ function render(){
     for (const ref of allPinRefs()){
       const at=absPin(ref); if(!at) continue;
       const armed = pendingPin===ref;
-      const cls = armed ? "ed-wire-pin-armed" : ((at.w||1)>1 ? "ed-wire-pin-bus" : "ed-wire-pin");
+      const ew = effectivePinWidth(ref);
+      const cls = armed ? "ed-wire-pin-armed" : ((ew||1)>1 ? "ed-wire-pin-bus" : "ed-wire-pin");
       board.appendChild(el("circle",{cx:at.x,cy:at.y,r:armed?8:6, class:cls}));
       board.appendChild(el("text",{x:at.x,y:at.y-11,"text-anchor":"middle",class:"ed-wire-pin-label"},
-        [txt(ref.slice(ref.lastIndexOf(".")+1)+((at.w||1)>1?(" ["+at.w+"]"):""))]));
+        [txt(ref.slice(ref.lastIndexOf(".")+1)+((ew||1)>1?(" ["+ew+"]"):""))]));
       const hit=el("circle",{cx:at.x,cy:at.y,r:14,fill:"transparent",class:"drag-hit"});
       hit.addEventListener("pointerdown",(ev)=>{ ev.stopPropagation(); pinClick(ref); });
       board.appendChild(hit);

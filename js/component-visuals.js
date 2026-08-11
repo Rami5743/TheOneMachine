@@ -448,8 +448,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // the left — the number to jump to. Pin geometry copied from its def:
   // in2 (-30,-46) load, in1 (30,-46) reset, in3 (-80,0) data, out (80,0).
   function jumpPcGateMarkup(width, options = {}) {
-    const edge = 40;
-    const bodyH = 76;
+    // Bigger than PC0's box — it carries two stubs on top and a bus on each side,
+    // and at PC0's size the name and the Rst caption were fighting for the same
+    // few pixels. The pins do NOT move (the def fixes them at ±80 and y=-46), so
+    // the body may only grow until its top edge reaches those stubs: 82 tall
+    // leaves the two of them 5px of stub each, which is what keeps them visible.
+    const edge = 58;
+    const bodyH = 82;
     let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: 0 }, width, !options.toolbar);
     s += busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
     s += pinLine(-30, -46, -30, -bodyH / 2);
@@ -458,13 +463,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const name = "PC";
     const font = labelFontSize(name, edge * 2, 20);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
-    // The two stubs on top look alike, so each says which one it is — written
-    // INSIDE the body under its own stub. direction:ltr, or the Latin names
-    // would be laid out from the wrong side by the right-to-left page.
+    // Only the RESET stub is named. The other one is the control input, and the
+    // card already reads as a counter with a control on top — naming it added a
+    // caption where the eye only needed to find the odd one out. direction:ltr,
+    // or the Latin name would be laid out from the wrong side by the RTL page.
     if (!options.toolbar) {
-      const nfont = Math.round(9 * k());
+      const nfont = Math.round(10 * k());
       const top = -bodyH / 2 + nfont + 2;
-      s += `<text class="arith-gate-pin-letter" x="-30" y="${top}" text-anchor="middle" style="font-size:${nfont}px;direction:ltr">Ld</text>`;
       s += `<text class="arith-gate-pin-letter" x="30" y="${top}" text-anchor="middle" style="font-size:${nfont}px;direction:ltr">Rst</text>`;
     }
     return `<g class="usercard">${s}</g>`;
@@ -491,8 +496,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     const name = "JmpCnt";
     const font = labelFontSize(name, edge * 2, 15);
     // At the TOP, where a card's name belongs — not the middle, where zr comes in
-    // at y=0 and a centred name would sit exactly on its label.
-    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + 20}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // at y=0 and a centred name would sit exactly on its label. The baseline is
+    // measured from the FONT, not a fixed 20px: k() scales a base-15 name up to
+    // 25px, and a constant offset put its capitals right on the card's border.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + Math.round(font * 0.8) + 8}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // zr and ng are two identical single wires — without their names on the
     // body there is nothing on the card to tell them apart.
     if (!options.toolbar) {
@@ -523,8 +530,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
     const name = "Cont";
     const font = labelFontSize(name, edge * 2, 18);
-    // Same as JmpCnt: the middle band belongs to the zr wire.
-    s += `<text class="arith-gate-pin-letter" x="0" y="${bodyH / 2 - 14}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // At the TOP, like JmpCnt — a card's name belongs there, the middle band
+    // belongs to the zr wire, and the baseline comes off the font so the capitals
+    // clear the card's border instead of sitting on it.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + Math.round(font * 0.8) + 8}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     if (!options.toolbar) {
       const nfont = Math.round(10 * k());
       s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">zr</text>`;
