@@ -7001,12 +7001,6 @@ window.EMBEDDED_SOLUTIONS = {
         "y": 540
       },
       {
-        "id": "apc-nail-2",
-        "type": "nail",
-        "x": 509,
-        "y": 540
-      },
-      {
         "id": "apc-nail-3",
         "type": "nail",
         "x": 326,
@@ -7164,10 +7158,6 @@ window.EMBEDDED_SOLUTIONS = {
       },
       {
         "a": "apc-nail-1.out",
-        "b": "apc-nail-2.in"
-      },
-      {
-        "a": "apc-nail-2.out",
         "b": "apc-nail-3.in"
       },
       {
