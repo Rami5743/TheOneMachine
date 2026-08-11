@@ -22985,6 +22985,9 @@
           laidDoc.components.forEach((component) => {
             if (component.id === "counter") component.type = "gate-PC";
             if (component.id === "control") component.type = "gate-Cont";
+            // The ALU too: CPU0 ran on an ALU3, and the jump needs the zr and ng
+            // answers that only the ALU4 gives.
+            if (component.id === "alu") component.type = "gate-ALU4";
           });
           const splitToControl = (wire) =>
             [wire.a, wire.b].some((ref) => String(ref).startsWith("word-split."))
@@ -24860,7 +24863,13 @@
   // A pin's bus width. Regular pins are single wires (1). A splitter's pins are
   // undefined (null) until a connection fixes its width; a leg pin is then that
   // width and the single pin is width * output-count.
-  function pinWidth(workspace, ref) {
+  // `seen` guards the נעץ hop below: a nail asks the OTHER end of its cables how
+  // wide they are, and two nails wired to each other ask each other forever. The
+  // CPU's reset line is exactly that — three nails in a chain — so every single
+  // pointermove over the board threw "Maximum call stack size exceeded", the
+  // board stopped re-rendering mid-drag, and a card dragged to the bin appeared
+  // to stick beside it until a cable was cut and the cycle broken.
+  function pinWidth(workspace, ref, seen) {
     const info = pinDefFor(workspace, ref);
     if (!info) return null;
     // A converter's width is undetermined (null) until it is wired to a bus of
@@ -24874,11 +24883,14 @@
     // bus alike. Its width is therefore whatever the OTHER end of its cables says
     // (null = undetermined, which wireWidthLegal accepts for any bus).
     if (info.component.type === "nail") {
+      const visited = seen || new Set();
+      if (visited.has(info.component.id)) return null;
+      visited.add(info.component.id);
       for (const wire of workspace?.wires || []) {
         for (const [end, other] of [[wire.a, wire.b], [wire.b, wire.a]]) {
           if (!String(end).startsWith(`${info.component.id}.`)) continue;
           if (String(other).startsWith(`${info.component.id}.`)) continue;
-          const w = pinWidth(workspace, other);
+          const w = pinWidth(workspace, other, visited);
           if (Number.isInteger(w)) return w;
         }
       }

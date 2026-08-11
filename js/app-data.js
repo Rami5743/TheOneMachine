@@ -1164,11 +1164,11 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
           text: "אתה רוצה שאשחזר לך כאן את הבנייה של ה-CPU0? זה ימחק את כל מה שעשית.",
           appliedText: "זאת בניית ה-CPU0. עכשיו תחשוב מה צריך להשתנות בה."
         },
-        { kind: "text", title: "רמז 3", text: "צריך להחליף את ה-PC0 ב-PC, ואת ה-Cont0 ב-Cont." },
+        { kind: "text", title: "רמז 3", text: "צריך להחליף את PC0 ב-PC, את Cont0 ב-Cont ואת ALU3 ב-ALU4" },
         {
           kind: "interactive", title: "רמז 4", action: "cpu-swap-cards",
           confirmBeforeApply: true, applyLabel: "כן",
-          text: "אתה רוצה שאחליף את ה-PC0 ב-PC ואת ה-Cont0 ב-Cont? זה ימחק את כל מה שעשית.",
+          text: "אתה רוצה שאחליף את PC0 ב-PC, את Cont0 ב-Cont ואת ALU3 ב-ALU4? זה ימחק את כל מה שעשית.",
           appliedText: "הכרטיסים הוחלפו. שים לב שלכל אחד מהם יש עכשיו כניסות שאף אחד לא מחובר אליהן."
         },
         { kind: "text", title: "רמז 5", text: "שים לב, ה-Cont צריך מידע נוסף ממה שהיה צריך ה-Cont0. הוא גם נותן לך עוד מידע. לאן צריך לחבר אותו?" },
