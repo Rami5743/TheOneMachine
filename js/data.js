@@ -2760,6 +2760,30 @@ const SCENES = {
             "height": 13.43
           }
         ]
+      },
+      {
+        "comment": "The machine runs. Von Neumann stands in the finished hangar — one machine for every calculation.",
+        "image": "assets/panels/259_4.4_we-did-it.svg",
+        "year": "1944",
+        "read": "עשינו זאת! יש לנו מכונה שיכולה לעשות כל חישוב. למעשה היא יכולה לבצע כל רצף של הוראות ובלבד שהוא יהיה מדויק ושהוא יעסוק רק במידע."
+      },
+      {
+        "comment": "What they built matters beyond the bomb they were called here for.",
+        "image": "assets/panels/260_4.4_world-changing.svg",
+        "year": "1944",
+        "read": "המכונה הזאת תשנה את העולם. אולי היא אפילו יותר חשובה מהפרויקט שאנחנו עובדים עליו עכשיו."
+      },
+      {
+        "comment": "The ask: convince Oppenheimer, then more memory, cooling, and above all people to program it.",
+        "image": "assets/panels/261_4.4_more-resources.svg",
+        "year": "1944",
+        "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון. מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
+      },
+      {
+        "comment": "The last slide of the last chapter: the המשך יבוא card, on the same night-desert raster the placeholder dialogs use. המשך is drawn spent here (globalHasNext), so nothing follows it.",
+        "image": "assets/panels/262_4.4_to-be-continued.svg",
+        "year": "1944",
+        "read": "המשך יבוא..."
       }
     ]
   }
