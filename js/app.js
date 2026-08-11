@@ -1849,7 +1849,7 @@
   // Project policy: AFTER a push to main, flip this to "all" in the dev branch
   // for free testing; then restore "step" right before the next push to main.
   // This one constant is the flip point.
-  const DEFAULT_PACE = "all";
+  const DEFAULT_PACE = "step";
 
   const defaultState = {
     screen: "menu",
@@ -9425,6 +9425,10 @@
         // program — after that the room is just a room and המשך walks on to the
         // slides that close the chapter.
         if (h.objectId === "programNote" && state.programTaskDone) return false;
+        // 4.4's note is the same: it is the way forward until the last card on
+        // it — the Computer — is built. Without this the note blocks המשך for
+        // good and the slides that end the chapter cannot be reached at all.
+        if (h.objectId === "jumpNote" && taskCompleted("Computer")) return false;
         const object = (typeof PANEL_OBJECTS !== "undefined" ? PANEL_OBJECTS : {})[h.objectId];
         return Boolean(object && !object.optional && (object.takeLabel || object.opens));
       }
