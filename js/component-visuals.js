@@ -454,9 +454,15 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // the body may only grow until its top edge reaches those stubs: 82 tall
     // leaves the two of them 5px of stub each, which is what keeps them visible.
     const edge = 58;
+    const REACH = 80;
     const bodyH = 82;
-    let s = busGateBar({ x1: -(edge + PIN), x2: -edge, y: 0 }, width, !options.toolbar);
-    s += busGateBar({ x1: edge, x2: edge + PIN, y: 0 }, width, !options.toolbar);
+    // Same trap the JmpCnt and Cont cards fell into when their bodies grew: the
+    // default bar runs edge+PIN out from the body, but the PINS are fixed at ±80
+    // by the def. With edge 58 that bar reached 98 — eighteen pixels PAST the
+    // pin — so every cable landed part-way along a bar instead of at its end.
+    // Draw each bar from the pin to the body.
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: 0 }, width, !options.toolbar);
+    s += busGateBar({ x1: edge, x2: REACH, y: 0 }, width, !options.toolbar);
     s += pinLine(-30, -46, -30, -bodyH / 2);
     s += pinLine(30, -46, 30, -bodyH / 2);
     s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
@@ -873,10 +879,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // matches the viewBox 1:1 so the body/pins stay put.
       if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
-      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/zr
+      // ALU4's viewBox is 42px taller at the bottom so the lengthened ng/zr
       // pins and their captions below them aren't clipped; the image box matches
       // it 1:1 so the body/pins keep their positions.
-      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 158);
+      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 178);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

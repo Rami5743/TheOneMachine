@@ -6796,7 +6796,7 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputExt3",
-          "x": -347,
+          "x": -150,
           "y": -370,
           "w": 1,
           "dir": "in",
@@ -6805,8 +6805,8 @@ window.EMBEDDED_SOLUTIONS = {
         },
         {
           "id": "inputInt3",
-          "x": -347,
-          "y": -290,
+          "x": -150,
+          "y": -310,
           "w": 1,
           "dir": "out",
           "label": "כניסת האיפוס פנימית",
@@ -6894,38 +6894,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "counter",
         "type": "gate-PC",
-        "x": 518,
-        "y": 201
+        "x": 478,
+        "y": 180
       },
       {
         "id": "control",
         "type": "gate-Cont",
-        "x": 456,
-        "y": 403
+        "x": 407,
+        "y": 377
       },
       {
         "id": "alu",
         "type": "gate-ALU4",
-        "x": 843,
-        "y": 513
+        "x": 835,
+        "y": 520
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 697,
-        "y": 483
+        "x": 707,
+        "y": 492
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 694,
-        "y": 395
+        "x": 700,
+        "y": 370
       },
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 378,
-        "y": 299,
+        "x": 320,
+        "y": 276,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [
@@ -6937,105 +6937,101 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-nail-out",
         "type": "nail",
-        "x": 605,
-        "y": 678
+        "x": 621,
+        "y": 680
       },
       {
         "id": "ctrl-nail-in",
         "type": "nail",
-        "x": 842,
-        "y": 287
+        "x": 830,
+        "y": 265
       },
       {
         "id": "res-nail-1",
         "type": "nail",
-        "x": 887,
-        "y": 601
+        "x": 875,
+        "y": 600
       },
       {
         "id": "res-nail-2",
         "type": "nail",
-        "x": 623,
+        "x": 630,
         "y": 605
       },
       {
         "id": "res-nail-3",
         "type": "nail",
-        "x": 623,
-        "y": 481
+        "x": 629,
+        "y": 495
       },
       {
-        "id": "zr-nail-1",
+        "id": "nail-5",
         "type": "nail",
-        "x": 855,
+        "x": 943,
+        "y": 372
+      },
+      {
+        "id": "nail-6",
+        "type": "nail",
+        "x": 942,
+        "y": 225
+      },
+      {
+        "id": "nail-7",
+        "type": "nail",
+        "x": 430,
+        "y": 222
+      },
+      {
+        "id": "nail-8",
+        "type": "nail",
+        "x": 459,
+        "y": 470
+      },
+      {
+        "id": "nail-9",
+        "type": "nail",
+        "x": 296,
+        "y": 471
+      },
+      {
+        "id": "nail-10",
+        "type": "nail",
+        "x": 296,
+        "y": 161
+      },
+      {
+        "id": "nail-11",
+        "type": "nail",
+        "x": 825,
+        "y": 705
+      },
+      {
+        "id": "nail-12",
+        "type": "nail",
+        "x": 358,
         "y": 700
       },
       {
-        "id": "zr-nail-2",
+        "id": "nail-13",
         "type": "nail",
-        "x": 408,
-        "y": 700
+        "x": 850,
+        "y": 744
       },
       {
-        "id": "ng-nail-1",
+        "id": "nail-14",
         "type": "nail",
-        "x": 831,
-        "y": 740
+        "x": 323,
+        "y": 743
       },
       {
-        "id": "ng-nail-2",
-        "type": "nail",
-        "x": 368,
-        "y": 740
-      },
-      {
-        "id": "ng-nail-3",
-        "type": "nail",
-        "x": 368,
-        "y": 427
-      },
-      {
-        "id": "apc-nail-1",
-        "type": "nail",
-        "x": 760,
-        "y": 540
-      },
-      {
-        "id": "apc-nail-3",
+        "id": "nail-15",
         "type": "nail",
         "x": 326,
-        "y": 540
-      },
-      {
-        "id": "apc-nail-4",
-        "type": "nail",
-        "x": 322,
-        "y": 172
-      },
-      {
-        "id": "apc-nail-5",
-        "type": "nail",
-        "x": 468,
-        "y": 246
-      },
-      {
-        "id": "ldpc-nail-1",
-        "type": "nail",
-        "x": 580,
-        "y": 439
-      },
-      {
-        "id": "ldpc-nail-2",
-        "type": "nail",
-        "x": 580,
-        "y": 140
+        "y": 378
       }
     ],
     "wires": [
-      {
-        "a": "task-card-1.inputInt1",
-        "b": "word-split.single"
-      },
       {
         "a": "control.out1",
         "b": "reg-d.in2"
@@ -7045,16 +7041,16 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "reg-a.in2"
       },
       {
-        "a": "task-card-1.outputInt3",
-        "b": "alu.out1"
+        "a": "alu.out1",
+        "b": "task-card-1.outputInt3"
       },
       {
         "a": "control.out3",
         "b": "write-nail-out.in"
       },
       {
-        "a": "task-card-1.inputInt2",
-        "b": "alu.in3"
+        "a": "alu.in3",
+        "b": "task-card-1.inputInt2"
       },
       {
         "a": "alu.in2",
@@ -7089,88 +7085,92 @@ window.EMBEDDED_SOLUTIONS = {
         "b": "res-nail-3.out"
       },
       {
-        "a": "task-card-1.outputInt1",
-        "b": "reg-a.out"
-      },
-      {
-        "a": "write-nail-out.out",
-        "b": "task-card-1.outputInt4"
-      },
-      {
-        "a": "task-card-1.inputInt3",
-        "b": "counter.in1"
+        "a": "task-card-1.outputInt4",
+        "b": "write-nail-out.out"
       },
       {
         "a": "counter.out",
         "b": "task-card-1.outputInt2"
       },
       {
+        "a": "task-card-1.inputInt1",
+        "b": "word-split.single"
+      },
+      {
+        "a": "ctrl-nail-in.in",
+        "b": "word-split.leg1"
+      },
+      {
         "a": "control.in1",
         "b": "word-split.leg0"
       },
       {
-        "a": "word-split.leg1",
-        "b": "ctrl-nail-in.in"
+        "a": "nail-5.in",
+        "b": "reg-a.out"
       },
       {
-        "a": "alu.out3",
-        "b": "zr-nail-1.in"
+        "a": "nail-5.out",
+        "b": "task-card-1.outputInt1"
       },
       {
-        "a": "zr-nail-1.out",
-        "b": "zr-nail-2.in"
+        "a": "nail-5.out",
+        "b": "nail-6.in"
       },
       {
-        "a": "zr-nail-2.out",
-        "b": "control.in2"
+        "a": "nail-6.out",
+        "b": "nail-7.in"
       },
       {
-        "a": "alu.out2",
-        "b": "ng-nail-1.in"
-      },
-      {
-        "a": "ng-nail-1.out",
-        "b": "ng-nail-2.in"
-      },
-      {
-        "a": "ng-nail-2.out",
-        "b": "ng-nail-3.in"
-      },
-      {
-        "a": "ng-nail-3.out",
-        "b": "control.in3"
+        "a": "counter.in3",
+        "b": "nail-7.out"
       },
       {
         "a": "control.out4",
-        "b": "ldpc-nail-1.in"
+        "b": "nail-8.in"
       },
       {
-        "a": "ldpc-nail-1.out",
-        "b": "ldpc-nail-2.in"
+        "a": "nail-8.out",
+        "b": "nail-9.in"
       },
       {
-        "a": "ldpc-nail-2.out",
-        "b": "counter.in2"
+        "a": "nail-10.in",
+        "b": "nail-9.out"
       },
       {
-        "a": "reg-a.out",
-        "b": "apc-nail-1.in"
+        "a": "counter.in2",
+        "b": "nail-10.out"
       },
       {
-        "a": "apc-nail-1.out",
-        "b": "apc-nail-3.in"
+        "a": "alu.out2",
+        "b": "nail-11.in"
       },
       {
-        "a": "apc-nail-3.out",
-        "b": "apc-nail-4.in"
+        "a": "nail-11.out",
+        "b": "nail-12.in"
       },
       {
-        "a": "apc-nail-4.out",
-        "b": "apc-nail-5.in"
+        "a": "control.in3",
+        "b": "nail-12.out"
       },
       {
-        "a": "apc-nail-5.out",
-        "b": "counter.in3"
+        "a": "alu.out3",
+        "b": "nail-13.in"
+      },
+      {
+        "a": "nail-13.out",
+        "b": "nail-14.in"
+      },
+      {
+        "a": "nail-14.out",
+        "b": "nail-15.in"
+      },
+      {
+        "a": "control.in2",
+        "b": "nail-15.out"
+      },
+      {
+        "a": "counter.in1",
+        "b": "task-card-1.inputInt3"
       }
     ],
     "check": {

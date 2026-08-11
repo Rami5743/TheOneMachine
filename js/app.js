@@ -1243,8 +1243,8 @@
       in3: { x: -62, y: 40, direction: "in", width: 16, label: "כניסת המספר השלישי" },
       in4: { x: 0, y: -58, direction: "in", width: 12, label: "כניסת הבקרה" },
       out1: { x: 66, y: 0, direction: "out", width: 16, label: "יציאת התוצאה" },
-      out2: { x: -20, y: 66, direction: "out", width: 1, label: "יציאת ng" },
-      out3: { x: 20, y: 66, direction: "out", width: 1, label: "יציאת zr" }
+      out2: { x: -20, y: 80, direction: "out", width: 1, label: "יציאת ng" },
+      out3: { x: 20, y: 80, direction: "out", width: 1, label: "יציאת zr" }
     },
     bounds: { left: 64, right: 84, top: 62, bottom: 74 }
   };
@@ -1434,8 +1434,8 @@
       // how the label is anchored.
       inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "\u2067קלט \u200e*A\u200e\u2069" },
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
-      inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
-      inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      inputExt3: { x: -150, y: -370, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt3: { x: -150, y: -310, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
       // BOTH addresses go out WHOLE. Each memory takes a 16-bit address bus and
       // ignores the top of it itself — five bits on the data memory, six on the
       // program memory — so nothing has to be cut here at all.
@@ -1588,8 +1588,8 @@
       // how the label is anchored.
       inputExt2: { x: -340, y: 140, direction: "in", width: 16, label: "כניסת הקלט", caption: "\u2067קלט \u200e*A\u200e\u2069" },
       inputInt2: { x: -260, y: 140, direction: "out", width: 16, label: "כניסת הקלט פנימית" },
-      inputExt3: { x: -260, y: -300, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
-      inputInt3: { x: -260, y: -220, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
+      inputExt3: { x: -150, y: -370, direction: "in", width: 1, label: "כניסת האיפוס", caption: "reset" },
+      inputInt3: { x: -150, y: -310, direction: "out", width: 1, label: "כניסת האיפוס פנימית", caption: "reset" },
       // BOTH addresses go out WHOLE. Each memory takes a 16-bit address bus and
       // ignores the top of it itself — five bits on the data memory, six on the
       // program memory — so nothing has to be cut here at all.

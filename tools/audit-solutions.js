@@ -154,13 +154,17 @@ let bad0=0;
     },[doc]);
     const want=(doc.wires||[]).length;
     const problems=[];
+    const notes=[];
     if(r.drawn!==want) problems.push(`drew ${r.drawn}/${want} wires`);
     if(r.missingPins.length) problems.push('no PINS entry: '+[...new Set(r.missingPins)].join(','));
     if(r.missingDef.length) problems.push('no DEFS entry: '+[...new Set(r.missingDef)].join(','));
     if(r.deadEnds.length) problems.push('dead wire ends: '+[...new Set(r.deadEnds)].slice(0,4).join(' '));
     if(r.emptyDraw.length) problems.push('draws NOTHING: '+r.emptyDraw.join(','));
     if(r.badDirection&&r.badDirection.length) problems.push('wire between two same-direction pins: '+r.badDirection.join(' ; '));
-    if(r.straightNails&&r.straightNails.length) problems.push('nail that bends nothing (drop it): '+r.straightNails.join(' '));
+    // A nail that turns the cable by ~0° is usually redundant — but not always:
+    // a straight one is also where a cable is MEANT to fan out later. Said out
+    // loud, not counted as a fault.
+    if(r.straightNails&&r.straightNails.length) notes.push('straight nail (redundant unless it is a split point): '+r.straightNails.join(' '));
     // A נעץ chain has to be listed IN FLOW ORDER. The solution walkthrough draws
     // one cable at a time, and a cable between two nails that are both still
     // floating has no width on either side yet — so it is refused and quietly
@@ -182,6 +186,7 @@ let bad0=0;
       if(late.length) problems.push('nail chain listed out of flow order (the walkthrough will skip these): '+late.join(' ; '));
     }
     if(problems.length){ bad++; console.log(doc.task.padEnd(11),'✗ '+problems.join(' | ')); }
+    else if(notes.length){ console.log(doc.task.padEnd(11),'ok  ('+(doc.wires||[]).length+' wires, '+(doc.components||[]).length+' components)  · '+notes.join(' | ')); }
     else console.log(doc.task.padEnd(11),'ok  ('+want+' wires, '+((doc.components||[]).length)+' components)');
   }
   if(errs.length) console.log('\npage errors:',[...new Set(errs)].slice(0,4));
