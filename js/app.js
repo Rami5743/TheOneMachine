@@ -19060,6 +19060,12 @@
     ws.components = ws.components.filter((c) => !mine.includes(c.id));
     ws.wires = ws.wires.filter((w) => !/^ct-/.test(w.a) && !/^ct-/.test(w.b));
     ws.wires = ws.wires.filter((w) => w.a !== "source-1.out" && w.b !== "source-1.out");
+    // The check drives its 1s from the power source ALREADY on the table — the
+    // solution places it where the check's own cables want it — instead of
+    // standing a second one up beside it. Only a workspace that somehow has none
+    // gets one added.
+    const SRC = "source-1";
+    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 510 });
     // The input bus is two different things at once: its TOP half is a NUMBER
     // (which of the four destinations to write to) and its bottom half is two
     // separate yes/no wires (the jump conditions). So the check builds it the way
@@ -19069,13 +19075,12 @@
     ws.components.push({ id: "ct-merge", type: "splitter", x: 250, y: 300, mirrored: true, outputs: 3, legWidths: [1, 1, 2], singleWidth: 4, width: 1 });
     ws.wires.push({ a: "ct-conv.out", b: "ct-merge.leg2" });
     ws.wires.push({ a: "ct-merge.single", b: "task-card-1.inputExt1" });
-    // One power source for every wire that has to be 1 this round, as in every
-    // check of this kind; a wire that has to be 0 is simply left unwired.
-    ws.components.push({ id: "ct-src", type: "source", x: 90, y: 470 });
-    if (jn) ws.wires.push({ a: "ct-src.out", b: "ct-merge.leg0" });
-    if (jz) ws.wires.push({ a: "ct-src.out", b: "ct-merge.leg1" });
-    if (zr) ws.wires.push({ a: "ct-src.out", b: "task-card-1.inputExt2" });
-    if (ng) ws.wires.push({ a: "ct-src.out", b: "task-card-1.inputExt3" });
+    // That one source feeds every wire that has to be 1 this round; a wire that
+    // has to be 0 is simply left unwired.
+    if (jn) ws.wires.push({ a: `${SRC}.out`, b: "ct-merge.leg0" });
+    if (jz) ws.wires.push({ a: `${SRC}.out`, b: "ct-merge.leg1" });
+    if (zr) ws.wires.push({ a: `${SRC}.out`, b: "task-card-1.inputExt2" });
+    if (ng) ws.wires.push({ a: `${SRC}.out`, b: "task-card-1.inputExt3" });
     ["d", "a", "m", "pc"].forEach((name, i) => {
       ws.components.push({ id: `ct-${name}`, type: "lamp", x: 1180, y: 250 + i * 130 });
       ws.wires.push({ a: `task-card-1.outputExt${i + 1}`, b: `ct-${name}.in` });

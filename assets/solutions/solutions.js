@@ -6676,8 +6676,8 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 90,
-        "y": 140
+        "x": 195,
+        "y": 510
       }
     ],
     "components": [
@@ -6894,38 +6894,38 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "counter",
         "type": "gate-PC",
-        "x": 520,
-        "y": 175
+        "x": 518,
+        "y": 201
       },
       {
         "id": "control",
         "type": "gate-Cont",
-        "x": 535,
-        "y": 360
+        "x": 456,
+        "y": 403
       },
       {
         "id": "alu",
         "type": "gate-ALU4",
-        "x": 835,
-        "y": 520
+        "x": 843,
+        "y": 513
       },
       {
         "id": "reg-a",
         "type": "gate-Register",
-        "x": 705,
-        "y": 480
+        "x": 697,
+        "y": 483
       },
       {
         "id": "reg-d",
         "type": "gate-Register",
-        "x": 700,
-        "y": 370
+        "x": 694,
+        "y": 395
       },
       {
         "id": "word-split",
         "type": "splitter",
-        "x": 320,
-        "y": 300,
+        "x": 378,
+        "y": 299,
         "outputs": 2,
         "mirrored": false,
         "legWidths": [
@@ -6937,32 +6937,32 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "write-nail-out",
         "type": "nail",
-        "x": 595,
-        "y": 685
+        "x": 605,
+        "y": 678
       },
       {
         "id": "ctrl-nail-in",
         "type": "nail",
-        "x": 830,
-        "y": 265
+        "x": 842,
+        "y": 287
       },
       {
         "id": "res-nail-1",
         "type": "nail",
-        "x": 875,
-        "y": 600
+        "x": 887,
+        "y": 601
       },
       {
         "id": "res-nail-2",
         "type": "nail",
-        "x": 630,
+        "x": 623,
         "y": 605
       },
       {
         "id": "res-nail-3",
         "type": "nail",
-        "x": 625,
-        "y": 425
+        "x": 623,
+        "y": 481
       }
     ],
     "wires": [
