@@ -25985,7 +25985,78 @@
     setState({ cardCreation: { ...state.cardCreation, pinEdit: null } }, false);
   });
 
+  // --- Dev export (Ctrl+Shift+8): this build, as a solution JSON --------------
+  // A better layout gets authored ON THE BOARD — you drag the cards around until
+  // the picture reads, and then there is no way to get it back out: the solution
+  // files are hand-written, and a screenshot is not a file. This writes the live
+  // workspace as a solution doc and downloads it, ready to drop into the editor
+  // or straight into assets/solutions/.
+  //
+  // The doc's frame, its pins and its `check` come from the EXISTING solution for
+  // this task — those are authored, not built on the board — and only the parts
+  // the board owns (positions, components, wires) are taken from the workspace.
+  // Coordinates are shifted back out of game space, undoing the translation
+  // workspaceFromSolutionDoc applies when it lays a solution down.
+  function exportWorkspaceAsSolutionDoc() {
+    const workspace = state.workspace;
+    const taskId = workspace?.taskId;
+    if (!taskId) return setState({ infoDialog: "אין כאן משימה לייצא." });
+    const template = (typeof SOLUTION_DOCS !== "undefined" && SOLUTION_DOCS[taskId]) ? clonePlain(SOLUTION_DOCS[taskId]) : null;
+    const frameHere = (workspace.components || []).find((c) => c.id === "task-card-1");
+    const frame = template?.frame
+      ? { ...template.frame }
+      : { id: "task-card-1", type: frameHere?.type || "taskCard", x: 640, y: 430, frameW: 800, frameH: 680, pins: [] };
+    // Board → doc: the frame is the anchor, so everything moves by the same delta
+    // that put the frame where the game draws it.
+    const dx = (Number.isFinite(frame.x) && frameHere && Number.isFinite(frameHere.x)) ? frame.x - frameHere.x : 0;
+    const dy = (Number.isFinite(frame.y) && frameHere && Number.isFinite(frameHere.y)) ? frame.y - frameHere.y : 0;
+    const half = { w: (frame.frameW || 800) / 2, h: (frame.frameH || 680) / 2 };
+    const externals = [];
+    const components = [];
+    (workspace.components || []).forEach((component) => {
+      if (component.id === "task-card-1") return;
+      const out = clonePlain(component);
+      if (Number.isFinite(out.x)) out.x = Math.round(out.x + dx);
+      if (Number.isFinite(out.y)) out.y = Math.round(out.y + dy);
+      // Transient board bookkeeping has no place in an authored solution.
+      ["focused", "selected", "highlight", "ghost", "value"].forEach((key) => {
+        if (key === "value" && out.type === "converter-out") return;
+        delete out[key];
+      });
+      // Inside the frame is the build; outside it is the table (the power source).
+      const inside = Math.abs(out.x - frame.x) <= half.w && Math.abs(out.y - frame.y) <= half.h;
+      (inside ? components : externals).push(out);
+    });
+    const doc = {
+      format: "theonemachine-solution",
+      version: 1,
+      task: taskId,
+      frame,
+      external: externals,
+      components,
+      wires: (workspace.wires || []).map((wire) => ({ a: wire.a, b: wire.b }))
+    };
+    if (template && template.check) doc.check = template.check;
+    if (template && template.harness) doc.harness = template.harness;
+    const blob = new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${taskId}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setState({ infoDialog: `נשמר ${taskId}.json — ${components.length + externals.length} רכיבים, ${doc.wires.length} חיבורים.` });
+  }
+
   document.addEventListener("keydown", (event) => {
+    // Secret dev shortcut: Ctrl+Shift+8 downloads the build on the table as a
+    // solution JSON (see exportWorkspaceAsSolutionDoc).
+    if (event.ctrlKey && event.shiftKey && event.code === "Digit8") {
+      event.preventDefault();
+      if (state.screen === "workspace") return exportWorkspaceAsSolutionDoc();
+    }
     // Secret dev shortcut: Ctrl+Shift+9 instantly solves the current task and
     // returns to its note (for quickly reaching later tasks while testing).
     // Chosen because Ctrl+Shift+<digit> isn't reserved by browsers or the OS.
