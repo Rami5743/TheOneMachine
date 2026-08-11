@@ -19,6 +19,10 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
   // reaches roughly y≈720; this virtual floor keeps such content placeable even
   // when the real board viewport is shorter (the board scrolls to reveal it).
   const CLAMP_MIN_BOARD_HEIGHT = 900;
+  // Same idea on X now that the board scrolls sideways too: the widest authored
+  // content (a 4.4 frame's outer pins at x≈1080, a check's lamps beyond that)
+  // must stay placeable on a narrow window instead of being dragged inward.
+  const CLAMP_MIN_BOARD_WIDTH = 1280;
 
   function terminalPosition(workspace, ref, overrides = null) {
     const info = pinDefFor(workspace, ref);
@@ -59,14 +63,15 @@ function createBoardGeometry({ pinDefFor, componentDef, workspaceBoardSize, comp
     // we did not measure is no reason to move anything.
     if (size.measured === false) return { x, y };
     const bounds = componentDef(type)?.bounds || { left: 8, right: 8, top: 8, bottom: 8 };
-    // The board scrolls VERTICALLY, so a component may legitimately sit below the
-    // visible viewport (a check's harness lamps, a tall card's solution). Clamp Y
-    // against a generous virtual height rather than the real (possibly short, or
-    // boot-time fallback) viewport, so low content is never pulled up out of
-    // place. X still clamps to the real width — there is no horizontal scroll.
+    // The board scrolls on BOTH axes, so a component may legitimately sit below
+    // the visible viewport (a check's harness lamps, a tall card's solution) or
+    // past its right edge. Clamp against generous virtual bounds rather than the
+    // real (possibly short/narrow, or boot-time fallback) viewport, so content
+    // out there is never pulled back in out of place.
     const heightForClamp = Math.max(size.height, CLAMP_MIN_BOARD_HEIGHT);
-    const minX = Math.min(bounds.left, size.width - bounds.right);
-    const maxX = Math.max(bounds.left, size.width - bounds.right);
+    const widthForClamp = Math.max(size.width, CLAMP_MIN_BOARD_WIDTH);
+    const minX = Math.min(bounds.left, widthForClamp - bounds.right);
+    const maxX = Math.max(bounds.left, widthForClamp - bounds.right);
     const minY = Math.min(bounds.top, heightForClamp - bounds.bottom);
     const maxY = Math.max(bounds.top, heightForClamp - bounds.bottom);
 

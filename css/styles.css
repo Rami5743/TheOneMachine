@@ -297,7 +297,21 @@ button { font: inherit; }
 /* Keep the chapters return button tight against the chapters card: without this
    wrapper the button and the card are two separate items in the place-items:
    center grid, which spreads them far apart. */
-.chapters-layout { display: flex; flex-direction: column; align-items: center; }
+/* The chapters page has to SCROLL once the list outgrows the window — by 4.4
+   the bottom parts were simply cut off by .screen's overflow:hidden. The height
+   limit has to run all the way down: the screen grid item, this column, and the
+   card that actually scrolls, each with min-height:0 so a flex/grid child is
+   allowed to be shorter than its content. */
+.chapters-screen { align-items: stretch; justify-items: center; }
+.chapters-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: 100%;
+  min-height: 0;
+  width: 100%;
+}
+.chapters-layout .parts-card { flex: 0 1 auto; min-height: 0; }
 .chapters-layout .page-return-top { margin-bottom: 0.75rem; }
 .return-to-game-btn { background: #5b4328; color: #fff8ec; border-color: #3f2d19; min-width: 12rem; }
 .return-to-game-btn:hover { background: #6d5233; }
@@ -2249,7 +2263,10 @@ g.component-ffCard.ff-materialize .ff-card {
 .workspace-board-scroll {
   min-height: 0;
   height: 100%;
-  overflow-x: hidden;
+  /* Both axes scroll WHEN NEEDED: fitWorkspaceCanvas only grows the canvas past
+     the viewport when content actually runs past the fold or the right edge, so
+     a build that fits shows no scrollbar at all. */
+  overflow-x: auto;
   overflow-y: auto;
   border-radius: 10px;
   overscroll-behavior: contain;
@@ -2258,7 +2275,9 @@ g.component-ffCard.ff-materialize .ff-card {
 .workspace-canvas {
   width: 100%;
   height: 100%;
-  max-width: 100%;
+  /* No max-width either: the canvas may grow WIDER than the viewport so the
+     board scrolls sideways to it (its width is set in JS, like its height). */
+  max-width: none;
   /* No max-height: the canvas may grow TALLER than the viewport so the board
      scrolls to it (its height is set in JS from the actual content extent). */
   max-height: none;
@@ -2820,8 +2839,13 @@ g.component-ffCard.ff-materialize .ff-card {
 .parts-card {
   width: min(900px, 100%);
   max-height: 100%;
-  overflow: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Centred while it fits; anchored to the top the moment it does not — plain
+     `center` would push the first part off the top edge where no amount of
+     scrolling reaches it. */
   align-content: center;
+  align-content: safe center;
   justify-items: stretch;
   padding: 4px;
 }

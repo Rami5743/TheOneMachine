@@ -1325,10 +1325,10 @@
     pins: {
       in2: { x: -30, y: -46, direction: "in", width: 1, label: "כניסת הבקרה" },
       in1: { x: 30, y: -46, direction: "in", width: 1, label: "כניסת האיפוס" },
-      in3: { x: -80, y: 0, direction: "in", width: 16, label: "כניסת הדאטה" },
-      out: { x: 80, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
+      in3: { x: -96, y: 0, direction: "in", width: 16, label: "כניסת הדאטה" },
+      out: { x: 96, y: 0, direction: "out", width: 16, label: "יציאת המונה" }
     },
-    bounds: { left: 96, right: 96, top: 62, bottom: 50 }
+    bounds: { left: 112, right: 112, top: 62, bottom: 50 }
   };
 
   // taskCard-JmpCnt: 4.4's jump decider. On the left the two condition bits of
@@ -13774,23 +13774,31 @@
     const svg = app.querySelector("[data-workspace-svg]");
     if (!scroll || !svg) return;
     const viewport = scroll.clientHeight;
-    if (!viewport) return;
-    // Reset to the viewport height first so the measurement reflects real
-    // content (not last render's grown height).
+    const viewportW = scroll.clientWidth;
+    if (!viewport || !viewportW) return;
+    // Reset to the viewport size first so the measurement reflects real content
+    // (not last render's grown box).
     svg.style.height = `${viewport}px`;
+    svg.style.width = `${viewportW}px`;
     let contentBottom = viewport;
+    let contentRight = viewportW;
     try {
       const bb = svg.getBBox();
       if (bb && Number.isFinite(bb.y) && Number.isFinite(bb.height)) {
         contentBottom = Math.ceil(bb.y + bb.height);
       }
+      if (bb && Number.isFinite(bb.x) && Number.isFinite(bb.width)) {
+        contentRight = Math.ceil(bb.x + bb.width);
+      }
     } catch {}
     // Only grow (and thus show a scrollbar) when content actually runs past the
-    // fold; when it fits, keep the canvas exactly viewport-high so nothing
-    // scrolls. contentBottom is >= viewport because getBBox includes the
-    // full-height background rect.
+    // fold or the right edge; when it fits, keep the canvas exactly viewport-
+    // sized so nothing scrolls. contentBottom/contentRight are >= the viewport
+    // because getBBox includes the full-size background rect.
     const height = contentBottom > viewport ? contentBottom + WORKSPACE_CANVAS_BOTTOM_PAD : viewport;
+    const width = contentRight > viewportW ? contentRight + WORKSPACE_CANVAS_BOTTOM_PAD : viewportW;
     svg.style.height = `${height}px`;
+    svg.style.width = `${width}px`;
   }
 
   function activeMonologueNandComponent() {

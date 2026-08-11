@@ -454,13 +454,12 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // the body may only grow until its top edge reaches those stubs: 82 tall
     // leaves the two of them 5px of stub each, which is what keeps them visible.
     const edge = 58;
-    const REACH = 80;
+    // The bars reach 96, not 80. The width number is drawn at the bar's MIDDLE,
+    // so a short bar puts it half under the body — which is what hid the "16" on
+    // this wider card. A longer bar carries the label clear. The pins move with
+    // it (def + editor table), or a cable would land part-way along the bar.
+    const REACH = 96;
     const bodyH = 82;
-    // Same trap the JmpCnt and Cont cards fell into when their bodies grew: the
-    // default bar runs edge+PIN out from the body, but the PINS are fixed at ±80
-    // by the def. With edge 58 that bar reached 98 — eighteen pixels PAST the
-    // pin — so every cable landed part-way along a bar instead of at its end.
-    // Draw each bar from the pin to the body.
     let s = busGateBar({ x1: -REACH, x2: -edge, y: 0 }, width, !options.toolbar);
     s += busGateBar({ x1: edge, x2: REACH, y: 0 }, width, !options.toolbar);
     s += pinLine(-30, -46, -30, -bodyH / 2);
