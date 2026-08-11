@@ -2015,6 +2015,13 @@
     // How long the program that passed each programming task was, in
     // instructions — the counts behind "דירוגי תוכנה".
     programCounts: null,
+    // Ids of ranked cards/tasks the player used an INTERACTIVE hint on — a hint
+    // that fills the build / truth-table / program for them. Such a card is out
+    // of the rankings: recordCardNandCount (and the program's own recorder) will
+    // not write a NEW record for it while it is listed here, though an earlier
+    // clean record is kept (we never delete one). Cleared for a card when its
+    // progress is cleared, so a fresh unaided solve can rank again.
+    rankHintUsed: {},
     // Transient: a nickname validation/uniqueness error to show under the field.
     rankingsNicknameError: null,
     createCardUnlocked: false,
@@ -7119,8 +7126,16 @@
         if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
       });
     });
+    // An interactive hint takes the player's program out of the ranking: flag the
+    // ranked task so no NEW length is recorded for it. An earlier clean record is
+    // kept (we do not delete it); "נקה התקדמות" clears the flag.
+    const rankTask = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const flagged = rankTask && rankTask.rankId
+      ? { ...(state.rankHintUsed || {}), [rankTask.rankId]: true }
+      : state.rankHintUsed;
     return setState({
       [programSheetKey()]: { scratch: {}, bits },
+      rankHintUsed: flagged,
       programHintOpen: null,
       programSelection: null,
       programManualTest: null,
@@ -8166,13 +8181,16 @@
     if (!result) return {};
     if (!result.ok) return noteProgramFailure() || {};
     if (programHelperOpen()) return { programHelperDone: true };
-    // What the machine actually ran, in instructions — the number "עורך תוכנה"
+    // What the machine actually ran, in instructions — the number "אורך תוכנה"
     // ranks by. The current program's length, the way a card's Nand count is the
     // current build's.
     const patch = { programTaskDone: true };
     const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
     const ran = (now.runs || [])[0];
-    if (task && task.rankId && ran && Number.isInteger(ran.steps) && ran.steps > 0) {
+    // An interactive hint (one that wrote instructions for the player) takes the
+    // program out of the ranking — its length is not recorded.
+    if (task && task.rankId && ran && Number.isInteger(ran.steps) && ran.steps > 0
+        && !(state.rankHintUsed && state.rankHintUsed[task.rankId])) {
       patch.programCounts = { ...(state.programCounts || {}), [task.rankId]: ran.steps };
     }
     return patch;
@@ -18565,6 +18583,9 @@
 
   function recordCardNandCount(taskId, buildWorkspace) {
     if (!taskId) return null;
+    // A card the player used an interactive hint on is out of the rankings: keep
+    // whatever record it already had, but write no new one.
+    if (state.rankHintUsed && state.rankHintUsed[taskId]) return {};
     const ws = buildWorkspace || {};
     const newBuild = {
       components: expandUserCards(clonePlain(ws.components || [])),
@@ -22928,6 +22949,14 @@
       return setState(patch, false);
     }
 
+    // From here every interactive hint FILLS something for the learner — the
+    // scratch truth table or the built circuit — which takes this card out of the
+    // rankings: recordCardNandCount keeps any earlier record but writes no new one.
+    // (The Xor "slides" hint above only shows slides, so it does not count.) The
+    // setState each branch below runs persists this; saveState makes it durable.
+    state.rankHintUsed = { ...(state.rankHintUsed || {}), [taskId]: true };
+    saveState();
+
     // MUX interactive hints fill the scratch truth table; they leave the
     // learner's built circuit untouched.
     if (taskId === "Mux" && (hint.action === "mux-fill-inputs" || hint.action === "mux-fill-outputs")) {
@@ -23722,12 +23751,17 @@
     const failed = Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : [];
     const newHintState = { ...hintState() };
     ids.forEach((id) => { delete newHintState[id]; });
+    // Clearing a card's progress also lifts any interactive-hint disqualification
+    // on it, so a fresh unaided rebuild can rank again.
+    const newRankHintUsed = { ...(state.rankHintUsed || {}) };
+    ids.forEach((id) => { delete newRankHintUsed[id]; });
     setState({
       completedTasks: completed.filter((id) => !idSet.has(id)),
       tasksFailedOnce: failed.filter((id) => !idSet.has(id)),
       tasksEverCompleted: everUnion,
       tasksClearedAfterCompletion: clearedAfterUnion,
       hintState: newHintState,
+      rankHintUsed: newRankHintUsed,
       noteClearConfirm: null
     }, false);
   }
@@ -27048,9 +27082,15 @@
       // with THEM the solution — a page that was never solved has not earned its
       // walkthrough back either. Only the page being cleared is touched: the
       // helper task keeps its own progress, and the other way round.
+      // Starting the ranked (main) task over also lifts any interactive-hint
+      // disqualification on it, so a fresh unaided solve can rank again.
+      const rankClearTask = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+      const clearedRankHint = { ...(state.rankHintUsed || {}) };
+      if (!programHelperOpen() && rankClearTask && rankClearTask.rankId) delete clearedRankHint[rankClearTask.rankId];
       return setState({
         [programSheetKey()]: { scratch: {}, bits: {} },
         [programHintKey()]: { failures: 0, seen: 0 },
+        rankHintUsed: clearedRankHint,
         ...(programHelperOpen() ? { programHelperDone: false } : { programTaskDone: false }),
         programSolution: null, programSolutionSeen: false,
         programClearConfirm: null, sheetScratchCell: null, programDestMenu: null,
