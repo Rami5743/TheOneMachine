@@ -10,8 +10,8 @@
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
     <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 138.5 C 1420,153.16667 1413.4961,160.5 1400.48831,160.5 H 719.51169 C 706.50389,160.5 700,153.16667 700,138.5 V 111.26 L 614,300 L 700,89.24 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1060" y="80" id="tspan1">זהו. אלה המשימות שלך. נראה שאנחנו קרובים</tspan><tspan x="1060" y="130.5" id="tspan2">לסיום.</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">זהו. אלה המשימות שלך. נראה שאנחנו קרובים</tspan><tspan x="1392" y="130.5" id="tspan2">לסיום.</tspan></text>
   </g>
 </svg>

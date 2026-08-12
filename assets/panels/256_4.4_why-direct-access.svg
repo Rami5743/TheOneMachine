@@ -12,6 +12,6 @@
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1417.7" y="80" id="tspan1">מתברר שכל מה שצריך להוסיף למכונה שלנו כדי</tspan><tspan x="1417.7" y="130.5" id="tspan2">שתוכל לבצע כל חישוב, זה מה שנקרא "יכולת</tspan><tspan x="1417.7" y="181" id="tspan3">קפיצה מותנת". זה אומר שצריך להוסיף פקודה</tspan><tspan x="1417.7" y="231.5" id="tspan4">שאומרת שבמקום לבצע את הפקודה הבאה המכונה</tspan><tspan x="1417.7" y="282" id="tspan5">תקפוץ למקום אחר בתוכנה ותמשיך משם. יתר על</tspan><tspan x="1417.7" y="332.5" id="tspan6">כן, צריך לאפשר למכונה "להחליט" האם היא עושה</tspan><tspan x="1417.7" y="383" id="tspan7">את זה, לפי תוצאת החישוב.</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1413.5" y="80" id="tspan1">הסיבה שזה כל-כך פשוט היא זה שמראש דאגנו</tspan><tspan x="1413.5" y="130.5" id="tspan2">שזיכרון התוכנה היה בעל גישה ישירה ושנגש</tspan><tspan x="1413.5" y="181" id="tspan3">אליו באמצעות רגיסטר.</tspan><tspan x="1413.5" y="231.5" id="tspan4"> </tspan><tspan x="1413.5" y="282" id="tspan5">למעשה, הסיבה המרכזית שעשינו את זה הייתה</tspan><tspan x="1413.5" y="332.5" id="tspan6">לאפשר קפיצה מותנת. אחרת היה אפשר להשתמש</tspan><tspan x="1413.5" y="383" id="tspan7">בסרט מנוקב עם הפקודות ולבצע אותם אחת-אחת.</tspan></text>
   </g>
 </svg>

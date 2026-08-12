@@ -2589,20 +2589,26 @@ const SCENES = {
         "read": "האפשרות של קפיצה מותנת תהפוך את המכונה שלנו להרבה יותר חזקה, אבל לא קשה להוסיף אותה: עיקר ההבדל הוא ב-PC וביחידת הבקרה. צריך להוסיף כניסה ל-PC שתאפשר לכתוב לתוכו, במקום שהוא יגדל סתם ב-1. זה יאפשר לנו לקפוץ. צריך גם להרחיב את יחידת הבקרה כדי שהיא תוכל לפתוח את ה-PC לכתיבה מתי שצריך."
       },
       {
+        "comment": "Why the jump is so cheap to add: the program memory was built with direct access, reached through a register — and that was done for the conditional jump in the first place.",
+        "image": "assets/panels/256_4.4_why-direct-access.svg",
+        "year": "1944",
+        "read": "הסיבה שזה כל-כך פשוט היא זה שמראש דאגנו שזיכרון התוכנה היה בעל גישה ישירה ושנגש אליו באמצעות רגיסטר. למעשה, הסיבה המרכזית שעשינו את זה הייתה לאפשר קפיצה מותנת. אחרת היה אפשר להשתמש בסרט מנוקב עם הפקודות ולבצע אותם אחת-אחת."
+      },
+      {
         "comment": "Wordless: he lays the note of tasks on the worktable.",
-        "image": "assets/panels/256_4.4_note-placed.svg",
+        "image": "assets/panels/257_4.4_note-placed.svg",
         "year": "1944",
         "read": ""
       },
       {
         "comment": "The tasks are on the table, and the end is in sight.",
-        "image": "assets/panels/257_4.4_here-are-the-tasks.svg",
+        "image": "assets/panels/258_4.4_here-are-the-tasks.svg",
         "year": "1944",
         "read": "זהו. אלה המשימות שלך. נראה שאנחנו קרובים לסיום."
       },
       {
         "comment": "Wordless: the 4.4 room, the note of jump tasks on the worktable. Same camera and zones as 4.3's room.",
-        "image": "assets/panels/258_4.4_build-room.svg",
+        "image": "assets/panels/259_4.4_build-room.svg",
         "year": "1944",
         "read": "",
         "hotspots": [
@@ -2763,19 +2769,19 @@ const SCENES = {
       },
       {
         "comment": "The machine runs. Von Neumann stands in the finished hangar — one machine for every calculation.",
-        "image": "assets/panels/259_4.4_we-did-it.svg",
+        "image": "assets/panels/260_4.4_we-did-it.svg",
         "year": "1944",
         "read": "עשינו זאת! יש לנו מכונה שיכולה לעשות כל חישוב. למעשה היא יכולה לבצע כל רצף של הוראות ובלבד שהוא יהיה מדויק ושהוא יעסוק רק במידע."
       },
       {
         "comment": "What they built matters beyond the bomb they were called here for.",
-        "image": "assets/panels/260_4.4_world-changing.svg",
+        "image": "assets/panels/261_4.4_world-changing.svg",
         "year": "1944",
         "read": "המכונה הזאת תשנה את העולם. אולי היא אפילו יותר חשובה מהפרויקט שאנחנו עובדים עליו עכשיו."
       },
       {
         "comment": "The ask: convince Oppenheimer, then more memory, cooling, and above all people to program it.",
-        "image": "assets/panels/261_4.4_more-resources.svg",
+        "image": "assets/panels/262_4.4_more-resources.svg",
         "year": "1944",
         "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון. מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
       }

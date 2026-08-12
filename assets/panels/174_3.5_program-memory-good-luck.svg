@@ -10,8 +10,8 @@
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
     <path id="speech-bubble" d="M 490.51169,40 H 740.48831 C 753.49611,40 760,47.33333 760,62 V 88 C 760,102.66667 753.4961,110 740.48831,110 H 490.51169 C 477.50389,110 471,102.66667 471,88 V 88 L 425.47133,94.69 L 471,65.98 V 62 C 471,47.33333 477.50389,40 490.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="615.5" y="80" id="tspan1">בהצלחה</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="732" y="80" id="tspan1">בהצלחה</tspan></text>
   </g>
 </svg>

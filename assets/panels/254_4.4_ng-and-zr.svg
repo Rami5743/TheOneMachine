@@ -10,8 +10,8 @@
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
     <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 290 C 1420,304.66667 1413.4961,312 1400.48831,312 H 719.51169 C 706.50389,312 700,304.66667 700,290 V 187.01 L 614,300 L 700,164.99 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1060" y="80" id="tspan1">אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט</tspan><tspan x="1060" y="130.5" id="tspan2">הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4</tspan><tspan x="1060" y="181" id="tspan3">בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב</tspan><tspan x="1060" y="231.5" id="tspan4">יצא 0 והאם הוא יצא שלילי, כך שאתה יכול</tspan><tspan x="1060" y="282" id="tspan5">להשתמש בו.</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1408.1" y="80" id="tspan1">אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט</tspan><tspan x="1408.1" y="130.5" id="tspan2">הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4</tspan><tspan x="1408.1" y="181" id="tspan3">בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב</tspan><tspan x="1408.1" y="231.5" id="tspan4">יצא 0 והאם הוא יצא שלילי, כך שאתה יכול</tspan><tspan x="1408.1" y="282" id="tspan5">להשתמש בו.</tspan></text>
   </g>
 </svg>

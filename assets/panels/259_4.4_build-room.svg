@@ -9,7 +9,7 @@
    preserveAspectRatio="xMidYMid meet"
    id="svg1"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
-   sodipodi:docname="258_4.4_build-room.svg"
+   sodipodi:docname="259_4.4_build-room.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -37,8 +37,8 @@
      width="1448"
      height="1086"
      preserveAspectRatio="none"
-     href="258_4.4_build-room.jpg"
-     xlink:href="258_4.4_build-room.jpg" />
+     href="259_4.4_build-room.jpg"
+     xlink:href="259_4.4_build-room.jpg" />
   <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
        app reads their positions from here. -->
   <rect
@@ -266,7 +266,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "258_4.4_build-room";
+  var PANEL = "259_4.4_build-room";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

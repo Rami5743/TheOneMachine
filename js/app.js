@@ -9108,7 +9108,7 @@
     const chapter = chapterById("chapter-19");
     const scene = chapter ? SCENES[chapter.sceneId] : null;
     if (!chapter || !scene) return { screen: "story" };
-    const idx = panelIndexByImage(scene, "258_4.4_build-room.svg");
+    const idx = panelIndexByImage(scene, "259_4.4_build-room.svg");
     return {
       screen: "story",
       chapterId: chapter.id,
@@ -9130,7 +9130,7 @@
     if (!allDone) return { ...jumpReturnTarget(), jumpNoteList: true, infoDialog: null };
     const chapter = chapterById("chapter-19");
     const scene = chapter ? SCENES[chapter.sceneId] : null;
-    const idx = scene ? panelIndexByImage(scene, "259_4.4_we-did-it.svg") : -1;
+    const idx = scene ? panelIndexByImage(scene, "260_4.4_we-did-it.svg") : -1;
     if (idx < 0) return { ...jumpReturnTarget(), jumpNoteList: false, infoDialog: "המשך יבוא..." };
     return {
       ...transientUiClearPatch(),
