@@ -9063,17 +9063,44 @@
   // The build table for a 4.4 card. The same table 4.2's cards use — clocked bus
   // board, the frame in the middle, a source to play with — but it comes back to
   // 4.4's room, not 4.2's.
+  // Where the power source stands on a 4.4 table. It has to be the SAME spot in
+  // all three views of a card — the build, the check, and the solution — or it
+  // appears to jump between them. The check already reuses whatever source is on
+  // the table and the solution carries its own, so the one that has to agree is
+  // the BUILD, and it takes its spot from that card's own solution document. Cont
+  // and JmpCnt want it low, level with the card's inputs, which is where their
+  // checks drive their 1s from; PC and CPU keep the default corner. Reading it
+  // from the solution means a card whose solution moves stays consistent by
+  // itself, with no per-card position to keep in step by hand.
+  // A card whose solution uses no source at all (the Computer) gets none on its
+  // table either: null means "do not put one out". Only a card whose solution
+  // could not be read falls back to the default corner — a missing document must
+  // not silently strip the source from every table.
+  const JUMP_SOURCE_SPOT = { x: 90, y: 140 };
+  function jumpTaskSourceSpot(taskId) {
+    const docs = (typeof window !== "undefined" && window.EMBEDDED_SOLUTIONS) || null;
+    const doc = docs && docs[taskId];
+    if (!doc) return JUMP_SOURCE_SPOT;
+    const all = [...(doc.external || []), ...(doc.components || [])];
+    const src = all.find((c) => c && c.id === "source-1" && c.type === "source");
+    if (!src) return null;
+    return (Number.isFinite(src.x) && Number.isFinite(src.y))
+      ? { x: src.x, y: src.y }
+      : JUMP_SOURCE_SPOT;
+  }
+
   function openJumpTaskWorkspace(taskId) {
     const task = jumpTaskDefById(taskId);
     if (!task) return;
     const chapter = chapterById("chapter-19");
     const returnChapterId = state.chapterId;
     const returnPanelIndex = Number.isInteger(state.panelIndex) ? state.panelIndex : null;
+    const jumpSourceSpot = jumpTaskSourceSpot(task.id);
     const workspace = {
       ...createDefaultWorkspace(),
       components: [
         { id: "task-card-1", type: taskCardComponentType(task.id), ...buildCardSpot(task.id) },
-        { id: "source-1", type: "source", x: 90, y: 140 }
+        ...(jumpSourceSpot ? [{ id: "source-1", type: "source", ...jumpSourceSpot }] : [])
       ],
       wires: [],
       nextId: 2,
