@@ -1,0 +1,429 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "CPU",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-CPU",
+    "x": 640,
+    "y": 430,
+    "frameW": 800,
+    "frameH": 680,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -440,
+        "y": -176,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הפקודה",
+        "caption": "פקודה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -360,
+        "y": -176,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הפקודה פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -440,
+        "y": 176,
+        "w": 16,
+        "dir": "in",
+        "label": "כניסת הקלט",
+        "caption": "⁧קלט ‎*A‎⁩"
+      },
+      {
+        "id": "inputInt2",
+        "x": -360,
+        "y": 176,
+        "w": 16,
+        "dir": "out",
+        "label": "כניסת הקלט פנימית"
+      },
+      {
+        "id": "inputExt3",
+        "x": -150,
+        "y": -370,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת האיפוס",
+        "caption": "reset"
+      },
+      {
+        "id": "inputInt3",
+        "x": -150,
+        "y": -310,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת האיפוס פנימית",
+        "caption": "reset"
+      },
+      {
+        "id": "outputInt1",
+        "x": 360,
+        "y": -88,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת A פנימית"
+      },
+      {
+        "id": "outputExt1",
+        "x": 440,
+        "y": -88,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת A",
+        "caption": "A"
+      },
+      {
+        "id": "outputInt2",
+        "x": 360,
+        "y": -252,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת PC פנימית"
+      },
+      {
+        "id": "outputExt2",
+        "x": 440,
+        "y": -252,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת PC",
+        "caption": "PC"
+      },
+      {
+        "id": "outputInt3",
+        "x": 360,
+        "y": 88,
+        "w": 16,
+        "dir": "in",
+        "label": "יציאת הפלט פנימית"
+      },
+      {
+        "id": "outputExt3",
+        "x": 440,
+        "y": 88,
+        "w": 16,
+        "dir": "out",
+        "label": "יציאת הפלט",
+        "caption": "⁧פלט ‎*A‎⁩"
+      },
+      {
+        "id": "outputInt4",
+        "x": 360,
+        "y": 252,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת הכתיבה פנימית"
+      },
+      {
+        "id": "outputExt4",
+        "x": 440,
+        "y": 252,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת הכתיבה",
+        "caption": "⁧בקרת ‎*A‎⁩"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 90,
+      "y": 140
+    }
+  ],
+  "components": [
+    {
+      "id": "counter",
+      "type": "gate-PC",
+      "x": 472.0,
+      "y": 178.0
+    },
+    {
+      "id": "control",
+      "type": "gate-Cont",
+      "x": 403.0,
+      "y": 377.8
+    },
+    {
+      "id": "alu",
+      "type": "gate-ALU4",
+      "x": 835.1,
+      "y": 518.0
+    },
+    {
+      "id": "reg-a",
+      "type": "gate-Register",
+      "x": 707,
+      "y": 493.5
+    },
+    {
+      "id": "reg-d",
+      "type": "gate-Register",
+      "x": 700,
+      "y": 369.4
+    },
+    {
+      "id": "word-split",
+      "type": "splitter",
+      "x": 318.0,
+      "y": 279.0,
+      "outputs": 2,
+      "mirrored": false,
+      "legWidths": [
+        4,
+        12
+      ],
+      "singleWidth": 16
+    },
+    {
+      "id": "write-nail-out",
+      "type": "nail",
+      "x": 621,
+      "y": 682.0
+    },
+    {
+      "id": "ctrl-nail-in",
+      "type": "nail",
+      "x": 835.1,
+      "y": 262.0
+    },
+    {
+      "id": "res-nail-1",
+      "type": "nail",
+      "x": 874.7,
+      "y": 602.5
+    },
+    {
+      "id": "res-nail-2",
+      "type": "nail",
+      "x": 629.5,
+      "y": 602.5
+    },
+    {
+      "id": "res-nail-3",
+      "type": "nail",
+      "x": 629.5,
+      "y": 493.5
+    },
+    {
+      "id": "nail-5",
+      "type": "nail",
+      "x": 943.5,
+      "y": 375
+    },
+    {
+      "id": "nail-6",
+      "type": "nail",
+      "x": 943.5,
+      "y": 222.5
+    },
+    {
+      "id": "nail-7",
+      "type": "nail",
+      "x": 414.4,
+      "y": 222.5
+    },
+    {
+      "id": "nail-8",
+      "type": "nail",
+      "x": 451.0,
+      "y": 470.5
+    },
+    {
+      "id": "nail-9",
+      "type": "nail",
+      "x": 295.5,
+      "y": 470.5
+    },
+    {
+      "id": "nail-10",
+      "type": "nail",
+      "x": 295.5,
+      "y": 150.4
+    },
+    {
+      "id": "nail-11",
+      "type": "nail",
+      "x": 823.1,
+      "y": 705.0
+    },
+    {
+      "id": "nail-12",
+      "type": "nail",
+      "x": 355.0,
+      "y": 705.0
+    },
+    {
+      "id": "nail-13",
+      "type": "nail",
+      "x": 847.1,
+      "y": 737.5
+    },
+    {
+      "id": "nail-14",
+      "type": "nail",
+      "x": 325.5,
+      "y": 737.5
+    },
+    {
+      "id": "nail-15",
+      "type": "nail",
+      "x": 325.5,
+      "y": 377.8
+    }
+  ],
+  "wires": [
+    {
+      "a": "control.out1",
+      "b": "reg-d.in2"
+    },
+    {
+      "a": "control.out2",
+      "b": "reg-a.in2"
+    },
+    {
+      "a": "alu.out1",
+      "b": "task-card-1.outputInt3"
+    },
+    {
+      "a": "control.out3",
+      "b": "write-nail-out.in"
+    },
+    {
+      "a": "alu.in3",
+      "b": "task-card-1.inputInt2"
+    },
+    {
+      "a": "alu.in2",
+      "b": "reg-a.out"
+    },
+    {
+      "a": "alu.in4",
+      "b": "ctrl-nail-in.out"
+    },
+    {
+      "a": "alu.in1",
+      "b": "reg-d.out"
+    },
+    {
+      "a": "alu.out1",
+      "b": "res-nail-1.in"
+    },
+    {
+      "a": "res-nail-1.out",
+      "b": "res-nail-2.in"
+    },
+    {
+      "a": "res-nail-2.out",
+      "b": "res-nail-3.in"
+    },
+    {
+      "a": "reg-a.in1",
+      "b": "res-nail-3.out"
+    },
+    {
+      "a": "reg-d.in1",
+      "b": "res-nail-3.out"
+    },
+    {
+      "a": "task-card-1.outputInt4",
+      "b": "write-nail-out.out"
+    },
+    {
+      "a": "counter.out",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "word-split.single"
+    },
+    {
+      "a": "ctrl-nail-in.in",
+      "b": "word-split.leg1"
+    },
+    {
+      "a": "control.in1",
+      "b": "word-split.leg0"
+    },
+    {
+      "a": "nail-5.in",
+      "b": "reg-a.out"
+    },
+    {
+      "a": "nail-5.out",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "nail-5.out",
+      "b": "nail-6.in"
+    },
+    {
+      "a": "nail-6.out",
+      "b": "nail-7.in"
+    },
+    {
+      "a": "counter.in3",
+      "b": "nail-7.out"
+    },
+    {
+      "a": "control.out4",
+      "b": "nail-8.in"
+    },
+    {
+      "a": "nail-8.out",
+      "b": "nail-9.in"
+    },
+    {
+      "a": "nail-10.in",
+      "b": "nail-9.out"
+    },
+    {
+      "a": "counter.in2",
+      "b": "nail-10.out"
+    },
+    {
+      "a": "alu.out2",
+      "b": "nail-11.in"
+    },
+    {
+      "a": "nail-11.out",
+      "b": "nail-12.in"
+    },
+    {
+      "a": "control.in3",
+      "b": "nail-12.out"
+    },
+    {
+      "a": "alu.out3",
+      "b": "nail-13.in"
+    },
+    {
+      "a": "nail-13.out",
+      "b": "nail-14.in"
+    },
+    {
+      "a": "nail-14.out",
+      "b": "nail-15.in"
+    },
+    {
+      "a": "control.in2",
+      "b": "nail-15.out"
+    },
+    {
+      "a": "counter.in1",
+      "b": "task-card-1.inputInt3"
+    }
+  ],
+  "check": {
+    "note": "תוכנית קצרה שמסתיימת בקפיצות: על 0, על שלילי, על שניהם, ואיפוס שגובר על קפיצה."
+  }
+}

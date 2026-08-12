@@ -443,6 +443,117 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     return `<g class="usercard">${s}</g>`;
   }
 
+  // The 4.4 counter card (gate-PC): PC0 that can also be JUMPED. Same box, but
+  // the reset stub on top has a load stub beside it and a data bus comes in on
+  // the left — the number to jump to. Pin geometry copied from its def:
+  // in2 (-30,-46) load, in1 (30,-46) reset, in3 (-80,0) data, out (80,0).
+  function jumpPcGateMarkup(width, options = {}) {
+    // Bigger than PC0's box — it carries two stubs on top and a bus on each side,
+    // and at PC0's size the name and the Rst caption were fighting for the same
+    // few pixels. The pins do NOT move (the def fixes them at ±80 and y=-46), so
+    // the body may only grow until its top edge reaches those stubs: 82 tall
+    // leaves the two of them 5px of stub each, which is what keeps them visible.
+    const edge = 58;
+    // The bars reach 96, not 80. The width number is drawn at the bar's MIDDLE,
+    // so a short bar puts it half under the body — which is what hid the "16" on
+    // this wider card. A longer bar carries the label clear. The pins move with
+    // it (def + editor table), or a cable would land part-way along the bar.
+    const REACH = 96;
+    const bodyH = 82;
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: 0 }, width, !options.toolbar);
+    s += busGateBar({ x1: edge, x2: REACH, y: 0 }, width, !options.toolbar);
+    s += pinLine(-30, -46, -30, -bodyH / 2);
+    s += pinLine(30, -46, 30, -bodyH / 2);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "PC";
+    const font = labelFontSize(name, edge * 2, 20);
+    s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // Only the RESET stub is named. The other one is the control input, and the
+    // card already reads as a counter with a control on top — naming it added a
+    // caption where the eye only needed to find the odd one out. direction:ltr,
+    // or the Latin name would be laid out from the wrong side by the RTL page.
+    if (!options.toolbar) {
+      const nfont = Math.round(10 * k());
+      const top = -bodyH / 2 + nfont + 2;
+      s += `<text class="arith-gate-pin-letter" x="30" y="${top}" text-anchor="middle" style="font-size:${nfont}px;direction:ltr">Rst</text>`;
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.4 jump decider (gate-JmpCnt): the two condition bits of the
+  // instruction as one width-2 bus on the upper left, zr and ng as plain wires
+  // below it, and one wire out — jump, or don't.
+  function jmpCntGateMarkup(options = {}) {
+    // Wider than the pins strictly need: at edge 40 the six letters of "JmpCnt"
+    // ran off both sides of the body, since labelFontSize never shrinks below
+    // its base size. A wider body means the stubs must be drawn from the PINS
+    // (which stay at ±80, where the def puts them) to the body edge — not the
+    // default edge+PIN, which overshot them and left every cable landing in the
+    // middle of a stub instead of at its end.
+    const edge = 56;
+    const REACH = 80;
+    const bodyH = 170;
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: -40 }, 2, !options.toolbar);
+    s += pinLine(-REACH, 0, -edge, 0);
+    s += pinLine(-REACH, 40, -edge, 40);
+    s += pinLine(edge, 0, REACH, 0);
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "JmpCnt";
+    const font = labelFontSize(name, edge * 2, 15);
+    // At the TOP, where a card's name belongs — not the middle, where zr comes in
+    // at y=0 and a centred name would sit exactly on its label. The baseline is
+    // measured from the FONT, not a fixed 20px: k() scales a base-15 name up to
+    // 25px, and a constant offset put its capitals right on the card's border.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + Math.round(font * 0.8) + 8}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    // zr and ng are two identical single wires — without their names on the
+    // body there is nothing on the card to tell them apart.
+    if (!options.toolbar) {
+      const nfont = Math.round(10 * k());
+      const nameText = (y, text) =>
+        `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${y + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">${esc(text)}</text>`;
+      s += nameText(0, "zr");
+      s += nameText(40, "ng");
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
+  // The 4.4 control unit (gate-Cont): the width-4 control bus plus zr and ng in
+  // on the left, and four wires out — write to D, to A, to *A, and to the PC
+  // (which is to say: jump).
+  function contJumpGateMarkup(options = {}) {
+    // Same reason as JmpCnt, stubs included: the pins live at ±80 and the body
+    // is wider than the default, so each stub is drawn pin-to-body.
+    const edge = 48;
+    const REACH = 80;
+    const bodyH = 170;
+    const outYs = [-60, -20, 20, 60];
+    const captions = ["D", "A", "‎*A‎", "PC"];
+    let s = busGateBar({ x1: -REACH, x2: -edge, y: -40 }, 4, !options.toolbar);
+    s += pinLine(-REACH, 0, -edge, 0);
+    s += pinLine(-REACH, 40, -edge, 40);
+    outYs.forEach((y) => { s += pinLine(edge, y, REACH, y); });
+    s += `<rect class="usercard-body" x="${-edge}" y="${-bodyH / 2}" width="${edge * 2}" height="${bodyH}" rx="12" />`;
+    const name = "Cont";
+    const font = labelFontSize(name, edge * 2, 18);
+    // At the TOP, like JmpCnt — a card's name belongs there, the middle band
+    // belongs to the zr wire, and the baseline comes off the font so the capitals
+    // clear the card's border instead of sitting on it.
+    s += `<text class="arith-gate-pin-letter" x="0" y="${-bodyH / 2 + Math.round(font * 0.8) + 8}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
+    if (!options.toolbar) {
+      const nfont = Math.round(10 * k());
+      s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">zr</text>`;
+      s += `<text class="arith-gate-pin-letter" x="${-edge + 8}" y="${40 + Math.round(nfont * 0.35)}" text-anchor="start" style="font-size:${nfont}px;direction:ltr">ng</text>`;
+      // Like Cont0, the four outputs are captioned ABOVE their own stub, outside
+      // the body, each with a halo the colour of the card so a cable running
+      // under it cannot swallow the letter.
+      const cfont = Math.round(12 * k());
+      outYs.forEach((y, i) => {
+        s += `<text class="arith-gate-pin-letter" x="${edge + 18}" y="${y - 13}" text-anchor="middle" style="font-size:${cfont}px;paint-order:stroke;stroke:#f4ecdc;stroke-width:3px;stroke-linejoin:round;">${esc(captions[i])}</text>`;
+      });
+    }
+    return `<g class="usercard">${s}</g>`;
+  }
+
   // The 3.5 program memory (gate-Prg): three buses in on the left — the read
   // address, the write address and the data — the control on top, and the word
   // read out on the right. Each name is written ON the body beside its own pin.
@@ -475,7 +586,9 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
   // The 4.2 processor card (gate-CPU0): the instruction and the number from
   // memory in on the left, reset on top, and four things out on the right, each
   // captioned — A, PC, the number going out, and the write wire.
-  function cpuGateMarkup(width, options = {}) {
+  // 4.4's processor (gate-CPU) has exactly the same terminals — the chapter says
+  // so out loud — so it draws from here too, under its own name.
+  function cpuGateMarkup(width, options = {}, cardName = "CPU0") {
     // The processor is the biggest card on the board: seven pins, and every one
     // of them named ON the body — so the box has to be wide enough to hold a
     // word and tall enough to space the four outputs apart.
@@ -505,7 +618,7 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
     // The card's own name sits in the MIDDLE of the body — the one band no pin
     // name uses (the pins sit at ±30 and ±50 either side of it). It is the FULL
     // name, 0 and all: "CPU0" is what the chapter calls this card.
-    const name = "CPU0";
+    const name = cardName;
     const font = labelFontSize(name, edge * 2, 18);
     s += `<text class="arith-gate-pin-letter" x="0" y="${labelBaseline(font)}" text-anchor="middle" style="font-size:${font}px">${name}</text>`;
     // Each pin's name is written INSIDE the body, on the side its pin leaves from
@@ -722,6 +835,13 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       if (type === "gate-PC0") return pcGateMarkup(16, options);
       if (type === "gate-Cont0") return contGateMarkup(options);
       if (type === "gate-CPU0") return cpuGateMarkup(16, options);
+      // The 4.4 cards. Without an entry here they fall through to gateMarkup,
+      // which has no symbol file for them and returns an EMPTY string — the card
+      // is then invisible on the board AND in the palette.
+      if (type === "gate-PC") return jumpPcGateMarkup(16, options);
+      if (type === "gate-JmpCnt") return jmpCntGateMarkup(options);
+      if (type === "gate-Cont") return contJumpGateMarkup(options);
+      if (type === "gate-CPU") return cpuGateMarkup(16, options, "CPU");
       if (type === "gate-Prg") return prgGateMarkup(16, options);
       // The 3.4 ports cards, drawn from their own spec (IPorts included — it runs
       // on the Mux4Way16 engine branch, but it is not a MUX on the board).
@@ -758,10 +878,10 @@ function createComponentVisuals({ esc, gateComponentType, taskDefById, busGateSp
       // matches the viewBox 1:1 so the body/pins stay put.
       if (gateTask && gateTask.id === "ALU2") return componentSvgImage("gate-alu2.svg", -66, -74, 138, 136);
       if (gateTask && gateTask.id === "ALU3") return componentSvgImage("gate-alu3.svg", -66, -74, 138, 136);
-      // ALU4's viewBox is 22px taller at the bottom so the lengthened ng/zr
+      // ALU4's viewBox is 42px taller at the bottom so the lengthened ng/zr
       // pins and their captions below them aren't clipped; the image box matches
       // it 1:1 so the body/pins keep their positions.
-      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 158);
+      if (gateTask && gateTask.id === "ALU4") return componentSvgImage("gate-alu4.svg", -66, -74, 138, 178);
       if (gateTask && ARITH_GATE_IDS.includes(gateTask.id)) return arithGateMarkup(gateTask, options);
       return gateMarkup(gateTask);
     }

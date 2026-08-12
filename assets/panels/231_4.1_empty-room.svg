@@ -47,6 +47,19 @@
   <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
        app reads their positions from here. -->
   <rect
+     id="hotspot-panel-object-work-area"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="workArea"
+     data-aria-label="אזור העבודה"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#37d67a;stroke-width:1"
+     x="0"
+     y="522.19995"
+     width="1448"
+     height="575.79999" />
+  <rect
      id="hotspot-panel-object-alu-rack"
      data-hotspot="action"
      data-action="panel-object"
@@ -403,17 +416,4 @@
 ]]></script>
   <!-- The work area: the floor beside the worktable, facing the cables. Opens the
        free-build table. Editable in Inkscape like every other zone here. -->
-  <rect
-     id="hotspot-panel-object-work-area"
-     data-hotspot="action"
-     data-action="panel-object"
-     data-object-id="workArea"
-     data-aria-label="איזור העבודה"
-     class="hotspot hotspot-action"
-     pointer-events="none"
-     style="opacity:0;fill:#37d67a;stroke-width:1"
-     x="849.1001"
-     y="952.19995"
-     width="598.90002"
-     height="145.79999" />
 </svg>

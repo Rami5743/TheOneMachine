@@ -50,7 +50,7 @@ function otherWireEnd(wire, ref) {
 
 // Build the evaluation engine. terminalDirection(workspace, ref) and
 // taskDefById(taskId) are supplied by the host (app.js).
-function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec }) {
+function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitterOutputCount, resolvePins, busGateSpec, arithBusGateSpec, aluGateSpec, memoryGateSpec, ramGateSpec, wideRoutingGateSpec, pcGateSpec, contGateSpec, cpuGateSpec, prgGateSpec, jmpGateSpec, contJumpGateSpec }) {
   function connectedOutputRefs(workspace, inputRef, outputs) {
     return workspace.wires
       .map((wire) => otherWireEnd(wire, inputRef))
@@ -624,6 +624,33 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
             }
             continue;
           }
+          // The 4.4 control unit (gate-Cont): the top two bits of its bus are the
+          // destination (as Cont0 reads them) and the bottom two are the jump
+          // conditions (as JmpCnt reads them).
+          if (typeof contJumpGateSpec === "function" && contJumpGateSpec(type)) {
+            const all = fitBits(inputBits(workspace, `${component.id}.in1`, outputs), 4);
+            const sel = bitsToIndex(all.slice(2), 2);
+            const zr = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+            const ng = Boolean(inputBits(workspace, `${component.id}.in3`, outputs)[0]);
+            for (let k = 1; k <= 3; k += 1) {
+              if (setBits(outputs, `${component.id}.out${k}`, [sel === k])) changed = true;
+            }
+            const jump = (Boolean(all[1]) && zr) || (Boolean(all[0]) && ng);
+            if (setBits(outputs, `${component.id}.out4`, [jump])) changed = true;
+            continue;
+          }
+          // The 4.4 jump decider (gate-JmpCnt): jump when the "jump if zero" bit is
+          // set and the ALU says zero, or the "jump if negative" bit is set and it
+          // says negative. The first bit of a split bus is the TOP one, so it is
+          // the one paired with zr.
+          if (typeof jmpGateSpec === "function" && jmpGateSpec(type)) {
+            const cond = inputBits(workspace, `${component.id}.in1`, outputs);
+            const zr = Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0]);
+            const ng = Boolean(inputBits(workspace, `${component.id}.in3`, outputs)[0]);
+            const jump = (Boolean(cond[1]) && zr) || (Boolean(cond[0]) && ng);
+            if (setBits(outputs, `${component.id}.out`, [jump])) changed = true;
+            continue;
+          }
           // A placeable MEMORY gate (gate-Register4) is sequential: its output is
           // the value it holds (seeded from prev above) and is recomputed only in
           // the next-state pass, never during this combinational settle.
@@ -954,7 +981,21 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const result = alu4Vec(d, a, mem, ctrl, w);
           let n = 0;
           for (let i = 0; i < w; i += 1) n += (pc[i] ? 1 : 0) * (2 ** i);
-          const counted = reset ? 0 : (n + 1) % (2 ** w);
+          let counted = reset ? 0 : (n + 1) % (2 ** w);
+          // 4.4's processor can JUMP: the last two bits of the instruction say on
+          // which results, and the ALU's own zr/ng say what the result was. When
+          // they agree, the PC takes what A holds instead of counting on. Reset
+          // still wins.
+          if (cpuSpec.jump && !reset) {
+            const zr = result.every((bit) => !bit);
+            const ng = Boolean(result[w - 1]);
+            const jump = (Boolean(instr[1]) && zr) || (Boolean(instr[0]) && ng);
+            if (jump) {
+              let target = 0;
+              for (let i = 0; i < w; i += 1) target += (a[i] ? 1 : 0) * (2 ** i);
+              counted = target % (2 ** w);
+            }
+          }
           // The destination field: 1 writes to D, 2 to A, 3 to *A (0 nowhere).
           next.set(`${component.id}.a`, dest === 2 ? result : a);
           next.set(`${component.id}.d`, dest === 1 ? result : d);
@@ -969,9 +1010,16 @@ function createCircuitEngine({ terminalDirection, taskDefById, pinWidth, splitte
           const held = fitBits(prevMap.get(`${component.id}.out`) || zeroBits(pcSpec.width), pcSpec.width);
           let n = 0;
           for (let i = 0; i < pcSpec.width; i += 1) n += (held[i] ? 1 : 0) * (2 ** i);
-          const value = reset ? 0 : (n + 1) % (2 ** pcSpec.width);
-          const vec = [];
-          for (let i = 0; i < pcSpec.width; i += 1) vec.push(Boolean(Math.floor(value / (2 ** i)) & 1));
+          // 4.4's counter can be JUMPED: load (in2) high stores the data bus
+          // (in3) instead of counting. Reset still beats both.
+          let vec;
+          if (!reset && pcSpec.load && Boolean(inputBits(workspace, `${component.id}.in2`, outputs)[0])) {
+            vec = fitBits(inputBits(workspace, `${component.id}.in3`, outputs), pcSpec.width);
+          } else {
+            const value = reset ? 0 : (n + 1) % (2 ** pcSpec.width);
+            vec = [];
+            for (let i = 0; i < pcSpec.width; i += 1) vec.push(Boolean(Math.floor(value / (2 ** i)) & 1));
+          }
           next.set(`${component.id}.out`, vec);
           continue;
         }

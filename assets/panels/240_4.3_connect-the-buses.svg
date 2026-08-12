@@ -12,6 +12,6 @@
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1054" y="80" id="tspan1">אתה תחבר את הבאסים האלה לבאסים שכותבים</tspan><tspan x="1054" y="130.5" id="tspan2">בזיכרון התוכנה. אל תשכח לוודא שה-reset</tspan><tspan x="1054" y="181" id="tspan3">לחוץ בזמן שאתה מזין את המחשב בתוכנה.</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1054" y="80" id="tspan1">אתה תחבר את הבסים האלה לבסים שכותבים</tspan><tspan x="1054" y="130.5" id="tspan2">בזיכרון התוכנה. אל תשכח לוודא שה-reset</tspan><tspan x="1054" y="181" id="tspan3">לחוץ בזמן שאתה מזין את המחשב בתוכנה.</tspan></text>
   </g>
 </svg>

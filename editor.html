@@ -62,6 +62,15 @@
   .ed-pin { fill:#c9bda2; }
   .ed-pin-bus { fill:#d8a24a; }
   .ed-pin-label { fill:#9c8f77; font-size:11px; }
+  /* wiring mode: every pin of every card becomes a target, and the cable being
+     drawn follows the pointer until its second pin is picked. */
+  .ed-wire-pin { fill:#2e2721; stroke:#d8a24a; stroke-width:2; }
+  .ed-wire-pin-bus { fill:#2e2721; stroke:#8fd7a8; stroke-width:2.5; }
+  .ed-wire-pin-armed { fill:#d8a24a; stroke:#fff3d6; stroke-width:2.5; }
+  .ed-wire-pin-label { fill:#f3ead9; font-size:10px; paint-order:stroke; stroke:#2b2620; stroke-width:3px; }
+  .ed-wire-ghost { stroke:#d8a24a; stroke-width:3; stroke-dasharray:7 5; fill:none; pointer-events:none; }
+  .ed-wire-selected { stroke:#d8a24a; stroke-width:3; fill:none; pointer-events:none; }
+  .wiring #stage { cursor: crosshair; }
 </style>
 </head>
 <body>
@@ -71,6 +80,7 @@
       <span class="title">עורך פתרונות</span>
       <label class="toggle"><input type="checkbox" id="snap" checked> הצמדה</label>
       <label class="toggle"><input type="checkbox" id="showcheck"> מנגנוני בדיקה</label>
+      <label class="toggle"><input type="checkbox" id="wiremode"> חיווט</label>
       <button class="ghost" id="btn-load">טען JSON…</button>
       <button id="btn-save">שמור JSON</button>
       <button id="btn-bundle" title="מייצר את assets/solutions/solutions.js עם הפתרון הנוכחי ממוזג לשאר">שמור חבילה</button>
@@ -137,6 +147,13 @@ const DEFS = {
   "gate-PC0":   { pcGate:true, label:"PC0", busWidth:16 },
   "gate-Cont0": { contGate:true, label:"Cont0", busWidth:2 },
   "gate-CPU0":  { cpuGate:true, label:"CPU0", busWidth:16 },
+  // The 4.4 cards. Same story — componentMarkup draws them by name, so these
+  // entries only have to exist; without them the editor drew an empty box and
+  // the wires had nowhere to land.
+  "gate-PC":     { pcGate:true, pcLoad:true, label:"PC", busWidth:16 },
+  "gate-JmpCnt": { jmpGate:true, label:"JmpCnt", busWidth:2 },
+  "gate-Cont":   { contJumpGate:true, label:"Cont", busWidth:4 },
+  "gate-CPU":    { cpuGate:true, cpuJump:true, label:"CPU", busWidth:16 },
   // 3.5: the program memory. Two 16-bit address pins, of which only the last 10
   // address the bank (addressBits), plus data in, control on top and the word out.
   "gate-Prg":    { prgGate:true, label:"Prg", busWidth:16, addressWidth:16, addressBits:10, slots:1024 }
@@ -168,7 +185,7 @@ const PINS = {
   "gate-ALU1":{ in1:{x:-62,y:-26,w:16}, in2:{x:-62,y:26,w:16}, in3:{x:0,y:-46,w:6}, out1:{x:66,y:0,w:16} },
   "gate-ALU2":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:7}, out1:{x:66,y:0,w:16} },
   "gate-ALU3":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16} },
-  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:66,w:1}, out3:{x:20,y:66,w:1} },
+  "gate-ALU4":{ in1:{x:-62,y:-40,w:16}, in2:{x:-62,y:0,w:16}, in3:{x:-62,y:40,w:16}, in4:{x:0,y:-58,w:12}, out1:{x:66,y:0,w:16}, out2:{x:-20,y:80,w:1}, out3:{x:20,y:80,w:1} },
   // Cards a solution may legitimately use that the mirror was missing.
   "gate-AND3way":{ in1:{x:-62,y:-27,w:1}, in2:{x:-62,y:0,w:1}, in3:{x:-62,y:27,w:1}, out:{x:66,y:0,w:1} },
   "gate-OR4way":{ in1:{x:-60.326107,y:-30,w:1}, in2:{x:-59.462559,y:-9.9898129,w:1}, in3:{x:-59.919762,y:10.020376,w:1}, in4:{x:-60.369907,y:30,w:1}, out:{x:80,y:0,w:1} },
@@ -230,7 +247,16 @@ const PINS = {
   "gate-Cont0":{ in1:{x:-90,y:0,w:2}, out1:{x:90,y:-30,w:1}, out2:{x:90,y:0,w:1}, out3:{x:90,y:30,w:1} },
   "gate-CPU0":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
     out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} },
-  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} }
+  "gate-Prg":{ in3:{x:-96,y:-60,w:16}, in4:{x:-96,y:0,w:16}, in1:{x:-96,y:60,w:16}, in2:{x:0,y:-110,w:1}, out:{x:96,y:0,w:16} },
+  // 4.4: the counter that jumps (load beside reset on top, the number to jump to
+  // in on the left), the jump decider, the whole control unit, and the processor
+  // — whose terminals are CPU0's exactly.
+  "gate-PC":{ in2:{x:-30,y:-46,w:1}, in1:{x:30,y:-46,w:1}, in3:{x:-96,y:0,w:16}, out:{x:96,y:0,w:16} },
+  "gate-JmpCnt":{ in1:{x:-80,y:-40,w:2}, in2:{x:-80,y:0,w:1}, in3:{x:-80,y:40,w:1}, out:{x:80,y:0,w:1} },
+  "gate-Cont":{ in1:{x:-80,y:-40,w:4}, in2:{x:-80,y:0,w:1}, in3:{x:-80,y:40,w:1},
+    out1:{x:80,y:-60,w:1}, out2:{x:80,y:-20,w:1}, out3:{x:80,y:20,w:1}, out4:{x:80,y:60,w:1} },
+  "gate-CPU":{ in1:{x:-110,y:-50,w:16}, in2:{x:-110,y:50,w:16}, in3:{x:0,y:-170,w:1},
+    out1:{x:110,y:-30,w:16}, out2:{x:110,y:-85,w:16}, out3:{x:110,y:30,w:16}, out4:{x:110,y:85,w:1} }
 };
 // The game shrinks gates (and the Nand) to GATE_RENDER_SCALE past the simple-gate
 // chapter (see componentRenderScale in app.js). Every solution this editor edits
@@ -278,9 +304,93 @@ function setHarnessPos(e,x,y){ const h=harnessStore(); h[e.side][e.ref]={x:Math.
 
 // ---- document ----
 let doc=null, selected=null, dragging=null;
+// Wiring mode: pendingPin holds the first pin of the cable being drawn, ghostAt
+// the pointer, so the half-drawn cable is visible while the second pin is picked.
+let pendingPin=null, ghostAt=null;
+const wiring = () => document.getElementById("wiremode").checked;
 const stage=document.getElementById("stage");
 function movable(){ return [...(doc.external||[]), ...(doc.components||[])]; }
 function findComp(id){ if (doc.frame && id===doc.frame.id) return {...doc.frame,__frame:true}; return movable().find(c=>c.id===id)||null; }
+
+// ---- wiring ----------------------------------------------------------------
+// Every pin a cable may land on, as the "<componentId>.<pinId>" refs the wires
+// themselves use. The frame's come from the doc; a splitter's are generated from
+// its leg count; everything else reads the PINS table above.
+function pinIdsOf(comp){
+  if (comp.__frame) return (doc.frame.pins||[]).map(p=>p.id);
+  if (comp.type==="splitter"){
+    const n=Math.min(16,Math.max(2,comp.outputs||4));
+    return ["single", ...Array.from({length:n},(_,i)=>"leg"+i)];
+  }
+  return Object.keys(PINS[comp.type]||{});
+}
+function allPinRefs(){
+  const out=[];
+  if (doc.frame) for (const id of pinIdsOf({...doc.frame,__frame:true})) out.push(doc.frame.id+"."+id);
+  for (const c of movable()) for (const id of pinIdsOf(c)) out.push(c.id+"."+id);
+  return out;
+}
+function wireExists(a,b){ return (doc.wires||[]).some(w=>(w.a===a&&w.b===b)||(w.a===b&&w.b===a)); }
+function partOfRef(ref){ const d=String(ref).lastIndexOf("."); return d<0?String(ref):String(ref).slice(0,d); }
+function nailIds(){ return new Set(movable().filter(c=>c.type==="nail").map(c=>c.id)); }
+
+// How wide each cable actually is. A נעץ has NO width of its own — it carries
+// whatever arrives, and the game works that out by propagation. The editor used
+// to read the nail's nominal w:1 and draw a 16-bit bus running through one as a
+// thin single wire, which is why so much of a solution looked like it was made
+// of the wrong thing. Propagate widths across nails to a fixpoint instead.
+function wireWidths(){
+  const wires = doc.wires||[];
+  const w = wires.map((wire)=>{ const a=absPin(wire.a), b=absPin(wire.b);
+    return Math.max((a&&a.w)||1, (b&&b.w)||1); });
+  const nails = nailIds();
+  if (!nails.size) return w;
+  for (let pass=0; pass<12; pass+=1){
+    const widest=new Map();
+    wires.forEach((wire,i)=>{ for(const ref of [wire.a,wire.b]){ const id=partOfRef(ref);
+      if(nails.has(id)) widest.set(id, Math.max(widest.get(id)||1, w[i])); } });
+    let changed=false;
+    wires.forEach((wire,i)=>{ for(const ref of [wire.a,wire.b]){ const id=partOfRef(ref);
+      if(!nails.has(id)) continue; const nw=widest.get(id)||1;
+      if(nw>w[i]){ w[i]=nw; changed=true; } } });
+    if(!changed) break;
+  }
+  return w;
+}
+// The width a pin presents for wiring: a nail's is whatever its cables carry.
+function effectivePinWidth(ref){
+  const at=absPin(ref); if(!at) return null;
+  const id=partOfRef(ref);
+  if(!nailIds().has(id)) return at.w||1;
+  const w=wireWidths(); let best=0;
+  (doc.wires||[]).forEach((wire,i)=>{ if(partOfRef(wire.a)===id||partOfRef(wire.b)===id) best=Math.max(best,w[i]); });
+  return best||null;   // null = "carries anything", so any width may join it
+}
+function cancelWire(){ pendingPin=null; ghostAt=null; }
+
+// Click a pin in wiring mode: the first click arms the cable, the second lays
+// it. A cable between pins of DIFFERENT widths is refused — in the game that is
+// not a cable at all, and a solution carrying one silently fails to evaluate.
+function pinClick(ref){
+  if (!pendingPin){ pendingPin=ref; status("נבחר "+ref+" — עכשיו בחר את הפין השני (Esc לביטול)"); render(); renderProps(); return; }
+  if (pendingPin===ref){ cancelWire(); status("בוטל"); render(); return; }
+  const a=absPin(pendingPin), b=absPin(ref);
+  if (!a||!b){ cancelWire(); status("אחד הפינים לא נמצא"); render(); return; }
+  // A נעץ carries whatever arrives, so it never mismatches; everything else must
+  // agree, or the "cable" is not a cable the game can evaluate.
+  const wa=effectivePinWidth(pendingPin), wb=effectivePinWidth(ref);
+  if (wa && wb && wa!==wb){ status("רוחב לא תואם: "+pendingPin+" ["+wa+"] מול "+ref+" ["+wb+"] — לא נוצר חיבור"); cancelWire(); render(); return; }
+  if (wireExists(pendingPin,ref)){ status("החיבור כבר קיים"); cancelWire(); render(); return; }
+  doc.wires.push({ a:pendingPin, b:ref });
+  status("נוסף חיבור: "+pendingPin+" ↔ "+ref+" ("+doc.wires.length+" חיבורים)");
+  cancelWire(); render(); renderProps(); syncJsonBox();
+}
+function deleteWire(index){
+  if (!doc.wires[index]) return;
+  const w=doc.wires.splice(index,1)[0];
+  status("נמחק חיבור: "+w.a+" ↔ "+w.b+" ("+doc.wires.length+" חיבורים)");
+  selected=null; render(); renderProps(); syncJsonBox();
+}
 function absPin(ref){ const dot=ref.lastIndexOf("."); const cid=ref.slice(0,dot), pid=ref.slice(dot+1);
   const comp = (cid===doc.frame.id)?{...doc.frame,__frame:true}:findComp(cid); if(!comp) return null;
   const off = pinOffset(comp,pid); if(!off) return null; return {x:comp.x+off.x, y:comp.y+off.y, w:off.w}; }
@@ -307,11 +417,13 @@ function render(){
       board.appendChild(el("line",{x1:ax,y1:ay,x2:ix,y2:ay, class:w>1?"ed-frame-bus":"ed-frame-cable"})); }
   }
   // wires
-  for (const wire of (doc.wires||[])){ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) continue;
-    const wide=(a.w&&a.w>1)||(b.w&&b.w>1);
+  const wWidths = wireWidths();
+  (doc.wires||[]).forEach((wire, i)=>{ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) return;
+    const wide=(wWidths[i]||1)>1;
     board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:wide?"ed-bus":"ed-cable"}));
     if (wide) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-bus-stripe"}));
-  }
+    if (selected==="wire:"+i) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, class:"ed-wire-selected"}));
+  });
   // frame pin dots + labels
   for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
     board.appendChild(el("circle",{cx:ax,cy:ay,r:(p.w>1)?6:4, class:(p.w>1)?"ed-pin-bus":"ed-pin"}));
@@ -325,10 +437,38 @@ function render(){
   if (document.getElementById("showcheck").checked){
     for (const e of harnessElements()) board.appendChild(drawHarnessEl(e));
   }
-  // frame pin drag-targets (on top, so a pin is grabbable over any cable)
-  for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
+  // frame pin drag-targets (on top, so a pin is grabbable over any cable). In
+  // wiring mode the frame's pins are wiring targets instead of drag handles —
+  // otherwise picking one would move it.
+  if (!wiring()) for (const p of (f.pins||[])){ const ax=f.x+p.x, ay=f.y+p.y;
     const hit=el("circle",{cx:ax,cy:ay,r:12,fill:"transparent",class:"drag-hit"});
     hit.addEventListener("pointerdown",(ev)=>startPinDrag(ev,p)); board.appendChild(hit); }
+
+  // Wiring mode: a dot on EVERY pin of every card (and the frame), named, so a
+  // cable can be laid without hunting for invisible geometry.
+  if (wiring()){
+    // A cable is clickable ABOVE the cards — otherwise a card body sitting over
+    // its middle swallows the click and the cable can never be selected.
+    (doc.wires||[]).forEach((wire, i)=>{ const a=absPin(wire.a), b=absPin(wire.b); if(!a||!b) return;
+      const hit=el("line",{x1:a.x,y1:a.y,x2:b.x,y2:b.y, stroke:"transparent","stroke-width":16, class:"drag-hit"});
+      hit.addEventListener("pointerdown",(ev)=>{ ev.stopPropagation(); cancelWire(); selected="wire:"+i; renderProps(); render(); });
+      board.appendChild(hit);
+    });
+    if (pendingPin && ghostAt){ const a=absPin(pendingPin);
+      if (a) board.appendChild(el("line",{x1:a.x,y1:a.y,x2:ghostAt.x,y2:ghostAt.y, class:"ed-wire-ghost"})); }
+    for (const ref of allPinRefs()){
+      const at=absPin(ref); if(!at) continue;
+      const armed = pendingPin===ref;
+      const ew = effectivePinWidth(ref);
+      const cls = armed ? "ed-wire-pin-armed" : ((ew||1)>1 ? "ed-wire-pin-bus" : "ed-wire-pin");
+      board.appendChild(el("circle",{cx:at.x,cy:at.y,r:armed?8:6, class:cls}));
+      board.appendChild(el("text",{x:at.x,y:at.y-11,"text-anchor":"middle",class:"ed-wire-pin-label"},
+        [txt(ref.slice(ref.lastIndexOf(".")+1)+((ew||1)>1?(" ["+ew+"]"):""))]));
+      const hit=el("circle",{cx:at.x,cy:at.y,r:14,fill:"transparent",class:"drag-hit"});
+      hit.addEventListener("pointerdown",(ev)=>{ ev.stopPropagation(); pinClick(ref); });
+      board.appendChild(hit);
+    }
+  }
   // selection outline
   if (selected){
     if (selected.startsWith("pin:")){ const p=(f.pins||[]).find(pp=>pp.id===selected.slice(4));
@@ -381,7 +521,9 @@ function drawComp(c){
   g.setAttribute("transform",`translate(${c.x} ${c.y})`+(s!==1?` scale(${s})`:""));
   g.innerHTML = CV.componentMarkup(c.type, opts);
   g.classList.add("drag-hit");
-  g.addEventListener("pointerdown",(ev)=>startDrag(ev,c,false));
+  // In wiring mode a card is not a drag handle: the pins on it are the targets,
+  // and dragging the body would move the card out from under the cable.
+  g.addEventListener("pointerdown",(ev)=>{ if(wiring()){ ev.stopPropagation(); return; } startDrag(ev,c,false); });
   return g;
 }
 
@@ -393,7 +535,10 @@ function startPinDrag(ev, pin){ ev.stopPropagation(); selected="pin:"+pin.id;
   const s=svgPoint(ev); dragging={pin,ox:pin.x,oy:pin.y,sx:s.x,sy:s.y,kind:"pin"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
 function startHarnessDrag(ev, e){ ev.stopPropagation(); selected="harness:"+e.side+":"+e.ref;
   const pos=harnessPos(e); const s=svgPoint(ev); dragging={harnessEl:e,ox:pos.x,oy:pos.y,sx:s.x,sy:s.y,kind:"harness"}; try{stage.setPointerCapture(ev.pointerId);}catch{} renderProps(); render(); }
-stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoint(ev);
+stage.addEventListener("pointermove",(ev)=>{
+  // The half-drawn cable follows the pointer.
+  if(!dragging && wiring() && pendingPin){ ghostAt=svgPoint(ev); render(); return; }
+  if(!dragging)return; const p=svgPoint(ev);
   let nx=dragging.ox+(p.x-dragging.sx), ny=dragging.oy+(p.y-dragging.sy);
   if(document.getElementById("snap").checked){ nx=Math.round(nx/5)*5; ny=Math.round(ny/5)*5; }
   if(dragging.kind==="pin"){ dragging.pin.x=Math.round(nx); dragging.pin.y=Math.round(ny); }
@@ -401,14 +546,38 @@ stage.addEventListener("pointermove",(ev)=>{ if(!dragging)return; const p=svgPoi
   else { dragging.comp.x=Math.round(nx); dragging.comp.y=Math.round(ny); }
   render(); syncJsonBox(); renderProps(); });
 stage.addEventListener("pointerup",()=>{ dragging=null; });
-stage.addEventListener("pointerdown",()=>{ selected=null; renderProps(); render(); });
+stage.addEventListener("pointerdown",()=>{ cancelWire(); selected=null; renderProps(); render(); });
+document.getElementById("wiremode").addEventListener("change",()=>{
+  cancelWire(); selected=null;
+  document.body.classList.toggle("wiring", wiring());
+  status(wiring() ? "מצב חיווט: לחץ על פין, ואז על הפין השני. לחיצה על כבל בוחרת אותו (Delete מוחק)." : "");
+  renderProps(); render();
+});
+document.addEventListener("keydown",(ev)=>{
+  if(ev.key==="Escape" && pendingPin){ cancelWire(); status("בוטל"); render(); renderProps(); return; }
+  const tag=(ev.target&&ev.target.tagName||"").toLowerCase();
+  if(tag==="input"||tag==="textarea") return;
+  if((ev.key==="Delete"||ev.key==="Backspace") && selected && selected.startsWith("wire:")){
+    ev.preventDefault(); deleteWire(+selected.slice(5));
+  }
+});
 
 // ---- props ----
 function renderProps(){
   const host=document.getElementById("props"); host.innerHTML="";
   if(!doc){ host.innerHTML='<p class="hint">אין מסמך.</p>'; return; }
-  if(!selected){ host.innerHTML='<p class="hint">בחר רכיב או פין. גרירה מזיזה. סמן "מנגנוני בדיקה" כדי להזיז ממירים/מנורות.</p>'; return; }
+  if(!selected){ host.innerHTML = wiring()
+      ? '<p class="hint">מצב חיווט: לחץ על פין ואז על הפין השני כדי למתוח כבל. Esc מבטל. לחיצה על כבל קיים בוחרת אותו, ואז אפשר למחוק אותו (Delete).</p>'
+      : '<p class="hint">בחר רכיב או פין. גרירה מזיזה. סמן "מנגנוני בדיקה" כדי להזיז ממירים/מנורות. סמן "חיווט" כדי למתוח כבלים.</p>'; return; }
   const add0=(h)=>{ const d=document.createElement("div"); d.innerHTML=h; while(d.firstChild)host.appendChild(d.firstChild); };
+  // A selected cable: what it joins, and the way to remove it.
+  if(selected.startsWith("wire:")){ const i=+selected.slice(5); const w=doc.wires[i]; if(!w){host.innerHTML="";return;}
+    const a=absPin(w.a), b=absPin(w.b);
+    add0(`<div class="badge">חיבור · ${esc(w.a)} ↔ ${esc(w.b)}${a&&(a.w||1)>1?(" ["+a.w+"]"):""}</div>`);
+    add0(`<button class="ghost" id="wp-del" style="margin-top:10px">מחק חיבור</button>`);
+    document.getElementById("wp-del").onclick=()=>deleteWire(i);
+    return;
+  }
   // A frame pin (position is relative to the frame centre; width fixed).
   if(selected.startsWith("pin:")){ const p=(doc.frame.pins||[]).find(pp=>pp.id===selected.slice(4)); if(!p){host.innerHTML="";return;}
     add0(`<div class="badge">פין · ${esc(p.id)}${p.w>1?(" ["+p.w+"]"):""}</div>`);

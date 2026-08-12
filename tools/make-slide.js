@@ -16,10 +16,14 @@ const FS = 34;            // font size
 const LH = 50.5;          // line height
 const PAD_TOP = 40;       // from bubble top to the first baseline
 const PAD_BOT = 30;       // from the last baseline to the bubble bottom
+// The text is flush with the bubble's RIGHT inner edge — the reading edge in
+// Hebrew. Centred lines leave a ragged right margin, which is what a ragged
+// LEFT margin looks like in English. This inset clears the corner radius.
+const PAD_X = 28;
 const TOP = 40;           // bubble top y
 // Defaults are the reference slide's narrow bubble. A wide speech (the RAM
 // briefing) needs more room, so left/right can be overridden on the command
-// line; the text centre follows them.
+// line; the text follows the right edge.
 const DEF_LEFT = 463.17169;   // bubble left edge
 const DEF_RIGHT = 1084;       // bubble right edge
 const RX = 19.51169;      // corner: horizontal radius
@@ -39,8 +43,7 @@ function esc(s) {
 // The tail then leaves the LEFT edge near the BOTTOM of the bubble and runs to
 // that point, so a bubble parked in the top-right corner still speaks to a
 // figure standing lower and further left.
-function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
-  const CX = (LEFT + RIGHT) / 2;
+function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null, baseWidth = null) {
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
   // The tail hangs off the LEFT edge at a fixed distance from the bubble's top,
@@ -50,12 +53,19 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
   // it fits between the two corners.
   let tailUpperY, tailLowerY, tipX, tipY;
   if (tip) {
-    // Aimed at a point on the art: the base sits just above the bottom-left
-    // corner, however many lines the bubble holds. Its base is the SAME width as
-    // the reference slide's (TAIL_LOWER - TAIL_UPPER ≈ 22) — a wider one reads as
-    // a wedge of white laid over the art rather than as a tail.
-    tailLowerY = Math.max(TOP + RY + 22, bottom - RY - 12);
-    tailUpperY = Math.max(TOP + RY, tailLowerY - (TAIL_LOWER - TAIL_UPPER));
+    // Aimed at a point on the art: the base sits at the MIDDLE of the left edge,
+    // however many lines the bubble holds — a tail leaving the bottom corner
+    // reads as the bubble drooping rather than as speech coming out of its side.
+    // The base defaults to the reference slide's (TAIL_LOWER - TAIL_UPPER ≈ 22),
+    // which is right for a SHORT tail. A tail that has to cross the frame to
+    // reach the speaker needs a wider base or it reads as a spike rather than
+    // speech — the hand-made 236_4.3_fantastic, whose tip is ~90px out, uses 52.
+    // Pass baseWidth for those; a wider one than the reach warrants is a wedge
+    // of white, not a tail.
+    const base = baseWidth ? Number(baseWidth) : (TAIL_LOWER - TAIL_UPPER);
+    const middle = (TOP + bottom) / 2;
+    tailLowerY = Math.min(bottom - RY, Math.max(TOP + RY + base, middle + base / 2));
+    tailUpperY = tailLowerY - base;
     tipX = Number(tip.x);
     tipY = Number(tip.y);
   } else {
@@ -84,8 +94,11 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
     `L ${LEFT},${r(tailUpperY)} ` +
     `V ${r(TOP + RY)} ` +
     `C ${LEFT},${r(TOP + RY - 14.666667)} ${r(LEFT + 6.50389)},${TOP} ${r(LEFT + RX)},${TOP} Z`;
+  // Hebrew reads right-to-left, so "start" is the RIGHT edge: anchoring there
+  // gives a flush right margin with the ragged edge on the left, where it belongs.
+  const anchorX = r(RIGHT - PAD_X);
   const tspans = lines.map((ln, i) =>
-    `<tspan x="${CX}" y="${r(TOP + PAD_TOP + i * LH)}" id="tspan${i + 1}">${esc(ln)}</tspan>`
+    `<tspan x="${anchorX}" y="${r(TOP + PAD_TOP + i * LH)}" id="tspan${i + 1}">${esc(ln)}</tspan>`
   ).join("");
   return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
@@ -99,7 +112,7 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
     <path id="speech-bubble" d="${path}" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="middle" direction="rtl" unicode-bidi="plaintext"
+    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="${FONT}" font-size="${FS}px" font-weight="400" fill="#000000"
        stroke="none" xml:space="preserve">${tspans}</text>
   </g>
@@ -107,12 +120,12 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
 `;
 }
 
-const [outPath, jpg, linesArg, leftArg, rightArg, tipArg] = process.argv.slice(2);
+const [outPath, jpg, linesArg, leftArg, rightArg, tipArg, baseArg] = process.argv.slice(2);
 if (!outPath || !jpg || !linesArg) {
-  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right] [tipX,tipY]');
+  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right] [tipX,tipY] [tailBaseWidth]');
   process.exit(1);
 }
 const lines = linesArg.split("|");
 const tip = tipArg ? { x: Number(tipArg.split(",")[0]), y: Number(tipArg.split(",")[1]) } : null;
-fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined, tip));
+fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined, tip, baseArg ? Number(baseArg) : null));
 console.log("wrote", outPath, "(" + lines.length + " lines)");

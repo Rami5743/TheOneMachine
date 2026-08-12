@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+   preserveAspectRatio="xMidYMid meet"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg">
+  <image id="raster-base" x="0" y="0" width="1448" height="1086"
+     preserveAspectRatio="none" href="245_4.3_groves-message.jpg" xlink:href="245_4.3_groves-message.jpg" />
+  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
+    <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 441.5 C 1420,456.16667 1413.4961,463.5 1400.48831,463.5 H 719.51169 C 706.50389,463.5 700,456.16667 700,441.5 V 262.76 L 614,300 L 700,240.74 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
+       stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
+    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
+       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">האפשרות של קפיצה מותנת תהפוך את המכונה</tspan><tspan x="1392" y="130.5" id="tspan2">שלנו להרבה יותר חזקה, אבל לא קשה להוסיף</tspan><tspan x="1392" y="181" id="tspan3">אותה: עיקר ההבדל הוא ב-PC וביחידת הבקרה.</tspan><tspan x="1392" y="231.5" id="tspan4">צריך להוסיף כניסה ל-PC שתאפשר לכתוב</tspan><tspan x="1392" y="282" id="tspan5">לתוכו, במקום שהוא יגדל סתם ב-1. זה יאפשר</tspan><tspan x="1392" y="332.5" id="tspan6">לנו לקפוץ. צריך גם להרחיב את יחידת הבקרה</tspan><tspan x="1392" y="383" id="tspan7">כדי שהיא תוכל לפתוח את ה-PC לכתיבה מתי</tspan><tspan x="1392" y="433.5" id="tspan8">שצריך.</tspan></text>
+  </g>
+</svg>

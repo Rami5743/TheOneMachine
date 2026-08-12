@@ -1,0 +1,214 @@
+{
+  "format": "theonemachine-solution",
+  "version": 1,
+  "task": "Cont",
+  "frame": {
+    "id": "task-card-1",
+    "type": "taskCard-Cont",
+    "x": 640,
+    "y": 430,
+    "frameW": 600,
+    "frameH": 480,
+    "pins": [
+      {
+        "id": "inputExt1",
+        "x": -340,
+        "y": -150,
+        "w": 4,
+        "dir": "in",
+        "label": "כניסת הבקרה"
+      },
+      {
+        "id": "inputInt1",
+        "x": -260,
+        "y": -150,
+        "w": 4,
+        "dir": "out",
+        "label": "כניסת הבקרה פנימית"
+      },
+      {
+        "id": "inputExt2",
+        "x": -340,
+        "y": 20,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת zr",
+        "caption": "zr"
+      },
+      {
+        "id": "inputInt2",
+        "x": -260,
+        "y": 20,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת zr פנימית",
+        "caption": "zr"
+      },
+      {
+        "id": "inputExt3",
+        "x": -340,
+        "y": 150,
+        "w": 1,
+        "dir": "in",
+        "label": "כניסת ng",
+        "caption": "ng"
+      },
+      {
+        "id": "inputInt3",
+        "x": -260,
+        "y": 150,
+        "w": 1,
+        "dir": "out",
+        "label": "כניסת ng פנימית",
+        "caption": "ng"
+      },
+      {
+        "id": "outputInt1",
+        "x": 260,
+        "y": -180,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת D פנימית",
+        "caption": "D"
+      },
+      {
+        "id": "outputExt1",
+        "x": 340,
+        "y": -180,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת D",
+        "caption": "D"
+      },
+      {
+        "id": "outputInt2",
+        "x": 260,
+        "y": -60,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת A פנימית",
+        "caption": "A"
+      },
+      {
+        "id": "outputExt2",
+        "x": 340,
+        "y": -60,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת A",
+        "caption": "A"
+      },
+      {
+        "id": "outputInt3",
+        "x": 260,
+        "y": 60,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת *A פנימית",
+        "caption": "*A"
+      },
+      {
+        "id": "outputExt3",
+        "x": 340,
+        "y": 60,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת *A",
+        "caption": "*A"
+      },
+      {
+        "id": "outputInt4",
+        "x": 260,
+        "y": 180,
+        "w": 1,
+        "dir": "in",
+        "label": "יציאת PC פנימית",
+        "caption": "PC"
+      },
+      {
+        "id": "outputExt4",
+        "x": 340,
+        "y": 180,
+        "w": 1,
+        "dir": "out",
+        "label": "יציאת PC",
+        "caption": "PC"
+      }
+    ]
+  },
+  "external": [
+    {
+      "id": "source-1",
+      "type": "source",
+      "x": 195,
+      "y": 460
+    }
+  ],
+  "components": [
+    {
+      "id": "bus-split",
+      "type": "splitter",
+      "x": 455,
+      "y": 280,
+      "outputs": 2,
+      "legWidths": [
+        2,
+        2
+      ],
+      "mirrored": false
+    },
+    {
+      "id": "dest",
+      "type": "gate-Cont0",
+      "x": 690,
+      "y": 265
+    },
+    {
+      "id": "jump",
+      "type": "gate-JmpCnt",
+      "x": 700,
+      "y": 570
+    }
+  ],
+  "wires": [
+    {
+      "a": "task-card-1.inputInt1",
+      "b": "bus-split.single"
+    },
+    {
+      "a": "bus-split.leg1",
+      "b": "dest.in1"
+    },
+    {
+      "a": "bus-split.leg0",
+      "b": "jump.in1"
+    },
+    {
+      "a": "task-card-1.inputInt2",
+      "b": "jump.in2"
+    },
+    {
+      "a": "task-card-1.inputInt3",
+      "b": "jump.in3"
+    },
+    {
+      "a": "dest.out1",
+      "b": "task-card-1.outputInt1"
+    },
+    {
+      "a": "dest.out2",
+      "b": "task-card-1.outputInt2"
+    },
+    {
+      "a": "dest.out3",
+      "b": "task-card-1.outputInt3"
+    },
+    {
+      "a": "jump.out",
+      "b": "task-card-1.outputInt4"
+    }
+  ],
+  "check": {
+    "note": "כל 64 הצירופים של שני ביטי היעד, שני ביטי תנאי הקפיצה, zr ו-ng."
+  }
+}

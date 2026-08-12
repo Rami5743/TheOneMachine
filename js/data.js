@@ -83,7 +83,7 @@ const CHAPTERS = [
   {
     "id": "chapter-10",
     "partId": "part-3",
-    "title": "3.1 פליפ פלופ",
+    "title": "3.1 פליפ-פלופ",
     "sceneId": "flipflop"
   },
   {
@@ -134,6 +134,12 @@ const CHAPTERS = [
     "partId": "part-4",
     "title": "4.3 תכנות פשוט",
     "sceneId": "simple-programming"
+  },
+  {
+    "id": "chapter-19",
+    "partId": "part-4",
+    "title": "4.4 המכונה האחת",
+    "sceneId": "conditional-jump"
   }
 ];
 
@@ -392,6 +398,7 @@ const SCENES = {
         "read": "אופנהיימר: אז זהו, על זה רציתי לדבר איתך. אני צריך את עזרתך בפרויקט לאומי בעל חשיבות עליונה. אני לא יכול להגיד לך בשלב זה במה מדובר, אבל..."
       },
       {
+        "comment": "\"לברוך הזה\" is Yiddish slang (a brokh — a calamity), not a typo for בוץ. Leave it.",
         "image": "assets/panels/058_1.3_oppenheimer-von-neumann-1943.svg",
         "read": "פון נוימן: תפסיק עם הפורמליות. אני יודע בדיוק על מה מדובר. מי אתה חושב שכנע את סילארד לדבר עם איינשטיין? אתה יודע כמה הייתי צריך לחפור לו? אתם והגישה הפציפיסטית שלכם הביאו אותנו לברוך הזה. אני שמח שסוף סוף התעשתם. בטח שאשמח לעזור. זה או אנחנו או היטלר או סטלין. אני מעדיף שזה יהיה אנחנו. זה לא ממש התחום שלי, אבל אני יכול לנסות."
       },
@@ -995,7 +1002,7 @@ const SCENES = {
         "comment": "The monologue continues: what the ALU's control bus IS — the 12-bit \"instructions\".",
         "image": "assets/panels/142_2.6_alu-instructions.svg",
         "year": "1943",
-        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותם על שני בסים של 16 ביט כל אחד."
+        "read": "בס הבקרה של ה-ALU נקרא \"הוראות\", כי הוא מורה לו איזה חישוב לעשות. ההוראות של ה-ALU שלנו מורכבות מ-12 ביטים. הן יכולות לבחור על איזה 2 מתוך שלוש הכניסות של ה-ALU תתבצע הפעולה. הן גם יכולות לבחור שלא תתבצע פעולה כלל ובמקום זה ה-ALU יוציא את ההוראות עצמן, אבל הכי חשוב, הן מאפשרות לבחור בין 64 פעולות ולבצע אותן על שני בסים של 16 ביט כל אחד."
       },
       {
         "comment": "And what those 64 operations are worth: some duplicates, some odd ones, still plenty that matter.",
@@ -1159,7 +1166,7 @@ const SCENES = {
         "comment": "The alternative: paper tape — cheap and big, but you cannot jump about in it.",
         "image": "assets/panels/162_3.3_ram-paper-tape.svg",
         "year": "1943",
-        "read": "יש לנו זיכרונות אחרים גדולים וזולים יותר, אבל אין להם את התכונה של גישה ישירה. למשל יש לנו סרטי נייר עליהם יש שורות שורות של נקבים. 16 מקומות לנקב בכל שורה, אך לא כל 16 המקומות מנוקבים. יש לנו מכשיר שאפשר להעביר דרכו את הסרט ובכל שורה הוא בודק איפה יש את הנקבים (לפי איפה שעובר החשמל; הנייר לא נותן לחשמל לעבור) ומוציא את המידע הזה לבס של 16 כבלים. אפשר להזין את המידע הזה למכונות חישוב כמו ה-ALU למשל. אם רוצים לעבור על כל השורות מהתחלה ועד הסוף, זה אפילו די מהיר (יותר איטי מהזיכרון שלנו, בגלל שזה מכני ולא חשמלי אבל עדיין סביר). אולם אם רוצים לגשת למקום ספציפי זה נהיה בעייתי, צריך לגלגל חלק ניכר מהסרט כדי להגיע למקום הרצוי. אם כל פעם רוצים לקפוץ לאיזור אחר בסרט נייר זה נהיה לא מעשי בכלל. ב-RAM שלנו לעומת זאת, זה פשוט מאוד."
+        "read": "יש לנו זיכרונות אחרים גדולים וזולים יותר, אבל אין להם את התכונה של גישה ישירה. למשל יש לנו סרטי נייר עליהם יש שורות שורות של נקבים. 16 מקומות לנקב בכל שורה, אך לא כל 16 המקומות מנוקבים. יש לנו מכשיר שאפשר להעביר דרכו את הסרט ובכל שורה הוא בודק איפה יש את הנקבים (לפי איפה שעובר החשמל; הנייר לא נותן לחשמל לעבור) ומוציא את המידע הזה לבס של 16 כבלים. אפשר להזין את המידע הזה למכונות חישוב כמו ה-ALU למשל. אם רוצים לעבור על כל השורות מהתחלה ועד הסוף, זה אפילו די מהיר (יותר איטי מהזיכרון שלנו, בגלל שזה מכני ולא חשמלי אבל עדיין סביר). אולם אם רוצים לגשת למקום ספציפי זה נהיה בעייתי, צריך לגלגל חלק ניכר מהסרט כדי להגיע למקום הרצוי. אם כל פעם רוצים לקפוץ לאזור אחר בסרט נייר זה נהיה לא מעשי בכלל. ב-RAM שלנו לעומת זאת, זה פשוט מאוד."
       },
       {
         "comment": "The rest of the trade: easy to write to, expensive to make, and volatile.",
@@ -1235,7 +1242,7 @@ const SCENES = {
         "comment": "Chapter 3.5 program memory: von Neumann in the doorway again (the 3.4 opening art). The data memory is done; now the machine needs somewhere to keep its instructions.",
         "image": "assets/panels/171_3.5_program-memory-intro.svg",
         "year": "1943",
-        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים. אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותם כדי שהוא יוכל לקרוא אותם."
+        "read": "מצוין, עכשיו יש לנו זיכרון שבו נוכל לשמור את כל המידע שהמחשב שלנו יצטרך בשביל החישובים (קוראים לזה זיכרון מידע או זיכרון דאטה). אנחנו עוד צריכים זיכרון שישמור את הפקודות שאנחנו נותנים למחשב. בסופו של דבר, כדי שהמחשב יבצע את החישובים שאנחנו רוצים הוא צריך לבצע רצף של הוראות (שנקראות פקודות) ואנחנו צריכים מקום נוח בשביל לשמור אותן כדי שהוא יוכל לקרוא אותן. אולי פעם נלמד להשתמש ב-RAM גם למטרה הזאת. כרגע, יותר פשוט לנו להפריד בין זיכרון התוכנה לזיכרון הדאטה."
       },
       {
         "comment": "The whole design of the program memory in one breath: like the RAM but no ports, read-only to the computer, and a SECOND address just for writing — which the control input switches to.",
@@ -1466,7 +1473,7 @@ const SCENES = {
         "comment": "What each of A, D and PC is for.",
         "image": "assets/panels/198_4.1_register-roles.svg",
         "year": "1944",
-        "read": "לכל רגיסטר של המעבד יהיה תפקיד מוגדר למדי: רגיסטר A יכיל כתובת בזיכרון הדאטה שאליה נרצה לכתוב וממנה נרצה לקרוא. אנחנו גם נשתמש בו לעוד דברים רגיסטר D יכיל מידע שהמעבד יוכל לעבוד עליו באופן ישיר הרגיסטר PC יכיל את הכתובת בזיכרון התוכנה של הפקודה אותה המעבד צריך לבצע"
+        "read": "לכל רגיסטר של המעבד יהיה תפקיד מוגדר למדי: רגיסטר A יכיל כתובת בזיכרון הדאטה שאליה נרצה לכתוב וממנה נרצה לקרוא. אנחנו גם נשתמש בו לעוד דברים רגיסטר D יכיל מידע שהמעבד יוכל לעבוד עליו באופן ישיר הרגיסטר PC (קיצור של Program counter; בעברית: מונה תוכנה) יכיל את הכתובת בזיכרון התוכנה של הפקודה אותה המעבד צריך לבצע"
       },
       {
         "comment": "The control unit is the one that 'knows'.",
@@ -1813,7 +1820,7 @@ const SCENES = {
         "comment": "He goes back to work, and lets slip what the other team is building.",
         "image": "assets/panels/230_4.1_back-to-work.svg",
         "year": "1944",
-        "read": "טוב. אני חוזר לעבודה. החברה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
+        "read": "טוב. אני חוזר לעבודה. החבר'ה שעובדים על המנגנון השני עוקפים אותנו. אם יהיה לנו מחשב אלקטרוני, אנחנו נעקוף אותם. הם לא צריכים חישובים, רק המון צנטריפוגות. טוב, לא משנה, אני לא אמור לדבר איתך על זה..."
       },
       {
         "comment": "Wordless: von Neumann is gone; the room, the racks and the note are left behind.",
@@ -1821,6 +1828,15 @@ const SCENES = {
         "year": "1944",
         "read": "",
         "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "aluRack",
@@ -2027,15 +2043,6 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "איזור העבודה",
-            "left": 43.0,
-            "top": 66.5,
-            "width": 10.5,
-            "height": 9.5
           }
         ]
       }
@@ -2071,6 +2078,15 @@ const SCENES = {
         "year": "1944",
         "read": "",
         "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "aluRack",
@@ -2277,15 +2293,6 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "איזור העבודה",
-            "left": 43.0,
-            "top": 66.5,
-            "width": 10.5,
-            "height": 9.5
           }
         ]
       }
@@ -2307,7 +2314,7 @@ const SCENES = {
         "comment": "The tests written on the exercise page are not enough — the whole process needs checking.",
         "image": "assets/panels/237_4.3_not-enough-tests.svg",
         "year": "1944",
-        "read": "אנחנו צריכים לבדוק אותו טוב טוב לפני שאנחנו מתקדמים. הבדיקות שכתבת קודם הם טובות אבל לא מספיקות. אנחנו רוצים לכתוב תוכנה שתבדוק גם את הקלט והפלט ובכלל את כל התהליך מהתחלה ועד הסוף."
+        "read": "אנחנו צריכים לבדוק אותו טוב טוב לפני שאנחנו מתקדמים. הבדיקות שכתבת קודם הן טובות אבל לא מספיקות. אנחנו רוצים לכתוב תוכנה שתבדוק גם את הקלט והפלט ובכלל את כל התהליך מהתחלה ועד הסוף."
       },
       {
         "comment": "The learner writes the program: a sequence of instructions, on paper.",
@@ -2319,13 +2326,13 @@ const SCENES = {
         "comment": "The two devices: a puncher for 16-hole rows, and a reader that puts a coil out on two buses.",
         "image": "assets/panels/239_4.3_punch-and-reader.svg",
         "year": "1944",
-        "read": "אני אתן לך מכשיר שמנקב סרטי נייר בשורות נקבים באורך 16 כל אחת. אני גם אתן לך מכשיר שקורא כאלה סרטים ומוציא את התוכן שלהם לשני באסים."
+        "read": "אני אתן לך מכשיר שמנקב סרטי נייר בשורות נקבים באורך 16 כל אחת. אני גם אתן לך מכשיר שקורא כאלה סרטים ומוציא את התוכן שלהם לשני בסים."
       },
       {
         "comment": "The reader's buses go to Prg-Adr / Prg — and the reset must be held while loading.",
         "image": "assets/panels/240_4.3_connect-the-buses.svg",
         "year": "1944",
-        "read": "אתה תחבר את הבאסים האלה לבאסים שכותבים בזיכרון התוכנה. אל תשכח לוודא שה-reset לחוץ בזמן שאתה מזין את המחשב בתוכנה."
+        "read": "אתה תחבר את הבסים האלה לבסים שכותבים בזיכרון התוכנה. אל תשכח לוודא שה-reset לחוץ בזמן שאתה מזין את המחשב בתוכנה."
       },
       {
         "comment": "Release the reset and the machine starts computing by the instructions.",
@@ -2352,6 +2359,15 @@ const SCENES = {
         "read": "",
         "hotspots":
         [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "cpuRack",
@@ -2495,15 +2511,6 @@ const SCENES = {
             "top": 79.01,
             "width": 5.52,
             "height": 4.42
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "איזור העבודה",
-            "left": 58.64,
-            "top": 87.68,
-            "width": 41.36,
-            "height": 13.43
           }
         ]
       },
@@ -2520,10 +2527,272 @@ const SCENES = {
         "read": "נתראה מחר ב-07:00"
       },
       {
-        "comment": "The empty hangar at night — end of what is written so far.",
+        "comment": "Night over Los Alamos — the day is over; 4.4 opens the next morning.",
         "image": "assets/panels/247_4.3_night.svg",
         "year": "1944",
-        "read": "המשך יבוא..."
+        "read": ""
+      }
+    ]
+  },
+  "conditional-jump": {
+    "id": "conditional-jump",
+    "type": "story",
+    "chapterId": "chapter-19",
+    "year": "1944",
+    "panels": [
+      {
+        "comment": "The next morning: Normandy. The war is won — the question is when.",
+        "image": "assets/panels/248_4.4_normandy.svg",
+        "year": "1944",
+        "read": "בוקר טוב, שמעת את החדשות? הכוחות שלנו נחתו בנורמנדי. אלה חדשות נהדרות, זו כבר לא שאלה של האם ננצח אלא מתי ננצח. אבל זה לא הופך את הפרויקט שלנו למיותר. להפך, רק לדחוף יותר. בפלישה עצמה נהרגו לנו אלפי חיילים, אנחנו עוד לא יודעים בדיוק כמה. בכל יום נהרגים הרבה אלפים של אנשים. ככל שנגמור מוקדם יותר, נציל יותר אנשים."
+      },
+      {
+        "comment": "Why it is personal: his family is in occupied Hungary.",
+        "image": "assets/panels/249_4.4_hungary.svg",
+        "year": "1944",
+        "read": "לפני כמה חודשים הנאצים כבשו את הונגריה. אבד לי הקשר עם המשפחה שלי שם. לא יודע כמה מהם שרדו, אבל אני יודע שאם לא נמהר הנאצים ירצחו את כולם. זה שנדבר על זה לא יעזור. הדבר היחיד שאנחנו יכולים לעשות בשבילם עכשיו זה להמשיך לעבוד בכל הכוח."
+      },
+      {
+        "comment": "Turing's analysis: the machine as built cannot do every computation.",
+        "image": "assets/panels/250_4.4_turing-limits.svg",
+        "year": "1944",
+        "read": "כשטיורינג ניתח מה יכולה לעשות מכונת חישוב, הוא הבין שכדי שמכונה אחת תוכל לבצע את כל החישובים צריכות להיות לה מספר יכולות בסיסיות. למחשב שבנינו אין את כל היכולות האלה. הפעולות הבסיסיות של ה-ALU מספיקות כדי לבצע כל חישוב, אבל העובדה שההוראות שהוא מקבל תלויות מראש ולא יכולות להיות תלויות בתוצאות ביניים של החישוב מגבילה אותנו יותר מדי"
+      },
+      {
+        "comment": "What is missing: a conditional jump.",
+        "image": "assets/panels/251_4.4_conditional-jump.svg",
+        "year": "1944",
+        "read": "מתברר שכל מה שצריך להוסיף למכונה שלנו כדי שתוכל לבצע כל חישוב, זה מה שנקרא יכולת קפיצה מותנת. זה אומר שצריך להוסיף פקודה שאומרת שבמקום לבצע את הפקודה הבאה המכונה תקפוץ למקום אחר בתוכנה ותמשיך משם. יתר על כן, צריך לאפשר למכונה להחליט האם היא עושה את זה, לפי תוצאת החישוב."
+      },
+      {
+        "comment": "Register A holds the jump address — the same A that addresses the RAM.",
+        "image": "assets/panels/252_4.4_a-as-address.svg",
+        "year": "1944",
+        "read": "מכיוון שאין לנו מקום בפקודה גם להגיד לאן אנחנו קופצים וגם לבצע חישוב, אנחנו נשתמש בתוכן של רגיסטר A בתור הכתובת של הקפיצה. שים לב שרגיסטר A בדרך כלל משמש אותנו ככתובת ב-RAM אבל אנחנו גם יכולים להשתמש בו ככתובת בזיכרון התוכנה. זה מה שנעשה כאן."
+      },
+      {
+        "comment": "The two spare bits of the instruction become the jump conditions.",
+        "image": "assets/panels/253_4.4_jump-bits.svg",
+        "year": "1944",
+        "read": "אנחנו נשתמש בשני הביטים של הפקודה כדי להגיד למחשב האם לקפוץ: הביט הראשון מביניהם יגיד האם לקפוץ כשהחישוב יצא 0. הביט השני יגיד האם לקפוץ כשהחישוב יצא מספר שלילי."
+      },
+      {
+        "comment": "And the ALU4 already hands out exactly those two wires: ng and zr.",
+        "image": "assets/panels/254_4.4_ng-and-zr.svg",
+        "year": "1944",
+        "read": "אתה זוכר, שמבחינתנו, מספר הוא שלילי אם הביט הראשון שלו הוא 1. אתה גם בטח זוכר שה-ALU4 בדיוק מוציא 2 כבלים שאומרים לנו האם החישוב יצא 0 והאם הוא יצא שלילי, כך שאתה יכול להשתמש בו."
+      },
+      {
+        "comment": "What actually has to change in the machine: the PC and the control unit.",
+        "image": "assets/panels/255_4.4_pc-and-control.svg",
+        "year": "1944",
+        "read": "האפשרות של קפיצה מותנת תהפוך את המכונה שלנו להרבה יותר חזקה, אבל לא קשה להוסיף אותה: עיקר ההבדל הוא ב-PC וביחידת הבקרה. צריך להוסיף כניסה ל-PC שתאפשר לכתוב לתוכו, במקום שהוא יגדל סתם ב-1. זה יאפשר לנו לקפוץ. צריך גם להרחיב את יחידת הבקרה כדי שהיא תוכל לפתוח את ה-PC לכתיבה מתי שצריך."
+      },
+      {
+        "comment": "Why the jump is so cheap to add: the program memory was built with direct access, reached through a register — and that was done for the conditional jump in the first place.",
+        "image": "assets/panels/256_4.4_why-direct-access.svg",
+        "year": "1944",
+        "read": "הסיבה שזה כל-כך פשוט היא זה שמראש דאגנו שזיכרון התוכנה היה בעל גישה ישירה ושנגש אליו באמצעות רגיסטר. למעשה, הסיבה המרכזית שעשינו את זה הייתה לאפשר קפיצה מותנת. אחרת היה אפשר להשתמש בסרט מנוקב עם הפקודות ולבצע אותם אחת-אחת."
+      },
+      {
+        "comment": "Wordless: he lays the note of tasks on the worktable.",
+        "image": "assets/panels/257_4.4_note-placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The tasks are on the table, and the end is in sight.",
+        "image": "assets/panels/258_4.4_here-are-the-tasks.svg",
+        "year": "1944",
+        "read": "זהו. אלה המשימות שלך. נראה שאנחנו קרובים לסיום."
+      },
+      {
+        "comment": "Wordless: the 4.4 room, the note of jump tasks on the worktable. Same camera and zones as 4.3's room.",
+        "image": "assets/panels/259_4.4_build-room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgPort",
+            "ariaLabel": "כניסת PRG",
+            "left": 61.88,
+            "top": 82.32,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "prgAdrPort",
+            "ariaLabel": "כניסת ADR PRG",
+            "left": 64.92,
+            "top": 81.77,
+            "width": 3.18,
+            "height": 4.79
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 69.06,
+            "top": 82.23,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.44,
+            "top": 81.31,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.52,
+            "top": 81.49,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 80.18,
+            "top": 81.68,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.77,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.04,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.78,
+            "top": 82.5,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.62,
+            "top": 82.69,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "jumpNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tapeReader",
+            "ariaLabel": "קורא סרטים מנוקבים",
+            "left": 55.25,
+            "top": 54.14,
+            "width": 10.5,
+            "height": 17.13
+          }
+        ]
+      },
+      {
+        "comment": "The machine runs. Von Neumann stands in the finished hangar — one machine for every calculation.",
+        "image": "assets/panels/260_4.4_we-did-it.svg",
+        "year": "1944",
+        "read": "עשינו זאת! יש לנו מכונה שיכולה לעשות כל חישוב. למעשה היא יכולה לבצע כל רצף של הוראות ובלבד שהוא יהיה מדויק ושהוא יעסוק רק במידע."
+      },
+      {
+        "comment": "What they built matters beyond the bomb they were called here for.",
+        "image": "assets/panels/261_4.4_world-changing.svg",
+        "year": "1944",
+        "read": "המכונה הזאת תשנה את העולם. אולי היא אפילו יותר חשובה מהפרויקט שאנחנו עובדים עליו עכשיו."
+      },
+      {
+        "comment": "The ask: convince Oppenheimer, then more memory, cooling, and above all people to program it.",
+        "image": "assets/panels/262_4.4_more-resources.svg",
+        "year": "1944",
+        "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון, מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
       }
     ]
   }

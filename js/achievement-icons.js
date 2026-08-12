@@ -234,6 +234,22 @@ function renderAchievementIcon(id) {
            <circle cx="40" cy="28" r="6.3" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
            <rect x="34" y="22" width="12" height="9" rx="1.4" fill="#fffdf3" stroke="#183449" stroke-width="1.4"/>
            <path d="M38 31 H42 L43 34.5 H37 Z" fill="#fffdf3" stroke="#183449" stroke-width="1.2"/>` });
+    case "advanced-computer-engineer": // steel-blue cup, the machine with the jump arrow (4.4)
+      return achievementTrophy(id, { top: "#a8c8e4", bot: "#1d3d57", rim: "#f3d27a", base: "#1d3d57", handle: "#3d6d92", emblem:
+        `<rect x="29" y="20" width="22" height="14" rx="1.8" fill="#fffdf3" stroke="#152e42" stroke-width="1.6"/>
+           <g stroke="#3d6d92" stroke-width="1.3" stroke-linecap="round">
+             <line x1="32" y1="24" x2="41" y2="24"/><line x1="32" y1="27.5" x2="44" y2="27.5"/></g>
+           <path d="M33 31.5 H45" stroke="#3d6d92" stroke-width="1.3" stroke-linecap="round"/>
+           <path d="M45.5 26 a7 7 0 1 1 -6 -6" fill="none" stroke="#f3d27a" stroke-width="1.9" stroke-linecap="round"/>
+           <path d="M39 17.5 L40.6 21 L36.8 21.4 Z" fill="#f3d27a"/>
+           <line x1="32" y1="39" x2="48" y2="39" stroke="#fffdf3" stroke-width="2.2" stroke-linecap="round"/>` });
+    case "precise-advanced-computer-engineer": // the jumping machine on a bullseye (4.4 clean)
+      return achievementTrophy(id, { top: "#a8c8e4", bot: "#173247", rim: "#f3d27a", base: "#173247", handle: "#3d6d92", emblem:
+        `<circle cx="40" cy="28" r="10.5" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.6" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="34" y="23" width="12" height="9" rx="1.4" fill="#fffdf3" stroke="#152e42" stroke-width="1.4"/>
+           <path d="M46.5 27 a6.5 6.5 0 1 1 -5.5 -5.5" fill="none" stroke="#f3d27a" stroke-width="1.7" stroke-linecap="round"/>
+           <path d="M40.3 18.6 L41.8 22 L38 22.3 Z" fill="#f3d27a"/>` });
     case "simple-programmer": // parchment cup, a punched program feeding a drum (4.3)
       return achievementTrophy(id, { top: "#e6d7ae", bot: "#7a5f2c", rim: "#4d3a15", base: "#7a5f2c", handle: "#a3813f", emblem:
         `<rect x="30" y="27" width="20" height="13" rx="1.6" fill="#fffdf3" stroke="#4d3a15" stroke-width="1.5"/>

@@ -9,7 +9,7 @@
 //     designing the card, plus the creation time of each distinct user card used.
 //
 //   דירוגי תוכנה — what the player WROTE, one row per programming task:
-//   • "עורך תוכנה" — ranks by the LENGTH of the program that passed the machine
+//   • "אורך תוכנה" — ranks by the LENGTH of the program that passed the machine
 //     (fewer instructions = a tighter program).
 //
 // Each tab is a table: the name | the metric's count | the player's rank among
@@ -52,7 +52,7 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     },
     // The software side. Its rows are the programming tasks, not the cards.
     software: {
-      key: "software", ldim: "program", label: "עורך תוכנה",
+      key: "software", ldim: "program", label: "אורך תוכנה",
       countHead: "פקודות",
       nameHead: "משימה",
       sub: "אורך התוכנה שכתבת — מספר הפקודות שהמכונה הריצה — ככל שקצר יותר כך התוכנה יעילה יותר. לחץ על משימה לרשימת השיאים שלה.",
@@ -110,6 +110,8 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     push(typeof PRG_TASKS !== "undefined" ? PRG_TASKS : []);       // 3.5 program memory
     // 4.2 — the processor's cards (PC0 / Cont0 / CPU0 / Computer0), the last ones.
     push(typeof SIMPLE_COMPUTER_TASKS !== "undefined" ? SIMPLE_COMPUTER_TASKS : []);
+    // 4.4 — the cards that add the conditional jump.
+    push(typeof JUMP_TASKS !== "undefined" ? JUMP_TASKS : []);
     return rows;
   }
 
