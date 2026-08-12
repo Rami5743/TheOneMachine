@@ -6460,7 +6460,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 195,
+        "x": 110,
         "y": 440
       }
     ],
@@ -6676,7 +6676,7 @@ window.EMBEDDED_SOLUTIONS = {
       {
         "id": "source-1",
         "type": "source",
-        "x": 195,
+        "x": 110,
         "y": 460
       }
     ],
