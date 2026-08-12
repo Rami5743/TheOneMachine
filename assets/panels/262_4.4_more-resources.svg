@@ -1,17 +1,103 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg version="1.1" width="1448" height="1086" viewBox="0 0 1448 1086"
+<svg
+   version="1.1"
+   width="1448"
+   height="1086"
+   viewBox="0 0 1448 1086"
    preserveAspectRatio="xMidYMid meet"
+   id="svg1"
+   sodipodi:docname="262_4.4_more-resources.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns="http://www.w3.org/2000/svg">
-  <image id="raster-base" x="0" y="0" width="1448" height="1086"
-     preserveAspectRatio="none" href="260_4.4_we-did-it.jpg" xlink:href="260_4.4_we-did-it.jpg" />
-  <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 593 C 1420,607.66667 1413.4961,615 1400.48831,615 H 719.51169 C 706.50389,615 700,607.66667 700,593 V 338.51 L 606,294 L 700,316.49 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
-       stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
-    <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
-       font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">אני ואתה מבינים את זה. אבל אנחנו צריכים</tspan><tspan x="1392" y="130.5" id="tspan2">לשכנע את שאר העולם. או לפחות את רוברט.</tspan><tspan x="1392" y="181" id="tspan3">אנחנו צריכים עוד משאבים. עוד ידיים עובדות</tspan><tspan x="1392" y="231.5" id="tspan4">כדי להרחיב את הזיכרון. מערכת קירור כדי</tspan><tspan x="1392" y="282" id="tspan5">שיהיה אפשר להעלות את המהירות של המכונה</tspan><tspan x="1392" y="332.5" id="tspan6">בלי שהיא תהרוס את עצמה מחום, והדבר הכי</tspan><tspan x="1392" y="383" id="tspan7">חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב</tspan><tspan x="1392" y="433.5" id="tspan8">הוראות עם אפסים ואחדים זה הרבה יותר קל</tspan><tspan x="1392" y="484" id="tspan9">מלבנות מכונות כל פעם מחדש, אבל זה עדיין</tspan><tspan x="1392" y="534.5" id="tspan10">לא קל, בטח אם אנחנו רוצים שהמכונה תוכל</tspan><tspan x="1392" y="585" id="tspan11">לעשות חישובים מסובכים.</tspan></text>
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.89502762"
+     inkscape:cx="724.55864"
+     inkscape:cy="364.79321"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="1432"
+     inkscape:window-y="879"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="text-bubble-layer" />
+  <image
+     id="raster-base"
+     x="0"
+     y="0"
+     width="1448"
+     height="1086"
+     preserveAspectRatio="none"
+     href="260_4.4_we-did-it.jpg"
+     xlink:href="260_4.4_we-did-it.jpg" />
+  <g
+     id="text-bubble-layer"
+     inkscape:groupmode="layer"
+     inkscape:label="Text bubble">
+    <path
+       id="speech-bubble"
+       d="M 719.51169,40 H 1400.4883 C 1413.4961,40 1420,47.33333 1420,62 v 531 c 0,14.66667 -6.5039,22 -19.5117,22 H 719.51169 C 706.50389,615 700,607.66667 700,593 V 338.51 L 609.35185,309.64198 700,316.49 V 62 c 0,-14.66667 6.50389,-22 19.51169,-22 z"
+       fill="#ffffff"
+       stroke="#000000"
+       stroke-width="3.44993"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       sodipodi:nodetypes="ssssssscccss" />
+    <text
+       id="bubble-text"
+       text-anchor="start"
+       direction="rtl"
+       unicode-bidi="plaintext"
+       font-family="'Noto Sans Hebrew', Arial, sans-serif"
+       font-size="34px"
+       font-weight="400"
+       fill="#000000"
+       stroke="none"
+       xml:space="preserve"><tspan
+         x="1392"
+         y="80"
+         id="tspan1">אני ואתה מבינים את זה. אבל אנחנו צריכים</tspan><tspan
+         x="1392"
+         y="130.5"
+         id="tspan2">לשכנע את שאר העולם. או לפחות את רוברט.</tspan><tspan
+         x="1392"
+         y="181"
+         id="tspan3">אנחנו צריכים עוד משאבים. עוד ידיים עובדות</tspan><tspan
+         x="1392"
+         y="231.5"
+         id="tspan4">כדי להרחיב את הזיכרון, מערכת קירור כדי</tspan><tspan
+         x="1392"
+         y="282"
+         id="tspan5">שיהיה אפשר להעלות את המהירות של המכונה</tspan><tspan
+         x="1392"
+         y="332.5"
+         id="tspan6">בלי שהיא תהרוס את עצמה מחום, והדבר הכי</tspan><tspan
+         x="1392"
+         y="383"
+         id="tspan7">חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב</tspan><tspan
+         x="1392"
+         y="433.5"
+         id="tspan8">הוראות עם אפסים ואחדים זה הרבה יותר קל</tspan><tspan
+         x="1392"
+         y="484"
+         id="tspan9">מלבנות מכונות כל פעם מחדש, אבל זה עדיין</tspan><tspan
+         x="1392"
+         y="534.5"
+         id="tspan10">לא קל, בטח אם אנחנו רוצים שהמכונה תוכל</tspan><tspan
+         x="1392"
+         y="585"
+         id="tspan11">לעשות חישובים מסובכים.</tspan></text>
   </g>
 </svg>
