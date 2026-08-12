@@ -41,7 +41,20 @@
      xlink:href="259_4.4_build-room.jpg" />
   <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
        app reads their positions from here. -->
-  <rect
+<rect
+     id="hotspot-panel-object-work-area"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="workArea"
+     data-aria-label="אזור העבודה"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="0"
+     y="522.19995"
+     width="1448"
+     height="575.79999" />
+    <rect
      id="hotspot-panel-object-cpu-rack"
      data-hotspot="action"
      data-action="panel-object"
@@ -249,19 +262,6 @@
      y="858"
      width="80"
      height="48" />
-  <rect
-     id="hotspot-panel-object-work-area"
-     data-hotspot="action"
-     data-action="panel-object"
-     data-object-id="workArea"
-     data-aria-label="אזור העבודה"
-     class="hotspot hotspot-action"
-     pointer-events="none"
-     style="opacity:0;fill:#ffd400;stroke-width:1"
-     x="849.1"
-     y="952.19995"
-     width="598.90002"
-     height="145.79999" />
   <script
      type="text/javascript"
      id="script1"><![CDATA[

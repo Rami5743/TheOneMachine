@@ -1830,6 +1830,15 @@ const SCENES = {
         "hotspots": [
           {
             "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
+          {
+            "action": "panel-object",
             "objectId": "aluRack",
             "ariaLabel": "ארון ה-ALU",
             "left": 40.4,
@@ -2034,15 +2043,6 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "אזור העבודה",
-            "left": 43.0,
-            "top": 66.5,
-            "width": 10.5,
-            "height": 9.5
           }
         ]
       }
@@ -2078,6 +2078,15 @@ const SCENES = {
         "year": "1944",
         "read": "",
         "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "aluRack",
@@ -2284,15 +2293,6 @@ const SCENES = {
             "top": 78.45,
             "width": 6.63,
             "height": 5.89
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "אזור העבודה",
-            "left": 43.0,
-            "top": 66.5,
-            "width": 10.5,
-            "height": 9.5
           }
         ]
       }
@@ -2359,6 +2359,15 @@ const SCENES = {
         "read": "",
         "hotspots":
         [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "cpuRack",
@@ -2502,15 +2511,6 @@ const SCENES = {
             "top": 79.01,
             "width": 5.52,
             "height": 4.42
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "אזור העבודה",
-            "left": 58.64,
-            "top": 87.68,
-            "width": 41.36,
-            "height": 13.43
           }
         ]
       },
@@ -2612,6 +2612,15 @@ const SCENES = {
         "year": "1944",
         "read": "",
         "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
           {
             "action": "panel-object",
             "objectId": "cpuRack",
@@ -2755,15 +2764,6 @@ const SCENES = {
             "top": 79.01,
             "width": 5.52,
             "height": 4.42
-          },
-          {
-            "action": "panel-object",
-            "objectId": "workArea",
-            "ariaLabel": "אזור העבודה",
-            "left": 58.64,
-            "top": 87.68,
-            "width": 41.36,
-            "height": 13.43
           }
         ]
       },
