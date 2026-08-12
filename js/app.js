@@ -5942,8 +5942,17 @@
       : "";
     // An object with a reference link shows the link; one with a `note` shows
     // its name and a sentence of explanation (the cable tags in 4.1).
+    // `linkText` narrows the link to PART of the label, for a name whose first
+    // word is the device and the rest is the thing worth reading about ("קורא
+    // סרטים מנוקבים" — the reader is ours, the punched tape has an entry). The
+    // label is escaped first and the link spliced into the escaped text, so the
+    // splice cannot be moved by escaping.
+    const anchor = (text) =>
+      `<a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${text}</a>`;
     const head = object.url
-      ? `<a href="${esc(object.url)}" target="_blank" rel="noopener noreferrer" data-action="panel-object-link">${esc(object.label)}</a>`
+      ? (object.linkText && esc(object.label).includes(esc(object.linkText))
+        ? `<span class="panel-object-title">${esc(object.label).replace(esc(object.linkText), () => anchor(esc(object.linkText)))}</span>`
+        : anchor(esc(object.label)))
       : `<strong class="panel-object-title">${esc(object.label)}</strong>`;
     const note = object.note ? `<p class="panel-object-note">${esc(object.note)}</p>` : "";
     return `

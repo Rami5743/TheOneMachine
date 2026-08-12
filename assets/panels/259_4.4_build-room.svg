@@ -262,7 +262,20 @@
      y="858"
      width="80"
      height="48" />
-  <script
+    <rect
+     id="hotspot-panel-object-tape-reader"
+     data-hotspot="action"
+     data-action="panel-object"
+     data-object-id="tapeReader"
+     data-aria-label="קורא סרטים מנוקבים"
+     class="hotspot hotspot-action"
+     pointer-events="none"
+     style="opacity:0;fill:#ffd400;stroke-width:1"
+     x="800"
+     y="588"
+     width="152"
+     height="186" />
+<script
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {

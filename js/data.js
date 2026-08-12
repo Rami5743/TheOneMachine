@@ -2764,6 +2764,15 @@ const SCENES = {
             "top": 79.01,
             "width": 5.52,
             "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tapeReader",
+            "ariaLabel": "קורא סרטים מנוקבים",
+            "left": 55.25,
+            "top": 54.14,
+            "width": 10.5,
+            "height": 17.13
           }
         ]
       },

@@ -1086,7 +1086,17 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     programNote: { label: "הפתק", opens: "program-sheet" },
     // The note von Neumann leaves at the end of 4.4: the cards that turn the
     // simple computer into a machine that can jump.
-    jumpNote: { label: "הפתק", opens: "jump-tasks" }
+    jumpNote: { label: "הפתק", opens: "jump-tasks" },
+    // The tape reader standing on the hangar floor in 4.4. A reference object,
+    // like the waste drums and the popy: nothing to take, just a link. Only the
+    // last two words carry it (see `linkText` in renderPanelObjectPopover) —
+    // the reader is part of our machine, the punched tape is the thing with an
+    // encyclopaedia entry.
+    tapeReader: {
+      label: "קורא סרטים מנוקבים",
+      linkText: "סרטים מנוקבים",
+      url: "https://he.wikipedia.org/wiki/סרט_מנוקב"
+    }
   };
 
   // The build tasks of chapter 4.4 — the conditional jump. PC and JmpCnt can
