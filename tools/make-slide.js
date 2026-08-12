@@ -39,7 +39,7 @@ function esc(s) {
 // The tail then leaves the LEFT edge near the BOTTOM of the bubble and runs to
 // that point, so a bubble parked in the top-right corner still speaks to a
 // figure standing lower and further left.
-function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
+function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null, baseWidth = null) {
   const CX = (LEFT + RIGHT) / 2;
   const n = lines.length;
   const bottom = TOP + PAD_TOP + (n - 1) * LH + PAD_BOT;
@@ -53,9 +53,13 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
     // Aimed at a point on the art: the base sits at the MIDDLE of the left edge,
     // however many lines the bubble holds — a tail leaving the bottom corner
     // reads as the bubble drooping rather than as speech coming out of its side.
-    // Its base is the SAME width as the reference slide's
-    // (TAIL_LOWER - TAIL_UPPER ≈ 22); a wider one is a wedge of white, not a tail.
-    const base = TAIL_LOWER - TAIL_UPPER;
+    // The base defaults to the reference slide's (TAIL_LOWER - TAIL_UPPER ≈ 22),
+    // which is right for a SHORT tail. A tail that has to cross the frame to
+    // reach the speaker needs a wider base or it reads as a spike rather than
+    // speech — the hand-made 236_4.3_fantastic, whose tip is ~90px out, uses 52.
+    // Pass baseWidth for those; a wider one than the reach warrants is a wedge
+    // of white, not a tail.
+    const base = baseWidth ? Number(baseWidth) : (TAIL_LOWER - TAIL_UPPER);
     const middle = (TOP + bottom) / 2;
     tailLowerY = Math.min(bottom - RY, Math.max(TOP + RY + base, middle + base / 2));
     tailUpperY = tailLowerY - base;
@@ -110,12 +114,12 @@ function build(jpg, lines, LEFT = DEF_LEFT, RIGHT = DEF_RIGHT, tip = null) {
 `;
 }
 
-const [outPath, jpg, linesArg, leftArg, rightArg, tipArg] = process.argv.slice(2);
+const [outPath, jpg, linesArg, leftArg, rightArg, tipArg, baseArg] = process.argv.slice(2);
 if (!outPath || !jpg || !linesArg) {
-  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right] [tipX,tipY]');
+  console.error('usage: node tools/make-slide.js <out.svg> <raster.jpg> "l1|l2|..." [left] [right] [tipX,tipY] [tailBaseWidth]');
   process.exit(1);
 }
 const lines = linesArg.split("|");
 const tip = tipArg ? { x: Number(tipArg.split(",")[0]), y: Number(tipArg.split(",")[1]) } : null;
-fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined, tip));
+fs.writeFileSync(outPath, build(jpg, lines, leftArg ? Number(leftArg) : undefined, rightArg ? Number(rightArg) : undefined, tip, baseArg ? Number(baseArg) : null));
 console.log("wrote", outPath, "(" + lines.length + " lines)");

@@ -2778,12 +2778,6 @@ const SCENES = {
         "image": "assets/panels/261_4.4_more-resources.svg",
         "year": "1944",
         "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון. מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
-      },
-      {
-        "comment": "The last slide of the last chapter: the המשך יבוא card, on the same night-desert raster the placeholder dialogs use. המשך is drawn spent here (globalHasNext), so nothing follows it.",
-        "image": "assets/panels/262_4.4_to-be-continued.svg",
-        "year": "1944",
-        "read": "המשך יבוא..."
       }
     ]
   }

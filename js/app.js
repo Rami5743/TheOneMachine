@@ -3710,15 +3710,12 @@
     return chapterIndexById(state.chapterId) > 0;
   }
 
-  // The very last slide of the very last chapter IS the "המשך יבוא" card, so
-  // המשך has nowhere to go — better a spent button than a dialog repeating what
-  // the slide already says.
+  // המשך stays live on the very last slide of the very last chapter: there is no
+  // slide after it, but pressing it raises the "המשך יבוא..." window (see
+  // nextPanel), which is how the story says it stops here. A spent button would
+  // just look broken.
   function globalHasNext() {
-    if (state.screen !== "story") return true;
-    const scene = currentScene();
-    if (!scene) return true;
-    if (state.panelIndex < scene.panels.length - 1) return true;
-    return chapterIndexById(state.chapterId) < CHAPTERS.length - 1;
+    return true;
   }
 
   function speakCurrent() {
@@ -9122,9 +9119,25 @@
   }
 
   // Where a finished 4.4 card lands: back in the room with the note open, so the
-  // next card is one tap away.
-  function jumpCompletionPatch() {
-    return { ...jumpReturnTarget(), jumpNoteList: true, infoDialog: null };
+  // next card is one tap away — until the LAST card on the note is built. Then
+  // the machine is whole and the story rolls straight on to the slides that
+  // close the chapter, the way finishing 3.5's cards rolls into יצור. Without
+  // this the learner finishes the Computer and is dropped back in the room with
+  // an all-ticked note and no sign that anything came of it.
+  function jumpCompletionPatch(completedTasks) {
+    const done = Array.isArray(completedTasks) ? completedTasks : completedTaskIds();
+    const allDone = jumpTaskDefs().every((task) => done.includes(task.id));
+    if (!allDone) return { ...jumpReturnTarget(), jumpNoteList: true, infoDialog: null };
+    const chapter = chapterById("chapter-19");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    const idx = scene ? panelIndexByImage(scene, "259_4.4_we-did-it.svg") : -1;
+    if (idx < 0) return { ...jumpReturnTarget(), jumpNoteList: false, infoDialog: "המשך יבוא..." };
+    return {
+      ...transientUiClearPatch(),
+      ...storyTarget(chapter, idx),
+      started: true,
+      replayNonce: state.replayNonce + 1
+    };
   }
 
   function handleJumpNoteTask(id) {
@@ -9214,7 +9227,13 @@
     const discard = isObj && state.infoDialog.discardCard
       ? `<button class="btn" data-action="card-discard-exit" type="button">השלך את הכרטיס</button>`
       : "";
-    if (message === CONTINUE_SOON_TEXT) {
+    // The nightfall staging is for a dead end MID-story, where the placeholder
+    // stands in for a scene. At the true end of the story the player has just
+    // watched the closing slides, and dropping the desert over them reads as one
+    // more scene rather than as the story stopping — so that one asks for the
+    // plain window instead.
+    const plain = isObj && state.infoDialog.plain;
+    if (!plain && message === CONTINUE_SOON_TEXT) {
       return `
         <div class="pace-dialog-overlay info-night-overlay" role="presentation">
           <section class="image-stage image-stage-no-year info-night-stage" aria-hidden="true">
@@ -16717,9 +16736,11 @@
       }, true);
     }
 
-    // Past the last slide of the last chapter there is nowhere to go — that
-    // slide is itself the "המשך יבוא" card, and המשך is drawn spent on it, so a
-    // keypress does not raise a dialog repeating it.
+    // Past the last slide of the last chapter the story stops. Say so in a plain
+    // window rather than staging it over the night desert — the player has just
+    // watched the closing slides, and another full-frame scene would read as the
+    // story going on.
+    return setState({ infoDialog: { message: CONTINUE_SOON_TEXT, plain: true } });
   }
 
   function previousPanel() {
@@ -20771,7 +20792,7 @@
       // The 4.4 cards: the same, back to 4.4's room with its note reopened.
       if (family === "jump") {
         return setState({
-          ...jumpCompletionPatch(),
+          ...jumpCompletionPatch(completedTasks),
           taskDialog: null, notTest: null, muxTable: null,
           completedTasks,
           workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -22586,7 +22607,7 @@
     // The 4.4 cards: back to 4.4's room with its note reopened.
     if (family === "jump") {
       return setState({
-        ...jumpCompletionPatch(),
+        ...jumpCompletionPatch(completedTasks),
         taskDialog: null, solutionDialog: null, notTest: null, hintDialog: null, muxTable: null,
         completedTasks,
         workspace: createDefaultWorkspace(), replayNonce: state.replayNonce + 1
@@ -22829,7 +22850,7 @@
     // The 4.4 cards: back to 4.4's room with its note open. Checked first for the
     // same reason as the 4.2 ones below — they are multibit-shaped too.
     if (family === "jump") {
-      return setState({ ...jumpCompletionPatch(), ...base }, true);
+      return setState({ ...jumpCompletionPatch(completedTasks), ...base }, true);
     }
     // The 4.2 cards of the simple computer: back to the room with the build note
     // open. Checked FIRST for the same reason as the cards below — they are
