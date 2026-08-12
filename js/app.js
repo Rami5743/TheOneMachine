@@ -19072,7 +19072,7 @@
     // there is no reason to stand a second one up beside it.
     const SRC = "source-1";
     ws.wires = ws.wires.filter((w) => w.a !== `${SRC}.out` && w.b !== `${SRC}.out`);
-    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 440 });
+    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", ...(jumpTaskSourceSpot("JmpCnt") || JUMP_SOURCE_SPOT) });
     // The condition input is a BUS, not a number: a converter would put a digit
     // on it, and the whole point of the card is that those two wires are two
     // separate yes/no answers. So the check drives it the way the learner would
@@ -19160,7 +19160,7 @@
     // standing a second one up beside it. Only a workspace that somehow has none
     // gets one added.
     const SRC = "source-1";
-    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", x: 195, y: 460 });
+    if (!ws.components.some((c) => c.id === SRC)) ws.components.push({ id: SRC, type: "source", ...(jumpTaskSourceSpot("Cont") || JUMP_SOURCE_SPOT) });
     // The input bus is two different things at once: its TOP half is a NUMBER
     // (which of the four destinations to write to) and its bottom half is two
     // separate yes/no wires (the jump conditions). So the check builds it the way
