@@ -12,6 +12,6 @@
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">אנחנו נשתמש בשני הביטים של הפקודה</tspan><tspan x="1392" y="130.5" id="tspan2">כדי להגיד למחשב האם לקפוץ:</tspan><tspan x="1392" y="181" id="tspan3">• הביט הראשון מביניהם יגיד האם לקפוץ</tspan><tspan x="1392" y="231.5" id="tspan4">כשהחישוב יצא 0</tspan><tspan x="1392" y="282" id="tspan5">• הביט השני יגיד האם לקפוץ כשהחישוב</tspan><tspan x="1392" y="332.5" id="tspan6">יצא מספר שלילי</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">אנחנו נשתמש בשני הביטים של הפקודה</tspan><tspan x="1392" y="130.5" id="tspan2">כדי להגיד למחשב האם לקפוץ:</tspan><tspan x="1392" y="181" id="tspan3">• הביט הראשון מביניהם יגיד האם לקפוץ</tspan><tspan x="1362.41" y="231.5" id="tspan4">כשהחישוב יצא 0</tspan><tspan x="1392" y="282" id="tspan5">• הביט השני יגיד האם לקפוץ כשהחישוב</tspan><tspan x="1362.41" y="332.5" id="tspan6">יצא מספר שלילי</tspan></text>
   </g>
 </svg>
