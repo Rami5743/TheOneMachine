@@ -31,10 +31,12 @@ create table if not exists public.rankings (
   counts     jsonb not null default '{}'::jsonb,
   serial     jsonb not null default '{}'::jsonb,
   design     jsonb not null default '{}'::jsonb,
+  program    jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now()
 );
 alter table public.rankings add column if not exists serial jsonb not null default '{}'::jsonb;
 alter table public.rankings add column if not exists design jsonb not null default '{}'::jsonb;
+alter table public.rankings add column if not exists program jsonb not null default '{}'::jsonb;
 alter table public.rankings enable row level security;
 create policy "rankings read all" on public.rankings for select using (true);
 create policy "rankings insert own" on public.rankings for insert with check (auth.uid() = user_id);

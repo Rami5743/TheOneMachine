@@ -257,22 +257,52 @@
     return (typeof s.rankingsNickname === "string" && s.rankingsNickname) || "ללא שם";
   }
 
+  // The `program` column arrived after the other three, so a database that has
+  // not had the ALTER TABLE run yet would fail EVERY read and write and take the
+  // hardware rankings down with it. So each is tried with `program` and retried
+  // without it once, and that one is remembered for the rest of the session.
+  var lbHasProgram = true;
+  function missingProgramColumn(error) {
+    var msg = (error && (error.message || "")) + "";
+    return lbHasProgram && msg.indexOf("program") !== -1;
+  }
+
   async function fetchLeaderboard() {
     if (!sb) return;
-    // `counts` = efficiency (total Nands), `serial` = speed (serial Nands).
-    var res = await sb.from(LB_TABLE).select("nickname,counts,serial,design");
+    // `counts` = efficiency (total Nands), `serial` = speed (serial Nands),
+    // `design` = design time, `program` = program length ("אורך תוכנה").
+    var cols = "nickname,counts,serial,design" + (lbHasProgram ? ",program" : "");
+    var res = await sb.from(LB_TABLE).select(cols);
+    if (res.error && missingProgramColumn(res.error)) {
+      console.warn("[leaderboard] no `program` column yet — see SUPABASE_SETUP.md");
+      lbHasProgram = false;
+      res = await sb.from(LB_TABLE).select("nickname,counts,serial,design");
+    }
     if (res.error) { console.warn("[leaderboard] read failed:", res.error.message); return; }
     lbRows = Array.isArray(res.data) ? res.data : [];
     try { window.dispatchEvent(new CustomEvent("tom:leaderboard")); } catch (e) { /* ignore */ }
   }
 
+  // One row's worth of my scores. `program` is left out when the column is known
+  // to be missing, so the other three still get through.
+  function myRankingsRow(nickname) {
+    var s = myState();
+    var row = {
+      user_id: currentUser.id, nickname: nickname,
+      counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, design: s.cardDesignCounts || {},
+      updated_at: new Date().toISOString()
+    };
+    if (lbHasProgram) row.program = s.programCounts || {};
+    return row;
+  }
+
   async function pushMyRankings() {
     if (!sb || !currentUser) return;
-    var s = myState();
-    var res = await sb.from(LB_TABLE).upsert(
-      { user_id: currentUser.id, nickname: myNickname(), counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, design: s.cardDesignCounts || {}, updated_at: new Date().toISOString() },
-      { onConflict: "user_id" }
-    );
+    var res = await sb.from(LB_TABLE).upsert(myRankingsRow(myNickname()), { onConflict: "user_id" });
+    if (res.error && missingProgramColumn(res.error)) {
+      lbHasProgram = false;
+      res = await sb.from(LB_TABLE).upsert(myRankingsRow(myNickname()), { onConflict: "user_id" });
+    }
     if (res.error) console.warn("[leaderboard] write failed:", res.error.message);
     else fetchLeaderboard();
   }
@@ -284,9 +314,22 @@
   }
   window.addEventListener("tom:statesaved", scheduleRankingsPush);
 
-  // The jsonb column and my-state map for a leaderboard dimension.
-  function dimColumn(dim) { return dim === "serial" ? "serial" : (dim === "design" ? "design" : "counts"); }
-  function dimStateMap(dim) { return dim === "serial" ? "cardSerialCounts" : (dim === "design" ? "cardDesignCounts" : "cardNandCounts"); }
+  // The jsonb column and my-state map for a leaderboard dimension. "program" is
+  // the software tab (rankings.js asks for ldim "program"); without a case of
+  // its own it fell through to `counts`, so it looked a programming task's id up
+  // in the Nand-count map, found nothing, and every software row read "—".
+  function dimColumn(dim) {
+    if (dim === "serial") return "serial";
+    if (dim === "design") return "design";
+    if (dim === "program") return "program";
+    return "counts";
+  }
+  function dimStateMap(dim) {
+    if (dim === "serial") return "cardSerialCounts";
+    if (dim === "design") return "cardDesignCounts";
+    if (dim === "program") return "programCounts";
+    return "cardNandCounts";
+  }
 
   // Every user's (nickname, count) for a card that has a numeric count in the
   // given dimension, ranked ascending with ties sharing a rank (1, 2, 2, 4 …).
@@ -327,10 +370,8 @@
     APP.refreshLeaderboard = fetchLeaderboard;
     APP.setNickname = async function (nick) {
       if (!sb || !currentUser) return; // local-only when signed out (no cross-user uniqueness)
-      var res = await sb.from(LB_TABLE).upsert(
-        { user_id: currentUser.id, nickname: nick, counts: (myState().cardNandCounts || {}), serial: (myState().cardSerialCounts || {}), design: (myState().cardDesignCounts || {}), updated_at: new Date().toISOString() },
-        { onConflict: "user_id" }
-      );
+      // Same row as pushMyRankings writes — renaming must not drop the scores.
+      var res = await sb.from(LB_TABLE).upsert(myRankingsRow(nick), { onConflict: "user_id" });
       if (res.error) {
         // A unique-index violation means the nickname is taken.
         try { window.dispatchEvent(new CustomEvent("tom:nicknametaken", { detail: { nickname: nick } })); } catch (e) { /* ignore */ }
