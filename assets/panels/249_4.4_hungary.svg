@@ -8,10 +8,10 @@
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
      preserveAspectRatio="none" href="245_4.3_groves-message.jpg" xlink:href="245_4.3_groves-message.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 719.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 340.5 C 1420,355.16667 1413.4961,362.5 1400.48831,362.5 H 719.51169 C 706.50389,362.5 700,355.16667 700,340.5 V 212.26 L 614,300 L 700,190.24 V 62 C 700,47.33333 706.50389,40 719.51169,40 Z" fill="#ffffff" stroke="#000000"
+    <path id="speech-bubble" d="M 684.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 340.5 C 1420,355.16667 1413.4961,362.5 1400.48831,362.5 H 684.51169 C 671.50389,362.5 665,355.16667 665,340.5 V 212.26 L 614,300 L 665,190.24 V 62 C 665,47.33333 671.50389,40 684.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"
-       stroke="none" xml:space="preserve"><tspan x="1413.6" y="80" id="tspan1">לפני כמה חודשים הנאצים כבשו את הונגריה. אבד</tspan><tspan x="1413.6" y="130.5" id="tspan2">לי הקשר עם המשפחה שלי שם. לא יודע כמה מהם</tspan><tspan x="1413.6" y="181" id="tspan3">שרדו, אבל אני יודע שאם לא נמהר הנאצים ירצחו</tspan><tspan x="1413.6" y="231.5" id="tspan4">את כולם. זה שנדבר על זה לא יעזור. הדבר</tspan><tspan x="1413.6" y="282" id="tspan5">היחיד שאנחנו יכולים לעשות בשבילם עכשיו זה</tspan><tspan x="1413.6" y="332.5" id="tspan6">להמשיך לעבוד בכל הכוח.</tspan></text>
+       stroke="none" xml:space="preserve"><tspan x="1392" y="80" id="tspan1">לפני כמה חודשים הנאצים כבשו את הונגריה. אבד</tspan><tspan x="1392" y="130.5" id="tspan2">לי הקשר עם המשפחה שלי שם. לא יודע כמה מהם</tspan><tspan x="1392" y="181" id="tspan3">שרדו, אבל אני יודע שאם לא נמהר הנאצים ירצחו</tspan><tspan x="1392" y="231.5" id="tspan4">את כולם. זה שנדבר על זה לא יעזור. הדבר</tspan><tspan x="1392" y="282" id="tspan5">היחיד שאנחנו יכולים לעשות בשבילם עכשיו זה</tspan><tspan x="1392" y="332.5" id="tspan6">להמשיך לעבוד בכל הכוח.</tspan></text>
   </g>
 </svg>
