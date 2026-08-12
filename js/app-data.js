@@ -1087,6 +1087,20 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The note von Neumann leaves at the end of 4.4: the cards that turn the
     // simple computer into a machine that can jump.
     jumpNote: { label: "הפתק", opens: "jump-tasks" },
+    // The two converters on the hangar floor in 4.4, standing under the ports
+    // they serve. They carried the prgPort / prgAdrPort ids — the PRG and ADR PRG
+    // tags of 4.3's room, which still use them — so they announced themselves as
+    // ports. Which is which comes from the ports each sits under: the one below
+    // IN0-IN3 is dialled to feed the machine, the one below OUT0-OUT3 reads what
+    // came out. The wording is the converters' own, from their 2.5 monologue.
+    decToBinConverter: {
+      label: "ממיר מעשרוני לבינרי",
+      note: "התאם את הספרות שעליו למספר שאתה רוצה, והוא יוציא בס עם הביטים שמתאימים למספר."
+    },
+    binToDecConverter: {
+      label: "ממיר מבינרי לעשרוני",
+      note: "חבר אותו לבס, והוא יציג את הכתיב העשרוני של המספר שמקודד בבס."
+    },
     // The tape reader standing on the hangar floor in 4.4. A reference object,
     // like the waste drums and the popy: nothing to take, just a link. Only the
     // last two words carry it (see `linkText` in renderPanelObjectPopover) —

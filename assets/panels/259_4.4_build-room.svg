@@ -81,11 +81,11 @@
      width="586"
      height="515" />
   <rect
-     id="hotspot-panel-object-prg-port"
+     id="hotspot-panel-object-dec-to-bin-converter"
      data-hotspot="action"
      data-action="panel-object"
-     data-object-id="prgPort"
-     data-aria-label="כניסת PRG"
+     data-object-id="decToBinConverter"
+     data-aria-label="ממיר מעשרוני לבינרי"
      class="hotspot hotspot-action"
      pointer-events="none"
      style="opacity:0;fill:#ffd400;stroke-width:1"
@@ -94,11 +94,11 @@
      width="132"
      height="56" />
   <rect
-     id="hotspot-panel-object-prg-adr-port"
+     id="hotspot-panel-object-bin-to-dec-converter"
      data-hotspot="action"
      data-action="panel-object"
-     data-object-id="prgAdrPort"
-     data-aria-label="כניסת ADR PRG"
+     data-object-id="binToDecConverter"
+     data-aria-label="ממיר מבינרי לעשרוני"
      class="hotspot hotspot-action"
      pointer-events="none"
      style="opacity:0;fill:#ffd400;stroke-width:1"

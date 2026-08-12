@@ -2641,8 +2641,8 @@ const SCENES = {
           },
           {
             "action": "panel-object",
-            "objectId": "prgPort",
-            "ariaLabel": "כניסת PRG",
+            "objectId": "decToBinConverter",
+            "ariaLabel": "ממיר מעשרוני לבינרי",
             "left": 61.88,
             "top": 82.32,
             "width": 3.11,
@@ -2650,8 +2650,8 @@ const SCENES = {
           },
           {
             "action": "panel-object",
-            "objectId": "prgAdrPort",
-            "ariaLabel": "כניסת ADR PRG",
+            "objectId": "binToDecConverter",
+            "ariaLabel": "ממיר מבינרי לעשרוני",
             "left": 64.92,
             "top": 81.77,
             "width": 3.18,
