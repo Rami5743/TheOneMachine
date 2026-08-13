@@ -2827,6 +2827,12 @@ const SCENES = {
         "image": "assets/panels/265_5.1_note-placed.svg",
         "year": "1944",
         "read": ""
+      },
+      {
+        "comment": "The note is on the table — the tasks are the learner's now.",
+        "image": "assets/panels/266_5.1_here-are-the-tasks.svg",
+        "year": "1944",
+        "read": "הנה המשימות שלך."
       }
     ]
   }
