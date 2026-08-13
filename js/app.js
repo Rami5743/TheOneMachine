@@ -6722,6 +6722,13 @@
     const saved = state[programSheetKey()] && typeof state[programSheetKey()] === "object"
       ? state[programSheetKey()] : {};
     return {
+      // Row -> the label written beside it, for the tasks that have a תגיות
+      // column. A label is what the learner writes instead of a line number, so
+      // moving a line does not send them hunting for every place that named it.
+      labels: (saved.labels && typeof saved.labels === "object") ? saved.labels : {},
+      // Row -> the label its number was written from, so the number can follow
+      // the labelled line when it moves.
+      refs: (saved.refs && typeof saved.refs === "object") ? saved.refs : {},
       scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {},
       // The program itself: "<instruction>:<bit>" -> "0" | "1".
       bits: (saved.bits && typeof saved.bits === "object") ? saved.bits : {}
@@ -7879,9 +7886,52 @@
     return String(parseInt(text, 2));
   }
 
+  // Which instruction a label names. Rows are numbered from 1 on the paper.
+  function programLabelRow(name) {
+    const wanted = String(name ?? "").trim().toLowerCase();
+    if (!wanted) return null;
+    const labels = programSheetProgress().labels || {};
+    const hit = Object.keys(labels).find((row) => String(labels[row]).trim().toLowerCase() === wanted);
+    return hit === undefined ? null : Number(hit);
+  }
+
+  // Every instruction whose number came from a label is written again from where
+  // that label sits NOW. This is what the gnome promises: move a labelled line
+  // and the jumps that named it come along, instead of quietly pointing at
+  // whatever ended up on the old number. A reference whose label no longer
+  // exists is left alone rather than zeroed — the number the learner last saw
+  // stays, and it is theirs to fix.
+  function resolveProgramLabelRefs() {
+    const progress = programSheetProgress();
+    const refs = progress.refs || {};
+    const rows = Object.keys(refs);
+    if (!rows.length) return;
+    const bits = { ...progress.bits };
+    let changed = false;
+    for (const row of rows) {
+      const target = programLabelRow(refs[row]);
+      if (target === null) continue;
+      const written = (target + 1).toString(2).padStart(PROGRAM_NUMBER_BITS, "0");
+      for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) {
+        const key = `${row}:${i + 2}`;
+        if (bits[key] !== written[i]) { bits[key] = written[i]; changed = true; }
+      }
+    }
+    if (!changed) return;
+    state[programSheetKey()] = { ...progress, bits };
+    saveState();
+  }
+
   function commitProgramNumber(row, raw) {
     const text = String(raw ?? "").trim();
-    const value = /^\d+$/.test(text) ? Number(text) : NaN;
+    // A label may be written where a line number goes, and the gnome fills in
+    // the number it stands for. That is the point of labels: the number is
+    // worked out from where the labelled line IS, so moving it changes every
+    // instruction that named it without the learner touching any of them —
+    // the program is stored as the label's target, not as a number typed once.
+    const labelled = programLabelRow(text);
+    const typed = /^\d+$/.test(text) ? Number(text) : NaN;
+    const value = labelled === null ? typed : labelled + 1;
     // Anything that is not a number these eleven bits can hold simply goes away.
     if (!Number.isInteger(value) || value < 0 || value > PROGRAM_NUMBER_MAX) {
       return setState({ programNumberEdit: null });
@@ -7890,7 +7940,12 @@
     const progress = programSheetProgress();
     const next = { ...progress.bits };
     for (let i = 0; i < PROGRAM_NUMBER_BITS; i += 1) next[`${row}:${i + 2}`] = bits[i];
-    const done = setState({ [programSheetKey()]: { ...progress, bits: next }, programNumberEdit: null });
+    // Remember which label it was, so that when the labelled line moves this
+    // instruction's number can be brought along with it.
+    const refs = { ...(progress.refs || {}) };
+    if (labelled === null) delete refs[row];
+    else refs[row] = text.trim();
+    const done = setState({ [programSheetKey()]: { ...progress, bits: next, refs }, programNumberEdit: null });
     assemblerFlourish(`[data-action="program-number-open"][data-row="${row}"]`);
     return done;
   }
@@ -8841,11 +8896,21 @@
     const columnOf = (bit) => bitColumn(bit - 1);
     const instructions = programInstructionCount();
     const rows = 1 + instructions * 2;
+    // Only 5.1's tasks can jump, and only they get the jump chooser and the
+    // תגיות column that goes with it.
+    const jumpsInPlay = Boolean(demoProgramTask());
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">התוכנה</div>`);
     // A column of line numbers down the left of the table, two squares wide, one
     // number to each instruction (which is two rows tall).
     const LINE_COLUMN = 17;
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${LINE_COLUMN} / span 2;grid-row:1;">#</div>`);
+    // Beyond the numbers, four squares for a name per instruction. Only the
+    // tasks that can jump have it — a label is only useful as a jump target.
+    const LABEL_COLUMN = LINE_COLUMN + 2;
+    const labels = programSheetProgress().labels || {};
+    if (jumpsInPlay) {
+      cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:1;">תגיות</div>`);
+    }
     // Only the outer frame, and no foot: the two rules run down the page and the
     // table simply carries on.
     const rules = [
@@ -8854,17 +8919,22 @@
       // the outer edge of the line-number column, drawn the same way
       `<div class="sheet-rule sheet-rule-thin" style="grid-column:${LINE_COLUMN + 1};grid-row:1 / span ${rows};"></div>`
     ];
+    if (jumpsInPlay) {
+      rules.push(`<div class="sheet-rule sheet-rule-thin" style="grid-column:${LABEL_COLUMN + 3};grid-row:1 / span ${rows};"></div>`);
+    }
     // Two rows to an instruction: the assembler's row on top (three merged
     // cells — the calculation, the destination, the spare bits) and the sixteen
     // squares of the instruction itself underneath, which are what is written.
     const menuRow = Number.isInteger(state.programDestMenu?.row) ? state.programDestMenu.row : null;
     const jumpMenuRow = Number.isInteger(state.programJumpMenu?.row) ? state.programJumpMenu.row : null;
-    const jumpsInPlay = Boolean(demoProgramTask());
     for (let row = 0; row < instructions; row += 1) {
       const top = 2 + row * 2;
       const bottom = top + 1;
       const dest = programDestination(row);
       cells.push(`<div class="prog-line" style="grid-column:${LINE_COLUMN} / span 2;grid-row:${top} / span 2;" aria-hidden="true">${row + 1}</div>`);
+      if (jumpsInPlay) {
+        cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text" data-program-label="${row}" value="${esc(labels[row] || "")}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
+      }
       if (programNumberOpen(row)) {
         // Bit 1 is written: its own cell stays inert, and the eleven beside it
         // become the box the number is typed into.
@@ -26217,6 +26287,30 @@
   document.addEventListener("change", (event) => {
     const box = event.target.closest && event.target.closest(".prog-run-input");
     if (!box || !state.programManualTest) return;
+    render();
+  });
+
+  // A label beside an instruction. Kept as it is typed and saved without a
+  // redraw — the caret would jump — and the page is drawn again only when the
+  // box is left, since every place that used the old name has to follow it.
+  document.addEventListener("input", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-label-input");
+    if (!box || !state.programDialog) return;
+    const row = Number(box.dataset.programLabel);
+    if (!Number.isInteger(row)) return;
+    const progress = programSheetProgress();
+    const labels = { ...progress.labels };
+    const name = box.value.trim();
+    if (name) labels[row] = name;
+    else delete labels[row];
+    state[programSheetKey()] = { ...progress, labels };
+    saveState();
+  });
+
+  document.addEventListener("change", (event) => {
+    const box = event.target.closest && event.target.closest(".prog-label-input");
+    if (!box || !state.programDialog) return;
+    resolveProgramLabelRefs();
     render();
   });
 
