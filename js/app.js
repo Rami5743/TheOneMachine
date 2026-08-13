@@ -7486,7 +7486,10 @@
 
   function startAssemblerHintTimer() {
     clearAssemblerHintTimer();
-    if (state.assemblerMet) return;
+    // On 5.1's page the arrow is offered again even to a learner who met him in
+    // 4.3: what he can do here — the jumps and the labels — is new, and nothing
+    // else on the page says so.
+    if (state.assemblerMet && !demoProgramTask()) return;
     assemblerHintTimer = window.setTimeout(() => {
       assemblerHintTimer = null;
       if (!state.programDialog || state.assemblerMet) return;
@@ -7526,9 +7529,22 @@
     });
   }
 
+  // Which page he starts on. In 4.3 he introduces himself from the top. On 5.1's
+  // page the learner has already met him and what is new is the jump, so he
+  // opens on the page about it — found by its text rather than by a number, so
+  // adding a page elsewhere in his monologue cannot silently point this at the
+  // wrong one.
+  function assemblerJumpPage() {
+    const pages = assemblerPages();
+    const at = pages.findIndex((page) => (page || []).some((block) =>
+      typeof block.p === "string" && block.p.includes("הקפיצות")));
+    return at < 0 ? 0 : at;
+  }
+
   function openAssembler() {
     clearAssemblerHintTimer();
-    return setState({ assemblerMet: true, assemblerHint: false, programAssembler: { page: 0 } });
+    const page = demoProgramTask() && state.assemblerMet ? assemblerJumpPage() : 0;
+    return setState({ assemblerMet: true, assemblerHint: false, programAssembler: { page } });
   }
 
   function stepAssembler(delta) {
@@ -7702,7 +7718,7 @@
 
   function renderAssembler() {
     if (!state.programDialog || (state.programDialog && state.programDialog.intro)) return "";
-    const hint = state.assemblerHint && !state.assemblerMet
+    const hint = state.assemblerHint && (!state.assemblerMet || Boolean(demoProgramTask()))
       ? `<div class="sheet-wb-arrow assembler-arrow" aria-hidden="true">
            <svg viewBox="0 0 24 24" width="46" height="46">
              <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
