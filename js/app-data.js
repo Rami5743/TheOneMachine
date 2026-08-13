@@ -1012,9 +1012,24 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // "המשך יבוא...".
   const DEMO_TASKS = [
     {
+      id: "demo-infinite-loop",
+      label: "לולאה אינסופית",
+      requires: []
+    },
+    {
+      id: "demo-count-loop",
+      label: "לולאת ספירה",
+      requires: ["demo-infinite-loop"]
+    },
+    {
+      id: "demo-count-to",
+      label: "ספירה עד מספר",
+      requires: ["demo-count-loop"]
+    },
+    {
       id: "demo-multiply",
       label: "כפל",
-      requires: [],
+      requires: ["demo-count-to"],
       rankId: "prg-multiply",
       rankLabel: "כפל",
       title: "משימת תכנות: כפל",
