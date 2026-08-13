@@ -2075,6 +2075,8 @@
     // squared paper, with the program the learner writes on it ({ scratch }).
     // Persisted like the 4.1 page; the open/closed flag itself is transient.
     programSheet: null,
+    // Which 5.1 task the page is open on; null means 4.3's own task.
+    programTaskId: null,
     programDialog: null,
     programClearConfirm: null,
     // The destination chooser open over an instruction's middle cell: { row }.
@@ -3574,7 +3576,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6511,8 +6513,25 @@
   // the instruction: the word, the ALU3/4 instruction inside it, and so on. Each
   // page paints its fields onto a strip of the sixteen squares and explains them
   // underneath, colour by colour.
+  // In 4.3 the machine could not jump, so the last two bits of an instruction
+  // were spare. From 5.1 they carry the jump conditions, so the first page of
+  // "מבנה הפקודה" says what they do instead of calling them spare. Only that one
+  // group differs; the pages are otherwise the same, and 4.3 still reads as it
+  // always did.
+  const INSTRUCTION_GUIDE_JUMP_GROUP = {
+    from: 15, to: 16, text: "ביטים עם תנאי לקפיצה:",
+    options: [
+      "ביט ראשון - האם לקפוץ כשתוצאת ה-ALU היא 0",
+      "ביט שני - האם לקפוץ כשתוצאת ה-ALU שלילית"
+    ]
+  };
   function instructionGuidePages() {
-    return typeof INSTRUCTION_GUIDE !== "undefined" ? INSTRUCTION_GUIDE : [];
+    const pages = typeof INSTRUCTION_GUIDE !== "undefined" ? INSTRUCTION_GUIDE : [];
+    if (!demoProgramTask() || !pages.length) return pages;
+    const first = pages[0];
+    const groups = (first.groups || []).map((g) =>
+      (g.from === 15 && g.to === 16) ? INSTRUCTION_GUIDE_JUMP_GROUP : g);
+    return [{ ...first, groups }, ...pages.slice(1)];
   }
 
   function sheetGuideState() {
@@ -6679,8 +6698,22 @@
     return Boolean(state.programDialog && state.programDialog.helper);
   }
 
+  // Chapter 5.1's tasks share this page but must not share its paper: each gets
+  // a state key of its own, so passing one does not mark another done and a
+  // half-written program is still there when the learner comes back. 4.3 and its
+  // helper keep the two original keys untouched, so existing saves are unaffected
+  // (normalizeLoadedState spreads the loaded state, so a new key persists).
   function programSheetKey() {
-    return programHelperOpen() ? "programHelperSheet" : "programSheet";
+    if (programHelperOpen()) return "programHelperSheet";
+    if (state.programTaskId) return `programSheet_${state.programTaskId}`;
+    return "programSheet";
+  }
+
+  // The 5.1 task the page is showing, if it is showing one.
+  function demoProgramTask() {
+    if (!state.programTaskId) return null;
+    return (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : [])
+      .find((t) => t.id === state.programTaskId) || null;
   }
 
   function programSheetProgress() {
@@ -6714,11 +6747,14 @@
     const pages = instructionGuidePages();
     return {
       // The task and the two tables start open; "מבנה הפקודה" starts folded away.
+      // 5.1's tasks are the other way round: the ALU table is not what they are
+      // about, and the instruction's own structure — where the jump bits live —
+      // is, so that one starts open and the ALU table starts away.
       task: saved.task !== false,
       tip: saved.tip !== false,
-      alu: saved.alu !== false,
+      alu: demoProgramTask() ? saved.alu === true : saved.alu !== false,
       memory: saved.memory !== false,
-      guide: saved.guide === true,
+      guide: demoProgramTask() ? saved.guide !== false : saved.guide === true,
       guidePage: Number.isInteger(saved.guidePage)
         ? Math.min(Math.max(saved.guidePage, 0), Math.max(pages.length - 1, 0))
         : 0,
@@ -7026,6 +7062,8 @@
   // fourth hint offers.
   function programTaskData() {
     if (programHelperOpen()) return typeof PROGRAM_HELPER_TASK !== "undefined" ? PROGRAM_HELPER_TASK : null;
+    const demo = demoProgramTask();
+    if (demo) return demo;
     return typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
   }
 
@@ -8865,7 +8903,7 @@
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
             <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
-            <button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>
+            ${demoProgramTask() ? "" : `<button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>`}
             ${programHintButtonVisible()
               ? `<button class="btn hint-btn ${programHintButtonFresh() ? "hint-btn-ready" : "hint-btn-seen"}" data-action="program-hint-open" type="button">${esc(programHintButtonLabel())}</button>`
               : ""}
@@ -9220,7 +9258,7 @@
 
   // Which of them has a programming page so far. The rest say "המשך יבוא...".
   function demoTaskImplemented(id) {
-    return false;
+    return id === "demo-infinite-loop";
   }
 
   function handleDemoNoteTask(id) {
@@ -9232,6 +9270,23 @@
     if (!demoTaskImplemented(task.id)) {
       return setState({ infoDialog: "המשך יבוא..." });
     }
+    return openDemoProgramPage(task.id);
+  }
+
+  // 5.1's programming page: 4.3's page, on this task's own paper. The panels are
+  // reset so it opens the way the chapter wants (ALU table away, מבנה הפקודה
+  // out) rather than however the last visit left 4.3's.
+  function openDemoProgramPage(taskId) {
+    const opened = setState({
+      demoNoteList: false,
+      panelObjectDialog: null,
+      programTaskId: taskId,
+      programPanels: { ...programPanelsState(), alu: false, guide: true, pos: {} },
+      assemblerTeaserDone: false,
+      programDialog: { intro: true }
+    });
+    startAssemblerHintTimer();
+    return opened;
   }
 
   function renderDemoNoteList() {
@@ -27271,7 +27326,7 @@
     if (action === "program-close") {
       clearAssemblerHintTimer();
       clearProgramTestTimers();
-      return setState({ programDialog: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null, programManualTest: null, programRunTest: null });
+      return setState({ programDialog: null, programTaskId: null, programAssembler: null, assemblerHint: false, sheetScratchCell: null, programManualTest: null, programRunTest: null });
     }
     if (action === "program-bit") return cycleProgramBit(Number(button.dataset.row), Number(button.dataset.bit));
     if (action === "program-dest-open") {
