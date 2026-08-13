@@ -7488,8 +7488,19 @@
     clearAssemblerHintTimer();
     // On 5.1's page the arrow is offered again even to a learner who met him in
     // 4.3: what he can do here — the jumps and the labels — is new, and nothing
-    // else on the page says so.
-    if (state.assemblerMet && !demoProgramTask()) return;
+    // else on the page says so. It is up straight away there, rather than after
+    // the minute 4.3 waits before nudging: on that page it is a nudge for
+    // someone who seems stuck, here it is how the learner is told about a tool
+    // the task expects them to use.
+    if (demoProgramTask()) {
+      assemblerHintTimer = window.setTimeout(() => {
+        assemblerHintTimer = null;
+        if (!state.programDialog) return;
+        setState({ assemblerHint: true });
+      }, 0);
+      return;
+    }
+    if (state.assemblerMet) return;
     assemblerHintTimer = window.setTimeout(() => {
       assemblerHintTimer = null;
       if (!state.programDialog || state.assemblerMet) return;
@@ -7959,9 +7970,13 @@
     // instruction that named it without the learner touching any of them —
     // the program is stored as the label's target, not as a number typed once.
     const labelled = programLabelRow(text);
-    const typed = /^\d+$/.test(text) ? Number(text) : NaN;
+    // Text is allowed here: a label resolves to the line it names. A name that
+    // matches no label is read as 0 rather than thrown away — the learner has
+    // written a target that does not exist yet, and 0 is what the machine would
+    // make of it, so the instruction says so instead of silently staying blank.
+    const typed = /^\d+$/.test(text) ? Number(text) : (text ? 0 : NaN);
     const value = labelled === null ? typed : labelled + 1;
-    // Anything that is not a number these eleven bits can hold simply goes away.
+    // A number too big for these eleven bits still goes away.
     if (!Number.isInteger(value) || value < 0 || value > PROGRAM_NUMBER_MAX) {
       return setState({ programNumberEdit: null });
     }
@@ -9038,9 +9053,12 @@
         // become the box the number is typed into.
         cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(1)};grid-row:${top};" aria-hidden="true"></div>`);
         const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
-        const shown = programNumberValue(row);
+        // A number written from a label shows the LABEL: that is what the
+        // learner wrote, and it is what follows the line when it moves.
+        const ref = (programSheetProgress().refs || {})[row];
+        const shown = ref && programLabelRow(ref) !== null ? ref : programNumberValue(row);
         cells.push(`<div class="prog-slot prog-slot-number" style="grid-column:${columnOf(12)} / span 11;grid-row:${top};">${editing
-          ? `<input class="prog-number-input" type="text" inputmode="numeric" autofocus data-program-number="${row}" value="${esc(typeof state.programNumberEdit.text === "string" ? state.programNumberEdit.text : shown)}" aria-label="המספר של פקודה ${row + 1}" />`
+          ? `<input class="prog-number-input" type="text" inputmode="${jumpsInPlay ? "text" : "numeric"}" autofocus data-program-number="${row}" value="${esc(typeof state.programNumberEdit.text === "string" ? state.programNumberEdit.text : shown)}" aria-label="המספר של פקודה ${row + 1}" />`
           : `<button class="prog-slot-btn" data-action="program-number-open" data-row="${row}" type="button" aria-label="המספר של פקודה ${row + 1}">${esc(shown)}</button>`}</div>`);
       } else if (programCalcOpen(row)) {
         // Bit 1 is the learner's own; the five beside it choose which input X
