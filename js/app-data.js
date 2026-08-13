@@ -1006,6 +1006,32 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // object opens a small window with its reference link and, when the object is
   // something the learner takes with them, a "לקחת" button that walks the story
   // on to the next slide.
+  // Chapter 5.1's note: the demonstrations the machine has to give. They are done
+  // in order — each is unlocked by the one before it — and each opens a
+  // programming page like 4.3's. Only the first has one so far; the rest answer
+  // "המשך יבוא...".
+  const DEMO_TASKS = [
+    {
+      id: "demo-multiply",
+      label: "כפל",
+      requires: [],
+      rankId: "prg-multiply",
+      rankLabel: "כפל",
+      title: "משימת תכנות: כפל",
+      text: "כתוב תוכנה שמכפילה את הערך של In0 ב-In1 וכותבת את התוצאה ב-Out0."
+    },
+    {
+      id: "demo-divide",
+      label: "חילוק",
+      requires: ["demo-multiply"]
+    },
+    {
+      id: "demo-calculator",
+      label: "מחשבון מתקדם",
+      requires: ["demo-divide"]
+    }
+  ];
+
   const PANEL_OBJECTS = {
     dosimeter: {
       label: "תא עיפרון",
@@ -1087,6 +1113,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // The note von Neumann leaves at the end of 4.4: the cards that turn the
     // simple computer into a machine that can jump.
     jumpNote: { label: "הפתק", opens: "jump-tasks" },
+    // 5.1's note, on the same table in the same room. Its own entry (not a second
+    // zone sharing jumpNote's id) so it opens the demonstration tasks, not 4.4's.
+    demoNote: { label: "הפתק", opens: "demo-tasks" },
     // The two converters on the hangar floor in 4.4, standing under the ports
     // they serve. They carried the prgPort / prgAdrPort ids — the PRG and ADR PRG
     // tags of 4.3's room, which still use them — so they announced themselves as

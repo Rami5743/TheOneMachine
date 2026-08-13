@@ -38,7 +38,8 @@ const ROOMS = [
   ['231_4.1_empty-room.svg', 'chapter-15', 'simple-computer'],
   ['235_4.2_build-room.svg', 'chapter-16', 'build-simple-computer'],
   ['244_4.3_program-room.svg', 'chapter-18', 'simple-programming'],
-  ['259_4.4_build-room.svg', 'chapter-19', 'conditional-jump']
+  ['259_4.4_build-room.svg', 'chapter-19', 'conditional-jump'],
+  ['267_5.1_demo-room.svg', 'chapter-20', 'demonstrations']
 ];
 const ALL_TASKS = ['Not','And','Or','Xor','Mux','DMux','Not4','Not16','AND4','AND16','OR4','Neq0_4','Neq0_16','MUX4','MUX16','Dmux4way','Mux4way16','halfAdder','fullAdder','Add4','Add16','Inc','ALU0','PreperNum','ALU1','ALU2','ALU3','ALU4','Register4','Register','RAM4','RAM16','RAM64','RAM256','RAM1024','OPorts','IPorts','Ports','RAM','Prg'];
 
