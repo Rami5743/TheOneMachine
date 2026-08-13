@@ -2081,6 +2081,7 @@
     programClearConfirm: null,
     // The destination chooser open over an instruction's middle cell: { row }.
     programDestMenu: null,
+    programJumpMenu: null,
     // The instruction whose number is being typed right now: { row }.
     programNumberEdit: null,
     // The calculation chooser open over an instruction: { row }.
@@ -3316,6 +3317,7 @@
       programClearConfirm: null,
       programAssembler: null,
       programDestMenu: null,
+      programJumpMenu: null,
       programNumberEdit: null,
       programCalcMenu: null,
       programInputMenu: null,
@@ -3576,7 +3578,7 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -7731,6 +7733,16 @@
 
   // The four things the ALU's output can be written to, and the two bits that
   // say so (bits 13-14 of the instruction).
+  // From 5.1 the last two bits of an instruction are the jump conditions: the
+  // first says jump when the ALU's answer is 0, the second when it is negative.
+  // Both set means jump when it is 0 OR negative, i.e. not positive.
+  const PROGRAM_JUMPS = [
+    { id: "none", label: "\u05d0\u05d9\u05df \u05e7\u05e4\u05d9\u05e6\u05d4", bits: "00" },
+    { id: "eq", label: "=0", bits: "10" },
+    { id: "lt", label: "<0", bits: "01" },
+    { id: "le", label: "\u22640", bits: "11" }
+  ];
+
   const PROGRAM_DESTINATIONS = [
     { id: "none", label: "\u2192", bits: "00" },
     { id: "D", label: "\u2192 D", bits: "01" },
@@ -7802,16 +7814,42 @@
     return PROGRAM_DESTINATIONS.find((dest) => dest.bits === bits) || null;
   }
 
+  function programJump(row) {
+    const bits = `${programBit(row, 15)}${programBit(row, 16)}`;
+    return PROGRAM_JUMPS.find((jump) => jump.bits === bits) || null;
+  }
+
+  // The gnome's promise: pick the condition and he writes the bits.
+  function chooseProgramJump(row, id) {
+    const jump = PROGRAM_JUMPS.find((j) => j.id === id);
+    if (!jump) return setState({ programJumpMenu: null });
+    const progress = programSheetProgress();
+    const done = setState({
+      [programSheetKey()]: {
+        ...progress,
+        bits: { ...progress.bits, [`${row}:15`]: jump.bits[0], [`${row}:16`]: jump.bits[1] }
+      },
+      programJumpMenu: null
+    });
+    assemblerFlourish(`[data-action="program-jump-open"][data-row="${row}"]`);
+    return done;
+  }
+
   function chooseProgramDestination(row, id) {
     const dest = PROGRAM_DESTINATIONS.find((d) => d.id === id);
     if (!dest) return setState({ programDestMenu: null });
     const progress = programSheetProgress();
-    // The destination cell spans the last four bits: the two that say where the
-    // answer goes, and the two spare ones, which it simply zeroes.
+    // In 4.3 this cell spanned the last FOUR bits — the two that say where the
+    // answer goes and the two spare ones, which it simply zeroed. From 5.1 the
+    // spare pair carries the jump condition and has a chooser of its own, so the
+    // destination must leave it alone.
+    const jumpBits = demoProgramTask()
+      ? {}
+      : { [`${row}:15`]: "0", [`${row}:16`]: "0" };
     const done = setState({
       [programSheetKey()]: {
         ...progress,
-        bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1], [`${row}:15`]: "0", [`${row}:16`]: "0" }
+        bits: { ...progress.bits, [`${row}:13`]: dest.bits[0], [`${row}:14`]: dest.bits[1], ...jumpBits }
       },
       programDestMenu: null
     });
@@ -8820,6 +8858,8 @@
     // cells — the calculation, the destination, the spare bits) and the sixteen
     // squares of the instruction itself underneath, which are what is written.
     const menuRow = Number.isInteger(state.programDestMenu?.row) ? state.programDestMenu.row : null;
+    const jumpMenuRow = Number.isInteger(state.programJumpMenu?.row) ? state.programJumpMenu.row : null;
+    const jumpsInPlay = Boolean(demoProgramTask());
     for (let row = 0; row < instructions; row += 1) {
       const top = 2 + row * 2;
       const bottom = top + 1;
@@ -8857,7 +8897,23 @@
         ? `<ul class="prog-dest-menu" role="menu">${PROGRAM_DESTINATIONS.map((option) =>
             `<li><button class="prog-dest-option" data-action="program-dest-pick" data-row="${row}" data-dest="${esc(option.id)}" type="button" dir="ltr">${esc(option.label)}</button></li>`).join("")}</ul>`
         : "";
-      cells.push(`<div class="prog-slot prog-slot-dest" style="grid-column:${columnOf(16)} / span 4;grid-row:${top};"><button class="prog-slot-btn" data-action="program-dest-open" data-row="${row}" type="button" dir="ltr" aria-label="יעד הפקודה ${row + 1}">${dest ? esc(dest.label) : ""}</button>${menu}</div>`);
+      if (jumpsInPlay) {
+        // The four squares over the last four bits are two controls now: the
+        // destination over bits 13-14, the jump condition over 15-16. In 4.3
+        // those two were spare, so there the one control still spans all four.
+        cells.push(`<div class="prog-slot prog-slot-dest" style="grid-column:${columnOf(14)} / span 2;grid-row:${top};"><button class="prog-slot-btn" data-action="program-dest-open" data-row="${row}" type="button" dir="ltr" aria-label="יעד הפקודה ${row + 1}">${dest ? esc(dest.label) : ""}</button>${menu}</div>`);
+        const jump = programJump(row);
+        const jumpMenu = jumpMenuRow === row
+          ? `<ul class="prog-dest-menu prog-jump-menu" role="menu">${PROGRAM_JUMPS.map((option) =>
+              `<li><button class="prog-dest-option" data-action="program-jump-pick" data-row="${row}" data-jump="${esc(option.id)}" type="button" dir="ltr">${esc(option.label)}</button></li>`).join("")}</ul>`
+          : "";
+        // "אין קפיצה" is the empty state — writing it across every row would be
+        // noise, so the cell shows nothing until a condition is actually chosen.
+        const jumpLabel = jump && jump.id !== "none" ? esc(jump.label) : "";
+        cells.push(`<div class="prog-slot prog-slot-jump" style="grid-column:${columnOf(16)} / span 2;grid-row:${top};"><button class="prog-slot-btn" data-action="program-jump-open" data-row="${row}" type="button" dir="ltr" aria-label="תנאי הקפיצה של פקודה ${row + 1}">${jumpLabel}</button>${jumpMenu}</div>`);
+      } else {
+        cells.push(`<div class="prog-slot prog-slot-dest" style="grid-column:${columnOf(16)} / span 4;grid-row:${top};"><button class="prog-slot-btn" data-action="program-dest-open" data-row="${row}" type="button" dir="ltr" aria-label="יעד הפקודה ${row + 1}">${dest ? esc(dest.label) : ""}</button>${menu}</div>`);
+      }
       for (let bit = 1; bit <= 16; bit += 1) {
         const value = programBit(row, bit);
         cells.push(`<button class="prog-bit${value === "" ? " prog-bit-empty" : ""}" data-action="program-bit" data-row="${row}" data-bit="${bit}" type="button" style="grid-column:${columnOf(bit)};grid-row:${bottom};" aria-label="ביט ${bit} של פקודה ${row + 1}">${esc(value)}</button>`);
@@ -27334,6 +27390,11 @@
       return setState({ programDestMenu: state.programDestMenu?.row === row ? null : { row } });
     }
     if (action === "program-dest-pick") return chooseProgramDestination(Number(button.dataset.row), button.dataset.dest);
+    if (action === "program-jump-open") {
+      const row = Number(button.dataset.row);
+      return setState({ programJumpMenu: state.programJumpMenu?.row === row ? null : { row }, programDestMenu: null });
+    }
+    if (action === "program-jump-pick") return chooseProgramJump(Number(button.dataset.row), button.dataset.jump);
     if (action === "program-number-open") return setState({ programNumberEdit: { row: Number(button.dataset.row) }, programDestMenu: null });
     if (action === "program-calc-open") {
       const row = Number(button.dataset.row);

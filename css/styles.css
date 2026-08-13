@@ -5923,6 +5923,13 @@ object.panel-image.is-pending {
 .prog-slot-input { background: #f3ecd9; }
 .prog-slot-input .prog-slot-btn { text-align: center; }
 
+/* The jump-condition cell over bits 15-16, beside the destination. Same paper as
+   the other choosers so the row reads as one strip of controls; its label is
+   centred because "אין קפיצה" and "=0" sit very differently against an edge. */
+.prog-slot-jump { background: #f3ecd9; }
+.prog-slot-jump .prog-slot-btn { text-align: center; }
+.prog-jump-menu { min-width: 7.5rem; }
+
 /* A rectangle of squares marked out on the program page, to be copied, pasted
    over or rubbed out. */
 .prog-selection {
