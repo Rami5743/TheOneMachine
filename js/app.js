@@ -6836,11 +6836,16 @@
     if (figure && saved.assembler) {
       figure.style.left = `${Math.round(saved.assembler.left)}px`;
       figure.style.top = `${Math.round(saved.assembler.top)}px`;
-    } else if (figure && alu) {
-      const aluRect = alu.getBoundingClientRect();
+    } else if (figure) {
+      // He stands at the FOOT of the paper. He used to be set beside the ALU
+      // table, which put him high up the page — and on 5.1's page that table is
+      // folded away, so there was nothing to stand beside at all. The floor is
+      // somewhere he is always found, and out of the way of the windows stacked
+      // up the left edge.
       const figRect = figure.getBoundingClientRect();
-      figure.style.left = `${Math.round(aluRect.right + 26)}px`;
-      figure.style.top = `${Math.round(Math.min(aluRect.bottom - figRect.height, area.bottom - PAD - figRect.height))}px`;
+      const alongside = alu ? alu.getBoundingClientRect().right + 26 : area.left + PAD;
+      figure.style.left = `${Math.round(Math.min(alongside, area.right - PAD - figRect.width))}px`;
+      figure.style.top = `${Math.round(area.bottom - PAD - figRect.height)}px`;
     }
     // His bubble comes out of his mouth: it is placed so its tail lines up with
     // it, and if the bubble had to be nudged to stay on the paper the tail slides
@@ -7945,7 +7950,7 @@
     const progress = programSheetProgress();
     const refs = progress.refs || {};
     const rows = Object.keys(refs);
-    if (!rows.length) return;
+    if (!rows.length) return false;
     const bits = { ...progress.bits };
     let changed = false;
     for (const row of rows) {
@@ -7957,9 +7962,10 @@
         if (bits[key] !== written[i]) { bits[key] = written[i]; changed = true; }
       }
     }
-    if (!changed) return;
+    if (!changed) return false;
     state[programSheetKey()] = { ...progress, bits };
     saveState();
+    return true;
   }
 
   function commitProgramNumber(row, raw) {
@@ -26442,8 +26448,11 @@
   document.addEventListener("change", (event) => {
     const box = event.target.closest && event.target.closest(".prog-label-input");
     if (!box || !state.programDialog) return;
-    resolveProgramLabelRefs();
+    if (!resolveProgramLabelRefs()) return;
+    const row = box.dataset.programLabel;
     render();
+    const back = app.querySelector(`.prog-label-input[data-program-label="${row}"]`);
+    if (back) { back.focus(); back.setSelectionRange(back.value.length, back.value.length); }
   });
 
   document.addEventListener("keydown", (event) => {
