@@ -19,6 +19,10 @@ const PARTS = [
   {
     "id": "part-4",
     "title": "חלק 4: מכונת חישוב אחת שתחליף את כולן"
+  },
+  {
+    "id": "part-5",
+    "title": "חלק 5: תכנות"
   }
 ];
 
@@ -140,6 +144,12 @@ const CHAPTERS = [
     "partId": "part-4",
     "title": "4.4 המכונה האחת",
     "sceneId": "conditional-jump"
+  },
+  {
+    "id": "chapter-20",
+    "partId": "part-5",
+    "title": "5.1 הדגמות",
+    "sceneId": "demonstrations"
   }
 ];
 
@@ -2793,6 +2803,30 @@ const SCENES = {
         "image": "assets/panels/262_4.4_more-resources.svg",
         "year": "1944",
         "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון, מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
+      }
+    ]
+  },
+  "demonstrations": {
+    "id": "demonstrations",
+    "title": "הדגמות",
+    "panels": [
+      {
+        "comment": "Part 5 opens: the machine works, and now it has to be shown what it can do.",
+        "image": "assets/panels/263_5.1_we-will-demonstrate.svg",
+        "year": "1944",
+        "read": "אנחנו נצטרך להדגים את היכולת של המכונה שלנו. אתה תתכנת אותה. זאת אומרת שאתה תכתוב רצף של פקודות שיאפשר למכונה הזאת לעשות כל מיני דברים."
+      },
+      {
+        "comment": "The bar to clear: the IBM calculating machines already on the base.",
+        "image": "assets/panels/264_5.1_ibm-machines.svg",
+        "year": "1944",
+        "read": "לפני כמה חודשים הגיעו לכאן מכונות חישוב של IBM. אנחנו נראה שהמכונה שלנו יכולה לעשות את אותם הדברים, ועוד."
+      },
+      {
+        "comment": "Wordless: he lays the demonstration tasks on the worktable.",
+        "image": "assets/panels/265_5.1_note-placed.svg",
+        "year": "1944",
+        "read": ""
       }
     ]
   }
