@@ -7903,6 +7903,19 @@
   }
 
   // Which instruction a label names. Rows are numbered from 1 on the paper.
+  // Four squares hold roughly eight characters comfortably. Past that the text
+  // shrinks with the length rather than being clipped, and stops at a floor —
+  // below it the name would be there but unreadable, which helps nobody.
+  const LABEL_COMFORTABLE_CHARS = 8;
+  const LABEL_MAX_REM = 0.95;
+  const LABEL_MIN_REM = 0.5;
+  function programLabelFontSize(text) {
+    const n = String(text || "").length;
+    if (n <= LABEL_COMFORTABLE_CHARS) return `${LABEL_MAX_REM}rem`;
+    const scaled = LABEL_MAX_REM * (LABEL_COMFORTABLE_CHARS / n);
+    return `${Math.max(LABEL_MIN_REM, Math.round(scaled * 100) / 100)}rem`;
+  }
+
   function programLabelRow(name) {
     const wanted = String(name ?? "").trim().toLowerCase();
     if (!wanted) return null;
@@ -8118,7 +8131,40 @@
         next.mem[address] = value;
       }
     }
-    return { machine: next, touched };
+    return { machine: next, touched, value: programSigned(value) };
+  }
+
+  // ---- Running a program that JUMPS ----------------------------------------
+  // programRunAll walks the rows in order: 4.3's machine had no jump, so there
+  // was no program counter to keep. From 5.1 there is. The last two bits say
+  // when to jump — bit 15 when the ALU's answer is 0, bit 16 when it is negative
+  // — and the jump goes to the line whose number is in A, the way the card the
+  // learner built does it.
+  function programJumpTarget(word, value) {
+    const onZero = word[14] === "1";
+    const onNegative = word[15] === "1";
+    return (onZero && value === 0) || (onNegative && value < 0);
+  }
+
+  // Follows the program for `cycles` beats. `ranOff` says it reached an
+  // instruction that was never written — which is exactly what an infinite loop
+  // must never do.
+  function programRunWithJumps(cycles) {
+    let machine = { d: 0, a: 0, in0: 0, mem: {} };
+    const total = programInstructionCount();
+    let pc = 0;
+    let steps = 0;
+    while (steps < cycles) {
+      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc };
+      const word = programWord(pc);
+      if (!word) return { ranOff: true, steps, pc, incomplete: true };
+      const step = programExecuteRow(machine, pc);
+      if (step.error) return { error: step.error, row: pc, steps };
+      machine = step.machine;
+      steps += 1;
+      pc = programJumpTarget(word, step.value) ? (machine.a & PROGRAM_MASK) - 1 : pc + 1;
+    }
+    return { ranOff: false, steps, pc };
   }
 
   // Running the whole program on its own, for the test bench: it stops at the
@@ -8278,7 +8324,21 @@
     if (programHelperOpen()) {
       return typeof PROGRAM_HELPER_TEST !== "undefined" ? PROGRAM_HELPER_TEST : null;
     }
+    if (state.programTaskId === "demo-infinite-loop") {
+      return typeof PROGRAM_LOOP_TEST !== "undefined" ? PROGRAM_LOOP_TEST : null;
+    }
     return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
+  }
+
+  // The loop task is checked by where the machine IS after fifty beats, not by
+  // what came out of it — so it is one run, and it passes when the program never
+  // reached an instruction that was never written.
+  function programLoopRuns(test) {
+    const outcome = programRunWithJumps(test.cycles || 50);
+    const ok = !outcome.error && !outcome.ranOff;
+    return [{ input: null, want: null, got: null, ok, badRow: outcome.error ? outcome.row : null,
+              steps: outcome.steps, trace: [], ranOff: Boolean(outcome.ranOff),
+              incomplete: Boolean(outcome.incomplete), stoppedAt: outcome.pc }];
   }
 
   // Every run, worked out at once. It stops at the first number the program gets
@@ -8308,7 +8368,9 @@
     if (programRowEmpty(0)) {
       return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true }, ...(noteProgramFailure() || {}) });
     }
-    const runs = programTestRuns();
+    const runs = test === (typeof PROGRAM_LOOP_TEST !== "undefined" ? PROGRAM_LOOP_TEST : null)
+      ? programLoopRuns(test)
+      : programTestRuns();
     const done = setState({ programRunTest: { phase: "load", index: 0, runs, empty: false } });
     programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES.load);
     return done;
@@ -8335,6 +8397,16 @@
     if (!result) return {};
     if (!result.ok) return noteProgramFailure() || {};
     if (programHelperOpen()) return { programHelperDone: true };
+    // A 5.1 task is ticked on its note rather than in programTaskDone, which is
+    // 4.3's own flag — the note reads completedTasks, the same list the build
+    // cards use.
+    const demo = demoProgramTask();
+    if (demo) {
+      const completedTasks = completedTaskIds().includes(demo.id)
+        ? completedTaskIds()
+        : [...completedTaskIds(), demo.id];
+      return { completedTasks };
+    }
     // What the machine actually ran, in instructions — the number "אורך תוכנה"
     // ranks by. The current program's length, the way a card's Nand count is the
     // current build's.
@@ -8626,6 +8698,12 @@
     const runs = now.runs || [];
     const bad = runs.find((run) => !run.ok);
     if (!bad) return { ok: true, title: test.passTitle, text: test.passText };
+    if (test.ranOffText && bad.ranOff) {
+      const line = Number.isInteger(bad.stoppedAt) ? bad.stoppedAt + 1 : 1;
+      const text = (bad.incomplete ? test.incompleteText : test.ranOffText)
+        .replace("{steps}", String(bad.steps)).replace("{line}", String(line));
+      return { ok: false, title: test.failTitle, text };
+    }
     if (bad.badRow !== null && bad.badRow !== undefined) {
       return { ok: false, title: test.failTitle, text: `פקודה ${bad.badRow + 1} לא הושלמה.` };
     }
@@ -8660,6 +8738,9 @@
               <p class="prog-test-detail">${esc(isolateLatinRuns(result.text))}</p>
               <div class="not-test-result-actions">
                 ${result.ok ? "" : `<button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>`}
+                ${result.ok && demoProgramTask()
+                  ? `<button class="btn btn-primary" data-action="demo-program-done" type="button">חזרה למשימות</button>`
+                  : ""}
                 ${programHelperOpen() && result.ok
                   ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
                   : ""}
@@ -8949,7 +9030,8 @@
       const dest = programDestination(row);
       cells.push(`<div class="prog-line" style="grid-column:${LINE_COLUMN} / span 2;grid-row:${top} / span 2;" aria-hidden="true">${row + 1}</div>`);
       if (jumpsInPlay) {
-        cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text" data-program-label="${row}" value="${esc(labels[row] || "")}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
+        const label = labels[row] || "";
+        cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text" data-program-label="${row}" value="${esc(label)}" style="--label-size:${programLabelFontSize(label)}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
       }
       if (programNumberOpen(row)) {
         // Bit 1 is written: its own cell stays inert, and the eleven beside it
@@ -9045,7 +9127,7 @@
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
             <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
-            ${demoProgramTask() ? "" : `<button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>`}
+            ${!demoProgramTask() || programTestData() ? `<button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>` : ""}
             ${programHintButtonVisible()
               ? `<button class="btn hint-btn ${programHintButtonFresh() ? "hint-btn-ready" : "hint-btn-seen"}" data-action="program-hint-open" type="button">${esc(programHintButtonLabel())}</button>`
               : ""}
@@ -9401,6 +9483,21 @@
   // Which of them has a programming page so far. The rest say "המשך יבוא...".
   function demoTaskImplemented(id) {
     return id === "demo-infinite-loop";
+  }
+
+  // Back to the room 5.1's note is lying in.
+  function demoReturnTarget() {
+    const chapter = chapterById("chapter-20");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    if (!chapter || !scene) return { screen: "story" };
+    const idx = panelIndexByImage(scene, "267_5.1_demo-room.svg");
+    return {
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true
+    };
   }
 
   function handleDemoNoteTask(id) {
@@ -26320,6 +26417,7 @@
     if (name) labels[row] = name;
     else delete labels[row];
     state[programSheetKey()] = { ...progress, labels };
+    box.style.setProperty("--label-size", programLabelFontSize(box.value));
     saveState();
   });
 
@@ -27465,6 +27563,15 @@
     if (action === "program-manual-close") return setState({ programManualTest: null });
     if (action === "program-manual-step") return programManualStep();
     if (action === "program-run-open") return startProgramTest();
+    if (action === "demo-program-done") {
+      clearAssemblerHintTimer();
+      clearProgramTestTimers();
+      return setState({
+        ...demoReturnTarget(), programDialog: null, programTaskId: null, programAssembler: null,
+        assemblerHint: false, sheetScratchCell: null, programManualTest: null, programRunTest: null,
+        demoNoteList: true
+      });
+    }
     if (action === "program-hint-open") return openProgramHints();
     if (action === "program-solution-open") return openProgramSolution(0);
     if (action === "program-solution-prev") return stepProgramSolution(-1);

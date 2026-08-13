@@ -1049,6 +1049,28 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
+  // The machine check for 5.1's infinite loop. Same bench as 4.3's, but what it
+  // is watching for is different: not a number in Out0 — the task does not ask
+  // for one — but that after fifty beats the machine is still inside the
+  // instructions that were written.
+  const PROGRAM_LOOP_TEST = {
+    title: "בדיקת התוכנה",
+    cycles: 50,
+    passTitle: "הבדיקה הצליחה",
+    passText: "המכונה רצה 50 מחזורי שעון והמשיכה לבצע את הפקודות שכתבת. התוכנה לא נגמרת.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    ranOffText: "אחרי {steps} פקודות המכונה הגיעה לשורה {line}, שלא כתבת בה כלום. התוכנה נגמרה במקום להמשיך בלולאה.",
+    incompleteText: "פקודה {line} לא הושלמה.",
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק",
+      run: "המכונה רצה",
+      check: "בודקים אם המכונה עדיין בתוך הפקודות",
+      reset: ""
+    }
+  };
+
   const PANEL_OBJECTS = {
     dosimeter: {
       label: "תא עיפרון",
