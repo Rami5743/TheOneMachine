@@ -148,7 +148,7 @@ const CHAPTERS = [
   {
     "id": "chapter-20",
     "partId": "part-5",
-    "title": "5.1 הדגמות",
+    "title": "5.1 לולאות",
     "sceneId": "demonstrations"
   }
 ];
@@ -2808,7 +2808,7 @@ const SCENES = {
   },
   "demonstrations": {
     "id": "demonstrations",
-    "title": "הדגמות",
+    "title": "לולאות",
     "panels": [
       {
         "comment": "Part 5 opens: the machine works, and now it has to be shown what it can do.",

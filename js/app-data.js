@@ -1041,11 +1041,6 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "demo-divide",
       label: "חילוק",
       requires: ["demo-multiply"]
-    },
-    {
-      id: "demo-calculator",
-      label: "מחשבון מתקדם",
-      requires: ["demo-divide"]
     }
   ];
 
