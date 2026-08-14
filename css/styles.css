@@ -5582,9 +5582,19 @@ object.panel-image.is-pending {
   color: #241d12;
 }
 
-.prog-task-text p { margin: 0 0 0.7em; }
-.prog-task-text p:last-child { margin-bottom: 0; }
-.prog-task-text strong { font-weight: 700; }
+/* The same paragraphs on the DARK intro card, which keeps the card's own colour
+   — the window's parchment brown on it was black on near-black. */
+.prog-intro-text {
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.prog-task-text p,
+.prog-intro-text p { margin: 0 0 0.7em; }
+.prog-task-text p:last-child,
+.prog-intro-text p:last-child { margin-bottom: 0; }
+.prog-task-text strong,
+.prog-intro-text strong { font-weight: 700; }
 
 .prog-map-list,
 .prog-alu-note ul {
@@ -6301,7 +6311,13 @@ object.panel-image.is-pending {
   z-index: 300;
 }
 
+/* The window has to let the arrow out over its top edge, so it cannot clip its
+   own corners any more — the head rounds itself instead, and the last thing in
+   the window rounds its bottom two. */
 .prog-window-task { overflow: visible; }
+.prog-window-task .sheet-guide-head { border-radius: 8px 8px 0 0; }
+.prog-window-task > :last-child { border-radius: 0 0 8px 8px; }
+.prog-window-task.sheet-guide-closed .sheet-guide-head { border-radius: 8px; border-bottom: none; }
 
 /* The save button and the arrow that points down at it. */
 .prog-store-slot {

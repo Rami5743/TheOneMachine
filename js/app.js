@@ -7836,7 +7836,7 @@
       <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
         <section class="pace-dialog-card prog-intro-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
           <h2 class="prog-intro-title">${esc(isolateLatinRuns(task.title))}</h2>
-          <div class="prog-task-text">${taskTextHtml(task.text)}</div>
+          <div class="prog-intro-text">${taskTextHtml(task.text)}</div>
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="program-intro-ok" type="button">הבנתי</button>
           </div>
