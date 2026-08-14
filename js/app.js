@@ -8738,7 +8738,11 @@
   function programMemRead(machine, address) {
     const addr = address & PROGRAM_MASK;
     if (addr >= PROGRAM_IN_BASE && addr < PROGRAM_IN_BASE + PROGRAM_PORTS) {
-      return addr === PROGRAM_IN_BASE ? (machine.in0 & PROGRAM_MASK) : 0;
+      // In0 is where it always was; from 5.1 a task can be given a second
+      // number, and In1 answers with it instead of with nothing.
+      if (addr === PROGRAM_IN_BASE) return machine.in0 & PROGRAM_MASK;
+      if (addr === PROGRAM_IN_BASE + 1) return (machine.in1 || 0) & PROGRAM_MASK;
+      return 0;
     }
     return (machine.mem[addr] || 0) & PROGRAM_MASK;
   }
@@ -8783,7 +8787,7 @@
       if (no) value = ~value;
     }
     value &= PROGRAM_MASK;
-    const next = { d: machine.d, a: machine.a, in0: machine.in0, mem: { ...machine.mem } };
+    const next = { d: machine.d, a: machine.a, in0: machine.in0, in1: machine.in1, mem: { ...machine.mem } };
     const dest = `${word[12]}${word[13]}`;
     if (dest === "01") next.d = value;
     else if (dest === "10") next.a = value;
@@ -8819,24 +8823,24 @@
     // machine, and a program that has to count from 0 has to say so itself.
     const mem = {};
     if (Number.isInteger(options.out0)) mem[PROGRAM_OUT_BASE] = options.out0 & PROGRAM_MASK;
-    let machine = { d: 0, a: 0, in0: 0, mem };
+    let machine = { d: 0, a: 0, in0: (options.in0 || 0) & PROGRAM_MASK, in1: (options.in1 || 0) & PROGRAM_MASK, mem };
     const total = programInstructionCount();
     // What Out0 held after each beat.
     const out = [];
     let pc = 0;
     let steps = 0;
     while (steps < cycles) {
-      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc, out };
+      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc, out, machine };
       const word = programWord(pc);
-      if (!word) return { ranOff: true, steps, pc, incomplete: true, out };
+      if (!word) return { ranOff: true, steps, pc, incomplete: true, out, machine };
       const step = programExecuteRow(machine, pc);
-      if (step.error) return { error: step.error, row: pc, steps, out };
+      if (step.error) return { error: step.error, row: pc, steps, out, machine };
       machine = step.machine;
       steps += 1;
       out.push(machine.mem[PROGRAM_OUT_BASE] || 0);
       pc = programJumpTarget(word, step.value) ? (machine.a & PROGRAM_MASK) - 1 : pc + 1;
     }
-    return { ranOff: false, steps, pc, out };
+    return { ranOff: false, steps, pc, out, machine };
   }
 
   // Running the whole program on its own, for the test bench: it stops at the
@@ -8870,6 +8874,7 @@
     return {
       steps: Number.isInteger(saved?.steps) ? Math.max(0, saved.steps) : 0,
       in0: (saved && saved.in0 && typeof saved.in0 === "object") ? saved.in0 : {},
+      in1: (saved && saved.in1 && typeof saved.in1 === "object") ? saved.in1 : {},
       note: typeof saved?.note === "string" ? saved.note : ""
     };
   }
@@ -8895,27 +8900,37 @@
   // The table, worked out afresh every time: the lines that have been run, then
   // the one waiting to be. Because it is re-run from the beginning, changing In0
   // on a line changes that line and the ones under it and nothing above it.
+  // Some of 5.1's tasks are given TWO numbers, and then the bench has a box for
+  // each of them.
+  function programManualInputCount() {
+    const test = programTestData();
+    return test && test.inputs === 2 ? 2 : 1;
+  }
+
   function programManualRows() {
-    const { steps, in0 } = programManualState();
+    const { steps, in0, in1 } = programManualState();
+    const two = programManualInputCount() === 2;
     const rows = [];
     const extras = [];
-    let machine = { d: 0, a: 0, in0: 0, mem: {} };
+    let machine = { d: 0, a: 0, in0: 0, in1: 0, mem: {} };
     let error = null;
     for (let i = 0; i < steps; i += 1) {
       const typed = programManualInput(in0, i);
-      machine = { ...machine, in0: programManualNumber(typed) };
+      const typed1 = programManualInput(in1, i);
+      machine = { ...machine, in0: programManualNumber(typed), in1: programManualNumber(typed1) };
       const step = programExecuteRow(machine, i);
       if (step.error) { error = i; break; }
       step.touched.forEach((address) => {
         if (address === PROGRAM_IN_BASE) return;
+        if (two && address === PROGRAM_IN_BASE + 1) return;
         if (!extras.includes(address)) extras.push(address);
       });
       machine = step.machine;
-      rows.push({ index: i, in0: typed, done: true, d: machine.d, a: machine.a, mem: machine.mem });
+      rows.push({ index: i, in0: typed, in1: typed1, done: true, d: machine.d, a: machine.a, mem: machine.mem });
     }
     const at = rows.length;
-    rows.push({ index: at, in0: programManualInput(in0, at), done: false, mem: {} });
-    extras.sort((one, two) => one - two);
+    rows.push({ index: at, in0: programManualInput(in0, at), in1: programManualInput(in1, at), done: false, mem: {} });
+    extras.sort((one, two2) => one - two2);
     return { rows, extras, error, at };
   }
 
@@ -8933,13 +8948,15 @@
     if (!state.programManualTest) return "";
     const { rows, extras, error } = programManualRows();
     const { note } = programManualState();
-    const heads = ["#", "D", "A", "IN0"].concat(extras.map(programAddressLabel));
+    const two = programManualInputCount() === 2;
+    const heads = ["#", "D", "A", "IN0"].concat(two ? ["IN1"] : []).concat(extras.map(programAddressLabel));
     const cell = (value) => `<td dir="ltr">${value === undefined ? "" : esc(String(programSigned(value)))}</td>`;
     const body = rows.map((row) => `
       <tr class="${row.done ? "" : "prog-run-row-next"}">
         <td class="prog-run-index" dir="ltr">${row.index + 1}</td>
         ${row.done ? `${cell(row.d)}${cell(row.a)}` : "<td></td><td></td>"}
         <td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual="${row.index}" value="${esc(row.in0)}" aria-label="In0 בשורה ${row.index + 1}" /></td>
+        ${two ? `<td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual-in1="${row.index}" value="${esc(row.in1 || "")}" aria-label="In1 בשורה ${row.index + 1}" /></td>` : ""}
         ${extras.map((address) => (row.done ? cell(row.mem[address] || 0) : "<td></td>")).join("")}
       </tr>`).join("");
     const message = error !== null ? `פקודה ${error + 1} לא הושלמה` : note;
@@ -9002,6 +9019,15 @@
     if (state.programTaskId === "demo-count-loop") {
       return typeof PROGRAM_COUNT_TEST !== "undefined" ? PROGRAM_COUNT_TEST : null;
     }
+    if (state.programTaskId === "demo-count-to") {
+      return typeof PROGRAM_COUNT_TO_TEST !== "undefined" ? PROGRAM_COUNT_TO_TEST : null;
+    }
+    if (state.programTaskId === "demo-multiply") {
+      return typeof PROGRAM_MULTIPLY_TEST !== "undefined" ? PROGRAM_MULTIPLY_TEST : null;
+    }
+    if (state.programTaskId === "demo-divide") {
+      return typeof PROGRAM_DIVIDE_TEST !== "undefined" ? PROGRAM_DIVIDE_TEST : null;
+    }
     return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
   }
 
@@ -9044,6 +9070,52 @@
     return [{ ...shown, ok: true }];
   }
 
+  // The tasks that have an ANSWER and then stop. Each case is a pair of inputs
+  // and what should come out of Out0; the machine is run until it settles, and
+  // a program that never settles has not stopped.
+  function programAnswerRuns(test) {
+    const runs = [];
+    const cycles = test.cycles || 4000;
+    const start = Number.isInteger(test.startOut) ? test.startOut : 500;
+    for (const one of (test.cases || [])) {
+      const [in0, in1, want] = one;
+      const outcome = programRunWithJumps(cycles, { in0, in1, out0: start });
+      const base = { input: in0, in1, want, got: null, steps: outcome.steps, trace: [] };
+      if (outcome.error) { runs.push({ ...base, ok: false, badRow: outcome.row }); break; }
+      if (outcome.ranOff) {
+        runs.push({ ...base, ok: false, ranOff: true, incomplete: Boolean(outcome.incomplete), stoppedAt: outcome.pc });
+        break;
+      }
+      const out = outcome.out || [];
+      const last = out.length ? out[out.length - 1] : start;
+      // Settled? The last stretch of beats all showed the same number, so the
+      // machine is going round doing nothing — which is how a program ends here.
+      const tail = out.slice(-Math.max(20, Math.round(cycles / 40)));
+      const settled = tail.length > 0 && tail.every((value) => value === last);
+      const got = programSigned(last);
+      const seen = [];
+      out.forEach((value) => { if (!seen.length || seen[seen.length - 1] !== value) seen.push(value); });
+      const climbed = seen[0] === start ? seen.slice(1) : seen;
+      if (!settled) { runs.push({ ...base, ok: false, got, noStop: true, trace: seen }); break; }
+      // Counting up to a number also has to have SHOWN every number on the way.
+      if (test.climb) {
+        const wanted = [];
+        for (let n = 0; n <= want; n += 1) wanted.push(n);
+        const same = climbed.length === wanted.length && wanted.every((n, i) => climbed[i] === n);
+        if (!same) {
+          const at = wanted.findIndex((n, i) => climbed[i] !== n);
+          runs.push({ ...base, ok: false, got, trace: seen,
+            countBad: { prev: at > 0 ? wanted[at - 1] : start, got: climbed[at] ?? "כלום", want: wanted[at] } });
+          break;
+        }
+      }
+      const ok = got === want;
+      runs.push({ ...base, ok, got, trace: seen });
+      if (!ok) break;
+    }
+    return runs;
+  }
+
   // Every run, worked out at once. It stops at the first number the program gets
   // wrong — there is nothing to learn from the ones after it.
   function programTestRuns() {
@@ -9072,7 +9144,8 @@
       return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true }, ...(noteProgramFailure() || {}) });
     }
     const runs = test.kind === "loop" ? programLoopRuns(test)
-      : (test.kind === "count" ? programCountRuns(test) : programTestRuns());
+      : (test.kind === "count" ? programCountRuns(test)
+        : (test.kind === "answer" ? programAnswerRuns(test) : programTestRuns()));
     const done = setState({ programRunTest: { phase: "load", index: 0, runs, empty: false } });
     programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES.load);
     return done;
@@ -9418,8 +9491,17 @@
     if (bad.tooFew && test.tooFewText) {
       return { ok: false, title: test.failTitle, text: test.tooFewText.replace("{got}", String(bad.tooFew.got)) };
     }
+    if (bad.noStop && test.noStopText) {
+      return { ok: false, title: test.failTitle, text: test.noStopText
+        .replace("{in0}", String(bad.input)).replace("{in1}", String(bad.in1)) };
+    }
     if (bad.badRow !== null && bad.badRow !== undefined) {
       return { ok: false, title: test.failTitle, text: `פקודה ${bad.badRow + 1} לא הושלמה.` };
+    }
+    if (test.wrongAnswerText) {
+      return { ok: false, title: test.failTitle, text: test.wrongAnswerText
+        .replace("{in0}", String(bad.input)).replace("{in1}", String(bad.in1))
+        .replace("{got}", String(bad.got)).replace("{want}", String(bad.want)) };
     }
     return {
       ok: false,
@@ -10334,7 +10416,8 @@
 
   // Which of them has a programming page so far. The rest say "המשך יבוא...".
   function demoTaskImplemented(id) {
-    return id === "demo-infinite-loop" || id === "demo-count-loop";
+    return ["demo-infinite-loop", "demo-count-loop", "demo-count-to",
+      "demo-multiply", "demo-divide"].includes(id);
   }
 
   // Back to the room 5.1's note is lying in.
@@ -27258,10 +27341,11 @@
   document.addEventListener("input", (event) => {
     const box = event.target.closest && event.target.closest(".prog-run-input");
     if (!box || !state.programManualTest) return;
-    const line = Number(box.dataset.programManual);
+    const which = box.dataset.programManual !== undefined ? "in0" : "in1";
+    const line = Number(which === "in0" ? box.dataset.programManual : box.dataset.programManualIn1);
     if (!Number.isInteger(line)) return;
     const now = programManualState();
-    const next = { ...now, in0: { ...now.in0, [line]: box.value } };
+    const next = { ...now, [which]: { ...now[which], [line]: box.value } };
     state.programManualTest = next;
     // What In0 ends on is what the next visit will start on.
     state.programManualIn0 = programManualInput(next.in0, next.steps);
