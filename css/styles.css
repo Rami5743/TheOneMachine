@@ -6399,6 +6399,14 @@ object.panel-image.is-pending {
   z-index: 244;
 }
 
+/* …but the row of buttons under the page is NOT part of what is shielded: a
+   program can be saved while its walkthrough is being read, which is exactly
+   when one wants to keep it. */
+.sheet-overlay-prog .sheet-actions {
+  position: relative;
+  z-index: 246;
+}
+
 .prog-solution-overlay .solution-card h2 { font-size: clamp(1.05rem, 2vw, 1.3rem); }
 
 .prog-solution-lead {

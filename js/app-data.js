@@ -1064,7 +1064,41 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "demo-count-loop",
       label: "לולאת ספירה",
-      requires: ["demo-infinite-loop"]
+      requires: ["demo-infinite-loop"],
+      title: "משימת תכנות: לולאת ספירה",
+      text: "כתוב תוכנה שסופרת ללא הגבלה. היא צריכה להציג את כל המספרים החל מ-0 בפורט Out0 ולהוסיף 1 כל פעם. היא לא צריכה לעצור אף פעם.\n\nהערה: מכיוון שהמספרים שלנו מוגבלים ל-16 ביטים, המספר הכי גדול שנגיע אליו יהיה 2^16-1. בפועל כשננסה להוסיף לו 1 המחשב יתעלם מהנשיאה (ה-carry) ולא ירשום את המספר הבא (שהוא 2^16) אלא 0. אתה יכול להתעלם מזה.",
+      hints: [
+        { kind: "text", title: "רמז 1", text: "זה כמו הלולאה האינסופית שעשית במשימה הקודמת, רק שבכל שלב אתה צריך להוסיף ל-Out0 1. אתה גם צריך לאפס את Out0 לפני הלולאה." },
+        { kind: "text", title: "רמז 2", text: "אתה יכול להתחיל מלאפס את Out0." },
+        { kind: "text", title: "רמז 3", text: "תטען את הלולאה שכתבת במשימה הקודמת (אם שמרת אותה). אתה יכול להדביק אותה אחרי הקוד שמאפס את Out0. אם השתמשת בתגית אז הקוד מתאים כמו שהוא; אם לא, תצטרך לשנות את הכתובת שאליה קופצים." },
+        { kind: "text", title: "רמז 4", text: "אם אתה מעתיק את פתרון המשימה הקודמת אז אתה יכול להזיז את 2 הפקודות האחרונות (אלו שמטפלות בקפיצה) כמה שורות קדימה, כדי שיהיה לך מקום לכתוב את התוכנה שלך. אתה צריך לכתוב רק צעד אחד בתוכנה: רצף פקודות שמוסיף 1 ל-Out0." },
+        { kind: "text", title: "רמז 5", text: "אתה זוכר, אתה צריך קודם לקבוע את רגיסטר A כך שיכיל את הכתובת של Out0 ואז לשנות את הערך של Out0. אתה לא יכול לבנות על זה שהתוכן ברגיסטר A כבר נכון, כי המחשב יכול להגיע לשורה הזאת מספר פעמים, וכל פעם במצב אחר." },
+        { kind: "text", title: "רמז 6", text: "אתה יכול לשנות את הערך של Out0 בפקודה אחת, אבל אם אתה מסתבך עם זה, אתה יכול קודם להעביר את הערך של Out0 לרגיסטר D ואז לטפל בו שם, ובסוף להחזיר אותו חזרה ל-Out0." },
+        { kind: "text", title: "רמז 7", text: "כשאתה גומר, אל תשכח לשים את שתי הפקודות שקופצות אחורה בסוף התוכנה." }
+      ],
+      // The whole program stands on the page from the first word; what is walked
+      // are the four things that had to be added to the infinite loop.
+      solution: [
+        {
+          title: "פתרון",
+          lead: "הלולאה האינסופית של המשימה הקודמת, ובתוכה פקודה אחת שמוסיפה 1 ל-Out0 — ולפניה איפוס.",
+          steps: [
+            { code: "1024 → A", bits: "0100000000001000",
+              text: "כתובת הפלט Out0 היא 1024. לפני הכול נכניס אותה ל-A, כדי שנוכל לכתוב ל-Out0 עם ‎*A." },
+            { code: "0 → *A", bits: "1000000101011100",
+              text: "והאיפוס: ה-ALU מחשב 0 והתוצאה נכתבת ל-‎*A, כלומר ל-Out0. זה חייב להיעשות במפורש — אחרי ריסט הזיכרון לא נמחק, ואי אפשר להניח ש-Out0 מתחיל ב-0." },
+            { code: "לולאה:  1024 → A", bits: "0100000000001000", label: "לולאה",
+              text: "כאן מתחילה הלולאה, ולכן נתנו לשורה הזאת תגית. שוב מכניסים את הכתובת 1024 ל-A — הפעם בתוך הלולאה, כי הקפיצה שבסוף דורסת את A בכל סיבוב." },
+            { code: "*A+1 → *A", bits: "1000011110111100",
+              text: "זאת כל הספירה: ה-ALU מקבל את מה שיש ב-Out0, מוסיף לו 1, והתוצאה נכתבת חזרה ל-Out0." },
+            { code: "לולאה → A", bits: "0000000000111000", shows: "לולאה",
+              text: "מכינים את הקפיצה: ל-A נכנס מספר השורה של התגית לולאה, כלומר 3. הגמד ממלא את הביטים בעצמו." },
+            { code: "0 ; קפוץ אם =0", bits: "1000000101010010",
+              text: "וקופצים בחזרה. התנאי הוא שתוצאת ה-ALU היא 0, וה-ALU מחשב 0 — כלומר תמיד." }
+          ],
+          close: "שש פקודות: שתיים לאיפוס, וארבע שחוזרות על עצמן לנצח. שים לב שאחרי 65535 המספר הבא יהיה 0 ולא 65536 — הנשיאה פשוט נופלת."
+        }
+      ]
     },
     {
       id: "demo-count-to",
@@ -1092,6 +1126,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   // for one — but that after fifty beats the machine is still inside the
   // instructions that were written.
   const PROGRAM_LOOP_TEST = {
+    kind: "loop",
     title: "בדיקת התוכנה",
     cycles: 50,
     passTitle: "הבדיקה הצליחה",
@@ -1105,6 +1140,37 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       connect: "הריסט מתנתק",
       run: "המכונה רצה",
       check: "בודקים אם המכונה עדיין בתוך הפקודות",
+      reset: ""
+    }
+  };
+
+  // The machine check for 5.1's counting loop. The machine is started with
+  // something OTHER than 0 already in Out0 — the story has just said that a
+  // reset does not wipe memory — so a program that only increments whatever it
+  // finds there does not pass. What is watched is the sequence of numbers Out0
+  // takes: it has to reach 0 and then climb one at a time, and never end.
+  const PROGRAM_COUNT_TEST = {
+    kind: "count",
+    title: "בדיקת התוכנה",
+    cycles: 400,
+    // What Out0 holds when the machine starts, and how many numbers it has to
+    // count before the check is satisfied.
+    startOut: 500,
+    count: 8,
+    passTitle: "הבדיקה הצליחה",
+    passText: "המכונה איפסה את Out0 וספרה ממנו והלאה, מספר אחרי מספר, בלי לעצור.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    ranOffText: "אחרי {steps} פקודות המכונה הגיעה לשורה {line}, שלא כתבת בה כלום. התוכנה נגמרה במקום להמשיך לספור.",
+    incompleteText: "פקודה {line} לא הושלמה.",
+    zeroText: "המספר הראשון שהופיע ב-Out0 היה {got} ולא 0. הזיכרון לא מתאפס מעצמו — התוכנה צריכה לכתוב 0 ל-Out0 לפני הלולאה.",
+    wrongText: "אחרי {prev} הופיע ב-Out0 {got} במקום {want}.",
+    tooFewText: "התוכנה רצה, אבל ב-Out0 הופיעו רק {got} מספרים. היא לא סופרת.",
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק",
+      run: "המכונה רצה",
+      check: "בודקים את סדרת המספרים שיצאה ב-Out0",
       reset: ""
     }
   };

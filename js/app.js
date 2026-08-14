@@ -7840,7 +7840,10 @@
   }
 
   function renderProgramStoreButtons() {
-    if (!state.programStoreUnlocked) return "";
+    // They are OFFERED at the end of the first demonstration's walkthrough, and
+    // from the second demonstration on they are simply part of the page.
+    const past = Boolean(demoProgramTask()) && !demoFirstTaskOpen();
+    if (!state.programStoreUnlocked && !past) return "";
     // The arrow hangs over the save button itself, so it points at the thing it
     // is talking about however wide the bar is.
     const arrow = state.programSaveArrow
@@ -8119,7 +8122,9 @@
     // Editing a saved program: no nudge at all — the learner came here knowing
     // what the page is.
     if (state.programEditId) return;
-    if (demoProgramTask()) {
+    // Only the FIRST demonstration nudges: from the second on, the learner has
+    // met him here already.
+    if (demoFirstTaskOpen()) {
       assemblerHintTimer = window.setTimeout(() => {
         assemblerHintTimer = null;
         if (!state.programDialog) return;
@@ -8356,7 +8361,7 @@
 
   function renderAssembler() {
     if (!state.programDialog || (state.programDialog && state.programDialog.intro)) return "";
-    const hint = state.assemblerHint && (!state.assemblerMet || Boolean(demoProgramTask()))
+    const hint = state.assemblerHint && (!state.assemblerMet || demoFirstTaskOpen())
       ? `<div class="sheet-wb-arrow assembler-arrow" aria-hidden="true">
            <svg viewBox="0 0 24 24" width="46" height="46">
              <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -8809,22 +8814,29 @@
   // Follows the program for `cycles` beats. `ranOff` says it reached an
   // instruction that was never written — which is exactly what an infinite loop
   // must never do.
-  function programRunWithJumps(cycles) {
-    let machine = { d: 0, a: 0, in0: 0, mem: {} };
+  function programRunWithJumps(cycles, options = {}) {
+    // Out0 can be started at something other than 0: a reset does not wipe the
+    // machine, and a program that has to count from 0 has to say so itself.
+    const mem = {};
+    if (Number.isInteger(options.out0)) mem[PROGRAM_OUT_BASE] = options.out0 & PROGRAM_MASK;
+    let machine = { d: 0, a: 0, in0: 0, mem };
     const total = programInstructionCount();
+    // What Out0 held after each beat.
+    const out = [];
     let pc = 0;
     let steps = 0;
     while (steps < cycles) {
-      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc };
+      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc, out };
       const word = programWord(pc);
-      if (!word) return { ranOff: true, steps, pc, incomplete: true };
+      if (!word) return { ranOff: true, steps, pc, incomplete: true, out };
       const step = programExecuteRow(machine, pc);
-      if (step.error) return { error: step.error, row: pc, steps };
+      if (step.error) return { error: step.error, row: pc, steps, out };
       machine = step.machine;
       steps += 1;
+      out.push(machine.mem[PROGRAM_OUT_BASE] || 0);
       pc = programJumpTarget(word, step.value) ? (machine.a & PROGRAM_MASK) - 1 : pc + 1;
     }
-    return { ranOff: false, steps, pc };
+    return { ranOff: false, steps, pc, out };
   }
 
   // Running the whole program on its own, for the test bench: it stops at the
@@ -8987,6 +8999,9 @@
     if (state.programTaskId === "demo-infinite-loop") {
       return typeof PROGRAM_LOOP_TEST !== "undefined" ? PROGRAM_LOOP_TEST : null;
     }
+    if (state.programTaskId === "demo-count-loop") {
+      return typeof PROGRAM_COUNT_TEST !== "undefined" ? PROGRAM_COUNT_TEST : null;
+    }
     return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
   }
 
@@ -8999,6 +9014,34 @@
     return [{ input: null, want: null, got: null, ok, badRow: outcome.error ? outcome.row : null,
               steps: outcome.steps, trace: [], ranOff: Boolean(outcome.ranOff),
               incomplete: Boolean(outcome.incomplete), stoppedAt: outcome.pc }];
+  }
+
+  // The counting loop: what is watched is the SEQUENCE of numbers Out0 takes.
+  // It has to reach 0 (the machine is started with something else in there) and
+  // then climb one at a time, for as long as the machine runs.
+  function programCountRuns(test) {
+    const start = Number.isInteger(test.startOut) ? test.startOut : 500;
+    const outcome = programRunWithJumps(test.cycles || 400, { out0: start });
+    const base = { input: null, want: null, got: null, steps: outcome.steps, trace: [] };
+    if (outcome.error) return [{ ...base, ok: false, badRow: outcome.row }];
+    if (outcome.ranOff) {
+      return [{ ...base, ok: false, ranOff: true, incomplete: Boolean(outcome.incomplete), stoppedAt: outcome.pc }];
+    }
+    // The numbers it actually showed, each one once however long it stood there.
+    const seen = [];
+    (outcome.out || []).forEach((value) => {
+      if (!seen.length || seen[seen.length - 1] !== value) seen.push(value);
+    });
+    const run = seen[0] === start ? seen.slice(1) : seen;
+    const shown = { ...base, trace: seen };
+    if (!run.length || run[0] !== 0) return [{ ...shown, ok: false, zeroBad: { got: run.length ? run[0] : start } }];
+    for (let i = 1; i < run.length; i += 1) {
+      if (run[i] !== run[i - 1] + 1) {
+        return [{ ...shown, ok: false, countBad: { prev: run[i - 1], got: run[i], want: run[i - 1] + 1 } }];
+      }
+    }
+    if (run.length < (test.count || 8)) return [{ ...shown, ok: false, tooFew: { got: run.length } }];
+    return [{ ...shown, ok: true }];
   }
 
   // Every run, worked out at once. It stops at the first number the program gets
@@ -9028,9 +9071,8 @@
     if (programRowEmpty(0)) {
       return setState({ programRunTest: { phase: "done", index: 0, runs: [], empty: true }, ...(noteProgramFailure() || {}) });
     }
-    const runs = test === (typeof PROGRAM_LOOP_TEST !== "undefined" ? PROGRAM_LOOP_TEST : null)
-      ? programLoopRuns(test)
-      : programTestRuns();
+    const runs = test.kind === "loop" ? programLoopRuns(test)
+      : (test.kind === "count" ? programCountRuns(test) : programTestRuns());
     const done = setState({ programRunTest: { phase: "load", index: 0, runs, empty: false } });
     programTestTimer = window.setTimeout(programTestTick, PROGRAM_TEST_STAGES.load);
     return done;
@@ -9363,6 +9405,18 @@
       const text = (bad.incomplete ? test.incompleteText : test.ranOffText)
         .replace("{steps}", String(bad.steps)).replace("{line}", String(line));
       return { ok: false, title: test.failTitle, text };
+    }
+    if (bad.zeroBad && test.zeroText) {
+      return { ok: false, title: test.failTitle, text: test.zeroText.replace("{got}", String(bad.zeroBad.got)) };
+    }
+    if (bad.countBad && test.wrongText) {
+      return { ok: false, title: test.failTitle, text: test.wrongText
+        .replace("{prev}", String(bad.countBad.prev))
+        .replace("{got}", String(bad.countBad.got))
+        .replace("{want}", String(bad.countBad.want)) };
+    }
+    if (bad.tooFew && test.tooFewText) {
+      return { ok: false, title: test.failTitle, text: test.tooFewText.replace("{got}", String(bad.tooFew.got)) };
     }
     if (bad.badRow !== null && bad.badRow !== undefined) {
       return { ok: false, title: test.failTitle, text: `פקודה ${bad.badRow + 1} לא הושלמה.` };
@@ -10280,7 +10334,7 @@
 
   // Which of them has a programming page so far. The rest say "המשך יבוא...".
   function demoTaskImplemented(id) {
-    return id === "demo-infinite-loop";
+    return id === "demo-infinite-loop" || id === "demo-count-loop";
   }
 
   // Back to the room 5.1's note is lying in.
@@ -28492,7 +28546,7 @@
       // Leaving is then that word's "המשך". That task is where saving is taught,
       // so its ending says so EVERY time it is read — not only the first — and
       // anywhere else the word is shown once.
-      if (demoFirstTaskOpen() || !state.programSaveIntroSeen) {
+      if (demoFirstTaskOpen()) {
         return setState({
           programSolution: null, programHintOpen: null, programRunTest: null,
           programStoreUnlocked: true, programSaveIntro: true, programSaveArrow: true
