@@ -168,6 +168,12 @@ button { font: inherit; }
   font-size: 1.15rem;
 }
 
+.my-programs-lead {
+  margin: 0;
+  text-align: center;
+  color: #cfcfcf;
+}
+
 .my-cards-list {
   list-style: none;
   margin: 0;
@@ -6261,6 +6267,76 @@ object.panel-image.is-pending {
    the squares. The ordinary dialog overlay sits well below them, so the task
    statement was coming up BEHIND the ALU table. */
 .prog-dialog-overlay { z-index: 260; }
+
+/* A word that does NOT take the screen: it sits near the foot of the page, the
+   dark wash is gone, and everything under it stays live — the save button it is
+   talking about has to be pressable while it is up. */
+.prog-dialog-overlay-open {
+  pointer-events: none;
+  place-items: end center;
+  /* clear of the action bar AND of the arrow bouncing over it */
+  padding-bottom: 132px;
+  background: none;
+}
+
+.prog-dialog-overlay-open .pace-dialog-card {
+  pointer-events: auto;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+}
+
+/* The word after the first save stands over everything, the one-off word about
+   saving included. */
+.prog-dialog-saved { z-index: 280; }
+
+/* The save button and the arrow that points down at it. */
+.prog-store-slot {
+  position: relative;
+  display: inline-flex;
+}
+
+.prog-save-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin: 0 0 6px -21px;
+  z-index: 300;
+}
+
+.prog-save-name {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #3a2c17;
+  border-radius: 8px;
+  background: #fdfaf0;
+  color: #241d12;
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.prog-load-card { width: min(560px, 100%); }
+
+.prog-load-list {
+  display: grid;
+  gap: 8px;
+  max-height: 46vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.prog-load-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.prog-load-name {
+  flex: 1;
+  justify-content: flex-start;
+  text-align: right;
+}
 
 /* The hint that offers the helper task answers with buttons rather than words. */
 .prog-hint-offer {

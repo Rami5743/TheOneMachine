@@ -2107,6 +2107,25 @@
     programSolutionSeen: false,
     // Which hint is open on screen, if any: { index }.
     programHintOpen: null,
+    // Saved programs: [{ id, name, at, bits, labels, texts }]. A program is
+    // written once and used again — whole, or in pieces pasted out of it.
+    savedPrograms: [],
+    // The two buttons that keep them are OFFERED once the first walkthrough has
+    // been read to the end, which is where they are explained.
+    programStoreUnlocked: false,
+    // That explanation is shown once.
+    programSaveIntroSeen: false,
+    // …and while it is up, an arrow bounces over the save button. Both go with
+    // the first press of that button, or with "המשך".
+    programSaveIntro: false,
+    programSaveArrow: false,
+    // The save box ({ name }) and the list of saved programs.
+    programSaveDialog: null,
+    programLoadDialog: false,
+    // The word that follows the FIRST program ever saved: what it is now good
+    // for, and where to find it again. Shown once.
+    programSavedDialog: false,
+    programSavedIntroSeen: false,
     // Whether each of the two tasks has ever passed its test.
     programTaskDone: false,
     programHelperDone: false,
@@ -3328,6 +3347,11 @@
       programRunTest: null,
       programHintOpen: null,
       programSolution: null,
+      programSaveIntro: false,
+      programSaveArrow: false,
+      programSaveDialog: null,
+      programLoadDialog: false,
+      programSavedDialog: false,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3386,7 +3410,7 @@
   }
 
   function isGlobalNavigationAction(action) {
-    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev", "skip-examples"].includes(action);
+    return ["menu", "chapters", "about", "achievements", "explanations", "settings", "my-cards", "my-programs", "explanations-return", "explanation-open", "explanations-return-to-menu", "explanation-prev", "explanation-next", "exit", "start", "continue", "chapter", "reset-progress", "workspace-return-warehouse", "workspace-reset", "nand-monologue-prev", "skip-examples"].includes(action);
   }
 
   // FALLBACK_END_DIALOGS moved to js/app-data.js
@@ -3511,7 +3535,7 @@
     const panelIndex = Number.isInteger(loaded.panelIndex)
       ? Math.min(Math.max(loaded.panelIndex, 0), maxPanelIndex)
       : 0;
-    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
+    const screen = ["menu", "chapters", "story", "workspace", "nandBuildHelp", "about", "explanations", "settings", "notReady", "myCards", "myPrograms", "notebook", "achievements", "rankings", "cardRecords"].includes(loaded.screen) ? loaded.screen : defaultState.screen;
     const workspace = normalizeWorkspace(loaded.workspace);
     // Recompute splitter widths from the saved wiring, so an inferred (or freed)
     // per-leg width is correct on load without needing an edit first.
@@ -3578,7 +3602,9 @@
     // solutionDialog is intentionally NOT stripped here: the solution walkthrough is
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
-    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+    return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
+      programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
+      programSavedDialog: false, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -3676,7 +3702,7 @@
   // returns there; otherwise "חזרה לתפריט הראשי". Navigating from one overlay
   // page to another preserves the original in-game origin.
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
-  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "achievements", "chapters"];
+  const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "myPrograms", "achievements", "chapters"];
 
   function overlayReturnPatch() {
     if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
@@ -3799,6 +3825,14 @@
     if (name === "upload") {
       return `<svg ${common}><path d="M12 15 V5" /><path d="M8 8.5 L12 4.5 L16 8.5" /><path d="M4.5 19.5 H19.5" /></svg>`;
     }
+    // A diskette — keeping a program.
+    if (name === "save") {
+      return `<svg ${common}><path d="M5 4.5 H15.5 L19 8 V19.5 H5 Z" /><path d="M8.5 4.5 V9 H14.5 V4.5" /><path d="M8 19.5 V13.5 H16 V19.5" /></svg>`;
+    }
+    // A folder with something coming out of it — fetching a program back.
+    if (name === "folder-open") {
+      return `<svg ${common}><path d="M3.5 19 V5.5 H9.5 L11.5 8 H20.5 V19 Z" /><path d="M12 17.5 V11.5" /><path d="M9.5 14 L12 11.5 L14.5 14" /></svg>`;
+    }
     // Plus — create new.
     if (name === "plus") {
       return `<svg ${common}><path d="M12 5 V19" /><path d="M5 12 H19" /></svg>`;
@@ -3848,6 +3882,15 @@
     return labeledButton("my-cards", "cards", "הכרטיסים שלי", { attrs: myCardsEnabled() ? "" : "disabled" });
   }
 
+  // "My programs", the same way: a permanent entry, dead until the first program
+  // has been saved — and in see-everything mode open from the start.
+  function myProgramsEnabled() {
+    return !isStepByStepPace() || savedPrograms().length > 0;
+  }
+  function myProgramsButton() {
+    return labeledButton("my-programs", "save", "התוכנות שלי", { attrs: myProgramsEnabled() ? "" : "disabled" });
+  }
+
   // The Google account button, shown in the main menu ONLY when cloud sign-in is
   // available (js/auth.js loaded its config + library and published APP.auth).
   // With auth disabled/offline it returns "" and the menu simply omits it —
@@ -3886,6 +3929,7 @@
           ${labeledButton("explanations", "grad-cap", "הסברים")}
           ${labeledButton("achievements", "trophy", "הישגים")}
           ${myCardsButton()}
+          ${myProgramsButton()}
           ${labeledButton("about", "info", "אודות")}
           ${labeledButton("settings", "gear", "הגדרות")}
         </nav>
@@ -5594,6 +5638,7 @@
             ${labeledButton("explanations", "grad-cap", "הסברים")}
             ${labeledButton("achievements", "trophy", "הישגים")}
             ${myCardsButton()}
+            ${myProgramsButton()}
             ${labeledButton("about", "info", "אודות")}
             ${labeledButton("settings", "gear", "הגדרות")}
             ${labeledButton("reset-progress", "trash", "אפס התקדמות")}
@@ -5834,6 +5879,44 @@
       <input type="file" data-card-file-input accept="application/json,.json" hidden />
       ${renderInfoDialog()}
       ${renderCardDeleteDialog()}`;
+  }
+
+  // "My programs": what has been saved off the programming page, with how long
+  // each one is. There is no editing here — a program is written on its own
+  // page, and this is where it is kept and thrown away.
+  function programLengthOf(entry) {
+    const bits = entry.bits || {};
+    const rows = new Set(Object.keys(bits).map((key) => Number(String(key).split(":")[0])));
+    return rows.size;
+  }
+
+  function renderMyPrograms() {
+    const programs = savedPrograms();
+    const list = programs.length === 0
+      ? `<p class="my-cards-empty">עדיין לא שמרת תוכנות. אפשר לשמור תוכנה מתוך דף התכנות, בכפתור "שמירת תוכנה".</p>`
+      : `<ul class="my-cards-list">
+          ${programs.map((entry) => `
+            <li class="my-cards-item">
+              <span class="my-card-info">
+                <span class="my-card-name">${esc(entry.name)}</span>
+                <span class="my-card-io">${programLengthOf(entry)} פקודות</span>
+              </span>
+              <span class="my-card-actions">
+                <button class="btn labeled-btn my-card-delete-btn" data-action="my-program-delete" data-program-id="${esc(entry.id)}" type="button">${navIcon("trash")}<span class="btn-label">מחיקה</span></button>
+              </span>
+            </li>`).join("")}
+        </ul>`;
+    app.innerHTML = `
+      ${topbar()}
+      <main class="screen my-cards-screen">
+        <section class="my-cards-card">
+          <h1>התוכנות שלי</h1>
+          <p class="my-programs-lead">תוכנה שמורה נטענת חזרה מתוך דף התכנות, בכפתור "טעינת תוכנה".</p>
+          ${list}
+          <div class="my-cards-back">${pageBackButton()}</div>
+        </section>
+      </main>
+      ${renderInfoDialog()}`;
   }
 
   function renderCardDeleteDialog() {
@@ -7480,6 +7563,174 @@
           </div>
         </section>
       </div>`;
+  }
+
+  // ---- Keeping programs ----------------------------------------------------
+  // A program is written once and wanted again — whole, or in pieces pasted out
+  // of it. The two buttons that keep them appear once the first walkthrough has
+  // been read to the end, which is where they are explained.
+  function savedPrograms() {
+    return Array.isArray(state.savedPrograms) ? state.savedPrograms : [];
+  }
+
+  // What is worth keeping off a page: the bits, the tags, and the words written
+  // over instructions. The scratch scribbles are not the program.
+  function programToSave() {
+    const progress = programSheetProgress();
+    return {
+      bits: { ...(progress.bits || {}) },
+      labels: { ...(progress.labels || {}) },
+      texts: { ...(progress.texts || {}) }
+    };
+  }
+
+  function programIsEmpty() {
+    return Object.keys(programSheetProgress().bits || {}).length === 0;
+  }
+
+  // The name offered in the box is the TASK's, and a number after it once that
+  // name is taken. (Nothing here goes to a file — a saved program is kept with
+  // the rest of the player's things.)
+  function defaultProgramName() {
+    const task = programTaskData();
+    const base = String(task?.label || task?.rankLabel || task?.title || "התוכנה שלי").trim();
+    const taken = new Set(savedPrograms().map((entry) => String(entry.name).trim()));
+    if (!taken.has(base)) return base;
+    for (let n = 2; n < 999; n += 1) {
+      if (!taken.has(`${base} ${n}`)) return `${base} ${n}`;
+    }
+    return base;
+  }
+
+  function renderProgramStoreButtons() {
+    if (!state.programStoreUnlocked) return "";
+    // The arrow hangs over the save button itself, so it points at the thing it
+    // is talking about however wide the bar is.
+    const arrow = state.programSaveArrow
+      ? `<span class="sheet-wb-arrow prog-save-arrow" aria-hidden="true">
+           <svg viewBox="0 0 24 24" width="42" height="42">
+             <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+         </span>`
+      : "";
+    return `<span class="prog-store-slot">${arrow}${navButton("program-save-open", "save", "שמירת תוכנה")}</span>
+            ${navButton("program-load-open", "folder-open", "טעינת תוכנה")}`;
+  }
+
+  // The one-off word about them, shown at the end of the walkthrough. It does
+  // NOT take the screen: the save button under it stays live, so the learner can
+  // try it while it is being explained.
+  function renderProgramSaveIntro() {
+    if (!state.programSaveIntro) return "";
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay prog-dialog-overlay-open" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="false" aria-label="שמירת תוכנות">
+          <p>אתה יכול לשמור את התוכנות שלך כדי שתוכל להשתמש אחר כך בהן או בחלקים מהן.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-save-intro-ok" type="button">המשך</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderProgramSaveDialog() {
+    const open = state.programSaveDialog;
+    if (!open) return "";
+    const name = typeof open.name === "string" ? open.name : "";
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="שמירת תוכנה">
+          <h2 class="prog-intro-title">שמירת תוכנה</h2>
+          <p>איך לקרוא לתוכנה הזאת?</p>
+          <input class="prog-save-name" type="text" autofocus data-program-save-name value="${esc(name)}" aria-label="שם התוכנה" />
+          <p class="my-card-delete-warn">שמירה בשם שכבר קיים תחליף את התוכנה השמורה בשם הזה.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-save-confirm" type="button">שמירה</button>
+            <button class="btn" data-action="program-save-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderProgramSavedDialog() {
+    if (!state.programSavedDialog) return "";
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay prog-dialog-saved" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="התוכנה נשמרה">
+          <p>עכשיו תוכל להשתמש בתוכנה הזאת על ידי לחיצה על כפתור "טעינת תוכנה" למטה בזמן שאתה כותב תוכנות. תוכל לחזור ולערוך את התוכנות שלך מתפריט "התוכנות שלי" למעלה.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-saved-ok" type="button">הבנתי</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function renderProgramLoadDialog() {
+    if (!state.programLoadDialog) return "";
+    const list = savedPrograms();
+    const body = list.length
+      ? `<ul class="prog-load-list">${list.map((entry) => `
+          <li class="prog-load-row">
+            <button class="btn prog-load-name" data-action="program-load-pick" data-program-id="${esc(entry.id)}" type="button">${esc(entry.name)}</button>
+            ${navButton("program-load-delete", "trash", `מחיקת ${entry.name}`)
+              .replace('data-action="program-load-delete"', `data-action="program-load-delete" data-program-id="${esc(entry.id)}"`)}
+          </li>`).join("")}</ul>`
+      : `<p>עדיין לא שמרת אף תוכנה.</p>`;
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card prog-load-card" role="dialog" aria-modal="true" aria-label="טעינת תוכנה">
+          <h2 class="prog-intro-title">טעינת תוכנה</h2>
+          ${list.length ? `<p class="my-card-delete-warn">הטעינה תחליף את מה שכתוב עכשיו בדף.</p>` : ""}
+          ${body}
+          <div class="pace-dialog-actions">
+            <button class="btn" data-action="program-load-close" type="button">סגירה</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  function saveCurrentProgram(name) {
+    // An empty box is not an error — it just means "call it whatever you would
+    // have called it", which is the task's own name.
+    const clean = String(name || "").trim() || defaultProgramName();
+    const kept = programToSave();
+    const list = savedPrograms().filter((entry) => String(entry.name).trim() !== clean);
+    // Newest first, so the last thing saved is the first thing offered back.
+    const savedProgramsNext = [{ id: `prg-${nextProgramSaveId()}`, name: clean, ...kept }, ...list];
+    // The very first one is worth a word: what it is now good for, and where to
+    // find it again.
+    const first = !state.programSavedIntroSeen;
+    return setState({
+      savedPrograms: savedProgramsNext,
+      programSaveDialog: null,
+      // Having saved one is having been shown how: the arrow has done its work.
+      programSaveArrow: false,
+      ...(first ? { programSavedDialog: true, programSavedIntroSeen: true } : {})
+    });
+  }
+
+  function nextProgramSaveId() {
+    const used = savedPrograms()
+      .map((entry) => Number(String(entry.id).replace(/^prg-/, "")))
+      .filter((n) => Number.isFinite(n));
+    return used.length ? Math.max(...used) + 1 : 1;
+  }
+
+  function loadSavedProgram(id) {
+    const entry = savedPrograms().find((one) => String(one.id) === String(id));
+    if (!entry) return;
+    return setState({
+      [programSheetKey()]: {
+        scratch: {},
+        bits: { ...(entry.bits || {}) },
+        labels: { ...(entry.labels || {}) },
+        texts: { ...(entry.texts || {}) }
+      },
+      programLoadDialog: false,
+      programSelection: null,
+      programManualTest: null,
+      sheetScratchCell: null
+    });
   }
 
   function renderProgramClearDialog() {
@@ -9200,6 +9451,7 @@
             ${programHintButtonVisible()
               ? `<button class="btn hint-btn ${programHintButtonFresh() ? "hint-btn-ready" : "hint-btn-seen"}" data-action="program-hint-open" type="button">${esc(programHintButtonLabel())}</button>`
               : ""}
+            ${renderProgramStoreButtons()}
             ${programHelperOpen()
               ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
               : `<button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>`}
@@ -9219,6 +9471,10 @@
         ${renderProgramSolution()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
+        ${renderProgramSaveDialog()}
+        ${renderProgramLoadDialog()}
+        ${renderProgramSaveIntro()}
+        ${renderProgramSavedDialog()}
       </div>`;
   }
 
@@ -16992,6 +17248,7 @@
     if (state.screen === "notReady") return renderNotReady();
     if (state.screen === "settings") return renderSettings();
     if (state.screen === "myCards") return renderMyCards();
+    if (state.screen === "myPrograms") return renderMyPrograms();
     if (state.screen === "chapters") return renderChapters();
     if (state.screen === "nandBuildHelp") return renderNandBuildHelpScreen();
     if (state.screen === "notebook") return state.notebook?.variant === "binary" ? renderBinaryNotebook() : renderNotebook();
@@ -26552,6 +26809,29 @@
     saveState();
   });
 
+  // The name of a program being saved: kept in state as it is typed, without a
+  // re-render, so the caret stays where it is.
+  document.addEventListener("input", (event) => {
+    if (!state.programSaveDialog) return;
+    const box = event.target.closest && event.target.closest("[data-program-save-name]");
+    if (!box) return;
+    state.programSaveDialog = { ...state.programSaveDialog, name: box.value };
+    saveState();
+  });
+
+  // Enter saves it, Escape drops the box.
+  document.addEventListener("keydown", (event) => {
+    if (!state.programSaveDialog) return;
+    if (!event.target.closest || !event.target.closest("[data-program-save-name]")) return;
+    if (event.key === "Enter") {
+      event.preventDefault();
+      saveCurrentProgram(event.target.value);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      setState({ programSaveDialog: null });
+    }
+  });
+
   // Keep the converter number box's typed value in state (no re-render, so focus
   // and caret are preserved), and clear any stale error as the learner retypes.
   document.addEventListener("input", (event) => {
@@ -27686,11 +27966,54 @@
     if (action === "program-solution-finish") {
       clearAssemblerHintTimer();
       clearProgramTestTimers();
+      // The very first time a walkthrough is read to its end, the page does not
+      // close on it: the two buttons that keep programs appear in the bar, an
+      // arrow bounces over the save one, and a word explains what they are for.
+      // Leaving is then that word's "המשך".
+      if (!state.programSaveIntroSeen) {
+        return setState({
+          programSolution: null, programHintOpen: null, programRunTest: null,
+          programStoreUnlocked: true, programSaveIntro: true, programSaveArrow: true
+        });
+      }
       return setState({
         programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
         sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
         ...programStoryOnPatch()
       });
+    }
+    // "המשך" under that word: the arrow goes with it, and it is never shown
+    // again — and, like the walkthrough's own ending, it leads back to the tasks.
+    if (action === "program-save-intro-ok") {
+      clearAssemblerHintTimer();
+      clearProgramTestTimers();
+      return setState({
+        programSaveIntro: false, programSaveArrow: false, programSaveIntroSeen: true,
+        programDialog: null, programSolution: null, programAssembler: null, assemblerHint: false,
+        sheetScratchCell: null, programManualTest: null, programRunTest: null, programHintOpen: null,
+        ...programStoryOnPatch()
+      });
+    }
+    if (action === "program-save-open") {
+      // Pressing it is what the arrow was asking for, so the arrow has done its
+      // work — the word beside it stays until it is answered.
+      return setState({
+        programSaveDialog: { name: defaultProgramName() },
+        programSaveArrow: false
+      });
+    }
+    if (action === "program-save-cancel") return setState({ programSaveDialog: null });
+    if (action === "program-save-confirm") {
+      const box = app.querySelector("[data-program-save-name]");
+      return saveCurrentProgram(box ? box.value : state.programSaveDialog?.name);
+    }
+    if (action === "program-saved-ok") return setState({ programSavedDialog: false });
+    if (action === "program-load-open") return setState({ programLoadDialog: true });
+    if (action === "program-load-close") return setState({ programLoadDialog: false });
+    if (action === "program-load-pick") return loadSavedProgram(button.dataset.programId);
+    if (action === "program-load-delete") {
+      const id = String(button.dataset.programId);
+      return setState({ savedPrograms: savedPrograms().filter((entry) => String(entry.id) !== id) });
     }
     if (action === "program-hint-select") return openProgramHints(Number(button.dataset.hintIndex));
     if (action === "program-hint-close") return setState({ programHintOpen: null });
@@ -27847,6 +28170,14 @@
     if (action === "my-cards") {
       if (!myCardsEnabled()) return;
       return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "myCards" });
+    }
+    if (action === "my-programs") {
+      if (!myProgramsEnabled()) return;
+      return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "myPrograms" });
+    }
+    if (action === "my-program-delete") {
+      const id = String(button.dataset.programId);
+      return setState({ savedPrograms: savedPrograms().filter((entry) => String(entry.id) !== id) });
     }
     if (action === "my-cards-new") return enterCardCreation({ returnScreen: "myCards" });
     if (action === "my-cards-load") { app.querySelector("[data-card-file-input]")?.click(); return; }
