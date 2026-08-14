@@ -7749,7 +7749,21 @@
   function programStoryOnPatch() {
     // A demonstration's last word goes back to ITS note, the way "חזרה למשימות"
     // does — 4.3's message from Groves is a different chapter's ending.
-    if (demoProgramTask()) return { ...demoReturnTarget(), programTaskId: null, demoNoteList: true };
+    const demo = demoProgramTask();
+    if (demo) {
+      // Except for the LAST demonstration: that is where the story stops for
+      // now, so rather than dropping the note back open with nothing new left on
+      // it, the room says "המשך יבוא...". The note is still there to be picked up
+      // again once the notice is closed.
+      const all = demoTaskDefs();
+      const done = all.length > 0 && demo.id === all[all.length - 1].id && taskCompleted(demo.id);
+      return {
+        ...demoReturnTarget(),
+        programTaskId: null,
+        demoNoteList: !done,
+        ...(done ? { infoDialog: CONTINUE_SOON_TEXT } : {})
+      };
+    }
     if (!state.programTaskDone) return {};
     const chapter = chapterById("chapter-18");
     const scene = chapter ? sceneByChapter(chapter) : null;
