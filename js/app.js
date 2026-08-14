@@ -6729,6 +6729,10 @@
       // Row -> the label its number was written from, so the number can follow
       // the labelled line when it moves.
       refs: (saved.refs && typeof saved.refs === "object") ? saved.refs : {},
+      // Row -> exactly what was written over that instruction. The squares below
+      // hold its reading as a number; this is what the learner actually typed,
+      // and it is what stays on the paper.
+      texts: (saved.texts && typeof saved.texts === "object") ? saved.texts : {},
       scratch: (saved.scratch && typeof saved.scratch === "object") ? saved.scratch : {},
       // The program itself: "<instruction>:<bit>" -> "0" | "1".
       bits: (saved.bits && typeof saved.bits === "object") ? saved.bits : {}
@@ -7995,7 +7999,10 @@
     const refs = { ...(progress.refs || {}) };
     if (labelled === null) delete refs[row];
     else refs[row] = text.trim();
-    const done = setState({ [programSheetKey()]: { ...progress, bits: next, refs }, programNumberEdit: null });
+    const texts = { ...(progress.texts || {}) };
+    if (text) texts[row] = text;
+    else delete texts[row];
+    const done = setState({ [programSheetKey()]: { ...progress, bits: next, refs, texts }, programNumberEdit: null });
     assemblerFlourish(`[data-action="program-number-open"][data-row="${row}"]`);
     return done;
   }
@@ -9061,8 +9068,8 @@
         const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
         // A number written from a label shows the LABEL: that is what the
         // learner wrote, and it is what follows the line when it moves.
-        const ref = (programSheetProgress().refs || {})[row];
-        const shown = ref && programLabelRow(ref) !== null ? ref : programNumberValue(row);
+        const written = (programSheetProgress().texts || {})[row];
+        const shown = typeof written === "string" && written !== "" ? written : programNumberValue(row);
         cells.push(`<div class="prog-slot prog-slot-number" style="grid-column:${columnOf(12)} / span 11;grid-row:${top};">${editing
           ? `<input class="prog-number-input" type="text" inputmode="${jumpsInPlay ? "text" : "numeric"}" autofocus data-program-number="${row}" value="${esc(typeof state.programNumberEdit.text === "string" ? state.programNumberEdit.text : shown)}" aria-label="המספר של פקודה ${row + 1}" />`
           : `<button class="prog-slot-btn" data-action="program-number-open" data-row="${row}" type="button" aria-label="המספר של פקודה ${row + 1}">${esc(shown)}</button>`}</div>`);
@@ -26427,6 +26434,24 @@
     render();
   });
 
+  // A label block is taken at MOUSEDOWN, before the page's own click handling
+  // runs: the click lands on the input, but a later listener redraws the page
+  // and the caret goes with it, which is why nothing could be typed here. The
+  // whole block is the box, so pressing anywhere in it starts writing.
+  document.addEventListener("mousedown", (event) => {
+    const cell = event.target.closest && event.target.closest(".prog-label");
+    if (!cell || !state.programDialog) return;
+    const input = cell.querySelector(".prog-label-input");
+    if (!input) return;
+    // On the box itself the browser puts the caret where the finger is, which is
+    // what one wants when correcting a name. Anywhere else in the block — the
+    // margin around it — takes the box and writes at the end.
+    if (event.target === input) return;
+    event.preventDefault();
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }, true);
+
   // A label beside an instruction. Kept as it is typed and saved without a
   // redraw — the caret would jump — and the page is drawn again only when the
   // box is left, since every place that used the old name has to follow it.
@@ -26784,7 +26809,7 @@
   // moves is left alone — it is a click on whatever is under it.
   document.addEventListener("mousedown", (event) => {
     if (!state.programDialog || event.button !== 0) return;
-    if (event.target.closest(".prog-dest-menu, .prog-number-input, .sheet-actions, .sheet-guide, .assembler")) return;
+    if (event.target.closest(".prog-dest-menu, .prog-number-input, .prog-label, .sheet-actions, .sheet-guide, .assembler")) return;
     // Whatever the browser had selected, drop it: the only mark on this page is
     // the one the learner drags out, and a stray blue highlight only confuses it.
     try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
@@ -27035,7 +27060,7 @@
     // just the mark, so a paste from the keyboard afterwards lands right there.
     // Nothing is UNmarked by a click; Escape and the next mark do that.
     if (state.programDialog
-        && !event.target.closest(".sheet-actions, .prog-context-menu, .prog-alu-bit, .sheet-guide, .assembler")) {
+        && !event.target.closest(".sheet-actions, .prog-context-menu, .prog-alu-bit, .prog-label, .sheet-guide, .assembler")) {
       const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
       const at = paper && paper.contains(event.target)
         ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
@@ -27091,6 +27116,19 @@
       return setState({ panelObjectDialog: null }, false);
     }
     if (!button) {
+      // A label block: the whole cell is the box, so a click anywhere in it puts
+      // the caret in — and goes no further, or the paper below would select a
+      // square instead.
+      const labelCell = event.target.closest && event.target.closest(".prog-label");
+      if (labelCell) {
+        const input = labelCell.querySelector(".prog-label-input");
+        if (input && document.activeElement !== input) {
+          event.preventDefault();
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+        return;
+      }
       // A bare square of the exercise page: start writing on it, the way one
       // scribbles on the squared paper of a workbook. (Only the paper itself is
       // a free square — everything drawn on the page covers its own.)
@@ -27112,7 +27150,7 @@
         // Anywhere else on the page — a bit of an instruction, a heading — puts
         // the pencil down. (Not an answer box: re-rendering would take the caret
         // straight back out of the box just clicked.)
-        if (state.sheetScratchCell && !event.target.closest(".sheet-scratch-input, .sheet-input")) {
+        if (state.sheetScratchCell && !event.target.closest(".sheet-scratch-input, .sheet-input, .prog-label")) {
           return setState({ sheetScratchCell: null }, false);
         }
       }
@@ -28322,6 +28360,11 @@
       return;
     }
 
+    // An exercise page — 4.1's, 4.3's, 5.1's — lies OVER the story. Its own
+    // handlers do whatever paging it has, and the story beneath must not hear
+    // the keys: the space bar was turning a story page instead of being written
+    // into a label box, so a name with a space in it lost it.
+    if (sheetPageOpen()) return;
     if (state.screen !== "story" || state.dialog) return;
     // A gating question panel: Enter submits the answer; the "next" keys are
     // blocked until it is right. Typing/arrows inside the answer box are left to
