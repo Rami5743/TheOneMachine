@@ -7936,7 +7936,9 @@
           <input class="prog-save-name" type="text" autofocus data-program-save-name value="${esc(name)}" aria-label="שם התוכנה" />
           ${open.taken
             ? `<p class="my-card-delete-warn">כבר יש תוכנה בשם "${esc(open.taken)}". בחר שם אחר, או בטל את השמירה.</p>`
-            : `<p class="prog-save-note">לכל תוכנה שם משלה. שם שכבר תפוס לא יתקבל.</p>`}
+            : (programSolutionWalk()
+              ? `<p class="prog-save-note">נשמרת <strong>התוכנה שלך</strong>, לא הפתרון שמוצג עכשיו על הדף.</p>`
+              : `<p class="prog-save-note">לכל תוכנה שם משלה. שם שכבר תפוס לא יתקבל.</p>`)}
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="program-save-confirm" type="button">שמירה</button>
             <button class="btn" data-action="program-save-cancel" type="button">ביטול</button>
@@ -8002,6 +8004,12 @@
     // An empty box is not an error — it just means "call it whatever you would
     // have called it", which is the task's own name.
     const clean = String(name || "").trim() || defaultProgramName();
+    // An empty page is not a program. Saving one is always a mistake — most
+    // easily made while a walkthrough is up, when the page SHOWS a program that
+    // is not the learner's.
+    if (programIsEmpty()) {
+      return setState({ programSaveDialog: null, infoDialog: "הדף שלך ריק — אין מה לשמור. (מה שמוצג בזמן הצגת פתרון הוא הפתרון, לא התוכנה שלך.)" });
+    }
     // A name already taken is REFUSED rather than written over: a program that
     // took work to write is not lost to a name typed twice. The box stays open
     // and says so, and the learner either renames or gives up on the save.
