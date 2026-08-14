@@ -1015,6 +1015,10 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "demo-infinite-loop",
       label: "לולאה אינסופית",
       requires: [],
+      // Its row in "דירוגי תוכנה" → "אורך תוכנה": a loop runs forever, so what is
+      // ranked here is what was WRITTEN, not what the machine got through.
+      rankId: "prg-infinite-loop",
+      rankLabel: "לולאה אינסופית",
       title: "משימת תכנות: לולאה אינסופית",
       text: "כתוב תוכנה שמבצעת פקודות (לא משנה איזה) בלולאה אינסופית ולא מפסיקה לעולם (עד שמנתקים אותה מהחשמל) ולא יוצאת מהפקודות שנתת לה.",
       // The four hints unlock the usual way — one more after each failed run of
@@ -1065,6 +1069,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "demo-count-loop",
       label: "לולאת ספירה",
       requires: ["demo-infinite-loop"],
+      rankId: "prg-count-loop",
+      rankLabel: "לולאת ספירה",
       title: "משימת תכנות: לולאת ספירה",
       text: "כתוב תוכנה שסופרת ללא הגבלה. היא צריכה להציג את כל המספרים החל מ-0 בפורט Out0 ולהוסיף 1 כל פעם. היא לא צריכה לעצור אף פעם.\n\n**הערה:** מכיוון שהמספרים שלנו מוגבלים ל-16 ביטים, המספר הכי גדול שנגיע אליו יהיה \u20662¹⁶ − 1\u2069. בפועל כשננסה להוסיף לו 1 המחשב יתעלם מהנשיאה (ה-carry) ולא ירשום את המספר הבא (שהוא \u20662¹⁶\u2069) אלא 0. אתה יכול להתעלם מזה.",
       hints: [
@@ -1104,6 +1110,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "demo-count-to",
       label: "ספירה עד מספר",
       requires: ["demo-count-loop"],
+      rankId: "prg-count-to",
+      rankLabel: "ספירה עד מספר",
       title: "משימת תכנות: ספירה עד מספר",
       text: "כתוב תוכנה שסופרת מ-0 עד המספר שנמצא בקלט In0. היא צריכה להציג ב-Out0 את כל המספרים בדרך, אחד אחרי השני, ולעצור כשהיא מגיעה למספר שב-In0 — כלומר להישאר עליו ולא להמשיך.\n\nאתה יכול להניח שהקלט ב-In0 הוא לפחות 1.\n\n**הערה:** אין למחשב פקודה שאומרת \"עצור\". אתה רק צריך לדאוג שהתוכנה תצא מהלולאה, ואחרי זה אתה יכול להשאיר את הפקודות ריקות.",
       hints: [
@@ -1140,6 +1148,11 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       requires: ["demo-count-to"],
       rankId: "prg-multiply",
       rankLabel: "כפל",
+      // The last two tasks are also ranked by how LONG the machine ran and how
+      // much memory the program took — the two extra "דירוגי תוכנה" tabs. They
+      // are the first tasks where the same answer can be reached in very
+      // different ways, so those two are worth comparing.
+      rankRuntime: true,
       title: "משימת תכנות: כפל",
       text: "כתוב תוכנה שמכפילה את הערך שבקלט In0 בערך שבקלט In1, וכותבת את התוצאה ב-Out0. כשהיא מסיימת היא צריכה לעצור.\n\nאתה יכול להניח ששני הקלטים הם לפחות 1.",
       hints: [
@@ -1180,6 +1193,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "demo-divide",
       label: "חילוק",
       requires: ["demo-multiply"],
+      rankId: "prg-divide",
+      rankLabel: "חילוק",
+      rankRuntime: true,
       title: "משימת תכנות: חילוק",
       text: "כתוב תוכנה שמחלקת את הערך שבקלט In0 בערך שבקלט In1, וכותבת ב-Out0 את המנה — כלומר כמה פעמים In1 נכנס שלם ב-In0. כשהיא מסיימת היא צריכה לעצור.\n\nזה חילוק שלם: 7 חלקי 2 הוא 3, והשארית פשוט נזרקת.\n\nאתה יכול להניח שב-In1 יש לפחות 1, ושב-In0 יש מספר שאינו שלילי.",
       hints: [

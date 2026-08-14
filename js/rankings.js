@@ -59,13 +59,37 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       recordsSub: "רשימת השיאנים — התוכנה הקצרה ביותר קודם.",
       map: "programCounts",
       rows: "programs"
+    },
+    // The last two of 5.1's tasks — the first ones where the same answer can be
+    // reached in very different ways — are also ranked by how long the machine
+    // ran and by how much memory the program took. `runtimeOnly` keeps those two
+    // tabs to the tasks that carry the measurement.
+    runtime: {
+      key: "runtime", ldim: "runtime", label: "זמן ריצה",
+      countHead: "צעדים",
+      nameHead: "משימה",
+      sub: "כמה פקודות המכונה הספיקה לבצע עד שהתוכנה שלך סיימה, על כל מקרי הבדיקה יחד — ככל שפחות כך התוכנה מהירה יותר. לחץ על משימה לרשימת השיאים שלה.",
+      recordsSub: "רשימת השיאנים — הריצה הקצרה ביותר קודם.",
+      map: "programRuntimeCounts",
+      rows: "programs",
+      runtimeOnly: true
+    },
+    space: {
+      key: "space", ldim: "memory", label: "מקום בזיכרון",
+      countHead: "כתובות",
+      nameHead: "משימה",
+      sub: "בכמה כתובות בזיכרון התוכנה שלך השתמשה — ככל שפחות כך היא חסכונית יותר. הפלטים והקלטים לא נספרים, רק הזיכרון החופשי. לחץ על משימה לרשימת השיאים שלה.",
+      recordsSub: "רשימת השיאנים — השימוש החסכוני ביותר בזיכרון קודם.",
+      map: "programMemoryCounts",
+      rows: "programs",
+      runtimeOnly: true
     }
   };
 
   // The two groups of tabs, and which tabs are in each.
   const GROUPS = [
     { key: "hardware", label: "דירוגי חומרה", tabs: ["efficiency", "speed", "design"] },
-    { key: "software", label: "דירוגי תוכנה", tabs: ["software"] }
+    { key: "software", label: "דירוגי תוכנה", tabs: ["software", "runtime", "space"] }
   ];
   const TAB_ORDER = GROUPS.flatMap((g) => g.tabs);
   const activeTab = () => TABS[TAB_ORDER.includes(typeof getTab === "function" && getTab()) ? getTab() : "efficiency"];
@@ -117,15 +141,25 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
 
   // The programming tasks that carry a ranking — one row each, the way a card is
   // a row on the hardware side.
-  function rankingPrograms() {
-    const task = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
-    if (!task || !task.rankId) return [];
-    return [{ id: task.rankId, label: task.rankLabel || task.title || task.rankId }];
+  function rankingPrograms(tab) {
+    const rows = [];
+    const push = (task) => {
+      if (task && task.rankId) rows.push({ id: task.rankId, label: task.rankLabel || task.title || task.rankId });
+    };
+    // 4.3's single task carries a length but is not timed or measured, so it is
+    // only on the first of the three software tabs.
+    if (!tab || !tab.runtimeOnly) push(typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null);
+    // 5.1's demonstrations, in the order the note lists them.
+    (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : []).forEach((task) => {
+      if (tab && tab.runtimeOnly && !task.rankRuntime) return;
+      push(task);
+    });
+    return rows;
   }
 
   // Whatever the active tab lists.
   function tabRows(tab) {
-    return tab.rows === "programs" ? rankingPrograms() : rankingCards();
+    return tab.rows === "programs" ? rankingPrograms(tab) : rankingCards();
   }
 
   // The player's count for a card in the active metric, or null when undefined.

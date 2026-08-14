@@ -2017,6 +2017,11 @@
     // How long the program that passed each programming task was, in
     // instructions — the counts behind "דירוגי תוכנה".
     programCounts: null,
+    // The two extra software tabs, kept for 5.1's last two tasks: how many beats
+    // the machine ran over all of the test's cases ("זמן ריצה"), and how many
+    // free RAM addresses the program took ("מקום בזיכרון").
+    programRuntimeCounts: null,
+    programMemoryCounts: null,
     // Ids of ranked cards/tasks the player used an INTERACTIVE hint on — a hint
     // that fills the build / truth-table / program for them. Such a card is out
     // of the rankings: recordCardNandCount (and the program's own recorder) will
@@ -9158,7 +9163,8 @@
     for (const one of (test.cases || [])) {
       const [in0, in1, want] = one;
       const outcome = programRunWithJumps(cycles, { in0, in1, out0: start });
-      const base = { input: in0, in1, want, got: null, steps: outcome.steps, trace: [] };
+      const base = { input: in0, in1, want, got: null, steps: outcome.steps, trace: [],
+                     used: programRamUsed(outcome.machine) };
       if (outcome.error) { runs.push({ ...base, ok: false, badRow: outcome.row }); break; }
       // A half-written instruction, or a jump to an address that is not on the
       // page at all, is a fall. Reaching an EMPTY instruction is not: that is
@@ -9247,6 +9253,46 @@
   }
 
   // What a finished run leaves behind: a failure moves the hints along, and a
+  // The program's LENGTH: the instructions written from the first line down to
+  // the first line that was never written. 4.3's single task is straight-line,
+  // so there the machine's step count IS the length — but a loop runs its three
+  // lines fifty times, and what is worth comparing is what the learner wrote.
+  function programWrittenLength() {
+    const total = programInstructionCount();
+    let rows = 0;
+    while (rows < total && !programRowEmpty(rows)) rows += 1;
+    return rows;
+  }
+
+  // How many of the free RAM addresses (0-1023) a run wrote to. The ports
+  // (Out0..In3, from PROGRAM_OUT_BASE up) are the machine's own and are not
+  // counted — they are not space the program chose to take.
+  function programRamUsed(machine) {
+    if (!machine || !machine.mem) return 0;
+    return Object.keys(machine.mem).filter((key) => Number(key) < PROGRAM_OUT_BASE).length;
+  }
+
+  // What a passed 5.1 task writes into the ranking maps: its length always, and
+  // for the last two tasks also the run it took and the memory it needed. As in
+  // 4.3, a task that was helped by an interactive hint is left out on purpose.
+  function demoRankPatch(demo, now) {
+    if (!demo || !demo.rankId) return {};
+    if (state.rankHintUsed && state.rankHintUsed[demo.rankId]) return {};
+    const patch = {};
+    const length = programWrittenLength();
+    if (length > 0) patch.programCounts = { ...(state.programCounts || {}), [demo.rankId]: length };
+    if (!demo.rankRuntime) return patch;
+    const runs = (now && Array.isArray(now.runs) ? now.runs : []).filter((run) => run && run.ok);
+    if (!runs.length) return patch;
+    // Every test case together — one number, and the same cases for everyone.
+    const steps = runs.reduce((sum, run) => sum + (Number(run.steps) || 0), 0);
+    if (steps > 0) patch.programRuntimeCounts = { ...(state.programRuntimeCounts || {}), [demo.rankId]: steps };
+    // The hungriest of the cases: what the program needs to be given.
+    const used = runs.reduce((most, run) => Math.max(most, Number(run.used) || 0), 0);
+    patch.programMemoryCounts = { ...(state.programMemoryCounts || {}), [demo.rankId]: used };
+    return patch;
+  }
+
   // pass is remembered for whichever task was being run.
   function programTestVerdictPatch(now) {
     const result = programTestResult(now);
@@ -9261,7 +9307,7 @@
       const completedTasks = completedTaskIds().includes(demo.id)
         ? completedTaskIds()
         : [...completedTaskIds(), demo.id];
-      return { completedTasks };
+      return { completedTasks, ...demoRankPatch(demo, now) };
     }
     // What the machine actually ran, in instructions — the number "אורך תוכנה"
     // ranks by. The current program's length, the way a card's Nand count is the
@@ -19567,7 +19613,7 @@
     getState: () => state, esc, adaptGender, topbar,
     isRegistered: () => Boolean(typeof APP !== "undefined" && APP && APP.auth && APP.auth.user),
     getNickname: () => (typeof state.rankingsNickname === "string" && state.rankingsNickname) || "ללא שם",
-    getTab: () => (["speed", "design", "software"].includes(state.rankingsTab) ? state.rankingsTab : "efficiency"),
+    getTab: () => (["speed", "design", "software", "runtime", "space"].includes(state.rankingsTab) ? state.rankingsTab : "efficiency"),
     // The 2.3/2.4 intermediate cards (DMux4Way, Mux4Way16) live in MULTIBIT_TASKS
     // inside this IIFE, so rankings.js can't see them as a global — hand them in.
     // (Lazy: only read at render time, well after the const is initialised.)
@@ -28453,7 +28499,7 @@
     // Switch the efficiency/speed tab on either rankings page.
     if (action === "rankings-tab") {
       const t = button.dataset.tab;
-      const tab = ["speed", "design", "software"].includes(t) ? t : "efficiency";
+      const tab = ["speed", "design", "software", "runtime", "space"].includes(t) ? t : "efficiency";
       return setState({ rankingsTab: tab }, false);
     }
     // Opening a card's records keeps the current tab (arrive on the tab you came from).
