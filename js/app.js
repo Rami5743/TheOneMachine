@@ -7742,6 +7742,19 @@
     return { ...storyTarget(chapter, idx), replayNonce: state.replayNonce + 1 };
   }
 
+  // The line a walkthrough is talking about is brought into view, so a long
+  // solution does not explain instructions the learner cannot see.
+  function scrollWalkMarkIntoView() {
+    const mark = app.querySelector(".sheet-overlay-prog .prog-solution-mark");
+    const scroll = app.querySelector(".sheet-overlay-prog .sheet-scroll");
+    if (!mark || !scroll) return;
+    const box = scroll.getBoundingClientRect();
+    const at = mark.getBoundingClientRect();
+    const PAD = 40;
+    if (at.top < box.top + PAD) scroll.scrollTop -= (box.top + PAD) - at.top;
+    else if (at.bottom > box.bottom - PAD) scroll.scrollTop += at.bottom - (box.bottom - PAD);
+  }
+
   function programSolutionAtStart() {
     const open = state.programSolution;
     return !open || (open.step <= 0 && (open.part ?? -1) < 0);
@@ -17972,6 +17985,7 @@
       return;
     }
     renderStory();
+    if (state.programSolution) requestAnimationFrame(scrollWalkMarkIntoView);
     if (state.dialog) {
       requestAnimationFrame(() => app.querySelector("[data-action='dialog-yes']")?.focus());
     }
@@ -27985,6 +27999,19 @@
       return setState({ programSelection: null, programViewSelection: null, programTableSelection: null, programContextMenu: null });
     }
   }, true);
+
+  // The sheet that lies under a walkthrough is still SCROLLED with the wheel.
+  // The shield over it is there to stop the page being written on while the
+  // solution is up — not to pin it in place, and a walkthrough of eighteen
+  // instructions runs well past the foot of the screen.
+  document.addEventListener("wheel", (event) => {
+    if (!state.programSolution) return;
+    if (!event.target.closest || !event.target.closest(".prog-solution-shield")) return;
+    const scroll = app.querySelector(".sheet-overlay-prog .sheet-scroll");
+    if (!scroll) return;
+    scroll.scrollTop += event.deltaY;
+    event.preventDefault();
+  }, { passive: false });
 
   // Scrolling towards the bottom of the program page adds more instructions, so
   // the table never runs out under the learner. (Scroll does not bubble, hence
