@@ -7094,13 +7094,19 @@
     if (programHelperOpen()) {
       return typeof PROGRAM_HELPER_HINTS !== "undefined" ? PROGRAM_HELPER_HINTS : [];
     }
+    // 5.1's demonstrations carry their hints on the task itself, beside their
+    // requirements.
+    const demo = demoProgramTask();
+    if (demo) return Array.isArray(demo.hints) ? demo.hints : [];
     return typeof PROGRAM_HINTS !== "undefined" ? PROGRAM_HINTS : [];
   }
 
   // Each task keeps its own tally, so failing one does not hand out the other's
   // hints.
   function programHintKey() {
-    return programHelperOpen() ? "programHelperHints" : "programHints";
+    if (programHelperOpen()) return "programHelperHints";
+    if (state.programTaskId) return `programHints_${state.programTaskId}`;
+    return "programHints";
   }
 
   function programHintProgress() {
@@ -7125,6 +7131,10 @@
     if (programHelperOpen()) {
       return typeof PROGRAM_HELPER_SOLUTIONS !== "undefined" ? PROGRAM_HELPER_SOLUTIONS : [];
     }
+    // A demonstration walks its OWN solution or none at all — 4.3's walkthrough
+    // is about a different program, and was being offered here.
+    const demo = demoProgramTask();
+    if (demo) return Array.isArray(demo.solution) ? demo.solution : [];
     return typeof PROGRAM_SOLUTIONS !== "undefined" ? PROGRAM_SOLUTIONS : [];
   }
 
@@ -7133,12 +7143,14 @@
     // Solved it? Then the solution is on offer straight away, and STAYS on
     // offer — a task that has been passed used to lose its walkthrough, so
     // anyone who solved the helper task could never read how it worked.
-    const done = programHelperOpen() ? state.programHelperDone : state.programTaskDone;
+    const demo = demoProgramTask();
+    const done = programHelperOpen() ? state.programHelperDone
+      : (demo ? taskCompleted(demo.id) : state.programTaskDone);
     if (done) return true;
-    // The main task's solution also waits on having been through the helper
-    // task: it is what the fourth hint sends the learner to, and the walkthrough
-    // leans on having done it.
-    if (!programHelperOpen() && !state.programHelperDone) return false;
+    // 4.3's main task waits on having been through the helper task as well: it is
+    // what its fourth hint sends the learner to, and its walkthrough leans on
+    // having done it. A demonstration has no helper task and no such wait.
+    if (!programHelperOpen() && !demo && !state.programHelperDone) return false;
     return programHintProgress().failures >= programHints().length + 2;
   }
 
@@ -7192,7 +7204,7 @@
     // An interactive hint takes the player's program out of the ranking: flag the
     // ranked task so no NEW length is recorded for it. An earlier clean record is
     // kept (we do not delete it); "נקה התקדמות" clears the flag.
-    const rankTask = typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
+    const rankTask = programTaskData();
     const flagged = rankTask && rankTask.rankId
       ? { ...(state.rankHintUsed || {}), [rankTask.rankId]: true }
       : state.rankHintUsed;
@@ -7280,10 +7292,18 @@
     const finished = open.step >= steps.length;
     const shown = finished ? steps.length : open.step + 1;
     const bits = {};
+    // A solution can also carry what is WRITTEN rather than filled in: a tag in
+    // the labels column (`label`) and the word standing over an instruction in
+    // place of its number (`shows`). Both appear with the instruction they
+    // belong to, and neither touches what the learner wrote.
+    const labels = {};
+    const texts = {};
     steps.slice(0, shown).forEach((entry, row) => {
       String(entry.bits || "").split("").forEach((value, i) => {
         if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
       });
+      if (entry.label) labels[row] = entry.label;
+      if (entry.shows) texts[row] = entry.shows;
     });
     const at = finished ? null : steps[open.step];
     const parts = Array.isArray(at?.parts) ? at.parts : [];
@@ -7296,7 +7316,7 @@
         : { row: open.step, from: 1, to: 16 });
     const say = finished ? (solution.close || "")
       : (part >= 0 && parts[part] ? parts[part].text : (at?.text || ""));
-    return { solution, steps, finished, bits, mark, say, part, parts, at };
+    return { solution, steps, finished, bits, labels, texts, mark, say, part, parts, at };
   }
 
   function openProgramSolution(variant = 0, step = 0) {
@@ -7347,6 +7367,9 @@
   // word about General Groves. A learner who only read the solution goes back to
   // the room itself and can still run the program.
   function programStoryOnPatch() {
+    // A demonstration's last word goes back to ITS note, the way "חזרה למשימות"
+    // does — 4.3's message from Groves is a different chapter's ending.
+    if (demoProgramTask()) return { ...demoReturnTarget(), programTaskId: null, demoNoteList: true };
     if (!state.programTaskDone) return {};
     const chapter = chapterById("chapter-18");
     const scene = chapter ? sceneByChapter(chapter) : null;
@@ -7386,7 +7409,7 @@
     // card is the same size from the first step to the last and does not jump
     // about under the pointer.
     const heading = `<h2>${esc(walk.solution.title)}</h2>
-          <p class="prog-solution-code" dir="ltr">${walk.finished ? "&nbsp;" : esc(walk.at?.code || "")}</p>`;
+          <p class="prog-solution-code" dir="auto">${walk.finished ? "&nbsp;" : esc(walk.at?.code || "")}</p>`;
     const lead = walk.part < 0 && !walk.finished && open.step === 0 && walk.solution.lead
       ? `<p class="prog-solution-lead">${esc(isolateLatinRuns(walk.solution.lead))}</p>` : "";
 
@@ -7808,6 +7831,19 @@
     const walk = programSolutionWalk();
     if (walk) return walk.bits;
     return programSheetProgress().bits;
+  }
+
+  // The tags and the words written over instructions follow the bits: while a
+  // solution is walked the page shows the SOLUTION's, and the learner's come
+  // straight back when it closes.
+  function programShownLabels() {
+    const walk = programSolutionWalk();
+    return walk ? walk.labels : (programSheetProgress().labels || {});
+  }
+
+  function programShownTexts() {
+    const walk = programSolutionWalk();
+    return walk ? walk.texts : (programSheetProgress().texts || {});
   }
 
   function programBit(row, bit) {
@@ -9032,7 +9068,7 @@
     // Beyond the numbers, four squares for a name per instruction. Only the
     // tasks that can jump have it — a label is only useful as a jump target.
     const LABEL_COLUMN = LINE_COLUMN + 2;
-    const labels = programSheetProgress().labels || {};
+    const labels = programShownLabels();
     if (jumpsInPlay) {
       cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:1;">תגיות</div>`);
     }
@@ -9059,7 +9095,9 @@
       cells.push(`<div class="prog-line" style="grid-column:${LINE_COLUMN} / span 2;grid-row:${top} / span 2;" aria-hidden="true">${row + 1}</div>`);
       if (jumpsInPlay) {
         const label = labels[row] || "";
-        cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text" data-program-label="${row}" value="${esc(label)}" style="--label-size:${programLabelFontSize(label)}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
+        // While a solution is up the page is read-only, tags included.
+        const locked = programSolutionWalk() ? " readonly" : "";
+        cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text"${locked} data-program-label="${row}" value="${esc(label)}" style="--label-size:${programLabelFontSize(label)}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
       }
       if (programNumberOpen(row)) {
         // Bit 1 is written: its own cell stays inert, and the eleven beside it
@@ -9068,7 +9106,7 @@
         const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
         // A number written from a label shows the LABEL: that is what the
         // learner wrote, and it is what follows the line when it moves.
-        const written = (programSheetProgress().texts || {})[row];
+        const written = programShownTexts()[row];
         const shown = typeof written === "string" && written !== "" ? written : programNumberValue(row);
         cells.push(`<div class="prog-slot prog-slot-number" style="grid-column:${columnOf(12)} / span 11;grid-row:${top};">${editing
           ? `<input class="prog-number-input" type="text" inputmode="${jumpsInPlay ? "text" : "numeric"}" autofocus data-program-number="${row}" value="${esc(typeof state.programNumberEdit.text === "string" ? state.programNumberEdit.text : shown)}" aria-label="המספר של פקודה ${row + 1}" />`
