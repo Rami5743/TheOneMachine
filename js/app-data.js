@@ -1043,7 +1043,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
         },
         {
           title: "פתרון עם תגית",
-          lead: "אותה תוכנה בדיוק, והנה היא כולה. רק שני דברים בה שונים מהפתרון הקודם, ואלה שני הדברים שנעבור עליהם.",
+          lead: "אותה תוכנה בדיוק. רק שני דברים בה שונים מהפתרון הקודם.",
           // The whole program stands on the page at once; what is walked are the
           // two changes from the solution before it.
           program: [
