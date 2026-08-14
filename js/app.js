@@ -7126,7 +7126,10 @@
       figure.style.top = `${Math.round(saved.assembler.top)}px`;
     } else if (figure) {
       const figRect = figure.getBoundingClientRect();
-      const stack = ["tip", "guide", "memory", "alu", "task"]
+      // Only the windows stacked up the LEFT edge count. The requirements window
+      // sits in the opposite corner, and measuring past IT sent him into the
+      // bottom-right corner of the screen instead of standing beside the stack.
+      const stack = ["tip", "guide", "memory", "alu"]
         .map(byName).filter(Boolean)
         .map((win) => win.getBoundingClientRect().right);
       const alongside = stack.length ? Math.max(...stack) + 26 : area.left + PAD;
