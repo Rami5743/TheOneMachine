@@ -5949,6 +5949,10 @@
       ${renderInfoDialog()}
       ${renderProgramDeleteDialog()}
       ${renderProgramSheet()}`;
+    // Editing a program puts the programming page on THIS screen, and its
+    // windows have to be parked just as they are on the story's — without this
+    // they piled up on each other wherever the CSS left them.
+    if (state.programDialog) requestAnimationFrame(layoutProgramWindows);
   }
 
   function renderProgramDeleteDialog() {
@@ -6919,6 +6923,13 @@
   }
 
   // The 5.1 task the page is showing, if it is showing one.
+  // Is the page showing the FIRST of 5.1's demonstrations — the one that teaches
+  // saving?
+  function demoFirstTaskOpen() {
+    const first = demoTaskDefs()[0];
+    return Boolean(first && state.programTaskId === first.id);
+  }
+
   function demoProgramTask() {
     if (!state.programTaskId) return null;
     return (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : [])
@@ -7041,8 +7052,17 @@
     // They live on the paper, not over the whole screen: the row of buttons at
     // the foot of the page stays clear.
     const paper = app.querySelector(".sheet-overlay-prog .sheet-scroll");
-    const area = paper ? paper.getBoundingClientRect()
+    const box = paper ? paper.getBoundingClientRect()
       : { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
+    // The windows are FIXED to the screen, so what they may not run off is the
+    // SCREEN — the paper's own box can reach past it, and windows placed against
+    // its foot ended up below the bottom edge where they could not be reached.
+    const area = {
+      top: Math.max(0, box.top),
+      bottom: Math.min(window.innerHeight, box.bottom),
+      left: Math.max(0, box.left),
+      right: Math.min(window.innerWidth, box.right)
+    };
     const ceiling = area.top + PAD;
     let y = area.bottom - PAD;
     ["tip", "guide", "memory", "alu"].forEach((name) => {
@@ -7071,30 +7091,44 @@
     // clear of the stack down the left edge. It drags like the rest.
     const view = byName("programView");
     if (view && !saved.programView) {
+      // A long program scrolls inside the window rather than running off the
+      // screen; a short one makes the window short.
       const body = view.querySelector(".sheet-guide-body");
-      if (body) body.style.maxHeight = `${Math.max(140, Math.round((area.bottom - area.top) - 2 * PAD - 44))}px`;
+      if (body) {
+        body.style.height = "auto";
+        body.style.maxHeight = `${Math.max(140, Math.round((area.bottom - area.top) - 2 * PAD - 44))}px`;
+      }
       const rect = view.getBoundingClientRect();
       view.style.right = "auto";
       view.style.bottom = "auto";
       view.style.left = `${Math.round(Math.max(area.left + PAD, area.left + (area.right - area.left - rect.width) / 2))}px`;
       view.style.top = `${Math.round(area.top + PAD)}px`;
     }
-    // The assembler stands on the paper just to the right of the ALU table.
-    const alu = byName("alu");
+    // Every window in the stack is kept on the screen, whatever was measured.
+    wins.forEach((win) => {
+      const rect = win.getBoundingClientRect();
+      const top = parseFloat(win.style.top);
+      if (!Number.isFinite(top)) return;
+      const highest = Math.max(4, window.innerHeight - rect.height - 4);
+      win.style.top = `${Math.round(Math.min(Math.max(top, 4), highest))}px`;
+    });
+    // The assembler stands at the FOOT of the paper, just to the right of the
+    // windows — past the right-hand edge of whichever of them reaches furthest,
+    // so he is never standing on one. (He used to be set beside the ALU table
+    // alone, and on a page where that table is folded away there was nothing to
+    // stand beside at all.)
     const figure = app.querySelector(".assembler");
     if (figure && saved.assembler) {
       figure.style.left = `${Math.round(saved.assembler.left)}px`;
       figure.style.top = `${Math.round(saved.assembler.top)}px`;
     } else if (figure) {
-      // He stands at the FOOT of the paper. He used to be set beside the ALU
-      // table, which put him high up the page — and on 5.1's page that table is
-      // folded away, so there was nothing to stand beside at all. The floor is
-      // somewhere he is always found, and out of the way of the windows stacked
-      // up the left edge.
       const figRect = figure.getBoundingClientRect();
-      const alongside = alu ? alu.getBoundingClientRect().right + 26 : area.left + PAD;
-      figure.style.left = `${Math.round(Math.min(alongside, area.right - PAD - figRect.width))}px`;
-      figure.style.top = `${Math.round(area.bottom - PAD - figRect.height)}px`;
+      const stack = ["tip", "guide", "memory", "alu", "task"]
+        .map(byName).filter(Boolean)
+        .map((win) => win.getBoundingClientRect().right);
+      const alongside = stack.length ? Math.max(...stack) + 26 : area.left + PAD;
+      figure.style.left = `${Math.round(Math.max(area.left + PAD, Math.min(alongside, area.right - PAD - figRect.width)))}px`;
+      figure.style.top = `${Math.round(Math.min(area.bottom, window.innerHeight) - PAD - figRect.height)}px`;
     }
     // His bubble comes out of his mouth: it is placed so its tail lines up with
     // it, and if the bubble had to be nudged to stay on the paper the tail slides
@@ -7186,6 +7220,9 @@
 
   // The task, once it has been read: the same words, in the corner, foldable.
   function renderProgramTaskWindow() {
+    // A program written on its own answers to nobody: there is nothing to
+    // require of it, so there is no window saying so.
+    if (state.programEditId) return "";
     const task = programTaskData();
     if (!task || (state.programDialog && state.programDialog.intro)) return "";
     const open = programPanelsState().task;
@@ -7810,6 +7847,13 @@
            </svg>
          </span>`
       : "";
+    // Editing a saved program, "save" means THIS program: it writes over the one
+    // being edited, and keeping a second copy is a button of its own.
+    if (state.programEditId) {
+      return `${navButton("program-save-replace", "save", "שמירת תוכנה")}
+              ${navButton("program-save-as", "plus", "שמירה בשם חדש")}
+              ${navButton("program-load-open", "folder-open", "טעינת תוכנה")}`;
+    }
     return `<span class="prog-store-slot">${arrow}${navButton("program-save-open", "save", "שמירת תוכנה")}</span>
             ${navButton("program-load-open", "folder-open", "טעינת תוכנה")}`;
   }
@@ -7840,7 +7884,9 @@
           <h2 class="prog-intro-title">שמירת תוכנה</h2>
           <p>איך לקרוא לתוכנה הזאת?</p>
           <input class="prog-save-name" type="text" autofocus data-program-save-name value="${esc(name)}" aria-label="שם התוכנה" />
-          <p class="my-card-delete-warn">שמירה בשם שכבר קיים תחליף את התוכנה השמורה בשם הזה.</p>
+          ${open.taken
+            ? `<p class="my-card-delete-warn">כבר יש תוכנה בשם "${esc(open.taken)}". בחר שם אחר, או בטל את השמירה.</p>`
+            : `<p class="prog-save-note">לכל תוכנה שם משלה. שם שכבר תפוס לא יתקבל.</p>`}
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="program-save-confirm" type="button">שמירה</button>
             <button class="btn" data-action="program-save-cancel" type="button">ביטול</button>
@@ -7890,18 +7936,29 @@
     // An empty box is not an error — it just means "call it whatever you would
     // have called it", which is the task's own name.
     const clean = String(name || "").trim() || defaultProgramName();
+    // A name already taken is REFUSED rather than written over: a program that
+    // took work to write is not lost to a name typed twice. The box stays open
+    // and says so, and the learner either renames or gives up on the save.
+    if (savedPrograms().some((entry) => String(entry.name).trim() === clean)) {
+      return setState({ programSaveDialog: { ...(state.programSaveDialog || {}), name: clean, taken: clean } });
+    }
     const kept = programToSave();
-    const list = savedPrograms().filter((entry) => String(entry.name).trim() !== clean);
+    const list = savedPrograms();
+    const id = `prg-${nextProgramSaveId()}`;
     // Newest first, so the last thing saved is the first thing offered back.
-    const savedProgramsNext = [{ id: `prg-${nextProgramSaveId()}`, name: clean, ...kept }, ...list];
+    const savedProgramsNext = [{ id, name: clean, ...kept }, ...list];
     // The very first one is worth a word: what it is now good for, and where to
     // find it again.
     const first = !state.programSavedIntroSeen;
+    // "שמירה בשם חדש" from the editor: the copy is what is being edited from
+    // now on, the way a "save as" leaves you in the new file rather than the old.
+    const asNew = Boolean(state.programSaveDialog?.asNew) && state.programEditId;
     return setState({
       savedPrograms: savedProgramsNext,
       programSaveDialog: null,
       // Having saved one is having been shown how: the arrow has done its work.
       programSaveArrow: false,
+      ...(asNew ? { programEditId: id, [`programEdit_${id}`]: { scratch: {}, ...kept } } : {}),
       ...(first ? { programSavedDialog: true, programSavedIntroSeen: true } : {})
     });
   }
@@ -9369,6 +9426,9 @@
   // nothing of their own — clicking one is a way of taking hold of the whole
   // instruction beside it.
   const PROGRAM_LINE_COLUMNS = [17, 18];
+  // The four squares of the תגיות column, which only the pages that can jump have.
+  const PROGRAM_LABEL_COLUMNS = [19, 22];
+  function jumpsInPlayColumns() { return programJumpsInPlay(); }
 
   // The rectangle that covers whole instructions, from the one beside `fromRow`
   // to the one beside `toRow`.
@@ -9405,7 +9465,21 @@
         high = Math.max(high, region.c2);
       });
     }
-    return { ...box, c1: low, c2: high };
+    // A tag is one block of four squares by two rows — it is not written square
+    // by square, so touching any part of it marks the whole of it, and the rows
+    // of every instruction it belongs to.
+    let top = box.r1;
+    let bottom = box.r2;
+    if (jumpsInPlayColumns() && high >= PROGRAM_LABEL_COLUMNS[0] && low <= PROGRAM_LABEL_COLUMNS[1]) {
+      low = Math.min(low, PROGRAM_LABEL_COLUMNS[0]);
+      high = Math.max(high, PROGRAM_LABEL_COLUMNS[1]);
+      // Both rows of each instruction the mark reaches into.
+      const first = Math.max(0, Math.floor((top - 2) / 2));
+      const last = Math.max(first, Math.floor((bottom - 2) / 2));
+      top = Math.min(top, 2 + first * 2);
+      bottom = Math.max(bottom, 3 + last * 2);
+    }
+    return { ...box, r1: top, r2: bottom, c1: low, c2: high };
   }
 
   // The six squares of an operation in the ALU table can be marked and taken
@@ -9617,6 +9691,13 @@
     if (jumpsInPlay) {
       rules.push(`<div class="sheet-rule sheet-rule-thin" style="grid-column:${LABEL_COLUMN + 3};grid-row:1 / span ${rows};"></div>`);
     }
+    // The page's table has no foot — it runs on down the paper. The window a
+    // saved program is shown in ends where the program does, so it is closed off
+    // under its last instruction.
+    if (programViewRender) {
+      const width = jumpsInPlay ? LABEL_COLUMN + 3 : LINE_COLUMN + 1;
+      rules.push(`<div class="prog-view-foot" aria-hidden="true" style="grid-column:1 / span ${width};grid-row:${rows};"></div>`);
+    }
     // Two rows to an instruction: the assembler's row on top (three merged
     // cells — the calculation, the destination, the spare bits) and the sixteen
     // squares of the instruction itself underneath, which are what is written.
@@ -9737,13 +9818,14 @@
     return savedPrograms().find((one) => String(one.id) === String(state.programView.id)) || null;
   }
 
-  // How many instructions the window has to show: everything written, and one
-  // empty line under it so the table does not end flush against the last one.
+  // How many instructions the window has to show: exactly what was written, and
+  // nothing after it — an empty line under the last instruction reads as part of
+  // the program.
   function programViewRows(entry) {
     const rows = Object.keys(entry.bits || {}).map((key) => Number(String(key).split(":")[0]));
     Object.keys(entry.labels || {}).forEach((key) => rows.push(Number(key)));
     const last = rows.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), -1);
-    return Math.max(1, last + 2);
+    return Math.max(1, last + 1);
   }
 
   // Anything that reads the page — a mark, a copy — reads the WINDOW instead
@@ -28353,11 +28435,13 @@
     if (action === "program-solution-finish") {
       clearAssemblerHintTimer();
       clearProgramTestTimers();
-      // The very first time a walkthrough is read to its end, the page does not
-      // close on it: the two buttons that keep programs appear in the bar, an
-      // arrow bounces over the save one, and a word explains what they are for.
-      // Leaving is then that word's "המשך".
-      if (!state.programSaveIntroSeen) {
+      // Reading the FIRST demonstration's walkthrough to its end does not close
+      // the page: the two buttons that keep programs appear in the bar, an arrow
+      // bounces over the save one, and a word explains what they are for.
+      // Leaving is then that word's "המשך". That task is where saving is taught,
+      // so its ending says so EVERY time it is read — not only the first — and
+      // anywhere else the word is shown once.
+      if (demoFirstTaskOpen() || !state.programSaveIntroSeen) {
         return setState({
           programSolution: null, programHintOpen: null, programRunTest: null,
           programStoreUnlocked: true, programSaveIntro: true, programSaveArrow: true
@@ -28388,6 +28472,20 @@
         programSaveDialog: { name: defaultProgramName() },
         programSaveArrow: false
       });
+    }
+    // In the editor: write the page over the program it came from, and say so.
+    if (action === "program-save-replace") {
+      const entry = programEditEntry();
+      if (!entry) return;
+      return setState({
+        savedPrograms: savedPrograms().map((one) =>
+          String(one.id) === String(entry.id) ? { ...one, ...programToSave() } : one),
+        infoDialog: `התוכנה "${entry.name}" נשמרה.`
+      });
+    }
+    // …and keeping it as a SECOND program asks for the new name.
+    if (action === "program-save-as") {
+      return setState({ programSaveDialog: { name: defaultProgramName(), asNew: true } });
     }
     if (action === "program-save-cancel") return setState({ programSaveDialog: null });
     if (action === "program-save-confirm") {

@@ -6314,6 +6314,12 @@ object.panel-image.is-pending {
   text-align: right;
 }
 
+.prog-save-note {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
 .prog-load-card { width: min(560px, 100%); }
 
 .prog-load-list {
@@ -6461,8 +6467,18 @@ object.panel-image.is-pending {
 }
 
 .prog-view-body {
+  /* The other windows are a fixed height so paging them does not resize them.
+     This one holds a program, and is exactly as tall as the program on it. */
+  height: auto;
   overflow: auto;
   padding: 10px 12px 12px;
+}
+
+/* The line that closes the window's table under its last instruction. */
+.prog-view-foot {
+  border-bottom: 2px solid #3a2c17;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .prog-view-paper {
@@ -6472,6 +6488,9 @@ object.panel-image.is-pending {
   grid-template-columns: repeat(22, var(--sq));
   width: calc(22 * var(--sq));
   min-width: calc(22 * var(--sq));
+  /* The page's paper fills whatever it is given; this one is exactly as tall as
+     the program on it. */
+  min-height: 0;
   box-shadow: none;
 }
 
