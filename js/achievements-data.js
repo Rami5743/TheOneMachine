@@ -26,6 +26,7 @@ const ACHIEVEMENTS = [
   { id: "computer-engineer", title: "מהנדס מחשבים", description: "השלמת את כל הכרטיסים של פרק 4.2.", category: "progress" },
   { id: "simple-programmer", title: "מתכנת פשוט", description: "השלמת את משימת התכנות של פרק 4.3.", category: "progress" },
   { id: "advanced-computer-engineer", title: "מהנדס מחשבים מתקדם", description: "השלמת את כל הכרטיסים של פרק 4.4.", category: "progress" },
+  { id: "loop-programmer", title: "מתכנת לולאות", description: "השלמת את כל משימות התכנות של פרק 5.1.", category: "progress" },
   // Special: side accomplishments and mastery.
   { id: "equipment-destroyer", title: "משחית ציוד", description: "שרפת Nand.", category: "special" },
   { id: "precise-engineer", title: "מהנדס מדויק", description: "בנית כרטיס נכון בניסיון הראשון.", category: "special" },
@@ -42,6 +43,7 @@ const ACHIEVEMENTS = [
   { id: "precise-computer-engineer", title: "מהנדס מחשבים מדויק", description: "השלמת את כל הכרטיסים של פרק 4.2 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
   { id: "precise-simple-programmer", title: "מתכנת פשוט מדויק", description: "השלמת את משימת התכנות של פרק 4.3 ללא טעויות ורמזים.", category: "special" },
   { id: "precise-advanced-computer-engineer", title: "מהנדס מחשבים מתקדם מדויק", description: "השלמת את כל הכרטיסים של פרק 4.4 בניסיון הראשון, ללא טעויות ורמזים.", category: "special" },
+  { id: "precise-loop-programmer", title: "מתכנת לולאות מדויק", description: "השלמת את כל משימות התכנות של פרק 5.1 ללא טעויות ורמזים.", category: "special" },
   { id: "thorough-engineer", title: "מהנדס יסודי", description: "ניקית התקדמות בפתק משימות וביצעת מחדש משימה שכבר השלמת.", category: "special" },
   { id: "precise-calc", title: "מחשב מדויק", description: "פתרת חישוב נכון בניסיון הראשון.", category: "special" },
   { id: "thorough-calc", title: "מחשב יסודי", description: "חזרת ופתרת בהצלחה משימת חישוב בחוברת, אחרי שכבר השלמת את כולן.", category: "special" },

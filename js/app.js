@@ -4972,6 +4972,18 @@
       unlockAchievement("precise-simple-programmer");
     }
 
+    // Chapter 5.1 — the loop demonstrations. "Done" is every demonstration in
+    // the note completed; "clean" is that with no failed run of the machine and
+    // no hint read on ANY of them. Each page keeps its own { failures, seen }
+    // under programHints_<id>, and clearing a page takes both with it.
+    const demoIds = (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : []).map((t) => t.id);
+    const demoDone = demoIds.length > 0 && demoIds.every((id) => taskCompleted(id));
+    if (demoDone) unlockAchievement("loop-programmer");
+    if (demoDone && demoIds.every((id) => {
+      const marks = state[`programHints_${id}`];
+      return !(Number(marks && marks.failures) > 0) && !(Number(marks && marks.seen) > 0);
+    })) unlockAchievement("precise-loop-programmer");
+
     // "מדויק" chapter achievements: every card of the chapter built with no failed
     // test (hints only unlock after a failure, so "no failures" == "no hints").
     const failed = new Set(Array.isArray(state.tasksFailedOnce) ? state.tasksFailedOnce : []);

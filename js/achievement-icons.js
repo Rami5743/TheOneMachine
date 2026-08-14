@@ -266,6 +266,23 @@ function renderAchievementIcon(id) {
            <g fill="#4d3a15">
              <circle cx="36.5" cy="26.5" r="1.15"/><circle cx="40" cy="26.5" r="1.15"/><circle cx="43.5" cy="26.5" r="1.15"/>
              <circle cx="38" cy="30" r="1.15"/><circle cx="42" cy="30" r="1.15"/></g>` });
+    case "loop-programmer": // green cup, a program with an arrow looping back to its head (5.1)
+      return achievementTrophy(id, { top: "#bfe0d1", bot: "#2c6249", rim: "#1c4433", base: "#2c6249", handle: "#4b8b6c", emblem:
+        `<rect x="33" y="19" width="17" height="21" rx="1.6" fill="#fffdf3" stroke="#1c4433" stroke-width="1.5"/>
+           <g stroke="#4b8b6c" stroke-width="1.3" stroke-linecap="round">
+             <line x1="36" y1="24" x2="47" y2="24"/><line x1="36" y1="28" x2="47" y2="28"/>
+             <line x1="36" y1="32" x2="47" y2="32"/><line x1="36" y1="36" x2="43" y2="36"/></g>
+           <path d="M33 36.5 H29.5 A3.5 3.5 0 0 1 26 33 V26 A3.5 3.5 0 0 1 29.5 22.5 H33" fill="none" stroke="#f3d27a" stroke-width="2" stroke-linecap="round"/>
+           <path d="M33.4 22.5 L29.6 20.6 L29.8 24.6 Z" fill="#f3d27a"/>` });
+    case "precise-loop-programmer": // the same loop on a bullseye (5.1 with no slips)
+      return achievementTrophy(id, { top: "#bfe0d1", bot: "#255440", rim: "#f3d27a", base: "#255440", handle: "#4b8b6c", emblem:
+        `<circle cx="40" cy="28" r="10.5" fill="none" stroke="#f3d27a" stroke-width="1.6" opacity="0.85"/>
+           <circle cx="40" cy="28" r="6.6" fill="none" stroke="#f3d27a" stroke-width="1.3" opacity="0.6"/>
+           <rect x="36" y="22" width="11" height="12" rx="1.4" fill="#fffdf3" stroke="#1c4433" stroke-width="1.4"/>
+           <g stroke="#4b8b6c" stroke-width="1.1" stroke-linecap="round">
+             <line x1="38" y1="25.5" x2="45" y2="25.5"/><line x1="38" y1="28.5" x2="45" y2="28.5"/><line x1="38" y1="31.5" x2="42.5" y2="31.5"/></g>
+           <path d="M36 32.5 H34 A2.6 2.6 0 0 1 31.4 30 V26.5 A2.6 2.6 0 0 1 34 24 H36" fill="none" stroke="#1c4433" stroke-width="1.8" stroke-linecap="round"/>
+           <path d="M36.3 24 L32.8 22.3 L33 25.9 Z" fill="#1c4433"/>` });
     case "test-writer": // slate cup, the instruction page with its answered rows (4.1)
       return achievementTrophy(id, { top: "#cbd5c0", bot: "#4a5340", rim: "#333a2c", base: "#4a5340", handle: "#6b7660", emblem:
         `<rect x="31" y="18" width="18" height="22" rx="1.8" fill="#fffdf3" stroke="#333a2c" stroke-width="1.6"/>
