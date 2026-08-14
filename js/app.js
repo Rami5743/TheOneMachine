@@ -1909,6 +1909,8 @@
     // returns here, so leaving the workbench for the menu and coming back lands
     // on the workbench (with its contents), not the warehouse.
     resumeScreen: null,
+    // Where in the game the page that lies over it was opened from.
+    pageReturnAt: null,
     paceHintShown: false,
     paceDialog: false,
     infoDialog: null,
@@ -2128,6 +2130,8 @@
     programSavedIntroSeen: false,
     // Which saved program is being deleted, if the question has been asked.
     programDeleteConfirm: null,
+    // Whether the "save before you go?" question is up.
+    programLeaveConfirm: false,
     // Which saved program the page is EDITING, if it was opened from "התוכנות
     // שלי" rather than from a task.
     programEditId: null,
@@ -3363,6 +3367,7 @@
       programSavedDialog: false,
       programEditId: null,
       programDeleteConfirm: null,
+      programLeaveConfirm: false,
       programView: null,
       programViewSelection: null,
       assemblerHint: false,
@@ -3617,7 +3622,7 @@
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
       programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
-      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -3684,16 +3689,6 @@
     // and its workspace is thrown away on exit — so resuming to it would drop the
     // learner onto a blank Nand workbench instead of where they actually were.
     if (IN_GAME_SCREENS.includes(state.screen) && !state.cardCreation) state.resumeScreen = state.screen;
-    // A saved program being edited is kept up to date as it is written, not only
-    // on the way out: leaving by the topbar, or closing the browser mid-edit,
-    // must not throw the work away.
-    if (state.programEditId && Object.prototype.hasOwnProperty.call(patch, `programEdit_${state.programEditId}`)) {
-      const sheet = state[`programEdit_${state.programEditId}`] || {};
-      const id = String(state.programEditId);
-      state.savedPrograms = savedPrograms().map((entry) => String(entry.id) === id
-        ? { ...entry, bits: { ...(sheet.bits || {}) }, labels: { ...(sheet.labels || {}) }, texts: { ...(sheet.texts || {}) } }
-        : entry);
-    }
     // Track the furthest chapter reached (drives step-by-step chapter locking).
     // Every chapter change flows through setState, so replaying an earlier
     // chapter never lowers this — completed chapters stay unlocked.
@@ -3727,10 +3722,18 @@
   const IN_GAME_SCREENS = ["story", "workspace", "nandBuildHelp"];
   const OVERLAY_PAGES = ["about", "settings", "notReady", "myCards", "myPrograms", "achievements", "chapters"];
 
+  // Opening one of the pages that lie over the game remembers not only WHICH
+  // screen was left but WHERE in it — the chapter and the slide — so "חזרה
+  // למשחק" comes back to the place it was pressed from rather than to wherever
+  // the story happens to be pointing by then.
   function overlayReturnPatch() {
-    if (IN_GAME_SCREENS.includes(state.screen)) return { pageReturn: state.screen };
-    if (OVERLAY_PAGES.includes(state.screen)) return { pageReturn: state.pageReturn };
-    return { pageReturn: null };
+    if (IN_GAME_SCREENS.includes(state.screen)) {
+      return { pageReturn: state.screen, pageReturnAt: { chapterId: state.chapterId, panelIndex: state.panelIndex } };
+    }
+    if (OVERLAY_PAGES.includes(state.screen)) {
+      return { pageReturn: state.pageReturn, pageReturnAt: state.pageReturnAt || null };
+    }
+    return { pageReturn: null, pageReturnAt: null };
   }
 
   function pageBackButton() {
@@ -7908,6 +7911,22 @@
       </div>`;
   }
 
+  function renderProgramLeaveDialog() {
+    if (!state.programLeaveConfirm) return "";
+    const entry = programEditEntry();
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="יציאה מהעריכה">
+          <p>אתה רוצה לשמור את התוכנה${entry ? ` "${esc(entry.name)}"` : ""} לפני שאתה יוצא?</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-leave-save" type="button">שמירה ויציאה</button>
+            <button class="btn" data-action="program-leave-discard" type="button">יציאה בלי לשמור</button>
+            <button class="btn" data-action="program-leave-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderProgramLoadDialog() {
     if (!state.programLoadDialog) return "";
     const list = savedPrograms();
@@ -7978,32 +7997,58 @@
     const entry = savedPrograms().find((one) => String(one.id) === String(id));
     if (!entry) return;
     clearAssemblerHintTimer();
+    // Work left unsaved when the editor was walked out of by the topbar is still
+    // here: it is picked up where it was left rather than thrown away.
+    const working = state[`programEdit_${entry.id}`];
+    const sheet = working && typeof working === "object" ? working : {
+      scratch: {},
+      bits: { ...(entry.bits || {}) },
+      labels: { ...(entry.labels || {}) },
+      texts: { ...(entry.texts || {}) }
+    };
     return setState({
       programEditId: entry.id,
       programTaskId: null,
-      [`programEdit_${entry.id}`]: {
-        scratch: {},
-        bits: { ...(entry.bits || {}) },
-        labels: { ...(entry.labels || {}) },
-        texts: { ...(entry.texts || {}) }
-      },
+      [`programEdit_${entry.id}`]: sheet,
       programPanels: { ...programPanelsState(), task: false, tip: false, alu: false, memory: false, guide: false, pos: {} },
       assemblerHint: false,
       programDialog: {}
     });
   }
 
-  // Leaving writes the page back into the saved program — nothing has to be
-  // "saved" a second time, the way a card being edited is kept on any way out.
-  function leaveProgramEditor() {
+  // Has the page been changed since the program was last saved?
+  function programEditDirty() {
+    const entry = programEditEntry();
+    if (!entry) return false;
+    const now = programToSave();
+    const same = (a, b) => {
+      const one = a || {};
+      const two = b || {};
+      const keys = new Set([...Object.keys(one), ...Object.keys(two)]);
+      for (const key of keys) if (String(one[key] ?? "") !== String(two[key] ?? "")) return false;
+      return true;
+    };
+    return !(same(now.bits, entry.bits) && same(now.labels, entry.labels) && same(now.texts, entry.texts));
+  }
+
+  // Leaving with the page changed asks first; leaving a program that is already
+  // as it was saved just goes.
+  function leaveProgramEditor(save) {
     const id = state.programEditId;
     if (!id) return;
+    if (save === undefined && programEditDirty()) {
+      return setState({ programLeaveConfirm: true });
+    }
     const kept = programToSave();
     clearAssemblerHintTimer();
     clearProgramTestTimers();
     return setState({
-      savedPrograms: savedPrograms().map((entry) =>
+      savedPrograms: save === false ? savedPrograms() : savedPrograms().map((entry) =>
         String(entry.id) === String(id) ? { ...entry, ...kept } : entry),
+      // The working copy goes either way: next time the editor opens on the
+      // saved program, whether that is what was just written or what was kept.
+      [`programEdit_${id}`]: null,
+      programLeaveConfirm: false,
       programEditId: null,
       programDialog: null,
       programAssembler: null,
@@ -9900,6 +9945,7 @@
         ${renderProgramClearDialog()}
         ${renderProgramSaveDialog()}
         ${renderProgramLoadDialog()}
+        ${renderProgramLeaveDialog()}
         ${renderProgramSaveIntro()}
         ${renderProgramSavedDialog()}
       </div>`;
@@ -28146,8 +28192,13 @@
     if (action === "settings") return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "settings" });
     if (action === "open-not-ready") return setState({ ...transientUiClearPatch(), ...overlayReturnPatch(), screen: "notReady" });
     if (action === "page-back") {
-      const target = IN_GAME_SCREENS.includes(state.pageReturn) ? state.pageReturn : "menu";
-      return setState({ ...transientUiClearPatch(), pageReturn: null, screen: target });
+      const backToGame = IN_GAME_SCREENS.includes(state.pageReturn);
+      const target = backToGame ? state.pageReturn : "menu";
+      const at = backToGame && state.pageReturnAt && chapterById(state.pageReturnAt.chapterId)
+        ? { chapterId: state.pageReturnAt.chapterId, sceneId: chapterById(state.pageReturnAt.chapterId).sceneId,
+            panelIndex: state.pageReturnAt.panelIndex }
+        : {};
+      return setState({ ...transientUiClearPatch(), ...at, pageReturn: null, pageReturnAt: null, screen: target });
     }
     if (action === "pace-dialog-ok") return setState({ paceDialog: false });
     if (action === "info-dialog-ok") return setState({ infoDialog: null });
@@ -28494,6 +28545,9 @@
     }
     if (action === "program-saved-ok") return setState({ programSavedDialog: false });
     if (action === "program-edit-leave") return leaveProgramEditor();
+    if (action === "program-leave-save") return leaveProgramEditor(true);
+    if (action === "program-leave-discard") return leaveProgramEditor(false);
+    if (action === "program-leave-cancel") return setState({ programLeaveConfirm: false });
     if (action === "my-program-edit") return openProgramEditor(button.dataset.programId);
     if (action === "my-program-save-file") return downloadProgramFile(button.dataset.programId);
     if (action === "my-programs-load") { app.querySelector("[data-program-file-input]")?.click(); return; }
