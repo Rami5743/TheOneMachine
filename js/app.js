@@ -7674,7 +7674,9 @@
       : (whole ? changeMark()
         : (part >= 0 && parts[part]
           ? { row: open.step, from: parts[part].from, to: parts[part].to }
-          : { row: open.step, from: 1, to: 16 }));
+          : (at?.field === "label"
+            ? { row: open.step, label: true }
+            : { row: open.step, from: 1, to: 16 })));
     const say = finished ? (solution.close || "")
       : (part >= 0 && parts[part] ? parts[part].text : (at?.text || ""));
     return { solution, steps, finished, bits, labels, texts, mark, say, part, parts, at };
@@ -8872,7 +8874,8 @@
     let pc = 0;
     let steps = 0;
     while (steps < cycles) {
-      if (pc < 0 || pc >= total || programRowEmpty(pc)) return { ranOff: true, steps, pc, out, machine };
+      if (pc < 0 || pc >= total) return { ranOff: true, offEnd: true, steps, pc, out, machine };
+      if (programRowEmpty(pc)) return { ranOff: true, emptyRow: true, steps, pc, out, machine };
       const word = programWord(pc);
       if (!word) return { ranOff: true, steps, pc, incomplete: true, out, machine };
       const step = programExecuteRow(machine, pc);
@@ -9124,16 +9127,19 @@
       const outcome = programRunWithJumps(cycles, { in0, in1, out0: start });
       const base = { input: in0, in1, want, got: null, steps: outcome.steps, trace: [] };
       if (outcome.error) { runs.push({ ...base, ok: false, badRow: outcome.row }); break; }
-      if (outcome.ranOff) {
+      // A half-written instruction, or a jump to an address that is not on the
+      // page at all, is a fall. Reaching an EMPTY instruction is not: that is
+      // how a program ends here — it walks off the end of what was written.
+      if (outcome.incomplete || outcome.offEnd) {
         runs.push({ ...base, ok: false, ranOff: true, incomplete: Boolean(outcome.incomplete), stoppedAt: outcome.pc });
         break;
       }
       const out = outcome.out || [];
       const last = out.length ? out[out.length - 1] : start;
-      // Settled? The last stretch of beats all showed the same number, so the
-      // machine is going round doing nothing — which is how a program ends here.
+      // Ended? Either it ran out of instructions, or the last stretch of beats
+      // all showed the same number and it is going round doing nothing.
       const tail = out.slice(-Math.max(20, Math.round(cycles / 40)));
-      const settled = tail.length > 0 && tail.every((value) => value === last);
+      const settled = Boolean(outcome.emptyRow) || (tail.length > 0 && tail.every((value) => value === last));
       const got = programSigned(last);
       const seen = [];
       out.forEach((value) => { if (!seen.length || seen[seen.length - 1] !== value) seen.push(value); });
