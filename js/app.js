@@ -2131,6 +2131,10 @@
     // Which saved program the page is EDITING, if it was opened from "התוכנות
     // שלי" rather than from a task.
     programEditId: null,
+    // The saved program shown beside the page in its own window: { id }, and the
+    // mark made inside it, which is kept apart from the page's own.
+    programView: null,
+    programViewSelection: null,
     // Whether each of the two tasks has ever passed its test.
     programTaskDone: false,
     programHelperDone: false,
@@ -3359,6 +3363,8 @@
       programSavedDialog: false,
       programEditId: null,
       programDeleteConfirm: null,
+      programView: null,
+      programViewSelection: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3611,7 +3617,7 @@
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
       programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
-      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6933,7 +6939,16 @@
     return Boolean(demoProgramTask() || state.programEditId);
   }
 
+  // While the "טעינת תוכנה" window is being drawn, the very same table renderer
+  // is pointed at the SAVED program instead of the page: same line numbers, same
+  // תגיות column, same assembler row over the instructions.
+  let programViewRender = null;
+
   function programSheetProgress() {
+    if (programViewRender) {
+      return { labels: programViewRender.labels, texts: programViewRender.texts,
+        bits: programViewRender.bits, scratch: {} };
+    }
     const saved = state[programSheetKey()] && typeof state[programSheetKey()] === "object"
       ? state[programSheetKey()] : {};
     return {
@@ -7052,6 +7067,18 @@
       win.style.top = `${Math.max(ceiling, Math.round(y))}px`;
       y -= 8;
     });
+    // The window a saved program is shown in opens in the middle of the paper,
+    // clear of the stack down the left edge. It drags like the rest.
+    const view = byName("programView");
+    if (view && !saved.programView) {
+      const body = view.querySelector(".sheet-guide-body");
+      if (body) body.style.maxHeight = `${Math.max(140, Math.round((area.bottom - area.top) - 2 * PAD - 44))}px`;
+      const rect = view.getBoundingClientRect();
+      view.style.right = "auto";
+      view.style.bottom = "auto";
+      view.style.left = `${Math.round(Math.max(area.left + PAD, area.left + (area.right - area.left - rect.width) / 2))}px`;
+      view.style.top = `${Math.round(area.top + PAD)}px`;
+    }
     // The assembler stands on the paper just to the right of the ALU table.
     const alu = byName("alu");
     const figure = app.querySelector(".assembler");
@@ -7932,20 +7959,16 @@
     });
   }
 
+  // Loading a program does NOT write over the page: it opens the program beside
+  // it, in a window of its own, so instructions can be marked there and copied
+  // across — the whole of it, or the piece that is wanted.
   function loadSavedProgram(id) {
     const entry = savedPrograms().find((one) => String(one.id) === String(id));
     if (!entry) return;
     return setState({
-      [programSheetKey()]: {
-        scratch: {},
-        bits: { ...(entry.bits || {}) },
-        labels: { ...(entry.labels || {}) },
-        texts: { ...(entry.texts || {}) }
-      },
-      programLoadDialog: false,
-      programSelection: null,
-      programManualTest: null,
-      sheetScratchCell: null
+      programView: { id: entry.id },
+      programViewSelection: null,
+      programLoadDialog: false
     });
   }
 
@@ -8263,6 +8286,7 @@
   }
 
   function programInstructionCount() {
+    if (programViewRender) return programViewRender.rows;
     const fit = Math.ceil(window.innerHeight / (programSquareSize() * 2));
     return Math.max(PROGRAM_INSTRUCTIONS_MIN, fit + PROGRAM_INSTRUCTIONS_SLACK) + programGrownInstructions;
   }
@@ -9404,6 +9428,21 @@
   }
 
   function programCopySelection() {
+    // A mark inside the window a saved program is shown in copies from THAT
+    // program: the whole point of the window is taking instructions out of it.
+    const viewing = programViewEntry();
+    if (viewing && state.programViewSelection) {
+      return withProgramView(viewing, () => {
+        const keepSel = state.programSelection;
+        const keepView = state.programViewSelection;
+        state.programSelection = keepView;
+        // Cleared while the copy runs, so this same function does not send
+        // itself back round here.
+        state.programViewSelection = null;
+        try { programCopySelection(); }
+        finally { state.programSelection = keepSel; state.programViewSelection = keepView; }
+      });
+    }
     const box = programSelectionBox();
     if (!box) return;
     const rows = [];
@@ -9493,8 +9532,18 @@
 
   // The right-button menu on the page: what can be done with the mark right now.
   function programContextItems() {
-    const hasMark = Boolean(state.programSelection || state.programTableSelection);
+    const inView = Boolean(state.programViewSelection);
+    const hasMark = Boolean(state.programSelection || state.programTableSelection || inView);
     const canPaste = Boolean(programClipboard && programClipboard.length && state.programSelection);
+    if (inView) {
+      // Reading from the window, not writing to it.
+      return [
+        { action: "program-menu-copy", label: "העתק", enabled: true },
+        { action: "program-menu-cut", label: "גזור", enabled: false },
+        { action: "program-menu-paste", label: "הדבק", enabled: false },
+        { action: "program-menu-delete", label: "מחק", enabled: false }
+      ];
+    }
     return [
       { action: "program-menu-copy", label: "העתק", enabled: hasMark },
       { action: "program-menu-cut", label: "גזור", enabled: Boolean(state.programSelection) },
@@ -9514,13 +9563,28 @@
   }
 
   function renderProgramSelection() {
-    const box = programSelectionBox();
+    const box = programViewRender ? programViewSelectionBox() : programSelectionBox();
     if (!box) return "";
     return `<div class="prog-selection" aria-hidden="true" style="grid-column:${box.c1} / span ${box.c2 - box.c1 + 1};grid-row:${box.r1} / span ${box.r2 - box.r1 + 1};"></div>`;
   }
 
-  function renderProgramSheet() {
-    if (!state.programDialog) return "";
+  // The mark inside the window a saved program is shown in. Its geometry is the
+  // page's — same squares, same snapping to whole assembler cells — only it is
+  // kept apart, so marking there does not unmark what is marked on the page.
+  function programViewSelectionBox(snap = true) {
+    const sel = state.programViewSelection;
+    if (!sel) return null;
+    const keep = state.programSelection;
+    state.programSelection = sel;
+    const box = programSelectionBox(snap);
+    state.programSelection = keep;
+    return box;
+  }
+
+  // The table itself — line numbers, the תגיות column, the assembler's row over
+  // each instruction and its sixteen squares — built once and used twice: for
+  // the page, and for the window a saved program is shown in.
+  function programSheetCells() {
     const cells = [];
     const bitColumn = sheetBitColumn;
     // A bit's column: bit 1 is the rightmost of the sixteen.
@@ -9556,8 +9620,8 @@
     // Two rows to an instruction: the assembler's row on top (three merged
     // cells — the calculation, the destination, the spare bits) and the sixteen
     // squares of the instruction itself underneath, which are what is written.
-    const menuRow = Number.isInteger(state.programDestMenu?.row) ? state.programDestMenu.row : null;
-    const jumpMenuRow = Number.isInteger(state.programJumpMenu?.row) ? state.programJumpMenu.row : null;
+    const menuRow = programViewRender || !Number.isInteger(state.programDestMenu?.row) ? null : state.programDestMenu.row;
+    const jumpMenuRow = programViewRender || !Number.isInteger(state.programJumpMenu?.row) ? null : state.programJumpMenu.row;
     for (let row = 0; row < instructions; row += 1) {
       const top = 2 + row * 2;
       const bottom = top + 1;
@@ -9566,14 +9630,14 @@
       if (jumpsInPlay) {
         const label = labels[row] || "";
         // While a solution is up the page is read-only, tags included.
-        const locked = programSolutionWalk() ? " readonly" : "";
+        const locked = (programSolutionWalk() || programViewRender) ? " readonly" : "";
         cells.push(`<div class="prog-label" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${top} / span 2;"><input class="prog-label-input" type="text"${locked} data-program-label="${row}" value="${esc(label)}" style="--label-size:${programLabelFontSize(label)}" aria-label="תגית לפקודה ${row + 1}" /></div>`);
       }
       if (programNumberOpen(row)) {
         // Bit 1 is written: its own cell stays inert, and the eleven beside it
         // become the box the number is typed into.
         cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(1)};grid-row:${top};" aria-hidden="true"></div>`);
-        const editing = Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
+        const editing = !programViewRender && Number.isInteger(state.programNumberEdit?.row) && state.programNumberEdit.row === row;
         // A number written from a label shows the LABEL: that is what the
         // learner wrote, and it is what follows the line when it moves.
         const written = programShownTexts()[row];
@@ -9586,13 +9650,13 @@
         // stands for (and hold the four bits that mean nothing here), and the six
         // over the calculation open its chooser.
         cells.push(`<div class="prog-slot prog-slot-alu" style="grid-column:${columnOf(1)};grid-row:${top};" aria-hidden="true"></div>`);
-        const inputMenu = state.programInputMenu?.row === row
+        const inputMenu = !programViewRender && state.programInputMenu?.row === row
           ? `<ul class="prog-dest-menu prog-input-menu" role="menu">${PROGRAM_INPUTS.map((option) =>
               `<li><button class="prog-dest-option" data-action="program-input-pick" data-row="${row}" data-input="${esc(option.id)}" type="button" dir="ltr">${esc(option.label)}</button></li>`).join("")}</ul>`
           : "";
         cells.push(`<div class="prog-slot prog-slot-input" style="grid-column:${columnOf(6)} / span 5;grid-row:${top};"><button class="prog-slot-btn" data-action="program-input-open" data-row="${row}" type="button" dir="ltr" aria-label="הכניסות של פקודה ${row + 1}">${esc(programInputLabel(row))}</button>${inputMenu}</div>`);
         const label = programCalcLabel(row);
-        const calcMenu = state.programCalcMenu?.row === row
+        const calcMenu = !programViewRender && state.programCalcMenu?.row === row
           ? `<ul class="prog-dest-menu prog-calc-menu" role="menu">${programAluOperations().map((op) =>
               `<li><button class="prog-dest-option" data-action="program-calc-pick" data-row="${row}" data-op="${esc(op.op)}" type="button" dir="ltr">${esc(op.op)}</button></li>`).join("")}</ul>`
           : "";
@@ -9642,7 +9706,7 @@
     // While a solution is being walked, the instruction it is talking about is
     // marked across both its rows — or, when it is going through the fields of
     // an instruction, just the bits that field is written on.
-    const walkMark = programSolutionWalk()?.mark;
+    const walkMark = programViewRender ? null : programSolutionWalk()?.mark;
     if (walkMark && walkMark.label) {
       // A change made in the תגיות column is marked there, not among the bits.
       cells.push(`<div class="prog-solution-mark" aria-hidden="true" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${2 + walkMark.row * 2} / span 2;"></div>`);
@@ -9660,6 +9724,62 @@
       }
     }
     cells.push(renderProgramSelection());
+    return { cells, rows };
+  }
+
+  // ---- The window a saved program is shown in ------------------------------
+  // "טעינת תוכנה" does not overwrite the page: it opens the program beside it,
+  // drawn by the very same renderer — line numbers, tags, the assembler's row —
+  // so instructions can be marked there and copied across. The window drags by
+  // its head and closes with its button, like the page's other windows.
+  function programViewEntry() {
+    if (!state.programView) return null;
+    return savedPrograms().find((one) => String(one.id) === String(state.programView.id)) || null;
+  }
+
+  // How many instructions the window has to show: everything written, and one
+  // empty line under it so the table does not end flush against the last one.
+  function programViewRows(entry) {
+    const rows = Object.keys(entry.bits || {}).map((key) => Number(String(key).split(":")[0]));
+    Object.keys(entry.labels || {}).forEach((key) => rows.push(Number(key)));
+    const last = rows.filter(Number.isFinite).reduce((a, b) => Math.max(a, b), -1);
+    return Math.max(1, last + 2);
+  }
+
+  // Anything that reads the page — a mark, a copy — reads the WINDOW instead
+  // while this is running.
+  function withProgramView(entry, fn) {
+    const before = programViewRender;
+    programViewRender = {
+      bits: { ...(entry.bits || {}) },
+      labels: { ...(entry.labels || {}) },
+      texts: { ...(entry.texts || {}) },
+      rows: programViewRows(entry)
+    };
+    try { return fn(); } finally { programViewRender = before; }
+  }
+
+  function renderProgramViewWindow() {
+    const entry = programViewEntry();
+    if (!entry) return "";
+    const { cells, rows } = withProgramView(entry, programSheetCells);
+    const at = (programPanelsState().pos || {}).programView;
+    const style = at ? ` style="left:${Math.round(at.left)}px;top:${Math.round(at.top)}px;"` : "";
+    return `
+      <section class="sheet-guide prog-view-window" data-prog-window="programView" aria-label="${esc(entry.name)}"${style}>
+        <div class="sheet-guide-head">
+          <span class="sheet-guide-title">${esc(entry.name)}</span>
+          <button class="sheet-guide-toggle" data-action="program-view-close" type="button">סגירה</button>
+        </div>
+        <div class="sheet-guide-body prog-view-body">
+          <div class="sheet-paper prog-view-paper" data-prog-view style="--rows:${rows};">${cells.join("")}</div>
+        </div>
+      </section>`;
+  }
+
+  function renderProgramSheet() {
+    if (!state.programDialog) return "";
+    const { cells, rows } = programSheetCells();
     return `
       <div class="sheet-overlay sheet-overlay-prog" role="presentation">
         <section class="sheet-card" role="dialog" aria-modal="true" aria-label="דף התוכנה">
@@ -9687,6 +9807,7 @@
         ${renderProgramMemoryWindow()}
         ${renderProgramGuideWindow()}
         ${renderProgramTipWindow()}
+        ${renderProgramViewWindow()}
         ${renderAssembler()}
         ${renderAssemblerTeaser()}
         ${renderProgramContextMenu()}
@@ -27250,7 +27371,10 @@
     // Text and buttons belong to themselves.
     // The ALU table's own squares are marked by dragging across them, so a drag
     // there must never carry the window off with it.
-    if (target.closest("button, a, input, .prog-alu-table, .prog-run-table, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
+    // The paper inside the window a saved program is shown in is marked by
+    // dragging across it, the same way the page is — it must not carry the
+    // window off. The window's head is its handle.
+    if (target.closest("button, a, input, [data-prog-view], .prog-alu-table, .prog-run-table, .sheet-guide-text, .sheet-guide-title, .sheet-guide-page-title, .sheet-guide-count")) return null;
     return win;
   }
 
@@ -27369,15 +27493,20 @@
   // moves is left alone — it is a click on whatever is under it.
   document.addEventListener("mousedown", (event) => {
     if (!state.programDialog || event.button !== 0) return;
-    if (event.target.closest(".prog-dest-menu, .prog-number-input, .prog-label, .sheet-actions, .sheet-guide, .assembler")) return;
+    if (event.target.closest(".prog-dest-menu, .prog-number-input, .prog-label, .sheet-actions, .assembler")) return;
+    // The window a saved program is shown in is dragged out on just the same
+    // way — it is a paper too. Its head is the handle, so a press there moves
+    // the window instead.
+    const inView = event.target.closest("[data-prog-view]");
+    if (!inView && event.target.closest(".sheet-guide")) return;
     // Whatever the browser had selected, drop it: the only mark on this page is
     // the one the learner drags out, and a stray blue highlight only confuses it.
     try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
-    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    const paper = inView || app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
     if (!paper || !paper.contains(event.target)) return;
     const at = sheetSquareAt(paper, event.clientX, event.clientY);
     if (!at) return;
-    programDragSelect = { anchor: at, x: event.clientX, y: event.clientY, moved: false };
+    programDragSelect = { anchor: at, x: event.clientX, y: event.clientY, moved: false, view: Boolean(inView) };
   });
 
   document.addEventListener("mousemove", (event) => {
@@ -27387,7 +27516,9 @@
       if (far < 6) return;
       programDragSelect.moved = true;
     }
-    const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+    const inView = programDragSelect.view;
+    const paper = inView ? app.querySelector("[data-prog-view]")
+      : app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
     if (!paper) return;
     const at = sheetSquareAt(paper, event.clientX, event.clientY);
     if (!at) return;
@@ -27398,9 +27529,13 @@
       ? programLineBox(anchor.row, at.row)
       : { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
     if (!box) return;
-    const now = state.programSelection;
+    const field = inView ? "programViewSelection" : "programSelection";
+    const now = state[field];
     if (now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2) return;
-    setState({ programSelection: box, programTableSelection: null, sheetScratchCell: null });
+    // Only one mark at a time, whichever paper it is on.
+    setState(inView
+      ? { programViewSelection: box, programSelection: null, programTableSelection: null, sheetScratchCell: null }
+      : { programSelection: box, programViewSelection: null, programTableSelection: null, sheetScratchCell: null });
   });
 
   document.addEventListener("mouseup", () => {
@@ -27453,7 +27588,7 @@
       else if (event.key === "Escape") { event.preventDefault(); }
       return;
     }
-    if (!state.programSelection && !state.programTableSelection && !programClipboard) return;
+    if (!state.programSelection && !state.programViewSelection && !state.programTableSelection && !programClipboard) return;
     if (event.target.closest && event.target.closest("input, textarea")) return;
     const meta = event.ctrlKey || event.metaKey;
     // Which PHYSICAL key was pressed, not which letter it produces: on a Hebrew
@@ -27474,6 +27609,9 @@
       event.preventDefault();
       if (state.programTableSelection) return programCopyTableSelection();
       programCopySelection();
+      // Nothing is cut OUT of the window: what it shows is a saved program, and
+      // it is there to be read from.
+      if (state.programViewSelection) return;
       return programClearSelection();
     }
     // The old pair, which some keyboards and habits still use.
@@ -27487,11 +27625,12 @@
     }
     if (event.key === "Delete" || event.key === "Backspace") {
       event.preventDefault();
+      if (state.programViewSelection) return;
       return programClearSelection();
     }
     if (event.key === "Escape") {
       event.preventDefault();
-      return setState({ programSelection: null, programTableSelection: null, programContextMenu: null });
+      return setState({ programSelection: null, programViewSelection: null, programTableSelection: null, programContextMenu: null });
     }
   }, true);
 
@@ -27622,8 +27761,10 @@
     // just the mark, so a paste from the keyboard afterwards lands right there.
     // Nothing is UNmarked by a click; Escape and the next mark do that.
     if (state.programDialog
-        && !event.target.closest(".sheet-actions, .prog-context-menu, .prog-alu-bit, .prog-label, .sheet-guide, .assembler")) {
-      const paper = app.querySelector(".sheet-overlay-prog .sheet-paper");
+        && !event.target.closest(".sheet-actions, .prog-context-menu, .prog-alu-bit, .prog-label, .assembler")
+        && (event.target.closest("[data-prog-view]") || !event.target.closest(".sheet-guide"))) {
+      const inView = event.target.closest("[data-prog-view]");
+      const paper = inView || app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
       const at = paper && paper.contains(event.target)
         ? sheetSquareAt(paper, event.clientX, event.clientY) : null;
       if (at) {
@@ -27631,10 +27772,12 @@
         const box = PROGRAM_LINE_COLUMNS.includes(at.col)
           ? programLineBox(at.row, at.row)
           : { r1: at.row, c1: at.col, r2: at.row, c2: at.col };
-        const now = state.programSelection;
+        const field = inView ? "programViewSelection" : "programSelection";
+        const now = state[field];
         const same = box && now && now.r1 === box.r1 && now.c1 === box.c1 && now.r2 === box.r2 && now.c2 === box.c2;
         if (box && !same) {
-          state.programSelection = box;
+          state[field] = box;
+          state[inView ? "programSelection" : "programViewSelection"] = null;
           state.programTableSelection = null;
           window.setTimeout(render, 0);
         }
@@ -28260,6 +28403,7 @@
     if (action === "program-load-open") return setState({ programLoadDialog: true });
     if (action === "program-load-close") return setState({ programLoadDialog: false });
     if (action === "program-load-pick") return loadSavedProgram(button.dataset.programId);
+    if (action === "program-view-close") return setState({ programView: null, programViewSelection: null });
     if (action === "program-load-delete") {
       const id = String(button.dataset.programId);
       return setState({ savedPrograms: savedPrograms().filter((entry) => String(entry.id) !== id) });

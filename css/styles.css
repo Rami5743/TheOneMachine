@@ -6447,3 +6447,40 @@ object.panel-image.is-pending {
   color: #2a2118;
   border-color: #f3d488;
 }
+
+/* ---- The window a saved program is shown in ------------------------------
+   "טעינת תוכנה" opens the program beside the page rather than over it, drawn by
+   the page's own table renderer. Nothing in it is written to: its squares are
+   there to be marked and copied, so every control inside is inert and the paper
+   itself takes the press. */
+.prog-view-window {
+  /* Wide enough for the whole table: sixteen bits, the two line-number squares
+     and the four of the תגיות column, plus the window's own padding. */
+  width: min(calc(22 * var(--sq, 26px) + 46px), 92vw);
+  max-width: 92vw;
+}
+
+.prog-view-body {
+  overflow: auto;
+  padding: 10px 12px 12px;
+}
+
+.prog-view-paper {
+  cursor: cell;
+  /* Only the columns the table uses — the free paper beside it is the page's,
+     not this window's. */
+  grid-template-columns: repeat(22, var(--sq));
+  width: calc(22 * var(--sq));
+  min-width: calc(22 * var(--sq));
+  box-shadow: none;
+}
+
+.prog-view-paper button,
+.prog-view-paper input,
+.prog-view-paper .prog-slot-btn {
+  pointer-events: none;
+}
+
+.prog-view-paper .prog-label-input {
+  cursor: cell;
+}
