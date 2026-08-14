@@ -2126,6 +2126,11 @@
     // for, and where to find it again. Shown once.
     programSavedDialog: false,
     programSavedIntroSeen: false,
+    // Which saved program is being deleted, if the question has been asked.
+    programDeleteConfirm: null,
+    // Which saved program the page is EDITING, if it was opened from "התוכנות
+    // שלי" rather than from a task.
+    programEditId: null,
     // Whether each of the two tasks has ever passed its test.
     programTaskDone: false,
     programHelperDone: false,
@@ -3352,6 +3357,8 @@
       programSaveDialog: null,
       programLoadDialog: false,
       programSavedDialog: false,
+      programEditId: null,
+      programDeleteConfirm: null,
       assemblerHint: false,
       assemblerInfo: false,
       buildNoteList: false,
@@ -3604,7 +3611,7 @@
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
       programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
-      programSavedDialog: false, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -3671,6 +3678,16 @@
     // and its workspace is thrown away on exit — so resuming to it would drop the
     // learner onto a blank Nand workbench instead of where they actually were.
     if (IN_GAME_SCREENS.includes(state.screen) && !state.cardCreation) state.resumeScreen = state.screen;
+    // A saved program being edited is kept up to date as it is written, not only
+    // on the way out: leaving by the topbar, or closing the browser mid-edit,
+    // must not throw the work away.
+    if (state.programEditId && Object.prototype.hasOwnProperty.call(patch, `programEdit_${state.programEditId}`)) {
+      const sheet = state[`programEdit_${state.programEditId}`] || {};
+      const id = String(state.programEditId);
+      state.savedPrograms = savedPrograms().map((entry) => String(entry.id) === id
+        ? { ...entry, bits: { ...(sheet.bits || {}) }, labels: { ...(sheet.labels || {}) }, texts: { ...(sheet.texts || {}) } }
+        : entry);
+    }
     // Track the furthest chapter reached (drives step-by-step chapter locking).
     // Every chapter change flows through setState, so replaying an earlier
     // chapter never lowers this — completed chapters stay unlocked.
@@ -5893,7 +5910,7 @@
   function renderMyPrograms() {
     const programs = savedPrograms();
     const list = programs.length === 0
-      ? `<p class="my-cards-empty">עדיין לא שמרת תוכנות. אפשר לשמור תוכנה מתוך דף התכנות, בכפתור "שמירת תוכנה".</p>`
+      ? `<p class="my-cards-empty">עדיין לא שמרת תוכנות. אפשר לכתוב תוכנה חדשה או לטעון תוכנה מהמחשב.</p>`
       : `<ul class="my-cards-list">
           ${programs.map((entry) => `
             <li class="my-cards-item">
@@ -5902,6 +5919,8 @@
                 <span class="my-card-io">${programLengthOf(entry)} פקודות</span>
               </span>
               <span class="my-card-actions">
+                <button class="btn labeled-btn" data-action="my-program-edit" data-program-id="${esc(entry.id)}" type="button">${navIcon("pencil")}<span class="btn-label">עריכה</span></button>
+                <button class="btn labeled-btn" data-action="my-program-save-file" data-program-id="${esc(entry.id)}" type="button">${navIcon("download")}<span class="btn-label">שמירה למחשב</span></button>
                 <button class="btn labeled-btn my-card-delete-btn" data-action="my-program-delete" data-program-id="${esc(entry.id)}" type="button">${navIcon("trash")}<span class="btn-label">מחיקה</span></button>
               </span>
             </li>`).join("")}
@@ -5911,12 +5930,107 @@
       <main class="screen my-cards-screen">
         <section class="my-cards-card">
           <h1>התוכנות שלי</h1>
-          <p class="my-programs-lead">תוכנה שמורה נטענת חזרה מתוך דף התכנות, בכפתור "טעינת תוכנה".</p>
+          <p class="my-programs-lead">תוכנה שמורה נטענת גם מתוך דף התכנות, בכפתור "טעינת תוכנה".</p>
+          <div class="my-cards-toolbar">
+            <button class="btn btn-primary labeled-btn" data-action="my-programs-new" type="button">${navIcon("plus")}<span class="btn-label">תוכנה חדשה</span></button>
+            <button class="btn labeled-btn" data-action="my-programs-load" type="button">${navIcon("upload")}<span class="btn-label">טעינה מהמחשב</span></button>
+          </div>
           ${list}
           <div class="my-cards-back">${pageBackButton()}</div>
         </section>
       </main>
-      ${renderInfoDialog()}`;
+      <input type="file" data-program-file-input accept="application/json,.json" hidden />
+      ${renderInfoDialog()}
+      ${renderProgramDeleteDialog()}
+      ${renderProgramSheet()}`;
+  }
+
+  function renderProgramDeleteDialog() {
+    const id = state.programDeleteConfirm;
+    if (!id) return "";
+    const entry = savedPrograms().find((one) => String(one.id) === String(id));
+    if (!entry) return "";
+    return `
+      <div class="pace-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="מחיקת תוכנה">
+          <p>למחוק את "${esc(entry.name)}"?</p>
+          <p class="my-card-delete-warn">הפעולה בלתי הפיכה.</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-delete-confirm" type="button">מחיקה</button>
+            <button class="btn" data-action="program-delete-cancel" type="button">ביטול</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
+  // A new program is the same editor on an empty page, kept the moment it is
+  // made so it has a place to live.
+  function openNewProgram() {
+    const name = (() => {
+      const taken = new Set(savedPrograms().map((entry) => String(entry.name).trim()));
+      if (!taken.has("תוכנה חדשה")) return "תוכנה חדשה";
+      for (let n = 2; n < 999; n += 1) if (!taken.has(`תוכנה חדשה ${n}`)) return `תוכנה חדשה ${n}`;
+      return "תוכנה חדשה";
+    })();
+    const entry = { id: `prg-${nextProgramSaveId()}`, name, bits: {}, labels: {}, texts: {} };
+    setState({ savedPrograms: [entry, ...savedPrograms()] }, false);
+    return openProgramEditor(entry.id);
+  }
+
+  // A program on the hard disk is one JSON file, the same shape a card file has.
+  function programBundleFor(id) {
+    const entry = savedPrograms().find((one) => String(one.id) === String(id));
+    if (!entry) return null;
+    return {
+      format: "theonemachine-program",
+      version: 1,
+      programs: [{ name: entry.name, bits: entry.bits || {}, labels: entry.labels || {}, texts: entry.texts || {} }]
+    };
+  }
+
+  function downloadProgramFile(id) {
+    const bundle = programBundleFor(id);
+    if (!bundle) return;
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const safe = String(bundle.programs[0].name).trim().replace(/[^\w\u0590-\u05ff -]/g, "").replace(/\s+/g, "_") || "program";
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  // Reading one back. Names are kept apart from what is already here, so a file
+  // brought in twice does not quietly replace the first copy.
+  function importProgramBundle(data) {
+    if (!data || data.format !== "theonemachine-program" || !Array.isArray(data.programs) || !data.programs.length) {
+      return "הקובץ אינו קובץ תוכנה תקין.";
+    }
+    const taken = new Set(savedPrograms().map((entry) => String(entry.name).trim()));
+    let nextId = nextProgramSaveId();
+    const brought = [];
+    for (const one of data.programs) {
+      if (!one || typeof one !== "object" || !one.bits || typeof one.bits !== "object") {
+        return "הקובץ אינו קובץ תוכנה תקין.";
+      }
+      const base = String(one.name || "תוכנה").trim() || "תוכנה";
+      let name = base;
+      for (let n = 2; taken.has(name); n += 1) name = `${base} ${n}`;
+      taken.add(name);
+      brought.push({
+        id: `prg-${nextId}`,
+        name,
+        bits: { ...one.bits },
+        labels: (one.labels && typeof one.labels === "object") ? { ...one.labels } : {},
+        texts: (one.texts && typeof one.texts === "object") ? { ...one.texts } : {}
+      });
+      nextId += 1;
+    }
+    setState({ savedPrograms: [...brought, ...savedPrograms()] });
+    return null;
   }
 
   function renderCardDeleteDialog() {
@@ -6612,7 +6726,7 @@
   };
   function instructionGuidePages() {
     const pages = typeof INSTRUCTION_GUIDE !== "undefined" ? INSTRUCTION_GUIDE : [];
-    if (!demoProgramTask() || !pages.length) return pages;
+    if (!programJumpsInPlay() || !pages.length) return pages;
     const first = pages[0];
     const groups = (first.groups || []).map((g) =>
       (g.from === 15 && g.to === 16) ? INSTRUCTION_GUIDE_JUMP_GROUP : g);
@@ -6790,6 +6904,10 @@
   // (normalizeLoadedState spreads the loaded state, so a new key persists).
   function programSheetKey() {
     if (programHelperOpen()) return "programHelperSheet";
+    // A saved program being edited writes to its own scratch sheet; it is copied
+    // in when the editor opens and written back to the saved program on the way
+    // out, the same way a card being edited is.
+    if (state.programEditId) return `programEdit_${state.programEditId}`;
     if (state.programTaskId) return `programSheet_${state.programTaskId}`;
     return "programSheet";
   }
@@ -6799,6 +6917,20 @@
     if (!state.programTaskId) return null;
     return (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : [])
       .find((t) => t.id === state.programTaskId) || null;
+  }
+
+  // The saved program the page is showing, when it was opened from "התוכנות
+  // שלי" to be edited rather than from a task.
+  function programEditEntry() {
+    if (!state.programEditId) return null;
+    return savedPrograms().find((entry) => String(entry.id) === String(state.programEditId)) || null;
+  }
+
+  // Jumps, the תגיות column beside the table and the chooser over the last two
+  // bits belong to 5.1 onwards — a task of that chapter, or any program written
+  // on its own away from the tasks.
+  function programJumpsInPlay() {
+    return Boolean(demoProgramTask() || state.programEditId);
   }
 
   function programSheetProgress() {
@@ -6846,11 +6978,14 @@
       // 5.1's tasks are the other way round: the ALU table is not what they are
       // about, and the instruction's own structure — where the jump bits live —
       // is, so that one starts open and the ALU table starts away.
-      task: saved.task !== false,
-      tip: saved.tip !== false,
-      alu: demoProgramTask() ? saved.alu === true : saved.alu !== false,
-      memory: saved.memory !== false,
-      guide: demoProgramTask() ? saved.guide !== false : saved.guide === true,
+      // Editing a saved program, every window starts folded away: the page is
+      // what is wanted there, and the tables are a click from being back.
+      task: state.programEditId ? saved.task === true : saved.task !== false,
+      tip: state.programEditId ? saved.tip === true : saved.tip !== false,
+      alu: (state.programEditId || demoProgramTask()) ? saved.alu === true : saved.alu !== false,
+      memory: state.programEditId ? saved.memory === true : saved.memory !== false,
+      guide: state.programEditId ? saved.guide === true
+        : (demoProgramTask() ? saved.guide !== false : saved.guide === true),
       guidePage: Number.isInteger(saved.guidePage)
         ? Math.min(Math.max(saved.guidePage, 0), Math.max(pages.length - 1, 0))
         : 0,
@@ -7163,6 +7298,10 @@
   // fourth hint offers.
   function programTaskData() {
     if (programHelperOpen()) return typeof PROGRAM_HELPER_TASK !== "undefined" ? PROGRAM_HELPER_TASK : null;
+    // A saved program being edited answers to nobody: there is no task window,
+    // no machine check and no hints — just the page and what is written on it.
+    const edit = programEditEntry();
+    if (edit) return { title: edit.name, text: "", label: edit.name };
     const demo = demoProgramTask();
     if (demo) return demo;
     return typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null;
@@ -7177,6 +7316,9 @@
     if (programHelperOpen()) {
       return typeof PROGRAM_HELPER_HINTS !== "undefined" ? PROGRAM_HELPER_HINTS : [];
     }
+    // A saved program being edited answers to no task, so it has nothing to be
+    // hinted at.
+    if (state.programEditId) return [];
     // 5.1's demonstrations carry their hints on the task itself, beside their
     // requirements.
     const demo = demoProgramTask();
@@ -7214,6 +7356,7 @@
     if (programHelperOpen()) {
       return typeof PROGRAM_HELPER_SOLUTIONS !== "undefined" ? PROGRAM_HELPER_SOLUTIONS : [];
     }
+    if (state.programEditId) return [];
     // A demonstration walks its OWN solution or none at all — 4.3's walkthrough
     // is about a different program, and was being offered here.
     const demo = demoProgramTask();
@@ -7264,7 +7407,12 @@
     if (unlocked <= 0 && !hasSolution) return;
     const progress = programHintProgress();
     const top = hasSolution ? programHints().length : Math.max(unlocked - 1, 0);
-    const at = Number.isInteger(index) ? Math.min(Math.max(index, 0), top) : Math.min(progress.seen, top);
+    // Nothing unlocked yet and only the solution to show? Then the solution is
+    // what opens — landing on hint 1 showed its words with no "רמז 1" beside
+    // them to have been clicked.
+    const floor = unlocked > 0 ? 0 : top;
+    const wanted = Number.isInteger(index) ? index : progress.seen;
+    const at = Math.min(Math.max(wanted, floor), top);
     const seen = Math.max(progress.seen, Math.min(at + 1, unlocked));
     return setState({
       programHintOpen: { index: at },
@@ -7309,9 +7457,14 @@
     const hasSolution = programSolutionAvailable();
     // The solution is reached from the hints, like every other task in the game:
     // the last item in the list, and a button inside it.
-    const onSolution = hasSolution && open.index === hints.length;
+    // What is shown must be something the list offers: a hint past the unlocked
+    // ones has no button beside it, and reading it would be reading a hint that
+    // was never given.
+    const at = Math.min(Math.max(Number(open.index) || 0, unlocked > 0 ? 0 : (hasSolution ? hints.length : 0)),
+      hasSolution ? hints.length : Math.max(unlocked - 1, 0));
+    const onSolution = hasSolution && at === hints.length;
     const list = hints.slice(0, unlocked).map((hint, index) => `
-      <button class="hint-list-item ${index === open.index ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("")
+      <button class="hint-list-item ${index === at ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${index}" type="button">${esc(hint.title)}</button>`).join("")
       + (hasSolution ? `
       <button class="hint-list-item hint-solution-item ${onSolution ? "hint-list-item-active" : ""}" data-action="program-hint-select" data-hint-index="${hints.length}" type="button">פתרון</button>` : "");
     if (onSolution) {
@@ -7332,7 +7485,7 @@
           </section>
         </div>`;
     }
-    const raw = hints[open.index] || {};
+    const raw = hints[at] || {};
     // The one hint that does something rather than says something.
     const offer = raw.offerHelper
       ? `<div class="prog-hint-offer">
@@ -7341,7 +7494,7 @@
          </div>`
       : (raw.writes
         ? `<div class="prog-hint-offer">
-             <button class="btn btn-primary" data-action="program-hint-apply" data-hint-index="${open.index}" type="button">כן</button>
+             <button class="btn btn-primary" data-action="program-hint-apply" data-hint-index="${at}" type="button">כן</button>
              <button class="btn" data-action="program-hint-close" type="button">לא</button>
            </div>`
         : "");
@@ -7372,6 +7525,11 @@
     const solution = programSolutionSteps()[open.variant];
     if (!solution) return null;
     const steps = solution.steps || [];
+    // A solution that carries a `program` is not built up instruction by
+    // instruction: the whole of it stands on the page from the first word, and
+    // what is walked are the CHANGES from the solution before it — each marked
+    // where it is and explained on its own.
+    const whole = Array.isArray(solution.program) ? solution.program : null;
     const finished = open.step >= steps.length;
     const shown = finished ? steps.length : open.step + 1;
     const bits = {};
@@ -7381,22 +7539,33 @@
     // belong to, and neither touches what the learner wrote.
     const labels = {};
     const texts = {};
-    steps.slice(0, shown).forEach((entry, row) => {
+    const paint = (entry, row) => {
       String(entry.bits || "").split("").forEach((value, i) => {
         if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
       });
       if (entry.label) labels[row] = entry.label;
       if (entry.shows) texts[row] = entry.shows;
-    });
+    };
+    if (whole) whole.forEach(paint);
+    else steps.slice(0, shown).forEach(paint);
     const at = finished ? null : steps[open.step];
     const parts = Array.isArray(at?.parts) ? at.parts : [];
     const part = Number.isInteger(open.part) && open.part >= 0 ? Math.min(open.part, parts.length - 1) : -1;
-    // What is marked: the whole instruction, or the run of bits one of its
-    // fields is written on.
+    // What is marked: the change being explained (a tag, a field, a whole
+    // instruction), or — on a solution walked instruction by instruction — the
+    // instruction just written, or the run of bits one of its fields is on.
+    const changeMark = () => {
+      const row = Number.isInteger(at?.row) ? at.row : open.step;
+      if (at?.field === "label") return { row, label: true };
+      if (at?.field === "number") return { row, from: 2, to: 12 };
+      if (Number.isInteger(at?.from) && Number.isInteger(at?.to)) return { row, from: at.from, to: at.to };
+      return { row, from: 1, to: 16 };
+    };
     const mark = finished ? null
-      : (part >= 0 && parts[part]
-        ? { row: open.step, from: parts[part].from, to: parts[part].to }
-        : { row: open.step, from: 1, to: 16 });
+      : (whole ? changeMark()
+        : (part >= 0 && parts[part]
+          ? { row: open.step, from: parts[part].from, to: parts[part].to }
+          : { row: open.step, from: 1, to: 16 }));
     const say = finished ? (solution.close || "")
       : (part >= 0 && parts[part] ? parts[part].text : (at?.text || ""));
     return { solution, steps, finished, bits, labels, texts, mark, say, part, parts, at };
@@ -7474,8 +7643,10 @@
     const list = programSolutionSteps();
     const total = walk.steps.length;
     const shown = walk.finished ? total : open.step + 1;
+    // On to the next walkthrough: "המשך", like every other step — the card it
+    // opens announces its own name at the top.
     const more = walk.finished && open.variant + 1 < list.length
-      ? `<button class="btn btn-primary" data-action="program-solution-next-variant" type="button">${esc(list[open.variant + 1].title)}</button>`
+      ? navButton("program-solution-next-variant", "arrow-left", "המשך", { primary: true })
       : "";
     // The helper task's last word is also the way back.
     const back = walk.finished && programHelperOpen()
@@ -7509,9 +7680,8 @@
           <div class="solution-actions prog-solution-actions">
             ${navButton("program-solution-prev", "arrow-right", "הקודם", { disabled: programSolutionAtStart() })}
             <span class="sheet-guide-count" dir="ltr">${shown} / ${total}</span>
-            ${atFinalEnd ? "" : navButton("program-solution-next", "arrow-left", "המשך", { primary: true, disabled: walk.finished })}
+            ${walk.finished ? "" : navButton("program-solution-next", "arrow-left", "המשך", { primary: true })}
             ${more}${back}${leave}
-            ${atFinalEnd ? "" : `<button class="btn" data-action="program-solution-close" type="button">סגור</button>`}
           </div>
         </section>
       </div>`;
@@ -7716,6 +7886,52 @@
     return used.length ? Math.max(...used) + 1 : 1;
   }
 
+  // ---- Editing a saved program --------------------------------------------
+  // The same page 5.1's tasks are written on, minus everything that belongs to a
+  // task: no requirements, no machine check, no hints, no arrow over the little
+  // fellow — and every window folded away, since the page is what is wanted here.
+  function openProgramEditor(id) {
+    const entry = savedPrograms().find((one) => String(one.id) === String(id));
+    if (!entry) return;
+    clearAssemblerHintTimer();
+    return setState({
+      programEditId: entry.id,
+      programTaskId: null,
+      [`programEdit_${entry.id}`]: {
+        scratch: {},
+        bits: { ...(entry.bits || {}) },
+        labels: { ...(entry.labels || {}) },
+        texts: { ...(entry.texts || {}) }
+      },
+      programPanels: { ...programPanelsState(), task: false, tip: false, alu: false, memory: false, guide: false, pos: {} },
+      assemblerHint: false,
+      programDialog: {}
+    });
+  }
+
+  // Leaving writes the page back into the saved program — nothing has to be
+  // "saved" a second time, the way a card being edited is kept on any way out.
+  function leaveProgramEditor() {
+    const id = state.programEditId;
+    if (!id) return;
+    const kept = programToSave();
+    clearAssemblerHintTimer();
+    clearProgramTestTimers();
+    return setState({
+      savedPrograms: savedPrograms().map((entry) =>
+        String(entry.id) === String(id) ? { ...entry, ...kept } : entry),
+      programEditId: null,
+      programDialog: null,
+      programAssembler: null,
+      assemblerHint: false,
+      sheetScratchCell: null,
+      programManualTest: null,
+      programRunTest: null,
+      programSelection: null,
+      screen: "myPrograms"
+    });
+  }
+
   function loadSavedProgram(id) {
     const entry = savedPrograms().find((one) => String(one.id) === String(id));
     if (!entry) return;
@@ -7775,6 +7991,9 @@
     // the minute 4.3 waits before nudging: on that page it is a nudge for
     // someone who seems stuck, here it is how the learner is told about a tool
     // the task expects them to use.
+    // Editing a saved program: no nudge at all — the learner came here knowing
+    // what the page is.
+    if (state.programEditId) return;
     if (demoProgramTask()) {
       assemblerHintTimer = window.setTimeout(() => {
         assemblerHintTimer = null;
@@ -7837,7 +8056,7 @@
 
   function openAssembler() {
     clearAssemblerHintTimer();
-    const page = demoProgramTask() && state.assemblerMet ? assemblerJumpPage() : 0;
+    const page = programJumpsInPlay() && state.assemblerMet ? assemblerJumpPage() : 0;
     return setState({ assemblerMet: true, assemblerHint: false, programAssembler: { page } });
   }
 
@@ -8173,7 +8392,7 @@
     // answer goes and the two spare ones, which it simply zeroed. From 5.1 the
     // spare pair carries the jump condition and has a chooser of its own, so the
     // destination must leave it alone.
-    const jumpBits = demoProgramTask()
+    const jumpBits = programJumpsInPlay()
       ? {}
       : { [`${row}:15`]: "0", [`${row}:16`]: "0" };
     const done = setState({
@@ -9053,7 +9272,7 @@
               <p class="prog-test-detail">${esc(isolateLatinRuns(result.text))}</p>
               <div class="not-test-result-actions">
                 ${result.ok ? "" : `<button class="btn btn-primary" data-action="program-test-close" type="button">אישור</button>`}
-                ${result.ok && demoProgramTask()
+                ${result.ok && demoProgramTask() && !programSolutionSteps().length
                   ? `<button class="btn btn-primary" data-action="demo-program-done" type="button">חזרה למשימות</button>`
                   : ""}
                 ${programHelperOpen() && result.ok
@@ -9310,7 +9529,7 @@
     const rows = 1 + instructions * 2;
     // Only 5.1's tasks can jump, and only they get the jump chooser and the
     // תגיות column that goes with it.
-    const jumpsInPlay = Boolean(demoProgramTask());
+    const jumpsInPlay = programJumpsInPlay();
     cells.push(`<div class="sheet-head sheet-head-top" style="grid-column:1 / span 16;grid-row:1;">התוכנה</div>`);
     // A column of line numbers down the left of the table, two squares wide, one
     // number to each instruction (which is two rows tall).
@@ -9424,7 +9643,10 @@
     // marked across both its rows — or, when it is going through the fields of
     // an instruction, just the bits that field is written on.
     const walkMark = programSolutionWalk()?.mark;
-    if (walkMark) {
+    if (walkMark && walkMark.label) {
+      // A change made in the תגיות column is marked there, not among the bits.
+      cells.push(`<div class="prog-solution-mark" aria-hidden="true" style="grid-column:${LABEL_COLUMN} / span 4;grid-row:${2 + walkMark.row * 2} / span 2;"></div>`);
+    } else if (walkMark) {
       const first = columnOf(walkMark.to);
       const span = walkMark.to - walkMark.from + 1;
       cells.push(`<div class="prog-solution-mark" aria-hidden="true" style="grid-column:${first} / span ${span};grid-row:${2 + walkMark.row * 2} / span 2;"></div>`);
@@ -9447,14 +9669,16 @@
           <div class="sheet-actions">
             ${navButton("program-clear-open", "restart", "נקה התקדמות")}
             <button class="btn" data-action="program-manual-open" type="button">בדיקה ידנית</button>
-            ${!demoProgramTask() || programTestData() ? `<button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>` : ""}
+            ${state.programEditId ? "" : (!demoProgramTask() || programTestData() ? `<button class="btn" data-action="program-run-open" type="button">בדיקה במכונה</button>` : "")}
             ${programHintButtonVisible()
               ? `<button class="btn hint-btn ${programHintButtonFresh() ? "hint-btn-ready" : "hint-btn-seen"}" data-action="program-hint-open" type="button">${esc(programHintButtonLabel())}</button>`
               : ""}
             ${renderProgramStoreButtons()}
-            ${programHelperOpen()
-              ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
-              : `<button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>`}
+            ${state.programEditId
+              ? `<button class="btn" data-action="program-edit-leave" type="button">חזרה לתוכנות שלי</button>`
+              : (programHelperOpen()
+                ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
+                : `<button class="btn" data-action="program-close" type="button">חזרה להאנגר</button>`)}
           </div>
         </section>
         ${renderProgramManualWindow()}
@@ -26530,6 +26754,24 @@
   // resize the width arrays. (The pin-width box commits live on input and closes
   // only on focusout — see below — so a spinner click doesn't dismiss it.)
   // Load a card file picked on the "My cards" page.
+  // A program file picked off the hard disk.
+  document.addEventListener("change", (event) => {
+    const picked = event.target.closest("[data-program-file-input]");
+    if (!picked) return;
+    const file = picked.files && picked.files[0];
+    picked.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data = null;
+      try { data = JSON.parse(String(reader.result)); } catch { data = null; }
+      const err = data ? importProgramBundle(data) : "לא הצלחתי לקרוא את הקובץ.";
+      if (err) setState({ infoDialog: err });
+    };
+    reader.onerror = () => setState({ infoDialog: "לא הצלחתי לקרוא את הקובץ." });
+    reader.readAsText(file);
+  });
+
   document.addEventListener("change", (event) => {
     const fileInput = event.target.closest("[data-card-file-input]");
     if (!fileInput) return;
@@ -27206,7 +27448,9 @@
     if (state.programSolution) {
       if (event.key === "ArrowLeft") { event.preventDefault(); stepProgramSolution(1); }
       else if (event.key === "ArrowRight") { event.preventDefault(); stepProgramSolution(-1); }
-      else if (event.key === "Escape") { event.preventDefault(); setState({ programSolution: null }); }
+      // Escape does NOT drop it: a walkthrough is read to its end, and its end
+      // is what leads on.
+      else if (event.key === "Escape") { event.preventDefault(); }
       return;
     }
     if (!state.programSelection && !state.programTableSelection && !programClipboard) return;
@@ -28008,6 +28252,11 @@
       return saveCurrentProgram(box ? box.value : state.programSaveDialog?.name);
     }
     if (action === "program-saved-ok") return setState({ programSavedDialog: false });
+    if (action === "program-edit-leave") return leaveProgramEditor();
+    if (action === "my-program-edit") return openProgramEditor(button.dataset.programId);
+    if (action === "my-program-save-file") return downloadProgramFile(button.dataset.programId);
+    if (action === "my-programs-load") { app.querySelector("[data-program-file-input]")?.click(); return; }
+    if (action === "my-programs-new") return openNewProgram();
     if (action === "program-load-open") return setState({ programLoadDialog: true });
     if (action === "program-load-close") return setState({ programLoadDialog: false });
     if (action === "program-load-pick") return loadSavedProgram(button.dataset.programId);
@@ -28175,10 +28424,15 @@
       if (!myProgramsEnabled()) return;
       return setState({ ...transientUiClearPatch(), ...leaveExplanationPatch(), ...overlayReturnPatch(), screen: "myPrograms" });
     }
-    if (action === "my-program-delete") {
-      const id = String(button.dataset.programId);
-      return setState({ savedPrograms: savedPrograms().filter((entry) => String(entry.id) !== id) });
+    if (action === "my-program-delete") return setState({ programDeleteConfirm: button.dataset.programId }, false);
+    if (action === "program-delete-confirm") {
+      const id = String(state.programDeleteConfirm);
+      return setState({
+        savedPrograms: savedPrograms().filter((entry) => String(entry.id) !== id),
+        programDeleteConfirm: null
+      });
     }
+    if (action === "program-delete-cancel") return setState({ programDeleteConfirm: null }, false);
     if (action === "my-cards-new") return enterCardCreation({ returnScreen: "myCards" });
     if (action === "my-cards-load") { app.querySelector("[data-card-file-input]")?.click(); return; }
     if (action === "auth-signin") { authBridge()?.signIn?.(); return; }

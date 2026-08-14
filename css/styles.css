@@ -6361,9 +6361,9 @@ object.panel-image.is-pending {
    card jump about under the pointer. */
 .prog-solution-overlay .solution-card {
   gap: 8px;
-  /* A little wider than the workbench's, so the longest step still reads in a
-     few lines and the fixed body height does not have to be tall. */
-  width: min(30rem, 86vw);
+  /* Wide enough for a long step to read in a few lines rather than a column of
+     two-word rows — the page behind it is still legible on either side. */
+  width: min(42rem, 90vw);
 }
 
 .prog-solution-code {
@@ -6376,7 +6376,9 @@ object.panel-image.is-pending {
 }
 
 .prog-solution-text {
-  height: 11rem;
+  /* Tall enough for the longest step in the game, and the same height on every
+     step, so the card does not jump about under the pointer as it is walked. */
+  height: min(15rem, 34vh);
   overflow: auto;
   display: grid;
   gap: 8px;
