@@ -37,8 +37,8 @@
      width="1448"
      height="1086"
      preserveAspectRatio="none"
-     href="267_5.1_demo-room.jpg"
-     xlink:href="267_5.1_demo-room.jpg" />
+     href="273_5.1_demo-room.jpg"
+     xlink:href="273_5.1_demo-room.jpg" />
   <!-- Editable click-zones (invisible). Move or resize them in Inkscape; the
        app reads their positions from here. -->
 <rect
@@ -279,7 +279,7 @@
      type="text/javascript"
      id="script1"><![CDATA[
 (function () {
-  var PANEL = "267_5.1_demo-room";
+  var PANEL = "273_5.1_demo-room";
   function collect() {
     var svg = document.querySelector("svg") || document.documentElement;
     var vb = svg.viewBox && svg.viewBox.baseVal;

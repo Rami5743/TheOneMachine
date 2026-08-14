@@ -2823,20 +2823,56 @@ const SCENES = {
         "read": "לפני כמה חודשים הגיעו לכאן מכונות חישוב של IBM. אנחנו נראה שהמכונה שלנו יכולה לעשות את אותם הדברים, ועוד."
       },
       {
+        "comment": "A hundred years before them, Babbage and Lovelace had already seen the point of a machine that never tires.",
+        "image": "assets/panels/265_5.1_babbage-lovelace.svg",
+        "year": "1944",
+        "read": "לפני יותר ממאה שנה צ'ארלס בבג' ועדה לאבלייס דמיינו מכונה כמו שלנו. הם לא יכלו לבנות אותה אז, אבל הם יכלו לכתוב עבורה תוכנות ולדמיין איך הן יעבדו. הם הבינו שאחד היתרונות הגדולים של מכונה על אדם היא שהמכונה יכולה לעשות שוב ושוב את אותה פעולה בלי להתעייף ובלי לטעות."
+      },
+      {
+        "comment": "What a loop IS on this machine: a jump at the end of the sequence back to its start.",
+        "image": "assets/panels/266_5.1_jump-back-loop.svg",
+        "year": "1944",
+        "read": "אצלנו הדרך לגרום למכונה לעשות את אותו הרצף של פקודות שוב ושוב היא לבצע קפיצה בסוף הרצף לתחילת הרצף. אז המכונה תחזור שוב ושוב על אותם הפקודות עד אינסוף. עדה לאבלייס קראה לזה מחזור. אנחנו נקרא לזה לולאה."
+      },
+      {
+        "comment": "The instructions cannot change while it runs — but what they act on can.",
+        "image": "assets/panels/267_5.1_memory-changes.svg",
+        "year": "1944",
+        "read": "הרבה פעמים אנחנו לא באמת רוצים שהלולאה תעשה בדיוק אותו הדבר כל פעם, אלא פעולה דומה. זה קצת בעיה, כי אנחנו לא יכולים לשנות את הפקודות שנתנו למחשב אחרי שהרצנו אותו. אבל הפעולות של המחשב משנות את מה שיש בזיכרון שלו, ולכן, בכל פעם הפקודות פועלות על דברים אחרים ויכולות להביא לתוצאות שונות, כך שבפועל נוכל לקבל משהו חדש בכל פעם שהלולאה תעבור."
+      },
+      {
+        "comment": "The conditional jump: what makes a loop end.",
+        "image": "assets/panels/268_5.1_conditional-jump.svg",
+        "year": "1944",
+        "read": "הרבה פעמים אנחנו לא באמת רוצים שהלולאה תימשך עד אינסוף. לכן במקום לבצע קפיצה בסוף לולאה לתחילתה, אנחנו נוכל לבצע קפיצה מותנית. נבדוק תנאי מסוים ונקפוץ לתחילת הלולאה רק אם הוא מתקיים. אם לא נמשיך הלאה ובכך נסיים את הלולאה. זה אומר שהלולאה בפועל תתקיים מספר מסוים של פעמים, ואז התוכנה תמשיך."
+      },
+      {
+        "comment": "Why it is worth the trouble: multiply by 8 was eight lines; multiply by 1017 had better not be 1017.",
+        "image": "assets/panels/269_5.1_why-loops.svg",
+        "year": "1944",
+        "read": "אתה תראה שעם לולאות אפשר לעשות לא מעט חישובים שאחרת היה הרבה יותר קשה לעשות. למשל, אתה כבר כתבת תוכנה שמכפילה מספר פי 8. בשביל זה היית צריך לחזור על אותה הפקודה 8 פעמים. אבל מה אם היית צריך להכפיל במספר גדול יותר, למשל 1017? היית צריך לכתוב תוכנה עם 1017 שורות זהות? מה אם לא היית יודע מראש במה אתה נדרש להכפיל, אלא זה היה עוד נתון שמישהו מכניס למחשב? אתה הרי לא רוצה לשנות את התוכנה כל פעם שמשנים את הנתונים. כאן בדיוק הלולאות יכולות לעזור לך."
+      },
+      {
+        "comment": "The last warning before the tasks: reset does not wipe the machine, so nothing may be assumed to start at 0.",
+        "image": "assets/panels/270_5.1_reset-keeps-memory.svg",
+        "year": "1944",
+        "read": "דבר אחרון. שים לב שכשאנחנו מחברים את הריסט אז הזיכרון והרגיסטרים לא נמחקים. מכיוון שאנחנו מפעילים על המחשב כל מיני תוכנות, אנחנו לא יכולים לדעת מה עשו הקודמות, ולכן אנחנו כבר לא יכולים להניח שהכל היה במצב 0 לפני שהתוכנה התחילה לרוץ."
+      },
+      {
         "comment": "Wordless: he lays the demonstration tasks on the worktable.",
-        "image": "assets/panels/265_5.1_note-placed.svg",
+        "image": "assets/panels/271_5.1_note-placed.svg",
         "year": "1944",
         "read": ""
       },
       {
         "comment": "The note is on the table — the tasks are the learner's now.",
-        "image": "assets/panels/266_5.1_here-are-the-tasks.svg",
+        "image": "assets/panels/272_5.1_here-are-the-tasks.svg",
         "year": "1944",
         "read": "הנה המשימות שלך."
       },
       {
         "comment": "Wordless: 4.4's room again with the demonstration note on the worktable. Same camera and the same click-zones, the note being the one thing that differs — it opens the 5.1 tasks.",
-        "image": "assets/panels/267_5.1_demo-room.svg",
+        "image": "assets/panels/273_5.1_demo-room.svg",
         "year": "1944",
         "read": "",
         "hotspots": [

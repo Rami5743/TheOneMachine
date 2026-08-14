@@ -9521,7 +9521,7 @@
     const chapter = chapterById("chapter-20");
     const scene = chapter ? SCENES[chapter.sceneId] : null;
     if (!chapter || !scene) return { screen: "story" };
-    const idx = panelIndexByImage(scene, "267_5.1_demo-room.svg");
+    const idx = panelIndexByImage(scene, "273_5.1_demo-room.svg");
     return {
       screen: "story",
       chapterId: chapter.id,
