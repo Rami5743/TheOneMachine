@@ -2132,6 +2132,9 @@
     programDeleteConfirm: null,
     // Whether the "save before you go?" question is up.
     programLeaveConfirm: false,
+    // The arrow bouncing over the requirements window, on the demonstration
+    // where they are not handed over on a card. It goes at the first action.
+    programTaskArrow: false,
     // Which saved program the page is EDITING, if it was opened from "התוכנות
     // שלי" rather than from a task.
     programEditId: null,
@@ -3368,6 +3371,7 @@
       programEditId: null,
       programDeleteConfirm: null,
       programLeaveConfirm: false,
+      programTaskArrow: false,
       programView: null,
       programViewSelection: null,
       assemblerHint: false,
@@ -3622,7 +3626,7 @@
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
       programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
-      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programTaskArrow: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -6926,11 +6930,17 @@
   }
 
   // The 5.1 task the page is showing, if it is showing one.
+  // Which of 5.1's demonstrations the page is showing, counted from 1 — or 0 for
+  // a page that is not one of them.
+  function demoTaskNumber() {
+    if (!state.programTaskId) return 0;
+    return demoTaskDefs().findIndex((task) => task.id === state.programTaskId) + 1;
+  }
+
   // Is the page showing the FIRST of 5.1's demonstrations — the one that teaches
   // saving?
   function demoFirstTaskOpen() {
-    const first = demoTaskDefs()[0];
-    return Boolean(first && state.programTaskId === first.id);
+    return demoTaskNumber() === 1;
   }
 
   function demoProgramTask() {
@@ -7170,8 +7180,11 @@
     const reduceMotion = typeof window !== "undefined" && window.matchMedia
       && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Keep whatever else the page is set to — above all WHICH task it is showing.
+    // …and the window it lands in is OPEN. Landing folded away made the flight
+    // look like the requirements had been thrown out rather than parked.
     const seat = () => setState({
       programIntroSeen: true,
+      programPanels: { ...programPanelsState(), task: true },
       programDialog: { ...(state.programDialog || {}), intro: false }
     });
     if (!card || reduceMotion) return seat();
@@ -7225,6 +7238,24 @@
   }
 
   // The task, once it has been read: the same words, in the corner, foldable.
+  // A task's requirements: paragraphs, and **this** is bold. The stars are taken
+  // out BEFORE the Latin runs are isolated — that pass counts "*" as part of a
+  // run, and would have carried the markers off into an isolate of their own.
+  function taskTextHtml(text) {
+    return String(text || "")
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const html = part.split("**").map((piece, i) => {
+          const body = esc(isolateLatinRuns(piece));
+          return i % 2 === 1 ? `<strong>${body}</strong>` : body;
+        }).join("");
+        return `<p>${html}</p>`;
+      })
+      .join("");
+  }
+
   function renderProgramTaskWindow() {
     // A program written on its own answers to nobody: there is nothing to
     // require of it, so there is no window saying so.
@@ -7233,12 +7264,20 @@
     if (!task || (state.programDialog && state.programDialog.intro)) return "";
     const open = programPanelsState().task;
     const head = programWindowHead(task.title, "task", open);
-    if (!open) return `<section class="sheet-guide prog-window prog-window-task sheet-guide-closed" data-prog-window="task"${programWindowPos("task")} aria-label="${esc(task.title)}">${head}</section>`;
+    // An arrow bouncing over the window, pointing down at it.
+    const arrow = state.programTaskArrow
+      ? `<span class="sheet-wb-arrow prog-task-arrow" aria-hidden="true">
+           <svg viewBox="0 0 24 24" width="42" height="42">
+             <path d="M12 3 L12 19 M12 19 L6 13 M12 19 L18 13" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+         </span>`
+      : "";
+    if (!open) return `<section class="sheet-guide prog-window prog-window-task sheet-guide-closed" data-prog-window="task"${programWindowPos("task")} aria-label="${esc(task.title)}">${arrow}${head}</section>`;
     return `
       <section class="sheet-guide prog-window prog-window-task" data-prog-window="task"${programWindowPos("task")} aria-label="${esc(task.title)}">
-        ${head}
+        ${arrow}${head}
         <div class="sheet-guide-body">
-          <p class="prog-task-text">${esc(isolateLatinRuns(task.text))}</p>
+          <div class="prog-task-text">${taskTextHtml(task.text)}</div>
         </div>
       </section>`;
   }
@@ -7797,7 +7836,7 @@
       <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
         <section class="pace-dialog-card prog-intro-card" role="dialog" aria-modal="true" aria-label="${esc(task.title)}">
           <h2 class="prog-intro-title">${esc(isolateLatinRuns(task.title))}</h2>
-          <p>${esc(isolateLatinRuns(task.text))}</p>
+          <div class="prog-task-text">${taskTextHtml(task.text)}</div>
           <div class="pace-dialog-actions">
             <button class="btn btn-primary" data-action="program-intro-ok" type="button">הבנתי</button>
           </div>
@@ -9301,21 +9340,45 @@
 
   function programSecretSolve() {
     const helper = programHelperOpen();
-    const program = helper ? PROGRAM_SOLVE_HELPER : PROGRAM_SOLVE_MAIN;
+    // A demonstration writes ITS OWN walkthrough onto the page — tags and all —
+    // rather than 4.3's program, which is what used to be laid down here.
+    const demo = demoProgramTask();
     const bits = {};
-    program.forEach((instr, row) => {
-      const word = programEncodeInstruction(instr);
-      for (let i = 0; i < 16; i += 1) bits[`${row}:${i + 1}`] = word[i];
-    });
+    const labels = {};
+    const texts = {};
+    if (demo) {
+      const steps = (demo.solution && demo.solution[0])
+        ? (demo.solution[0].program || demo.solution[0].steps || []) : [];
+      steps.forEach((step, row) => {
+        String(step.bits || "").split("").forEach((value, i) => {
+          if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
+        });
+        if (step.label) labels[row] = step.label;
+        if (step.shows) texts[row] = step.shows;
+      });
+    } else {
+      (helper ? PROGRAM_SOLVE_HELPER : PROGRAM_SOLVE_MAIN).forEach((instr, row) => {
+        const word = programEncodeInstruction(instr);
+        for (let i = 0; i < 16; i += 1) bits[`${row}:${i + 1}`] = word[i];
+      });
+    }
     const progress = programSheetProgress();
     // Lay the finished program on the page, then run its bench straight to a
     // passing verdict (no animation) and mark whichever task is open done.
-    setState({ [programSheetKey()]: { ...progress, scratch: {}, bits } }, false);
+    setState({ [programSheetKey()]: { ...progress, scratch: {}, bits, labels, texts } }, false);
     clearProgramTestTimers();
-    const runs = programTestRuns();
+    const test = programTestData();
+    const runs = !test ? []
+      : (test.kind === "loop" ? programLoopRuns(test)
+        : (test.kind === "count" ? programCountRuns(test)
+          : (test.kind === "answer" ? programAnswerRuns(test) : programTestRuns())));
     return setState({
       programRunTest: { phase: "done", index: Math.max(runs.length - 1, 0), runs, empty: false },
-      ...(helper ? { programHelperDone: true } : { programTaskDone: true })
+      // …and the note is told, which is what a demonstration is waiting for.
+      ...(demo
+        ? { completedTasks: completedTaskIds().includes(demo.id)
+            ? completedTaskIds() : [...completedTaskIds(), demo.id] }
+        : (helper ? { programHelperDone: true } : { programTaskDone: true }))
     });
   }
 
@@ -10454,13 +10517,19 @@
   // reset so it opens the way the chapter wants (ALU table away, מבנה הפקודה
   // out) rather than however the last visit left 4.3's.
   function openDemoProgramPage(taskId) {
+    const at = demoTaskDefs().findIndex((task) => task.id === taskId) + 1;
+    // The FIRST demonstration hands the requirements over on a card, which then
+    // flies into the corner. The SECOND finds them already parked there, with an
+    // arrow bouncing over the window so they are not missed. From the third on
+    // the learner knows where they live.
     const opened = setState({
       demoNoteList: false,
       panelObjectDialog: null,
       programTaskId: taskId,
-      programPanels: { ...programPanelsState(), alu: false, guide: true, pos: {} },
+      programPanels: { ...programPanelsState(), task: true, alu: false, guide: true, pos: {} },
       assemblerTeaserDone: false,
-      programDialog: { intro: true }
+      programTaskArrow: at === 2,
+      programDialog: at === 1 ? { intro: true } : {}
     });
     startAssemblerHintTimer();
     return opened;
@@ -27971,6 +28040,14 @@
       event.preventDefault();
       return;
     }
+    // The arrow over the requirements window has said its piece the moment the
+    // learner does anything at all. It is cleared without a redraw of its own —
+    // whatever the click goes on to do will redraw the page.
+    if (state.programTaskArrow) {
+      state.programTaskArrow = false;
+      saveState();
+      window.setTimeout(render, 0);
+    }
 
     // Post-MUX16 scripted moment: while the "new card" bubble is up, ANY click in
     // the workbench (but not the top nav bar) opens the card-building page and its
@@ -28627,6 +28704,12 @@
     if (action === "program-solution-finish") {
       clearAssemblerHintTimer();
       clearProgramTestTimers();
+      // Having been walked through the answer is having got there: the task is
+      // done, and the next one on the note opens.
+      const walked = demoProgramTask();
+      if (walked && !completedTaskIds().includes(walked.id)) {
+        state.completedTasks = [...completedTaskIds(), walked.id];
+      }
       // Reading the FIRST demonstration's walkthrough to its end does not close
       // the page: the two buttons that keep programs appear in the bar, an arrow
       // bounces over the save one, and a word explains what they are for.

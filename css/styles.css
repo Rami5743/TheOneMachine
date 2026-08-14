@@ -5582,6 +5582,10 @@ object.panel-image.is-pending {
   color: #241d12;
 }
 
+.prog-task-text p { margin: 0 0 0.7em; }
+.prog-task-text p:last-child { margin-bottom: 0; }
+.prog-task-text strong { font-weight: 700; }
+
 .prog-map-list,
 .prog-alu-note ul {
   margin: 0;
@@ -6287,6 +6291,17 @@ object.panel-image.is-pending {
 /* The word after the first save stands over everything, the one-off word about
    saving included. */
 .prog-dialog-saved { z-index: 280; }
+
+/* The arrow bouncing over the requirements window, pointing down at it. */
+.prog-task-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin: 0 0 6px -21px;
+  z-index: 300;
+}
+
+.prog-window-task { overflow: visible; }
 
 /* The save button and the arrow that points down at it. */
 .prog-store-slot {
