@@ -10987,7 +10987,7 @@
               ${renderNandClickHint(panel)}
               ${renderPanelObjectPopover(panel)}
               ${renderInstructionBits(panel)}
-              ${panel.cornerLink ? `<button class="story-corner-link" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
+              ${panel.cornerLink ? `<button class="story-corner-link${panel.cornerLink.side === "left" ? " is-left" : ""}" data-action="${esc(panel.cornerLink.action)}" type="button"><svg class="corner-link-icon" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" fill="currentColor"/></svg><span>${esc(panel.cornerLink.text)}</span></button>` : ""}
             </div>
           </div>
         </section>
@@ -29017,6 +29017,9 @@
     if (action === "note-clear-confirm") return clearNoteProgress();
     if (action === "panel-answer-check") return checkPanelAnswer();
     if (action === "open-words-bytes") { unlockExplanation("words-bytes", { silent: true }); return setState({ wordsBytesDialog: { page: 0 } }, false); }
+    // 5.1's teaser: how loops really work in a modern machine. Nothing behind it
+    // yet, so the link says so rather than dead-ending.
+    if (action === "open-modern-loops") return setState({ infoDialog: "חלק זה של המשחק עדיין לא קיים" });
     if (action === "words-bytes-close") return closeWordsBytes();
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);

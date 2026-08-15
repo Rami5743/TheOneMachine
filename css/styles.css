@@ -472,6 +472,15 @@ button { font: inherit; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
 .story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+/* The same teaser parked on the LEFT instead of the right. A left-hand teaser is
+   usually the longer one (it is not squeezed against the panel's own caption),
+   so it is allowed to wrap onto a second line rather than run off the panel. */
+.story-corner-link.is-left {
+  right: auto;
+  left: 3%;
+  max-width: 42%;
+  white-space: normal;
+}
 /* The enrichment sparkle (same mark as the "העשרה" teaser), gold so it reads as
    a bonus regardless of the link's red text. */
 .corner-link-icon { color: #f3d27a; flex: 0 0 auto; }
