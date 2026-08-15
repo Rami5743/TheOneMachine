@@ -10667,6 +10667,23 @@
     return !panelImageIs(panel, demoRoomImage());
   }
 
+  // …and why the index is corrected on every render rather than at each of the
+  // ways out of a task page. The page is an overlay ON the room: it is opened
+  // from one state of it and left after the work has changed which state is
+  // real, and every exit that does not route through demoReturnTarget (the
+  // topbar and back, a solution walked out of part-way, a reload) would drop the
+  // learner on the room that no longer exists. Correcting the index itself, once,
+  // covers all of them.
+  function syncDemoRoomPanel() {
+    if (state.screen !== "story" || state.sceneId !== "demonstrations") return;
+    const scene = currentScene();
+    if (!panelHiddenAtIndex(scene, state.panelIndex)) return;
+    const idx = panelIndexByImage(scene, demoRoomImage());
+    if (idx < 0 || idx === state.panelIndex) return;
+    state.panelIndex = idx;
+    saveState();
+  }
+
   // The first index from `index` onwards (in `step` direction) that is not hidden.
   // Falls back to the index asked for when everything ahead is hidden.
   function stepOverHiddenPanels(index, step) {
@@ -18083,6 +18100,7 @@
     syncExplanationUnlocks();
     syncCreateCardUnlock();
     syncAchievements();
+    syncDemoRoomPanel();
     syncIdleNudge();
     tickDesignClock(); // accrue design time into the active context
     // Put the scripted narration back where the learner left it (after a refresh
