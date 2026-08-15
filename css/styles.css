@@ -168,6 +168,12 @@ button { font: inherit; }
   font-size: 1.15rem;
 }
 
+.my-programs-lead {
+  margin: 0;
+  text-align: center;
+  color: #cfcfcf;
+}
+
 .my-cards-list {
   list-style: none;
   margin: 0;
@@ -466,6 +472,15 @@ button { font: inherit; }
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
 .story-corner-link:hover { background: rgba(60, 14, 10, 0.92); color: #ff8877; }
+/* The same teaser parked on the LEFT instead of the right. A left-hand teaser is
+   usually the longer one (it is not squeezed against the panel's own caption),
+   so it is allowed to wrap onto a second line rather than run off the panel. */
+.story-corner-link.is-left {
+  right: auto;
+  left: 3%;
+  max-width: 42%;
+  white-space: normal;
+}
 /* The enrichment sparkle (same mark as the "העשרה" teaser), gold so it reads as
    a bonus regardless of the link's red text. */
 .corner-link-icon { color: #f3d27a; flex: 0 0 auto; }
@@ -5576,6 +5591,20 @@ object.panel-image.is-pending {
   color: #241d12;
 }
 
+/* The same paragraphs on the DARK intro card, which keeps the card's own colour
+   — the window's parchment brown on it was black on near-black. */
+.prog-intro-text {
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.prog-task-text p,
+.prog-intro-text p { margin: 0 0 0.7em; }
+.prog-task-text p:last-child,
+.prog-intro-text p:last-child { margin-bottom: 0; }
+.prog-task-text strong,
+.prog-intro-text strong { font-weight: 700; }
+
 .prog-map-list,
 .prog-alu-note ul {
   margin: 0;
@@ -5923,6 +5952,47 @@ object.panel-image.is-pending {
 .prog-slot-input { background: #f3ecd9; }
 .prog-slot-input .prog-slot-btn { text-align: center; }
 
+/* The jump-condition cell over bits 15-16, beside the destination. Same paper as
+   the other choosers so the row reads as one strip of controls; its label is
+   centred because "אין קפיצה" and "=0" sit very differently against an edge. */
+/* The תגיות column beyond the line numbers: a name for an instruction, so a
+   jump can point at it instead of a number that moves. Four printed squares
+   wide, written on the paper rather than in a box of its own. */
+/* A label is written on a block of paper two squares tall and four wide, not
+   into squares: the printed grid is covered so the name reads as one word
+   rather than as letters in boxes. */
+.prog-label {
+  display: flex;
+  align-items: center;
+  /* Each label is its own block of paper, ruled off from the ones above and
+     below: without an outline the column reads as one long strip and there is
+     no telling which instruction a name belongs to. */
+  background: #fdfaf0;
+  border: 1px solid rgba(90, 130, 170, 0.55);
+  margin: 1px;
+}
+.prog-label-input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  /* Set per box from the length of what is in it (see programLabelFontSize),
+     so a long name shrinks to fit instead of being cut off — down to a floor
+     where it would stop being readable. */
+  font-size: var(--label-size, 0.95rem);
+  line-height: 1.05;
+  color: #2f2a1d;
+  text-align: center;
+  padding: 0 0.15rem;
+  direction: ltr;
+}
+.prog-label-input:focus { outline: 2px solid rgba(179, 128, 26, 0.5); outline-offset: -2px; }
+
+.prog-slot-jump { background: #f3ecd9; }
+.prog-slot-jump .prog-slot-btn { text-align: center; }
+.prog-jump-menu { min-width: 7.5rem; }
+
 /* A rectangle of squares marked out on the program page, to be copied, pasted
    over or rubbed out. */
 .prog-selection {
@@ -6221,6 +6291,99 @@ object.panel-image.is-pending {
    statement was coming up BEHIND the ALU table. */
 .prog-dialog-overlay { z-index: 260; }
 
+/* A word that does NOT take the screen: it sits near the foot of the page, the
+   dark wash is gone, and everything under it stays live — the save button it is
+   talking about has to be pressable while it is up. */
+.prog-dialog-overlay-open {
+  pointer-events: none;
+  place-items: end center;
+  /* clear of the action bar AND of the arrow bouncing over it */
+  padding-bottom: 132px;
+  background: none;
+}
+
+.prog-dialog-overlay-open .pace-dialog-card {
+  pointer-events: auto;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+}
+
+/* The word after the first save stands over everything, the one-off word about
+   saving included. */
+.prog-dialog-saved { z-index: 280; }
+
+/* The arrow bouncing over the requirements window, pointing down at it. */
+.prog-task-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin: 0 0 6px -21px;
+  z-index: 300;
+}
+
+/* The window has to let the arrow out over its top edge, so it cannot clip its
+   own corners any more — the head rounds itself instead, and the last thing in
+   the window rounds its bottom two. */
+.prog-window-task { overflow: visible; }
+.prog-window-task .sheet-guide-head { border-radius: 8px 8px 0 0; }
+.prog-window-task > :last-child { border-radius: 0 0 8px 8px; }
+.prog-window-task.sheet-guide-closed .sheet-guide-head { border-radius: 8px; border-bottom: none; }
+
+/* The save button and the arrow that points down at it. */
+.prog-store-slot {
+  position: relative;
+  display: inline-flex;
+}
+
+.prog-save-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  margin: 0 0 6px -21px;
+  z-index: 300;
+}
+
+.prog-save-name {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #3a2c17;
+  border-radius: 8px;
+  background: #fdfaf0;
+  color: #241d12;
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: right;
+}
+
+.prog-save-note {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.prog-load-card { width: min(560px, 100%); }
+
+.prog-load-list {
+  display: grid;
+  gap: 8px;
+  max-height: 46vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.prog-load-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.prog-load-name {
+  flex: 1;
+  justify-content: flex-start;
+  text-align: right;
+}
+
 /* The hint that offers the helper task answers with buttons rather than words. */
 .prog-hint-offer {
   display: flex;
@@ -6244,9 +6407,9 @@ object.panel-image.is-pending {
    card jump about under the pointer. */
 .prog-solution-overlay .solution-card {
   gap: 8px;
-  /* A little wider than the workbench's, so the longest step still reads in a
-     few lines and the fixed body height does not have to be tall. */
-  width: min(30rem, 86vw);
+  /* Wide enough for a long step to read in a few lines rather than a column of
+     two-word rows — the page behind it is still legible on either side. */
+  width: min(42rem, 90vw);
 }
 
 .prog-solution-code {
@@ -6259,7 +6422,9 @@ object.panel-image.is-pending {
 }
 
 .prog-solution-text {
-  height: 11rem;
+  /* Tall enough for the longest step in the game, and the same height on every
+     step, so the card does not jump about under the pointer as it is walked. */
+  height: min(15rem, 34vh);
   overflow: auto;
   display: grid;
   gap: 8px;
@@ -6272,6 +6437,14 @@ object.panel-image.is-pending {
   position: fixed;
   inset: 0;
   z-index: 244;
+}
+
+/* …but the row of buttons under the page is NOT part of what is shielded: a
+   program can be saved while its walkthrough is being read, which is exactly
+   when one wants to keep it. */
+.sheet-overlay-prog .sheet-actions {
+  position: relative;
+  z-index: 246;
 }
 
 .prog-solution-overlay .solution-card h2 { font-size: clamp(1.05rem, 2vw, 1.3rem); }
@@ -6327,4 +6500,54 @@ object.panel-image.is-pending {
   background: #f3d488;
   color: #2a2118;
   border-color: #f3d488;
+}
+
+/* ---- The window a saved program is shown in ------------------------------
+   "טעינת תוכנה" opens the program beside the page rather than over it, drawn by
+   the page's own table renderer. Nothing in it is written to: its squares are
+   there to be marked and copied, so every control inside is inert and the paper
+   itself takes the press. */
+.prog-view-window {
+  /* Wide enough for the whole table: sixteen bits, the two line-number squares
+     and the four of the תגיות column, plus the window's own padding. */
+  width: min(calc(22 * var(--sq, 26px) + 46px), 92vw);
+  max-width: 92vw;
+}
+
+.prog-view-body {
+  /* The other windows are a fixed height so paging them does not resize them.
+     This one holds a program, and is exactly as tall as the program on it. */
+  height: auto;
+  overflow: auto;
+  padding: 10px 12px 12px;
+}
+
+/* The line that closes the window's table under its last instruction. */
+.prog-view-foot {
+  border-bottom: 2px solid #3a2c17;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.prog-view-paper {
+  cursor: cell;
+  /* Only the columns the table uses — the free paper beside it is the page's,
+     not this window's. */
+  grid-template-columns: repeat(22, var(--sq));
+  width: calc(22 * var(--sq));
+  min-width: calc(22 * var(--sq));
+  /* The page's paper fills whatever it is given; this one is exactly as tall as
+     the program on it. */
+  min-height: 0;
+  box-shadow: none;
+}
+
+.prog-view-paper button,
+.prog-view-paper input,
+.prog-view-paper .prog-slot-btn {
+  pointer-events: none;
+}
+
+.prog-view-paper .prog-label-input {
+  cursor: cell;
 }

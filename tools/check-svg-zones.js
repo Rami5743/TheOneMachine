@@ -38,7 +38,13 @@ const ROOMS = [
   ['231_4.1_empty-room.svg', 'chapter-15', 'simple-computer'],
   ['235_4.2_build-room.svg', 'chapter-16', 'build-simple-computer'],
   ['244_4.3_program-room.svg', 'chapter-18', 'simple-programming'],
-  ['259_4.4_build-room.svg', 'chapter-19', 'conditional-jump']
+  ['259_4.4_build-room.svg', 'chapter-19', 'conditional-jump'],
+  ['273_5.1_demo-room.svg', 'chapter-20', 'demonstrations'],
+  // The same room once the first demonstration is written: the two counters are
+  // off the floor, so it carries sixteen zones where 273 carries eighteen. The
+  // app only stands on it while that demonstration is done — otherwise it moves
+  // the learner to 273 — so the fourth field ticks the task that makes it real.
+  ['274_5.1_demo-room-done.svg', 'chapter-20', 'demonstrations', ['demo-infinite-loop']]
 ];
 const ALL_TASKS = ['Not','And','Or','Xor','Mux','DMux','Not4','Not16','AND4','AND16','OR4','Neq0_4','Neq0_16','MUX4','MUX16','Dmux4way','Mux4way16','halfAdder','fullAdder','Add4','Add16','Inc','ALU0','PreperNum','ALU1','ALU2','ALU3','ALU4','Register4','Register','RAM4','RAM16','RAM64','RAM256','RAM1024','OPorts','IPorts','Ports','RAM','Prg'];
 
@@ -65,7 +71,9 @@ function svgZones(file) {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
     args: ['--no-proxy-server','--disable-dev-shm-usage','--disable-gpu','--no-sandbox'] });
   let bad = 0;
-  for (const [file, chapterId, sceneId] of ROOMS) {
+  for (const [file, chapterId, sceneId, extraTasks] of ROOMS) {
+    // Some slides only exist once certain work is done.
+    const tasks = ALL_TASKS.concat(extraTasks || []);
     const info = svgZones(file);
     const problems = [];
     if (info.declared !== info.stem) problems.push(`the SVG calls itself "${info.declared}"`);
@@ -74,7 +82,7 @@ function svgZones(file) {
     await p.goto(URL, { waitUntil: 'commit' });
     await p.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, {
       screen: 'story', chapterId, sceneId, panelIndex: 0, maxChapterReached: 20, started: true,
-      settings: { pace: 'all' }, completedTasks: ALL_TASKS,
+      settings: { pace: 'all' }, completedTasks: tasks,
       workspace: { components: [], wires: [], nextId: 1 }
     }]);
     await p.reload({ waitUntil: 'commit' });

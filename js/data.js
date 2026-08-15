@@ -19,6 +19,10 @@ const PARTS = [
   {
     "id": "part-4",
     "title": "חלק 4: מכונת חישוב אחת שתחליף את כולן"
+  },
+  {
+    "id": "part-5",
+    "title": "חלק 5: תכנות"
   }
 ];
 
@@ -140,6 +144,12 @@ const CHAPTERS = [
     "partId": "part-4",
     "title": "4.4 המכונה האחת",
     "sceneId": "conditional-jump"
+  },
+  {
+    "id": "chapter-20",
+    "partId": "part-5",
+    "title": "5.1 לולאות",
+    "sceneId": "demonstrations"
   }
 ];
 
@@ -2793,6 +2803,396 @@ const SCENES = {
         "image": "assets/panels/262_4.4_more-resources.svg",
         "year": "1944",
         "read": "אני ואתה מבינים את זה. אבל אנחנו צריכים לשכנע את שאר העולם. או לפחות את רוברט. אנחנו צריכים עוד משאבים. עוד ידיים עובדות כדי להרחיב את הזיכרון, מערכת קירור כדי שיהיה אפשר להעלות את המהירות של המכונה בלי שהיא תהרוס את עצמה מחום, והדבר הכי חשוב, עוד אנשים כדי שיתכנתו אותה. לכתוב הוראות עם אפסים ואחדים זה הרבה יותר קל מלבנות מכונות כל פעם מחדש, אבל זה עדיין לא קל, בטח אם אנחנו רוצים שהמכונה תוכל לעשות חישובים מסובכים."
+      }
+    ]
+  },
+  "demonstrations": {
+    "id": "demonstrations",
+    "title": "לולאות",
+    "panels": [
+      {
+        "comment": "Part 5 opens: the machine works, and now it has to be shown what it can do.",
+        "image": "assets/panels/263_5.1_we-will-demonstrate.svg",
+        "year": "1944",
+        "read": "אנחנו נצטרך להדגים את היכולת של המכונה שלנו. אתה תתכנת אותה. זאת אומרת שאתה תכתוב רצף של פקודות שיאפשר למכונה הזאת לעשות כל מיני דברים."
+      },
+      {
+        "comment": "The bar to clear: the IBM calculating machines already on the base.",
+        "image": "assets/panels/264_5.1_ibm-machines.svg",
+        "year": "1944",
+        "read": "לפני כמה חודשים הגיעו לכאן מכונות חישוב של IBM. אנחנו נראה שהמכונה שלנו יכולה לעשות את אותם הדברים, ועוד."
+      },
+      {
+        "comment": "A hundred years before them, Babbage and Lovelace had already seen the point of a machine that never tires.",
+        "image": "assets/panels/265_5.1_babbage-lovelace.svg",
+        "year": "1944",
+        "read": "לפני יותר ממאה שנה צ'ארלס בבג' ועדה לאבלייס דמיינו מכונה כמו שלנו. הם לא יכלו לבנות אותה אז, אבל הם יכלו לכתוב עבורה תוכנות ולדמיין איך הן יעבדו. הם הבינו שאחד היתרונות הגדולים של מכונה על אדם היא שהמכונה יכולה לעשות שוב ושוב את אותה פעולה בלי להתעייף ובלי לטעות."
+      },
+      {
+        "comment": "What a loop IS on this machine: a jump at the end of the sequence back to its start.",
+        "image": "assets/panels/266_5.1_jump-back-loop.svg",
+        "year": "1944",
+        "read": "אצלנו הדרך לגרום למכונה לעשות את אותו הרצף של פקודות שוב ושוב היא לבצע קפיצה בסוף הרצף לתחילת הרצף. אז המכונה תחזור שוב ושוב על אותם הפקודות עד אינסוף. עדה לאבלייס קראה לזה מחזור. אנחנו נקרא לזה לולאה."
+      },
+      {
+        "comment": "The instructions cannot change while it runs — but what they act on can.",
+        "image": "assets/panels/267_5.1_memory-changes.svg",
+        "year": "1944",
+        "read": "הרבה פעמים אנחנו לא באמת רוצים שהלולאה תעשה בדיוק אותו הדבר כל פעם, אלא פעולה דומה. זה קצת בעיה, כי אנחנו לא יכולים לשנות את הפקודות שנתנו למחשב אחרי שהרצנו אותו. אבל הפעולות של המחשב משנות את מה שיש בזיכרון שלו, ולכן, בכל פעם הפקודות פועלות על דברים אחרים ויכולות להביא לתוצאות שונות, כך שבפועל נוכל לקבל משהו חדש בכל פעם שהלולאה תעבור."
+      },
+      {
+        "comment": "The conditional jump: what makes a loop end.",
+        "image": "assets/panels/268_5.1_conditional-jump.svg",
+        "year": "1944",
+        "read": "הרבה פעמים אנחנו לא באמת רוצים שהלולאה תימשך עד אינסוף. לכן במקום לבצע קפיצה בסוף לולאה לתחילתה, אנחנו נוכל לבצע קפיצה מותנית. נבדוק תנאי מסוים ונקפוץ לתחילת הלולאה רק אם הוא מתקיים. אם לא נמשיך הלאה ובכך נסיים את הלולאה. זה אומר שהלולאה בפועל תתקיים מספר מסוים של פעמים, ואז התוכנה תמשיך."
+      },
+      {
+        "comment": "Why it is worth the trouble: multiply by 8 was eight lines; multiply by 1017 had better not be 1017.",
+        "image": "assets/panels/269_5.1_why-loops.svg",
+        "year": "1944",
+        "read": "אתה תראה שעם לולאות אפשר לעשות לא מעט חישובים שאחרת היה הרבה יותר קשה לעשות. למשל, אתה כבר כתבת תוכנה שמכפילה מספר פי 8. בשביל זה היית צריך לחזור על אותה הפקודה 8 פעמים. אבל מה אם היית צריך להכפיל במספר גדול יותר, למשל 1017? היית צריך לכתוב תוכנה עם 1017 שורות זהות? מה אם לא היית יודע מראש במה אתה נדרש להכפיל, אלא זה היה עוד נתון שמישהו מכניס למחשב? אתה הרי לא רוצה לשנות את התוכנה כל פעם שמשנים את הנתונים. כאן בדיוק הלולאות יכולות לעזור לך.",
+        "unlocksExplanation": "loops",
+        "cornerLink": { "text": "ג'ון לא יודע את כל האמת. רוצה לדעת איך עובדות לולאות בעולם המודרני, לחץ כאן", "action": "open-modern-loops", "side": "left" }
+      },
+      {
+        "comment": "The last warning before the tasks: reset does not wipe the machine, so nothing may be assumed to start at 0.",
+        "image": "assets/panels/270_5.1_reset-keeps-memory.svg",
+        "year": "1944",
+        "read": "דבר אחרון. שים לב שכשאנחנו מחברים את הריסט אז הזיכרון והרגיסטרים לא נמחקים. מכיוון שאנחנו מפעילים על המחשב כל מיני תוכנות, אנחנו לא יכולים לדעת מה עשו הקודמות, ולכן אנחנו כבר לא יכולים להניח שהכל היה במצב 0 לפני שהתוכנה התחילה לרוץ."
+      },
+      {
+        "comment": "Wordless: he lays the demonstration tasks on the worktable.",
+        "image": "assets/panels/271_5.1_note-placed.svg",
+        "year": "1944",
+        "read": ""
+      },
+      {
+        "comment": "The note is on the table — the tasks are the learner's now.",
+        "image": "assets/panels/272_5.1_here-are-the-tasks.svg",
+        "year": "1944",
+        "read": "הנה המשימות שלך."
+      },
+      {
+        "comment": "Wordless: 4.4's room again with the demonstration note on the worktable. Same camera and the same click-zones, the note being the one thing that differs — it opens the 5.1 tasks.",
+        "image": "assets/panels/273_5.1_demo-room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "decToBinConverter",
+            "ariaLabel": "ממיר מעשרוני לבינרי",
+            "left": 61.88,
+            "top": 82.32,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "binToDecConverter",
+            "ariaLabel": "ממיר מבינרי לעשרוני",
+            "left": 64.92,
+            "top": 81.77,
+            "width": 3.18,
+            "height": 4.79
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 69.06,
+            "top": 82.23,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.44,
+            "top": 81.31,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.52,
+            "top": 81.49,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 80.18,
+            "top": 81.68,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 83.01,
+            "top": 81.77,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 87.09,
+            "top": 82.04,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.78,
+            "top": 82.5,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.62,
+            "top": 82.69,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "demoNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tapeReader",
+            "ariaLabel": "קורא סרטים מנוקבים",
+            "left": 55.25,
+            "top": 54.14,
+            "width": 10.5,
+            "height": 17.13
+          }
+        ]
+      },
+      {
+        "comment": "The same room once the first demonstration is done — the two counters are off the floor, so their two zones are gone with them. Everything else, the note included, is 273's room unchanged. Reached only through demoReturnTarget.",
+        "image": "assets/panels/274_5.1_demo-room-done.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 68.78,
+            "top": 81.59,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.16,
+            "top": 80.67,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.24,
+            "top": 80.85,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 79.9,
+            "top": 81.04,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 82.73,
+            "top": 81.13,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 86.81,
+            "top": 81.4,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.5,
+            "top": 81.86,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.34,
+            "top": 82.05,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "demoNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tapeReader",
+            "ariaLabel": "קורא סרטים מנוקבים",
+            "left": 55.25,
+            "top": 54.14,
+            "width": 10.5,
+            "height": 17.13
+          }
+        ]
       }
     ]
   }

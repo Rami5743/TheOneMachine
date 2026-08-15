@@ -257,26 +257,43 @@
     return (typeof s.rankingsNickname === "string" && s.rankingsNickname) || "ללא שם";
   }
 
-  // The `program` column arrived after the other three, so a database that has
+  // The software columns arrived after the first three, so a database that has
   // not had the ALTER TABLE run yet would fail EVERY read and write and take the
-  // hardware rankings down with it. So each is tried with `program` and retried
-  // without it once, and that one is remembered for the rest of the session.
-  var lbHasProgram = true;
-  function missingProgramColumn(error) {
+  // hardware rankings down with it. So each call is tried with all of them, and
+  // a failure that names one of them drops that column and retries; what is
+  // missing is remembered for the rest of the session.
+  //   program — "אורך תוכנה"      (SUPABASE_ADD_PROGRAM_RANKINGS.md)
+  //   runtime — "זמן ריצה"        (SUPABASE_ADD_LOOP_RANKINGS.md)
+  //   memory  — "מקום בזיכרון"    (SUPABASE_ADD_LOOP_RANKINGS.md)
+  var LB_BASE_COLUMNS = ["nickname", "counts", "serial", "design"];
+  var LB_SOFT_COLUMNS = ["program", "runtime", "memory"];
+  var lbMissing = {};
+  function lbColumns() {
+    return LB_BASE_COLUMNS.concat(LB_SOFT_COLUMNS.filter(function (col) { return !lbMissing[col]; })).join(",");
+  }
+  // Which of the software columns an error is complaining about, if any. Only a
+  // column still believed to exist counts, so a retry cannot loop on the same one.
+  function missingSoftColumn(error) {
     var msg = (error && (error.message || "")) + "";
-    return lbHasProgram && msg.indexOf("program") !== -1;
+    for (var i = 0; i < LB_SOFT_COLUMNS.length; i += 1) {
+      var col = LB_SOFT_COLUMNS[i];
+      if (!lbMissing[col] && msg.indexOf(col) !== -1) return col;
+    }
+    return null;
   }
 
   async function fetchLeaderboard() {
     if (!sb) return;
     // `counts` = efficiency (total Nands), `serial` = speed (serial Nands),
-    // `design` = design time, `program` = program length ("אורך תוכנה").
-    var cols = "nickname,counts,serial,design" + (lbHasProgram ? ",program" : "");
-    var res = await sb.from(LB_TABLE).select(cols);
-    if (res.error && missingProgramColumn(res.error)) {
-      console.warn("[leaderboard] no `program` column yet — see SUPABASE_SETUP.md");
-      lbHasProgram = false;
-      res = await sb.from(LB_TABLE).select("nickname,counts,serial,design");
+    // `design` = design time, and the software ones: `program` = program length,
+    // `runtime` = beats run, `memory` = RAM addresses taken.
+    var res = await sb.from(LB_TABLE).select(lbColumns());
+    for (var tries = 0; tries < LB_SOFT_COLUMNS.length && res.error; tries += 1) {
+      var gone = missingSoftColumn(res.error);
+      if (!gone) break;
+      console.warn("[leaderboard] no `" + gone + "` column yet — see SUPABASE_SETUP.md");
+      lbMissing[gone] = true;
+      res = await sb.from(LB_TABLE).select(lbColumns());
     }
     if (res.error) { console.warn("[leaderboard] read failed:", res.error.message); return; }
     lbRows = Array.isArray(res.data) ? res.data : [];
@@ -292,15 +309,19 @@
       counts: s.cardNandCounts || {}, serial: s.cardSerialCounts || {}, design: s.cardDesignCounts || {},
       updated_at: new Date().toISOString()
     };
-    if (lbHasProgram) row.program = s.programCounts || {};
+    if (!lbMissing.program) row.program = s.programCounts || {};
+    if (!lbMissing.runtime) row.runtime = s.programRuntimeCounts || {};
+    if (!lbMissing.memory) row.memory = s.programMemoryCounts || {};
     return row;
   }
 
   async function pushMyRankings() {
     if (!sb || !currentUser) return;
     var res = await sb.from(LB_TABLE).upsert(myRankingsRow(myNickname()), { onConflict: "user_id" });
-    if (res.error && missingProgramColumn(res.error)) {
-      lbHasProgram = false;
+    for (var tries = 0; tries < LB_SOFT_COLUMNS.length && res.error; tries += 1) {
+      var gone = missingSoftColumn(res.error);
+      if (!gone) break;
+      lbMissing[gone] = true;
       res = await sb.from(LB_TABLE).upsert(myRankingsRow(myNickname()), { onConflict: "user_id" });
     }
     if (res.error) console.warn("[leaderboard] write failed:", res.error.message);
@@ -322,12 +343,16 @@
     if (dim === "serial") return "serial";
     if (dim === "design") return "design";
     if (dim === "program") return "program";
+    if (dim === "runtime") return "runtime";
+    if (dim === "memory") return "memory";
     return "counts";
   }
   function dimStateMap(dim) {
     if (dim === "serial") return "cardSerialCounts";
     if (dim === "design") return "cardDesignCounts";
     if (dim === "program") return "programCounts";
+    if (dim === "runtime") return "programRuntimeCounts";
+    if (dim === "memory") return "programMemoryCounts";
     return "cardNandCounts";
   }
 
