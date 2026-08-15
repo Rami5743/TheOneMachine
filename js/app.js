@@ -10649,12 +10649,32 @@
   // The room has two slides of its own: the one the chapter walks into, and the
   // one it becomes once the first demonstration is written — the two counters
   // are off the floor by then, so that slide is the same room minus their two
-  // zones. Nothing walks INTO either of them; this is the only way in, so the
-  // choice lives here.
+  // zones. Only ever ONE of them is the room; the other does not exist as far as
+  // the learner is concerned.
   function demoRoomImage() {
     return taskCompleted("demo-infinite-loop")
       ? "274_5.1_demo-room-done.svg"
       : "273_5.1_demo-room.svg";
+  }
+
+  // …which is why the arrows step straight over whichever of the pair is not the
+  // room right now: walking back off the room and forward again must land on the
+  // same slide it left, not on the other state of it.
+  function panelHiddenAtIndex(scene, index) {
+    const panel = scene && scene.panels ? scene.panels[index] : null;
+    if (!panel) return false;
+    if (!panelImageIs(panel, "273_5.1_demo-room.svg") && !panelImageIs(panel, "274_5.1_demo-room-done.svg")) return false;
+    return !panelImageIs(panel, demoRoomImage());
+  }
+
+  // The first index from `index` onwards (in `step` direction) that is not hidden.
+  // Falls back to the index asked for when everything ahead is hidden.
+  function stepOverHiddenPanels(index, step) {
+    const scene = currentScene();
+    const last = (scene && scene.panels ? scene.panels.length : 0) - 1;
+    let at = index;
+    while (at >= 0 && at <= last && panelHiddenAtIndex(scene, at)) at += step;
+    return at >= 0 && at <= last ? at : index;
   }
 
   function demoReturnTarget() {
@@ -18300,7 +18320,7 @@
     if (shouldShowPostTasksXorHint()) return openPostTasksXorHintSlides();
 
     if (state.panelIndex < scene.panels.length - 1) {
-      return setState({ panelIndex: state.panelIndex + 1, started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
+      return setState({ panelIndex: stepOverHiddenPanels(state.panelIndex + 1, 1), started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
     }
 
     if (isHelpDecisionPoint()) return setState({ dialog: "helpPrompt" });
@@ -18341,7 +18361,7 @@
       if (state.chapterId === "chapter-6" && state.panelIndex === 1 && !xorInteractiveHintUsed()) {
         return openPostTasksXorHintSlides(3, 0);
       }
-      return setState({ panelIndex: state.panelIndex - 1, started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
+      return setState({ panelIndex: stepOverHiddenPanels(state.panelIndex - 1, -1), started: true, replayNonce: state.replayNonce + 1, dialog: null, panelAnswer: null }, true);
     }
 
     const chapterIndex = chapterIndexById(state.chapterId);
