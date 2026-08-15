@@ -150,6 +150,12 @@ const CHAPTERS = [
     "partId": "part-5",
     "title": "5.1 לולאות",
     "sceneId": "demonstrations"
+  },
+  {
+    "id": "chapter-21",
+    "partId": "part-5",
+    "title": "5.2 תנאי",
+    "sceneId": "conditions"
   }
 ];
 
@@ -3193,6 +3199,29 @@ const SCENES = {
             "height": 17.13
           }
         ]
+      }
+    ]
+  },
+  "conditions": {
+    "id": "conditions",
+    "title": "תנאי",
+    "panels": [
+      {
+        "comment": "5.2 opens in the room the machine now fills: what is still missing is a way to CHOOSE what it does.",
+        "image": "assets/panels/275_5.2_choose-operation.svg",
+        "year": "1944",
+        "read": "מצויין. נראה שהכל עובד. עכשיו אנחנו רוצים להדגים שהמכונה שלנו יכולה לעשות הרבה דברים שונים. אנחנו רוצים לאפשר לבחור איזה פעולה עושים. נחבר עוד פורט בו נכניס את הפעולה למכונה. זה יהיה משהו כמו ה-ALU שלנו אבל עם פעולות מתקדמות יותר, כמו כפל וחילוק."
+      },
+      {
+        "comment": "…and doing different things in different cases is the conditional jump again. The red teaser closes the dialogue, as 5.1's does.",
+        "image": "assets/panels/276_5.2_two-cases.svg",
+        "year": "1944",
+        "read": "בשביל זה נצטרך לגרום למכונה לעבוד באופן שונה במקרים שונים. זה עוד מקרה שבו נשתמש בקפיצה מותנית. נניח שיש לנו 2 מקרים שבכל אחד מהם אנחנו רוצים לעשות משהו אחר. אנחנו יכולים לעשות חישוב שבודק האם אנחנו במקרה הראשון ואם כן אז לקפוץ למקום שבו עושים את המקרה הראשון. אם לא, להמשיך ולעשות את השני. בסוף צריך לזכור לדלג מעל המקרה הראשון אם עשינו את השני כדי לא לעשות את שניהם.",
+        "cornerLink": {
+          "text": "ג'ון לא ידע את כל האמת, אם אתה רוצה לדעת איך מטפלים בדברים כאלה בעולם המודרני, לחץ כאן.",
+          "action": "open-modern-conditions",
+          "side": "left"
+        }
       }
     ]
   }

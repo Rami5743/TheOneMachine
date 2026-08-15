@@ -5327,9 +5327,9 @@
       }, true);
     }
 
-    // Nothing behind this one yet — the same window the red teaser opens.
-    if (id === "modern-loops") {
-      if (!explanationUnlocked("modern-loops")) return;
+    // Nothing behind these two yet — the same window their red teasers open.
+    if (id === "modern-loops" || id === "modern-conditions") {
+      if (!explanationUnlocked(id)) return;
       return setState({ infoDialog: MODERN_LOOPS_TEXT });
     }
 
@@ -5555,7 +5555,7 @@
     {
       title: "תוכנה",
       inGame: ["loops"],
-      enrichment: ["assembler", "modern-loops"]
+      enrichment: ["assembler", "modern-loops", "modern-conditions"]
     }
   ];
 
@@ -29160,6 +29160,12 @@
     if (action === "open-modern-loops") {
       unlockExplanation("modern-loops", { silent: true });
       announceExplanationUnlock("modern-loops");
+      return setState({ infoDialog: MODERN_LOOPS_TEXT });
+    }
+    // 5.2's teaser, the same shape: how a modern machine handles cases.
+    if (action === "open-modern-conditions") {
+      unlockExplanation("modern-conditions", { silent: true });
+      announceExplanationUnlock("modern-conditions");
       return setState({ infoDialog: MODERN_LOOPS_TEXT });
     }
     if (action === "words-bytes-close") return closeWordsBytes();

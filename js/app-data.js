@@ -628,7 +628,9 @@
     { id: "loops", title: "לולאות" },
     // Enrichment (software category): how loops work in a modern machine,
     // reached from the red teaser on the last slide of that monologue.
-    { id: "modern-loops", title: "לולאות בעולם המודרני" }
+    { id: "modern-loops", title: "לולאות בעולם המודרני" },
+    // Chapter 5.2's teaser, the same shape: how a modern machine handles cases.
+    { id: "modern-conditions", title: "תנאים בעולם המודרני" }
   ];
 
   // The "מילים ובתים" enrichment text, shown in a scrollable dialog.
