@@ -19,20 +19,37 @@ and keep going with everything else.
 
 I write my requests in Hebrew and often with typos. Use my EXACT Hebrew wording in the app; fix only obvious typos (spelling), never rephrase meaning. Replies can be in Hebrew.
 
-**External actions (anything I must do outside the code).** Whenever completing a task requires an action from ME in some external service or tool — running SQL in a dashboard, clicking through a console, configuring a provider, setting a secret, flipping a setting, uploading a file, etc. — give me **explicit, click-by-click** instructions in this exact style (Hebrew), naming every UI element AND where it is located:
+**External actions (anything I must do outside the code).** Whenever completing a
+task requires an action from ME in some external service or tool — running SQL in
+a dashboard, clicking through a console, configuring a provider, setting a
+secret, flipping a setting, uploading a file, etc. — give me **THREE SEPARATE
+PARTS, in this order, never mixed into one another**:
 
-```
-כנס ללינק: <הלינק המדויק>
-שם תלחץ על "<שם הכפתור/הקישור>" שנמצא <המיקום המדויק>.
-אחר כך תלחץ על "<...>" שנמצא <...>.
-...
-הדבק את הטקסט הבא לתיבת <שם התיבה> שנמצאת <...>:
-<הטקסט>
-ואז תלחץ על "<...>" שנמצא <...>.
-לבסוף תראה <סימן ההצלחה> שנמצא <...>.
-```
+**1. The link — on its own line, clickable, and nothing else on that line.**
+No "כנס ללינק:" prefix wrapped around it, no explanation inside it, no
+instructions before it on the same line. Just the URL, as its own item.
+**Whatever the link itself can do, the link must do** — do not spend a click
+on something a deeper URL reaches directly. If the console can open on the
+exact project / the exact page / a new empty query / the exact tab, find that
+URL and give THAT, so the click-by-click list starts where the link ends.
+Dig the identifiers out of the repo when they are there (e.g. the Supabase
+project ref lives in `SUPABASE_URL` in `js/auth-config.js`).
 
-Never assume I know where things are — every step names the element and its location. Also **document the same instructions in the appropriate repo file** (a dedicated setup doc, or the header of the relevant file) so they are not lost, and commit it.
+**2. The instructions — what to click, in Hebrew, step by step.**
+Every step names the UI element AND where it is on the screen; never assume I
+know where anything is. This part contains NO link and NO paste-text; where
+text has to be pasted the step just says "הדבק את הטקסט הבא לתיבת <שם התיבה>
+שנמצאת <...>" and the text itself comes in part 3. End with the success sign:
+"לבסוף תראה <...> שנמצא <...>".
+
+**3. The text to paste — its own block, containing ONLY the text.**
+No instructions, no commentary, no "run this" lines inside the block. If I need
+to paste it, I should be able to select the whole block and paste it as is. If
+there is nothing to paste, part 3 simply does not exist.
+
+Also **document the same three parts in the appropriate repo file** (a dedicated
+setup doc, or the header of the relevant file) so they are not lost, and commit
+it.
 
 ---
 

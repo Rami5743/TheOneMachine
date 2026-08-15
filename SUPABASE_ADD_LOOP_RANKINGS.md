@@ -14,29 +14,34 @@
 
 ---
 
-## מה לעשות
+## 1. הלינק
 
-כנס ללינק: https://supabase.com/dashboard/project/oemhzqjfamqbinikmvfd/sql/new
+https://supabase.com/dashboard/project/oemhzqjfamqbinikmvfd/sql/new
 
-הלינק הזה נוחת ישר על **שאילתה חדשה בעורך ה-SQL** של הפרויקט של "המכונה האחת"
-(מזהה הפרויקט לקוח מ-`SUPABASE_URL` שב-`js/auth-config.js`), כך שאין צורך לבחור
-את הפרויקט ולא ללחוץ על "New query". אם בכל זאת נחתת בדף הראשי, תלחץ על
-**הפרויקט של "המכונה האחת"** שנמצא ברשימת הפרויקטים במרכז המסך, אחר כך על
-**"SQL Editor"** שנמצא בסרגל האייקונים האנכי בצד שמאל של המסך (האייקון נראה
-כמו דף עם הכיתוב `SQL`), ואחר כך על **"New query"** שנמצא בפינה
-השמאלית-עליונה של אזור העריכה.
+## 2. ההוראות
 
-הדבק את הטקסט הבא לתיבת עריכת ה-SQL שנמצאת במרכז המסך (התיבה הגדולה והריקה):
+הלינק נוחת ישר על שאילתה חדשה בעורך ה-SQL של הפרויקט, אז אין צורך לבחור פרויקט
+ואין צורך ללחוץ על "New query".
 
-```sql
-alter table public.rankings add column if not exists runtime jsonb not null default '{}'::jsonb;
-alter table public.rankings add column if not exists memory  jsonb not null default '{}'::jsonb;
-```
+הדבק את הטקסט שבסעיף 3 לתיבת עריכת ה-SQL שנמצאת במרכז המסך (התיבה הגדולה
+והריקה).
 
 ואז תלחץ על **"Run"** שנמצא בפינה הימנית-תחתונה של עורך ה-SQL (כפתור ירוק;
 אפשר גם Ctrl+Enter).
 
 לבסוף תראה **"Success. No rows returned"** שנמצא בחלונית התוצאות מתחת לעורך.
+
+אם בכל זאת נחתת בדף הראשי של Supabase: תלחץ על **הפרויקט של "המכונה האחת"**
+שנמצא ברשימת הפרויקטים במרכז המסך, אחר כך על **"SQL Editor"** שנמצא בסרגל
+האייקונים האנכי בצד שמאל של המסך (האייקון נראה כמו דף עם הכיתוב `SQL`), ואחר כך
+על **"New query"** שנמצא בפינה השמאלית-עליונה של אזור העריכה.
+
+## 3. הטקסט להדבקה
+
+```sql
+alter table public.rankings add column if not exists runtime jsonb not null default '{}'::jsonb;
+alter table public.rankings add column if not exists memory  jsonb not null default '{}'::jsonb;
+```
 
 ---
 
