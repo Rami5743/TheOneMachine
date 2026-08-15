@@ -3413,6 +3413,9 @@
     if (state.ffClockLinks) ids.push("clocking");
     // The assembler window, left open when the learner walks away from it.
     if (state.assemblerInfo) ids.push("assembler");
+    // 5.1's loops monologue: its last slide unlocks it on arrival, but walking
+    // out of the middle of it counts too.
+    if (insideLoopsStory()) ids.push("loops");
     return ids;
   }
 
@@ -4525,6 +4528,31 @@
     return Number.isInteger(index) && index >= 0 ? index : Math.max(scene.panels.length - 1, 0);
   }
 
+  // Chapter 5.1's loops monologue, as the explanations menu replays it: from
+  // Babbage and Lovelace through to what loops are worth. What follows (the
+  // warning that a reset keeps the memory) belongs to the tasks, not to this.
+  function loopsStoryStartIndex() {
+    const scene = SCENES["demonstrations"] || { panels: [] };
+    const index = panelIndexByImage(scene, "265_5.1_babbage-lovelace.svg");
+    return Number.isInteger(index) && index >= 0 ? index : 0;
+  }
+
+  function loopsStoryEndIndex() {
+    const scene = SCENES["demonstrations"] || { panels: [] };
+    const index = panelIndexByImage(scene, "269_5.1_why-loops.svg");
+    return Number.isInteger(index) && index >= 0 ? index : Math.max(scene.panels.length - 1, 0);
+  }
+
+  // Standing anywhere inside that run — first time through or replaying it — IS
+  // being inside the "לולאות" explanation, so walking out of it part-way still
+  // counts as having been offered it (abandonExplanationInProgress).
+  function insideLoopsStory() {
+    return state.screen === "story"
+      && state.sceneId === "demonstrations"
+      && state.panelIndex >= loopsStoryStartIndex()
+      && state.panelIndex <= loopsStoryEndIndex();
+  }
+
   // The first slide AFTER the run of examples the learner is standing in.
   function afterInstructionExamples() {
     const panels = currentScene().panels;
@@ -5283,6 +5311,28 @@
       return setState({ assemblerInfo: true }, false);
     }
 
+    // Chapter 5.1's loops monologue, replayed from the menu.
+    if (id === "loops") {
+      if (!explanationUnlocked("loops")) return;
+      const chapter = chapterById("chapter-20");
+      return setState({
+        ...transientUiClearPatch(),
+        screen: "story",
+        chapterId: chapter.id,
+        sceneId: chapter.sceneId,
+        panelIndex: loopsStoryStartIndex(),
+        started: true,
+        replayNonce: state.replayNonce + 1,
+        explanationReplay: { id: "loops" }
+      }, true);
+    }
+
+    // Nothing behind this one yet — the same window the red teaser opens.
+    if (id === "modern-loops") {
+      if (!explanationUnlocked("modern-loops")) return;
+      return setState({ infoDialog: MODERN_LOOPS_TEXT });
+    }
+
     // A pure-text enrichment reading: opens a scrollable dialog over the current
     // screen (the explanations menu) rather than replaying a story scene.
     if (id === "words-bytes") {
@@ -5398,6 +5448,10 @@
       if (state.panelIndex <= computerStructureStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
     }
+    if (explanationReplayActive("loops")) {
+      if (state.panelIndex <= loopsStoryStartIndex()) return returnToExplanationsMenuFromReplay();
+      return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
+    }
     if (explanationReplayActive("nand-intro")) {
       if (state.panelIndex <= nandIntroStartIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex - 1, replayNonce: state.replayNonce + 1 }, true);
@@ -5417,6 +5471,10 @@
     if (explanationReplayActive("why-route")) return returnToExplanationsMenuFromReplay();
     if (explanationReplayActive("computer-structure")) {
       if (state.panelIndex >= computerStructureEndIndex()) return returnToExplanationsMenuFromReplay();
+      return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
+    }
+    if (explanationReplayActive("loops")) {
+      if (state.panelIndex >= loopsStoryEndIndex()) return returnToExplanationsMenuFromReplay();
       return setState({ panelIndex: state.panelIndex + 1, replayNonce: state.replayNonce + 1 }, true);
     }
     if (explanationReplayActive("ram-story")) {
@@ -5492,11 +5550,12 @@
       inGame: ["computer-structure"],
       enrichment: ["words-bytes"]
     },
-    // Software (chapter 4.3): the assembler, reached from the gnome's red teaser.
+    // Software (chapters 4.3 and 5.1): the loops monologue, plus the assembler
+    // and the modern-loops teaser, both reached from a red link.
     {
       title: "תוכנה",
-      inGame: [],
-      enrichment: ["assembler"]
+      inGame: ["loops"],
+      enrichment: ["assembler", "modern-loops"]
     }
   ];
 
@@ -5573,6 +5632,7 @@
         ${renderSubtractionDemoLinks()}
         ${renderFfClockLinks()}
         ${renderAssemblerInfo()}
+        ${renderInfoDialog()}
       </main>`;
   }
 
@@ -10725,6 +10785,9 @@
   // Los Alamos night-desert interstitial (the same raster the chapter breaks
   // use), so a dead end reads as a quiet nightfall rather than a bare popup.
   const CONTINUE_SOON_TEXT = "המשך יבוא...";
+  // The same idea for a teaser that promises a whole subject rather than the next
+  // step of the plot: 5.1's "how loops work in a modern machine".
+  const MODERN_LOOPS_TEXT = "חלק זה של המשחק עדיין לא קיים";
 
   function renderInfoDialog() {
     if (!state.infoDialog) return "";
@@ -10994,7 +11057,7 @@
         ${panel.question ? renderPanelQuestion(panel) : ""}
         ${renderWordsBytesDialog()}
         <div class="panel-spinner" data-panel-spinner aria-hidden="true"><span class="panel-spinner-icon">⏳</span></div>
-        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route") || explanationReplayActive("ram-story") || explanationReplayActive("computer-structure")) ? renderNandIntroExplanationControls() : `
+        ${(explanationReplayActive("nand-intro") || explanationReplayActive("why-route") || explanationReplayActive("ram-story") || explanationReplayActive("computer-structure") || explanationReplayActive("loops")) ? renderNandIntroExplanationControls() : `
         <section class="controls">
           ${navButton("prev", "arrow-right", "הקודם", { disabled: !globalHasPrevious() })}
           ${navButton("restart", "restart", "חזור")}
@@ -29018,8 +29081,13 @@
     if (action === "panel-answer-check") return checkPanelAnswer();
     if (action === "open-words-bytes") { unlockExplanation("words-bytes", { silent: true }); return setState({ wordsBytesDialog: { page: 0 } }, false); }
     // 5.1's teaser: how loops really work in a modern machine. Nothing behind it
-    // yet, so the link says so rather than dead-ending.
-    if (action === "open-modern-loops") return setState({ infoDialog: "חלק זה של המשחק עדיין לא קיים" });
+    // yet, so the link says so rather than dead-ending — but taking the link is
+    // what puts the (empty) explanation in the menu, the way "מילים ובתים" works.
+    if (action === "open-modern-loops") {
+      unlockExplanation("modern-loops", { silent: true });
+      announceExplanationUnlock("modern-loops");
+      return setState({ infoDialog: MODERN_LOOPS_TEXT });
+    }
     if (action === "words-bytes-close") return closeWordsBytes();
     if (action === "words-bytes-prev") return wordsBytesStep(-1);
     if (action === "words-bytes-next") return wordsBytesStep(1);

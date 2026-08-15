@@ -621,7 +621,14 @@
     { id: "computer-structure", title: "מבנה המחשב הפשוט" },
     // Enrichment (software category): the assembler window, reached from the red
     // teaser beside the gnome on the 4.3 page.
-    { id: "assembler", title: "אסמבלר" }
+    { id: "assembler", title: "אסמבלר" },
+    // Chapter 5.1: von Neumann's walk from Babbage and Lovelace through what a
+    // loop is, why memory changes what a repeated instruction does, the
+    // conditional jump, and what loops are worth.
+    { id: "loops", title: "לולאות" },
+    // Enrichment (software category): how loops work in a modern machine,
+    // reached from the red teaser on the last slide of that monologue.
+    { id: "modern-loops", title: "לולאות בעולם המודרני" }
   ];
 
   // The "מילים ובתים" enrichment text, shown in a scrollable dialog.
