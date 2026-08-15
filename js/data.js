@@ -2875,6 +2875,8 @@ const SCENES = {
       {
         "comment": "Wordless: 4.4's room again with the demonstration note on the worktable. Same camera and the same click-zones, the note being the one thing that differs — it opens the 5.1 tasks.",
         "image": "assets/panels/273_5.1_demo-room.svg",
+        "doneImage": "assets/panels/273_5.1_demo-room_done.svg",
+        "doneAfterTask": "demo-infinite-loop",
         "year": "1944",
         "read": "",
         "hotspots": [

@@ -2248,9 +2248,19 @@
     return null;
   }
 
+  // A room may also carry a SECOND state of itself: `doneImage` is the art it
+  // wears once `doneAfterTask` has been completed — the same room, the same
+  // click-zones, something in it changed by the work. 5.1's demonstration room
+  // loses the two counters from the floor once the first demonstration is done.
+  // Like the preference variants this is DISPLAY only: `image` stays the panel's
+  // identity, so every lookup, route and audit keeps naming the original.
   function displayPanelImage(panel) {
     const v = panelVariant(panel);
-    return v && v.image ? v.image : (panel ? panel.image : "");
+    if (v && v.image) return v.image;
+    if (panel && panel.doneImage && panel.doneAfterTask && taskCompleted(panel.doneAfterTask)) {
+      return panel.doneImage;
+    }
+    return panel ? panel.image : "";
   }
 
   function panelReadText(panel) {
