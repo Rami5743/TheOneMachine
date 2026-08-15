@@ -3228,6 +3228,164 @@ const SCENES = {
         "image": "assets/panels/277_5.2_note-placed.svg",
         "year": "1944",
         "read": ""
+      },
+      {
+        "comment": "One word before the work: the room and the pose of the two slides above it.",
+        "image": "assets/panels/278_5.2_good-luck.svg",
+        "year": "1944",
+        "read": "בהצלחה"
+      },
+      {
+        "comment": "5.2's room: 5.1's second click-slide again — the same camera, the same zones — with 5.2's note on the table.",
+        "image": "assets/panels/279_5.2_room.svg",
+        "year": "1944",
+        "read": "",
+        "hotspots": [
+          {
+            "action": "panel-object",
+            "objectId": "workArea",
+            "ariaLabel": "אזור העבודה",
+            "left": 0.0,
+            "top": 48.08,
+            "width": 100.0,
+            "height": 53.02
+          },
+          {
+            "action": "panel-object",
+            "objectId": "cpuRack",
+            "ariaLabel": "ארון ה-CPU",
+            "left": 34.88,
+            "top": 18.88,
+            "width": 20.03,
+            "height": 38.67
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramRack",
+            "ariaLabel": "ארונות ה-RAM",
+            "left": 59.53,
+            "top": 15.84,
+            "width": 40.47,
+            "height": 47.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn0",
+            "ariaLabel": "פורט כניסה IN0",
+            "left": 68.78,
+            "top": 81.59,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn1",
+            "ariaLabel": "פורט כניסה IN1",
+            "left": 72.16,
+            "top": 80.67,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn2",
+            "ariaLabel": "פורט כניסה IN2",
+            "left": 76.24,
+            "top": 80.85,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramIn3",
+            "ariaLabel": "פורט כניסה IN3",
+            "left": 79.9,
+            "top": 81.04,
+            "width": 3.04,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut0",
+            "ariaLabel": "פורט יציאה OUT0",
+            "left": 82.73,
+            "top": 81.13,
+            "width": 3.11,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut1",
+            "ariaLabel": "פורט יציאה OUT1",
+            "left": 86.81,
+            "top": 81.4,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut2",
+            "ariaLabel": "פורט יציאה OUT2",
+            "left": 91.5,
+            "top": 81.86,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "ramOut3",
+            "ariaLabel": "פורט יציאה OUT3",
+            "left": 96.34,
+            "top": 82.05,
+            "width": 3.18,
+            "height": 4.24
+          },
+          {
+            "action": "panel-object",
+            "objectId": "resetSwitch",
+            "ariaLabel": "המפסק של הריסט",
+            "left": 54.01,
+            "top": 77.62,
+            "width": 3.18,
+            "height": 5.34
+          },
+          {
+            "action": "panel-object",
+            "objectId": "nuclearWaste",
+            "ariaLabel": "פסולת גרעינית",
+            "left": 4.04,
+            "top": 38.49,
+            "width": 11.46,
+            "height": 11.05
+          },
+          {
+            "action": "panel-object",
+            "objectId": "popy",
+            "ariaLabel": "פופי",
+            "left": 2.76,
+            "top": 56.35,
+            "width": 27.28,
+            "height": 31.26
+          },
+          {
+            "action": "panel-object",
+            "objectId": "casesNote",
+            "ariaLabel": "הפתק",
+            "left": 38.4,
+            "top": 79.01,
+            "width": 5.52,
+            "height": 4.42
+          },
+          {
+            "action": "panel-object",
+            "objectId": "tapeReader",
+            "ariaLabel": "קורא סרטים מנוקבים",
+            "left": 55.25,
+            "top": 54.14,
+            "width": 10.5,
+            "height": 17.13
+          }
+        ]
       }
     ]
   }

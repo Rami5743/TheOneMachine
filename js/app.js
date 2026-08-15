@@ -2065,6 +2065,8 @@
     buildNoteList: false,
     jumpNoteList: false,
     demoNoteList: false,
+    // 5.2's note, the same shape as 5.1's.
+    casesNoteList: false,
     // "נקה התקדמות" on the exercise page, waiting for a yes.
     sheetClearConfirm: null,
     // The free square of the page being written in right now: { row, col }.
@@ -3634,7 +3636,7 @@
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
       programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
-      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programTaskArrow: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, workspace };
+      programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programTaskArrow: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, casesNoteList: false, workspace };
   }
 
   function stateForStorage() {
@@ -10779,6 +10781,44 @@
       </div>`;
   }
 
+  // ---- Chapter 5.2's note ---------------------------------------------------
+  // 5.1's note again, on the same table: one task so far, and nothing behind it
+  // yet, so opening it says "המשך יבוא...".
+  function casesTaskDefs() {
+    return typeof CASES_TASKS !== "undefined" ? CASES_TASKS : [];
+  }
+
+  function handleCasesNoteTask() {
+    return setState({ infoDialog: CONTINUE_SOON_TEXT });
+  }
+
+  function renderCasesNoteList() {
+    if (!state.casesNoteList) return "";
+    const body = `
+      <ol class="note-task-list buses-note-list">
+        ${casesTaskDefs().map((task) => {
+          const completed = taskCompleted(task.id);
+          return `
+            <li class="${completed ? "task-completed" : ""}">
+              <span class="note-task-check" aria-hidden="true">${completed ? "✓" : ""}</span>
+              <button class="note-task-button" data-action="cases-note-task" data-task-id="${esc(task.id)}" type="button">${esc(task.label)}</button>
+            </li>`;
+        }).join("")}
+      </ol>`;
+    return `
+      <div class="note-task-overlay" role="presentation">
+        <section class="note-task-card" role="dialog" aria-modal="false" aria-label="רשימת משימות">
+          <h2>משימות</h2>
+          ${body}
+          <div class="note-task-actions">
+            <button class="btn" data-action="cases-note-close">סגור</button>
+            ${noteClearProgressButton("cases")}
+          </div>
+        </section>
+        ${renderNoteClearDialog()}
+      </div>`;
+  }
+
   function renderJumpNoteList() {
     if (!state.jumpNoteList) return "";
     const body = `
@@ -11147,6 +11187,7 @@
       ${renderBuildNoteList()}
       ${renderJumpNoteList()}
       ${renderDemoNoteList()}
+      ${renderCasesNoteList()}
       ${renderInstructionSheet()}
       ${renderProgramSheet()}`;
 
@@ -25354,6 +25395,7 @@
     if (kind === "build") return simpleComputerTaskDefs().map((t) => t.id);
     if (kind === "jump") return jumpTaskDefs().map((t) => t.id);
     if (kind === "demo") return demoTaskDefs().map((t) => t.id);
+    if (kind === "cases") return casesTaskDefs().map((t) => t.id);
     return [];
   }
 
@@ -28858,6 +28900,7 @@
       if (object && object.opens === "build-tasks") return setState({ panelObjectDialog: null, buildNoteList: true });
       if (object && object.opens === "jump-tasks") return setState({ panelObjectDialog: null, jumpNoteList: true });
       if (object && object.opens === "demo-tasks") return setState({ panelObjectDialog: null, demoNoteList: true });
+      if (object && object.opens === "cases-tasks") return setState({ panelObjectDialog: null, casesNoteList: true });
       if (object && object.opens === "program-sheet") return openProgramSheet();
       if (object && object.opens === "free-workbench") return openRoomWorkbench();
       return setState({ panelObjectDialog: objectId }, false);
@@ -28875,6 +28918,8 @@
     if (action === "jump-note-close") return setState({ jumpNoteList: false });
     if (action === "demo-note-task") return handleDemoNoteTask(button.dataset.taskId);
     if (action === "demo-note-close") return setState({ demoNoteList: false });
+    if (action === "cases-note-close") return setState({ casesNoteList: false });
+    if (action === "cases-note-task") return handleCasesNoteTask();
     if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
     if (action === "sheet-guide-prev") return stepSheetGuide(-1);
     if (action === "sheet-guide-next") return stepSheetGuide(1);

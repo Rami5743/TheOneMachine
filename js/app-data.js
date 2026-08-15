@@ -1246,6 +1246,17 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     }
   ];
 
+  // ---- Chapter 5.2's note --------------------------------------------------
+  // The same shape as 5.1's, on the same table in the same room. One task so
+  // far; it has no programming page behind it yet, so it says "המשך יבוא...".
+  const CASES_TASKS = [
+    {
+      id: "cases-calculator",
+      label: "מחשבון מתקדם",
+      requires: []
+    }
+  ];
+
   // The machine check for 5.1's infinite loop. Same bench as 4.3's, but what it
   // is watching for is different: not a number in Out0 — the task does not ask
   // for one — but that after fifty beats the machine is still inside the
@@ -1460,6 +1471,8 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     // 5.1's note, on the same table in the same room. Its own entry (not a second
     // zone sharing jumpNote's id) so it opens the demonstration tasks, not 4.4's.
     demoNote: { label: "הפתק", opens: "demo-tasks" },
+    // 5.2's note, on that same table once more.
+    casesNote: { label: "הפתק", opens: "cases-tasks" },
     // The two converters on the hangar floor in 4.4, standing under the ports
     // they serve. They carried the prgPort / prgAdrPort ids — the PRG and ADR PRG
     // tags of 4.3's room, which still use them — so they announced themselves as

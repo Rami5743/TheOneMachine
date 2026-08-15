@@ -44,7 +44,9 @@ const ROOMS = [
   // off the floor, so it carries sixteen zones where 273 carries eighteen. The
   // app only stands on it while that demonstration is done — otherwise it moves
   // the learner to 273 — so the fourth field ticks the task that makes it real.
-  ['274_5.1_demo-room-done.svg', 'chapter-20', 'demonstrations', ['demo-infinite-loop']]
+  ['274_5.1_demo-room-done.svg', 'chapter-20', 'demonstrations', ['demo-infinite-loop']],
+  // 5.2's room: the same art and the same zones once more, with its own note.
+  ['279_5.2_room.svg', 'chapter-21', 'conditions']
 ];
 const ALL_TASKS = ['Not','And','Or','Xor','Mux','DMux','Not4','Not16','AND4','AND16','OR4','Neq0_4','Neq0_16','MUX4','MUX16','Dmux4way','Mux4way16','halfAdder','fullAdder','Add4','Add16','Inc','ALU0','PreperNum','ALU1','ALU2','ALU3','ALU4','Register4','Register','RAM4','RAM16','RAM64','RAM256','RAM1024','OPorts','IPorts','Ports','RAM','Prg'];
 
