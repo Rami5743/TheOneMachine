@@ -7811,18 +7811,27 @@
     // does — 4.3's message from Groves is a different chapter's ending.
     const demo = demoProgramTask();
     if (demo) {
-      // Except for the LAST demonstration: that is where the story stops for
-      // now, so rather than dropping the note back open with nothing new left on
-      // it, the room says "המשך יבוא...". The note is still there to be picked up
-      // again once the notice is closed.
+      // Except for the LAST demonstration: finishing it is the end of 5.1, so
+      // rather than dropping the note back open with nothing new left on it, the
+      // story walks on into 5.2.
       const all = demoTaskDefs();
       const done = all.length > 0 && demo.id === all[all.length - 1].id && taskCompleted(demo.id);
-      return {
-        ...demoReturnTarget(),
-        programTaskId: null,
-        demoNoteList: !done,
-        ...(done ? { infoDialog: CONTINUE_SOON_TEXT } : {})
-      };
+      if (done) {
+        const next = chapterById("chapter-21");
+        if (next) {
+          return {
+            screen: "story",
+            chapterId: next.id,
+            sceneId: next.sceneId,
+            panelIndex: 0,
+            started: true,
+            programTaskId: null,
+            demoNoteList: false,
+            replayNonce: state.replayNonce + 1
+          };
+        }
+      }
+      return { ...demoReturnTarget(), programTaskId: null, demoNoteList: true };
     }
     if (!state.programTaskDone) return {};
     const chapter = chapterById("chapter-18");

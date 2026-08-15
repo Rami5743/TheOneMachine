@@ -8,7 +8,7 @@
   <image id="raster-base" x="0" y="0" width="1448" height="1086"
      preserveAspectRatio="none" href="275_5.2_choose-operation.jpg" xlink:href="275_5.2_choose-operation.jpg" />
   <g id="text-bubble-layer" inkscape:groupmode="layer" inkscape:label="Text bubble">
-    <path id="speech-bubble" d="M 819.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 593 C 1420,607.66667 1413.4961,615 1400.48831,615 H 819.51169 C 806.50389,615 800,607.66667 800,593 V 347.5 L 760,368 L 800,307.5 V 62 C 800,47.33333 806.50389,40 819.51169,40 Z" fill="#ffffff" stroke="#000000"
+    <path id="speech-bubble" d="M 819.51169,40 H 1400.48831 C 1413.49611,40 1420,47.33333 1420,62 V 593 C 1420,607.66667 1413.4961,615 1400.48831,615 H 819.51169 C 806.50389,615 800,607.66667 800,593 V 350.5 L 730,358 L 800,304.5 V 62 C 800,47.33333 806.50389,40 819.51169,40 Z" fill="#ffffff" stroke="#000000"
        stroke-width="3.44993" stroke-linejoin="round" stroke-linecap="round" />
     <text id="bubble-text" text-anchor="start" direction="rtl" unicode-bidi="plaintext"
        font-family="'Noto Sans Hebrew', Arial, sans-serif" font-size="34px" font-weight="400" fill="#000000"

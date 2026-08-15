@@ -3222,6 +3222,12 @@ const SCENES = {
           "action": "open-modern-conditions",
           "side": "left"
         }
+      },
+      {
+        "comment": "Wordless: the next note goes onto the table, the way each chapter's tasks are handed over.",
+        "image": "assets/panels/277_5.2_note-placed.svg",
+        "year": "1944",
+        "read": ""
       }
     ]
   }
