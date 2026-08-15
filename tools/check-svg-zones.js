@@ -40,12 +40,9 @@ const ROOMS = [
   ['244_4.3_program-room.svg', 'chapter-18', 'simple-programming'],
   ['259_4.4_build-room.svg', 'chapter-19', 'conditional-jump'],
   ['273_5.1_demo-room.svg', 'chapter-20', 'demonstrations'],
-  // The demonstration room's SECOND state — the art it wears once the first
-  // demonstration is done (displayPanelImage swaps it in). It is not a panel of
-  // its own, so it is reached through the panel it replaces, with that task
-  // ticked. Its zones must land exactly where the base room's do.
-  ['273_5.1_demo-room_done.svg', 'chapter-20', 'demonstrations',
-   { via: '273_5.1_demo-room.svg', tasks: ['demo-infinite-loop'] }]
+  // The same room once the first demonstration is written: the two counters are
+  // off the floor, so it carries sixteen zones where 273 carries eighteen.
+  ['274_5.1_demo-room-done.svg', 'chapter-20', 'demonstrations']
 ];
 const ALL_TASKS = ['Not','And','Or','Xor','Mux','DMux','Not4','Not16','AND4','AND16','OR4','Neq0_4','Neq0_16','MUX4','MUX16','Dmux4way','Mux4way16','halfAdder','fullAdder','Add4','Add16','Inc','ALU0','PreperNum','ALU1','ALU2','ALU3','ALU4','Register4','Register','RAM4','RAM16','RAM64','RAM256','RAM1024','OPorts','IPorts','Ports','RAM','Prg'];
 
@@ -72,10 +69,7 @@ function svgZones(file) {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
     args: ['--no-proxy-server','--disable-dev-shm-usage','--disable-gpu','--no-sandbox'] });
   let bad = 0;
-  for (const [file, chapterId, sceneId, opts] of ROOMS) {
-    // A variant slide is navigated to through the panel it stands in for.
-    const via = (opts && opts.via) || file;
-    const tasks = ALL_TASKS.concat((opts && opts.tasks) || []);
+  for (const [file, chapterId, sceneId] of ROOMS) {
     const info = svgZones(file);
     const problems = [];
     if (info.declared !== info.stem) problems.push(`the SVG calls itself "${info.declared}"`);
@@ -84,7 +78,7 @@ function svgZones(file) {
     await p.goto(URL, { waitUntil: 'commit' });
     await p.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, {
       screen: 'story', chapterId, sceneId, panelIndex: 0, maxChapterReached: 20, started: true,
-      settings: { pace: 'all' }, completedTasks: tasks,
+      settings: { pace: 'all' }, completedTasks: ALL_TASKS,
       workspace: { components: [], wires: [], nextId: 1 }
     }]);
     await p.reload({ waitUntil: 'commit' });
@@ -96,7 +90,7 @@ function svgZones(file) {
       const i = scene ? scene.panels.findIndex((pp) => String(pp.image || '').includes(img)) : -1;
       if (i >= 0) { s.panelIndex = i; localStorage.setItem(key, JSON.stringify(s)); }
       return i;
-    }, via);
+    }, file);
     if (at < 0) { console.log(`✗ ${file}: not in scene ${sceneId}`); bad++; await p.close(); continue; }
     // Land ON the slide: the app normalises the saved state on boot and can move
     // the panel index, so check what is actually displayed and try again if it is
@@ -117,7 +111,7 @@ function svgZones(file) {
         const scene = SCENES[s.sceneId];
         const i = scene ? scene.panels.findIndex((pp) => String(pp.image || '').includes(img)) : -1;
         if (i >= 0) { s.panelIndex = i; localStorage.setItem(key, JSON.stringify(s)); }
-      }, [via]);
+      }, [file]);
     }
     if (displayed !== file) problems.push(`the app shows ${displayed || 'nothing'} instead of this slide`);
     // The SVG posts its rects once it has laid out, which can take a moment on a

@@ -2248,19 +2248,9 @@
     return null;
   }
 
-  // A room may also carry a SECOND state of itself: `doneImage` is the art it
-  // wears once `doneAfterTask` has been completed — the same room, the same
-  // click-zones, something in it changed by the work. 5.1's demonstration room
-  // loses the two counters from the floor once the first demonstration is done.
-  // Like the preference variants this is DISPLAY only: `image` stays the panel's
-  // identity, so every lookup, route and audit keeps naming the original.
   function displayPanelImage(panel) {
     const v = panelVariant(panel);
-    if (v && v.image) return v.image;
-    if (panel && panel.doneImage && panel.doneAfterTask && taskCompleted(panel.doneAfterTask)) {
-      return panel.doneImage;
-    }
-    return panel ? panel.image : "";
+    return v && v.image ? v.image : (panel ? panel.image : "");
   }
 
   function panelReadText(panel) {
@@ -10656,11 +10646,22 @@
   }
 
   // Back to the room 5.1's note is lying in.
+  // The room has two slides of its own: the one the chapter walks into, and the
+  // one it becomes once the first demonstration is written — the two counters
+  // are off the floor by then, so that slide is the same room minus their two
+  // zones. Nothing walks INTO either of them; this is the only way in, so the
+  // choice lives here.
+  function demoRoomImage() {
+    return taskCompleted("demo-infinite-loop")
+      ? "274_5.1_demo-room-done.svg"
+      : "273_5.1_demo-room.svg";
+  }
+
   function demoReturnTarget() {
     const chapter = chapterById("chapter-20");
     const scene = chapter ? SCENES[chapter.sceneId] : null;
     if (!chapter || !scene) return { screen: "story" };
-    const idx = panelIndexByImage(scene, "273_5.1_demo-room.svg");
+    const idx = panelIndexByImage(scene, demoRoomImage());
     return {
       screen: "story",
       chapterId: chapter.id,
@@ -10725,6 +10726,7 @@
           ${body}
           <div class="note-task-actions">
             <button class="btn" data-action="demo-note-close">סגור</button>
+            ${noteClearProgressButton("demo")}
           </div>
         </section>
         ${renderNoteClearDialog()}
@@ -25304,6 +25306,7 @@
     if (kind === "prg") return prgTaskDefs().map((t) => t.id);
     if (kind === "build") return simpleComputerTaskDefs().map((t) => t.id);
     if (kind === "jump") return jumpTaskDefs().map((t) => t.id);
+    if (kind === "demo") return demoTaskDefs().map((t) => t.id);
     return [];
   }
 
@@ -25362,7 +25365,30 @@
     // on it, so a fresh unaided rebuild can rank again.
     const newRankHintUsed = { ...(state.rankHintUsed || {}) };
     ids.forEach((id) => { delete newRankHintUsed[id]; });
+    // A 5.1 demonstration keeps its work on a programming page of its own rather
+    // than on a build board: the program written on it, and the failures/hints
+    // that page recorded (which is what the "מדויק" achievement reads). Clearing
+    // the note has to take those with it, or the task comes back already
+    // answered. They are nulled rather than deleted — setState merges, and every
+    // reader treats a non-object as empty.
+    const pages = {};
+    ids.forEach((id) => {
+      if (!demoTaskDefById(id)) return;
+      pages[`programSheet_${id}`] = null;
+      pages[`programHints_${id}`] = null;
+    });
+    // Clearing 5.1's note un-writes the first demonstration, and the room the
+    // learner is standing in is the one that only exists BECAUSE it was written.
+    // Step back to the room as it was, so the counters are on the floor again.
+    const backToRoom = state.screen === "story"
+      && panelImageIs(currentPanel(), "274_5.1_demo-room-done.svg")
+      && idSet.has("demo-infinite-loop")
+      ? { panelIndex: Math.max(panelIndexByImage(currentScene(), "273_5.1_demo-room.svg"), 0),
+          replayNonce: state.replayNonce + 1 }
+      : {};
     setState({
+      ...pages,
+      ...backToRoom,
       completedTasks: completed.filter((id) => !idSet.has(id)),
       tasksFailedOnce: failed.filter((id) => !idSet.has(id)),
       tasksEverCompleted: everUnion,
