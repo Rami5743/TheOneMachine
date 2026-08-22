@@ -2130,6 +2130,12 @@
     programSaveArrow: false,
     // The save box ({ name }) and the list of saved programs.
     programSaveDialog: null,
+    // 5.x only: "רוצה לשמור את הפתרון שלך?" — asked once a program has passed the
+    // machine, before its solution is shown, since the walkthrough writes over
+    // the page. `programSolutionAfterSave` remembers to open that solution once
+    // the saving is done with, whichever way it ends.
+    programSaveAsk: false,
+    programSolutionAfterSave: false,
     programLoadDialog: false,
     // The word that follows the FIRST program ever saved: what it is now good
     // for, and where to find it again. Shown once.
@@ -3373,6 +3379,8 @@
       programSaveIntro: false,
       programSaveArrow: false,
       programSaveDialog: null,
+      programSaveAsk: false,
+      programSolutionAfterSave: false,
       programLoadDialog: false,
       programSavedDialog: false,
       programEditId: null,
@@ -3635,7 +3643,7 @@
     // persisted so it survives a page refresh (restored + revalidated by
     // normalizeLoadedState). Every other transient dialog stays cleared on save.
     return { ...value, soundOn: false, dialog: null, taskDialog: null, notTest: null, hintDialog: null, hintSlides: null, bitDialog: null, paceDialog: false, infoDialog: null, explRoutingInfo: null, componentMonologue: null, converterInfo: null, converterValueEdit: null, busesNoteList: false, arithNoteList: false, aluNoteList: false, portsNoteList: false, prgNoteList: false, aluIntroDialog: null, cardCreation: null, cardDeleteConfirm: null, binClearConfirm: false, noteClearConfirm: null, panelAnswer: null, panelObjectDialog: null, wordsBytesDialog: null, sheetDialog: null, sheetClearConfirm: null, sheetScratchCell: null, programDialog: null, programTaskId: null, programClearConfirm: null, programAssembler: null, programDestMenu: null, programJumpMenu: null, programNumberEdit: null, programCalcMenu: null, programInputMenu: null, programSelection: null, programTableSelection: null, programContextMenu: null, programManualTest: null, programRunTest: null, programHintOpen: null, programSolution: null, programSaveIntro: false,
-      programSaveArrow: false, programSaveDialog: null, programLoadDialog: false,
+      programSaveArrow: false, programSaveDialog: null, programSaveAsk: false, programSolutionAfterSave: false, programLoadDialog: false,
       programSavedDialog: false, programEditId: null, programDeleteConfirm: null, programLeaveConfirm: false, programTaskArrow: false, programView: null, programViewSelection: null, assemblerHint: false, assemblerInfo: false, buildNoteList: false, jumpNoteList: false, demoNoteList: false, casesNoteList: false, workspace };
   }
 
@@ -7774,6 +7782,9 @@
     return setState({
       programHintOpen: null,
       programRunTest: null,
+      // Whatever was being asked about saving is answered by getting here.
+      programSaveAsk: false,
+      programSolutionAfterSave: false,
       programSolution: { variant: at, step: Math.min(Math.max(step, 0), last), part: -1 },
       programSolutionSeen: true,
       // Being shown the helper task's answer counts as having been through it.
@@ -8039,6 +8050,24 @@
       </div>`;
   }
 
+  // Asked between a program passing the machine and its solution being shown.
+  // The walkthrough paints itself over the page, so this is the last moment the
+  // learner's own program is still there to keep — and the moment they have most
+  // reason to want it.
+  function renderProgramSaveAsk() {
+    if (!state.programSaveAsk) return "";
+    return `
+      <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
+        <section class="pace-dialog-card" role="dialog" aria-modal="true" aria-label="שמירת הפתרון">
+          <p>רוצה לשמור את הפתרון שלך?</p>
+          <div class="pace-dialog-actions">
+            <button class="btn btn-primary" data-action="program-save-ask-yes" type="button">כן</button>
+            <button class="btn" data-action="program-save-ask-no" type="button">לא</button>
+          </div>
+        </section>
+      </div>`;
+  }
+
   function renderProgramSaveDialog() {
     const open = state.programSaveDialog;
     if (!open) return "";
@@ -8142,7 +8171,10 @@
     // "שמירה בשם חדש" from the editor: the copy is what is being edited from
     // now on, the way a "save as" leaves you in the new file rather than the old.
     const asNew = Boolean(state.programSaveDialog?.asNew) && state.programEditId;
-    return setState({
+    // Saved on the way to a solution: that solution opens next, unless the
+    // first-save word is up — then IT is what leads on to it.
+    const thenSolution = Boolean(state.programSolutionAfterSave) && !first;
+    const stored = setState({
       savedPrograms: savedProgramsNext,
       programSaveDialog: null,
       // Having saved one is having been shown how: the arrow has done its work.
@@ -8150,6 +8182,7 @@
       ...(asNew ? { programEditId: id, [`programEdit_${id}`]: { scratch: {}, ...kept } } : {}),
       ...(first ? { programSavedDialog: true, programSavedIntroSeen: true } : {})
     });
+    return thenSolution ? openProgramSolution(0) : stored;
   }
 
   function nextProgramSaveId() {
@@ -9778,7 +9811,7 @@
                   ? `<button class="btn" data-action="program-helper-leave" type="button">חזור למשימה הראשית</button>`
                   : ""}
                 ${result.ok && programSolutionSteps().length
-                  ? `<button class="btn btn-primary" data-action="program-solution-open" type="button">הצג פתרון</button>`
+                  ? `<button class="btn btn-primary" data-action="${demoProgramTask() ? "program-save-ask" : "program-solution-open"}" type="button">הצג פתרון</button>`
                   : ""}
               </div>
             </section>
@@ -10316,6 +10349,7 @@
         ${renderProgramSolution()}
         ${renderProgramIntro()}
         ${renderProgramClearDialog()}
+        ${renderProgramSaveAsk()}
         ${renderProgramSaveDialog()}
         ${renderProgramLoadDialog()}
         ${renderProgramLeaveDialog()}
@@ -29067,12 +29101,37 @@
     if (action === "program-save-as") {
       return setState({ programSaveDialog: { name: defaultProgramName(), asNew: true } });
     }
-    if (action === "program-save-cancel") return setState({ programSaveDialog: null });
+    // "רוצה לשמור את הפתרון שלך?" — and either way the solution follows.
+    if (action === "program-save-ask") return setState({ programSaveAsk: true });
+    if (action === "program-save-ask-yes") {
+      return setState({
+        programSaveAsk: false,
+        programSolutionAfterSave: true,
+        programSaveDialog: { name: defaultProgramName() },
+        programSaveArrow: false
+      });
+    }
+    if (action === "program-save-ask-no") return openProgramSolution(0);
+    if (action === "program-save-cancel") {
+      // Backing out of the save is still an answer to the question: the solution
+      // was what the learner was on their way to.
+      if (state.programSolutionAfterSave) {
+        setState({ programSaveDialog: null }, false);
+        return openProgramSolution(0);
+      }
+      return setState({ programSaveDialog: null });
+    }
     if (action === "program-save-confirm") {
       const box = app.querySelector("[data-program-save-name]");
       return saveCurrentProgram(box ? box.value : state.programSaveDialog?.name);
     }
-    if (action === "program-saved-ok") return setState({ programSavedDialog: false });
+    if (action === "program-saved-ok") {
+      if (state.programSolutionAfterSave) {
+        setState({ programSavedDialog: false }, false);
+        return openProgramSolution(0);
+      }
+      return setState({ programSavedDialog: false });
+    }
     if (action === "program-edit-leave") return leaveProgramEditor();
     if (action === "program-leave-save") return leaveProgramEditor(true);
     if (action === "program-leave-discard") return leaveProgramEditor(false);
