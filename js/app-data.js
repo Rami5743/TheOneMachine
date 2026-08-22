@@ -1121,6 +1121,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       requires: ["demo-count-loop"],
       rankId: "prg-count-to",
       rankLabel: "ספירה עד מספר",
+      rankRuntime: true,
       title: "משימת תכנות: ספירה עד מספר",
       text: "כתוב תוכנה שסופרת מ-0 עד המספר שנמצא בקלט In0. היא צריכה להציג ב-Out0 את כל המספרים בדרך, אחד אחרי השני, ולעצור כשהיא מגיעה למספר שב-In0 — כלומר להישאר עליו ולא להמשיך.\n\nאתה יכול להניח שהקלט ב-In0 הוא לפחות 1.\n\n**הערה:** אין למחשב פקודה שאומרת \"עצור\". אתה רק צריך לדאוג שהתוכנה תצא מהלולאה, ואחרי זה אתה יכול להשאיר את הפקודות ריקות.",
       hints: [
@@ -1157,10 +1158,11 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       requires: ["demo-count-to"],
       rankId: "prg-multiply",
       rankLabel: "כפל",
-      // The last two tasks are also ranked by how LONG the machine ran and how
-      // much memory the program took — the two extra "דירוגי תוכנה" tabs. They
-      // are the first tasks where the same answer can be reached in very
-      // different ways, so those two are worth comparing.
+      // The tasks that ANSWER and stop are also ranked by how LONG the machine
+      // ran and how much memory the program took — the two extra "דירוגי תוכנה"
+      // tabs. They are the ones where the same answer can be reached in very
+      // different ways, so they are worth comparing; the two loops that never
+      // stop have no run to measure.
       rankRuntime: true,
       title: "משימת תכנות: כפל",
       text: "כתוב תוכנה שמכפילה את הערך שבקלט In0 בערך שבקלט In1, וכותבת את התוצאה ב-Out0. כשהיא מסיימת היא צריכה לעצור.\n\nאתה יכול להניח ששני הקלטים הם לפחות 1.",

@@ -2017,9 +2017,9 @@
     // How long the program that passed each programming task was, in
     // instructions — the counts behind "דירוגי תוכנה".
     programCounts: null,
-    // The two extra software tabs, kept for 5.1's last two tasks: how many beats
-    // the machine ran over all of the test's cases ("זמן ריצה"), and how many
-    // free RAM addresses the program took ("מקום בזיכרון").
+    // The two extra software tabs, kept for the 5.1 tasks that answer and stop:
+    // how many beats the machine ran over all of the test's cases ("זמן ריצה"),
+    // and how many free RAM addresses the program took ("מקום בזיכרון").
     programRuntimeCounts: null,
     programMemoryCounts: null,
     // Ids of ranked cards/tasks the player used an INTERACTIVE hint on — a hint
@@ -9358,7 +9358,8 @@
   }
 
   // What a passed 5.1 task writes into the ranking maps: its length always, and
-  // for the last two tasks also the run it took and the memory it needed. As in
+  // for a task that answers and stops also the run it took and the memory it
+  // needed. As in
   // 4.3, a task that was helped by an interactive hint is left out on purpose.
   function demoRankPatch(demo, now) {
     if (!demo || !demo.rankId) return {};

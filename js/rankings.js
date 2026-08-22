@@ -60,10 +60,11 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       map: "programCounts",
       rows: "programs"
     },
-    // The last two of 5.1's tasks — the first ones where the same answer can be
-    // reached in very different ways — are also ranked by how long the machine
-    // ran and by how much memory the program took. `runtimeOnly` keeps those two
-    // tabs to the tasks that carry the measurement.
+    // The 5.1 tasks that ANSWER and stop — where the same answer can be reached
+    // in very different ways — are also ranked by how long the machine ran and by
+    // how much memory the program took. `runtimeOnly` keeps those two tabs to the
+    // tasks that carry the measurement; a loop that never stops has no run to
+    // measure.
     runtime: {
       key: "runtime", ldim: "runtime", label: "זמן ריצה",
       countHead: "צעדים",
