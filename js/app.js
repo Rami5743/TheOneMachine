@@ -9836,6 +9836,18 @@
   // the squares the page itself owns (the heading and the assembler's rows).
   function programCellKind(row, col) {
     if (col === 17 || col === 18) return { kind: "locked" };
+    // The תגיות column, on the pages that can jump: one block of four squares by
+    // two rows to an instruction, holding TEXT rather than bits. It is not free
+    // paper — copying an instruction together with its tag is the whole point of
+    // being able to mark the two together — so it gets a kind of its own, and
+    // the block's top-left square is the one that carries the text.
+    if (jumpsInPlayColumns() && col >= PROGRAM_LABEL_COLUMNS[0] && col <= PROGRAM_LABEL_COLUMNS[1]) {
+      if (row <= 1) return { kind: "free" };
+      const within = row - 2;
+      const instruction = Math.floor(within / 2);
+      if (instruction >= programInstructionCount()) return { kind: "free" };
+      return { kind: "label", instruction, lead: within % 2 === 0 && col === PROGRAM_LABEL_COLUMNS[0] };
+    }
     if (!(col >= 1 && col <= 16)) return { kind: "free" };
     if (row <= 1) return { kind: "locked" };
     const within = row - 2;
@@ -9883,13 +9895,19 @@
 
   // The rectangle that covers whole instructions, from the one beside `fromRow`
   // to the one beside `toRow`.
-  function programLineBox(fromRow, toRow) {
+  function programLineBox(fromRow, toRow, toCol = null) {
     const top = Math.min(fromRow, toRow);
     const bottom = Math.max(fromRow, toRow);
     const first = Math.max(0, Math.floor((top - 2) / 2));
     const last = Math.min(programInstructionCount() - 1, Math.floor((bottom - 2) / 2));
     if (last < first) return null;
-    return { r1: 2 + first * 2, c1: 1, r2: 3 + last * 2, c2: 16 };
+    // Dragging out from the line numbers takes whole instructions. Carrying on
+    // PAST them, into the תגיות column, takes each instruction's tag with it —
+    // without this the mark stopped dead at the bits and a tagged program could
+    // not be copied whole.
+    const reachesTags = jumpsInPlayColumns()
+      && Number.isInteger(toCol) && toCol >= PROGRAM_LABEL_COLUMNS[0];
+    return { r1: 2 + first * 2, c1: 1, r2: 3 + last * 2, c2: reachesTags ? PROGRAM_LABEL_COLUMNS[1] : 16 };
   }
 
   // `snap` off gives the rectangle exactly as it was dragged out. A paste needs
@@ -9977,6 +9995,11 @@
         const cell = programCellKind(r, c);
         if (cell.kind === "bit") line.push({ kind: "bit", value: programBit(cell.instruction, cell.bit) });
         else if (cell.kind === "free") line.push({ kind: "free", value: String(programSheetProgress().scratch[`${r},${c}`] ?? "") });
+        else if (cell.kind === "label") line.push({
+          kind: "label",
+          lead: Boolean(cell.lead),
+          value: cell.lead ? String((programSheetProgress().labels || {})[cell.instruction] ?? "") : ""
+        });
         else line.push({ kind: "locked", value: "" });
       }
       rows.push(line);
@@ -9989,6 +10012,11 @@
   // an instruction may not be dropped on the free paper — which is what stops a
   // sixteen-square instruction from spilling out past the squares it belongs in.
   function programCanPlace(source, cell) {
+    // A tag is text about an instruction, so it belongs only in a tag's block —
+    // and nothing else belongs there.
+    if (cell.kind === "label" || source.kind === "label") {
+      return cell.kind === "label" && source.kind === "label";
+    }
     if (cell.kind === "locked") return source.value === "";
     if (cell.kind === "bit") return source.value === "" || source.value === "0" || source.value === "1";
     return source.kind !== "bit";
@@ -10018,10 +10046,20 @@
     // keeps its order. (The page's columns are numbered right to left, so the
     // left-hand end is the mark's highest column.)
     const landing = { r: box.r1, c: box.c2 - width + 1 };
+    // Instructions copied WITH their tags are a whole line wide, and a line fits
+    // the page in exactly one place: column 1, on an instruction's own two rows.
+    // Landing them from the mark's left-hand corner asks for a column that does
+    // not exist (a sixteen-wide mark would put a twenty-two-wide line at −5) and
+    // the paste was simply refused. So they are laid where they belong instead.
+    if (programClipboard.some((line) => line.some((source) => source.kind === "label"))) {
+      landing.c = 1;
+      landing.r = Math.max(2, 2 + Math.floor((box.r1 - 2) / 2) * 2);
+    }
     if (landing.c < 1 || !fits(landing.r, landing.c)) return programRefuse();
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     const scratch = { ...progress.scratch };
+    const labels = { ...(progress.labels || {}) };
     programClipboard.forEach((line, i) => {
       line.forEach((source, j) => {
         const r = landing.r + i;
@@ -10033,10 +10071,16 @@
         } else if (cell.kind === "free") {
           if (source.value === "") delete scratch[`${r},${c}`];
           else scratch[`${r},${c}`] = source.value;
+        } else if (cell.kind === "label" && source.lead) {
+          // Only the square that carried the text writes; the other seven of the
+          // block are along for the ride. It goes to whichever instruction the
+          // block came down on.
+          if (source.value === "") delete labels[cell.instruction];
+          else labels[cell.instruction] = source.value;
         }
       });
     });
-    return setState({ [programSheetKey()]: { ...progress, bits, scratch } });
+    return setState({ [programSheetKey()]: { ...progress, bits, scratch, labels } });
   }
 
   function programClearSelection() {
@@ -10045,14 +10089,16 @@
     const progress = programSheetProgress();
     const bits = { ...progress.bits };
     const scratch = { ...progress.scratch };
+    const labels = { ...(progress.labels || {}) };
     for (let r = box.r1; r <= box.r2; r += 1) {
       for (let c = box.c1; c <= box.c2; c += 1) {
         const cell = programCellKind(r, c);
         if (cell.kind === "bit") delete bits[`${cell.instruction}:${cell.bit}`];
         else if (cell.kind === "free") delete scratch[`${r},${c}`];
+        else if (cell.kind === "label" && cell.lead) delete labels[cell.instruction];
       }
     }
-    return setState({ [programSheetKey()]: { ...progress, bits, scratch } });
+    return setState({ [programSheetKey()]: { ...progress, bits, scratch, labels } });
   }
 
   // The right-button menu on the page: what can be done with the mark right now.
@@ -28187,7 +28233,7 @@
     // Dragging down the line-number column takes hold of whole instructions,
     // not of the numbers themselves.
     const box = PROGRAM_LINE_COLUMNS.includes(anchor.col)
-      ? programLineBox(anchor.row, at.row)
+      ? programLineBox(anchor.row, at.row, at.col)
       : { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
     if (!box) return;
     const field = inView ? "programViewSelection" : "programSelection";
