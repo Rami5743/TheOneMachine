@@ -29147,8 +29147,15 @@
     if (action === "program-save-as") {
       return setState({ programSaveDialog: { name: defaultProgramName(), asNew: true } });
     }
-    // "רוצה לשמור את הפתרון שלך?" — and either way the solution follows.
-    if (action === "program-save-ask") return setState({ programSaveAsk: true });
+    // "רוצה לשמור את הפתרון שלך?" — and either way the solution follows. The
+    // test bench goes away as the question comes up: its verdict card is drawn
+    // above every dialog on the page (z-index 320 against 260), so a question
+    // asked underneath one is in the DOM and on nobody's screen — the button
+    // read as dead.
+    if (action === "program-save-ask") {
+      clearProgramTestTimers();
+      return setState({ programSaveAsk: true, programRunTest: null });
+    }
     if (action === "program-save-ask-yes") {
       return setState({
         programSaveAsk: false,
