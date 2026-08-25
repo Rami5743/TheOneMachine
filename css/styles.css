@@ -6191,6 +6191,18 @@ object.panel-image.is-pending {
 
 /* "בדיקה": the workbench animation that loads the program and runs it. It takes
    most of the screen, over everything else on the page. */
+/* The check takes the screen, but it leaves a margin — and what shows in that
+   margin (the page's own navigation, the tip window's "המשך") is NOT reachable
+   while it is up. Pressing one of them did nothing at all, which reads as a dead
+   button rather than as a covered one, so the margin is dimmed. */
+.prog-test-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(12, 8, 4, 0.55);
+}
+
 .prog-test-overlay {
   position: fixed;
   inset: 3vh 3vw;
