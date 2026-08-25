@@ -7187,8 +7187,12 @@
       win.style.top = `${Math.max(ceiling, Math.round(y))}px`;
       y -= 8;
     });
-    // The window a saved program is shown in opens in the middle of the paper,
-    // clear of the stack down the left edge. It drags like the rest.
+    // The window a saved program is shown in opens BESIDE the page's own table,
+    // never over it: what it is for is copying an instruction out of it and onto
+    // the page, and that needs the page's squares to be there to be marked. It
+    // used to open in the middle of the paper, which on any ordinary screen is
+    // exactly where those squares are — so the copy worked and there was nowhere
+    // to put it. It drags like the rest.
     const view = byName("programView");
     if (view && !saved.programView) {
       // A long program scrolls inside the window rather than running off the
@@ -7199,9 +7203,18 @@
         body.style.maxHeight = `${Math.max(140, Math.round((area.bottom - area.top) - 2 * PAD - 44))}px`;
       }
       const rect = view.getBoundingClientRect();
+      // The page's table stands against the RIGHT edge of its paper (the columns
+      // are numbered right to left), so its left edge is that many squares in.
+      const pagePaper = app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
+      let clear = area.right - PAD - rect.width;
+      if (pagePaper) {
+        const paperBox = pagePaper.getBoundingClientRect();
+        const square = parseFloat(getComputedStyle(pagePaper).backgroundSize) || 26;
+        clear = paperBox.right - PROGRAM_LABEL_COLUMNS[1] * square - PAD - rect.width;
+      }
       view.style.right = "auto";
       view.style.bottom = "auto";
-      view.style.left = `${Math.round(Math.max(area.left + PAD, area.left + (area.right - area.left - rect.width) / 2))}px`;
+      view.style.left = `${Math.round(Math.max(area.left + PAD, Math.min(clear, area.right - PAD - rect.width)))}px`;
       view.style.top = `${Math.round(area.top + PAD)}px`;
     }
     // Every window in the stack is kept on the screen, whatever was measured.
@@ -8135,7 +8148,7 @@
       <div class="pace-dialog-overlay prog-dialog-overlay" role="presentation">
         <section class="pace-dialog-card prog-load-card" role="dialog" aria-modal="true" aria-label="טעינת תוכנה">
           <h2 class="prog-intro-title">טעינת תוכנה</h2>
-          ${list.length ? `<p class="my-card-delete-warn">הטעינה תחליף את מה שכתוב עכשיו בדף.</p>` : ""}
+          ${list.length ? `<p>הטעינה לא מוחקת כלום מהדף: התוכנה נפתחת בחלונית לצד הדף, ואפשר לסמן בה ולהעתיק ממנה לדף.</p>` : ""}
           ${body}
           <div class="pace-dialog-actions">
             <button class="btn" data-action="program-load-close" type="button">סגירה</button>
