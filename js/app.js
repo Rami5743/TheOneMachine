@@ -28246,13 +28246,21 @@
       programDragSelect.moved = true;
       // A press that began on a tag put the caret in its box; now that it has
       // turned out to be a drag, the box lets go — otherwise the browser drags
-      // out a text selection inside it instead of a mark on the paper.
+      // out a text selection inside it instead of a mark on the paper. (In the
+      // window a saved program is shown in there is no caret to let go of:
+      // nothing there is written in. On the PAGE the box is a real one, which is
+      // why the mark worked in the window and not on the page.)
       const typing = document.activeElement;
       if (typing && typing.classList && typing.classList.contains("prog-label-input")) {
+        try { typing.setSelectionRange(0, 0); } catch (e) { /* not selectable */ }
         try { typing.blur(); } catch (e) { /* already gone */ }
       }
       try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
+      document.body.classList.add("prog-marking");
     }
+    // And it goes on letting go for as long as the drag lasts: without this the
+    // browser keeps sweeping a text selection through the tag under the pointer.
+    if (event.cancelable) event.preventDefault();
     const inView = programDragSelect.view;
     const paper = inView ? app.querySelector("[data-prog-view]")
       : app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
@@ -28280,8 +28288,25 @@
       : { programSelection: box, programViewSelection: null, programTableSelection: null, sheetScratchCell: null });
   });
 
+  // A tag with a name in it is text, and text is something the browser will pick
+  // up and CARRY when it is dragged — and while it is being carried no mouse
+  // moves are reported at all, so the mark stopped dead the moment the drag
+  // began on a written tag. Nothing on this page is dragged anywhere; the only
+  // thing a press and a pull do here is mark.
+  document.addEventListener("dragstart", (event) => {
+    if (!programDragSelect) return;
+    event.preventDefault();
+  });
+
+  // The same for the sweep the browser makes through the text of a tag.
+  document.addEventListener("selectstart", (event) => {
+    if (!programDragSelect || !programDragSelect.moved) return;
+    event.preventDefault();
+  });
+
   document.addEventListener("mouseup", () => {
     if (!programDragSelect) return;
+    document.body.classList.remove("prog-marking");
     const moved = programDragSelect.moved;
     programDragSelect = null;
     if (!moved) return;
