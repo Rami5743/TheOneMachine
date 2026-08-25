@@ -27819,6 +27819,9 @@
   document.addEventListener("mousedown", (event) => {
     const cell = event.target.closest && event.target.closest(".prog-label");
     if (!cell || !state.programDialog) return;
+    // Nothing is written in the window a saved program is shown in — a press on
+    // a tag there is the start of a mark, not of typing.
+    if (cell.closest("[data-prog-view]")) return;
     const input = cell.querySelector(".prog-label-input");
     if (!input) return;
     // On the box itself the browser puts the caret where the finger is, which is
@@ -28213,7 +28216,7 @@
   // moves is left alone — it is a click on whatever is under it.
   document.addEventListener("mousedown", (event) => {
     if (!state.programDialog || event.button !== 0) return;
-    if (event.target.closest(".prog-dest-menu, .prog-number-input, .prog-label, .sheet-actions, .assembler")) return;
+    if (event.target.closest(".prog-dest-menu, .prog-number-input, .sheet-actions, .assembler")) return;
     // The window a saved program is shown in is dragged out on just the same
     // way — it is a paper too. Its head is the handle, so a press there moves
     // the window instead.
@@ -28221,7 +28224,13 @@
     if (!inView && event.target.closest(".sheet-guide")) return;
     // Whatever the browser had selected, drop it: the only mark on this page is
     // the one the learner drags out, and a stray blue highlight only confuses it.
-    try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
+    // Not on a tag, though: clearing the selection out from under a press on its
+    // box is what stops the caret ever landing in it, and a press on a tag is a
+    // press on something that is TYPED in until it turns out to be a drag (and
+    // the move handler drops both the caret and the selection then).
+    if (!event.target.closest(".prog-label")) {
+      try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
+    }
     const paper = inView || app.querySelector(".sheet-overlay-prog > .sheet-card .sheet-paper");
     if (!paper || !paper.contains(event.target)) return;
     const at = sheetSquareAt(paper, event.clientX, event.clientY);
@@ -28235,6 +28244,14 @@
       const far = Math.abs(event.clientX - programDragSelect.x) + Math.abs(event.clientY - programDragSelect.y);
       if (far < 6) return;
       programDragSelect.moved = true;
+      // A press that began on a tag put the caret in its box; now that it has
+      // turned out to be a drag, the box lets go — otherwise the browser drags
+      // out a text selection inside it instead of a mark on the paper.
+      const typing = document.activeElement;
+      if (typing && typing.classList && typing.classList.contains("prog-label-input")) {
+        try { typing.blur(); } catch (e) { /* already gone */ }
+      }
+      try { window.getSelection().removeAllRanges(); } catch (e) { /* no selection */ }
     }
     const inView = programDragSelect.view;
     const paper = inView ? app.querySelector("[data-prog-view]")
@@ -28244,9 +28261,14 @@
     if (!at) return;
     const anchor = programDragSelect.anchor;
     // Dragging down the line-number column takes hold of whole instructions,
-    // not of the numbers themselves.
-    const box = PROGRAM_LINE_COLUMNS.includes(anchor.col)
-      ? programLineBox(anchor.row, at.row, at.col)
+    // not of the numbers themselves. Starting on a TAG does the same, and keeps
+    // the tags whichever way the drag then runs — one begun there is a drag
+    // over tagged instructions, so it never matters that it ended up over the
+    // bits.
+    const fromTag = jumpsInPlayColumns()
+      && anchor.col >= PROGRAM_LABEL_COLUMNS[0] && anchor.col <= PROGRAM_LABEL_COLUMNS[1];
+    const box = (PROGRAM_LINE_COLUMNS.includes(anchor.col) || fromTag)
+      ? programLineBox(anchor.row, at.row, fromTag ? PROGRAM_LABEL_COLUMNS[1] : at.col)
       : { r1: anchor.row, c1: anchor.col, r2: at.row, c2: at.col };
     if (!box) return;
     const field = inView ? "programViewSelection" : "programSelection";
@@ -28572,6 +28594,22 @@
           event.preventDefault();
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
+        }
+        if (input) {
+          // Something else this same click set going may draw the page again —
+          // the assembler's teaser is passed over by the first click anywhere on
+          // the page, and passing it over is a redraw — and a redraw takes the
+          // caret with it, so nothing could be typed in the tag that had just
+          // been clicked. It comes back to where it was.
+          const row = input.dataset.programLabel;
+          const at = input.selectionStart;
+          window.setTimeout(() => {
+            const back = app.querySelector(`.prog-label-input[data-program-label="${row}"]`);
+            if (!back || document.activeElement === back) return;
+            back.focus();
+            const where = Number.isInteger(at) ? Math.min(at, back.value.length) : back.value.length;
+            try { back.setSelectionRange(where, where); } catch (e) { /* not a text box */ }
+          }, 0);
         }
         return;
       }
