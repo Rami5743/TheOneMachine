@@ -9160,10 +9160,24 @@
   // on a line changes that line and the ones under it and nothing above it.
   // Some of 5.1's tasks are given TWO numbers, and then the bench has a box for
   // each of them.
+  // A case of a machine check is two lists: the numbers the machine is GIVEN
+  // (In0, In1, In2…) and the answer wanted OF it (Out0…). Two lists rather than
+  // one, so that neither has to be counted out of the other — which is what a
+  // task with a third input broke, and what left the one-input tasks writing a
+  // spare 0 where In1 would have been.
+  function programTestCases(test) {
+    return ((test && test.cases) || []).map((one) => ({
+      in: Array.isArray(one.in) ? one.in : [],
+      out: Array.isArray(one.out) ? one.out : []
+    }));
+  }
+
+  // How many ports a check hands numbers to — its own cases say so, and there is
+  // nothing else to keep in step with them.
   function programTestInputCount(test) {
-    const asked = Number(test && test.inputs);
-    if (!Number.isFinite(asked)) return 1;
-    return Math.max(1, Math.min(PROGRAM_PORTS, Math.trunc(asked)));
+    const most = programTestCases(test)
+      .reduce((many, one) => Math.max(many, one.in.length), 0);
+    return Math.max(1, Math.min(PROGRAM_PORTS, most));
   }
 
   function programManualInputCount() {
@@ -9348,24 +9362,17 @@
     return [{ ...shown, ok: true }];
   }
 
-  // The tasks that have an ANSWER and then stop. Each case is a pair of inputs
-  // and what should come out of Out0; the machine is run until it settles, and
-  // a program that never settles has not stopped.
+  // The tasks that have an ANSWER and then stop. Each case gives the machine its
+  // numbers and says what should come out of Out0; the machine is run until it
+  // settles, and a program that never settles has not stopped.
   function programAnswerRuns(test) {
     const runs = [];
     const cycles = test.cycles || 4000;
     const start = Number.isInteger(test.startOut) ? test.startOut : 500;
-    // A case is the numbers the machine is given and then the answer wanted: one
-    // number for most tasks, two from 5.1, three from 5.2 (the third says which
-    // sum to do). How many is what the test itself declares.
-    // The answer wanted is the LAST of a case and the numbers the machine is
-    // given are the ones before it — however many ports the task uses, and
-    // whether or not it bothers to declare them.
-    const ports = programTestInputCount(test);
-    for (const one of (test.cases || [])) {
-      const want = one[one.length - 1];
-      const [in0, in1, in2] = one.slice(0, -1);
-      const outcome = programRunWithJumps(cycles, { in0, in1: ports > 1 ? in1 : 0, in2: ports > 2 ? in2 : 0, out0: start });
+    for (const one of programTestCases(test)) {
+      const [in0, in1, in2] = one.in;
+      const want = one.out[0];
+      const outcome = programRunWithJumps(cycles, { in0, in1, in2, out0: start });
       const base = { input: in0, in1, in2, want, got: null, steps: outcome.steps, trace: [],
                      used: programRamUsed(outcome.machine) };
       if (outcome.error) { runs.push({ ...base, ok: false, badRow: outcome.row }); break; }
