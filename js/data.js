@@ -154,7 +154,7 @@ const CHAPTERS = [
   {
     "id": "chapter-21",
     "partId": "part-5",
-    "title": "5.2 תנאי",
+    "title": "5.2 תנאים",
     "sceneId": "conditions"
   }
 ];
