@@ -7030,9 +7030,22 @@
     return demoTaskNumber() === 1;
   }
 
+  // Which programming task of chapter 5 the page is showing — a demonstration of
+  // 5.1 or the task of 5.2. They are the same page with the same everything on
+  // it: the תגיות column, the machine check, the question about saving before
+  // the solution. Only the note they were opened from is different.
   function demoProgramTask() {
     if (!state.programTaskId) return null;
     return (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : [])
+      .concat(typeof CASES_TASKS !== "undefined" ? CASES_TASKS : [])
+      .find((t) => t.id === state.programTaskId) || null;
+  }
+
+  // …and which of the two it is, when that matters — where "המשך" goes at the
+  // end, and which note opens again behind it.
+  function casesProgramTask() {
+    if (!state.programTaskId) return null;
+    return (typeof CASES_TASKS !== "undefined" ? CASES_TASKS : [])
       .find((t) => t.id === state.programTaskId) || null;
   }
 
@@ -7833,6 +7846,9 @@
   // word about General Groves. A learner who only read the solution goes back to
   // the room itself and can still run the program.
   function programStoryOnPatch() {
+    // 5.2's task goes back to the note it was taken from, in its own room.
+    const cases = casesProgramTask();
+    if (cases) return { ...casesReturnTarget(), programTaskId: null, casesNoteList: true };
     // A demonstration's last word goes back to ITS note, the way "חזרה למשימות"
     // does — 4.3's message from Groves is a different chapter's ending.
     const demo = demoProgramTask();
@@ -10882,8 +10898,51 @@
     return typeof CASES_TASKS !== "undefined" ? CASES_TASKS : [];
   }
 
-  function handleCasesNoteTask() {
-    return setState({ infoDialog: CONTINUE_SOON_TEXT });
+  function casesTaskDefById(id) {
+    return casesTaskDefs().find((task) => task.id === id) || null;
+  }
+
+  // Back to the room 5.2's note is lying in.
+  function casesReturnTarget() {
+    const chapter = chapterById("chapter-21");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    if (!chapter || !scene) return { screen: "story" };
+    const idx = panelIndexByImage(scene, "279_5.2_room.svg");
+    return {
+      screen: "story",
+      chapterId: chapter.id,
+      sceneId: chapter.sceneId,
+      panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
+      started: true
+    };
+  }
+
+  // 5.2's programming page: the same page 5.1's demonstrations are written on.
+  // By now the learner knows where the requirements window lives, so it is
+  // simply parked open rather than handed over on a card.
+  function openCasesProgramPage(taskId) {
+    const opened = setState({
+      casesNoteList: false,
+      panelObjectDialog: null,
+      programTaskId: taskId,
+      programPanels: { ...programPanelsState(), task: true, alu: false, guide: true, pos: {} },
+      programTaskArrow: false,
+      programDialog: {}
+    });
+    startAssemblerHintTimer();
+    return opened;
+  }
+
+  function handleCasesNoteTask(id) {
+    const task = casesTaskDefById(id);
+    if (!task) return;
+    const missing = (task.requires || []).filter((req) => !taskCompleted(req));
+    if (missing.length) {
+      return setState({ infoDialog: `קודם צריך לעשות את ${missing.join(", ")}.` });
+    }
+    // A task whose requirements have not been written yet is not there yet.
+    if (!task.text) return setState({ infoDialog: CONTINUE_SOON_TEXT });
+    return openCasesProgramPage(task.id);
   }
 
   function renderCasesNoteList() {
@@ -29076,7 +29135,7 @@
     if (action === "demo-note-task") return handleDemoNoteTask(button.dataset.taskId);
     if (action === "demo-note-close") return setState({ demoNoteList: false });
     if (action === "cases-note-close") return setState({ casesNoteList: false });
-    if (action === "cases-note-task") return handleCasesNoteTask();
+    if (action === "cases-note-task") return handleCasesNoteTask(button.dataset.taskId);
     if (action === "sheet-guide-toggle") return setSheetGuide({ open: !sheetGuideState().open });
     if (action === "sheet-guide-prev") return stepSheetGuide(-1);
     if (action === "sheet-guide-next") return stepSheetGuide(1);
