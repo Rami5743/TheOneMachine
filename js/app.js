@@ -8627,7 +8627,30 @@
   function programInstructionCount() {
     if (programViewRender) return programViewRender.rows;
     const fit = Math.ceil(window.innerHeight / (programSquareSize() * 2));
-    return Math.max(PROGRAM_INSTRUCTIONS_MIN, fit + PROGRAM_INSTRUCTIONS_SLACK) + programGrownInstructions;
+    const room = Math.max(PROGRAM_INSTRUCTIONS_MIN, fit + PROGRAM_INSTRUCTIONS_SLACK) + programGrownInstructions;
+    // …and never shorter than what is already written on it. The page grows as
+    // the learner scrolls down it, but that growth starts over on the next
+    // visit — so a program that outgrew the page once would come back with its
+    // tail cut off, and the machine would run off the end of it. 5.2's task is
+    // the first that is long enough for this to happen.
+    return Math.max(room, programWrittenRows());
+  }
+
+  // The last instruction anything was written on, counted from 1. Read off the
+  // page's own progress rather than by walking the rows, which is what
+  // programInstructionCount() is being asked for in the first place.
+  function programWrittenRows() {
+    const progress = programSheetProgress();
+    let last = 0;
+    Object.keys(progress.bits || {}).forEach((key) => {
+      const row = Number(String(key).split(":")[0]);
+      if (Number.isInteger(row) && row + 1 > last) last = row + 1;
+    });
+    Object.keys(progress.labels || {}).forEach((key) => {
+      const row = Number(key);
+      if (Number.isInteger(row) && row + 1 > last) last = row + 1;
+    });
+    return last;
   }
 
   // The four things the ALU's output can be written to, and the two bits that

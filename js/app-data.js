@@ -1256,6 +1256,12 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       id: "cases-calculator",
       label: "הדגמה",
       requires: [],
+      // Its row in all three of "דירוגי תוכנה": the program's length, how many
+      // beats the machine needed for the five operations together, and how much
+      // of the RAM it asked for.
+      rankId: "prg-calculator",
+      rankLabel: "הדגמה",
+      rankRuntime: true,
       title: "משימת תכנות: הדגמה",
       text: "כתוב תוכנה שמקבלת 2 מספרים: אחד ב-In0 והשני ב-In1.\n\nבנוסף היא מקבלת מספר פעולה ב-In2. התוכנה מבצעת את הפעולה ומציגה את התשובה ב-Out0.\n\nרשימת הפעולות:\n0 - חיבור\n1 - חיסור (In0-In1)\n2 - כפל\n3 - חילוק (In0/In1)\n4 - ריבוע (In0^2)"
     }
