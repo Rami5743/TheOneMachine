@@ -1254,7 +1254,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
   const CASES_TASKS = [
     {
       id: "cases-calculator",
-      label: "מחשבון מתקדם",
+      label: "הדגמה",
       requires: []
     }
   ];
