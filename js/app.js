@@ -7354,16 +7354,19 @@
   // A task's requirements: paragraphs, and **this** is bold. The stars are taken
   // out BEFORE the Latin runs are isolated — that pass counts "*" as part of a
   // run, and would have carried the markers off into an isolate of their own.
+  // An empty line starts a new paragraph; a single new line breaks the line
+  // where it is, which is what a list of operations needs — one to a line, and
+  // not the airy gap between paragraphs between each of them.
   function taskTextHtml(text) {
     return String(text || "")
       .split(/\n\s*\n/)
       .map((part) => part.trim())
       .filter(Boolean)
       .map((part) => {
-        const html = part.split("**").map((piece, i) => {
+        const html = part.split("\n").map((line) => line.split("**").map((piece, i) => {
           const body = esc(isolateLatinRuns(piece));
           return i % 2 === 1 ? `<strong>${body}</strong>` : body;
-        }).join("");
+        }).join("")).join("<br />");
         return `<p>${html}</p>`;
       })
       .join("");
@@ -8968,10 +8971,10 @@
     const addr = address & PROGRAM_MASK;
     if (addr >= PROGRAM_IN_BASE && addr < PROGRAM_IN_BASE + PROGRAM_PORTS) {
       // In0 is where it always was; from 5.1 a task can be given a second
-      // number, and In1 answers with it instead of with nothing.
-      if (addr === PROGRAM_IN_BASE) return machine.in0 & PROGRAM_MASK;
-      if (addr === PROGRAM_IN_BASE + 1) return (machine.in1 || 0) & PROGRAM_MASK;
-      return 0;
+      // number, and from 5.2 a third — the one that says which sum to do. A port
+      // the task was not given anything on answers with nothing.
+      const port = [machine.in0, machine.in1, machine.in2, machine.in3][addr - PROGRAM_IN_BASE];
+      return (port || 0) & PROGRAM_MASK;
     }
     return (machine.mem[addr] || 0) & PROGRAM_MASK;
   }
@@ -9052,7 +9055,8 @@
     // machine, and a program that has to count from 0 has to say so itself.
     const mem = {};
     if (Number.isInteger(options.out0)) mem[PROGRAM_OUT_BASE] = options.out0 & PROGRAM_MASK;
-    let machine = { d: 0, a: 0, in0: (options.in0 || 0) & PROGRAM_MASK, in1: (options.in1 || 0) & PROGRAM_MASK, mem };
+    let machine = { d: 0, a: 0, in0: (options.in0 || 0) & PROGRAM_MASK,
+      in1: (options.in1 || 0) & PROGRAM_MASK, in2: (options.in2 || 0) & PROGRAM_MASK, mem };
     const total = programInstructionCount();
     // What Out0 held after each beat.
     const out = [];
@@ -9105,6 +9109,7 @@
       steps: Number.isInteger(saved?.steps) ? Math.max(0, saved.steps) : 0,
       in0: (saved && saved.in0 && typeof saved.in0 === "object") ? saved.in0 : {},
       in1: (saved && saved.in1 && typeof saved.in1 === "object") ? saved.in1 : {},
+      in2: (saved && saved.in2 && typeof saved.in2 === "object") ? saved.in2 : {},
       note: typeof saved?.note === "string" ? saved.note : ""
     };
   }
@@ -9132,36 +9137,54 @@
   // on a line changes that line and the ones under it and nothing above it.
   // Some of 5.1's tasks are given TWO numbers, and then the bench has a box for
   // each of them.
+  function programTestInputCount(test) {
+    const asked = Number(test && test.inputs);
+    if (!Number.isFinite(asked)) return 1;
+    return Math.max(1, Math.min(PROGRAM_PORTS, Math.trunc(asked)));
+  }
+
   function programManualInputCount() {
-    const test = programTestData();
-    return test && test.inputs === 2 ? 2 : 1;
+    return programTestInputCount(programTestData());
+  }
+
+  // The ports the bench has a box for, In0 first. A task given one number has
+  // only In0; 5.1's have In0 and In1; 5.2's also has In2.
+  const PROGRAM_PORT_KEYS = ["in0", "in1", "in2", "in3"];
+
+  function programManualPorts() {
+    return PROGRAM_PORT_KEYS.slice(0, programManualInputCount());
   }
 
   function programManualRows() {
-    const { steps, in0, in1 } = programManualState();
-    const two = programManualInputCount() === 2;
+    const typedIn = programManualState();
+    const ports = programManualPorts();
     const rows = [];
     const extras = [];
-    let machine = { d: 0, a: 0, in0: 0, in1: 0, mem: {} };
+    let machine = { d: 0, a: 0, in0: 0, in1: 0, in2: 0, mem: {} };
     let error = null;
-    for (let i = 0; i < steps; i += 1) {
-      const typed = programManualInput(in0, i);
-      const typed1 = programManualInput(in1, i);
-      machine = { ...machine, in0: programManualNumber(typed), in1: programManualNumber(typed1) };
+    // A port with a box of its own is not also listed among the addresses the
+    // program touched — it is already a column.
+    const isPortColumn = (address) => ports.some((key, at) => address === PROGRAM_IN_BASE + at && (at === 0 || key));
+    for (let i = 0; i < typedIn.steps; i += 1) {
+      const typed = {};
+      ports.forEach((key) => { typed[key] = programManualInput(typedIn[key] || {}, i); });
+      machine = { ...machine };
+      ports.forEach((key) => { machine[key] = programManualNumber(typed[key]); });
       const step = programExecuteRow(machine, i);
       if (step.error) { error = i; break; }
       step.touched.forEach((address) => {
-        if (address === PROGRAM_IN_BASE) return;
-        if (two && address === PROGRAM_IN_BASE + 1) return;
+        if (isPortColumn(address)) return;
         if (!extras.includes(address)) extras.push(address);
       });
       machine = step.machine;
-      rows.push({ index: i, in0: typed, in1: typed1, done: true, d: machine.d, a: machine.a, mem: machine.mem });
+      rows.push({ index: i, typed, done: true, d: machine.d, a: machine.a, mem: machine.mem });
     }
     const at = rows.length;
-    rows.push({ index: at, in0: programManualInput(in0, at), in1: programManualInput(in1, at), done: false, mem: {} });
-    extras.sort((one, two2) => one - two2);
-    return { rows, extras, error, at };
+    const last = {};
+    ports.forEach((key) => { last[key] = programManualInput(typedIn[key] || {}, at); });
+    rows.push({ index: at, typed: last, done: false, mem: {} });
+    extras.sort((one, other) => one - other);
+    return { rows, extras, error, at, ports };
   }
 
   // The press that runs the next instruction. An instruction that was never
@@ -9176,17 +9199,16 @@
 
   function renderProgramManualWindow() {
     if (!state.programManualTest) return "";
-    const { rows, extras, error } = programManualRows();
+    const { rows, extras, error, ports } = programManualRows();
     const { note } = programManualState();
-    const two = programManualInputCount() === 2;
-    const heads = ["#", "D", "A", "IN0"].concat(two ? ["IN1"] : []).concat(extras.map(programAddressLabel));
+    const heads = ["#", "D", "A"].concat(ports.map((key) => key.toUpperCase()))
+      .concat(extras.map(programAddressLabel));
     const cell = (value) => `<td dir="ltr">${value === undefined ? "" : esc(String(programSigned(value)))}</td>`;
     const body = rows.map((row) => `
       <tr class="${row.done ? "" : "prog-run-row-next"}">
         <td class="prog-run-index" dir="ltr">${row.index + 1}</td>
         ${row.done ? `${cell(row.d)}${cell(row.a)}` : "<td></td><td></td>"}
-        <td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual="${row.index}" value="${esc(row.in0)}" aria-label="In0 בשורה ${row.index + 1}" /></td>
-        ${two ? `<td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual-in1="${row.index}" value="${esc(row.in1 || "")}" aria-label="In1 בשורה ${row.index + 1}" /></td>` : ""}
+        ${ports.map((key, at) => `<td class="prog-run-in"><input class="prog-run-input" type="text" inputmode="numeric" dir="ltr" data-program-manual="${row.index}" data-program-manual-port="${at}" value="${esc(row.typed[key] || "")}" aria-label="In${at} בשורה ${row.index + 1}" /></td>`).join("")}
         ${extras.map((address) => (row.done ? cell(row.mem[address] || 0) : "<td></td>")).join("")}
       </tr>`).join("");
     const message = error !== null ? `פקודה ${error + 1} לא הושלמה` : note;
@@ -9258,6 +9280,9 @@
     if (state.programTaskId === "demo-divide") {
       return typeof PROGRAM_DIVIDE_TEST !== "undefined" ? PROGRAM_DIVIDE_TEST : null;
     }
+    if (state.programTaskId === "cases-calculator") {
+      return typeof PROGRAM_CALC_TEST !== "undefined" ? PROGRAM_CALC_TEST : null;
+    }
     return typeof PROGRAM_TEST !== "undefined" ? PROGRAM_TEST : null;
   }
 
@@ -9307,10 +9332,18 @@
     const runs = [];
     const cycles = test.cycles || 4000;
     const start = Number.isInteger(test.startOut) ? test.startOut : 500;
+    // A case is the numbers the machine is given and then the answer wanted: one
+    // number for most tasks, two from 5.1, three from 5.2 (the third says which
+    // sum to do). How many is what the test itself declares.
+    // The answer wanted is the LAST of a case and the numbers the machine is
+    // given are the ones before it — however many ports the task uses, and
+    // whether or not it bothers to declare them.
+    const ports = programTestInputCount(test);
     for (const one of (test.cases || [])) {
-      const [in0, in1, want] = one;
-      const outcome = programRunWithJumps(cycles, { in0, in1, out0: start });
-      const base = { input: in0, in1, want, got: null, steps: outcome.steps, trace: [],
+      const want = one[one.length - 1];
+      const [in0, in1, in2] = one.slice(0, -1);
+      const outcome = programRunWithJumps(cycles, { in0, in1: ports > 1 ? in1 : 0, in2: ports > 2 ? in2 : 0, out0: start });
+      const base = { input: in0, in1, in2, want, got: null, steps: outcome.steps, trace: [],
                      used: programRamUsed(outcome.machine) };
       if (outcome.error) { runs.push({ ...base, ok: false, badRow: outcome.row }); break; }
       // A half-written instruction, or a jump to an address that is not on the
@@ -9792,7 +9825,8 @@
     }
     if (bad.noStop && test.noStopText) {
       return { ok: false, title: test.failTitle, text: test.noStopText
-        .replace("{in0}", String(bad.input)).replace("{in1}", String(bad.in1)) };
+        .replace("{in0}", String(bad.input)).replace("{in1}", String(bad.in1))
+        .replace("{in2}", String(bad.in2)) };
     }
     if (bad.badRow !== null && bad.badRow !== undefined) {
       return { ok: false, title: test.failTitle, text: `פקודה ${bad.badRow + 1} לא הושלמה.` };
@@ -9800,6 +9834,7 @@
     if (test.wrongAnswerText) {
       return { ok: false, title: test.failTitle, text: test.wrongAnswerText
         .replace("{in0}", String(bad.input)).replace("{in1}", String(bad.in1))
+        .replace("{in2}", String(bad.in2))
         .replace("{got}", String(bad.got)).replace("{want}", String(bad.want)) };
     }
     return {
@@ -27854,8 +27889,9 @@
   document.addEventListener("input", (event) => {
     const box = event.target.closest && event.target.closest(".prog-run-input");
     if (!box || !state.programManualTest) return;
-    const which = box.dataset.programManual !== undefined ? "in0" : "in1";
-    const line = Number(which === "in0" ? box.dataset.programManual : box.dataset.programManualIn1);
+    const at = Number(box.dataset.programManualPort);
+    const which = PROGRAM_PORT_KEYS[Number.isInteger(at) ? at : 0] || "in0";
+    const line = Number(box.dataset.programManual);
     if (!Number.isInteger(line)) return;
     const now = programManualState();
     const next = { ...now, [which]: { ...now[which], [line]: box.value } };

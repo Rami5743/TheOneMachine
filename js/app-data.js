@@ -1255,7 +1255,9 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     {
       id: "cases-calculator",
       label: "הדגמה",
-      requires: []
+      requires: [],
+      title: "משימת תכנות: הדגמה",
+      text: "כתוב תוכנה שמקבלת 2 מספרים: אחד ב-In0 והשני ב-In1.\n\nבנוסף היא מקבלת מספר פעולה ב-In2. התוכנה מבצעת את הפעולה ומציגה את התשובה ב-Out0.\n\nרשימת הפעולות:\n0 - חיבור\n1 - חיסור (In0-In1)\n2 - כפל\n3 - חילוק (In0/In1)\n4 - ריבוע (In0^2)"
     }
   ];
 
@@ -1356,6 +1358,40 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
     incompleteText: "פקודה {line} לא הושלמה.",
     noStopText: "כשהקלטים היו {in0} ו-{in1} התוכנה לא נעצרה.",
     wrongAnswerText: "כשהקלטים היו {in0} ו-{in1}, ב-Out0 התקבל {got} במקום {want}.",
+    captions: {
+      load: "התוכנה נטענת לזיכרון התוכנה",
+      connect: "הריסט מתנתק",
+      run: "המכונה רצה",
+      check: "בודקים מה יצא ב-Out0",
+      reset: ""
+    }
+  };
+
+  // 5.2's task: two numbers and, on In2, which sum to do with them. Every one of
+  // the five operations is tried, and the cases are given in the order the list
+  // in the requirements gives them, so a program that has only got as far as
+  // addition fails on the first case it cannot do rather than on a random one.
+  const PROGRAM_CALC_TEST = {
+    kind: "answer",
+    title: "בדיקת התוכנה",
+    cycles: 6000,
+    startOut: 500,
+    inputs: 3,
+    cases: [
+      [7, 3, 0, 10], [12, 9, 0, 21],
+      [7, 3, 1, 4], [12, 9, 1, 3],
+      [7, 3, 2, 21], [12, 9, 2, 108],
+      [7, 3, 3, 2], [100, 10, 3, 10],
+      [7, 3, 4, 49], [12, 9, 4, 144]
+    ],
+    passTitle: "הבדיקה הצליחה",
+    passText: "בכל חמש הפעולות שנבדקו התוכנה כתבה ב-Out0 את התשובה הנכונה ונעצרה.",
+    failTitle: "הבדיקה נכשלה",
+    emptyText: "עדיין לא כתבת אף פקודה.",
+    ranOffText: "אחרי {steps} פקודות המכונה הגיעה לשורה {line}, שלא כתבת בה כלום.",
+    incompleteText: "פקודה {line} לא הושלמה.",
+    noStopText: "כשהקלטים היו {in0} ו-{in1} ומספר הפעולה היה {in2}, התוכנה לא נעצרה.",
+    wrongAnswerText: "כשהקלטים היו {in0} ו-{in1} ומספר הפעולה היה {in2}, ב-Out0 התקבל {got} במקום {want}.",
     captions: {
       load: "התוכנה נטענת לזיכרון התוכנה",
       connect: "הריסט מתנתק",
