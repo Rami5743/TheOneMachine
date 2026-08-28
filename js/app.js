@@ -6330,8 +6330,12 @@
     // Hebrew sentence's full stop and must stay outside the isolate — inside it
     // the dot is carried to the isolate's right edge and lands between "ב-" and
     // the word ("ב-.Out0" instead of "ב-Out0.").
-    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.]*/g, (run) => {
-      const trail = /[./]+$/.exec(run);
+    // The signs of a sum belong INSIDE it too, for the same reason the other way
+    // round: "In0-In1" left as two isolates with a bare minus between them is
+    // read right to left like the Hebrew around it, and the requirements of 5.2
+    // said "In1-In0" — the wrong way — on the screen.
+    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.+^-]*/g, (run) => {
+      const trail = /[./+^-]+$/.exec(run);
       const core = trail ? run.slice(0, run.length - trail[0].length) : run;
       return `\u2066${core}\u2069${trail ? trail[0] : ""}`;
     });
@@ -9042,7 +9046,10 @@
       if (no) value = ~value;
     }
     value &= PROGRAM_MASK;
-    const next = { d: machine.d, a: machine.a, in0: machine.in0, in1: machine.in1, mem: { ...machine.mem } };
+    // Everything the machine is carrying comes through — the input ports
+    // included. Listing them here by name is what lost In2 the moment a second
+    // instruction ran: it was handed in, read once, and then quietly gone.
+    const next = { ...machine, mem: { ...machine.mem } };
     const dest = `${word[12]}${word[13]}`;
     if (dest === "01") next.d = value;
     else if (dest === "10") next.a = value;
