@@ -1263,7 +1263,7 @@ And ו־Not הם כרטיסים שמבצעים חישוב.`,
       rankLabel: "הדגמה",
       rankRuntime: true,
       title: "משימת תכנות: הדגמה",
-      text: "כתוב תוכנה שמקבלת 2 מספרים: אחד ב-In0 והשני ב-In1.\n\nבנוסף היא מקבלת מספר פעולה ב-In2. התוכנה מבצעת את הפעולה ומציגה את התשובה ב-Out0.\n\nרשימת הפעולות:\n0 - חיבור\n1 - חיסור (In0-In1)\n2 - כפל\n3 - חילוק (In0/In1)\n4 - ריבוע (In0^2)",
+      text: "כתוב תוכנה שמקבלת 2 מספרים: אחד ב-In0 והשני ב-In1.\n\nבנוסף היא מקבלת מספר פעולה ב-In2. התוכנה מבצעת את הפעולה ומציגה את התשובה ב-Out0.\n\nרשימת הפעולות:\n0 - חיבור\n1 - חיסור (In0-In1)\n2 - כפל\n3 - חילוק (In0/In1)\n4 - ריבוע (In0^2)\n\nהחילוק הוא חילוק שלם: 7 חלקי 3 הוא 2, והשארית פשוט נזרקת.\n\nאתה יכול להניח ששני המספרים הם לפחות 1, ושמספר הפעולה הוא אחד מהחמישה שברשימה.",
       // The hints walk it in the order one writes it: first that this is five
       // small programs and a choice, then the choice itself, then each of the
       // five — and two of them are programs the learner already wrote and saved,
