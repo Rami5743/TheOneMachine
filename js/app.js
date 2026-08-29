@@ -9654,8 +9654,13 @@
     const labels = {};
     const texts = {};
     if (demo) {
-      const steps = (demo.solution && demo.solution[0])
-        ? (demo.solution[0].program || demo.solution[0].steps || []) : [];
+      // What is laid down has to RUN, so it is the last walkthrough carrying a
+      // whole program. 5.2's first walkthrough is only the choice at the head of
+      // its program, and writing that down on its own solves nothing.
+      const variants = Array.isArray(demo.solution) ? demo.solution : [];
+      const whole = variants.slice().reverse().find((one) => Array.isArray(one.program));
+      const steps = whole ? whole.program
+        : (variants[0] ? (variants[0].program || variants[0].steps || []) : []);
       steps.forEach((step, row) => {
         String(step.bits || "").split("").forEach((value, i) => {
           if (value === "0" || value === "1") bits[`${row}:${i + 1}`] = value;
