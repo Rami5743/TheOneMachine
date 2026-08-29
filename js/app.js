@@ -6334,7 +6334,11 @@
     // round: "In0-In1" left as two isolates with a bare minus between them is
     // read right to left like the Hebrew around it, and the requirements of 5.2
     // said "In1-In0" — the wrong way — on the screen.
-    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.+^-]*/g, (run) => {
+    // A power is written with the raised digit itself — In0², 2¹⁶ — and it is
+    // part of the run it is raised over. Left outside, it is laid down to the
+    // LEFT of the isolate like any Hebrew that follows, and the square came out
+    // in front of the number instead of over it.
+    return String(text ?? "").replace(/[A-Za-z0-9*][A-Za-z0-9*/.+^²³¹⁰⁴-⁹-]*/g, (run) => {
       const trail = /[./+^-]+$/.exec(run);
       const core = trail ? run.slice(0, run.length - trail[0].length) : run;
       return `\u2066${core}\u2069${trail ? trail[0] : ""}`;
