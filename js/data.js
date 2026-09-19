@@ -3388,7 +3388,7 @@ const SCENES = {
         ]
       },
       {
-        "comment": "5.2's last task is done: the machine ran the five operations, and von Neumann sets the demonstration for the morning. Placeholder art — the finished room with him standing in it; its own raster (280_5.2_all-works.jpg) is still to come.",
+        "comment": "5.2's last task is done: the machine ran the five operations, and von Neumann sets the demonstration for the morning. Its own art — the finished room, CPU0 and RAM racks wired to the ports, with him standing in it.",
         "image": "assets/panels/280_5.2_all-works.svg",
         "year": "1944",
         "read": "מצוין! הכל עובד. מחר בבוקר נציג הכל לרוברט. תבוא בשמונה לוודא שהכול מוכן. אני אגיע עם רוברט בסביבות שמונה וחצי."
