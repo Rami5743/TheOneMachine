@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "ai-tools": {
+      "source": {
+        "source": "github",
+        "repo": "Rami5743/AI_TOOLS"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "ai-tools@ai-tools": true
+  }
+}

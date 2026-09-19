@@ -60,10 +60,11 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
       map: "programCounts",
       rows: "programs"
     },
-    // The last two of 5.1's tasks — the first ones where the same answer can be
-    // reached in very different ways — are also ranked by how long the machine
-    // ran and by how much memory the program took. `runtimeOnly` keeps those two
-    // tabs to the tasks that carry the measurement.
+    // The 5.1 tasks that ANSWER and stop — where the same answer can be reached
+    // in very different ways — are also ranked by how long the machine ran and by
+    // how much memory the program took. `runtimeOnly` keeps those two tabs to the
+    // tasks that carry the measurement; a loop that never stops has no run to
+    // measure.
     runtime: {
       key: "runtime", ldim: "runtime", label: "זמן ריצה",
       countHead: "צעדים",
@@ -149,11 +150,14 @@ function createRankings({ getState, esc, adaptGender, topbar, isRegistered, lead
     // 4.3's single task carries a length but is not timed or measured, so it is
     // only on the first of the three software tabs.
     if (!tab || !tab.runtimeOnly) push(typeof PROGRAM_TASK !== "undefined" ? PROGRAM_TASK : null);
-    // 5.1's demonstrations, in the order the note lists them.
-    (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : []).forEach((task) => {
-      if (tab && tab.runtimeOnly && !task.rankRuntime) return;
-      push(task);
-    });
+    // 5.1's demonstrations, in the order the note lists them, and then 5.2's
+    // task under them — the same order the chapters are played in.
+    (typeof DEMO_TASKS !== "undefined" ? DEMO_TASKS : [])
+      .concat(typeof CASES_TASKS !== "undefined" ? CASES_TASKS : [])
+      .forEach((task) => {
+        if (tab && tab.runtimeOnly && !task.rankRuntime) return;
+        push(task);
+      });
     return rows;
   }
 

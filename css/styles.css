@@ -5989,6 +5989,18 @@ object.panel-image.is-pending {
 }
 .prog-label-input:focus { outline: 2px solid rgba(179, 128, 26, 0.5); outline-offset: -2px; }
 
+/* A tag holds text, and the browser would rather PICK UP text than let a mark be
+   dragged out from it. Nothing here is carried anywhere. */
+.prog-label,
+.prog-label-input { -webkit-user-drag: none; }
+
+/* And while a mark is actually being dragged, the tag under the pointer is not
+   swept through either — the drag belongs to the paper, not to the box. */
+body.prog-marking .prog-label-input {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .prog-slot-jump { background: #f3ecd9; }
 .prog-slot-jump .prog-slot-btn { text-align: center; }
 .prog-jump-menu { min-width: 7.5rem; }
@@ -6191,6 +6203,18 @@ object.panel-image.is-pending {
 
 /* "בדיקה": the workbench animation that loads the program and runs it. It takes
    most of the screen, over everything else on the page. */
+/* The check takes the screen, but it leaves a margin — and what shows in that
+   margin (the page's own navigation, the tip window's "המשך") is NOT reachable
+   while it is up. Pressing one of them did nothing at all, which reads as a dead
+   button rather than as a covered one, so the margin is dimmed. */
+.prog-test-overlay::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: rgba(12, 8, 4, 0.55);
+}
+
 .prog-test-overlay {
   position: fixed;
   inset: 3vh 3vw;
