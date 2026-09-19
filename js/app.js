@@ -7857,9 +7857,23 @@
   // word about General Groves. A learner who only read the solution goes back to
   // the room itself and can still run the program.
   function programStoryOnPatch() {
-    // 5.2's task goes back to the note it was taken from, in its own room.
+    // 5.2's task goes back to the note it was taken from, in its own room —
+    // except for the LAST one on that note. Finishing it is the end of 5.2, so
+    // the story walks on instead: von Neumann sets the demonstration for the
+    // morning, and then the night closes the chapter on "המשך יבוא...".
     const cases = casesProgramTask();
-    if (cases) return { ...casesReturnTarget(), programTaskId: null, casesNoteList: true };
+    if (cases) {
+      const allCases = casesTaskDefs();
+      const casesDone = allCases.length > 0
+        && cases.id === allCases[allCases.length - 1].id
+        && taskCompleted(cases.id);
+      if (casesDone) {
+        const target = casesStoryEndTarget();
+        if (target) return { ...target, programTaskId: null, casesNoteList: false,
+                             replayNonce: state.replayNonce + 1 };
+      }
+      return { ...casesReturnTarget(), programTaskId: null, casesNoteList: true };
+    }
     // A demonstration's last word goes back to ITS note, the way "חזרה למשימות"
     // does — 4.3's message from Groves is a different chapter's ending.
     const demo = demoProgramTask();
@@ -10996,6 +11010,18 @@
       panelIndex: idx >= 0 ? idx : scene.panels.length - 1,
       started: true
     };
+  }
+
+  // Where 5.2 ends: the slide von Neumann speaks on once the demonstration
+  // program runs, two slides before the chapter's night.
+  function casesStoryEndTarget() {
+    const chapter = chapterById("chapter-21");
+    const scene = chapter ? SCENES[chapter.sceneId] : null;
+    if (!chapter || !scene) return null;
+    const idx = panelIndexByImage(scene, "280_5.2_all-works.svg");
+    if (idx < 0) return null;
+    return { screen: "story", chapterId: chapter.id, sceneId: chapter.sceneId,
+             panelIndex: idx, started: true };
   }
 
   // 5.2's programming page: the same page 5.1's demonstrations are written on.

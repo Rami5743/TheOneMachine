@@ -3386,6 +3386,18 @@ const SCENES = {
             "height": 17.13
           }
         ]
+      },
+      {
+        "comment": "5.2's last task is done: the machine ran the five operations, and von Neumann sets the demonstration for the morning. Placeholder art — the finished room with him standing in it; its own raster (280_5.2_all-works.jpg) is still to come.",
+        "image": "assets/panels/280_5.2_all-works.svg",
+        "year": "1944",
+        "read": "מצוין! הכל עובד. מחר בבוקר נציג הכל לרוברט. תבוא בשמונה לוודא שהכול מוכן. אני אגיע עם רוברט בסביבות שמונה וחצי."
+      },
+      {
+        "comment": "Night over Los Alamos again, and the story stops here for now: the slide carries the \"המשך יבוא...\" itself, so the released build does not strand the player at the end of 5.2.",
+        "image": "assets/panels/281_5.2_night.svg",
+        "year": "1944",
+        "read": ""
       }
     ]
   }
